@@ -562,7 +562,7 @@ export const Continuity: React.FC = () => {
             {
                 showCreateModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                        <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-xl border border-white/20 overflow-hidden">
+                        <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-xl border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
                             <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-rose-50/30 dark:bg-rose-900/10">
                                 <h2 className="text-2xl font-bold text-rose-900 dark:text-rose-100 tracking-tight">Nouveau Processus Critique</h2>
                             </div>
@@ -604,7 +604,7 @@ export const Continuity: React.FC = () => {
             {
                 showDrillModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                        <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-white/20 overflow-hidden">
+                        <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
                             <div className="p-8 border-b border-gray-100 dark:border-white/5">
                                 <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Enregistrer un exercice</h2>
                             </div>
