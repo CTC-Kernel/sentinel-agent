@@ -6,11 +6,11 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  background-color: #F0F2F5;
+  background-color: #fafafa;
 }
 
 .dark body {
-  background-color: #050505;
+  background-color: #0f172a;
 }
 
 /* Custom Scrollbar - Enhanced visibility */
@@ -50,17 +50,17 @@ body {
 
 /* Ceramic/Glass Panel - Enhanced contrast */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.80);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.06);
 }
 
 .dark .glass-panel {
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  background: rgba(30, 41, 59, 0.90);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* Form inputs - Better contrast and touch targets */
@@ -128,4 +128,17 @@ a:focus-visible {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-duration: 150ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fix modal overlays to cover entire screen */
+.fixed.inset-0 {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  /* Dynamic viewport height for mobile */
+  width: 100vw !important;
 }
