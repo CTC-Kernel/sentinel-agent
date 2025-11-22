@@ -11,6 +11,8 @@ import QRCode from 'qrcode';
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { TableSkeleton } from '../components/ui/Skeleton';
+import { Pagination, usePagination } from '../components/ui/Pagination';
 
 export const Assets: React.FC = () => {
     const [assets, setAssets] = useState<Asset[]>([]);
@@ -237,6 +239,7 @@ export const Assets: React.FC = () => {
     };
 
     const filteredAssets = assets.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
+    const { currentPage, paginatedItems, setCurrentPage, setItemsPerPage, totalItems, itemsPerPage } = usePagination(filteredAssets, 20);
 
     const handleAddMaintenance = async () => {
         if (!selectedAsset || !newMaintenance.description) return;
@@ -337,8 +340,12 @@ export const Assets: React.FC = () => {
                             <tr><th className="px-8 py-4">Actif</th><th className="px-6 py-4">Type</th><th className="px-6 py-4">Classification</th><th className="px-6 py-4">Statut</th><th className="px-6 py-4">Localisation</th><th className="px-6 py-4 text-right">Actions</th></tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                            {loading ? (<tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400">Chargement...</td></tr>) : filteredAssets.length === 0 ? (<tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">Aucun actif trouvé.</td></tr>) : (
-                                filteredAssets.map((asset) => {
+                            {loading ? (
+                                <tr><td colSpan={6}><TableSkeleton rows={5} columns={6} /></td></tr>
+                            ) : paginatedItems.length === 0 ? (
+                                <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">Aucun actif trouvé.</td></tr>
+                            ) : (
+                                paginatedItems.map((asset) => {
                                     const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
                                     const maintenanceOverdue = asset.nextMaintenance && new Date(asset.nextMaintenance) < new Date();
                                     return (
@@ -357,6 +364,17 @@ export const Assets: React.FC = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Pagination */}
+            {!loading && filteredAssets.length > 0 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
+            )}
 
             {/* Inspector Drawer */}
             {(selectedAsset || (!selectedAsset && Object.keys(editForm).length > 0 && !loading && inspectorTab === 'details')) && (
