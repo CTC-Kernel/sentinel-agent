@@ -85,21 +85,21 @@ export const Help: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-                <div className="glass-panel p-8 rounded-[2.5rem] hover:-translate-y-1 transition-transform duration-300 cursor-pointer group">
+                <div className="glass-panel p-8 rounded-[2.5rem] hover:-translate-y-1 hover:shadow-apple transition-all duration-300 cursor-pointer group">
                     <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center mb-6 text-orange-500 group-hover:scale-110 transition-transform">
                         <ShieldAlert className="h-6 w-6" />
                     </div>
                     <h3 className="font-bold text-xl text-slate-900 dark:text-white mb-2">Gestion des Risques</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Méthodologie ISO 27005, évaluation EBIOS et traitement des menaces.</p>
                 </div>
-                <div className="glass-panel p-8 rounded-[2.5rem] hover:-translate-y-1 transition-transform duration-300 cursor-pointer group">
+                <div className="glass-panel p-8 rounded-[2.5rem] hover:-translate-y-1 hover:shadow-apple transition-all duration-300 cursor-pointer group">
                     <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-6 text-blue-500 group-hover:scale-110 transition-transform">
                         <FileText className="h-6 w-6" />
                     </div>
                     <h3 className="font-bold text-xl text-slate-900 dark:text-white mb-2">Documents & Preuves</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Cycle de vie documentaire, versionning et liaison aux contrôles.</p>
                 </div>
-                <div className="glass-panel p-8 rounded-[2.5rem] hover:-translate-y-1 transition-transform duration-300 cursor-pointer group">
+                <div className="glass-panel p-8 rounded-[2.5rem] hover:-translate-y-1 hover:shadow-apple transition-all duration-300 cursor-pointer group">
                     <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center mb-6 text-purple-500 group-hover:scale-110 transition-transform">
                         <LayoutDashboard className="h-6 w-6" />
                     </div>
@@ -162,7 +162,7 @@ export const Help: React.FC = () => {
                             <textarea required rows={4} className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none dark:text-white"
                                 value={message} onChange={e => setMessage(e.target.value)} placeholder="Détaillez votre demande..." />
                         </div>
-                        <button type="submit" disabled={sending} className="w-full py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/20 hover:bg-brand-700 transition-all flex items-center justify-center disabled:opacity-70">
+                        <button type="submit" disabled={sending} className="w-full py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/20 hover:bg-brand-700 hover:scale-105 transition-all flex items-center justify-center disabled:opacity-70">
                             {sending ? 'Envoi...' : <><Send className="h-4 w-4 mr-2" /> Contacter le support</>}
                         </button>
                         <div className="text-center mt-4">

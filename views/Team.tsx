@@ -230,7 +230,7 @@ export const Team: React.FC = () => {
                     </div>
                 ) : (
                     users.map((u, i) => (
-                        <div key={i} className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center hover:shadow-apple transition-all duration-300 group relative border border-white/50 dark:border-white/5 ${u.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
+                        <div key={i} className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center hover:shadow-apple transition-all duration-300 hover:-translate-y-1 group relative border border-white/50 dark:border-white/5 ${u.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
                             {canAdmin && (
                                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     {!u.isPending && (
