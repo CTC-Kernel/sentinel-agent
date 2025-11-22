@@ -1,0 +1,10 @@
+env:
+  - variable: PORT
+    value: "8080"
+
+runConfig:
+  cpu: 1
+  memory: 512Mi
+  minInstances: 0
+  maxInstances: 100
+  concurrency: 80
