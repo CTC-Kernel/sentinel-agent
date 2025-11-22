@@ -445,7 +445,7 @@ export const Projects: React.FC = () => {
             {selectedProject && (
                 <div className="fixed inset-0 z-[100] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedProject(null)} />
-                    <div className="absolute inset-y-0 right-0 pl-10 max-w-full flex pointer-events-none">
+                    <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
                         <div className="w-screen max-w-3xl pointer-events-auto">
                             <div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
                                 {/* Header */}
