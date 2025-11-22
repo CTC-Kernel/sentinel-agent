@@ -51,7 +51,7 @@ export const Help: React.FC = () => {
             addToast("Message envoyé à Cyber Threat Consulting", "success");
             setSubject('');
             setMessage('');
-        } catch(e) {
+        } catch (e) {
             addToast("Erreur lors de l'envoi", "error");
         } finally {
             setSending(false);
@@ -71,17 +71,17 @@ export const Help: React.FC = () => {
             </div>
 
             <div className="relative max-w-xl mx-auto group">
-                 <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                 <div className="relative flex items-center glass-panel rounded-2xl p-1">
-                     <Search className="ml-4 h-5 w-5 text-slate-400" />
-                     <input 
-                        type="text" 
-                        placeholder="Rechercher une réponse..." 
+                <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                <div className="relative flex items-center glass-panel rounded-2xl p-1">
+                    <Search className="ml-4 h-5 w-5 text-slate-400" />
+                    <input
+                        type="text"
+                        placeholder="Rechercher une réponse..."
                         className="w-full pl-4 pr-4 py-3.5 bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder-slate-400 text-base font-medium"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                     />
-                 </div>
+                    />
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
@@ -112,13 +112,13 @@ export const Help: React.FC = () => {
                 <div className="space-y-4">
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white px-2 mb-6">Questions Fréquentes</h2>
                     {filteredFaqs.length === 0 ? (
-                        <div className="text-center py-12 glass-panel rounded-[2rem]">
+                        <div className="text-center py-12 glass-panel rounded-[2.5rem]">
                             <p className="text-slate-500">Aucun résultat pour cette recherche.</p>
                         </div>
                     ) : (
                         filteredFaqs.map((faq, i) => (
                             <div key={i} className="glass-panel rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-white/50 dark:border-white/5">
-                                <button 
+                                <button
                                     onClick={() => setOpenIndex(openIndex === i ? null : i)}
                                     className="w-full flex items-center justify-between p-6 text-left"
                                 >
@@ -154,16 +154,16 @@ export const Help: React.FC = () => {
                     <form onSubmit={handleContactSubmit} className="space-y-4">
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Sujet</label>
-                            <input required type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white" 
-                                value={subject} onChange={e => setSubject(e.target.value)} placeholder="Ex: Question sur un contrôle"/>
+                            <input required type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
+                                value={subject} onChange={e => setSubject(e.target.value)} placeholder="Ex: Question sur un contrôle" />
                         </div>
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Message</label>
-                            <textarea required rows={4} className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none dark:text-white" 
-                                value={message} onChange={e => setMessage(e.target.value)} placeholder="Détaillez votre demande..."/>
+                            <textarea required rows={4} className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none dark:text-white"
+                                value={message} onChange={e => setMessage(e.target.value)} placeholder="Détaillez votre demande..." />
                         </div>
                         <button type="submit" disabled={sending} className="w-full py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/20 hover:bg-brand-700 transition-all flex items-center justify-center disabled:opacity-70">
-                            {sending ? 'Envoi...' : <><Send className="h-4 w-4 mr-2"/> Contacter le support</>}
+                            {sending ? 'Envoi...' : <><Send className="h-4 w-4 mr-2" /> Contacter le support</>}
                         </button>
                         <div className="text-center mt-4">
                             <p className="text-[10px] text-slate-400">***REMOVED***</p>

@@ -10,6 +10,8 @@ import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { CardSkeleton } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
 
 export const Projects: React.FC = () => {
     const [projects, setProjects] = useState<Project[]>([]);
@@ -149,8 +151,7 @@ export const Projects: React.FC = () => {
                 progress: 0,
                 tasks: selectedProject.tasks.map(t => ({ ...t, status: 'A faire', id: Date.now() + Math.random().toString() })) // Reset tasks
             };
-            // @ts-expect-error: newProject type mismatch
-            const { id: _id, ...dataToUpdate } = newProject;
+            const { id: _id, ...dataToUpdate } = newProjData;
 
             const docRef = await addDoc(collection(db, 'projects'), newProjData);
             await logAction(user, 'CREATE', 'Project', `Duplication Projet: ${newProjData.name}`);
@@ -391,15 +392,20 @@ export const Projects: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {loading ? (
-                    <div className="col-span-full text-center py-10 text-gray-500">Chargement des projets...</div>
+                    <div className="col-span-full"><CardSkeleton count={3} /></div>
                 ) : filteredProjects.length === 0 ? (
-                    <div className="col-span-full text-center py-10 bg-white dark:bg-slate-850 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-                        <FolderKanban className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500">Aucun projet en cours.</p>
+                    <div className="col-span-full">
+                        <EmptyState
+                            icon={FolderKanban}
+                            title="Aucun projet en cours"
+                            description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
+                            actionLabel={filter ? undefined : "Créer un projet"}
+                            onAction={filter ? undefined : openCreateModal}
+                        />
                     </div>
                 ) : (
                     filteredProjects.map(project => (
-                        <div key={project.id} onClick={() => openInspector(project)} className="glass-panel rounded-[2rem] p-6 hover:shadow-apple transition-all duration-300 hover:-translate-y-1 flex flex-col cursor-pointer group border border-white/50 dark:border-white/5">
+                        <div key={project.id} onClick={() => openInspector(project)} className="glass-panel rounded-[2.5rem] p-6 hover:shadow-apple transition-all duration-300 hover:-translate-y-1 flex flex-col cursor-pointer group border border-white/50 dark:border-white/5">
                             <div className="flex justify-between items-start mb-4">
                                 <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border shadow-sm ${getStatusColor(project.status)}`}>
                                     {project.status}
