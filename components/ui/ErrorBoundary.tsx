@@ -1,6 +1,6 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, Activity } from './Icons';
+import { AlertTriangle, Activity, ArrowRight } from './Icons';
 
 interface Props {
   children?: ReactNode;
@@ -57,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
               onClick={() => window.location.reload()}
               className="w-full flex items-center justify-center px-6 py-4 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-slate-900/20 dark:shadow-white/10"
             >
-              <RefreshCw className="h-5 w-5 mr-2.5" strokeWidth={2.5} />
+              <ArrowRight className="h-4 w-4" />
               Relancer l'application
             </button>
           </div>
