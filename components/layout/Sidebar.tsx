@@ -40,8 +40,8 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
 
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50 w-[260px] 
-        bg-white/98 dark:bg-slate-900/98 backdrop-blur-2xl
-        border-r border-slate-200/60 dark:border-white/8
+        bg-white/98 dark:bg-slate-800/98 backdrop-blur-2xl
+        border-r border-slate-200/60 dark:border-slate-700/50
         transform transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1)
         ${mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}
         flex flex-col pb-6 pt-2
