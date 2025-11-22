@@ -9,6 +9,7 @@ import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { Skeleton } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 const ISO_DOMAINS = [
@@ -370,78 +371,98 @@ export const Compliance: React.FC = () => {
             </div>
 
             {/* Accordion List */}
-            <div className="space-y-6">
-                {ISO_DOMAINS.map(domain => {
-                    const domainControls = filteredControls.filter(c => c.code.startsWith(domain.id));
-                    if (domainControls.length === 0) return null;
-                    const stats = getDomainStats(domain.id);
-                    const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
-
-                    return (
-                        <div key={domain.id} className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm">
-                            <div
-                                onClick={() => toggleDomain(domain.id)}
-                                className="p-6 flex items-center justify-between cursor-pointer bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold shadow-lg shadow-brand-500/20">
-                                        {domain.id.split('.')[1]}
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{domain.title}</h3>
-                                        <p className="text-xs text-slate-500 font-medium">{domain.description} • {stats.total} contrôles</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-6">
-                                    <div className="hidden md:block w-32">
-                                        <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
-                                            <span>Progression</span>
-                                            <span>{stats.progress}%</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
-                                            <div className="bg-brand-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${stats.progress}%` }}></div>
-                                        </div>
-                                    </div>
-                                    <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-                                </div>
+            {loading ? (
+                <div className="space-y-6">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="glass-panel rounded-[2.5rem] p-6 border border-white/50 dark:border-white/5 shadow-sm flex items-center gap-4">
+                            <Skeleton className="w-10 h-10 rounded-xl" />
+                            <div className="space-y-2">
+                                <Skeleton className="h-6 w-48" />
+                                <Skeleton className="h-4 w-64" />
                             </div>
+                        </div>
+                    ))}
+                </div>
+            ) : filteredControls.length === 0 ? (
+                <EmptyState
+                    icon={ShieldCheck}
+                    title="Aucun contrôle trouvé"
+                    description={filter ? "Aucun contrôle ne correspond à votre recherche." : "Les contrôles ISO 27001 n'ont pas été chargés."}
+                />
+            ) : (
+                <div className="space-y-6">
+                    {ISO_DOMAINS.map(domain => {
+                        const domainControls = filteredControls.filter(c => c.code.startsWith(domain.id));
+                        if (domainControls.length === 0) return null;
+                        const stats = getDomainStats(domain.id);
+                        const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
 
-                            {isExpanded && (
-                                <div className="divide-y divide-gray-100 dark:divide-gray-800 border-t border-gray-200 dark:border-white/5">
-                                    {domainControls.map(control => {
-                                        const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
-                                        const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
-                                        return (
-                                            <div key={control.id} onClick={() => openInspector(control)} className="p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex items-center justify-between pl-8">
-                                                <div className="flex items-center space-x-5 flex-1 min-w-0">
-                                                    <div className="min-w-[50px]"><span className="text-xs font-black text-slate-400 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
-                                                    <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
-                                                        <div className="flex items-center mt-1 gap-3 text-xs">
-                                                            {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded"><Paperclip className="h-3 w-3 mr-1" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium"><AlertTriangle className="h-3 w-3 mr-1" /> Preuve manquante</span>) : null}
-                                                            {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded"><ShieldAlert className="h-3 w-3 mr-1" /> {riskCount} risques</span>)}
-                                                            {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded"><AlertOctagon className="h-3 w-3 mr-1" /> {findingsCount} écarts</span>)}
+                        return (
+                            <div key={domain.id} className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm hover:shadow-apple hover:-translate-y-0.5 transition-all duration-300">
+                                <div
+                                    onClick={() => toggleDomain(domain.id)}
+                                    className="p-6 flex items-center justify-between cursor-pointer bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold shadow-lg shadow-brand-500/20">
+                                            {domain.id.split('.')[1]}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{domain.title}</h3>
+                                            <p className="text-xs text-slate-500 font-medium">{domain.description} • {stats.total} contrôles</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-6">
+                                        <div className="hidden md:block w-32">
+                                            <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                                                <span>Progression</span>
+                                                <span>{stats.progress}%</span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
+                                                <div className="bg-brand-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${stats.progress}%` }}></div>
+                                            </div>
+                                        </div>
+                                        <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                                    </div>
+                                </div>
+
+                                {isExpanded && (
+                                    <div className="divide-y divide-gray-100 dark:divide-gray-800 border-t border-gray-200 dark:border-white/5">
+                                        {domainControls.map(control => {
+                                            const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
+                                            const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
+                                            return (
+                                                <div key={control.id} onClick={() => openInspector(control)} className="p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex items-center justify-between pl-8 active:scale-[0.99] duration-200">
+                                                    <div className="flex items-center space-x-5 flex-1 min-w-0">
+                                                        <div className="min-w-[50px]"><span className="text-xs font-black text-slate-400 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
+                                                        <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
+                                                            <div className="flex items-center mt-1 gap-3 text-xs">
+                                                                {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded"><Paperclip className="h-3 w-3 mr-1" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium"><AlertTriangle className="h-3 w-3 mr-1" /> Preuve manquante</span>) : null}
+                                                                {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded"><ShieldAlert className="h-3 w-3 mr-1" /> {riskCount} risques</span>)}
+                                                                {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded"><AlertOctagon className="h-3 w-3 mr-1" /> {findingsCount} écarts</span>)}
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    <div className="flex items-center gap-4">
+                                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-500 bg-slate-100 border-slate-200'}`}>{control.status}</span>
+                                                        <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-4">
-                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-500 bg-slate-100 border-slate-200'}`}>{control.status}</span>
-                                                    <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* Inspector (Keep existing implementation but styled) */}
             {selectedControl && (
                 <div className="fixed inset-0 z-[100] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedControl(null)} />
-                    <div className="absolute inset-y-0 right-0 pl-10 max-w-full flex pointer-events-none">
+                    <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
                         <div className="w-screen max-w-xl pointer-events-auto">
                             <div className="h-full flex flex-col bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
                                 <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
