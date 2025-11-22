@@ -31,21 +31,21 @@ const Help = React.lazy(() => import('./views/Help').then(module => ({ default: 
 const Continuity = React.lazy(() => import('./views/Continuity').then(module => ({ default: module.Continuity })));
 
 const LoadingScreen = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center bg-[#F0F2F5] dark:bg-black transition-colors relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-brand-200/40 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
-      </div>
-      <div className="relative z-10 flex flex-col items-center">
-          <div className="w-20 h-20 rounded-3xl glass-panel flex items-center justify-center shadow-2xl animate-pulse mb-8 border border-white/40 dark:border-white/10">
-              <Lock className="h-10 w-10 text-slate-900 dark:text-white" strokeWidth={2.5} />
-          </div>
-          <div className="flex space-x-2">
-              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
-          </div>
-      </div>
-  </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafafa] dark:bg-slate-900 transition-colors relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-brand-200/40 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
+        </div>
+        <div className="relative z-10 flex flex-col items-center">
+            <div className="w-20 h-20 rounded-3xl glass-panel flex items-center justify-center shadow-2xl animate-pulse mb-8 border border-white/40 dark:border-white/10">
+                <Lock className="h-10 w-10 text-slate-900 dark:text-white" strokeWidth={2.5} />
+            </div>
+            <div className="flex space-x-2">
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+        </div>
+    </div>
 );
 
 const NotFound = () => (
@@ -62,344 +62,345 @@ const NotFound = () => (
 );
 
 const AppContent: React.FC = () => {
-  const { theme, toggleTheme, setUser, user } = useStore();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [initializing, setInitializing] = useState(true);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [alerts, setAlerts] = useState<AlertNotification[]>([]);
-  const notifRef = useRef<HTMLDivElement>(null);
+    const { theme, toggleTheme, setUser, user } = useStore();
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [initializing, setInitializing] = useState(true);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [alerts, setAlerts] = useState<AlertNotification[]>([]);
+    const notifRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Apply theme to body immediately
-    if (theme === 'dark') document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const userMenuRef = useRef<HTMLDivElement>(null);
 
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    useEffect(() => {
+        // Apply theme to body immediately
+        if (theme === 'dark') document.documentElement.classList.add('dark');
+        else document.documentElement.classList.remove('dark');
 
-    const handleClickOutside = (event: MouseEvent) => {
-        if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-            setShowUserMenu(false);
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setShowUserMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+
+        const unsubscribe = onAuthStateChanged(auth, async (u) => {
+            if (u) {
+                // Update Last Login
+                try {
+                    const userRef = doc(db, 'users', u.uid);
+                    updateDoc(userRef, { lastLogin: new Date().toISOString() }).catch(() => { });
+                } catch (e) { /* Ignore */ }
+
+                const userDocRef = doc(db, 'users', u.uid);
+                const unsubProfile = onSnapshot(userDocRef, async (docSnap) => {
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data() as UserProfile;
+                        setUser(userData);
+                        if (userData.theme && userData.theme !== theme) {
+                            if (userData.theme === 'dark') document.documentElement.classList.add('dark');
+                            else document.documentElement.classList.remove('dark');
+                            localStorage.setItem('theme', userData.theme);
+                        }
+                    } else {
+                        const q = query(collection(db, 'users'), where('email', '==', u.email));
+                        const querySnapshot = await getDocs(q);
+                        if (!querySnapshot.empty) {
+                            setUser(querySnapshot.docs[0].data() as UserProfile);
+                        } else {
+                            const newProfile: UserProfile = {
+                                uid: u.uid, email: u.email || '', role: 'user',
+                                displayName: u.displayName || u.email?.split('@')[0] || 'User',
+                                ...(u.photoURL && { photoURL: u.photoURL }),
+                                onboardingCompleted: false
+                            };
+                            try { await setDoc(userDocRef, newProfile); setUser(newProfile); }
+                            catch (e) { setUser(newProfile); }
+                        }
+                    }
+                    setInitializing(false);
+                }, (error) => {
+                    // Fallback in case of error or missing user doc
+                    setUser({ uid: u.uid, email: u.email || '', role: 'user', displayName: u.displayName || 'User', onboardingCompleted: false });
+                    setInitializing(false);
+                });
+                return () => unsubProfile();
+            } else {
+                setUser(null);
+                setInitializing(false);
+            }
+        });
+
+        return () => {
+            unsubscribe();
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [user?.uid]);
+
+    // Real-time Notification Polling (OPTIMIZED)
+    useEffect(() => {
+        if (!user?.organizationId) return;
+
+        const fetchNotifications = async () => {
+            const newAlerts: AlertNotification[] = [];
+            const today = new Date();
+            const oneYearAgo = new Date();
+            oneYearAgo.setFullYear(today.getFullYear() - 1);
+            const orgId = user.organizationId;
+
+            try {
+                const [incSnap, auditSnap, docSnap, riskSnap, suppSnap] = await Promise.all([
+                    getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId), limit(20))),
+                    getDocs(query(collection(db, 'audits'), where('organizationId', '==', orgId), limit(20))),
+                    getDocs(query(collection(db, 'documents'), where('organizationId', '==', orgId), limit(50))),
+                    getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId), limit(100))),
+                    getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', orgId), limit(50)))
+                ]);
+
+                incSnap.docs.forEach(doc => {
+                    const i = doc.data() as Incident;
+                    if (i.status !== 'Fermé' && i.severity === 'Critique') {
+                        newAlerts.push({
+                            id: `inc-${doc.id}`, type: 'danger', title: 'Incident Critique',
+                            message: i.title, date: i.dateReported, link: '/incidents'
+                        });
+                    }
+                });
+
+                auditSnap.docs.forEach(doc => {
+                    const a = doc.data() as Audit;
+                    if ((a.status === 'Planifié' || a.status === 'En cours') && new Date(a.dateScheduled) < today) {
+                        newAlerts.push({
+                            id: `audit-${doc.id}`, type: 'warning', title: 'Audit en retard',
+                            message: a.name, date: a.dateScheduled, link: '/audits'
+                        });
+                    }
+                });
+
+                docSnap.docs.forEach(doc => {
+                    const d = doc.data() as Document;
+                    if (d.status === 'Publié' && d.nextReviewDate && new Date(d.nextReviewDate) < today) {
+                        newAlerts.push({
+                            id: `doc-${doc.id}`, type: 'info', title: 'Révision requise',
+                            message: d.title, date: d.nextReviewDate, link: '/documents'
+                        });
+                    }
+                });
+
+                riskSnap.docs.forEach(doc => {
+                    const r = doc.data() as Risk;
+                    if (r.status !== 'Fermé') {
+                        const reviewDate = r.lastReviewDate ? new Date(r.lastReviewDate) : (r.createdAt ? new Date(r.createdAt) : null);
+                        if (reviewDate && reviewDate < oneYearAgo) {
+                            newAlerts.push({
+                                id: `risk-review-${doc.id}`, type: 'warning', title: 'Revue de risque requise',
+                                message: `Le risque "${r.threat}" n'a pas été revu depuis 1 an.`,
+                                date: new Date().toISOString(),
+                                link: '/risks'
+                            });
+                        }
+                    }
+                });
+
+                suppSnap.docs.forEach(doc => {
+                    const s = doc.data() as Supplier;
+                    if (s.status === 'Actif' && s.assessment?.lastAssessmentDate) {
+                        const assessDate = new Date(s.assessment.lastAssessmentDate);
+                        if (assessDate < oneYearAgo) {
+                            newAlerts.push({
+                                id: `supp-assess-${doc.id}`, type: 'info', title: 'Évaluation Fournisseur',
+                                message: `Réévaluer ${s.name} (Dernière: ${assessDate.toLocaleDateString()})`,
+                                date: new Date().toISOString(),
+                                link: '/suppliers'
+                            });
+                        }
+                    }
+                });
+
+                setAlerts(newAlerts);
+            } catch (e) { console.error("Notification fetch error", e); }
+        };
+
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 300000);
+        return () => clearInterval(interval);
+    }, [user?.organizationId]);
+
+    const handleThemeToggle = () => {
+        toggleTheme();
+        if (user) {
+            const userRef = doc(db, 'users', user.uid);
+            updateDoc(userRef, { theme: theme === 'light' ? 'dark' : 'light' }).catch(() => { });
         }
     };
-    document.addEventListener('mousedown', handleClickOutside);
 
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      if (u) {
-        // Update Last Login
-        try {
-            const userRef = doc(db, 'users', u.uid);
-            updateDoc(userRef, { lastLogin: new Date().toISOString() }).catch(() => {});
-        } catch (e) { /* Ignore */ }
-
-        const userDocRef = doc(db, 'users', u.uid);
-        const unsubProfile = onSnapshot(userDocRef, async (docSnap) => {
-            if (docSnap.exists()) {
-                const userData = docSnap.data() as UserProfile;
-                setUser(userData);
-                if (userData.theme && userData.theme !== theme) {
-                    if(userData.theme === 'dark') document.documentElement.classList.add('dark');
-                    else document.documentElement.classList.remove('dark');
-                    localStorage.setItem('theme', userData.theme);
-                }
-            } else {
-                const q = query(collection(db, 'users'), where('email', '==', u.email));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    setUser(querySnapshot.docs[0].data() as UserProfile);
-                } else {
-                     const newProfile: UserProfile = { 
-                        uid: u.uid, email: u.email || '', role: 'user', 
-                        displayName: u.displayName || u.email?.split('@')[0] || 'User',
-                        photoURL: u.photoURL || undefined, onboardingCompleted: false
-                    };
-                    try { await setDoc(userDocRef, newProfile); setUser(newProfile); } 
-                    catch(e) { setUser(newProfile); }
-                }
-            }
-            setInitializing(false);
-        }, (error) => {
-            // Fallback in case of error or missing user doc
-            setUser({ uid: u.uid, email: u.email || '', role: 'user', displayName: u.displayName || 'User', onboardingCompleted: false });
-            setInitializing(false);
-        });
-        return () => unsubProfile();
-      } else {
-        setUser(null);
-        setInitializing(false);
-      }
-    });
-
-    return () => {
-        unsubscribe();
-        window.removeEventListener('online', handleOnline);
-        window.removeEventListener('offline', handleOffline);
-        document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [user?.uid]);
-
-  // Real-time Notification Polling (OPTIMIZED)
-  useEffect(() => {
-    if (!user?.organizationId) return;
-
-    const fetchNotifications = async () => {
-        const newAlerts: AlertNotification[] = [];
-        const today = new Date();
-        const oneYearAgo = new Date();
-        oneYearAgo.setFullYear(today.getFullYear() - 1);
-        const orgId = user.organizationId;
-
-        try {
-            const [incSnap, auditSnap, docSnap, riskSnap, suppSnap] = await Promise.all([
-                getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId), limit(20))),
-                getDocs(query(collection(db, 'audits'), where('organizationId', '==', orgId), limit(20))),
-                getDocs(query(collection(db, 'documents'), where('organizationId', '==', orgId), limit(50))),
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId), limit(100))),
-                getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', orgId), limit(50)))
-            ]);
-
-            incSnap.docs.forEach(doc => {
-                const i = doc.data() as Incident;
-                if (i.status !== 'Fermé' && i.severity === 'Critique') {
-                    newAlerts.push({
-                        id: `inc-${doc.id}`, type: 'danger', title: 'Incident Critique',
-                        message: i.title, date: i.dateReported, link: '/incidents'
-                    });
-                }
-            });
-
-            auditSnap.docs.forEach(doc => {
-                const a = doc.data() as Audit;
-                if ((a.status === 'Planifié' || a.status === 'En cours') && new Date(a.dateScheduled) < today) {
-                    newAlerts.push({
-                        id: `audit-${doc.id}`, type: 'warning', title: 'Audit en retard',
-                        message: a.name, date: a.dateScheduled, link: '/audits'
-                    });
-                }
-            });
-
-            docSnap.docs.forEach(doc => {
-                const d = doc.data() as Document;
-                if (d.status === 'Publié' && d.nextReviewDate && new Date(d.nextReviewDate) < today) {
-                    newAlerts.push({
-                        id: `doc-${doc.id}`, type: 'info', title: 'Révision requise',
-                        message: d.title, date: d.nextReviewDate, link: '/documents'
-                    });
-                }
-            });
-
-            riskSnap.docs.forEach(doc => {
-                const r = doc.data() as Risk;
-                if (r.status !== 'Fermé') {
-                    const reviewDate = r.lastReviewDate ? new Date(r.lastReviewDate) : (r.createdAt ? new Date(r.createdAt) : null);
-                    if (reviewDate && reviewDate < oneYearAgo) {
-                        newAlerts.push({
-                            id: `risk-review-${doc.id}`, type: 'warning', title: 'Revue de risque requise',
-                            message: `Le risque "${r.threat}" n'a pas été revu depuis 1 an.`,
-                            date: new Date().toISOString(),
-                            link: '/risks'
-                        });
-                    }
-                }
-            });
-
-            suppSnap.docs.forEach(doc => {
-                const s = doc.data() as Supplier;
-                if (s.status === 'Actif' && s.assessment?.lastAssessmentDate) {
-                    const assessDate = new Date(s.assessment.lastAssessmentDate);
-                    if (assessDate < oneYearAgo) {
-                        newAlerts.push({
-                            id: `supp-assess-${doc.id}`, type: 'info', title: 'Évaluation Fournisseur',
-                            message: `Réévaluer ${s.name} (Dernière: ${assessDate.toLocaleDateString()})`,
-                            date: new Date().toISOString(),
-                            link: '/suppliers'
-                        });
-                    }
-                }
-            });
-
-            setAlerts(newAlerts);
-        } catch(e) { console.error("Notification fetch error", e); }
+    const handleLogout = async () => {
+        try { await signOut(auth); } catch (error) { console.error("Error logging out:", error); }
     };
 
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 300000);
-    return () => clearInterval(interval);
-  }, [user?.organizationId]);
+    if (initializing) return <LoadingScreen />;
+    if (!user) return <Login />;
+    if (!user.onboardingCompleted || !user.organizationId) return <Onboarding />;
 
-  const handleThemeToggle = () => {
-      toggleTheme();
-      if(user) {
-          const userRef = doc(db, 'users', user.uid);
-          updateDoc(userRef, { theme: theme === 'light' ? 'dark' : 'light' }).catch(() => {});
-      }
-  };
+    return (
+        <Router>
+            <ErrorBoundary>
+                <div className="flex h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-900 text-[#1d1d1f] dark:text-[#f5f5f7] font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300">
 
-  const handleLogout = async () => {
-      try { await signOut(auth); } catch (error) { console.error("Error logging out:", error); }
-  };
-
-  if (initializing) return <LoadingScreen />;
-  if (!user) return <Login />;
-  if (!user.onboardingCompleted || !user.organizationId) return <Onboarding />;
-
-  return (
-    <Router>
-      <ErrorBoundary>
-      <div className="flex h-screen overflow-hidden bg-[#F0F2F5] dark:bg-[#000000] text-[#1d1d1f] dark:text-[#f5f5f7] font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300">
-        
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-200/30 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float"></div>
-            <div className="absolute top-[20%] right-[-10%] w-[50rem] h-[50rem] bg-purple-200/30 dark:bg-purple-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{animationDelay: '2s'}}></div>
-            <div className="absolute bottom-[-20%] left-[20%] w-[55rem] h-[55rem] bg-indigo-200/30 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{animationDelay: '4s'}}></div>
-        </div>
-
-        <div className="z-50">
-            <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-        </div>
-        
-        <ToastContainer />
-        <CommandPalette />
-
-        {!isOnline && (
-            <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[100] glass-panel px-4 py-2 rounded-full flex items-center text-xs font-medium text-slate-600 shadow-lg animate-slide-up border border-slate-200">
-                <WifiOff className="h-3 w-3 mr-2 text-red-500" />
-                Mode hors ligne
-            </div>
-        )}
-
-        <div className="flex-1 flex flex-col overflow-hidden relative z-10">
-          <header className="h-16 flex items-center justify-between px-6 z-20 sticky top-0 bg-white/80 dark:bg-[#000000]/80 backdrop-blur-xl border-b border-slate-200/70 dark:border-white/10 transition-colors shadow-sm">
-            <div className="flex items-center lg:hidden">
-              <button onClick={() => setMobileOpen(true)} className="p-2 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 transition-colors">
-                <Menu className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="hidden md:flex items-center text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100/80 dark:bg-white/5 px-3 py-1.5 rounded-full border border-slate-200 dark:border-white/5 shadow-sm backdrop-blur-sm">
-                <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
-                {user.organizationName || 'Espace Personnel'} • {user.department ? user.department : 'Général'}
-            </div>
-
-            <div className="flex ml-auto items-center gap-4">
-              <div className="relative" ref={notifRef}>
-                  <button 
-                    onClick={() => setShowNotifications(!showNotifications)}
-                    className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all relative"
-                  >
-                    <Bell className="h-5 w-5" strokeWidth={2} />
-                    {alerts.length > 0 && <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-black"></span>}
-                  </button>
-
-                  {showNotifications && (
-                    <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>
-                    <div className="absolute top-12 right-0 w-80 glass-panel rounded-2xl shadow-2xl overflow-hidden border border-white/50 dark:border-white/10 animate-slide-up z-50">
-                        <div className="px-4 py-3 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center backdrop-blur-md">
-                            <h3 className="font-bold text-sm text-slate-900 dark:text-white">Notifications</h3>
-                            <span className="text-[10px] font-bold bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full text-slate-600 dark:text-slate-300">{alerts.length}</span>
-                        </div>
-                        <div className="max-h-[320px] overflow-y-auto custom-scrollbar bg-white/80 dark:bg-black/80">
-                            {alerts.length === 0 ? (
-                                <div className="p-8 text-center text-slate-400 text-xs font-medium italic">Aucun notification.</div>
-                            ) : (
-                                alerts.map(alert => (
-                                    <div key={alert.id} onClick={() => { window.location.hash = `#${alert.link}`; setShowNotifications(false); }} className="p-4 hover:bg-slate-50 dark:hover:bg-white/10 cursor-pointer border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors group">
-                                        <div className="flex items-start gap-3">
-                                            <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${alert.type === 'danger' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : alert.type === 'warning' ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
-                                            <div>
-                                                <p className="text-xs font-bold text-slate-800 dark:text-white mb-0.5 group-hover:text-brand-600 transition-colors">{alert.title}</p>
-                                                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug font-medium">{alert.message}</p>
-                                                <p className="text-[9px] text-slate-400 mt-1 font-semibold">{new Date(alert.date).toLocaleDateString()}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                        <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-200/30 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float"></div>
+                        <div className="absolute top-[20%] right-[-10%] w-[50rem] h-[50rem] bg-purple-200/30 dark:bg-purple-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{ animationDelay: '2s' }}></div>
+                        <div className="absolute bottom-[-20%] left-[20%] w-[55rem] h-[55rem] bg-indigo-200/30 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{ animationDelay: '4s' }}></div>
                     </div>
-                    </>
-                  )}
-              </div>
 
-              <button onClick={handleThemeToggle} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all">
-                {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
-              </button>
+                    <div className="z-50">
+                        <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+                    </div>
 
-              <div className="relative" ref={userMenuRef}>
-                  <div 
-                    className="flex items-center pl-4 border-l border-slate-200 dark:border-white/10 ml-2 gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                  >
-                      <div className="flex flex-col items-end">
-                          <span className="text-sm font-bold text-slate-800 dark:text-white leading-none">{user.displayName}</span>
-                          <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">{user.role}</span>
-                      </div>
-                      {user?.photoURL ? (
-                          <img src={user.photoURL} alt="Profile" className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md" />
-                      ) : (
-                          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-slate-800 to-black dark:from-white dark:to-slate-200 flex items-center justify-center text-white dark:text-black font-bold text-sm shadow-md ring-2 ring-white dark:ring-slate-800">
-                             {user?.displayName?.charAt(0).toUpperCase()}
-                          </div>
-                      )}
-                  </div>
+                    <ToastContainer />
+                    <CommandPalette />
 
-                  {showUserMenu && (
-                      <div className="absolute top-14 right-0 w-56 glass-panel rounded-2xl shadow-2xl overflow-hidden border border-white/50 dark:border-white/10 animate-slide-up z-50 p-2">
-                          <Link to="/settings" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-sm font-bold text-slate-700 dark:text-white">
-                              <User className="h-4 w-4 mr-3 text-slate-400" />
-                              Mon Profil
-                          </Link>
-                          <Link to="/settings" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-sm font-bold text-slate-700 dark:text-white">
-                              <SettingsIcon className="h-4 w-4 mr-3 text-slate-400" />
-                              Paramètres
-                          </Link>
-                          <div className="h-px bg-slate-100 dark:bg-white/10 my-1"></div>
-                          <button onClick={() => { handleLogout(); setShowUserMenu(false); }} className="w-full flex items-center px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-sm font-bold text-red-600 dark:text-red-400">
-                              <LogOut className="h-4 w-4 mr-3" />
-                              Déconnexion
-                          </button>
-                      </div>
-                  )}
-              </div>
-            </div>
-          </header>
+                    {!isOnline && (
+                        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[100] glass-panel px-4 py-2 rounded-full flex items-center text-xs font-medium text-slate-600 shadow-lg animate-slide-up border border-slate-200">
+                            <WifiOff className="h-3 w-3 mr-2 text-red-500" />
+                            Mode hors ligne
+                        </div>
+                    )}
 
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth no-scrollbar bg-[#F0F2F5] dark:bg-black">
-            <div className="max-w-[1600px] mx-auto animate-fade-in h-full pb-10">
-              <Suspense fallback={<LoadingScreen />}>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/incidents" element={<Incidents />} />
-                  <Route path="/projects" element={<Projects />} />
-                  <Route path="/assets" element={<Assets />} />
-                  <Route path="/risks" element={<Risks />} />
-                  <Route path="/compliance" element={<Compliance />} />
-                  <Route path="/documents" element={<Documents />} />
-                  <Route path="/audits" element={<Audits />} />
-                  <Route path="/team" element={<Team />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/suppliers" element={<Suppliers />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/continuity" element={<Continuity />} />
-                  <Route path="/help" element={<Help />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </div>
-          </main>
-        </div>
-      </div>
-      </ErrorBoundary>
-    </Router>
-  );
+                    <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+                        <header className="h-16 flex items-center justify-between px-6 z-20 sticky top-0 bg-white/80 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/70 dark:border-white/10 transition-colors shadow-sm">
+                            <div className="flex items-center lg:hidden">
+                                <button onClick={() => setMobileOpen(true)} className="p-2 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 transition-colors">
+                                    <Menu className="h-5 w-5" />
+                                </button>
+                            </div>
+
+                            <div className="hidden md:flex items-center text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100/80 dark:bg-white/5 px-3 py-1.5 rounded-full border border-slate-200 dark:border-white/5 shadow-sm backdrop-blur-sm">
+                                <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
+                                {user.organizationName || 'Espace Personnel'} • {user.department ? user.department : 'Général'}
+                            </div>
+
+                            <div className="flex ml-auto items-center gap-4">
+                                <div className="relative" ref={notifRef}>
+                                    <button
+                                        onClick={() => setShowNotifications(!showNotifications)}
+                                        className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all relative"
+                                    >
+                                        <Bell className="h-5 w-5" strokeWidth={2} />
+                                        {alerts.length > 0 && <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-black"></span>}
+                                    </button>
+
+                                    {showNotifications && (
+                                        <>
+                                            <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>
+                                            <div className="absolute top-12 right-0 w-80 glass-panel rounded-2xl shadow-2xl overflow-hidden border border-white/50 dark:border-white/10 animate-slide-up z-50">
+                                                <div className="px-4 py-3 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center backdrop-blur-md">
+                                                    <h3 className="font-bold text-sm text-slate-900 dark:text-white">Notifications</h3>
+                                                    <span className="text-[10px] font-bold bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full text-slate-600 dark:text-slate-300">{alerts.length}</span>
+                                                </div>
+                                                <div className="max-h-[320px] overflow-y-auto custom-scrollbar bg-white/80 dark:bg-black/80">
+                                                    {alerts.length === 0 ? (
+                                                        <div className="p-8 text-center text-slate-400 text-xs font-medium italic">Aucun notification.</div>
+                                                    ) : (
+                                                        alerts.map(alert => (
+                                                            <div key={alert.id} onClick={() => { window.location.hash = `#${alert.link}`; setShowNotifications(false); }} className="p-4 hover:bg-slate-50 dark:hover:bg-white/10 cursor-pointer border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors group">
+                                                                <div className="flex items-start gap-3">
+                                                                    <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${alert.type === 'danger' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : alert.type === 'warning' ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
+                                                                    <div>
+                                                                        <p className="text-xs font-bold text-slate-800 dark:text-white mb-0.5 group-hover:text-brand-600 transition-colors">{alert.title}</p>
+                                                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug font-medium">{alert.message}</p>
+                                                                        <p className="text-[9px] text-slate-400 mt-1 font-semibold">{new Date(alert.date).toLocaleDateString()}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+
+                                <button onClick={handleThemeToggle} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all">
+                                    {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
+                                </button>
+
+                                <div className="relative" ref={userMenuRef}>
+                                    <div
+                                        className="flex items-center pl-4 border-l border-slate-200 dark:border-white/10 ml-2 gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                                        onClick={() => setShowUserMenu(!showUserMenu)}
+                                    >
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-sm font-bold text-slate-800 dark:text-white leading-none">{user.displayName}</span>
+                                            <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">{user.role}</span>
+                                        </div>
+                                        {user?.photoURL ? (
+                                            <img src={user.photoURL} alt="Profile" className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md" />
+                                        ) : (
+                                            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-slate-800 to-black dark:from-white dark:to-slate-200 flex items-center justify-center text-white dark:text-black font-bold text-sm shadow-md ring-2 ring-white dark:ring-slate-800">
+                                                {user?.displayName?.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {showUserMenu && (
+                                        <div className="absolute top-14 right-0 w-56 glass-panel rounded-2xl shadow-2xl overflow-hidden border border-white/50 dark:border-white/10 animate-slide-up z-50 p-2">
+                                            <Link to="/settings" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-sm font-bold text-slate-700 dark:text-white">
+                                                <User className="h-4 w-4 mr-3 text-slate-400" />
+                                                Mon Profil
+                                            </Link>
+                                            <Link to="/settings" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-sm font-bold text-slate-700 dark:text-white">
+                                                <SettingsIcon className="h-4 w-4 mr-3 text-slate-400" />
+                                                Paramètres
+                                            </Link>
+                                            <div className="h-px bg-slate-100 dark:bg-white/10 my-1"></div>
+                                            <button onClick={() => { handleLogout(); setShowUserMenu(false); }} className="w-full flex items-center px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-sm font-bold text-red-600 dark:text-red-400">
+                                                <LogOut className="h-4 w-4 mr-3" />
+                                                Déconnexion
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </header>
+
+                        <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth no-scrollbar bg-[#fafafa] dark:bg-slate-900">
+                            <div className="max-w-[1600px] mx-auto animate-fade-in h-full pb-10">
+                                <Suspense fallback={<LoadingScreen />}>
+                                    <Routes>
+                                        <Route path="/" element={<Dashboard />} />
+                                        <Route path="/incidents" element={<Incidents />} />
+                                        <Route path="/projects" element={<Projects />} />
+                                        <Route path="/assets" element={<Assets />} />
+                                        <Route path="/risks" element={<Risks />} />
+                                        <Route path="/compliance" element={<Compliance />} />
+                                        <Route path="/documents" element={<Documents />} />
+                                        <Route path="/audits" element={<Audits />} />
+                                        <Route path="/team" element={<Team />} />
+                                        <Route path="/settings" element={<Settings />} />
+                                        <Route path="/suppliers" element={<Suppliers />} />
+                                        <Route path="/privacy" element={<Privacy />} />
+                                        <Route path="/continuity" element={<Continuity />} />
+                                        <Route path="/help" element={<Help />} />
+                                        <Route path="*" element={<NotFound />} />
+                                    </Routes>
+                                </Suspense>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </ErrorBoundary>
+        </Router>
+    );
 };
 
 export default AppContent;
