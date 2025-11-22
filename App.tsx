@@ -13,6 +13,8 @@ import { Menu, Moon, Sun, Bell, WifiOff, Lock, AlertTriangle, CheckCircle2, X, U
 import { UserProfile, AlertNotification, Risk, Supplier, Incident, Audit, Document } from './types';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { CommandPalette } from './components/layout/CommandPalette';
+import { NotificationCenter } from './components/ui/NotificationCenter';
+
 
 // Lazy Loading des Vues
 const Dashboard = React.lazy(() => import('./views/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -290,45 +292,8 @@ const AppContent: React.FC = () => {
                             </div>
 
                             <div className="flex ml-auto items-center gap-4">
-                                <div className="relative" ref={notifRef}>
-                                    <button
-                                        onClick={() => setShowNotifications(!showNotifications)}
-                                        className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all relative"
-                                    >
-                                        <Bell className="h-5 w-5" strokeWidth={2} />
-                                        {alerts.length > 0 && <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-black"></span>}
-                                    </button>
-
-                                    {showNotifications && (
-                                        <>
-                                            <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>
-                                            <div className="absolute top-12 right-0 w-80 glass-panel rounded-2xl shadow-2xl overflow-hidden border border-white/50 dark:border-white/10 animate-slide-up z-50">
-                                                <div className="px-4 py-3 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center backdrop-blur-md">
-                                                    <h3 className="font-bold text-sm text-slate-900 dark:text-white">Notifications</h3>
-                                                    <span className="text-[10px] font-bold bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full text-slate-600 dark:text-slate-300">{alerts.length}</span>
-                                                </div>
-                                                <div className="max-h-[320px] overflow-y-auto custom-scrollbar bg-white/80 dark:bg-black/80">
-                                                    {alerts.length === 0 ? (
-                                                        <div className="p-8 text-center text-slate-400 text-xs font-medium italic">Aucun notification.</div>
-                                                    ) : (
-                                                        alerts.map(alert => (
-                                                            <div key={alert.id} onClick={() => { window.location.hash = `#${alert.link}`; setShowNotifications(false); }} className="p-4 hover:bg-slate-50 dark:hover:bg-white/10 cursor-pointer border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors group">
-                                                                <div className="flex items-start gap-3">
-                                                                    <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${alert.type === 'danger' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : alert.type === 'warning' ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
-                                                                    <div>
-                                                                        <p className="text-xs font-bold text-slate-800 dark:text-white mb-0.5 group-hover:text-brand-600 transition-colors">{alert.title}</p>
-                                                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug font-medium">{alert.message}</p>
-                                                                        <p className="text-[9px] text-slate-400 mt-1 font-semibold">{new Date(alert.date).toLocaleDateString()}</p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
+                                {/* New Notification Center */}
+                                <NotificationCenter />
 
                                 <button onClick={handleThemeToggle} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all">
                                     {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
