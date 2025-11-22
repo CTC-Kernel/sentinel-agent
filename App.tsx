@@ -31,6 +31,7 @@ const Suppliers = React.lazy(() => import('./views/Suppliers').then(module => ({
 const Privacy = React.lazy(() => import('./views/Privacy').then(module => ({ default: module.Privacy })));
 const Help = React.lazy(() => import('./views/Help').then(module => ({ default: module.Help })));
 const Continuity = React.lazy(() => import('./views/Continuity').then(module => ({ default: module.Continuity })));
+const VoxelView = React.lazy(() => import('./views/VoxelView').then(module => ({ default: module.VoxelView })));
 
 const LoadingScreen = () => (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafafa] dark:bg-slate-900 transition-colors relative overflow-hidden">
@@ -355,6 +356,7 @@ const AppContent: React.FC = () => {
                                         <Route path="/suppliers" element={<Suppliers />} />
                                         <Route path="/privacy" element={<Privacy />} />
                                         <Route path="/continuity" element={<Continuity />} />
+                                        <Route path="/voxel" element={<VoxelView />} />
                                         <Route path="/help" element={<Help />} />
                                         <Route path="*" element={<NotFound />} />
                                     </Routes>
