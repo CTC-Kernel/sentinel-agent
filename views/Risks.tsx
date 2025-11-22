@@ -10,6 +10,8 @@ import { Comments } from '../components/ui/Comments';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { CardSkeleton } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
 
 const STANDARD_THREATS = ["Panne matérielle serveur", "Incendie", "Inondation", "Vol d'équipement", "Attaque par Ransomware", "Phishing / Ingénierie Sociale", "Erreur humaine / Configuration", "Divulgation non autorisée", "Interruption de service FAI", "Sabotage interne", "Obsolescence technologique", "Perte de personnel clé"];
 
@@ -382,40 +384,53 @@ export const Risks: React.FC = () => {
                     </div>
                 </div>
             ) : (
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in">{filteredRisks.length === 0 ? <div className="col-span-full text-center py-20 text-slate-400 italic">Aucun risque ne correspond aux critères.</div> : filteredRisks.map(risk => {
-                    const level = getRiskLevel(risk.score);
-                    const residualScore = risk.residualScore || risk.score;
-                    const isMitigated = residualScore < risk.score;
-                    const trend = risk.previousScore && risk.score > risk.previousScore ? 'up' : risk.previousScore && risk.score < risk.previousScore ? 'down' : 'stable';
+                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in">
+                    {loading ? (
+                        <div className="col-span-full"><CardSkeleton count={3} /></div>
+                    ) : filteredRisks.length === 0 ? (
+                        <div className="col-span-full">
+                            <EmptyState
+                                icon={ShieldAlert}
+                                title="Aucun risque identifié"
+                                description={filter ? "Aucun risque ne correspond à votre recherche." : "Identifiez et évaluez les risques pour protéger votre organisation."}
+                                actionLabel={filter ? undefined : "Nouveau Risque"}
+                                onAction={filter ? undefined : () => openModal()}
+                            />
+                        </div>
+                    ) : filteredRisks.map(risk => {
+                        const level = getRiskLevel(risk.score);
+                        const residualScore = risk.residualScore || risk.score;
+                        const isMitigated = residualScore < risk.score;
+                        const trend = risk.previousScore && risk.score > risk.previousScore ? 'up' : risk.previousScore && risk.score < risk.previousScore ? 'down' : 'stable';
 
-                    return (
-                        <div key={risk.id} onClick={() => openInspector(risk)} className="group glass-panel p-6 rounded-[2rem] hover:shadow-apple transition-all duration-300 hover:-translate-y-1 flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5">
-                            <div className="flex justify-between items-start mb-5">
-                                <div className="flex items-center gap-2">
-                                    <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm flex items-center border ${level.color}`}>{level.label} {risk.score}</div>
-                                    {trend === 'up' && <span className="text-red-500" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
-                                    {trend === 'down' && <span className="text-emerald-500" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
-                                    {isMitigated && (<><ArrowRight className="w-3 h-3 text-gray-400" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
+                        return (
+                            <div key={risk.id} onClick={() => openInspector(risk)} className="group glass-panel p-6 rounded-[2rem] hover:shadow-apple transition-all duration-300 hover:-translate-y-1 flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5">
+                                <div className="flex justify-between items-start mb-5">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm flex items-center border ${level.color}`}>{level.label} {risk.score}</div>
+                                        {trend === 'up' && <span className="text-red-500" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
+                                        {trend === 'down' && <span className="text-emerald-500" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
+                                        {isMitigated && (<><ArrowRight className="w-3 h-3 text-gray-400" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="mb-4 flex-1">
-                                <div className="flex items-center mb-3">
-                                    <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
-                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
+                                <div className="mb-4 flex-1">
+                                    <div className="flex items-center mb-3">
+                                        <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
+                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900/50 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
+                                        <span className="font-bold text-xs uppercase text-slate-400 block mb-1">Vulnérabilité</span>{risk.vulnerability}
+                                    </p>
                                 </div>
-                                <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900/50 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
-                                    <span className="font-bold text-xs uppercase text-slate-400 block mb-1">Vulnérabilité</span>{risk.vulnerability}
-                                </p>
-                            </div>
-                            <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
-                                    <span className={`text-xs font-bold ${risk.status === 'Ouvert' ? 'text-rose-500' : risk.status === 'En cours' ? 'text-amber-500' : 'text-emerald-500'}`}>{risk.status}</span>
+                                <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
+                                        <span className={`text-xs font-bold ${risk.status === 'Ouvert' ? 'text-rose-500' : risk.status === 'En cours' ? 'text-amber-500' : 'text-emerald-500'}`}>{risk.status}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>)
-                })}</div>
+                            </div>)
+                    })}</div>
             )}
 
             {/* Inspector */}
