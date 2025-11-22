@@ -8,6 +8,7 @@ export enum Criticality {
 
 export interface Asset {
   id: string;
+  organizationId: string;
   name: string;
   type: 'Matériel' | 'Logiciel' | 'Données' | 'Service' | 'Humain';
   owner: string;
@@ -16,69 +17,91 @@ export interface Asset {
   availability: Criticality;
   location: string;
   createdAt: string;
+  purchaseDate?: string;
+  purchasePrice?: number; // Valeur d'achat
+  currentValue?: number; // Valeur après amortissement
+  warrantyEnd?: string;
+  nextMaintenance?: string;
+  lifecycleStatus?: 'Neuf' | 'En service' | 'En réparation' | 'Fin de vie' | 'Rebut';
+}
+
+export interface MaintenanceRecord {
+  id: string;
+  date: string;
+  type: 'Préventive' | 'Corrective' | 'Mise à jour' | 'Inspection';
+  description: string;
+  technician: string;
+  cost?: number;
 }
 
 export interface Risk {
   id: string;
+  organizationId: string;
   assetId: string;
   threat: string;
   vulnerability: string;
   probability: 1 | 2 | 3 | 4 | 5;
   impact: 1 | 2 | 3 | 4 | 5;
-  score: number; // Inherent Risk Score
-  
-  // Residual Risk (After mitigation)
+  score: number;
   residualProbability?: 1 | 2 | 3 | 4 | 5;
   residualImpact?: 1 | 2 | 3 | 4 | 5;
   residualScore?: number;
-
-  previousScore?: number; // To track trends
+  previousScore?: number;
   strategy: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
   status: 'Ouvert' | 'En cours' | 'Fermé';
   owner: string;
   mitigationControlIds?: string[]; 
+  lastReviewDate?: string;
   createdAt?: string;
 }
 
 export interface Control {
   id: string;
-  code: string; // e.g., A.5.1
+  organizationId: string;
+  code: string;
   name: string;
   description?: string;
   status: 'Non commencé' | 'Implémenté' | 'Partiel' | 'Non applicable' | 'Exclu';
-  evidenceIds?: string[]; // IDs of linked documents
+  justification?: string;
+  evidenceIds?: string[];
+  evidenceStrength?: 'Faible' | 'Forte';
   lastUpdated?: string;
 }
 
 export interface Document {
   id: string;
+  organizationId: string;
   title: string;
   type: 'Politique' | 'Procédure' | 'Preuve' | 'Rapport' | 'Autre';
   version: string;
   status: 'Brouillon' | 'Publié' | 'Obsolète';
   url?: string;
   owner: string;
+  readBy?: string[];
+  nextReviewDate?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface Audit {
   id: string;
+  organizationId: string;
   name: string;
   type: 'Interne' | 'Externe' | 'Certification';
   auditor: string;
   dateScheduled: string;
   status: 'Planifié' | 'En cours' | 'Terminé' | 'Validé';
-  findingsCount: number; // Computed or cached count
+  findingsCount: number;
 }
 
 export interface Finding {
   id: string;
+  organizationId: string;
   auditId: string;
   description: string;
   type: 'Majeure' | 'Mineure' | 'Observation' | 'Opportunité';
   status: 'Ouvert' | 'Fermé';
-  relatedControlId?: string; // LINK: Finding linked to a specific ISO control failure
+  relatedControlId?: string;
   createdAt: string;
 }
 
@@ -91,43 +114,161 @@ export interface ProjectTask {
 
 export interface Project {
   id: string;
+  organizationId: string;
   name: string;
   description: string;
   manager: string;
   status: 'Planifié' | 'En cours' | 'Terminé' | 'Suspendu';
   dueDate: string;
-  progress: number; // 0-100
+  progress: number;
   tasks: ProjectTask[];
-  relatedRiskIds?: string[]; // LINK: Projects treating specific risks
+  relatedRiskIds?: string[];
+  relatedControlIds?: string[];
   createdAt: string;
 }
 
 export interface Incident {
   id: string;
+  organizationId: string;
   title: string;
   description: string;
   severity: Criticality;
   status: 'Nouveau' | 'Analyse' | 'Contenu' | 'Résolu' | 'Fermé';
+  category?: 'Ransomware' | 'Phishing' | 'Vol Matériel' | 'Indisponibilité' | 'Fuite de Données' | 'Autre';
+  playbookStepsCompleted?: string[];
   affectedAssetId?: string;
+  relatedRiskId?: string;
+  financialImpact?: number; // Coût estimé de l'incident
   reporter: string;
   dateReported: string;
   dateResolved?: string;
+  lessonsLearned?: string;
+}
+
+export interface Supplier {
+  id: string;
+  organizationId: string;
+  name: string;
+  category: 'SaaS' | 'Hébergement' | 'Matériel' | 'Consulting' | 'Autre';
+  criticality: Criticality;
+  contactName: string;
+  contactEmail: string;
+  contractEnd?: string;
+  contractDocumentId?: string;
+  status: 'Actif' | 'En cours' | 'Terminé';
+  securityScore?: number;
+  assessment?: {
+    hasIso27001: boolean;
+    hasGdprPolicy: boolean;
+    hasEncryption: boolean;
+    hasBcp: boolean;
+    hasIncidentProcess: boolean;
+    lastAssessmentDate: string;
+  };
+  description?: string;
+  createdAt: string;
+}
+
+export interface ProcessingActivity {
+  id: string;
+  organizationId: string;
+  name: string;
+  purpose: string;
+  manager: string;
+  legalBasis: 'Consentement' | 'Contrat' | 'Obligation Légale' | 'Intérêt Légitime';
+  dataCategories: string[];
+  dataSubjects: string[];
+  retentionPeriod: string;
+  hasDPIA: boolean;
+  status: 'Actif' | 'Archivé' | 'En projet';
+  createdAt: string;
+}
+
+export interface BusinessProcess {
+  id: string;
+  organizationId: string;
+  name: string;
+  description: string;
+  owner: string;
+  rto: string;
+  rpo: string;
+  priority: 'Critique' | 'Élevée' | 'Moyenne' | 'Faible';
+  supportingAssetIds: string[];
+  drpDocumentId?: string;
+  lastTestDate?: string;
+}
+
+export interface BcpDrill {
+  id: string;
+  organizationId: string;
+  processId: string;
+  date: string;
+  type: 'Tabletop' | 'Simulation' | 'Bascule réelle';
+  result: 'Succès' | 'Succès partiel' | 'Échec';
+  notes: string;
+  createdAt: string;
+}
+
+export interface DailyStat {
+  organizationId: string;
+  date: string;
+  risks: number;
+  compliance: number;
+  incidents: number;
+  timestamp: string;
 }
 
 export interface SystemLog {
   id: string;
+  organizationId: string;
   userId: string;
   userEmail: string;
   action: string;
   resource: string;
-  timestamp: string;
   details?: string;
+  timestamp: string;
 }
 
 export interface UserProfile {
   uid: string;
+  organizationId?: string;
+  organizationName?: string;
   email: string;
   role: 'admin' | 'auditor' | 'user';
   displayName: string;
   department?: string;
+  photoURL?: string;
+  onboardingCompleted?: boolean;
+  lastLogin?: string;
+  theme?: 'light' | 'dark';
+  isPending?: boolean;
+}
+
+export interface Invitation {
+  id: string;
+  email: string;
+  role: 'admin' | 'auditor' | 'user';
+  department: string;
+  organizationId: string;
+  organizationName: string;
+  invitedBy: string;
+  createdAt: string;
+}
+
+export interface AlertNotification {
+    id: string;
+    type: 'warning' | 'danger' | 'info';
+    title: string;
+    message: string;
+    date: string;
+    link?: string;
+}
+
+export interface Comment {
+  id: string;
+  organizationId: string;
+  userId: string;
+  userName: string;
+  content: string;
+  createdAt: string;
 }
