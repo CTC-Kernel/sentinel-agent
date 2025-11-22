@@ -1,3 +1,5 @@
+
+
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
@@ -10,49 +12,52 @@ const firebaseConfig = {
   projectId: "sentinel-grc-a8701",
   storageBucket: "sentinel-grc-a8701.firebasestorage.app",
   messagingSenderId: "728667422032",
-  appId: "1:728667422032:web:5ccdd871bef78d1da1c055",
-  measurementId: "G-FM1NHTVTYG"
+  appId: "1:728667422032:web:f7bb344574e49320a1c055",
+  measurementId: "G-2MLLGDZ6GP"
 };
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
 
-// Activer la persistance hors ligne pour optimiser les performances
-// Cela permet de charger les données depuis le cache local instantanément
+// Initialisation standard de Firestore (Compatible v9+)
+export const db = getFirestore(app);
+
+// Enable Offline Persistence
 try {
-    enableIndexedDbPersistence(db).catch((err) => {
-        if (err.code == 'failed-precondition') {
-            console.warn('La persistance a échoué : multiples onglets ouverts.');
-        } else if (err.code == 'unimplemented') {
-            console.warn('Le navigateur ne supporte pas la persistance.');
-        }
-    });
-} catch (e) {
-    // Ignorer erreurs en environnement SSR ou spécifique
+  enableIndexedDbPersistence(db).catch((err) => {
+      if (err.code == 'failed-precondition') {
+          console.warn('Firestore persistence failed: Multiple tabs open.');
+      } else if (err.code == 'unimplemented') {
+          console.warn('Firestore persistence not supported by browser.');
+      }
+  });
+} catch(e) { 
+  // Ignore persistence errors in certain envs
 }
+
+export const storage = getStorage(app);
 
 // Initialisation de la messagerie (Sécurisée avec détection de fonctionnalités)
 let messaging: any = null;
 
-if (typeof window !== 'undefined') {
-  try {
-    // Vérification stricte des fonctionnalités requises pour éviter l'erreur 'messaging/unsupported-browser'
-    // Le SDK Firebase lance une erreur si ces API ne sont pas disponibles (ex: Navigation privée, HTTP, ou certains environnements de preview)
-    const isSupported = 
-      'serviceWorker' in navigator && 
-      'PushManager' in window && 
-      'indexedDB' in window;
+const isMessagingSupported = () => {
+  if (typeof window === 'undefined') return false;
+  if (typeof navigator === 'undefined') return false;
+  if (!('serviceWorker' in navigator)) return false;
+  if (!('PushManager' in window)) return false;
+  if (!('indexedDB' in window)) return false;
+  // Messaging strictly requires a secure context (HTTPS or localhost)
+  if (!window.isSecureContext) return false;
+  return true;
+};
 
-    if (isSupported) {
-      messaging = getMessaging(app);
-    }
-  } catch (err) {
-    // On ignore silencieusement les erreurs d'initialisation de la messagerie
-    // car c'est une fonctionnalité optionnelle et l'erreur est fréquente en développement
-    console.debug('Firebase Messaging initialization skipped (unsupported environment).');
+try {
+  if (isMessagingSupported()) {
+    messaging = getMessaging(app);
   }
+} catch (err) {
+  // Silence 'messaging/unsupported-browser' errors in preview/dev environments
+  // console.debug('Firebase Messaging initialization skipped.');
 }
 
 export { messaging };

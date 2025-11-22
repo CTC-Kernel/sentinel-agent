@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, db } from '../firebase';
-import { Lock, Mail, ArrowRight, ShieldAlert, AlertTriangle, Server } from '../components/ui/Icons';
+import { Lock, Mail, ArrowRight, ShieldAlert, AlertTriangle, Server, X, CheckCircle2 } from '../components/ui/Icons';
 import { useStore } from '../store';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
+import { Invitation } from '../types';
 
-// Logos SVG natifs pour un rendu parfait
+// Google SVG optimized
 const GoogleIcon = () => (
   <svg className="h-5 w-5" viewBox="0 0 24 24">
     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -24,23 +25,49 @@ export const Login: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { addToast } = useStore();
 
+  // Reset Password State
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
+
   const createUserProfile = async (user: any) => {
       try {
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
-
+        
         if (!userDoc.exists()) {
+            // Check for pending invitations
+            let orgId = '';
+            let orgName = '';
+            let role = 'user';
+            let department = '';
+            
+            const q = query(collection(db, 'invitations'), where('email', '==', user.email));
+            const inviteSnap = await getDocs(q);
+            
+            if (!inviteSnap.empty) {
+                const invite = inviteSnap.docs[0].data() as Invitation;
+                orgId = invite.organizationId;
+                orgName = invite.organizationName;
+                role = invite.role;
+                department = invite.department;
+                
+                // Delete used invitation
+                await deleteDoc(inviteSnap.docs[0].ref);
+            }
+
             await setDoc(userDocRef, {
-                uid: user.uid,
-                email: user.email,
-                role: 'user',
+                uid: user.uid, 
+                email: user.email, 
+                role: role,
                 displayName: user.displayName || user.email?.split('@')[0] || 'Utilisateur',
-                department: ''
+                department: department, 
+                organizationId: orgId,
+                organizationName: orgName,
+                onboardingCompleted: false // Still false to allow user to confirm/edit their profile
             });
         }
-      } catch (e) {
-        console.error("Erreur création profil:", e);
-      }
+      } catch (e) { console.error("Profile Error", e); }
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -57,17 +84,12 @@ export const Login: React.FC = () => {
         addToast("Compte créé avec succès", "success");
       }
     } catch (error: any) {
-      console.error("Auth Error:", error.code, error.message);
       let msg = "Erreur d'authentification.";
-      if (error.code === 'auth/invalid-credential') msg = "Email ou mot de passe incorrect.";
-      if (error.code === 'auth/user-not-found') msg = "Aucun compte trouvé avec cet email.";
-      if (error.code === 'auth/wrong-password') msg = "Mot de passe incorrect.";
+      if (error.code === 'auth/invalid-credential') msg = "Identifiants incorrects.";
       if (error.code === 'auth/email-already-in-use') msg = "Cet email est déjà utilisé.";
-      if (error.code === 'auth/weak-password') msg = "Le mot de passe doit faire au moins 6 caractères.";
+      if (error.code === 'auth/weak-password') msg = "Le mot de passe est trop faible.";
       setErrorMsg(msg);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const handleGoogleLogin = async () => {
@@ -77,164 +99,184 @@ export const Login: React.FC = () => {
           const provider = new GoogleAuthProvider();
           const result = await signInWithPopup(auth, provider);
           await createUserProfile(result.user);
-          addToast(`Bienvenue ${result.user.displayName || ''}`, "success");
       } catch (error: any) {
-          console.error("Social Auth Error", error.code, error.message);
           if(error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-allowed') {
-             // Message spécifique pour l'environnement de dev
-             setErrorMsg("RESTRICTION ENVIRONNEMENT : Google Auth est bloqué sur ce domaine de prévisualisation. Utilisez l'email ci-dessous.");
-          } else if (error.code === 'auth/popup-closed-by-user') {
-             setErrorMsg(null);
+             setErrorMsg("Environnement restreint : Google Auth non disponible ici. Utilisez l'email.");
           } else {
-             setErrorMsg("Erreur de connexion Google. Réessayez ou utilisez l'Email.");
+             setErrorMsg("Erreur Google Auth.");
           }
+      } finally { setLoading(false); }
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!resetEmail) return;
+      setLoading(true);
+      try {
+          await sendPasswordResetEmail(auth, resetEmail);
+          setResetSent(true);
+      } catch (error: any) {
+          addToast("Erreur envoi email de réinitialisation", "error");
       } finally {
           setLoading(false);
       }
   };
 
-  const fillDemoCredentials = () => {
-      setEmail('demo@sentinel.local');
-      setPassword('demo1234');
-      setIsLogin(false); // Switch to register in case it doesn't exist, user can switch back
-      setErrorMsg(null);
-      addToast("Identifiants de démo pré-remplis", "info");
-  };
+  const fillDemo = () => { setEmail('demo@sentinel.local'); setPassword('demo1234'); setErrorMsg(null); };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-            <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-brand-400/20 dark:bg-brand-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-            <div className="absolute bottom-[-20%] right-[-20%] w-96 h-96 bg-purple-400/20 dark:bg-purple-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#E5E7EB] dark:bg-[#000000] relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
+      {/* Ambient Background */}
+      <div className="absolute inset-0 w-full h-full">
+          <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-300/30 dark:bg-blue-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float"></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-300/30 dark:bg-indigo-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{animationDelay: '3s'}}></div>
       </div>
 
-      <div className="w-full max-w-md p-8 relative z-10">
-         <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 dark:border-white/10 p-8 md:p-10">
-            <div className="flex justify-center mb-8">
-                <div className="relative">
-                    <div className="absolute inset-0 bg-brand-500 blur-xl opacity-30"></div>
-                    <div className="relative bg-gradient-to-br from-slate-900 to-slate-700 dark:from-white dark:to-gray-300 p-4 rounded-2xl shadow-lg ring-1 ring-white/10">
-                        <Lock className="h-8 w-8 text-white dark:text-slate-900" />
-                    </div>
-                </div>
-            </div>
+      <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center">
+         <div className="glass-panel rounded-[2.5rem] p-10 flex flex-col items-center shadow-2xl border border-white/50 dark:border-white/10 bg-white/90 dark:bg-black/60 backdrop-blur-xl">
             
-            <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Sentinel GRC</h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">Plateforme de Gouvernance & Conformité</p>
+            {/* Logo */}
+            <div className="mb-10 flex flex-col items-center">
+                <div className="w-16 h-16 rounded-3xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl mb-5 ring-1 ring-black/5 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                    <Lock className="h-8 w-8" strokeWidth={2.5} />
+                </div>
+                <h1 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white">Sentinel GRC</h1>
+                <p className="text-base font-medium text-slate-500 dark:text-slate-400 mt-2">Accédez à votre espace sécurisé</p>
             </div>
 
             {errorMsg && (
-                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex flex-col gap-3 text-sm text-red-600 dark:text-red-400 animate-fade-in shadow-sm">
-                    <div className="flex items-start">
-                        <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5"/>
-                        <span className="font-semibold">{errorMsg}</span>
-                    </div>
-                    {errorMsg.includes('RESTRICTION') && (
-                        <button 
-                            onClick={fillDemoCredentials}
-                            className="self-end text-xs bg-red-100 dark:bg-red-900/40 hover:bg-red-200 text-red-800 dark:text-red-200 px-3 py-2 rounded-lg transition-colors font-bold flex items-center"
-                        >
-                            <Server className="h-3 w-3 mr-2"/>
-                            Utiliser Compte Démo (Email)
+                <div className="w-full mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex flex-col gap-2 text-xs font-bold text-red-600 shadow-sm animate-slide-up">
+                    <p className="flex items-center justify-center"><AlertTriangle className="h-4 w-4 mr-2"/> {errorMsg}</p>
+                    {errorMsg.includes('restreint') && (
+                        <button onClick={fillDemo} className="mx-auto bg-white border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+                            <Server className="h-3 w-3"/> Mode Démo
                         </button>
                     )}
                 </div>
             )}
 
-            <div className="mb-6">
+            <div className="w-full space-y-5">
                 <button 
                     onClick={handleGoogleLogin}
                     disabled={loading}
-                    className="w-full flex items-center justify-center px-4 py-3 bg-white dark:bg-slate-700 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors shadow-sm group"
+                    className="w-full flex items-center justify-center px-4 py-4 bg-white dark:bg-[#1c1c1e] border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-200 shadow-sm active:scale-[0.98] hover:shadow-md"
                 >
-                    <div className="group-hover:scale-110 transition-transform duration-300">
-                        <GoogleIcon />
-                    </div>
-                    <span className="ml-3 text-sm font-medium text-slate-700 dark:text-white">Continuer avec Google</span>
+                    <GoogleIcon />
+                    <span className="ml-3 text-[15px] font-bold text-slate-700 dark:text-white">Continuer avec Google</span>
                 </button>
-            </div>
 
-            <div className="relative mb-6">
-                <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                <div className="relative py-2">
+                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-white/10"></div></div>
+                    <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-400">Ou via email</span></div>
                 </div>
-                <div className="relative flex justify-center text-xs">
-                    <span className="px-2 bg-slate-50/50 dark:bg-slate-800 text-gray-500 uppercase tracking-wider">ou via email</span>
-                </div>
-            </div>
 
-            <form onSubmit={handleEmailAuth} className="space-y-5">
-                <div>
-                    <label className="block text-xs font-bold uppercase text-slate-500 mb-1.5 ml-1">Email Professionnel</label>
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Mail className="h-5 w-5 text-gray-400 group-focus-within:text-brand-500 transition-colors"/>
+                <form onSubmit={handleEmailAuth} className="space-y-5">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-500 ml-1 uppercase tracking-widest">Email</label>
+                        <div className="relative group">
+                            <Mail className="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                            <input 
+                                type="email" 
+                                required
+                                className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-inner"
+                                placeholder="nom@entreprise.com"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                            />
                         </div>
-                        <input 
-                            type="email" 
-                            required
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all"
-                            placeholder="admin@sentinel.local"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                        />
                     </div>
-                </div>
 
-                <div>
-                    <label className="block text-xs font-bold uppercase text-slate-500 mb-1.5 ml-1">Mot de passe</label>
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-brand-500 transition-colors"/>
+                    <div className="space-y-1.5">
+                        <div className="flex justify-between items-center ml-1">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Mot de passe</label>
+                            {isLogin && (
+                                <button type="button" onClick={() => setShowResetModal(true)} className="text-[11px] font-bold text-brand-600 hover:text-brand-500 transition-colors">
+                                    Oublié ?
+                                </button>
+                            )}
                         </div>
-                        <input 
-                            type="password" 
-                            required
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                        />
+                        <div className="relative group">
+                            <Lock className="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                            <input 
+                                type="password" 
+                                required
+                                className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-inner"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                            />
+                        </div>
                     </div>
-                </div>
 
-                <button 
-                    type="submit" 
-                    disabled={loading}
-                    className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center group"
-                >
-                    {loading ? (
-                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                        <>
-                            {isLogin ? 'Se connecter' : 'Créer un compte'}
-                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                        </>
-                    )}
-                </button>
-            </form>
-
-            <div className="mt-6 text-center">
-                <button 
-                    onClick={() => {
-                        setIsLogin(!isLogin);
-                        setErrorMsg(null);
-                    }}
-                    className="text-sm text-slate-500 hover:text-brand-600 transition-colors font-medium underline decoration-transparent hover:decoration-brand-600 underline-offset-4"
-                >
-                    {isLogin ? "Pas encore de compte ? S'inscrire gratuitement" : "Déjà un compte ? Se connecter"}
-                </button>
+                    <button 
+                        type="submit" 
+                        disabled={loading}
+                        className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:shadow-xl hover:shadow-slate-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center text-[15px]"
+                    >
+                        {loading ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : 
+                        (isLogin ? 'Se connecter' : 'Créer un compte')}
+                        {!loading && <ArrowRight className="ml-2 h-5 w-5" strokeWidth={2.5} />}
+                    </button>
+                </form>
             </div>
-            
-            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700/50 text-center">
-                 <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-medium">
-                    <ShieldAlert className="w-3 h-3 mr-1.5"/>
-                    Environnement Sécurisé
-                 </div>
+
+            <div className="mt-8 text-center">
+                <button 
+                    onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); }}
+                    className="text-[13px] font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                    {isLogin ? "Créer un nouveau compte" : "J'ai déjà un compte"}
+                </button>
             </div>
          </div>
       </div>
+      
+      <div className="py-6 text-center relative z-10">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Développé par Cyber Threat Consulting</p>
+      </div>
+
+      {/* Reset Password Modal */}
+      {showResetModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+              <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
+                  <button onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                      <X className="h-5 w-5" />
+                  </button>
+                  
+                  <div className="text-center mb-6">
+                      <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mx-auto mb-4 text-brand-600">
+                          <Mail className="h-7 w-7" />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">Réinitialisation</h3>
+                      <p className="text-sm text-slate-500 mt-2">Entrez votre email pour recevoir un lien de réinitialisation.</p>
+                  </div>
+
+                  {!resetSent ? (
+                      <form onSubmit={handlePasswordReset} className="space-y-6">
+                          <div>
+                              <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Email</label>
+                              <input 
+                                  type="email" required
+                                  className="w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
+                                  value={resetEmail} onChange={e => setResetEmail(e.target.value)} placeholder="nom@entreprise.com"
+                              />
+                          </div>
+                          <button type="submit" disabled={loading} className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] transition-transform shadow-lg">
+                              {loading ? 'Envoi...' : 'Envoyer le lien'}
+                          </button>
+                      </form>
+                  ) : (
+                      <div className="text-center py-4">
+                          <div className="inline-flex items-center px-4 py-2 rounded-xl bg-green-50 text-green-700 text-sm font-bold mb-4 border border-green-100">
+                              <CheckCircle2 className="h-4 w-4 mr-2"/> Email envoyé !
+                          </div>
+                          <p className="text-sm text-slate-500 mb-6">Vérifiez votre boîte de réception (et vos spams).</p>
+                          <button onClick={() => setShowResetModal(false)} className="text-sm font-bold text-brand-600 hover:underline">Retour à la connexion</button>
+                      </div>
+                  )}
+              </div>
+          </div>
+      )}
     </div>
   );
 };
