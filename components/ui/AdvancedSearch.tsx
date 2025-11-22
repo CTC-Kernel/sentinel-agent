@@ -1,0 +1,210 @@
+import React, { useState, useEffect } from 'react';
+import { Search, X, Filter, Calendar, Tag, User as UserIcon } from './Icons';
+
+export interface SearchFilters {
+    query: string;
+    type?: 'asset' | 'risk' | 'document' | 'audit' | 'incident' | 'project' | 'all';
+    status?: string;
+    owner?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    criticality?: 'Faible' | 'Moyenne' | 'Élevée' | 'Critique';
+    tags?: string[];
+}
+
+interface AdvancedSearchProps {
+    onSearch: (filters: SearchFilters) => void;
+    onClose: () => void;
+}
+
+export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClose }) => {
+    const [filters, setFilters] = useState<SearchFilters>({
+        query: '',
+        type: 'all',
+    });
+
+    const [showFilters, setShowFilters] = useState(false);
+
+    const handleSearch = () => {
+        onSearch(filters);
+    };
+
+    const handleReset = () => {
+        setFilters({ query: '', type: 'all' });
+        onSearch({ query: '', type: 'all' });
+    };
+
+    const updateFilter = <K extends keyof SearchFilters>(key: K, value: SearchFilters[K]) => {
+        setFilters((prev) => ({ ...prev, [key]: value }));
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/50 backdrop-blur-sm animate-fade-in">
+            <div className="w-full max-w-3xl mx-4 glass-panel rounded-3xl shadow-2xl border border-white/20 dark:border-white/10 overflow-hidden animate-slide-up">
+                {/* Header */}
+                <div className="p-6 border-b border-slate-200 dark:border-white/10 bg-gradient-to-r from-brand-500/10 to-purple-500/10">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                            <Search className="h-6 w-6 text-brand-600 dark:text-brand-400" />
+                            Recherche Avancée
+                        </h2>
+                        <button
+                            onClick={onClose}
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors"
+                        >
+                            <X className="h-5 w-5 text-slate-500" />
+                        </button>
+                    </div>
+
+                    {/* Main Search Input */}
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                        <input
+                            type="text"
+                            value={filters.query}
+                            onChange={(e) => updateFilter('query', e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            placeholder="Rechercher dans tous les modules..."
+                            className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 text-lg"
+                            autoFocus
+                        />
+                    </div>
+                </div>
+
+                {/* Filters Toggle */}
+                <div className="px-6 py-3 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50">
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+                    >
+                        <Filter className="h-4 w-4" />
+                        {showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
+                    </button>
+                </div>
+
+                {/* Filters Panel */}
+                {showFilters && (
+                    <div className="p-6 space-y-4 bg-white dark:bg-slate-900">
+                        {/* Type Filter */}
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                Type de ressource
+                            </label>
+                            <select
+                                value={filters.type}
+                                onChange={(e) => updateFilter('type', e.target.value as any)}
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                            >
+                                <option value="all">Tous les types</option>
+                                <option value="asset">Actifs</option>
+                                <option value="risk">Risques</option>
+                                <option value="document">Documents</option>
+                                <option value="audit">Audits</option>
+                                <option value="incident">Incidents</option>
+                                <option value="project">Projets</option>
+                            </select>
+                        </div>
+
+                        {/* Status Filter */}
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                Statut
+                            </label>
+                            <input
+                                type="text"
+                                value={filters.status || ''}
+                                onChange={(e) => updateFilter('status', e.target.value)}
+                                placeholder="Ex: Actif, En cours, Fermé..."
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                            />
+                        </div>
+
+                        {/* Owner Filter */}
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                                <UserIcon className="h-4 w-4" />
+                                Propriétaire
+                            </label>
+                            <input
+                                type="text"
+                                value={filters.owner || ''}
+                                onChange={(e) => updateFilter('owner', e.target.value)}
+                                placeholder="Nom du propriétaire..."
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                            />
+                        </div>
+
+                        {/* Date Range */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+                                    <Calendar className="h-4 w-4" />
+                                    Date de début
+                                </label>
+                                <input
+                                    type="date"
+                                    value={filters.dateFrom || ''}
+                                    onChange={(e) => updateFilter('dateFrom', e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                    Date de fin
+                                </label>
+                                <input
+                                    type="date"
+                                    value={filters.dateTo || ''}
+                                    onChange={(e) => updateFilter('dateTo', e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Criticality Filter */}
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                Criticité
+                            </label>
+                            <select
+                                value={filters.criticality || ''}
+                                onChange={(e) => updateFilter('criticality', e.target.value as any)}
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                            >
+                                <option value="">Toutes les criticités</option>
+                                <option value="Faible">Faible</option>
+                                <option value="Moyenne">Moyenne</option>
+                                <option value="Élevée">Élevée</option>
+                                <option value="Critique">Critique</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
+
+                {/* Actions */}
+                <div className="p-6 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+                    <button
+                        onClick={handleReset}
+                        className="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    >
+                        Réinitialiser
+                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onClose}
+                            className="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors"
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            onClick={handleSearch}
+                            className="px-8 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                        >
+                            Rechercher
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};

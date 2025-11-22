@@ -85,7 +85,8 @@ import {
   ChevronDown,
   Euro,
   TrendingDown,
-  Info
+  Info,
+  Check
 } from 'lucide-react';
 
 export {
@@ -174,5 +175,6 @@ export {
   ChevronDown,
   Euro,
   TrendingDown,
-  Info
+  Info,
+  Check
 };
