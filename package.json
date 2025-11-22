@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "start": "vite --host 0.0.0.0 --port 8080"
+    "start": "npx serve dist -p 8080 -s"
   },
   "dependencies": {
     "express": "^4.18.2",
