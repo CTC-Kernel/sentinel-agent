@@ -1,0 +1,260 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserData().role == 'admin';
+    }
+    
+    function isAuditor() {
+      return isAuthenticated() && getUserData().role == 'auditor';
+    }
+    
+    function belongsToOrganization(orgId) {
+      return isAuthenticated() && getUserData().organizationId == orgId;
+    }
+    
+    function canRead(orgId) {
+      return belongsToOrganization(orgId);
+    }
+    
+    function canWrite(orgId) {
+      return belongsToOrganization(orgId) && (isAdmin() || isAuditor());
+    }
+    
+    function canDelete(orgId) {
+      return belongsToOrganization(orgId) && isAdmin();
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == userId || 
+        belongsToOrganization(resource.data.organizationId)
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        request.auth.uid == userId || 
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // Invitations
+    match /invitations/{invitationId} {
+      allow read: if isAuthenticated() && (
+        request.auth.token.email == resource.data.email ||
+        belongsToOrganization(resource.data.organizationId)
+      );
+      allow create: if isAuthenticated() && isAdmin();
+      allow delete: if isAuthenticated() && (
+        isAdmin() ||
+        request.auth.token.email == resource.data.email
+      );
+    }
+    
+    // Assets
+    match /assets/{assetId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+      
+      // Maintenance subcollection
+      match /maintenance/{maintenanceId} {
+        allow read: if canRead(get(/databases/$(database)/documents/assets/$(assetId)).data.organizationId);
+        allow write: if canWrite(get(/databases/$(database)/documents/assets/$(assetId)).data.organizationId);
+      }
+    }
+    
+    // Risks
+    match /risks/{riskId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+    
+    // Controls (ISO 27001)
+    match /controls/{controlId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+    
+    // Audits
+    match /audits/{auditId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (isAdmin() || isAuditor());
+      allow update: if isAdmin() || isAuditor();
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+    
+    // Findings
+    match /findings/{findingId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (isAdmin() || isAuditor());
+      allow update: if isAdmin() || isAuditor();
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+    
+    // Projects
+    match /projects/{projectId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+    
+    // Incidents
+    match /incidents/{incidentId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId;
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+    
+    // Documents
+    match /documents/{documentId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+    
+    // Suppliers
+    match /suppliers/{supplierId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+    
+    // Processing Activities (GDPR)
+    match /processing_activities/{activityId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+    
+    // Business Processes (BCP/DRP)
+    match /business_processes/{processId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+    
+    // BCP Drills
+    match /bcp_drills/{drillId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+    
+    // System Logs (Audit Trail)
+    match /system_logs/{logId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId;
+      allow update: if false; // Logs are immutable
+      allow delete: if false; // Logs cannot be deleted
+    }
+    
+    // Stats History
+    match /stats_history/{statId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if false;
+      allow delete: if false;
+    }
+    
+    // Comments (for any resource)
+    match /assets/{assetId}/comments/{commentId} {
+      allow read: if canRead(get(/databases/$(database)/documents/assets/$(assetId)).data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId;
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow delete: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId || 
+        isAdmin()
+      );
+    }
+    
+    match /risks/{riskId}/comments/{commentId} {
+      allow read: if canRead(get(/databases/$(database)/documents/risks/$(riskId)).data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId;
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow delete: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId || 
+        isAdmin()
+      );
+    }
+    
+    match /projects/{projectId}/comments/{commentId} {
+      allow read: if canRead(get(/databases/$(database)/documents/projects/$(projectId)).data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId;
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow delete: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId || 
+        isAdmin()
+      );
+    }
+    
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        belongsToOrganization(resource.data.organizationId)
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+    
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

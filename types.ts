@@ -50,7 +50,7 @@ export interface Risk {
   strategy: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
   status: 'Ouvert' | 'En cours' | 'Fermé';
   owner: string;
-  mitigationControlIds?: string[]; 
+  mitigationControlIds?: string[];
   lastReviewDate?: string;
   createdAt?: string;
 }
@@ -234,7 +234,7 @@ export interface UserProfile {
   organizationId?: string;
   organizationName?: string;
   email: string;
-  role: 'admin' | 'auditor' | 'user';
+  role: 'admin' | 'auditor' | 'user' | 'rssi' | 'project_manager' | 'direction';
   displayName: string;
   department?: string;
   photoURL?: string;
@@ -256,12 +256,12 @@ export interface Invitation {
 }
 
 export interface AlertNotification {
-    id: string;
-    type: 'warning' | 'danger' | 'info';
-    title: string;
-    message: string;
-    date: string;
-    link?: string;
+  id: string;
+  type: 'warning' | 'danger' | 'info';
+  title: string;
+  message: string;
+  date: string;
+  link?: string;
 }
 
 export interface Comment {
