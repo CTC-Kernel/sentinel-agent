@@ -10,18 +10,18 @@ export default {
     extend: {
       fontFamily: {
         sans: [
-          '-apple-system', 
-          'BlinkMacSystemFont', 
+          '-apple-system',
+          'BlinkMacSystemFont',
           '"SF Pro Text"',
-          '"Segoe UI"', 
-          'Roboto', 
-          'Helvetica', 
-          'Arial', 
+          '"Segoe UI"',
+          'Roboto',
+          'Helvetica',
+          'Arial',
           'sans-serif'
         ],
         display: [
-          '-apple-system', 
-          'BlinkMacSystemFont', 
+          '-apple-system',
+          'BlinkMacSystemFont',
           '"SF Pro Display"',
           'sans-serif'
         ],
@@ -56,7 +56,8 @@ export default {
         }
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+        'glass-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
         'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
         'apple': '0 8px 30px rgba(0,0,0,0.08)',
         'card': '0 2px 10px rgba(0,0,0,0.03)',
@@ -68,6 +69,7 @@ export default {
         'scale-in': 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         'float': 'float 8s ease-in-out infinite',
         'shimmer': 'shimmer 2s linear infinite',
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeIn: {

@@ -7,6 +7,8 @@ import { Plus, HeartPulse, Trash2, Edit, Timer, Zap, ClipboardCheck, FileText, S
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
 import { Comments } from '../components/ui/Comments';
 
 export const Continuity: React.FC = () => {
@@ -267,7 +269,22 @@ export const Continuity: React.FC = () => {
 
             {activeTab === 'bia' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {loading ? <div className="col-span-full text-center py-12 text-gray-400">Chargement...</div> : processes.length === 0 ? <div className="col-span-full text-center py-12 text-gray-400 italic">Aucun processus défini.</div> :
+                    {loading ? (
+                        <CardSkeleton count={6} />
+                    ) : processes.length === 0 ? (
+                        <div className="col-span-full">
+                            <EmptyState
+                                icon={HeartPulse}
+                                title="Aucun processus défini"
+                                description="Commencez par définir vos processus critiques pour l'analyse d'impact (BIA)."
+                                actionLabel="Nouveau Processus"
+                                onAction={() => {
+                                    setNewProcess({ name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne', supportingAssetIds: [], drpDocumentId: '' });
+                                    setShowCreateModal(true);
+                                }}
+                            />
+                        </div>
+                    ) : (
                         processes.map(proc => {
                             const lastTest = proc.lastTestDate ? new Date(proc.lastTestDate) : null;
                             const isOverdue = lastTest ? (new Date().getTime() - lastTest.getTime() > 31536000000) : true; // 1 year
@@ -312,56 +329,68 @@ export const Continuity: React.FC = () => {
                                 </div>
                             )
                         })
-                    }
+                    )}
                 </div>
             )}
 
             {activeTab === 'drills' && (
-                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-gray-100 dark:border-white/5 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-                            <tr>
-                                <th className="px-8 py-5">Date</th>
-                                <th className="px-6 py-5">Processus testé</th>
-                                <th className="px-6 py-5">Type d'exercice</th>
-                                <th className="px-6 py-5">Résultat</th>
-                                <th className="px-6 py-5">Notes / Preuves</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                            {drills.length === 0 ? (
-                                <tr><td colSpan={5} className="text-center py-12 text-gray-400">Aucun exercice enregistré.</td></tr>
-                            ) : (
-                                drills.map(drill => {
-                                    const proc = processes.find(p => p.id === drill.processId);
-                                    return (
-                                        <tr key={drill.id} className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors">
-                                            <td className="px-8 py-5 text-slate-900 dark:text-white font-bold flex items-center">
-                                                <CalendarDays className="h-4 w-4 mr-3 text-slate-400" />
-                                                {new Date(drill.date).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-5 font-medium text-slate-600 dark:text-slate-300">
-                                                {proc ? proc.name : 'Inconnu'}
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold border border-gray-200 dark:border-white/5">
-                                                    {drill.type}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <span className={`flex items-center w-fit px-3 py-1.5 rounded-lg text-xs font-bold border ${drill.result === 'Succès' ? 'bg-green-50 text-green-700 border-green-100' : drill.result === 'Échec' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
-                                                    {drill.result === 'Succès' ? <ClipboardCheck className="h-3.5 w-3.5 mr-1.5" /> : <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />}
-                                                    {drill.result}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-5 text-slate-500 dark:text-slate-400 truncate max-w-xs font-medium">{drill.notes}</td>
-                                        </tr>
-                                    )
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                loading ? (
+                    <TableSkeleton rows={5} columns={5} />
+                ) : drills.length === 0 ? (
+                    <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
+                        <EmptyState
+                            icon={Zap}
+                            title="Aucun exercice enregistré"
+                            description="Enregistrez vos exercices de crise (Tabletop, Simulation...) pour valider votre PCA."
+                            actionLabel="Nouvel Exercice"
+                            onAction={() => openDrillModal()}
+                        />
+                    </div>
+                ) : (
+                    <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-gray-100 dark:border-white/5 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                                    <tr>
+                                        <th className="px-8 py-5">Date</th>
+                                        <th className="px-6 py-5">Processus testé</th>
+                                        <th className="px-6 py-5">Type d'exercice</th>
+                                        <th className="px-6 py-5">Résultat</th>
+                                        <th className="px-6 py-5">Notes / Preuves</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                    {drills.map(drill => {
+                                        const proc = processes.find(p => p.id === drill.processId);
+                                        return (
+                                            <tr key={drill.id} className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors">
+                                                <td className="px-8 py-5 text-slate-900 dark:text-white font-bold flex items-center">
+                                                    <CalendarDays className="h-4 w-4 mr-3 text-slate-400" />
+                                                    {new Date(drill.date).toLocaleDateString()}
+                                                </td>
+                                                <td className="px-6 py-5 font-medium text-slate-600 dark:text-slate-300">
+                                                    {proc ? proc.name : 'Inconnu'}
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold border border-gray-200 dark:border-white/5">
+                                                        {drill.type}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    <span className={`flex items-center w-fit px-3 py-1.5 rounded-lg text-xs font-bold border ${drill.result === 'Succès' ? 'bg-green-50 text-green-700 border-green-100' : drill.result === 'Échec' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
+                                                        {drill.result === 'Succès' ? <ClipboardCheck className="h-3.5 w-3.5 mr-1.5" /> : <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />}
+                                                        {drill.result}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-5 text-slate-500 dark:text-slate-400 truncate max-w-xs font-medium">{drill.notes}</td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )
             )}
 
             {/* Inspector Drawer */}
