@@ -1,0 +1,27 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Build output
+dist
+build
+
+# Development files
+.git
+.gitignore
+.env
+.env.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Testing
+coverage
+
+# Misc
+README.md
+.DS_Store
+*.log
