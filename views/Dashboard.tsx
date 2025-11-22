@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, Radar as RechartsRadar, ResponsiveContainer, Tooltip, AreaChart, Area, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { ShieldAlert, CheckCircle2, Activity, AlertTriangle, Download, ChevronRight, Siren, TrendingUp, Lock, Copy, CheckSquare, Clock, FileText, Stethoscope, Building, History, Server, Briefcase, Flame, FileSpreadsheet, CalendarDays, FolderKanban, User, Plus, Zap, ArrowRight, Euro } from '../components/ui/Icons';
+import { ShieldAlert, CheckCircle2, Activity, AlertTriangle, Download, ChevronRight, Siren, TrendingUp, Lock, Copy, CheckSquare, Clock, FileText, Stethoscope, Building, History, Server, Briefcase, Flame, FileSpreadsheet, CalendarDays, FolderKanban, User, Plus, Zap, ArrowRight, Euro, Settings as Settings3D } from '../components/ui/Icons';
 import { db } from '../firebase';
 import { collection, getDocs, query, where, doc, setDoc, limit, getCountFromServer } from 'firebase/firestore';
 import { Risk, Control, Audit, Project, DailyStat, Document, ProjectTask, Asset, SystemLog, Supplier, Incident } from '../types';
@@ -355,7 +355,10 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <button onClick={() => navigate('/voxel')} className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 border border-purple-100 dark:border-purple-900/30 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform group shadow-sm">
+                    <Settings3D className="h-5 w-5 text-purple-500 group-hover:animate-pulse" /> <span className="text-sm font-bold text-purple-700 dark:text-purple-400">Voxel 3D</span>
+                </button>
                 <button onClick={() => navigate('/incidents')} className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform group shadow-sm">
                     <Siren className="h-5 w-5 text-red-500 group-hover:animate-pulse" /> <span className="text-sm font-bold text-red-700 dark:text-red-400">Incident</span>
                 </button>
