@@ -5,6 +5,8 @@ import { getAuth } from 'firebase/auth';
 import { initializeFirestore, persistentLocalCache, persistentSingleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging } from 'firebase/messaging';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
+
 
 const firebaseConfig = {
   apiKey: "***REDACTED***",
@@ -17,7 +19,23 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// Initialize App Check with ReCAPTCHA Enterprise
+// This protects your Firebase resources from abuse
+if (typeof window !== 'undefined') {
+  try {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider('6Le2FxUsAAAAAOn9WU8omrp4NXSMJIHIRUBhYFSR'),
+      isTokenAutoRefreshEnabled: true // Automatically refresh tokens
+    });
+  } catch (error) {
+    console.warn('App Check initialization failed:', error);
+    // App will continue to work, but without App Check protection
+  }
+}
+
 export const auth = getAuth(app);
+
 
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
 export const db = initializeFirestore(app, {
