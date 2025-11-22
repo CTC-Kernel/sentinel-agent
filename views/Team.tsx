@@ -1,130 +1,372 @@
+
 import React, { useEffect, useState } from 'react';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import { UserProfile } from '../types';
-import { Users, Mail, Plus } from '../components/ui/Icons';
+import { UserProfile, Invitation } from '../types';
+import { Users, Mail, Plus, Building, User, Trash2, Edit, X, Clock, Timer, FileSpreadsheet } from '../components/ui/Icons';
 import { useStore } from '../store';
+import { sendEmail } from '../services/emailService';
+import { getInvitationTemplate } from '../services/emailTemplates';
+import { Skeleton } from '../components/ui/Skeleton';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { logAction } from '../services/logger';
 
 export const Team: React.FC = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const { addToast } = useStore();
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const { user, addToast } = useStore();
+  
+  // State for creating user
   const [newUser, setNewUser] = useState({ displayName: '', email: '', role: 'user', department: '' });
+  
+  // State for editing user
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+
+  // Confirm Dialog
+  const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+      isOpen: false, title: '', message: '', onConfirm: () => {}
+  });
+
+  const canAdmin = user?.role === 'admin';
 
   const fetchUsers = async () => {
+    if (!user?.organizationId) return;
     setLoading(true);
     try {
-      const snap = await getDocs(collection(db, 'users'));
-      // If empty, we show nothing or default
-      if (!snap.empty) {
-          setUsers(snap.docs.map(d => d.data() as UserProfile));
-      } else {
-          // Keep a default user visible if DB is empty for demo purposes until they add one
-          setUsers([
-            { uid: '1', displayName: 'Admin', email: 'admin@sentinel.local', role: 'admin', department: 'IT' }
-          ]);
-      }
+      const results = await Promise.allSettled([
+          getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
+          getDocs(query(collection(db, 'invitations'), where('organizationId', '==', user.organizationId)))
+      ]);
+
+      const activeUsers = results[0].status === 'fulfilled' 
+        ? results[0].value.docs.map(d => ({ ...d.data(), uid: d.id, isPending: false } as UserProfile))
+        : [];
+        
+      const pendingInvites = results[1].status === 'fulfilled'
+        ? results[1].value.docs.map(d => {
+            const inv = d.data() as Invitation;
+            return {
+                uid: d.id, // Use invitation ID as temp UID
+                email: inv.email,
+                displayName: 'Invité (En attente)',
+                role: inv.role,
+                department: inv.department,
+                organizationId: inv.organizationId,
+                isPending: true,
+                onboardingCompleted: false
+            } as UserProfile;
+        })
+        : [];
+
+      setUsers([...activeUsers, ...pendingInvites]);
     } catch (e) {
-       console.warn("Erreur fetch users");
+       console.warn("Erreur fetch users", e);
+       addToast("Impossible de charger la liste des utilisateurs", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => { fetchUsers(); }, [user?.organizationId]);
 
   const handleAddUser = async (e: React.FormEvent) => {
       e.preventDefault();
+      if (!user?.organizationId) return;
+
       try {
-          await addDoc(collection(db, 'users'), newUser);
-          setShowModal(false);
+          // Create an invitation in 'invitations' collection
+          await addDoc(collection(db, 'invitations'), {
+              ...newUser,
+              organizationId: user.organizationId,
+              organizationName: user.organizationName,
+              invitedBy: user.uid,
+              createdAt: new Date().toISOString()
+          });
+
+          const inviteLink = `${window.location.origin}/#/login`;
+          const htmlContent = getInvitationTemplate(user?.displayName || 'Un administrateur', newUser.role, inviteLink);
+          
+          await sendEmail(user, {
+              to: newUser.email,
+              subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
+              type: 'INVITATION',
+              html: htmlContent
+          });
+
+          setShowInviteModal(false);
           setNewUser({ displayName: '', email: '', role: 'user', department: '' });
-          addToast("Invitation envoyée (Profil créé)", "success");
+          addToast("Invitation envoyée par email", "success");
           fetchUsers();
       } catch(e) { 
-          addToast("Erreur lors de la création", "error");
+          addToast("Erreur lors de l'invitation", "error");
+      }
+  };
+
+  const openEditModal = (u: UserProfile) => {
+      setSelectedUser(u);
+      setShowEditModal(true);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!selectedUser) return;
+      if (selectedUser.isPending) return; // Cannot edit invites this way yet
+
+      try {
+          await updateDoc(doc(db, 'users', selectedUser.uid), {
+              role: selectedUser.role,
+              department: selectedUser.department,
+              displayName: selectedUser.displayName
+          });
+          await logAction(user, 'UPDATE', 'User', `Modification utilisateur: ${selectedUser.email}`);
+          setUsers(prev => prev.map(u => u.uid === selectedUser.uid ? selectedUser : u));
+          setShowEditModal(false);
+          addToast("Utilisateur mis à jour", "success");
+      } catch (e) {
+          addToast("Erreur mise à jour", "error");
+      }
+  };
+
+  const initiateDelete = (u: UserProfile) => {
+      if (!canAdmin) return;
+      if (u.uid === user?.uid) {
+          addToast("Vous ne pouvez pas vous supprimer vous-même.", "error");
+          return;
+      }
+      setConfirmData({
+          isOpen: true,
+          title: u.isPending ? "Annuler l'invitation ?" : "Supprimer l'utilisateur ?",
+          message: u.isPending 
+            ? `Voulez-vous révoquer l'invitation pour ${u.email} ?`
+            : `L'utilisateur ${u.email} perdra définitivement l'accès à l'organisation.`,
+          onConfirm: () => handleDeleteUser(u)
+      });
+  };
+
+  const handleDeleteUser = async (u: UserProfile) => {
+      try {
+          if (u.isPending) {
+              await deleteDoc(doc(db, 'invitations', u.uid));
+              addToast("Invitation annulée", "info");
+          } else {
+              await deleteDoc(doc(db, 'users', u.uid));
+              await logAction(user, 'DELETE', 'User', `Suppression utilisateur: ${u.email}`);
+              addToast("Utilisateur supprimé", "info");
+          }
+          setUsers(prev => prev.filter(user => user.uid !== u.uid));
+      } catch (e) {
+          addToast("Erreur suppression", "error");
+      }
+  };
+
+  const handleExportCSV = () => {
+    const headers = ["Nom", "Email", "Rôle", "Département", "Statut", "Dernière Connexion"];
+    const rows = users.map(u => [
+        u.displayName || '',
+        u.email,
+        u.role,
+        u.department || '',
+        u.isPending ? 'Invité' : 'Actif',
+        u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : ''
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+    link.download = `team_export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const getRoleBadge = (role: string) => {
+      switch(role) {
+          case 'admin': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200 dark:border-purple-800">Admin</span>;
+          case 'auditor': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800">Auditeur</span>;
+          default: return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-gray-400 border border-gray-200 dark:border-slate-700">Utilisateur</span>;
       }
   };
 
   return (
-    <div className="space-y-6">
-        <div className="flex justify-between items-center">
+    <div className="space-y-8 animate-fade-in pb-10 relative">
+        <ConfirmModal 
+            isOpen={confirmData.isOpen}
+            onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+            onConfirm={confirmData.onConfirm}
+            title={confirmData.title}
+            message={confirmData.message}
+        />
+
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Équipe & Rôles</h1>
-                <p className="text-slate-500 dark:text-slate-400">Gestion des accès et des collaborateurs.</p>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Équipe</h1>
+                <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Gestion des membres de {user?.organizationName || 'l\'organisation'}.</p>
             </div>
-            <button onClick={() => setShowModal(true)} className="flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors">
-                <Plus className="h-4 w-4 mr-2" />
-                Inviter un membre
-            </button>
+            {canAdmin && (
+                <div className="flex gap-3">
+                    <button onClick={handleExportCSV} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white">
+                        <FileSpreadsheet className="h-4 w-4 mr-2" /> Export CSV
+                    </button>
+                    <button onClick={() => setShowInviteModal(true)} className="flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Inviter un membre
+                    </button>
+                </div>
+            )}
         </div>
 
-        <div className="bg-white dark:bg-slate-850 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
-            <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50 dark:bg-slate-900/50 border-b border-gray-200 dark:border-gray-800 text-gray-500 uppercase text-xs">
-                    <tr>
-                        <th className="px-6 py-3">Utilisateur</th>
-                        <th className="px-6 py-3">Email</th>
-                        <th className="px-6 py-3">Rôle</th>
-                        <th className="px-6 py-3">Département</th>
-                        <th className="px-6 py-3 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {users.map((u, i) => (
-                        <tr key={i} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                            <td className="px-6 py-4 font-medium text-slate-900 dark:text-white flex items-center">
-                                <div className="h-8 w-8 rounded-full bg-brand-100 dark:bg-brand-900 text-brand-600 flex items-center justify-center mr-3 font-bold">
-                                    {u.displayName.charAt(0).toUpperCase()}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {loading ? [1,2,3].map(i => <Skeleton key={i} className="h-48 w-full rounded-[2rem]" />) : 
+             users.length === 0 ? <div className="col-span-full text-center py-12 text-gray-400 italic">Aucun membre trouvé.</div> :
+             users.map((u, i) => (
+                <div key={i} className={`glass-panel rounded-[2rem] p-6 flex flex-col items-center text-center hover:shadow-apple transition-all duration-300 group relative border border-white/50 dark:border-white/5 ${u.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
+                    {canAdmin && (
+                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {!u.isPending && (
+                                <button onClick={() => openEditModal(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all">
+                                    <Edit className="h-4 w-4"/>
+                                </button>
+                            )}
+                            <button onClick={() => initiateDelete(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-400 hover:text-red-500 shadow-sm hover:scale-105 transition-all">
+                                <Trash2 className="h-4 w-4"/>
+                            </button>
+                        </div>
+                    )}
+                    
+                    <div className="relative mb-4 mt-2">
+                        {u.photoURL ? (
+                            <img src={u.photoURL} alt={u.displayName} className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50 grayscale' : ''}`} />
+                        ) : (
+                            <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-3xl font-bold text-slate-500 dark:text-slate-300 shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50' : ''}`}>
+                                {u.displayName ? u.displayName.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                        )}
+                        <div className="absolute bottom-0 right-0 transform translate-x-2 translate-y-1">
+                            {getRoleBadge(u.role)}
+                        </div>
+                    </div>
+                    
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{u.displayName}</h3>
+                    <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
+                        <Mail className="h-3 w-3 mr-1.5 opacity-70"/> {u.email}
+                    </div>
+
+                    {u.isPending ? (
+                        <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-center items-center text-xs mt-auto">
+                            <div className="flex items-center text-amber-500 font-bold bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg">
+                                <Timer className="h-3.5 w-3.5 mr-1.5"/>
+                                Invitation en attente
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center text-xs mt-auto">
+                            <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
+                                <Building className="h-3.5 w-3.5 mr-1.5 text-slate-400"/>
+                                {u.department || 'Général'}
+                            </div>
+                            {u.lastLogin && (
+                                <div className="flex items-center text-slate-400 font-medium" title="Dernière connexion">
+                                    <Clock className="h-3.5 w-3.5 mr-1.5"/>
+                                    {new Date(u.lastLogin).toLocaleDateString()}
                                 </div>
-                                {u.displayName}
-                            </td>
-                            <td className="px-6 py-4 text-gray-500">
-                                <div className="flex items-center">
-                                    <Mail className="h-3 w-3 mr-2 opacity-50"/>
-                                    {u.email}
-                                </div>
-                            </td>
-                            <td className="px-6 py-4">
-                                <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                                    u.role === 'admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
-                                    u.role === 'auditor' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                                    'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-gray-400'
-                                }`}>
-                                    {u.role}
-                                </span>
-                            </td>
-                            <td className="px-6 py-4 text-gray-500">{u.department || '-'}</td>
-                            <td className="px-6 py-4 text-right">
-                                <button className="text-brand-600 hover:underline text-xs font-medium">Éditer</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                            )}
+                        </div>
+                    )}
+                </div>
+            ))}
         </div>
 
-        {showModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                <div className="bg-white dark:bg-slate-850 rounded-2xl p-6 w-full max-w-md border border-gray-200 dark:border-gray-800">
-                    <h3 className="text-lg font-bold mb-4 dark:text-white">Inviter un utilisateur</h3>
-                    <form onSubmit={handleAddUser} className="space-y-4">
-                        <input type="text" placeholder="Nom complet" className="w-full p-2 border rounded dark:bg-transparent dark:border-gray-700 dark:text-white" required 
-                            value={newUser.displayName} onChange={e => setNewUser({...newUser, displayName: e.target.value})} />
-                        <input type="email" placeholder="Email professionnel" className="w-full p-2 border rounded dark:bg-transparent dark:border-gray-700 dark:text-white" required
-                            value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} />
-                        <select className="w-full p-2 border rounded dark:bg-transparent dark:border-gray-700 dark:text-white dark:bg-slate-800"
-                             value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})}>
-                            <option value="user">Utilisateur</option>
-                            <option value="auditor">Auditeur</option>
-                            <option value="admin">Administrateur</option>
-                        </select>
-                         <input type="text" placeholder="Département" className="w-full p-2 border rounded dark:bg-transparent dark:border-gray-700 dark:text-white"
-                            value={newUser.department} onChange={e => setNewUser({...newUser, department: e.target.value})} />
-                        <div className="flex justify-end gap-2 mt-4">
-                            <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-500">Annuler</button>
-                            <button type="submit" className="px-4 py-2 bg-brand-600 text-white rounded">Inviter</button>
+        {/* INVITE MODAL */}
+        {showInviteModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+                <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl">
+                    <div className="text-center mb-8 relative">
+                        <button onClick={() => setShowInviteModal(false)} className="absolute right-0 top-0 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            <X className="h-5 w-5"/>
+                        </button>
+                        <div className="w-14 h-14 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4 text-slate-900 dark:text-white shadow-inner">
+                            <User className="h-7 w-7"/>
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Inviter un collaborateur</h3>
+                        <p className="text-sm text-slate-500 mt-1">Ils rejoindront {user?.organizationName}.</p>
+                    </div>
+                    
+                    <form onSubmit={handleAddUser} className="space-y-5">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom complet (Optionnel)</label>
+                            <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" 
+                                value={newUser.displayName} onChange={e => setNewUser({...newUser, displayName: e.target.value})} placeholder="Jean Dupont"/>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email professionnel</label>
+                            <input type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" required
+                                value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} placeholder="jean@entreprise.com"/>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
+                                <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                                    value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})}>
+                                    <option value="user">Utilisateur</option>
+                                    <option value="auditor">Auditeur</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>
+                                <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                    value={newUser.department} onChange={e => setNewUser({...newUser, department: e.target.value})} placeholder="IT"/>
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3 mt-8 pt-4">
+                            <button type="button" onClick={() => setShowInviteModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                            <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">Envoyer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        )}
+
+        {/* EDIT MODAL */}
+        {showEditModal && selectedUser && !selectedUser.isPending && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+                <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl">
+                    <div className="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-white/5 pb-4">
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">Modifier Utilisateur</h3>
+                        <button onClick={() => setShowEditModal(false)} className="p-2 text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors"><X className="h-5 w-5"/></button>
+                    </div>
+                    
+                    <form onSubmit={handleUpdateUser} className="space-y-5">
+                        <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl mb-4">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Compte</p>
+                            <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedUser.email}</p>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom d'affichage</label>
+                            <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" 
+                                value={selectedUser.displayName} onChange={e => setSelectedUser({...selectedUser, displayName: e.target.value})}/>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
+                                <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                                    value={selectedUser.role} onChange={e => setSelectedUser({...selectedUser, role: e.target.value as any})}>
+                                    <option value="user">Utilisateur</option>
+                                    <option value="auditor">Auditeur</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>
+                                <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                    value={selectedUser.department} onChange={e => setSelectedUser({...selectedUser, department: e.target.value})}/>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-white/5">
+                            <button type="button" onClick={() => setShowEditModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                            <button type="submit" className="px-8 py-3 bg-brand-600 text-white rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">Enregistrer</button>
                         </div>
                     </form>
                 </div>

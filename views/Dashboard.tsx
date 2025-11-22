@@ -1,517 +1,450 @@
 
 import React, { useEffect, useState } from 'react';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from 'recharts';
-import { ShieldAlert, CheckCircle2, Server, Activity, AlertTriangle, Download, ChevronRight, CalendarDays, FolderKanban, Siren } from '../components/ui/Icons';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, Radar as RechartsRadar, ResponsiveContainer, Tooltip, AreaChart, Area, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { ShieldAlert, CheckCircle2, Activity, AlertTriangle, Download, ChevronRight, Siren, TrendingUp, Lock, Copy, CheckSquare, Clock, FileText, Stethoscope, Building, History, Server, Briefcase, Flame, FileSpreadsheet, CalendarDays, FolderKanban, User, Plus, Zap, ArrowRight, Euro } from '../components/ui/Icons';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy, limit, where, getCountFromServer } from 'firebase/firestore';
-import { Risk, Control, Audit, Project, Incident } from '../types';
+import { collection, getDocs, query, where, doc, setDoc, limit, getCountFromServer } from 'firebase/firestore';
+import { Risk, Control, Audit, Project, DailyStat, Document, ProjectTask, Asset, SystemLog, Supplier, Incident } from '../types';
+import { Skeleton } from '../components/ui/Skeleton';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { useStore } from '../store';
+import { useNavigate } from 'react-router-dom';
 
-const StatCard: React.FC<{ title: string; value: string | number; icon: any; trend?: string; color: string; delay?: string }> = ({ title, value, icon: Icon, trend, color, delay }) => (
-  <div className={`relative group bg-white/60 dark:bg-slate-800/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/40 dark:border-white/5 shadow-[0_8px_16px_-6px_rgba(0,0,0,0.05)] dark:shadow-none hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] transition-all duration-500 hover:-translate-y-1 overflow-hidden ${delay}`}>
-    <div className={`absolute -right-10 -top-10 w-32 h-32 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-700 blur-2xl ${color.replace('text-', 'bg-')}`}></div>
+const StatCard: React.FC<{ title: string; value: string | number | null; icon: any; trend?: string; colorClass: string; delay?: string; onClick?: () => void }> = ({ title, value, icon: Icon, trend, colorClass, delay, onClick }) => (
+  <div onClick={onClick} className={`relative group glass-panel p-6 rounded-[2rem] hover:shadow-apple transition-all duration-500 hover:-translate-y-1 overflow-hidden ${delay} border border-white/60 dark:border-white/5 cursor-pointer`}>
+    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
     <div className="flex flex-col h-full justify-between relative z-10">
-      <div className="flex justify-between items-start mb-4">
-         <div className={`p-3.5 rounded-[1.2rem] ${color} bg-opacity-10 ring-1 ring-inset ring-black/5 dark:ring-white/10`}>
-            <Icon className={`h-6 w-6 ${color.replace('bg-', 'text-')}`} strokeWidth={2} />
+      <div className="flex justify-between items-start mb-6">
+         <div className={`p-3.5 rounded-[1.2rem] ${colorClass} bg-opacity-10 ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm group-hover:scale-110 transition-transform duration-500`}>
+            <Icon className={`h-6 w-6 ${colorClass.replace('bg-', 'text-')}`} strokeWidth={2} />
          </div>
-         {trend && <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-400/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-inset ring-emerald-400/20">
+         {trend && <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20 shadow-sm">
             {trend}
          </span>}
       </div>
       <div>
-        <h3 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white font-display">{value}</h3>
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">{title}</p>
+        {value === null ? <Skeleton className="h-10 w-16 mb-1 rounded-xl" /> : <h3 className="text-4xl font-bold tracking-tighter text-slate-900 dark:text-white font-display">{value}</h3>}
+        <p className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 mt-1 tracking-wide">{title}</p>
       </div>
     </div>
   </div>
 );
 
-interface CalendarEvent {
-    id: string;
-    title: string;
-    date: string;
-    type: 'Audit' | 'Project';
-    status: string;
-}
+interface HealthIssue { id: string; type: 'warning' | 'danger'; message: string; count: number; link: string; }
+interface ActionItem { id: string; type: 'audit' | 'document' | 'project' | 'policy'; title: string; date: string; status: string; link: string; }
 
 export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState({ risks: 0, assets: 0, compliance: 0, highRisks: 0, auditsOpen: 0, activeIncidents: 0 });
-  const [radarData, setRadarData] = useState<any[]>([]);
-  const [riskDistData, setRiskDistData] = useState<any[]>([]);
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  const [stats, setStats] = useState({ risks: 0, assets: 0, compliance: 0, highRisks: 0, auditsOpen: 0, activeIncidents: 0, assetValue: 0, financialRisk: 0 });
+  const [recentActivity, setRecentActivity] = useState<SystemLog[]>([]);
+  const [historyData, setHistoryData] = useState<DailyStat[]>([]);
+  const [healthIssues, setHealthIssues] = useState<HealthIssue[]>([]);
   const [topRisks, setTopRisks] = useState<Risk[]>([]);
+  const [radarData, setRadarData] = useState<{ subject: string; A: number; fullMark: number }[]>([]);
+  const [latestIncidents, setLatestIncidents] = useState<Incident[]>([]);
+  const [myActionItems, setMyActionItems] = useState<ActionItem[]>([]);
+  const [insight, setInsight] = useState<{ text: string, type: 'success' | 'warning' | 'danger', details?: string, action?: string, link?: string }>({ text: "Analyse en cours...", type: 'success' });
+  const [scoreGrade, setScoreGrade] = useState('?');
+  
+  const { user, addToast } = useStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!user?.organizationId) {
+        setLoading(false);
+        return;
+    }
+
     const fetchData = async () => {
       try {
-        // OPTIMIZATION: Use getCountFromServer for simple totals to avoid downloading full collections
-        const riskColl = collection(db, 'risks');
-        const assetColl = collection(db, 'assets');
-        const incidentColl = collection(db, 'incidents');
-        const auditColl = collection(db, 'audits');
+        const orgId = user.organizationId;
 
-        // 1. Aggregated Counts (Server-side)
-        const [
-            risksCountSnap,
-            assetsCountSnap,
-            highRisksCountSnap,
-            activeIncidentsCountSnap,
-            openAuditsCountSnap
-        ] = await Promise.all([
-            getCountFromServer(riskColl),
-            getCountFromServer(assetColl),
-            getCountFromServer(query(riskColl, where('score', '>=', 15))),
-            getCountFromServer(query(incidentColl, where('status', '!=', 'Fermé'))),
-            getCountFromServer(query(auditColl, where('status', 'in', ['Planifié', 'En cours'])))
-        ]);
-
-        // 2. Limited fetches for Charts & Tables (Payload optimization)
-        const [
-            // Top 5 Risks
-            topRisksSnap,
-            // Upcoming Audits (Limited)
-            auditsSnap,
-            // Upcoming Projects (Limited)
-            projectsSnap,
-            // All controls needed for Compliance calc (Lightweight docs)
-            controlsSnap,
-            // Recent Logs
-            logsSnap
-        ] = await Promise.all([
-            getDocs(query(riskColl, orderBy('score', 'desc'), limit(5))),
-            getDocs(query(auditColl, where('status', '!=', 'Terminé'), limit(5))),
-            getDocs(query(collection(db, 'projects'), where('status', '!=', 'Terminé'), orderBy('dueDate', 'asc'), limit(5))),
-            getDocs(collection(db, 'controls')),
-            getDocs(query(collection(db, 'system_logs'), orderBy('timestamp', 'desc'), limit(5)))
-        ]);
-
-        // 3. Data Processing
-        const topRisksData = topRisksSnap.docs.map(d => ({id: d.id, ...d.data()} as Risk));
-        setTopRisks(topRisksData);
-
-        // Calculate Risk Distribution locally from Top Risks (Approximation for speed) 
-        // OR fetch specific distributions if precision critical. 
-        // For Dashboard speed, we can approximate or fetch just scores.
-        // Better: Fetch only scores for distribution chart.
-        // Optimization: We will use a separate light query just for scores to build the BarChart perfectly
-        const allRiskScoresSnap = await getDocs(query(riskColl)); // Still heavy? If > 1000 docs, consider aggregation.
-        // For now, assuming < 1000 risks, we fetch all to build the chart accurate.
-        // If really huge, we should use a cloud function to aggregate stats.
-        
-        const allRisks = allRiskScoresSnap.docs.map(d => d.data() as Risk);
-        
-        const dist = {
-            'Faible': allRisks.filter(r => r.score < 5).length,
-            'Moyen': allRisks.filter(r => r.score >= 5 && r.score < 10).length,
-            'Élevé': allRisks.filter(r => r.score >= 10 && r.score < 15).length,
-            'Critique': allRisks.filter(r => r.score >= 15).length,
-        };
-        
-        const barData = [
-            { name: 'Faible', count: dist.Faible, color: '#34d399' },
-            { name: 'Moyen', count: dist.Moyen, color: '#fbbf24' },
-            { name: 'Élevé', count: dist.Élevé, color: '#fb923c' },
-            { name: 'Critique', count: dist.Critique, color: '#f87171' },
+        const fetches = [
+            getDocs(query(collection(db, 'audits'), where('organizationId', '==', orgId))),
+            getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId))),
+            getDocs(query(collection(db, 'system_logs'), where('organizationId', '==', orgId), limit(50))),
+            getDocs(query(collection(db, 'stats_history'), where('organizationId', '==', orgId), limit(60))),
+            getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId))),
+            getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId))),
+            getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId))),
+            getDocs(query(collection(db, 'documents'), where('organizationId', '==', orgId))),
+            getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId))),
+            getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', orgId))),
+            getCountFromServer(query(collection(db, 'users'), where('organizationId', '==', orgId)))
         ];
 
-        const audits = auditsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Audit));
-        const projects = projectsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Project));
+        const results = await Promise.allSettled(fetches);
 
-        // Calendar Events Merging
-        const events: CalendarEvent[] = [];
-        audits.forEach(a => {
-            if(a.dateScheduled) events.push({ id: a.id, title: a.name, date: a.dateScheduled, type: 'Audit', status: a.status });
-        });
-        projects.forEach(p => {
-            if(p.dueDate) events.push({ id: p.id, title: p.name, date: p.dueDate, type: 'Project', status: p.status });
-        });
-        events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        setCalendarEvents(events.slice(0, 5));
+        const rejected = results.find(r => r.status === 'rejected');
+        if (rejected && (rejected as PromiseRejectedResult).reason?.code === 'permission-denied') {
+            setError('permission-denied');
+            setLoading(false);
+            return;
+        }
 
-        // Compliance Logic
-        const controls = controlsSnap.docs.map(d => d.data() as Control);
-        const implemented = controls.filter(c => c.status === 'Implémenté').length;
-        const actionableControls = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable');
-        const complianceScore = actionableControls.length > 0 ? Math.round((implemented / actionableControls.length) * 100) : 0;
-
-        // Radar Data
-        const domainScores: Record<string, { name: string; total: number; implemented: number }> = {
-            'A.5': { name: 'Politiques', total: 0, implemented: 0 },
-            'A.6': { name: 'Organisation', total: 0, implemented: 0 },
-            'A.7': { name: 'RH', total: 0, implemented: 0 },
-            'A.8': { name: 'Actifs', total: 0, implemented: 0 },
-            'A.9': { name: 'Accès', total: 0, implemented: 0 },
-            'A.10': { name: 'Crypto', total: 0, implemented: 0 },
+        const getData = <T extends { id: string }>(result: PromiseSettledResult<any>): T[] => {
+            if (result.status === 'fulfilled') {
+                if(result.value.docs) {
+                    return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
+                }
+            }
+            return [];
         };
+
+        const getRawData = <T,>(result: PromiseSettledResult<any>): T[] => {
+            if (result.status === 'fulfilled' && result.value.docs) {
+                return result.value.docs.map((d: any) => d.data()) as T[];
+            }
+            return [];
+        }
+
+        const allAudits = getData<Audit>(results[0]);
+        const controls = getRawData<Control>(results[1]);
+        const allLogs = getData<SystemLog>(results[2]);
+        const historyStats = getRawData<DailyStat>(results[3]);
+        const allRisks = getData<Risk>(results[4]);
+        const allAssets = getData<Asset>(results[5]);
+        const allIncidents = getData<Incident>(results[6]);
+        const allDocs = getData<Document>(results[7]);
+        const allProjects = getData<Project>(results[8]);
+        const allSuppliers = getData<Supplier>(results[9]);
+        
+        let userCount = 1;
+        if (results[10].status === 'fulfilled') {
+            userCount = (results[10] as PromiseFulfilledResult<any>).value.data().count;
+        }
+
+        allIncidents.sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime());
+        const activeIncidentsCount = allIncidents.filter(d => d.status !== 'Fermé').length;
+        setLatestIncidents(allIncidents.slice(0, 5));
+        
+        allRisks.sort((a, b) => b.score - a.score);
+        setTopRisks(allRisks.slice(0, 5));
+
+        const implemented = controls.filter(c => c.status === 'Implémenté').length;
+        const actionable = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
+        const complianceScore = actionable > 0 ? Math.round((implemented / actionable) * 100) : 0;
+
+        const domains = { 'Org.': { total: 0, implemented: 0, prefix: 'A.5' }, 'Humain': { total: 0, implemented: 0, prefix: 'A.6' }, 'Physique': { total: 0, implemented: 0, prefix: 'A.7' }, 'Techno': { total: 0, implemented: 0, prefix: 'A.8' } };
         controls.forEach(c => {
-            const key = Object.keys(domainScores).find(k => c.code.startsWith(k)) || 'A.5';
-            if (domainScores[key]) {
-                domainScores[key].total++;
-                if (c.status === 'Implémenté') domainScores[key].implemented++;
+            if (c.status === 'Exclu' || c.status === 'Non applicable') return;
+            const key = Object.keys(domains).find(k => c.code.startsWith(domains[k as keyof typeof domains].prefix));
+            if (key) { domains[key as keyof typeof domains].total++; if (c.status === 'Implémenté') domains[key as keyof typeof domains].implemented++; }
+        });
+        setRadarData(Object.entries(domains).map(([subject, data]) => ({ subject, A: data.total > 0 ? Math.round((data.implemented / data.total) * 100) : 0, fullMark: 100 })));
+
+        const calculateDepreciation = (price: number, purchaseDate: string) => {
+            if (!price || !purchaseDate) return price;
+            const start = new Date(purchaseDate);
+            const now = new Date();
+            const ageInYears = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+            const value = price * (1 - (ageInYears / 5));
+            return Math.max(0, Math.round(value));
+        };
+
+        const totalAssetValue = allAssets.reduce((acc, a) => acc + calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || ''), 0);
+
+        let financialExposure = 0;
+        allRisks.forEach(risk => {
+            if (risk.score >= 12 && risk.assetId) {
+                const asset = allAssets.find(a => a.id === risk.assetId);
+                if (asset) {
+                    financialExposure += calculateDepreciation(asset.purchasePrice || 0, asset.purchaseDate || '');
+                }
             }
         });
-        const dynamicChartData = Object.values(domainScores).map(d => ({
-            subject: d.name,
-            A: d.total > 0 ? Math.round((d.implemented / d.total) * 100) : 0,
-            fullMark: 100
-        }));
 
-        // Update State
-        setStats({
-          risks: risksCountSnap.data().count,
-          assets: assetsCountSnap.data().count,
-          compliance: complianceScore,
-          highRisks: highRisksCountSnap.data().count,
-          auditsOpen: openAuditsCountSnap.data().count,
-          activeIncidents: activeIncidentsCountSnap.data().count
+        setStats({ 
+            risks: allRisks.length, 
+            assets: allAssets.length, 
+            compliance: complianceScore, 
+            highRisks: allRisks.filter(r => r.score >= 15).length, 
+            auditsOpen: allAudits.filter(d => d.status === 'Planifié' || d.status === 'En cours').length, 
+            activeIncidents: activeIncidentsCount,
+            assetValue: totalAssetValue,
+            financialRisk: financialExposure
         });
 
-        setRadarData(dynamicChartData);
-        setRiskDistData(barData);
-        setRecentActivity(logsSnap.docs.map(d => d.data()));
+        let grade = 'A';
+        if (activeIncidentsCount > 0) grade = 'D';
+        else if (complianceScore < 50 || allRisks.filter(r => r.score >= 20).length > 0) grade = 'C';
+        else if (complianceScore < 80 || allRisks.filter(r => r.score >= 15).length > 0) grade = 'B';
+        setScoreGrade(grade);
+
+        let newInsight = { text: "Système stable. Continuez les revues régulières.", type: 'success' as any, details: "", action: "", link: "" };
+        
+        const expiredDocs = allDocs.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < new Date()).length;
+        const overdueAudits = allAudits.filter(a => new Date(a.dateScheduled) < new Date() && a.status !== 'Terminé' && a.status !== 'Validé').length;
+        const criticalSuppliersNoScore = allSuppliers.filter(s => (s.criticality === 'Critique' || s.criticality === 'Élevée') && (!s.securityScore || s.securityScore < 50)).length;
+        const expiredContracts = allSuppliers.filter(s => s.contractEnd && new Date(s.contractEnd) < new Date()).length;
+
+        if (activeIncidentsCount > 0) {
+            newInsight = { text: `${activeIncidentsCount} incident(s) de sécurité actif(s).`, type: 'danger', details: "La réponse aux incidents est la priorité absolue.", action: "Gérer", link: "/incidents" };
+        } else if (financialExposure > 100000) {
+            newInsight = { text: "Exposition financière critique détectée.", type: 'danger', details: `${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(financialExposure)} d'actifs menacés par des risques élevés.`, action: "Voir Risques", link: "/risks" };
+        } else if (userCount === 1) {
+            newInsight = { text: "Vous êtes seul dans l'organisation.", type: 'warning', details: "Invitez votre équipe pour collaborer sur la conformité.", action: "Inviter", link: "/team" };
+        } else if (allRisks.filter(r => r.score >= 15).length > 0) {
+            newInsight = { text: "Des risques critiques persistent.", type: 'warning', details: "Vérifiez les plans de traitement pour les risques > 15.", action: "Voir Risques", link: "/risks" };
+        } else if (complianceScore < 50 && actionable > 0) {
+            newInsight = { text: "La conformité ISO 27001 est faible.", type: 'warning', details: "Accélérez l'implémentation des contrôles.", action: "Planifier", link: "/compliance" };
+        } else if (expiredDocs > 0) {
+            newInsight = { text: `${expiredDocs} document(s) à réviser.`, type: 'warning', details: "Des politiques sont obsolètes.", action: "Réviser", link: "/documents" };
+        } else if (expiredContracts > 0) {
+            newInsight = { text: `${expiredContracts} contrat(s) fournisseur expiré(s).`, type: 'warning', details: "Renouvelez ou archivez les contrats.", action: "Fournisseurs", link: "/suppliers" };
+        } else if (criticalSuppliersNoScore > 0) {
+            newInsight = { text: `${criticalSuppliersNoScore} fournisseurs critiques à évaluer.`, type: 'warning', details: "Score de sécurité faible ou manquant.", action: "Évaluer", link: "/suppliers" };
+        } else if (overdueAudits > 0) {
+            newInsight = { text: `${overdueAudits} audit(s) en retard.`, type: 'warning', details: "Le planning n'est pas respecté.", action: "Audits", link: "/audits" };
+        }
+        setInsight(newInsight);
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (!historyStats.some(d => d.date === todayStr) && !loading) {
+            try { 
+                const statId = `${todayStr}_${orgId}`;
+                await setDoc(doc(db, 'stats_history', statId), { 
+                    organizationId: orgId, date: todayStr, risks: allRisks.length, 
+                    compliance: complianceScore, incidents: activeIncidentsCount, timestamp: new Date().toISOString() 
+                }); 
+            } catch (e) { /* Silent fail */ }
+        }
+        setHistoryData(historyStats.sort((a, b) => a.date.localeCompare(b.date)));
+        
+        allLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        setRecentActivity(allLogs.slice(0, 6));
+        
+        const issues: HealthIssue[] = [];
+        const unmitigatedRisks = allRisks.filter(r => r.score >= 15 && !r.mitigationControlIds?.length).length;
+        if (unmitigatedRisks > 0) issues.push({ id: '1', type: 'danger', message: 'Risques critiques sans contrôle', count: unmitigatedRisks, link: '/risks' });
+        const unprovenControls = controls.filter(c => c.status === 'Implémenté' && (!c.evidenceIds || c.evidenceIds.length === 0)).length;
+        if (unprovenControls > 0) issues.push({ id: '2', type: 'warning', message: 'Contrôles sans preuve', count: unprovenControls, link: '/compliance' });
+        
+        const twoDaysAgo = new Date(); twoDaysAgo.setHours(twoDaysAgo.getHours() - 48);
+        const staleIncidents = allIncidents.filter(i => (i.severity === 'Critique' || i.severity === 'Élevée') && i.status !== 'Fermé' && new Date(i.dateReported) < twoDaysAgo).length;
+        if (staleIncidents > 0) issues.push({ id: '5', type: 'danger', message: 'SLA Incident dépassé (>48h)', count: staleIncidents, link: '/incidents' });
+        
+        if (overdueAudits > 0) issues.push({ id: '6', type: 'warning', message: 'Audits en retard', count: overdueAudits, link: '/audits' });
+
+        setHealthIssues(issues);
+
+        if (user) {
+            const myItems: ActionItem[] = [];
+            allAudits.filter(a => a.auditor === user.displayName && (a.status === 'Planifié' || a.status === 'En cours')).forEach(a => {
+                myItems.push({ id: a.id, type: 'audit', title: a.name, date: a.dateScheduled, status: a.status, link: '/audits' });
+            });
+            const next30Days = new Date(); next30Days.setDate(next30Days.getDate() + 30);
+            allDocs.filter(d => d.owner === user.email && d.nextReviewDate && new Date(d.nextReviewDate) < next30Days).forEach(d => {
+                myItems.push({ id: d.id, type: 'document', title: d.title, date: d.nextReviewDate!, status: 'Révision', link: '/documents' });
+            });
+            allDocs.filter(d => d.status === 'Publié' && !d.readBy?.includes(user.uid)).forEach(d => {
+                myItems.push({ id: d.id, type: 'policy', title: d.title, date: new Date().toISOString(), status: 'À lire', link: '/documents' });
+            });
+            allProjects.filter(p => p.manager === user.displayName && p.status === 'En cours').forEach(p => {
+                myItems.push({ id: p.id, type: 'project', title: p.name, date: p.dueDate, status: `${p.progress}%`, link: '/projects' });
+            });
+            myItems.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            setMyActionItems(myItems);
+        }
         setError(null);
-
-      } catch (error: any) {
-        console.error("Error fetching dashboard data", error);
-        setError("Impossible de charger les données (Erreur Réseau ou Permissions).");
-      } finally {
-        setLoading(false);
-      }
+      } catch (error: any) { 
+          console.error(error);
+          setError("Erreur chargement données."); 
+      } finally { setLoading(false); }
     };
-
     fetchData();
-  }, []);
+  }, [user?.organizationId]);
 
-  // Generate iCal (.ics) file
-  const exportToICS = () => {
-    if (calendarEvents.length === 0) return;
-    let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Sentinel//GRC//FR\n";
-    calendarEvents.forEach(evt => {
-        const startDate = new Date(evt.date);
-        const startStr = startDate.toISOString().replace(/-|:|\.\d+/g, "").slice(0, 8);
-        icsContent += "BEGIN:VEVENT\n";
-        icsContent += `SUMMARY:Sentinel GRC - ${evt.type}: ${evt.title}\n`;
-        icsContent += `DTSTART;VALUE=DATE:${startStr}\n`;
-        icsContent += `DESCRIPTION:Statut: ${evt.status}\n`;
-        icsContent += "END:VEVENT\n";
-    });
-    icsContent += "END:VCALENDAR";
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.setAttribute('download', 'sentinel_planning.ics');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const copyRules = () => { navigator.clipboard.writeText(`rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}`); addToast("Règles copiées !", "success"); };
+  const getActivityIcon = (resource: string) => { switch(resource) { case 'Risk': return <ShieldAlert className="h-3.5 w-3.5 text-orange-500" />; case 'Incident': return <Siren className="h-3.5 w-3.5 text-red-500" />; case 'Asset': return <Server className="h-3.5 w-3.5 text-blue-500" />; default: return <CheckCircle2 className="h-3.5 w-3.5 text-gray-500" />; } };
+
+  const generateICal = async () => {
+      if (!user?.organizationId) return;
+      try {
+          const [auditsSnap, projectsSnap] = await Promise.all([
+              getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId))),
+              getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId)))
+          ]);
+          let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Sentinel GRC//FR\n";
+          auditsSnap.forEach(doc => { const d = doc.data(); const date = d.dateScheduled ? d.dateScheduled.replace(/-/g, '') : ''; if(date) icsContent += `BEGIN:VEVENT\nSUMMARY:Audit: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:Auditeur: ${d.auditor}\nEND:VEVENT\n`; });
+          projectsSnap.forEach(doc => { const d = doc.data(); const date = d.dueDate ? d.dueDate.replace(/-/g, '') : ''; if(date) icsContent += `BEGIN:VEVENT\nSUMMARY:Projet: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:Manager: ${d.manager}\nEND:VEVENT\n`; });
+          icsContent += "END:VCALENDAR";
+          const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })); link.download = 'sentinel_calendar.ics'; link.click(); addToast("Calendrier exporté (.ics)", "success");
+      } catch(e) { addToast("Erreur export calendrier", "error"); }
   };
 
-  const generatePDFReport = () => {
-    const doc = new jsPDF();
-    const today = new Date().toLocaleDateString('fr-FR');
+  const generateExecutiveReport = () => {
+    const doc = new jsPDF(); const date = new Date().toLocaleDateString();
+    doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F'); doc.setFontSize(22); doc.setTextColor(255, 255, 255); doc.text("Rapport Exécutif de Sécurité", 14, 20); doc.setFontSize(12); doc.setTextColor(148, 163, 184); doc.text(`Généré le ${date} | Sentinel GRC by Cyber Threat Consulting`, 14, 30);
+    let y = 55; doc.setFontSize(16); doc.setTextColor(15, 23, 42); doc.text("Synthèse & Indicateurs Clés", 14, y); y += 10;
+    const kpiData = [['Note Globale', scoreGrade], ['Niveau de Conformité ISO 27001', `${stats.compliance}%`], ['Risques Critiques Identifiés', stats.highRisks.toString()], ['Incidents de Sécurité Actifs', stats.activeIncidents.toString()], ['Audits en cours', stats.auditsOpen.toString()], ['Actifs Recensés', stats.assets.toString()], ['Valorisation du Parc', `${stats.assetValue} €`]];
+    (doc as any).autoTable({ startY: y, head: [['Indicateur', 'Valeur']], body: kpiData, theme: 'striped', headStyles: { fillColor: [59, 130, 246] }, styles: { fontSize: 11, cellPadding: 4 }, columnStyles: { 0: { fontStyle: 'bold' } } }); y = (doc as any).lastAutoTable.finalY + 20;
+    doc.setFontSize(16); doc.text("Top 5 Risques Critiques", 14, y); y += 10;
+    const riskRows = topRisks.map(r => [r.threat, r.score.toString(), r.strategy, r.status]);
+    (doc as any).autoTable({ startY: y, head: [['Menace', 'Score', 'Stratégie', 'Statut']], body: riskRows, theme: 'striped', headStyles: { fillColor: [239, 68, 68] }, styles: { fontSize: 10 }, }); y = (doc as any).lastAutoTable.finalY + 20;
+    if (latestIncidents.length > 0) { doc.setFontSize(16); doc.text("Derniers Incidents de Sécurité", 14, y); y += 10; const incRows = latestIncidents.map(i => [new Date(i.dateReported).toLocaleDateString(), i.title, i.severity, i.status]); (doc as any).autoTable({ startY: y, head: [['Date', 'Titre', 'Sévérité', 'Statut']], body: incRows, theme: 'striped', headStyles: { fillColor: [249, 115, 22] }, styles: { fontSize: 10 }, }); }
     
-    doc.setFillColor(15, 23, 42); 
-    doc.rect(0, 0, 210, 40, 'F');
-    doc.setFontSize(22);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.text("Sentinel GRC - Rapport Exécutif", 14, 25);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(148, 163, 184);
-    doc.text(`Généré le ${today}`, 170, 25);
-
-    let yPos = 55;
-
-    doc.setFontSize(14);
-    doc.setTextColor(30, 41, 59);
-    doc.text("1. Indicateurs de Performance (KPIs)", 14, yPos);
-    yPos += 10;
-
-    const kpiData = [
-        ['Score Conformité', 'Risques Totaux', 'Risques Critiques', 'Audits Ouverts', 'Actifs'],
-        [`${stats.compliance}%`, stats.risks, stats.highRisks, stats.auditsOpen, stats.assets]
-    ];
-
-    (doc as any).autoTable({
-        startY: yPos,
-        head: [kpiData[0]],
-        body: [kpiData[1]],
-        theme: 'grid',
-        headStyles: { fillColor: [59, 130, 246], textColor: 255, halign: 'center' },
-        bodyStyles: { halign: 'center', fontSize: 12, fontStyle: 'bold' },
-        styles: { cellPadding: 5 }
-    });
-
-    yPos = (doc as any).lastAutoTable.finalY + 20;
-
-    doc.setFontSize(14);
-    doc.setTextColor(30, 41, 59);
-    doc.text("2. Top 5 Risques Prioritaires", 14, yPos);
-    yPos += 10;
-
-    const riskRows = topRisks.map(r => [r.threat, r.vulnerability, r.score, r.strategy]);
-    (doc as any).autoTable({
-        startY: yPos,
-        head: [['Menace', 'Vulnérabilité', 'Score', 'Stratégie']],
-        body: riskRows,
-        theme: 'striped',
-        headStyles: { fillColor: [244, 63, 94] },
-        alternateRowStyles: { fillColor: [255, 241, 242] }
-    });
-
-    yPos = (doc as any).lastAutoTable.finalY + 20;
-
-    doc.setFontSize(14);
-    doc.setTextColor(30, 41, 59);
-    doc.text("3. Maturité par Domaine ISO 27001", 14, yPos);
-    yPos += 10;
-
-    const complianceRows = radarData.map((d: any) => [d.subject, `${d.A}%`]);
-    (doc as any).autoTable({
-        startY: yPos,
-        head: [['Domaine', 'Taux de mise en œuvre']],
-        body: complianceRows,
-        theme: 'striped',
-        headStyles: { fillColor: [16, 185, 129] }
-    });
-
-    doc.save(`Sentinel_Rapport_Executif_${new Date().toISOString().split('T')[0]}.pdf`);
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(9);
+        doc.setTextColor(150);
+        doc.text('Rapport généré par Sentinel GRC (Cyber Threat Consulting)', 14, 285);
+        doc.text(`Page ${i} / ${pageCount}`, 190, 285, { align: 'right' });
+    }
+    
+    doc.save(`Executive_Report_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
-  if (loading) return (
-    <div className="flex h-[80vh] items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-brand-100 border-t-brand-500 rounded-full animate-spin"></div>
-        <span className="text-slate-400 text-sm font-medium animate-pulse">Analyse des données en cours...</span>
-      </div>
-    </div>
-  );
+  if (error === 'permission-denied') { return ( <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-panel rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Accès Refusé</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">La base de données est verrouillée. Veuillez configurer les règles de sécurité.</p> <button onClick={copyRules} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm">Copier les Règles</button> </div> </div> ); }
 
   return (
     <div className="space-y-8 animate-fade-in pb-10">
-      {/* Vector Header Banner */}
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 dark:bg-black shadow-2xl ring-1 ring-white/10">
-         <div className="absolute inset-0">
-             <svg className="h-full w-full opacity-40" viewBox="0 0 100 100" preserveAspectRatio="none">
-                 <path d="M0 100 C 30 20 70 20 100 100 Z" fill="url(#gradHeader)" />
-                 <path d="M0 100 C 30 50 70 50 100 100 Z" fill="url(#gradHeader2)" opacity="0.5" />
-                 <defs>
-                     <linearGradient id="gradHeader" x1="0%" y1="0%" x2="100%" y2="0%">
-                         <stop offset="0%" stopColor="#3b82f6" />
-                         <stop offset="100%" stopColor="#8b5cf6" />
-                     </linearGradient>
-                     <linearGradient id="gradHeader2" x1="0%" y1="0%" x2="100%" y2="0%">
-                         <stop offset="0%" stopColor="#06b6d4" />
-                         <stop offset="100%" stopColor="#3b82f6" />
-                     </linearGradient>
-                 </defs>
-             </svg>
-             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
-             <div className="absolute top-[-50%] left-[-20%] w-[80%] h-[200%] bg-brand-500/20 blur-[120px] rounded-full mix-blend-screen"></div>
-         </div>
-         
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div><h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Tableau de bord</h1><p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Vue d'ensemble de la posture de sécurité.</p></div>
+        <div className="flex gap-3">
+            <button onClick={generateICal} className="group flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm"><CalendarDays className="h-4 w-4 mr-2" /> Export iCal</button>
+            <button onClick={generateExecutiveReport} className="group flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"><Download className="h-4 w-4 mr-2" /> Rapport Exécutif</button>
+        </div>
+      </div>
+
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-slate-900 to-[#1c1c1e] dark:from-white dark:to-slate-200 shadow-2xl ring-1 ring-white/10 dark:ring-black/5 transition-transform hover:scale-[1.005] duration-500">
+         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
          <div className="relative z-10 p-10 md:p-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-             <div className="max-w-2xl">
-                 <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-xs font-medium mb-4 shadow-sm">
-                    <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
-                    Système Sécurisé
+             <div>
+                 <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 dark:bg-black/5 border border-white/20 dark:border-black/10 text-white/90 dark:text-black/70 text-[11px] font-bold uppercase tracking-widest mb-4 backdrop-blur-md shadow-sm">
+                     <span className="w-1.5 h-1.5 bg-emerald-400 dark:bg-emerald-500 rounded-full mr-2 animate-pulse"></span>
+                     {user?.organizationName || 'Système Opérationnel'}
                  </div>
-                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight font-display">Vue d'ensemble</h1>
-                 <p className="text-blue-100/80 text-lg leading-relaxed font-light">
-                     Votre posture de sécurité est solide. Le score de conformité ISO 27001 atteint <span className="font-bold text-white">{stats.compliance}%</span>.
-                 </p>
+                 <div className="flex items-center gap-4 mb-3">
+                    <h1 className="text-4xl md:text-5xl font-bold text-white dark:text-slate-900 tracking-tighter font-display">Sentinel GRC</h1>
+                    <div className={`flex items-center justify-center w-14 h-14 rounded-2xl text-3xl font-black shadow-lg border-2 ${scoreGrade === 'A' ? 'bg-emerald-500 border-emerald-400 text-white' : scoreGrade === 'B' ? 'bg-blue-500 border-blue-400 text-white' : scoreGrade === 'C' ? 'bg-orange-500 border-orange-400 text-white' : 'bg-red-500 border-red-400 text-white'}`}>
+                        {scoreGrade}
+                    </div>
+                 </div>
+                 <p className="text-slate-300 dark:text-slate-600 text-lg font-medium max-w-lg leading-relaxed">Votre score de sécurité reflète la maturité actuelle : <strong className="text-white dark:text-black font-bold">{loading ? '...' : stats.compliance}%</strong> de conformité.</p>
+                 
+                 <div className={`mt-6 p-4 rounded-2xl backdrop-blur-md border border-white/10 flex items-start gap-4 ${insight.type === 'danger' ? 'bg-red-500/20 text-red-100' : insight.type === 'warning' ? 'bg-orange-500/20 text-orange-100' : 'bg-emerald-500/20 text-emerald-100'}`}>
+                     <div className="p-2 bg-white/10 rounded-xl shrink-0">
+                        <Zap className="h-5 w-5" fill="currentColor"/>
+                     </div>
+                     <div className="flex-1">
+                        <p className="font-bold text-sm">{insight.text}</p>
+                        {insight.details && <p className="text-xs opacity-80 mt-1 font-medium leading-snug">{insight.details}</p>}
+                     </div>
+                     {insight.link && (
+                         <button onClick={() => navigate(insight.link)} className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-bold transition-colors flex items-center">
+                             {insight.action} <ArrowRight className="h-3 w-3 ml-1"/>
+                         </button>
+                     )}
+                 </div>
              </div>
-             <button 
-                onClick={generatePDFReport}
-                className="group relative flex items-center px-6 py-3.5 bg-white text-slate-900 rounded-2xl font-semibold transition-all duration-300 hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95"
-            >
-              <span className="relative z-10 flex items-center">
-                <Download className="h-5 w-5 mr-2" />
-                Exporter le rapport
-              </span>
-            </button>
+             <div className="hidden lg:block w-48 h-48 cursor-pointer" onClick={() => navigate('/compliance')} title="Voir le détail par domaine">
+                 <ResponsiveContainer width="100%" height="100%">
+                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                         <PolarGrid stroke="rgba(255,255,255,0.15)" />
+                         <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: 'bold' }} />
+                         <RechartsRadar name="Maturité" dataKey="A" stroke="#3b82f6" strokeWidth={3} fill="#3b82f6" fillOpacity={0.4} />
+                         <Tooltip contentStyle={{ backgroundColor: '#000', borderRadius: '10px', border: 'none', color: '#fff' }} itemStyle={{ color: '#fff' }}/>
+                     </RadarChart>
+                 </ResponsiveContainer>
+             </div>
          </div>
       </div>
 
-      {error && (
-        <div className="bg-red-50/50 dark:bg-red-900/10 backdrop-blur-md border border-red-200/50 dark:border-red-500/20 text-red-600 dark:text-red-400 p-4 rounded-2xl flex items-center text-sm">
-          <AlertTriangle className="h-5 w-5 mr-3 flex-shrink-0" />
-          {error}
-        </div>
-      )}
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <button onClick={() => navigate('/incidents')} className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform group shadow-sm">
+              <Siren className="h-5 w-5 text-red-500 group-hover:animate-pulse"/> <span className="text-sm font-bold text-red-700 dark:text-red-400">Incident</span>
+          </button>
+          <button onClick={() => navigate('/risks')} className="p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform group shadow-sm">
+              <ShieldAlert className="h-5 w-5 text-orange-500"/> <span className="text-sm font-bold text-orange-700 dark:text-orange-400">Risque</span>
+          </button>
+          <button onClick={() => navigate('/assets')} className="p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform group shadow-sm">
+              <Server className="h-5 w-5 text-blue-500"/> <span className="text-sm font-bold text-blue-700 dark:text-blue-400">Actif</span>
+          </button>
+          <button onClick={() => navigate('/team')} className="p-4 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-900/30 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform group shadow-sm">
+              <User className="h-5 w-5 text-purple-500"/> <span className="text-sm font-bold text-purple-700 dark:text-purple-400">Utilisateur</span>
+          </button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Incidents Actifs" value={stats.activeIncidents} icon={Siren} color={stats.activeIncidents > 0 ? "bg-red-600 text-red-600" : "bg-slate-400 text-slate-400"} delay="animate-[fadeIn_0.4s_ease-out_0ms]" trend={stats.activeIncidents > 0 ? "Attention" : "Calme"} />
-        <StatCard title="Risques Critiques" value={stats.highRisks} icon={ShieldAlert} color="bg-rose-500 text-rose-500" delay="animate-[fadeIn_0.4s_ease-out_100ms]" />
-        <StatCard title="Conformité ISO" value={`${stats.compliance}%`} icon={CheckCircle2} color="bg-emerald-500 text-emerald-500" delay="animate-[fadeIn_0.4s_ease-out_200ms]" />
-        <StatCard title="Audits en cours" value={stats.auditsOpen} icon={Activity} color="bg-amber-500 text-amber-500" delay="animate-[fadeIn_0.4s_ease-out_300ms]" />
+        <StatCard title="Incidents Actifs" value={loading ? null : stats.activeIncidents} icon={Siren} colorClass="bg-red-500 text-red-500" trend={stats.activeIncidents > 0 ? "Urgent" : undefined} delay="delay-0" onClick={() => navigate('/incidents')} />
+        <StatCard title="Risques Critiques" value={loading ? null : stats.highRisks} icon={ShieldAlert} colorClass="bg-orange-500 text-orange-500" delay="delay-75" onClick={() => navigate('/risks')} />
+        <StatCard title="Exposition Financière" value={loading ? null : `${new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}`} icon={TrendingUp} colorClass="bg-red-600 text-red-600" trend={stats.financialRisk > 100000 ? "Critique" : undefined} delay="delay-100" onClick={() => navigate('/risks')} />
+        <StatCard title="Valeur du Parc" value={loading ? null : `${new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.assetValue)}`} icon={Euro} colorClass="bg-blue-500 text-blue-500" delay="delay-150" onClick={() => navigate('/assets')} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* CALENDAR WIDGET */}
-        <div className="bg-white/60 dark:bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] border border-white/40 dark:border-white/5 p-8 shadow-sm flex flex-col relative overflow-hidden lg:col-span-1 lg:row-span-2">
-           <div className="flex items-center justify-between mb-6 relative z-10">
-              <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Calendrier</h3>
-                  <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mt-1">Prochaines échéances</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* My Workspace */}
+          <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm flex flex-col h-[400px]">
+              <div className="px-8 pt-8 pb-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+                  <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Mon Espace</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">À faire cette semaine</p></div><User className="w-6 h-6 text-brand-500" />
               </div>
-              <div className="flex gap-2">
-                  <button onClick={exportToICS} className="p-2 bg-white dark:bg-slate-700 rounded-full shadow-sm text-slate-600 dark:text-slate-300 hover:text-brand-600 transition-colors" title="Exporter iCal (Outlook/Calendrier)">
-                      <Download className="w-4 h-4" />
-                  </button>
-                  <div className="p-2 bg-indigo-50 dark:bg-slate-700/50 rounded-full">
-                      <CalendarDays className="w-4 h-4 text-indigo-500" />
-                  </div>
+              <div className="flex-1 p-0 overflow-y-auto custom-scrollbar">
+                  {loading ? <Skeleton className="h-full w-full m-4" /> : myActionItems.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full p-8 text-center"><CheckCircle2 className="h-10 w-10 text-emerald-500 mb-3 opacity-30" /><p className="text-sm font-bold text-slate-500">Rien à signaler.</p></div>
+                  ) : (
+                      <div className="divide-y divide-slate-100 dark:divide-white/5">
+                          {myActionItems.map(item => (
+                              <div key={item.id} onClick={() => navigate(item.link)} className="p-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+                                  <div className="flex items-center justify-between mb-1">
+                                      <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${item.type === 'audit' ? 'bg-blue-50 text-blue-600' : item.type === 'policy' ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'}`}>
+                                          {item.type === 'audit' ? 'Audit' : item.type === 'policy' ? 'À Signer' : item.type === 'document' ? 'Revue' : 'Projet'}
+                                      </span>
+                                      <span className="text-xs text-slate-400 font-medium">{new Date(item.date).toLocaleDateString()}</span>
+                                  </div>
+                                  <h4 className="text-sm font-bold text-slate-800 dark:text-white group-hover:text-brand-600 transition-colors truncate">{item.title}</h4>
+                                  <p className="text-xs text-slate-500 mt-1">{item.status}</p>
+                              </div>
+                          ))}
+                      </div>
+                  )}
               </div>
-           </div>
-           
-           <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
-               {calendarEvents.length === 0 ? (
-                   <div className="flex flex-col items-center justify-center h-40 text-slate-400 text-xs">
-                       <CalendarDays className="h-8 w-8 mb-2 opacity-30"/>
-                       Rien de prévu prochainement
-                   </div>
-               ) : (
-                   calendarEvents.map(event => (
-                       <div key={event.id} className="flex items-center p-3 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-white/50 dark:border-gray-700 shadow-sm hover:scale-[1.02] transition-transform">
-                           <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center text-xs font-bold border ${event.type === 'Audit' ? 'bg-amber-50 border-amber-100 text-amber-600' : 'bg-blue-50 border-blue-100 text-blue-600'}`}>
-                               <span className="text-[10px] uppercase">{new Date(event.date).toLocaleDateString(undefined, {month:'short'})}</span>
-                               <span className="text-lg leading-none">{new Date(event.date).getDate()}</span>
-                           </div>
-                           <div className="ml-3 overflow-hidden">
-                               <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{event.title}</p>
-                               <div className="flex items-center mt-1">
-                                   {event.type === 'Audit' ? <Activity className="h-3 w-3 mr-1 text-amber-500"/> : <FolderKanban className="h-3 w-3 mr-1 text-blue-500"/>}
-                                   <span className="text-xs text-slate-500 dark:text-slate-400">{event.type} • {event.status}</span>
-                               </div>
-                           </div>
-                       </div>
-                   ))
-               )}
-           </div>
-        </div>
-
-        {/* Radar Chart */}
-        <div className="bg-white/60 dark:bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] border border-white/40 dark:border-white/5 p-8 shadow-sm flex flex-col relative overflow-hidden group lg:col-span-1">
-           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-           <div className="flex items-center justify-between mb-8 relative z-10">
-              <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Maturité ISO</h3>
-                  <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mt-1">Par Domaine</p>
-              </div>
-              <div className="p-2 bg-blue-50 dark:bg-slate-700/50 rounded-full">
-                  <Activity className="w-4 h-4 text-blue-500" />
-              </div>
-           </div>
-           <div className="flex-1 min-h-[250px] relative z-10">
-             {radarData.length > 0 && radarData[0].subject !== 'Init' ? (
-             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                <PolarGrid stroke="#94a3b8" strokeOpacity={0.15} />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar
-                  name="Score"
-                  dataKey="A"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  fill="url(#radarGradient)"
-                  fillOpacity={0.4}
-                />
-                <defs>
-                    <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                    </linearGradient>
-                </defs>
-                <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)', border: 'none', borderRadius: '12px', color: '#fff', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
-                    itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 500 }}
-                    cursor={false}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-             ) : (
-                 <div className="flex h-full items-center justify-center flex-col text-slate-300">
-                    <span className="text-sm font-medium">En attente de données...</span>
-                 </div>
-             )}
           </div>
-        </div>
 
-        {/* Risk Distribution Bar Chart */}
-        <div className="bg-white/60 dark:bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] border border-white/40 dark:border-white/5 p-8 shadow-sm flex flex-col relative overflow-hidden group lg:col-span-1">
-           <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-           <div className="flex items-center justify-between mb-8 relative z-10">
-              <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Distribution</h3>
-                  <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mt-1">Risques par niveau</p>
+          <div className="glass-panel p-0 rounded-[2.5rem] lg:col-span-2 flex flex-col overflow-hidden border border-white/60 dark:border-white/5 shadow-sm h-[400px]">
+              <div className="flex items-center justify-between px-8 pt-8 pb-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
+                  <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Évolution Conformité</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">30 derniers jours</p></div>
+                  <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20"><TrendingUp className="w-5 h-5 text-emerald-500" /></div>
               </div>
-              <div className="p-2 bg-orange-50 dark:bg-slate-700/50 rounded-full">
-                  <ShieldAlert className="w-4 h-4 text-orange-500" />
+              <div className="flex-1 w-full p-4 bg-white/40 dark:bg-transparent">
+                  {loading ? <Skeleton className="h-full w-full rounded-2xl" /> : ( <ResponsiveContainer width="100%" height="100%"><AreaChart data={historyData}><defs><linearGradient id="colorCompliance" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} /><XAxis dataKey="date" tick={{fontSize: 10, fill: '#94a3b8', fontWeight: 600}} axisLine={false} tickLine={false} /><YAxis hide domain={[0, 100]} /><Tooltip contentStyle={{backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '12px', fontWeight: 'bold'}} /><Area type="monotone" dataKey="compliance" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorCompliance)" animationDuration={1500} /></AreaChart></ResponsiveContainer> )}
               </div>
-           </div>
-           <div className="flex-1 min-h-[250px] relative z-10">
-              <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={riskDistData} barSize={32}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.08} stroke="#64748b" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
-                      <Tooltip 
-                        cursor={{fill: 'rgba(0,0,0,0.02)'}} 
-                        contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)', border: 'none', borderRadius: '12px', color: '#fff', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }} 
-                        itemStyle={{ color: '#fff' }}
-                      />
-                      <Bar dataKey="count" radius={[6, 6, 6, 6]}>
-                        {riskDistData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                  </BarChart>
-              </ResponsiveContainer>
-           </div>
-        </div>
+          </div>
+      </div>
 
-        {/* Recent Activity Feed */}
-        <div className="bg-white/60 dark:bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] border border-white/40 dark:border-white/5 p-8 shadow-sm relative overflow-hidden flex flex-col lg:col-span-2">
-          <div className="flex justify-between items-center mb-8">
-             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Activités</h3>
-             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700/50 hover:bg-brand-50 dark:hover:bg-brand-900/30 text-slate-400 hover:text-brand-600 transition-colors">
-                <ChevronRight className="w-4 h-4" />
-             </button>
-          </div>
-          
-          <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
-            {recentActivity.length > 0 ? recentActivity.map((log, i) => (
-              <div key={i} className="flex items-start space-x-4 relative group">
-                {i !== recentActivity.length - 1 && (
-                    <div className="absolute left-[15px] top-8 bottom-[-24px] w-[2px] bg-slate-100 dark:bg-slate-700/50"></div>
-                )}
-                <div className="relative z-10 w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    <div className="w-2 h-2 rounded-full bg-brand-500"></div>
-                </div>
-                <div className="pb-1 pt-0.5">
-                  <p className="text-sm text-slate-800 dark:text-slate-200 font-semibold tracking-tight">{log.action}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">{log.details}</p>
-                  <p className="text-[10px] text-slate-400 mt-1.5 font-mono opacity-70">
-                    {new Date(log.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric'})} • {new Date(log.timestamp).toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'})}
-                  </p>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm flex flex-col">
+              <div className="px-8 pt-8 pb-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+                  <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Diagnostic Santé</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">Alertes Système</p></div>
+                  <Stethoscope className={`w-6 h-6 ${healthIssues.length > 0 ? 'text-orange-500' : 'text-emerald-500'}`} />
               </div>
-            )) : (
-                <div className="flex flex-col items-center justify-center h-full text-slate-300">
-                    <Activity className="w-8 h-8 mb-2 opacity-50" />
-                    <p className="text-xs">Aucune activité</p>
-                </div>
-            )}
+              <div className="p-6 flex-1 space-y-4 bg-white/40 dark:bg-transparent">
+                  {loading ? <Skeleton className="h-full w-full" /> : healthIssues.length === 0 ? ( <div className="flex items-center p-4 bg-emerald-50/80 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30"><CheckCircle2 className="h-5 w-5 text-emerald-500 mr-3 flex-shrink-0" /><span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Aucune anomalie détectée.</span></div> ) : ( healthIssues.map(issue => ( <div key={issue.id} onClick={() => navigate(issue.link)} className={`flex items-start p-4 rounded-2xl border cursor-pointer transition-transform hover:scale-[1.02] ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30'}`}><AlertTriangle className={`h-5 w-5 mr-3 mt-0.5 flex-shrink-0 ${issue.type === 'danger' ? 'text-red-500' : 'text-orange-500'}`} /><div><p className={`text-sm font-bold leading-tight ${issue.type === 'danger' ? 'text-red-800 dark:text-red-200' : 'text-orange-800 dark:text-orange-200'}`}>{issue.message}</p><span className={`text-xs font-medium mt-1 block ${issue.type === 'danger' ? 'text-red-600/70 dark:text-red-400' : 'text-orange-600/70 dark:text-orange-400'}`}>{issue.count} éléments concernés</span></div></div> )) )}
+              </div>
           </div>
-        </div>
+
+          <div className="glass-panel p-0 rounded-[2.5rem] lg:col-span-2 overflow-hidden border border-white/60 dark:border-white/5 shadow-sm">
+              <div className="flex items-center justify-between px-8 pt-8 pb-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Risques Prioritaires</h3><Flame className="w-5 h-5 text-red-500" />
+              </div>
+              <div className="p-8 space-y-3">
+                  {loading ? [1,2].map(i => <Skeleton key={i} className="h-16 w-full rounded-2xl" />) : topRisks.slice(0, 3).map(risk => ( <div key={risk.id} onClick={() => navigate('/risks')} className="p-4 rounded-2xl bg-white/60 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 transition-all group flex items-center justify-between shadow-sm hover:shadow-md cursor-pointer"><div className="flex items-center"><div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mr-4 text-red-600 font-black text-lg shadow-inner">{risk.score}</div><div><h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{risk.threat}</h4><p className="text-xs text-slate-500 font-medium mt-0.5">{risk.vulnerability}</p></div></div><span className="text-[10px] font-bold bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 text-slate-600 dark:text-slate-300">{risk.strategy}</span></div> ))}
+                   {topRisks.length === 0 && !loading && <p className="text-sm text-slate-400 italic text-center">Aucun risque majeur identifié.</p>}
+              </div>
+          </div>
+      </div>
+      
+      <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm">
+          <div className="flex items-center justify-between px-8 pt-8 pb-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Flux d'activité récent</h3><History className="w-5 h-5 text-slate-400" />
+          </div>
+          <div className="relative border-l border-slate-200 dark:border-slate-800 ml-8 space-y-8 py-8 pr-8 max-h-[300px] overflow-y-auto custom-scrollbar">
+              {loading ? <Skeleton className="h-20 w-full" /> : recentActivity.map((log, i) => ( <div key={i} className="ml-6 relative group"><span className="absolute -left-[31px] flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm group-hover:scale-110 transition-transform z-10">{getActivityIcon(log.resource)}</span><div className="flex justify-between items-center"><div><p className="text-xs font-bold text-slate-800 dark:text-slate-200">{log.action}</p><p className="text-[11px] text-slate-500 mt-0.5 truncate max-w-[400px] font-medium">{log.details}</p></div><span className="text-[9px] text-slate-400 font-bold uppercase tracking-wide">{new Date(log.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', day:'numeric', month:'short'})}</span></div></div> ))}
+          </div>
       </div>
     </div>
   );
