@@ -13,450 +13,450 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export const Assets: React.FC = () => {
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [usersList, setUsersList] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('');
-  const { user, addToast } = useStore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const canEdit = user?.role === 'admin';
+    const [assets, setAssets] = useState<Asset[]>([]);
+    const [usersList, setUsersList] = useState<UserProfile[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState('');
+    const { user, addToast } = useStore();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-  const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'history' | 'comments'>('details');
-  const [assetHistory, setAssetHistory] = useState<SystemLog[]>([]);
-  const [linkedRisks, setLinkedRisks] = useState<Risk[]>([]);
-  const [linkedIncidents, setLinkedIncidents] = useState<Incident[]>([]);
-  const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
-  const [newMaintenance, setNewMaintenance] = useState<Partial<MaintenanceRecord>>({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
-  const [stats, setStats] = useState({ total: 0, critical: 0, maintenanceDue: 0, totalValue: 0 });
-  const [editForm, setEditForm] = useState<Partial<Asset>>({});
-  const [isDirty, setIsDirty] = useState(false);
-  const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+    const canEdit = user?.role === 'admin';
 
-  const calculateDepreciation = (price: number, purchaseDate: string) => {
-      if (!price || !purchaseDate) return price;
-      const start = new Date(purchaseDate);
-      const now = new Date();
-      const ageInYears = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-      // Amortissement linéaire sur 5 ans
-      const value = price * (1 - (ageInYears / 5));
-      return Math.max(0, Math.round(value));
-  };
+    const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'history' | 'comments'>('details');
+    const [assetHistory, setAssetHistory] = useState<SystemLog[]>([]);
+    const [linkedRisks, setLinkedRisks] = useState<Risk[]>([]);
+    const [linkedIncidents, setLinkedIncidents] = useState<Incident[]>([]);
+    const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
+    const [newMaintenance, setNewMaintenance] = useState<Partial<MaintenanceRecord>>({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
+    const [stats, setStats] = useState({ total: 0, critical: 0, maintenanceDue: 0, totalValue: 0 });
+    const [editForm, setEditForm] = useState<Partial<Asset>>({});
+    const [isDirty, setIsDirty] = useState(false);
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
-  const calculateTCO = () => {
-      const purchase = selectedAsset?.purchasePrice || 0;
-      const maintenance = maintenanceRecords.reduce((acc, rec) => acc + (rec.cost || 0), 0);
-      return purchase + maintenance;
-  };
+    const calculateDepreciation = (price: number, purchaseDate: string) => {
+        if (!price || !purchaseDate) return price;
+        const start = new Date(purchaseDate);
+        const now = new Date();
+        const ageInYears = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+        // Amortissement linéaire sur 5 ans
+        const value = price * (1 - (ageInYears / 5));
+        return Math.max(0, Math.round(value));
+    };
 
-  const getDepreciationData = () => {
-      if(!selectedAsset?.purchasePrice || !selectedAsset?.purchaseDate) return [];
-      const data = [];
-      const startYear = new Date(selectedAsset.purchaseDate).getFullYear();
-      const price = selectedAsset.purchasePrice;
-      for(let i=0; i<=5; i++) {
-          const year = startYear + i;
-          const value = Math.max(0, price * (1 - (i/5)));
-          data.push({ year, value });
-      }
-      return data;
-  };
+    const calculateTCO = () => {
+        const purchase = selectedAsset?.purchasePrice || 0;
+        const maintenance = maintenanceRecords.reduce((acc, rec) => acc + (rec.cost || 0), 0);
+        return purchase + maintenance;
+    };
 
-  const fetchAssets = async () => {
-    if (!user?.organizationId) {
-        setLoading(false);
-        return;
-    }
-    setLoading(true);
-    try {
-      const results = await Promise.allSettled([
-          getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-          getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
-      ]);
+    const getDepreciationData = () => {
+        if (!selectedAsset?.purchasePrice || !selectedAsset?.purchaseDate) return [];
+        const data = [];
+        const startYear = new Date(selectedAsset.purchaseDate).getFullYear();
+        const price = selectedAsset.purchasePrice;
+        for (let i = 0; i <= 5; i++) {
+            const year = startYear + i;
+            const value = Math.max(0, price * (1 - (i / 5)));
+            data.push({ year, value });
+        }
+        return data;
+    };
 
-      const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
-          if (result.status === 'fulfilled') {
-              return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
-          }
-          return [];
-      };
+    const fetchAssets = async () => {
+        if (!user?.organizationId) {
+            setLoading(false);
+            return;
+        }
+        setLoading(true);
+        try {
+            const results = await Promise.allSettled([
+                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
+            ]);
 
-      const data = getDocsData<Asset>(results[0]).map(a => ({ 
-          ...a,
-          currentValue: calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || '')
-      }));
-      data.sort((a, b) => a.name.localeCompare(b.name));
-      setAssets(data);
+            const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
+                if (result.status === 'fulfilled') {
+                    return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
+                }
+                return [];
+            };
 
-      const userData = getDocsData<UserProfile>(results[1]);
-      setUsersList(userData);
+            const data = getDocsData<Asset>(results[0]).map(a => ({
+                ...a,
+                currentValue: calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || '')
+            }));
+            data.sort((a, b) => a.name.localeCompare(b.name));
+            setAssets(data);
 
-      const nextMonth = new Date();
-      nextMonth.setDate(nextMonth.getDate() + 30);
-      
-      setStats({
-          total: data.length,
-          critical: data.filter(a => a.confidentiality === Criticality.CRITICAL || a.integrity === Criticality.CRITICAL || a.availability === Criticality.CRITICAL).length,
-          maintenanceDue: data.filter(a => a.nextMaintenance && new Date(a.nextMaintenance) < nextMonth).length,
-          totalValue: data.reduce((acc, a) => acc + (a.currentValue || 0), 0)
-      });
+            const userData = getDocsData<UserProfile>(results[1]);
+            setUsersList(userData);
 
-    } catch (err) {
-      addToast("Erreur chargement actifs", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+            const nextMonth = new Date();
+            nextMonth.setDate(nextMonth.getDate() + 30);
 
-  useEffect(() => { fetchAssets(); }, [user?.organizationId]);
+            setStats({
+                total: data.length,
+                critical: data.filter(a => a.confidentiality === Criticality.CRITICAL || a.integrity === Criticality.CRITICAL || a.availability === Criticality.CRITICAL).length,
+                maintenanceDue: data.filter(a => a.nextMaintenance && new Date(a.nextMaintenance) < nextMonth).length,
+                totalValue: data.reduce((acc, a) => acc + (a.currentValue || 0), 0)
+            });
 
-  const openInspector = async (asset?: Asset) => {
-      if (!asset) {
-          const newAssetStub: Partial<Asset> = { name: 'Nouvel Actif', type: 'Matériel', owner: '', confidentiality: Criticality.LOW, integrity: Criticality.LOW, availability: Criticality.LOW, location: '', lifecycleStatus: 'Neuf' };
-          setEditForm(newAssetStub);
-          setSelectedAsset(null);
-          setInspectorTab('details');
-      } else {
-          setSelectedAsset(asset);
-          setEditForm(asset);
-          setInspectorTab('details');
-          setIsDirty(false);
-          
-          try {
-              const q = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), where('resource', '==', 'Asset'), limit(20));
-              const snap = await getDocs(q);
-              const logs = snap.docs.map(d => d.data() as SystemLog);
-              const filtered = logs.filter(l => l.details?.includes(asset.name));
-              filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-              setAssetHistory(filtered);
-          } catch(e) { console.error(e); }
+        } catch (err) {
+            addToast("Erreur chargement actifs", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-          const maintQ = query(collection(db, 'assets', asset.id, 'maintenance'), orderBy('date', 'desc'));
-          const unsubMaint = onSnapshot(maintQ, (snap) => { setMaintenanceRecords(snap.docs.map(d => ({ id: d.id, ...d.data() } as MaintenanceRecord))); });
+    useEffect(() => { fetchAssets(); }, [user?.organizationId]);
 
-          const risksQ = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('assetId', '==', asset.id));
-          getDocs(risksQ).then(snap => { setLinkedRisks(snap.docs.map(d => ({ id: d.id, ...d.data() } as Risk))); });
+    const openInspector = async (asset?: Asset) => {
+        if (!asset) {
+            const newAssetStub: Partial<Asset> = { name: 'Nouvel Actif', type: 'Matériel', owner: '', confidentiality: Criticality.LOW, integrity: Criticality.LOW, availability: Criticality.LOW, location: '', lifecycleStatus: 'Neuf' };
+            setEditForm(newAssetStub);
+            setSelectedAsset(null);
+            setInspectorTab('details');
+        } else {
+            setSelectedAsset(asset);
+            setEditForm(asset);
+            setInspectorTab('details');
+            setIsDirty(false);
 
-          const incQ = query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId), where('affectedAssetId', '==', asset.id));
-          getDocs(incQ).then(snap => { setLinkedIncidents(snap.docs.map(d => ({ id: d.id, ...d.data() } as Incident))); });
+            try {
+                const q = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), where('resource', '==', 'Asset'), limit(20));
+                const snap = await getDocs(q);
+                const logs = snap.docs.map(d => d.data() as SystemLog);
+                const filtered = logs.filter(l => l.details?.includes(asset.name));
+                filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                setAssetHistory(filtered);
+            } catch (e) { console.error(e); }
 
-          return () => unsubMaint();
-      }
-  };
+            const maintQ = query(collection(db, 'assets', asset.id, 'maintenance'), orderBy('date', 'desc'));
+            const unsubMaint = onSnapshot(maintQ, (snap) => { setMaintenanceRecords(snap.docs.map(d => ({ id: d.id, ...d.data() } as MaintenanceRecord))); });
 
-  const handleSave = async () => {
-      if (!canEdit || !user?.organizationId) return;
-      if (!editForm.name) return addToast("Le nom est requis", "error");
+            const risksQ = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('assetId', '==', asset.id));
+            getDocs(risksQ).then(snap => { setLinkedRisks(snap.docs.map(d => ({ id: d.id, ...d.data() } as Risk))); });
 
-      try {
-          if (selectedAsset) {
-              await updateDoc(doc(db, 'assets', selectedAsset.id), editForm);
-              await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${editForm.name}`);
-              const updatedAsset = { ...selectedAsset, ...editForm, currentValue: calculateDepreciation(editForm.purchasePrice || 0, editForm.purchaseDate || '') } as Asset;
-              setAssets(prev => prev.map(a => a.id === selectedAsset.id ? updatedAsset : a));
-              setSelectedAsset(updatedAsset);
-              addToast("Modifications enregistrées", "success");
-          } else {
-              const newDoc = { ...editForm, organizationId: user.organizationId, createdAt: new Date().toISOString() };
-              const docRef = await addDoc(collection(db, 'assets'), newDoc);
-              const newAsset = { id: docRef.id, ...newDoc, currentValue: calculateDepreciation(newDoc.purchasePrice || 0, newDoc.purchaseDate || '') } as Asset;
-              setAssets(prev => [...prev, newAsset]);
-              setSelectedAsset(newAsset);
-              await logAction(user, 'CREATE', 'Asset', `Création Actif: ${editForm.name}`);
-              addToast("Actif créé avec succès", "success");
-          }
-          setIsDirty(false);
-          fetchAssets(); // Refresh stats
-      } catch (e) { addToast("Erreur lors de l'enregistrement", "error"); }
-  };
+            const incQ = query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId), where('affectedAssetId', '==', asset.id));
+            getDocs(incQ).then(snap => { setLinkedIncidents(snap.docs.map(d => ({ id: d.id, ...d.data() } as Incident))); });
 
-  const handleDuplicate = async () => {
-      if(!selectedAsset || !canEdit || !user?.organizationId) return;
-      try {
-          const newAssetData = { ...selectedAsset, name: `${selectedAsset.name} (Copie)`, createdAt: new Date().toISOString() };
-          // @ts-ignore
-          delete newAssetData.id;
-          const docRef = await addDoc(collection(db, 'assets'), newAssetData);
-          await logAction(user, 'CREATE', 'Asset', `Duplication Actif: ${newAssetData.name}`);
-          addToast("Actif dupliqué", "success");
-          setAssets(prev => [...prev, { ...newAssetData, id: docRef.id } as Asset]);
-          openInspector({ ...newAssetData, id: docRef.id } as Asset);
-      } catch(e) { addToast("Erreur duplication", "error"); }
-  };
+            return () => unsubMaint();
+        }
+    };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (!canEdit || !user?.organizationId) return;
-      const file = event.target.files?.[0];
-      if (!file) return;
+    const handleSave = async () => {
+        if (!canEdit || !user?.organizationId) return;
+        if (!editForm.name) return addToast("Le nom est requis", "error");
 
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-          const text = e.target?.result as string;
-          if (!text) return;
-          const lines = text.split('\n').slice(1).filter(line => line.trim() !== '');
-          if (lines.length === 0) return addToast("Fichier vide", "error");
+        try {
+            if (selectedAsset) {
+                await updateDoc(doc(db, 'assets', selectedAsset.id), editForm);
+                await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${editForm.name}`);
+                const updatedAsset = { ...selectedAsset, ...editForm, currentValue: calculateDepreciation(editForm.purchasePrice || 0, editForm.purchaseDate || '') } as Asset;
+                setAssets(prev => prev.map(a => a.id === selectedAsset.id ? updatedAsset : a));
+                setSelectedAsset(updatedAsset);
+                addToast("Modifications enregistrées", "success");
+            } else {
+                const newDoc = { ...editForm, organizationId: user.organizationId, createdAt: new Date().toISOString() };
+                const docRef = await addDoc(collection(db, 'assets'), newDoc);
+                const newAsset = { id: docRef.id, ...newDoc, currentValue: calculateDepreciation(newDoc.purchasePrice || 0, newDoc.purchaseDate || '') } as Asset;
+                setAssets(prev => [...prev, newAsset]);
+                setSelectedAsset(newAsset);
+                await logAction(user, 'CREATE', 'Asset', `Création Actif: ${editForm.name}`);
+                addToast("Actif créé avec succès", "success");
+            }
+            setIsDirty(false);
+            fetchAssets(); // Refresh stats
+        } catch (e) { addToast("Erreur lors de l'enregistrement", "error"); }
+    };
 
-          setLoading(true);
-          try {
-              const batch = writeBatch(db);
-              let count = 0;
-              lines.forEach(line => {
-                  const cols = line.split(',');
-                  if (cols.length >= 3) {
-                      const newRef = doc(collection(db, 'assets'));
-                      batch.set(newRef, {
-                          organizationId: user.organizationId,
-                          name: cols[0]?.trim() || 'Unknown',
-                          type: (cols[1]?.trim() || 'Matériel') as any,
-                          owner: cols[2]?.trim() || 'Unknown',
-                          confidentiality: cols[3]?.trim() === 'Critique' ? Criticality.CRITICAL : Criticality.LOW,
-                          integrity: Criticality.LOW, availability: Criticality.LOW,
-                          location: cols[4]?.trim() || '',
-                          lifecycleStatus: 'En service',
-                          createdAt: new Date().toISOString()
-                      });
-                      count++;
-                  }
-              });
-              await batch.commit();
-              await logAction(user, 'IMPORT', 'Asset', `Import CSV de ${count} actifs`);
-              addToast(`${count} actifs importés`, "success");
-              fetchAssets();
-          } catch (error) { addToast("Erreur import CSV", "error"); } finally { setLoading(false); if(fileInputRef.current) fileInputRef.current.value = ''; }
-      };
-      reader.readAsText(file);
-  };
+    const handleDuplicate = async () => {
+        if (!selectedAsset || !canEdit || !user?.organizationId) return;
+        try {
+            const newAssetData = { ...selectedAsset, name: `${selectedAsset.name} (Copie)`, createdAt: new Date().toISOString() };
+            const { id: _id, ...dataToUpdate } = newAssetData;
+            const docRef = await addDoc(collection(db, 'assets'), newAssetData);
+            await logAction(user, 'CREATE', 'Asset', `Duplication Actif: ${newAssetData.name}`);
+            addToast("Actif dupliqué", "success");
+            setAssets(prev => [...prev, { ...newAssetData, id: docRef.id } as Asset]);
+            openInspector({ ...newAssetData, id: docRef.id } as Asset);
+        } catch (e) { addToast("Erreur duplication", "error"); }
+    };
 
-  const getCriticalityColor = (level: Criticality) => {
-    switch (level) {
-      case Criticality.CRITICAL: return 'bg-red-100/80 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
-      case Criticality.HIGH: return 'bg-orange-100/80 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
-      case Criticality.MEDIUM: return 'bg-yellow-100/80 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
-      default: return 'bg-emerald-100/80 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800';
-    }
-  };
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!canEdit || !user?.organizationId) return;
+        const file = event.target.files?.[0];
+        if (!file) return;
 
-  const filteredAssets = assets.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const text = e.target?.result as string;
+            if (!text) return;
+            const lines = text.split('\n').slice(1).filter(line => line.trim() !== '');
+            if (lines.length === 0) return addToast("Fichier vide", "error");
 
-  const handleAddMaintenance = async () => {
-      if (!selectedAsset || !newMaintenance.description) return;
-      try {
-          await addDoc(collection(db, 'assets', selectedAsset.id, 'maintenance'), newMaintenance);
-          if (newMaintenance.type === 'Préventive') {
-              const nextDate = new Date(newMaintenance.date!);
-              nextDate.setFullYear(nextDate.getFullYear() + 1);
-              const nextStr = nextDate.toISOString().split('T')[0];
-              await updateDoc(doc(db, 'assets', selectedAsset.id), { nextMaintenance: nextStr });
-              setEditForm(prev => ({ ...prev, nextMaintenance: nextStr }));
-              addToast("Maintenance ajoutée et prochaine échéance planifiée (+1 an)", "success");
-          } else {
-              addToast("Intervention enregistrée", "success");
-          }
-          setNewMaintenance({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
-      } catch (e) { addToast("Erreur ajout maintenance", "error"); }
-  };
+            setLoading(true);
+            try {
+                const batch = writeBatch(db);
+                let count = 0;
+                lines.forEach(line => {
+                    const cols = line.split(',');
+                    if (cols.length >= 3) {
+                        const newRef = doc(collection(db, 'assets'));
+                        batch.set(newRef, {
+                            organizationId: user.organizationId,
+                            name: cols[0]?.trim() || 'Unknown',
+                            type: (cols[1]?.trim() || 'Matériel') as any,
+                            owner: cols[2]?.trim() || 'Unknown',
+                            confidentiality: cols[3]?.trim() === 'Critique' ? Criticality.CRITICAL : Criticality.LOW,
+                            integrity: Criticality.LOW, availability: Criticality.LOW,
+                            location: cols[4]?.trim() || '',
+                            lifecycleStatus: 'En service',
+                            createdAt: new Date().toISOString()
+                        });
+                        count++;
+                    }
+                });
+                await batch.commit();
+                await logAction(user, 'IMPORT', 'Asset', `Import CSV de ${count} actifs`);
+                addToast(`${count} actifs importés`, "success");
+                fetchAssets();
+            } catch (error) { addToast("Erreur import CSV", "error"); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+        };
+        reader.readAsText(file);
+    };
 
-  const initiateDelete = async (id: string, name: string) => {
-      if (!canEdit) return;
-      const risksQ = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('assetId', '==', id));
-      const incQ = query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId), where('affectedAssetId', '==', id));
-      const [rSnap, iSnap] = await Promise.all([getDocs(risksQ), getDocs(incQ)]);
-      
-      if (!rSnap.empty || !iSnap.empty) {
-          return addToast(`Impossible de supprimer: lié à ${rSnap.size} risques et ${iSnap.size} incidents.`, "error");
-      }
-      setConfirmData({ isOpen: true, title: "Supprimer l'actif ?", message: `Voulez-vous vraiment supprimer "${name}" ?`, onConfirm: () => handleDeleteAsset(id, name) });
-  };
+    const getCriticalityColor = (level: Criticality) => {
+        switch (level) {
+            case Criticality.CRITICAL: return 'bg-red-100/80 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
+            case Criticality.HIGH: return 'bg-orange-100/80 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
+            case Criticality.MEDIUM: return 'bg-yellow-100/80 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
+            default: return 'bg-emerald-100/80 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800';
+        }
+    };
 
-  const handleDeleteAsset = async (id: string, name: string) => {
-      try {
-          await deleteDoc(doc(db, 'assets', id));
-          await logAction(user, 'DELETE', 'Asset', `Suppression actif: ${name}`);
-          setAssets(prev => prev.filter(a => a.id !== id));
-          setSelectedAsset(null);
-          addToast("Actif supprimé", "info");
-          fetchAssets();
-      } catch(error) { addToast("Erreur lors de la suppression", "error"); }
-  };
+    const filteredAssets = assets.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
 
-  const handleExportCSV = () => {
-    const headers = ["Nom", "Type", "Propriétaire", "Confidentialité", "Intégrité", "Disponibilité", "Localisation", "Statut", "Valeur Actuelle"];
-    const rows = filteredAssets.map(a => [a.name, a.type, a.owner, a.confidentiality, a.integrity, a.availability, a.location, a.lifecycleStatus || 'Neuf', a.currentValue || 0]);
-    const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-    const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `assets_export.csv`; link.click();
-  };
+    const handleAddMaintenance = async () => {
+        if (!selectedAsset || !newMaintenance.description) return;
+        try {
+            await addDoc(collection(db, 'assets', selectedAsset.id, 'maintenance'), newMaintenance);
+            if (newMaintenance.type === 'Préventive') {
+                const nextDate = new Date(newMaintenance.date!);
+                nextDate.setFullYear(nextDate.getFullYear() + 1);
+                const nextStr = nextDate.toISOString().split('T')[0];
+                await updateDoc(doc(db, 'assets', selectedAsset.id), { nextMaintenance: nextStr });
+                setEditForm(prev => ({ ...prev, nextMaintenance: nextStr }));
+                addToast("Maintenance ajoutée et prochaine échéance planifiée (+1 an)", "success");
+            } else {
+                addToast("Intervention enregistrée", "success");
+            }
+            setNewMaintenance({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
+        } catch (e) { addToast("Erreur ajout maintenance", "error"); }
+    };
 
-  const generateLabel = async (asset: Asset) => {
-      try {
-          const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [50, 30] });
-          const qrData = await QRCode.toDataURL(JSON.stringify({ id: asset.id, name: asset.name }), { margin: 1 });
-          doc.addImage(qrData, 'PNG', 2, 2, 26, 26);
-          doc.setFontSize(8); doc.setFont("helvetica", "bold"); doc.text(asset.name.substring(0, 15), 30, 6);
-          doc.setFontSize(6); doc.setFont("helvetica", "normal"); doc.text(asset.id.substring(0, 8) + '...', 30, 10); doc.text(asset.owner.substring(0, 15), 30, 14);
-          doc.setFillColor(0, 0, 0); doc.rect(30, 20, 18, 5, 'F');
-          doc.setTextColor(255, 255, 255); doc.setFontSize(6); doc.setFont("helvetica", "bold"); doc.text(asset.confidentiality.toUpperCase(), 39, 23.5, { align: 'center' });
-          doc.save(`Label_${asset.name}.pdf`);
-      } catch (error) { addToast("Erreur génération étiquette", "error"); }
-  };
+    const initiateDelete = async (id: string, name: string) => {
+        if (!canEdit) return;
+        const risksQ = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('assetId', '==', id));
+        const incQ = query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId), where('affectedAssetId', '==', id));
+        const [rSnap, iSnap] = await Promise.all([getDocs(risksQ), getDocs(incQ)]);
 
-  return (
-    <div className="space-y-8 animate-fade-in relative pb-10">
-      {/* Confirm Modal */}
-      <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
+        if (!rSnap.empty || !iSnap.empty) {
+            return addToast(`Impossible de supprimer: lié à ${rSnap.size} risques et ${iSnap.size} incidents.`, "error");
+        }
+        setConfirmData({ isOpen: true, title: "Supprimer l'actif ?", message: `Voulez-vous vraiment supprimer "${name}" ?`, onConfirm: () => handleDeleteAsset(id, name) });
+    };
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div><h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Inventaire des Actifs</h1><p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Base de connaissance de l'infrastructure.</p></div>
-        {canEdit && (
-            <div className="flex gap-3">
-                <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                <button onClick={() => fileInputRef.current?.click()} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Upload className="h-4 w-4 mr-2" /> Importer CSV</button>
-                <button onClick={() => openInspector(undefined)} className="group flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"><Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" /> Nouvel Actif</button>
+    const handleDeleteAsset = async (id: string, name: string) => {
+        try {
+            await deleteDoc(doc(db, 'assets', id));
+            await logAction(user, 'DELETE', 'Asset', `Suppression actif: ${name}`);
+            setAssets(prev => prev.filter(a => a.id !== id));
+            setSelectedAsset(null);
+            addToast("Actif supprimé", "info");
+            fetchAssets();
+        } catch (error) { addToast("Erreur lors de la suppression", "error"); }
+    };
+
+    const handleExportCSV = () => {
+        const headers = ["Nom", "Type", "Propriétaire", "Confidentialité", "Intégrité", "Disponibilité", "Localisation", "Statut", "Valeur Actuelle"];
+        const rows = filteredAssets.map(a => [a.name, a.type, a.owner, a.confidentiality, a.integrity, a.availability, a.location, a.lifecycleStatus || 'Neuf', a.currentValue || 0]);
+        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
+        const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `assets_export.csv`; link.click();
+    };
+
+    const generateLabel = async (asset: Asset) => {
+        try {
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [50, 30] });
+            const qrData = await QRCode.toDataURL(JSON.stringify({ id: asset.id, name: asset.name }), { margin: 1 });
+            doc.addImage(qrData, 'PNG', 2, 2, 26, 26);
+            doc.setFontSize(8); doc.setFont("helvetica", "bold"); doc.text(asset.name.substring(0, 15), 30, 6);
+            doc.setFontSize(6); doc.setFont("helvetica", "normal"); doc.text(asset.id.substring(0, 8) + '...', 30, 10); doc.text(asset.owner.substring(0, 15), 30, 14);
+            doc.setFillColor(0, 0, 0); doc.rect(30, 20, 18, 5, 'F');
+            doc.setTextColor(255, 255, 255); doc.setFontSize(6); doc.setFont("helvetica", "bold"); doc.text(asset.confidentiality.toUpperCase(), 39, 23.5, { align: 'center' });
+            doc.save(`Label_${asset.name}.pdf`);
+        } catch (error) { addToast("Erreur génération étiquette", "error"); }
+    };
+
+    return (
+        <div className="space-y-8 animate-fade-in relative pb-10">
+            {/* Confirm Modal */}
+            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
+
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div><h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Inventaire des Actifs</h1><p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Base de connaissance de l'infrastructure.</p></div>
+                {canEdit && (
+                    <div className="flex gap-3">
+                        <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Upload className="h-4 w-4 mr-2" /> Importer CSV</button>
+                        <button onClick={() => openInspector(undefined)} className="group flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"><Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" /> Nouvel Actif</button>
+                    </div>
+                )}
             </div>
-        )}
-      </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Actifs</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p></div><div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600"><Database className="h-6 w-6"/></div></div>
-          <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">Critiques (DIC)</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.critical}</p></div><div className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600"><ShieldAlert className="h-6 w-6"/></div></div>
-          <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Valorisation Parc</p><p className="text-3xl font-black text-slate-900 dark:text-white">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(stats.totalValue)}</p></div><div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600"><Euro className="h-6 w-6"/></div></div>
-          <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Maintenance &lt; 30j</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.maintenanceDue}</p></div><div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><Wrench className="h-6 w-6"/></div></div>
-      </div>
+            {/* KPIs */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Actifs</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p></div><div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600"><Database className="h-6 w-6" /></div></div>
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">Critiques (DIC)</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.critical}</p></div><div className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600"><ShieldAlert className="h-6 w-6" /></div></div>
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Valorisation Parc</p><p className="text-3xl font-black text-slate-900 dark:text-white">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(stats.totalValue)}</p></div><div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600"><Euro className="h-6 w-6" /></div></div>
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Maintenance &lt; 30j</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.maintenanceDue}</p></div><div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><Wrench className="h-6 w-6" /></div></div>
+            </div>
 
-      <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5">
-          <Search className="h-5 w-5 text-slate-400" />
-          <input type="text" placeholder="Rechercher un actif..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-white py-2.5 font-medium placeholder-slate-400" value={filter} onChange={e => setFilter(e.target.value)} />
-          <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors"><FileSpreadsheet className="h-4 w-4" /></button>
-      </div>
+            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5">
+                <Search className="h-5 w-5 text-slate-400" />
+                <input type="text" placeholder="Rechercher un actif..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-white py-2.5 font-medium placeholder-slate-400" value={filter} onChange={e => setFilter(e.target.value)} />
+                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors"><FileSpreadsheet className="h-4 w-4" /></button>
+            </div>
 
-      {/* List */}
-      <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
-              <tr><th className="px-8 py-4">Actif</th><th className="px-6 py-4">Type</th><th className="px-6 py-4">Classification</th><th className="px-6 py-4">Statut</th><th className="px-6 py-4">Localisation</th><th className="px-6 py-4 text-right">Actions</th></tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-              {loading ? ( <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400">Chargement...</td></tr> ) : filteredAssets.length === 0 ? ( <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">Aucun actif trouvé.</td></tr> ) : (
-                filteredAssets.map((asset) => {
-                  const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
-                  const maintenanceOverdue = asset.nextMaintenance && new Date(asset.nextMaintenance) < new Date();
-                  return (
-                  <tr key={asset.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group cursor-pointer" onClick={() => openInspector(asset)}>
-                    <td className="px-8 py-5"><div className="flex items-center"><div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300"><Server className="h-5 w-5" strokeWidth={1.5} /></div><div><div className="font-bold text-slate-900 dark:text-white text-[15px]">{asset.name}</div><div className="flex items-center gap-2 mt-0.5"><span className="text-xs text-slate-500 font-medium">{asset.owner}</span>{warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}{maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-900 px-1.5 py-0.5 rounded font-bold flex items-center"><Clock className="h-2.5 w-2.5 mr-1"/>Maint.</span>}</div></div></div></td>
-                    <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">{asset.type}</td>
-                    <td className="px-6 py-5"><span className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wide border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span></td>
-                    <td className="px-6 py-5"><span className={`flex items-center w-fit px-2.5 py-1 rounded-full text-[11px] font-bold border ${asset.lifecycleStatus === 'En service' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}><span className={`w-1.5 h-1.5 rounded-full mr-2 ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>{asset.lifecycleStatus || 'Neuf'}</span></td>
-                    <td className="px-6 py-5 text-slate-500 dark:text-slate-400 font-medium text-xs">{asset.location}</td>
-                    <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}><button onClick={() => generateLabel(asset)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>{canEdit && (<button onClick={() => initiateDelete(asset.id, asset.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer"><Trash2 className="h-4 w-4" /></button>)}</td>
-                  </tr>
-                )})
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Inspector Drawer */}
-      {(selectedAsset || (!selectedAsset && Object.keys(editForm).length > 0 && !loading && inspectorTab === 'details')) && (
-        <div className="fixed inset-0 z-[100] overflow-hidden">
-            <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm transition-opacity" onClick={() => { setSelectedAsset(null); setEditForm({}); }} />
-            <div className="absolute inset-y-0 right-0 pl-10 max-w-full flex pointer-events-none">
-                <div className="w-screen max-w-2xl pointer-events-auto">
-                    <div className="h-full flex flex-col bg-white/95 dark:bg-[#1c1c1e] shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
-                        <div className="px-8 py-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
-                            <div className="flex items-center"><div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-2xl flex items-center justify-center mr-5 shadow-lg shadow-brand-500/20 text-white"><Server className="h-6 w-6" strokeWidth={2} /></div><div><h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedAsset ? selectedAsset.name : 'Nouvel Actif'}</h2><p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">{selectedAsset?.type || editForm.type}<span className="w-1 h-1 rounded-full bg-slate-300"></span>{selectedAsset?.id || 'Brouillon'}</p></div></div>
-                            <div className="flex gap-2">{canEdit && selectedAsset && (<button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer"><Copy className="h-5 w-5" /></button>)}{canEdit && isDirty && (<button onClick={handleSave} className="flex items-center px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl shadow-lg hover:scale-105 transition-all"><Save className="h-4 w-4 mr-2"/> Enregistrer</button>)}<button onClick={() => { setSelectedAsset(null); setEditForm({}); }} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button></div>
-                        </div>
-                        <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent">{[{ id: 'details', label: 'Général', icon: Tag }, { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock }, { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert }, { id: 'history', label: 'Audit Trail', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }].map(tab => (<button key={tab.id} onClick={() => setInspectorTab(tab.id as any)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}><tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />{tab.label}</button>))}</div>
-                        
-                        <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-black/20 custom-scrollbar">
-                            {inspectorTab === 'details' && (
-                                <div className="space-y-8">
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Informations Principales</h3>
-                                        <div className="grid grid-cols-2 gap-6">
-                                            <div className="col-span-2"><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Nom de l'actif</label><input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium" value={editForm.name || ''} onChange={e => { setEditForm({...editForm, name: e.target.value}); setIsDirty(true); }} /></div>
-                                            <div><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Type</label><div className="relative"><select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" value={editForm.type} onChange={e => { setEditForm({...editForm, type: e.target.value as any}); setIsDirty(true); }}>{['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].map(t => <option key={t} value={t}>{t}</option>)}</select></div></div>
-                                            <div>
-                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Propriétaire</label>
-                                                <div className="relative">
-                                                    <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" value={editForm.owner || ''} onChange={e => { setEditForm({...editForm, owner: e.target.value}); setIsDirty(true); }}>
-                                                        <option value="">Sélectionner...</option>
-                                                        {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div className="col-span-2"><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Localisation</label><input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium" value={editForm.location || ''} onChange={e => { setEditForm({...editForm, location: e.target.value}); setIsDirty(true); }} /></div>
-                                        </div>
-                                    </div>
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm"><h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center"><AlertTriangle className="h-4 w-4 mr-2"/> Classification DIC</h3><div className="grid grid-cols-3 gap-4">{['confidentiality', 'integrity', 'availability'].map((field) => (<div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5"><label className="block text-[10px] font-bold uppercase text-slate-400 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label><select disabled={!canEdit} className="w-full bg-transparent border-none p-0 font-bold text-slate-900 dark:text-white focus:ring-0 cursor-pointer text-sm" value={(editForm as any)[field]} onChange={e => { setEditForm({...editForm, [field]: e.target.value}); setIsDirty(true); }}>{Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}</select></div>))}</div></div>
-                                </div>
+            {/* List */}
+            <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
+                            <tr><th className="px-8 py-4">Actif</th><th className="px-6 py-4">Type</th><th className="px-6 py-4">Classification</th><th className="px-6 py-4">Statut</th><th className="px-6 py-4">Localisation</th><th className="px-6 py-4 text-right">Actions</th></tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                            {loading ? (<tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400">Chargement...</td></tr>) : filteredAssets.length === 0 ? (<tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">Aucun actif trouvé.</td></tr>) : (
+                                filteredAssets.map((asset) => {
+                                    const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
+                                    const maintenanceOverdue = asset.nextMaintenance && new Date(asset.nextMaintenance) < new Date();
+                                    return (
+                                        <tr key={asset.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group cursor-pointer" onClick={() => openInspector(asset)}>
+                                            <td className="px-8 py-5"><div className="flex items-center"><div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300"><Server className="h-5 w-5" strokeWidth={1.5} /></div><div><div className="font-bold text-slate-900 dark:text-white text-[15px]">{asset.name}</div><div className="flex items-center gap-2 mt-0.5"><span className="text-xs text-slate-500 font-medium">{asset.owner}</span>{warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}{maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-900 px-1.5 py-0.5 rounded font-bold flex items-center"><Clock className="h-2.5 w-2.5 mr-1" />Maint.</span>}</div></div></div></td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">{asset.type}</td>
+                                            <td className="px-6 py-5"><span className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wide border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span></td>
+                                            <td className="px-6 py-5"><span className={`flex items-center w-fit px-2.5 py-1 rounded-full text-[11px] font-bold border ${asset.lifecycleStatus === 'En service' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}><span className={`w-1.5 h-1.5 rounded-full mr-2 ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>{asset.lifecycleStatus || 'Neuf'}</span></td>
+                                            <td className="px-6 py-5 text-slate-500 dark:text-slate-400 font-medium text-xs">{asset.location}</td>
+                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}><button onClick={() => generateLabel(asset)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>{canEdit && (<button onClick={() => initiateDelete(asset.id, asset.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer"><Trash2 className="h-4 w-4" /></button>)}</td>
+                                        </tr>
+                                    )
+                                })
                             )}
-                            {inspectorTab === 'lifecycle' && (
-                                <div className="space-y-8">
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600/80 flex items-center"><Archive className="h-4 w-4 mr-2"/> État du cycle de vie</h3>
-                                            <div className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 text-xs font-bold">{editForm.lifecycleStatus || 'Neuf'}</div>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" value={editForm.lifecycleStatus || 'Neuf'} onChange={e => { setEditForm({...editForm, lifecycleStatus: e.target.value as any}); setIsDirty(true); }}>{['Neuf', 'En service', 'En réparation', 'Fin de vie', 'Rebut'].map(s => <option key={s} value={s}>{s}</option>)}</select>
-                                            <div className="grid grid-cols-2 gap-6 pt-2">
-                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Date d'achat</label><input type="date" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" value={editForm.purchaseDate || ''} onChange={e => { setEditForm({...editForm, purchaseDate: e.target.value}); setIsDirty(true); }} /></div>
-                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Fin de garantie</label><input type="date" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" value={editForm.warrantyEnd || ''} onChange={e => { setEditForm({...editForm, warrantyEnd: e.target.value}); setIsDirty(true); }} /></div>
-                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Prix d'achat (€)</label><input type="number" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" value={editForm.purchasePrice || ''} onChange={e => { setEditForm({...editForm, purchasePrice: parseFloat(e.target.value)}); setIsDirty(true); }} /></div>
-                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Coût Maintenance (€)</label><div className="px-4 py-3 rounded-2xl bg-gray-50 dark:bg-white/5 text-sm font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(maintenanceRecords.reduce((acc, m) => acc + (m.cost || 0), 0))}</div></div>
-                                            </div>
-                                            
-                                            {/* Financial Charts */}
-                                            {selectedAsset?.purchasePrice && (
-                                                <div className="mt-6 pt-6 border-t border-dashed border-slate-200 dark:border-white/10">
-                                                    <div className="grid grid-cols-2 gap-4 mb-6">
-                                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
-                                                            <p className="text-[10px] font-bold uppercase text-emerald-600 mb-1">Valeur Actuelle (Net)</p>
-                                                            <p className="text-xl font-black text-emerald-700 dark:text-emerald-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateDepreciation(selectedAsset.purchasePrice, selectedAsset.purchaseDate || ''))}</p>
-                                                        </div>
-                                                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-900/30">
-                                                            <p className="text-[10px] font-bold uppercase text-blue-600 mb-1">TCO (Coût Total)</p>
-                                                            <p className="text-xl font-black text-blue-700 dark:text-blue-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateTCO())}</p>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Inspector Drawer */}
+            {(selectedAsset || (!selectedAsset && Object.keys(editForm).length > 0 && !loading && inspectorTab === 'details')) && (
+                <div className="fixed inset-0 z-[100] overflow-hidden">
+                    <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm transition-opacity" onClick={() => { setSelectedAsset(null); setEditForm({}); }} />
+                    <div className="absolute inset-y-0 right-0 pl-10 max-w-full flex pointer-events-none">
+                        <div className="w-screen max-w-2xl pointer-events-auto">
+                            <div className="h-full flex flex-col bg-white/95 dark:bg-[#1c1c1e] shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
+                                <div className="px-8 py-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
+                                    <div className="flex items-center"><div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-2xl flex items-center justify-center mr-5 shadow-lg shadow-brand-500/20 text-white"><Server className="h-6 w-6" strokeWidth={2} /></div><div><h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedAsset ? selectedAsset.name : 'Nouvel Actif'}</h2><p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">{selectedAsset?.type || editForm.type}<span className="w-1 h-1 rounded-full bg-slate-300"></span>{selectedAsset?.id || 'Brouillon'}</p></div></div>
+                                    <div className="flex gap-2">{canEdit && selectedAsset && (<button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer"><Copy className="h-5 w-5" /></button>)}{canEdit && isDirty && (<button onClick={handleSave} className="flex items-center px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl shadow-lg hover:scale-105 transition-all"><Save className="h-4 w-4 mr-2" /> Enregistrer</button>)}<button onClick={() => { setSelectedAsset(null); setEditForm({}); }} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button></div>
+                                </div>
+                                <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent">{[{ id: 'details', label: 'Général', icon: Tag }, { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock }, { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert }, { id: 'history', label: 'Audit Trail', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }].map(tab => (<button key={tab.id} onClick={() => setInspectorTab(tab.id as any)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}><tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />{tab.label}</button>))}</div>
+
+                                <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-black/20 custom-scrollbar">
+                                    {inspectorTab === 'details' && (
+                                        <div className="space-y-8">
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Informations Principales</h3>
+                                                <div className="grid grid-cols-2 gap-6">
+                                                    <div className="col-span-2"><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Nom de l'actif</label><input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium" value={editForm.name || ''} onChange={e => { setEditForm({ ...editForm, name: e.target.value }); setIsDirty(true); }} /></div>
+                                                    <div><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Type</label><div className="relative"><select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" value={editForm.type} onChange={e => { setEditForm({ ...editForm, type: e.target.value as any }); setIsDirty(true); }}>{['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].map(t => <option key={t} value={t}>{t}</option>)}</select></div></div>
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Propriétaire</label>
+                                                        <div className="relative">
+                                                            <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" value={editForm.owner || ''} onChange={e => { setEditForm({ ...editForm, owner: e.target.value }); setIsDirty(true); }}>
+                                                                <option value="">Sélectionner...</option>
+                                                                {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
+                                                            </select>
                                                         </div>
                                                     </div>
-                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Courbe d'amortissement (5 ans)</h4>
-                                                    <div className="h-40 w-full">
-                                                        <ResponsiveContainer width="100%" height="100%">
-                                                            <AreaChart data={getDepreciationData()}>
-                                                                <defs>
-                                                                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                                                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                                                                    </linearGradient>
-                                                                </defs>
-                                                                <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2}/>
-                                                                <XAxis dataKey="year" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
-                                                                <YAxis hide />
-                                                                <Tooltip contentStyle={{backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px'}} itemStyle={{color: '#fff'}} formatter={(val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)}/>
-                                                                <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
-                                                            </AreaChart>
-                                                        </ResponsiveContainer>
-                                                    </div>
+                                                    <div className="col-span-2"><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Localisation</label><input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium" value={editForm.location || ''} onChange={e => { setEditForm({ ...editForm, location: e.target.value }); setIsDirty(true); }} /></div>
                                                 </div>
-                                            )}
+                                            </div>
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm"><h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center"><AlertTriangle className="h-4 w-4 mr-2" /> Classification DIC</h3><div className="grid grid-cols-3 gap-4">{['confidentiality', 'integrity', 'availability'].map((field) => (<div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5"><label className="block text-[10px] font-bold uppercase text-slate-400 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label><select disabled={!canEdit} className="w-full bg-transparent border-none p-0 font-bold text-slate-900 dark:text-white focus:ring-0 cursor-pointer text-sm" value={(editForm as any)[field]} onChange={e => { setEditForm({ ...editForm, [field]: e.target.value }); setIsDirty(true); }}>{Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}</select></div>))}</div></div>
                                         </div>
-                                    </div>
-                                    <div><div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500"/> Historique Maintenance</h3></div>{canEdit && (<div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm"><div className="grid grid-cols-2 gap-4 mb-4"><input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({...newMaintenance, date: e.target.value})} /><select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({...newMaintenance, type: e.target.value as any})}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select></div><div className="flex gap-4 mb-4"><input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({...newMaintenance, description: e.target.value})} /><input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({...newMaintenance, cost: parseFloat(e.target.value)})} /></div><button onClick={handleAddMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform">Ajouter Intervention</button></div>)}<div className="space-y-3">{maintenanceRecords.length === 0 ? <p className="text-sm text-gray-400 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (<div key={rec.id} className="flex items-start p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all"><div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div><div className="flex-1"><div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-gray-300 font-bold">{rec.type}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p><div className="flex justify-between mt-2"><span className="text-[10px] text-gray-400 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[10px] font-bold text-slate-500">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div></div></div>))}</div></div>
+                                    )}
+                                    {inspectorTab === 'lifecycle' && (
+                                        <div className="space-y-8">
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                                <div className="flex items-center justify-between mb-6">
+                                                    <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600/80 flex items-center"><Archive className="h-4 w-4 mr-2" /> État du cycle de vie</h3>
+                                                    <div className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 text-xs font-bold">{editForm.lifecycleStatus || 'Neuf'}</div>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" value={editForm.lifecycleStatus || 'Neuf'} onChange={e => { setEditForm({ ...editForm, lifecycleStatus: e.target.value as any }); setIsDirty(true); }}>{['Neuf', 'En service', 'En réparation', 'Fin de vie', 'Rebut'].map(s => <option key={s} value={s}>{s}</option>)}</select>
+                                                    <div className="grid grid-cols-2 gap-6 pt-2">
+                                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Date d'achat</label><input type="date" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" value={editForm.purchaseDate || ''} onChange={e => { setEditForm({ ...editForm, purchaseDate: e.target.value }); setIsDirty(true); }} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Fin de garantie</label><input type="date" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" value={editForm.warrantyEnd || ''} onChange={e => { setEditForm({ ...editForm, warrantyEnd: e.target.value }); setIsDirty(true); }} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Prix d'achat (€)</label><input type="number" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" value={editForm.purchasePrice || ''} onChange={e => { setEditForm({ ...editForm, purchasePrice: parseFloat(e.target.value) }); setIsDirty(true); }} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Coût Maintenance (€)</label><div className="px-4 py-3 rounded-2xl bg-gray-50 dark:bg-white/5 text-sm font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(maintenanceRecords.reduce((acc, m) => acc + (m.cost || 0), 0))}</div></div>
+                                                    </div>
+
+                                                    {/* Financial Charts */}
+                                                    {selectedAsset?.purchasePrice && (
+                                                        <div className="mt-6 pt-6 border-t border-dashed border-slate-200 dark:border-white/10">
+                                                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                                                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
+                                                                    <p className="text-[10px] font-bold uppercase text-emerald-600 mb-1">Valeur Actuelle (Net)</p>
+                                                                    <p className="text-xl font-black text-emerald-700 dark:text-emerald-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateDepreciation(selectedAsset.purchasePrice, selectedAsset.purchaseDate || ''))}</p>
+                                                                </div>
+                                                                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-900/30">
+                                                                    <p className="text-[10px] font-bold uppercase text-blue-600 mb-1">TCO (Coût Total)</p>
+                                                                    <p className="text-xl font-black text-blue-700 dark:text-blue-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateTCO())}</p>
+                                                                </div>
+                                                            </div>
+                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Courbe d'amortissement (5 ans)</h4>
+                                                            <div className="h-40 w-full">
+                                                                <ResponsiveContainer width="100%" height="100%">
+                                                                    <AreaChart data={getDepreciationData()}>
+                                                                        <defs>
+                                                                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                                                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                                                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                                            </linearGradient>
+                                                                        </defs>
+                                                                        <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2} />
+                                                                        <XAxis dataKey="year" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                                                                        <YAxis hide />
+                                                                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }} itemStyle={{ color: '#fff' }} formatter={(val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)} />
+                                                                        <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
+                                                                    </AreaChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div><div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500" /> Historique Maintenance</h3></div>{canEdit && (<div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm"><div className="grid grid-cols-2 gap-4 mb-4"><input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({ ...newMaintenance, date: e.target.value })} /><select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({ ...newMaintenance, type: e.target.value as any })}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select></div><div className="flex gap-4 mb-4"><input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })} /><input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })} /></div><button onClick={handleAddMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform">Ajouter Intervention</button></div>)}<div className="space-y-3">{maintenanceRecords.length === 0 ? <p className="text-sm text-gray-400 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (<div key={rec.id} className="flex items-start p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all"><div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div><div className="flex-1"><div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-gray-300 font-bold">{rec.type}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p><div className="flex justify-between mt-2"><span className="text-[10px] text-gray-400 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[10px] font-bold text-slate-500">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div></div></div>))}</div></div>
+                                        </div>
+                                    )}
+                                    {inspectorTab === 'security' && (<div className="space-y-8"><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})</h3>{linkedRisks.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>) : (<div className="grid gap-4">{linkedRisks.map(risk => (<div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span><span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{risk.vulnerability}</p>{risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}</div>))}</div>)}</div><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})</h3>{linkedIncidents.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>) : (<div className="grid gap-4">{linkedIncidents.map(inc => (<div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span><span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p></div>))}</div>)}</div></div>)}
+                                    {inspectorTab === 'history' && (<div className="relative border-l-2 border-slate-200 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">{assetHistory.map((log, i) => (<div key={i} className="relative"><span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900"><div className="h-2 w-2 rounded-full bg-brand-500"></div></span><div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span><p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p><p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p><div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div></div></div>))}</div>)}
+                                    {inspectorTab === 'comments' && selectedAsset && (<div className="h-full flex flex-col"><Comments collectionName="assets" documentId={selectedAsset.id} /></div>)}
                                 </div>
-                            )}
-                            {inspectorTab === 'security' && (<div className="space-y-8"><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2"/> Risques Identifiés ({linkedRisks.length})</h3>{linkedRisks.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>) : (<div className="grid gap-4">{linkedRisks.map(risk => (<div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span><span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{risk.vulnerability}</p>{risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5"/> Risque Critique</div>}</div>))}</div>)}</div><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Siren className="h-4 w-4 mr-2"/> Incidents ({linkedIncidents.length})</h3>{linkedIncidents.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>) : (<div className="grid gap-4">{linkedIncidents.map(inc => (<div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span><span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p></div>))}</div>)}</div></div>)}
-                            {inspectorTab === 'history' && (<div className="relative border-l-2 border-slate-200 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">{assetHistory.map((log, i) => (<div key={i} className="relative"><span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900"><div className="h-2 w-2 rounded-full bg-brand-500"></div></span><div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span><p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p><p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p><div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div></div></div>))}</div>)}
-                            {inspectorTab === 'comments' && selectedAsset && (<div className="h-full flex flex-col"><Comments collectionName="assets" documentId={selectedAsset.id} /></div>)}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 };
