@@ -273,7 +273,7 @@ export const Continuity: React.FC = () => {
                             const isOverdue = lastTest ? (new Date().getTime() - lastTest.getTime() > 31536000000) : true; // 1 year
 
                             return (
-                                <div key={proc.id} onClick={() => openInspector(proc)} className="glass-panel rounded-[2rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-white/50 dark:border-white/5">
+                                <div key={proc.id} onClick={() => openInspector(proc)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-white/50 dark:border-white/5">
                                     <div className="flex justify-between items-start mb-5">
                                         <div className="p-3 bg-rose-50 dark:bg-slate-800 rounded-2xl text-rose-600 shadow-inner">
                                             <HeartPulse className="h-6 w-6" />

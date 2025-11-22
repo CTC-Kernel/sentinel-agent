@@ -262,28 +262,28 @@ export const Privacy: React.FC = () => {
 
             {/* Stats Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Traitements</p>
                         <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p>
                     </div>
                     <div className="p-3 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-600"><Activity className="h-6 w-6" /></div>
                 </div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Données Sensibles</p>
                         <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.sensitive}</p>
                     </div>
                     <div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><Fingerprint className="h-6 w-6" /></div>
                 </div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">DPIA Manquants</p>
                         <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.dpiaMissing}</p>
                     </div>
                     <div className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600"><AlertTriangle className="h-6 w-6" /></div>
                 </div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-blue-500 mb-1">En cours / Projet</p>
                         <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.review}</p>
@@ -305,7 +305,7 @@ export const Privacy: React.FC = () => {
                 {loading ? <div className="col-span-full text-center py-12 text-gray-400">Chargement...</div> :
                     filteredActivities.length === 0 ? <div className="col-span-full text-center py-12 text-gray-400 italic">Aucun traitement enregistré.</div> :
                         filteredActivities.map(activity => (
-                            <div key={activity.id} onClick={() => openInspector(activity)} className="glass-panel rounded-[2rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5">
+                            <div key={activity.id} onClick={() => openInspector(activity)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5">
                                 <div className="flex justify-between items-start mb-5">
                                     <div className="p-3 bg-purple-50 dark:bg-slate-800 rounded-2xl text-purple-600 shadow-inner">
                                         <Fingerprint className="h-6 w-6" />
