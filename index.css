@@ -141,4 +141,23 @@ a:focus-visible {
   height: 100dvh !important;
   /* Dynamic viewport height for mobile */
   width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Ensure modals and overlays are never clipped by parent overflow */
+[class*="z-50"],
+[class*="z-[100]"],
+[class*="z-[200]"] {
+  isolation: isolate;
+}
+
+/* Force body to allow fixed positioning to work correctly */
+body {
+  position: relative;
+}
+
+html,
+body {
+  overflow-x: hidden;
 }
