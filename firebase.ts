@@ -2,7 +2,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging } from 'firebase/messaging';
 
@@ -10,7 +10,7 @@ const firebaseConfig = {
   apiKey: "***REDACTED***",
   authDomain: "sentinel-grc-a8701.firebaseapp.com",
   projectId: "sentinel-grc-a8701",
-  storageBucket: "sentinel-grc-a8701.firebasestorage.app",
+  storageBucket: "sentinel-grc-a8701.appspot.com",
   messagingSenderId: "728667422032",
   appId: "1:728667422032:web:f7bb344574e49320a1c055",
   measurementId: "G-2MLLGDZ6GP"
@@ -19,21 +19,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
-// Initialisation standard de Firestore (Compatible v9+)
-export const db = getFirestore(app);
-
-// Enable Offline Persistence
-try {
-  enableIndexedDbPersistence(db).catch((err) => {
-      if (err.code == 'failed-precondition') {
-          console.warn('Firestore persistence failed: Multiple tabs open.');
-      } else if (err.code == 'unimplemented') {
-          console.warn('Firestore persistence not supported by browser.');
-      }
-  });
-} catch(e) { 
-  // Ignore persistence errors in certain envs
-}
+// Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentSingleTabManager({
+      forceOwnership: false
+    })
+  })
+});
 
 export const storage = getStorage(app);
 
