@@ -12,6 +12,7 @@ import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TableSkeleton } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
 
 export const Assets: React.FC = () => {
@@ -343,7 +344,17 @@ export const Assets: React.FC = () => {
                             {loading ? (
                                 <tr><td colSpan={6}><TableSkeleton rows={5} columns={6} /></td></tr>
                             ) : paginatedItems.length === 0 ? (
-                                <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">Aucun actif trouvé.</td></tr>
+                                <tr>
+                                    <td colSpan={6}>
+                                        <EmptyState
+                                            icon={Server}
+                                            title="Aucun actif trouvé"
+                                            description={filter ? "Aucun actif ne correspond à votre recherche." : "Commencez par ajouter votre premier actif pour suivre votre parc."}
+                                            actionLabel={filter ? undefined : "Nouvel Actif"}
+                                            onAction={filter ? undefined : () => openInspector(undefined)}
+                                        />
+                                    </td>
+                                </tr>
                             ) : (
                                 paginatedItems.map((asset) => {
                                     const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
@@ -380,7 +391,7 @@ export const Assets: React.FC = () => {
             {(selectedAsset || (!selectedAsset && Object.keys(editForm).length > 0 && !loading && inspectorTab === 'details')) && (
                 <div className="fixed inset-0 z-[100] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm transition-opacity" onClick={() => { setSelectedAsset(null); setEditForm({}); }} />
-                    <div className="absolute inset-y-0 right-0 pl-10 max-w-full flex pointer-events-none">
+                    <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
                         <div className="w-screen max-w-2xl pointer-events-auto">
                             <div className="h-full flex flex-col bg-white/95 dark:bg-[#1c1c1e] shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
                                 <div className="px-8 py-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
