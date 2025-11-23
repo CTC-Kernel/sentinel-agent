@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, limit, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile } from '../types';
+import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset } from '../types';
+import { canEditResource } from '../utils/permissions';
 import { Plus, CalendarDays, CheckSquare, MoreHorizontal, Clock, Trash2, FolderKanban, Search, ShieldAlert, FileText, FileSpreadsheet, Target, Edit, X, History, MessageSquare, Save, LayoutDashboard, ListTodo, Download, Copy } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -18,6 +19,7 @@ export const Projects: React.FC = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [risks, setRisks] = useState<Risk[]>([]);
     const [controls, setControls] = useState<Control[]>([]);
+    const [assets, setAssets] = useState<Asset[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -30,13 +32,13 @@ export const Projects: React.FC = () => {
     const [taskViewMode, setTaskViewMode] = useState<'list' | 'board'>('list');
     const [projectHistory, setProjectHistory] = useState<SystemLog[]>([]);
 
-    const canEdit = user?.role === 'admin';
+    const canEdit = canEditResource(user, 'Project');
 
     // Form State
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState<Partial<Project>>({
         name: '', description: '', manager: '', status: 'Planifié', dueDate: '',
-        tasks: [], relatedRiskIds: [], relatedControlIds: []
+        tasks: [], relatedRiskIds: [], relatedControlIds: [], relatedAssetIds: []
     });
 
     // Confirm Dialog
@@ -52,6 +54,7 @@ export const Projects: React.FC = () => {
                 getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
             ]);
 
@@ -74,7 +77,11 @@ export const Projects: React.FC = () => {
             ctrlData.sort((a, b) => a.code.localeCompare(b.code));
             setControls(ctrlData);
 
-            const usersData = getDocsData<UserProfile>(results[3]);
+            const assetData = getDocsData<Asset>(results[3]);
+            assetData.sort((a, b) => a.name.localeCompare(b.name));
+            setAssets(assetData);
+
+            const usersData = getDocsData<UserProfile>(results[4]);
             setUsersList(usersData);
 
         } catch (err) {
@@ -104,7 +111,7 @@ export const Projects: React.FC = () => {
     };
 
     const openCreateModal = () => {
-        setFormData({ name: '', description: '', manager: '', status: 'Planifié', dueDate: '', tasks: [], relatedRiskIds: [], relatedControlIds: [] });
+        setFormData({ name: '', description: '', manager: '', status: 'Planifié', dueDate: '', tasks: [], relatedRiskIds: [], relatedControlIds: [], relatedAssetIds: [] });
         setIsEditing(false);
         setShowModal(true);
     };
@@ -184,7 +191,7 @@ export const Projects: React.FC = () => {
         if (!canEdit || !selectedProject) return;
         if (!taskTitle.trim()) return;
 
-        const newTask: ProjectTask = { id: Date.now().toString(), title: taskTitle, status: 'A faire' };
+        const newTask: ProjectTask = { id: Date.now().toString(), title: taskTitle, status: 'A faire', dueDate: '' };
         const updatedTasks = [...(selectedProject.tasks || []), newTask];
         updateTasks(updatedTasks);
     };
@@ -321,6 +328,15 @@ export const Projects: React.FC = () => {
         }
     };
 
+    const toggleAssetSelection = (assetId: string) => {
+        const currentIds = formData.relatedAssetIds || [];
+        if (currentIds.includes(assetId)) {
+            setFormData({ ...formData, relatedAssetIds: currentIds.filter(id => id !== assetId) });
+        } else {
+            setFormData({ ...formData, relatedAssetIds: [...currentIds, assetId] });
+        }
+    };
+
     const getStatusColor = (s: string) => {
         switch (s) {
             case 'En cours': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
@@ -340,7 +356,10 @@ export const Projects: React.FC = () => {
             <div className="space-y-2.5 flex-1">
                 {tasks.map(task => (
                     <div key={task.id} className="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm group relative hover:shadow-md transition-all">
-                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-snug">{task.title}</p>
+                        <div className="flex justify-between items-start">
+                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-snug">{task.title}</p>
+                            {task.dueDate && <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{new Date(task.dueDate).toLocaleDateString()}</span>}
+                        </div>
                         {canEdit && (
                             <div className="flex justify-end gap-1.5 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
                                 {status !== 'A faire' && <button onClick={() => moveTaskToStatus(task.id, 'A faire')} className="text-[9px] font-bold px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 transition-colors">← Todo</button>}
@@ -520,7 +539,16 @@ export const Projects: React.FC = () => {
 
                                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                                         <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Dépendances (Risques & Contrôles)</h4>
-                                                        <div className="grid grid-cols-2 gap-6 h-48">
+                                                        <div className="grid grid-cols-3 gap-6 h-48">
+                                                            <div className="overflow-y-auto custom-scrollbar border border-gray-100 dark:border-white/10 rounded-2xl p-3 bg-slate-50/50 dark:bg-black/20">
+                                                                <p className="text-[10px] font-bold mb-3 sticky top-0 uppercase tracking-wide text-slate-400">Actifs liés</p>
+                                                                {assets.map(a => (
+                                                                    <label key={a.id} className="flex items-center gap-3 p-2.5 hover:bg-white dark:hover:bg-white/5 rounded-xl cursor-pointer transition-colors">
+                                                                        <input type="checkbox" checked={formData.relatedAssetIds?.includes(a.id)} onChange={() => toggleAssetSelection(a.id)} className="rounded text-brand-600 focus:ring-brand-500 border-gray-300" />
+                                                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{a.name}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
                                                             <div className="overflow-y-auto custom-scrollbar border border-gray-100 dark:border-white/10 rounded-2xl p-3 bg-slate-50/50 dark:bg-black/20">
                                                                 <p className="text-[10px] font-bold mb-3 sticky top-0 uppercase tracking-wide text-slate-400">Risques liés</p>
                                                                 {risks.map(r => (
@@ -550,7 +578,11 @@ export const Projects: React.FC = () => {
                                                             {selectedProject.description}
                                                         </div>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-6">
+                                                    <div className="grid grid-cols-3 gap-6">
+                                                        <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1">Actifs Concernés</p>
+                                                            <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedAssetIds?.length || 0}</p>
+                                                        </div>
                                                         <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                                             <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1">Risques Traités</p>
                                                             <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedRiskIds?.length || 0}</p>
@@ -573,7 +605,15 @@ export const Projects: React.FC = () => {
                                                     <button onClick={() => setTaskViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500'}`}>Tableau</button>
                                                 </div>
                                                 {canEdit && (
-                                                    <button onClick={() => { const t = prompt("Nouvelle tâche ?"); if (t) addTask(t); }} className="flex items-center px-3 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-xs font-bold hover:scale-105 transition-transform">
+                                                    <button onClick={() => {
+                                                        const t = prompt("Nouvelle tâche ?");
+                                                        if (t) {
+                                                            const d = prompt("Date d'échéance (optionnel, YYYY-MM-DD) ?");
+                                                            const newTask: ProjectTask = { id: Date.now().toString(), title: t, status: 'A faire', dueDate: d || undefined };
+                                                            const updatedTasks = [...(selectedProject.tasks || []), newTask];
+                                                            updateTasks(updatedTasks);
+                                                        }
+                                                    }} className="flex items-center px-3 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-xs font-bold hover:scale-105 transition-transform">
                                                         <Plus className="h-3 w-3 mr-1" /> Ajouter
                                                     </button>
                                                 )}
@@ -587,7 +627,10 @@ export const Projects: React.FC = () => {
                                                             <button onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'}`}>
                                                                 {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
                                                             </button>
-                                                            <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-gray-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{task.title}</span>
+                                                            <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-gray-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                                {task.title}
+                                                                {task.dueDate && <span className="ml-2 text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{new Date(task.dueDate).toLocaleDateString()}</span>}
+                                                            </span>
                                                             {canEdit && (
                                                                 <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                                     <button onClick={() => generateICS({

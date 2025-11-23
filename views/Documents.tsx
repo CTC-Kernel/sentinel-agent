@@ -3,7 +3,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
-import { Document, UserProfile, SystemLog } from '../types';
+import { Document, UserProfile, SystemLog, Control, Asset, Audit } from '../types';
+import { canEditResource } from '../utils/permissions';
 import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, UploadCloud, Edit, Users, Bell, FileText, X, History, MessageSquare, Save, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, AlertTriangle, CalendarDays } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -18,11 +19,14 @@ import { EmptyState } from '../components/ui/EmptyState';
 export const Documents: React.FC = () => {
     const [documents, setDocuments] = useState<Document[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
+    const [controls, setControls] = useState<Control[]>([]);
+    const [assets, setAssets] = useState<Asset[]>([]);
+    const [audits, setAudits] = useState<Audit[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [filter, setFilter] = useState('');
     const { user, addToast } = useStore();
-    const canEdit = user?.role === 'admin';
+    const canCreate = canEditResource(user, 'Document');
 
     const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
     const [inspectorTab, setInspectorTab] = useState<'details' | 'history' | 'comments'>('details');
@@ -33,7 +37,8 @@ export const Documents: React.FC = () => {
 
     const [newDocData, setNewDocData] = useState<Partial<Document>>({
         title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
-        owner: user?.displayName || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: []
+        owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
+        relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
     });
     const [fileToUpload, setFileToUpload] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
@@ -54,7 +59,10 @@ export const Documents: React.FC = () => {
             // Robust fetching
             const results = await Promise.allSettled([
                 getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
+                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId)))
             ]);
 
             const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
@@ -73,6 +81,18 @@ export const Documents: React.FC = () => {
             // Fix for users collection sometimes having uid as id or field
             const formattedUsers = usersData.map(u => ({ ...u, uid: u.uid || (u as any).id }));
             setUsersList(formattedUsers);
+
+            const ctrlData = getDocsData<Control>(results[2]);
+            ctrlData.sort((a, b) => a.code.localeCompare(b.code));
+            setControls(ctrlData);
+
+            const assetData = getDocsData<Asset>(results[3]);
+            assetData.sort((a, b) => a.name.localeCompare(b.name));
+            setAssets(assetData);
+
+            const auditData = getDocsData<Audit>(results[4]);
+            auditData.sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime());
+            setAudits(auditData);
 
         } catch (err) {
             console.error(err);
@@ -185,7 +205,7 @@ export const Documents: React.FC = () => {
     };
 
     const handleUpdate = async () => {
-        if (!canEdit || !selectedDocument) return;
+        if (!canEditResource(user, 'Document', selectedDocument?.ownerId || selectedDocument?.owner) || !selectedDocument) return;
         setUploading(true);
         try {
             const { id, ...data } = editForm as any;
@@ -209,7 +229,9 @@ export const Documents: React.FC = () => {
     };
 
     const initiateDelete = (id: string, title: string) => {
-        if (!canEdit) return;
+        // We need to check permission. Since we are in inspector, selectedDocument should be set.
+        // If called from elsewhere, we might need to pass owner. For now, assuming selectedDocument matches.
+        if (!canEditResource(user, 'Document', selectedDocument?.ownerId || selectedDocument?.owner)) return;
         setConfirmData({
             isOpen: true,
             title: "Supprimer le document ?",
@@ -294,9 +316,13 @@ export const Documents: React.FC = () => {
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Gestion Documentaire</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Politiques, procédures et preuves (ISO 27001 A.5.37).</p>
                 </div>
-                {canEdit && (
+                {canCreate && (
                     <button onClick={() => {
-                        setNewDocData({ title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft', owner: user?.displayName || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [] });
+                        setNewDocData({
+                            title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
+                            owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
+                            relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+                        });
                         setShowCreateModal(true);
                     }} className="flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-blue-500/20">
                         <Plus className="h-4 w-4 mr-2" /> Nouveau Document
@@ -324,7 +350,11 @@ export const Documents: React.FC = () => {
                             description={filter ? "Aucun document ne correspond à votre recherche." : "Centralisez vos politiques et procédures de sécurité."}
                             actionLabel={filter ? undefined : "Nouveau Document"}
                             onAction={filter ? undefined : () => {
-                                setNewDocData({ title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft', owner: user?.displayName || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [] });
+                                setNewDocData({
+                                    title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
+                                    owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
+                                    relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+                                });
                                 setShowCreateModal(true);
                             }}
                         />
@@ -372,13 +402,13 @@ export const Documents: React.FC = () => {
                                                 <Eye className="h-5 w-5" />
                                             </a>
                                         )}
-                                        {canEdit && !isEditing && (
+                                        {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !isEditing && (
                                             <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                         )}
-                                        {canEdit && isEditing && (
+                                        {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && isEditing && (
                                             <button onClick={handleUpdate} className="p-2.5 text-blue-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
                                         )}
-                                        {canEdit && (
+                                        {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
                                             <button onClick={() => initiateDelete(selectedDocument.id, selectedDocument.title)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
                                         )}
                                         <button onClick={() => setSelectedDocument(null)} className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
@@ -424,8 +454,11 @@ export const Documents: React.FC = () => {
                                                         </div>
                                                         <div>
                                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Propriétaire</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" value={editForm.owner} onChange={e => setEditForm({ ...editForm, owner: e.target.value })}>
-                                                                {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" value={editForm.ownerId || ''} onChange={e => {
+                                                                const u = usersList.find(u => u.uid === e.target.value);
+                                                                setEditForm({ ...editForm, owner: u?.displayName || '', ownerId: e.target.value });
+                                                            }}>
+                                                                {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                                             </select>
                                                         </div>
                                                     </div>
@@ -466,7 +499,7 @@ export const Documents: React.FC = () => {
                                                         </div>
 
                                                         <div className="flex flex-wrap gap-3">
-                                                            {selectedDocument.status === 'Brouillon' && canEdit && (
+                                                            {selectedDocument.status === 'Brouillon' && canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
                                                                 <button onClick={() => handleWorkflowAction('submit')} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">
                                                                     Soumettre pour revue
                                                                 </button>
@@ -540,6 +573,39 @@ export const Documents: React.FC = () => {
                                                             </a>
                                                         ) : <span className="text-xs text-gray-400 italic">Aucun fichier</span>}
                                                     </div>
+
+                                                    <div className="grid grid-cols-3 gap-6">
+                                                        <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Contrôles Liés</h4>
+                                                            <div className="space-y-1">
+                                                                {selectedDocument.relatedControlIds?.map(cid => {
+                                                                    const c = controls.find(x => x.id === cid);
+                                                                    return c ? <div key={cid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{c.code}</div> : null;
+                                                                })}
+                                                                {(!selectedDocument.relatedControlIds || selectedDocument.relatedControlIds.length === 0) && <span className="text-xs text-gray-400 italic">Aucun</span>}
+                                                            </div>
+                                                        </div>
+                                                        <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Actifs Liés</h4>
+                                                            <div className="space-y-1">
+                                                                {selectedDocument.relatedAssetIds?.map(aid => {
+                                                                    const a = assets.find(x => x.id === aid);
+                                                                    return a ? <div key={aid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{a.name}</div> : null;
+                                                                })}
+                                                                {(!selectedDocument.relatedAssetIds || selectedDocument.relatedAssetIds.length === 0) && <span className="text-xs text-gray-400 italic">Aucun</span>}
+                                                            </div>
+                                                        </div>
+                                                        <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Audits Liés</h4>
+                                                            <div className="space-y-1">
+                                                                {selectedDocument.relatedAuditIds?.map(aid => {
+                                                                    const a = audits.find(x => x.id === aid);
+                                                                    return a ? <div key={aid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{a.name}</div> : null;
+                                                                })}
+                                                                {(!selectedDocument.relatedAuditIds || selectedDocument.relatedAuditIds.length === 0) && <span className="text-xs text-gray-400 italic">Aucun</span>}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </>
                                             )}
                                         </div>
@@ -606,9 +672,12 @@ export const Documents: React.FC = () => {
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Propriétaire</label>
                                 <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none"
-                                    value={newDocData.owner} onChange={e => setNewDocData({ ...newDocData, owner: e.target.value })}>
+                                    value={newDocData.ownerId || ''} onChange={e => {
+                                        const u = usersList.find(u => u.uid === e.target.value);
+                                        setNewDocData({ ...newDocData, owner: u?.displayName || '', ownerId: e.target.value });
+                                    }}>
                                     <option value="">Sélectionner...</option>
-                                    {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
+                                    {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                 </select>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -631,6 +700,30 @@ export const Documents: React.FC = () => {
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Prochaine révision</label>
                                 <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
                                     value={newDocData.nextReviewDate} onChange={e => setNewDocData({ ...newDocData, nextReviewDate: e.target.value })} />
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contrôles</label>
+                                    <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
+                                        value={newDocData.relatedControlIds || []} onChange={e => setNewDocData({ ...newDocData, relatedControlIds: Array.from(e.target.selectedOptions, option => option.value) })}>
+                                        {controls.map(c => <option key={c.id} value={c.id}>{c.code} {c.name.substring(0, 20)}...</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Actifs</label>
+                                    <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
+                                        value={newDocData.relatedAssetIds || []} onChange={e => setNewDocData({ ...newDocData, relatedAssetIds: Array.from(e.target.selectedOptions, option => option.value) })}>
+                                        {assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Audits</label>
+                                    <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
+                                        value={newDocData.relatedAuditIds || []} onChange={e => setNewDocData({ ...newDocData, relatedAuditIds: Array.from(e.target.selectedOptions, option => option.value) })}>
+                                        {audits.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                    </select>
+                                </div>
                             </div>
 
                             <div className="pt-2">
