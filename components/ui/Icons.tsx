@@ -93,7 +93,11 @@ import {
   Check,
   Sparkles,
   BrainCircuit,
-  Calendar
+  Calendar,
+  Laptop,
+  Cpu,
+  HardDrive,
+  Monitor
 } from 'lucide-react';
 
 export {
@@ -189,5 +193,9 @@ export {
   ChevronLeft,
   Sparkles,
   BrainCircuit,
-  Calendar
+  Calendar,
+  Laptop,
+  Cpu,
+  HardDrive,
+  Monitor
 };

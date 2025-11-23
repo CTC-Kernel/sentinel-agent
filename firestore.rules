@@ -65,9 +65,14 @@ service cloud.firestore {
     // Assets
     match /assets/{assetId} {
       allow read: if canRead(resource.data.organizationId);
-      allow create: if isAuthenticated() && 
+      allow create: if (isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId);
+        canWrite(request.resource.data.organizationId)) || (
+          request.resource.data.source == 'Kiosk Intake' &&
+          request.resource.data.organizationId is string &&
+          request.resource.data.name is string &&
+          request.resource.data.serialNumber is string
+        );
       allow update: if canWrite(resource.data.organizationId);
       allow delete: if canDelete(resource.data.organizationId);
       
