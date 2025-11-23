@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree } from '@react-three/fiber';
-import { OrbitControls, Text, Box, Sphere, Line, Points, PointMaterial, Float } from '@react-three/drei';
+import { OrbitControls, Text, Line, Points, PointMaterial, Float } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial } from 'three';
 import { Line2, LineMaterial, OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { animated, useSpring } from '@react-spring/three';
@@ -38,8 +38,7 @@ interface VoxelStudioProps {
   autoRotatePreference?: boolean | null;
 }
 
-const AnimatedBox = animated(Box);
-const AnimatedSphere = animated(Sphere);
+const AnimatedGroup = animated.group;
 
 const StarField: React.FC = () => {
   const positions = useMemo(() => {
@@ -252,49 +251,179 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
     onClick(node);
   };
 
-  const getGeometry = () => {
+  const baseColor = isSelected ? '#fde047' : hovered ? '#4ecdc4' : node.color;
+  const emissiveColor = isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : node.color;
+  const opacity = isDimmed ? 0.4 : highlightCritical && !isCritical ? 0.7 : 0.95;
+  const emissiveIntensity = 0.35 + glow.get() * 0.4;
+
+  const sharedMaterialProps = {
+    color: baseColor,
+    emissive: emissiveColor,
+    emissiveIntensity,
+    metalness: 0.35,
+    roughness: 0.25,
+    opacity,
+    transparent: true,
+    wireframe: Boolean(xRayMode),
+  };
+
+  const renderCategoryModel = () => {
     switch (node.type) {
       case 'asset':
-        return <AnimatedBox ref={meshRef} args={[node.size, node.size, node.size]} scale={scale} />;
+        return (
+          <>
+            <mesh position={[0, -node.size * 0.35, 0]}>
+              <boxGeometry args={[node.size * 1.6, node.size * 0.5, node.size]} />
+              <meshStandardMaterial {...sharedMaterialProps} />
+            </mesh>
+            <mesh position={[0, -node.size * 0.05, 0]}>
+              <boxGeometry args={[node.size * 1.4, node.size * 0.45, node.size * 0.9]} />
+              <meshStandardMaterial {...sharedMaterialProps} />
+            </mesh>
+            <mesh position={[0, node.size * 0.25, 0]}>
+              <boxGeometry args={[node.size * 1.2, node.size * 0.35, node.size * 0.85]} />
+              <meshStandardMaterial {...sharedMaterialProps} />
+            </mesh>
+            <mesh position={[node.size * 0.5, -node.size * 0.05, node.size * 0.55]}>
+              <boxGeometry args={[node.size * 0.2, node.size * 0.1, node.size * 0.05]} />
+              <meshStandardMaterial
+                color="#facc15"
+                emissive="#facc15"
+                emissiveIntensity={0.7}
+                transparent
+                opacity={opacity}
+                wireframe={Boolean(xRayMode)}
+              />
+            </mesh>
+          </>
+        );
       case 'risk':
-        return <AnimatedSphere ref={meshRef} args={[node.size, 16, 16]} scale={scale} />;
+        return (
+          <>
+            <mesh rotation={[0, 0, Math.PI / 4]}>
+              <octahedronGeometry args={[node.size * 0.95, 0]} />
+              <meshStandardMaterial {...sharedMaterialProps} metalness={0.2} roughness={0.35} />
+            </mesh>
+            {[0, 1, 2, 3].map(index => {
+              const angle = (Math.PI / 2) * index;
+              return (
+                <mesh
+                  key={`risk-spike-${node.id}-${index}`}
+                  position={[Math.cos(angle) * node.size * 0.9, 0, Math.sin(angle) * node.size * 0.9]}
+                  rotation={[Math.PI / 2, angle, 0]}
+                >
+                  <coneGeometry args={[node.size * 0.22, node.size * 0.8, 8]} />
+                  <meshStandardMaterial
+                    color="#f97316"
+                    emissive="#fb923c"
+                    emissiveIntensity={0.8}
+                    opacity={opacity}
+                    transparent
+                    wireframe={Boolean(xRayMode)}
+                  />
+                </mesh>
+              );
+            })}
+          </>
+        );
       case 'project':
-        return <AnimatedBox ref={meshRef} args={[node.size * 0.8, node.size * 1.2, node.size * 0.8]} scale={scale} />;
+        return (
+          <>
+            <mesh position={[0, -node.size * 0.3, 0]}>
+              <cylinderGeometry args={[node.size * 0.95, node.size * 0.95, node.size * 0.25, 24]} />
+              <meshStandardMaterial {...sharedMaterialProps} />
+            </mesh>
+            <mesh position={[0, 0, 0]}>
+              <cylinderGeometry args={[node.size * 0.7, node.size * 0.7, node.size * 0.7, 32]} />
+              <meshStandardMaterial {...sharedMaterialProps} />
+            </mesh>
+            <mesh position={[0, node.size * 0.6, 0]}>
+              <cylinderGeometry args={[node.size * 0.25, node.size * 0.25, node.size * 1.2, 16]} />
+              <meshStandardMaterial color="#fcd34d" emissive="#fbbf24" emissiveIntensity={0.8} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+            </mesh>
+          </>
+        );
       case 'audit':
-        return <AnimatedBox ref={meshRef} args={[node.size * 1.2, node.size * 0.6, node.size * 0.6]} scale={scale} />;
+        return (
+          <>
+            <mesh rotation={[-Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[node.size * 0.9, node.size * 0.18, 24, 48]} />
+              <meshStandardMaterial {...sharedMaterialProps} metalness={0.5} roughness={0.2} />
+            </mesh>
+            <mesh position={[0, node.size * 0.4, 0]}>
+              <boxGeometry args={[node.size * 1.1, node.size * 0.05, node.size * 0.9]} />
+              <meshStandardMaterial {...sharedMaterialProps} />
+            </mesh>
+            <mesh position={[0, node.size * 0.2, 0]}>
+              <boxGeometry args={[node.size * 0.35, node.size * 0.5, node.size * 0.1]} />
+              <meshStandardMaterial color="#67e8f9" emissive="#22d3ee" emissiveIntensity={0.7} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+            </mesh>
+          </>
+        );
       case 'incident':
-        return <AnimatedSphere ref={meshRef} args={[node.size * 0.7, 8, 8]} scale={scale} />;
+        return (
+          <>
+            <mesh>
+              <sphereGeometry args={[node.size * 0.8, 32, 32]} />
+              <meshStandardMaterial {...sharedMaterialProps} metalness={0.15} roughness={0.35} />
+            </mesh>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[node.size * 1.05, node.size * 0.12, 24, 48]} />
+              <meshStandardMaterial color="#fb7185" emissive="#f43f5e" emissiveIntensity={0.8} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+            </mesh>
+            <mesh position={[0, node.size * 0.9, 0]}>
+              <coneGeometry args={[node.size * 0.35, node.size * 0.8, 12]} />
+              <meshStandardMaterial color="#f97316" emissive="#f97316" emissiveIntensity={0.9} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+            </mesh>
+          </>
+        );
       case 'supplier':
-        return <AnimatedBox ref={meshRef} args={[node.size * 0.9, node.size * 0.9, node.size * 1.1]} scale={scale} />;
+        return (
+          <>
+            <mesh position={[0, -node.size * 0.2, 0]}>
+              <cylinderGeometry args={[node.size * 0.7, node.size * 0.7, node.size * 0.6, 20]} />
+              <meshStandardMaterial {...sharedMaterialProps} />
+            </mesh>
+            <mesh position={[0, node.size * 0.4, 0]}>
+              <coneGeometry args={[node.size * 0.8, node.size * 1.1, 20]} />
+              <meshStandardMaterial {...sharedMaterialProps} />
+            </mesh>
+            {[...Array(6)].map((_, index) => {
+              const angle = (Math.PI * 2 * index) / 6;
+              return (
+                <mesh key={`supplier-node-${node.id}-${index}`} position={[Math.cos(angle) * node.size * 1.2, node.size * 0.2, Math.sin(angle) * node.size * 1.2]}>
+                  <sphereGeometry args={[node.size * 0.2, 16, 16]} />
+                  <meshStandardMaterial color="#4ade80" emissive="#22c55e" emissiveIntensity={0.6} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+                </mesh>
+              );
+            })}
+          </>
+        );
       default:
-        return <AnimatedBox ref={meshRef} args={[node.size, node.size, node.size]} scale={scale} />;
+        return (
+          <mesh>
+            <boxGeometry args={[node.size, node.size, node.size]} />
+            <meshStandardMaterial {...sharedMaterialProps} />
+          </mesh>
+        );
     }
   };
 
   return (
     <group position={node.position}>
-      {getGeometry()}
-      <mesh
+      <AnimatedGroup
+        ref={meshRef}
+        scale={scale as any}
         onClick={handleClick}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        <boxGeometry args={[node.size, node.size, node.size]} />
-        <meshStandardMaterial 
-          color={isSelected ? '#fde047' : hovered ? '#4ecdc4' : node.color}
-          emissive={isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : node.color}
-          emissiveIntensity={0.35 + glow.get() * 0.4}
-          metalness={0.35}
-          roughness={0.25}
-          opacity={isDimmed ? 0.4 : highlightCritical && !isCritical ? 0.7 : 0.95}
-          transparent
-          wireframe={Boolean(xRayMode)}
-        />
-      </mesh>
+        {renderCategoryModel()}
+      </AnimatedGroup>
 
       {(hovered || isSelected) && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -node.size / 2, 0]}>
-          <ringGeometry args={[node.size * 0.9, node.size * 1.4, 64]} />
+          <ringGeometry args={[node.size * 0.8, node.size * 1.6, 64]} />
           <meshBasicMaterial
             color={node.color}
             transparent
