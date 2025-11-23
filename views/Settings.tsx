@@ -4,7 +4,8 @@ import { useStore } from '../store';
 import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, RefreshCw, Key, Building, WifiOff, ArrowRight, FileSpreadsheet } from '../components/ui/Icons';
 import { collection, getDocs, query, orderBy, limit, where, addDoc, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, Timestamp, enableNetwork, disableNetwork } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage, auth } from '../firebase';
+import { db, storage, auth, functions } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
 import { signOut, updatePassword } from 'firebase/auth';
 import { SystemLog, UserProfile } from '../types';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -400,6 +401,26 @@ export const Settings: React.FC = () => {
         } catch (e) { addToast("Erreur lors de la vérification.", "error"); } finally { setMaintenanceLoading(false); }
     };
 
+    const handleMigration = async () => {
+        if (!user?.organizationId) return;
+        setMaintenanceLoading(true);
+        try {
+            const fixAllUsers = httpsCallable(functions, 'fixAllUsers');
+            const result = await fixAllUsers();
+            const data = result.data as any;
+            if (data.success) {
+                addToast(`Migration terminée: ${data.results.fixed} corrigés, ${data.results.alreadyOk} déjà OK.`, "success");
+            } else {
+                addToast("Erreur lors de la migration.", "error");
+            }
+        } catch (e: any) {
+            console.error(e);
+            addToast(`Erreur: ${e.message}`, "error");
+        } finally {
+            setMaintenanceLoading(false);
+        }
+    };
+
     const initiateLeaveOrg = () => {
         setConfirmData({
             isOpen: true,
@@ -570,6 +591,15 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">Vérifier l'Intégrité</h4>
                                 <p className="text-xs text-slate-500 mt-1">Réparer les liens cassés.</p>
+
+                            </div>
+                            <div className="p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group col-span-2 border-t border-gray-100 dark:border-white/5" onClick={handleMigration}>
+                                <div className="flex items-center justify-between mb-3">
+                                    <Users className="h-6 w-6 text-purple-500 group-hover:scale-110 transition-transform" />
+                                    {maintenanceLoading && <div className="animate-spin h-4 w-4 border-2 border-purple-500 border-t-transparent rounded-full"></div>}
+                                </div>
+                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Migration Utilisateurs</h4>
+                                <p className="text-xs text-slate-500 mt-1">Corriger les comptes sans organisation.</p>
                             </div>
                         </div>
 

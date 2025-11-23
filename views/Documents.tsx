@@ -216,16 +216,41 @@ export const Documents: React.FC = () => {
         }
     };
 
-    const initiateDelete = (id: string, title: string) => {
-        // We need to check permission. Since we are in inspector, selectedDocument should be set.
-        // If called from elsewhere, we might need to pass owner. For now, assuming selectedDocument matches.
+    const initiateDelete = async (id: string, title: string) => {
+        // Check permissions
         if (!canEditResource(user, 'Document', selectedDocument?.ownerId || selectedDocument?.owner)) return;
-        setConfirmData({
-            isOpen: true,
-            title: "Supprimer le document ?",
-            message: "Cette action est définitive.",
-            onConfirm: () => handleDelete(id, title)
-        });
+
+        // Check for dependencies (Data Integrity)
+        try {
+            // Check Controls (evidence)
+            const linkedControls = controls.filter(c => c.evidenceIds?.includes(id));
+
+            // Check Suppliers (contracts) - Need to query as not in local state
+            const suppliersQ = query(collection(db, 'suppliers'), where('organizationId', '==', user?.organizationId), where('contractDocumentId', '==', id));
+            const suppliersSnap = await getDocs(suppliersQ);
+
+            if (linkedControls.length > 0 || !suppliersSnap.empty) {
+                const controlNames = linkedControls.map(c => c.code).join(', ');
+                const supplierNames = suppliersSnap.docs.map(d => d.data().name).join(', ');
+
+                let msg = "Impossible de supprimer ce document car il est utilisé :";
+                if (linkedControls.length > 0) msg += `\n- Preuve pour ${linkedControls.length} contrôle(s) (${controlNames})`;
+                if (!suppliersSnap.empty) msg += `\n- Contrat pour ${suppliersSnap.size} fournisseur(s) (${supplierNames})`;
+
+                addToast(msg, "error");
+                return;
+            }
+
+            setConfirmData({
+                isOpen: true,
+                title: "Supprimer le document ?",
+                message: "Cette action est définitive.",
+                onConfirm: () => handleDelete(id, title)
+            });
+        } catch (e) {
+            console.error("Error checking dependencies:", e);
+            addToast("Erreur lors de la vérification des dépendances", "error");
+        }
     };
 
     const handleDelete = async (id: string, title: string) => {
