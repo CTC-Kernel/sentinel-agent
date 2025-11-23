@@ -81,10 +81,14 @@ export interface Document {
   signatures?: Array<{ userId: string, date: string, role: string }>;
   url?: string;
   owner: string;
+  ownerId?: string;
   readBy?: string[];
   nextReviewDate?: string;
   createdAt: string;
   updatedAt: string;
+  relatedControlIds?: string[];
+  relatedAssetIds?: string[];
+  relatedAuditIds?: string[];
 }
 
 export interface Audit {
@@ -96,6 +100,8 @@ export interface Audit {
   dateScheduled: string;
   status: 'Planifié' | 'En cours' | 'Terminé' | 'Validé';
   findingsCount: number;
+  relatedAssetIds?: string[];
+  relatedRiskIds?: string[];
 }
 
 export interface Finding {
@@ -147,6 +153,7 @@ export interface ProjectTask {
   title: string;
   status: 'A faire' | 'En cours' | 'Terminé';
   assignee?: string;
+  dueDate?: string;
 }
 
 export interface Project {
@@ -161,6 +168,7 @@ export interface Project {
   tasks: ProjectTask[];
   relatedRiskIds?: string[];
   relatedControlIds?: string[];
+  relatedAssetIds?: string[];
   createdAt: string;
 }
 
@@ -274,7 +282,7 @@ export interface UserProfile {
   role: 'admin' | 'auditor' | 'user' | 'rssi' | 'project_manager' | 'direction';
   displayName: string;
   department?: string;
-  photoURL?: string;
+  photoURL?: string | null;
   onboardingCompleted?: boolean;
   lastLogin?: string;
   theme?: 'light' | 'dark';

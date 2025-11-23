@@ -92,7 +92,8 @@ import {
   Info,
   Check,
   Sparkles,
-  BrainCircuit
+  BrainCircuit,
+  Calendar
 } from 'lucide-react';
 
 export {
@@ -187,5 +188,6 @@ export {
   RotateCw,
   ChevronLeft,
   Sparkles,
-  BrainCircuit
+  BrainCircuit,
+  Calendar
 };
