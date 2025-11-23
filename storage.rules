@@ -1,0 +1,49 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function belongsToOrganization(orgId) {
+      return isAuthenticated() && getUserData().organizationId == orgId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserData().role == 'admin';
+    }
+    
+    function isAuditor() {
+      return isAuthenticated() && getUserData().role == 'auditor';
+    }
+    
+    function canWrite() {
+      return isAuthenticated() && (isAdmin() || isAuditor());
+    }
+    
+    // Avatar uploads (user profile photos)
+    match /avatars/{userId}_{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+      allow delete: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+    
+    // Document uploads (organized by organization)
+    match /documents/{organizationId}/{fileName} {
+      allow read: if belongsToOrganization(organizationId);
+      allow write: if belongsToOrganization(organizationId) && canWrite();
+      allow delete: if belongsToOrganization(organizationId) && isAdmin();
+    }
+    
+    // Default deny all
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
