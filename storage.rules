@@ -7,43 +7,47 @@ service firebase.storage {
       return request.auth != null;
     }
     
-    function getUserData() {
-      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    function belongsToOrg(orgId) {
+      return isAuthenticated() && request.auth.token.organizationId == orgId;
     }
     
-    function belongsToOrganization(orgId) {
-      return isAuthenticated() && getUserData().organizationId == orgId;
+    function isValidFileSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
     }
     
-    function isAdmin() {
-      return isAuthenticated() && getUserData().role == 'admin';
+    function isValidFileType(allowedTypes) {
+      return request.resource.contentType in allowedTypes;
     }
     
-    function isAuditor() {
-      return isAuthenticated() && getUserData().role == 'auditor';
-    }
-    
-    function canWrite() {
-      return isAuthenticated() && (isAdmin() || isAuditor());
-    }
-    
-    // Avatar uploads (user profile photos)
-    match /avatars/{fileName} {
+    // Avatar uploads - user-specific
+    match /avatars/{allPaths=**} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && fileName.matches(request.auth.uid + '_.*');
-      allow delete: if isAuthenticated() && (fileName.matches(request.auth.uid + '_.*') || isAdmin());
+      allow write: if isAuthenticated() && isValidFileSize(5);
     }
     
-    // Document uploads (organized by organization)
-    match /documents/{organizationId}/{fileName} {
-      allow read: if belongsToOrganization(organizationId);
-      allow write: if belongsToOrganization(organizationId) && canWrite();
-      allow delete: if belongsToOrganization(organizationId) && isAdmin();
+    // Documents - organization-based
+    match /documents/{orgId}/{allPaths=**} {
+      allow read: if belongsToOrg(orgId);
+      allow write: if belongsToOrg(orgId) && isValidFileSize(10);
     }
     
-    // Default deny all
-    match /{allPaths=**} {
-      allow read, write: if false;
+    // Audit evidence - organization-based
+    match /evidence/{orgId}/{allPaths=**} {
+      allow read: if belongsToOrg(orgId);
+      allow write: if belongsToOrg(orgId) && isValidFileSize(20);
+    }
+    
+    // Incident attachments - organization-based
+    match /incidents/{orgId}/{allPaths=**} {
+      allow read: if belongsToOrg(orgId);
+      allow write: if belongsToOrg(orgId) && isValidFileSize(15);
+    }
+    
+    // Exports - organization-based, read-only after creation
+    match /exports/{orgId}/{allPaths=**} {
+      allow read: if belongsToOrg(orgId);
+      allow create: if belongsToOrg(orgId) && isValidFileSize(50);
+      allow update, delete: if false;
     }
   }
 }
