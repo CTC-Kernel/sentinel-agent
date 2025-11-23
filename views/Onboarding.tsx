@@ -4,6 +4,8 @@ import { useStore } from '../store';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ArrowRight, ShieldAlert, User, Building, Briefcase, Lock, AlertTriangle } from '../components/ui/Icons';
+import { sendEmail } from '../services/emailService';
+import { getWelcomeEmailTemplate } from '../services/emailTemplates';
 
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast } = useStore();
@@ -42,6 +44,25 @@ export const Onboarding: React.FC = () => {
             // Use setDoc with merge instead of updateDoc to handle permissions better
             await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
             setUser({ ...user, ...updates });
+
+            // Send welcome email
+            try {
+                const htmlContent = getWelcomeEmailTemplate(
+                    displayName || user.email,
+                    updates.organizationName,
+                    role,
+                    `${window.location.origin}/dashboard`
+                );
+                await sendEmail(user, {
+                    to: user.email,
+                    subject: '🎉 Bienvenue sur Sentinel GRC',
+                    html: htmlContent,
+                    type: 'WELCOME_EMAIL'
+                }, false);
+            } catch (emailError) {
+                console.error('Error sending welcome email:', emailError);
+            }
+
             addToast("Configuration terminée avec succès !", "success");
         } catch (error: any) {
             console.error("Error completing onboarding", error);
