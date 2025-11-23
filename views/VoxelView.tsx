@@ -5,7 +5,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { Asset, Risk, Project, Audit, Incident, Supplier } from '../types';
 import { useStore } from '../store';
 import { Skeleton } from '../components/ui/Skeleton';
-import { ChevronLeft, Settings, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, Bell } from '../components/ui/Icons';
+import { ChevronLeft, Settings, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, Bell, XCircle } from '../components/ui/Icons';
 import { useNavigate } from 'react-router-dom';
 
 type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier';
@@ -22,10 +22,21 @@ export const VoxelView: React.FC = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [selectedNode, setSelectedNode] = useState<{ id: string; type: LayerType; data: any } | null>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const [releaseToken, setReleaseToken] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [navCollapsed, setNavCollapsed] = useState(false);
   const [heatmapEnabled, setHeatmapEnabled] = useState(true);
   const [xRayEnabled, setXRayEnabled] = useState(false);
   const [autoRotateEnabled, setAutoRotateEnabled] = useState(true);
+  const detailRoutes: Record<LayerType, string> = {
+    asset: '/assets',
+    risk: '/risks',
+    project: '/projects',
+    audit: '/audits',
+    incident: '/incidents',
+    supplier: '/suppliers'
+  };
+
   const layerOptions: { id: LayerType; label: string; hint: string; color: string }[] = [
     { id: 'asset', label: 'Actifs', hint: 'Socle infrastructure', color: 'bg-blue-500' },
     { id: 'risk', label: 'Risques', hint: 'Menaces ISO 27005', color: 'bg-orange-500' },
@@ -37,7 +48,7 @@ export const VoxelView: React.FC = () => {
   const [activeLayers, setActiveLayers] = useState<LayerType[]>(layerOptions.map(layer => layer.id));
   const silhouetteMap: Record<LayerType, JSX.Element> = {
     asset: (
-      <svg viewBox="0 0 64 64" className="w-12 h-12 text-blue-500 fill-current">
+      <svg viewBox="0 0 64 64" className="w-full h-full text-blue-500 fill-current">
         <rect x="10" y="28" width="16" height="26" rx="2" className="opacity-80" />
         <rect x="28" y="18" width="18" height="36" rx="2" className="opacity-90" />
         <rect x="48" y="34" width="8" height="20" rx="2" className="opacity-70" />
@@ -46,13 +57,13 @@ export const VoxelView: React.FC = () => {
       </svg>
     ),
     risk: (
-      <svg viewBox="0 0 64 64" className="w-12 h-12 text-orange-500 fill-current">
+      <svg viewBox="0 0 64 64" className="w-full h-full text-orange-500 fill-current">
         <path d="M32 6 L50 16 V34 C50 44 42 53 32 56 C22 53 14 44 14 34 V16 Z" className="opacity-80" />
         <path d="M32 17 L42 23 V33 C42 40 37 46 32 48 C27 46 22 40 22 33 V23 Z" className="text-white fill-current opacity-70" />
       </svg>
     ),
     project: (
-      <svg viewBox="0 0 64 64" className="w-12 h-12 text-purple-500 fill-current">
+      <svg viewBox="0 0 64 64" className="w-full h-full text-purple-500 fill-current">
         <rect x="10" y="40" width="44" height="10" rx="4" className="opacity-60" />
         <rect x="14" y="28" width="36" height="10" rx="4" className="opacity-75" />
         <rect x="20" y="16" width="24" height="10" rx="4" className="opacity-100" />
@@ -60,7 +71,7 @@ export const VoxelView: React.FC = () => {
       </svg>
     ),
     audit: (
-      <svg viewBox="0 0 64 64" className="w-12 h-12 text-cyan-500 fill-current">
+      <svg viewBox="0 0 64 64" className="w-full h-full text-cyan-500 fill-current">
         <rect x="16" y="10" width="32" height="44" rx="4" className="opacity-80" />
         <rect x="22" y="16" width="20" height="4" className="text-white fill-current" />
         <rect x="22" y="24" width="20" height="4" className="text-white/80 fill-current" />
@@ -70,13 +81,13 @@ export const VoxelView: React.FC = () => {
       </svg>
     ),
     incident: (
-      <svg viewBox="0 0 64 64" className="w-12 h-12 text-rose-500 fill-current">
+      <svg viewBox="0 0 64 64" className="w-full h-full text-rose-500 fill-current">
         <path d="M32 8 C32 16 20 18 24 30 C20 28 16 32 16 38 C16 48 24 56 32 56 C40 56 48 48 48 38 C48 28 40 20 36 18 C38 26 32 28 32 20" className="opacity-90" />
         <path d="M32 28 C26 34 26 44 32 48 C38 44 38 34 32 28" className="text-white fill-current opacity-80" />
       </svg>
     ),
     supplier: (
-      <svg viewBox="0 0 64 64" className="w-12 h-12 text-green-500 fill-current">
+      <svg viewBox="0 0 64 64" className="w-full h-full text-green-500 fill-current">
         <circle cx="32" cy="20" r="6" className="opacity-85" />
         <circle cx="16" cy="42" r="5" className="opacity-75" />
         <circle cx="48" cy="42" r="5" className="opacity-75" />
@@ -209,6 +220,125 @@ export const VoxelView: React.FC = () => {
     }));
   }, [layerOptions, assets, risks, projects, audits, incidents, suppliers]);
 
+  const selectedNodeDetails = useMemo(() => {
+    if (!selectedNode) return null;
+    const base = {
+      title: selectedNode.data.name || selectedNode.data.title || selectedNode.data.threat || 'Élément',
+      type: selectedNode.type,
+      owner: (selectedNode.data as any).owner || (selectedNode.data as any).responsable || '',
+    };
+
+    switch (selectedNode.type) {
+      case 'asset':
+        return {
+          ...base,
+          badge: 'Actif stratégique',
+          gradient: 'from-blue-500/80 via-indigo-500/80 to-violet-500/80',
+          stats: [
+            { label: 'Confidentialité', value: (selectedNode.data as Asset).confidentiality },
+            { label: 'Intégrité', value: (selectedNode.data as Asset).integrity },
+            { label: 'Disponibilité', value: (selectedNode.data as Asset).availability },
+          ],
+          meta: [
+            { label: 'Type', value: (selectedNode.data as Asset).type },
+            { label: 'Localisation', value: (selectedNode.data as Asset).location },
+          ],
+        };
+      case 'risk':
+        return {
+          ...base,
+          badge: 'Risque ISO 27005',
+          gradient: 'from-orange-500/90 via-red-500/80 to-pink-500/70',
+          stats: [
+            { label: 'Score', value: String((selectedNode.data as Risk).score) },
+            { label: 'Probabilité', value: String((selectedNode.data as Risk).probability) },
+            { label: 'Impact', value: String((selectedNode.data as Risk).impact) },
+          ],
+          meta: [
+            { label: 'Stratégie', value: (selectedNode.data as Risk).strategy },
+            { label: 'Statut', value: (selectedNode.data as Risk).status },
+          ],
+        };
+      case 'project':
+        return {
+          ...base,
+          badge: 'Programme SSI',
+          gradient: 'from-purple-500/90 via-fuchsia-500/80 to-pink-500/70',
+          stats: [
+            { label: 'Progression', value: `${(selectedNode.data as Project).progress ?? 0}%` },
+            { label: 'Responsable', value: (selectedNode.data as any).owner || '—' },
+            { label: 'Statut', value: (selectedNode.data as any).status || '—' },
+          ],
+          meta: [
+            { label: 'Jalons', value: String((selectedNode.data as any).milestones?.length || 0) },
+            { label: 'Risques liés', value: String(((selectedNode.data as Project).relatedRiskIds || []).length) },
+          ],
+        };
+      case 'audit':
+        return {
+          ...base,
+          badge: 'Audit & conformité',
+          gradient: 'from-cyan-500/90 via-sky-500/80 to-blue-500/70',
+          stats: [
+            { label: 'Type', value: (selectedNode.data as Audit).type },
+            { label: 'Date', value: (selectedNode.data as Audit).dateScheduled },
+            { label: 'Statut', value: (selectedNode.data as Audit).status },
+          ],
+          meta: [
+            { label: 'Auditeur', value: (selectedNode.data as Audit).auditor },
+            { label: 'Constats', value: String((selectedNode.data as Audit).findingsCount) },
+          ],
+        };
+      case 'incident':
+        return {
+          ...base,
+          badge: 'Incident SOC',
+          gradient: 'from-rose-500/90 via-orange-500/80 to-amber-500/70',
+          stats: [
+            { label: 'Sévérité', value: (selectedNode.data as Incident).severity },
+            { label: 'Impact', value: (selectedNode.data as any).impact || '—' },
+            { label: 'État', value: (selectedNode.data as any).status || '—' },
+          ],
+          meta: [
+            { label: 'Détection', value: (selectedNode.data as any).detectedAt || '—' },
+            { label: 'Réponse', value: (selectedNode.data as any).responseOwner || 'Non assigné' },
+          ],
+        };
+      case 'supplier':
+        return {
+          ...base,
+          badge: 'Fournisseur critique',
+          gradient: 'from-emerald-500/90 via-lime-500/80 to-yellow-500/70',
+          stats: [
+            { label: 'Criticité', value: (selectedNode.data as Supplier).criticality },
+            { label: 'Services', value: (selectedNode.data as any).serviceCatalog?.length ? `${(selectedNode.data as any).serviceCatalog.length} services` : '—' },
+            { label: 'SLA', value: (selectedNode.data as any).sla || 'Non défini' },
+          ],
+          meta: [
+            { label: 'Contact', value: (selectedNode.data as any).contactName || '—' },
+            { label: 'Statut', value: (selectedNode.data as any).status || '—' },
+          ],
+        };
+      default:
+        return null;
+    }
+  }, [selectedNode]);
+
+  const handleSelectionClear = () => {
+    setSelectedNode(null);
+    setFocusedNodeId(null);
+    setReleaseToken(Date.now());
+  };
+
+  const handleOpenSelected = () => {
+    if (!selectedNode) return;
+    const route = detailRoutes[selectedNode.type];
+    if (route) {
+      addToast(`Navigation vers ${selectedNodeDetails?.title}`, 'info');
+      navigate(route);
+    }
+  };
+
   const relatedElements = useMemo<{ id: string; type: LayerType; label: string; meta?: string }[]>(() => {
     if (!selectedNode) return [];
     const items: { id: string; type: LayerType; label: string; meta?: string }[] = [];
@@ -244,6 +374,14 @@ export const VoxelView: React.FC = () => {
       return [...prev, layer];
     });
   };
+
+  useEffect(() => {
+    if (loading) return;
+    if (selectedNode) return;
+    if (!orderedNodes.length) return;
+    const first = orderedNodes[0];
+    applyFocus(first.id, first.type as LayerType);
+  }, [loading, orderedNodes, selectedNode]);
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -417,31 +555,6 @@ export const VoxelView: React.FC = () => {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => focusByOffset(-1)}
-              disabled={!orderedNodes.length}
-              className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40"
-              title="Élément précédent"
-            >
-              ‹
-            </button>
-            <button
-              onClick={() => focusByOffset(1)}
-              disabled={!orderedNodes.length}
-              className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40"
-              title="Élément suivant"
-            >
-              ›
-            </button>
-
-            <button
-              onClick={handleFullscreenToggle}
-              className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
-              title={isFullscreen ? 'Quitter le plein écran' : 'Passer en plein écran'}
-            >
-              <Maximize2 className={`h-4 w-4 text-slate-600 dark:text-slate-300 ${isFullscreen ? 'rotate-45 transition-transform' : ''}`} />
-            </button>
-
-            <button
               onClick={handleRefresh}
               className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
               title="Actualiser les données"
@@ -488,7 +601,7 @@ export const VoxelView: React.FC = () => {
         className={`${
           isFullscreen
             ? 'fixed inset-0 z-50 bg-slate-900'
-            : 'relative flex-1 min-h-[420px] max-h-[660px] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto w-full'
+            : 'relative flex-1 min-h-[500px] max-h-[760px] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto w-full'
         }`}
       >
         {isFullscreen && (
@@ -537,41 +650,74 @@ export const VoxelView: React.FC = () => {
                 </button>
               ))}
             </div>
-            <aside className="absolute inset-y-0 right-0 w-72 bg-slate-950/95 border-l border-white/10 backdrop-blur-xl z-30 p-4 overflow-y-auto space-y-4">
-              <div className="flex items-center justify-between text-white">
-                <p className="text-sm font-semibold">Navigation rapide</p>
-                <span className="text-xs text-white/50">{orderedNodes.length} éléments</span>
-              </div>
-              {categorizedNodes.map(category => (
-                <div key={category.id}>
-                  <div className="flex items-center justify-between text-xs uppercase tracking-wide text-white/60 mb-2">
-                    <span className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${category.color}`}></span>
-                      {category.label}
-                    </span>
-                    <span>{category.items.length}</span>
-                  </div>
-                  <div className="space-y-1">
-                    {category.items.map(item => (
-                      <button
-                        key={item.id}
-                        onClick={() => applyFocus(item.id, category.id)}
-                        className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition flex items-center gap-3 ${
-                          focusedNodeId === item.id
-                            ? 'border-white/40 bg-white/10 text-white'
-                            : 'border-white/10 text-white/70 hover:border-white/30 hover:bg-white/5'
-                        }`}
-                      >
-                        <span className="shrink-0 w-6 h-6">{silhouetteMap[category.id]}</span>
-                        <div className="flex flex-col">
-                          <span className="font-medium line-clamp-1">{item.label}</span>
-                          {item.meta && <span className="text-xs text-white/60">{item.meta}</span>}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+            <aside className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-20' : 'w-72'} bg-slate-950/95 border-l border-white/10 backdrop-blur-xl z-30 p-4 overflow-hidden transition-all duration-300`}
+            >
+              <div className="flex items-center justify-between text-white mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">Navigation</span>
+                  <span className="text-xs text-white/50">{orderedNodes.length}</span>
                 </div>
-              ))}
+                <button
+                  onClick={() => setNavCollapsed(prev => !prev)}
+                  className="text-xs uppercase tracking-wide px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20"
+                >
+                  {navCollapsed ? 'Ouvrir' : 'Réduire'}
+                </button>
+              </div>
+              {!navCollapsed && (
+                <div className="space-y-4 overflow-y-auto h-[calc(100%-2rem)] pr-1">
+                  {categorizedNodes.map(category => (
+                    <div key={category.id}>
+                      <div className="flex items-center justify-between text-xs uppercase tracking-wide text-white/60 mb-2">
+                        <span className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${category.color}`}></span>
+                          {category.label}
+                        </span>
+                        <span>{category.items.length}</span>
+                      </div>
+                      <div className="space-y-1">
+                        {category.items.map(item => (
+                          <button
+                            key={item.id}
+                            onClick={() => applyFocus(item.id, category.id)}
+                            className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition flex items-center gap-3 ${
+                              focusedNodeId === item.id
+                                ? 'border-white/40 bg-white/10 text-white'
+                                : 'border-white/10 text-white/70 hover:border-white/30 hover:bg-white/5'
+                            }`}
+                          >
+                            <span className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-white/5">
+                              <span className="inline-block h-6 w-6 text-inherit">
+                                {silhouetteMap[category.id]}
+                              </span>
+                            </span>
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <span className="font-medium line-clamp-1">{item.label}</span>
+                              {item.meta && <span className="text-xs text-white/60">{item.meta}</span>}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {navCollapsed && (
+                <div className="flex flex-col items-center gap-3 text-white/70 text-xs">
+                  {layerOptions.map(option => (
+                    <button
+                      key={option.id}
+                      onClick={() => applyFocus((categorizedNodes.find(cat => cat.id === option.id)?.items[0]?.id) || '', option.id)}
+                      className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/10 hover:bg-white/20"
+                      title={option.label}
+                    >
+                      <span className="h-7 w-7">
+                        {silhouetteMap[option.id]}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </aside>
           </>
         )}
@@ -595,7 +741,117 @@ export const VoxelView: React.FC = () => {
             projects: projects.length,
             incidents: incidents.length,
           }}
+          releaseToken={releaseToken}
         />
+
+        <div className="absolute bottom-4 right-4 z-20 pointer-events-none">
+          <button
+            onClick={handleFullscreenToggle}
+            className="pointer-events-auto inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900/80 text-white border border-white/15 backdrop-blur-md shadow-[0_15px_35px_rgba(2,6,23,0.55)] hover:bg-slate-900"
+            title={isFullscreen ? 'Quitter le plein écran' : 'Passer en plein écran'}
+          >
+            <Maximize2 className={`h-4 w-4 ${isFullscreen ? 'rotate-45 transition-transform' : ''}`} />
+            <span className="text-sm font-semibold">{isFullscreen ? 'Quitter' : 'Plein écran'}</span>
+          </button>
+        </div>
+
+        {selectedNodeDetails && (
+          <div className="absolute left-4 bottom-4 z-40 max-w-sm pointer-events-none">
+            <div className={`pointer-events-auto rounded-3xl border border-white/20 bg-gradient-to-br ${selectedNodeDetails.gradient} shadow-[0_20px_70px_rgba(2,6,23,0.65)] backdrop-blur-xl text-white p-5 space-y-4 animate-[fadeIn_0.35s_ease-out]`}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <span className="text-[10px] tracking-[0.4em] uppercase text-white/70 block mb-2">{selectedNodeDetails.badge}</span>
+                  <h3 className="text-2xl font-semibold leading-tight">{selectedNodeDetails.title}</h3>
+                  {selectedNodeDetails.owner && (
+                    <p className="text-xs text-white/80 mt-1">Pilote : {selectedNodeDetails.owner}</p>
+                  )}
+                </div>
+                <button
+                  onClick={handleSelectionClear}
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+                >
+                  <XCircle className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {selectedNodeDetails.stats.map(item => (
+                  <div key={item.label} className="rounded-2xl bg-white/10 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-wide text-white/70">{item.label}</p>
+                    <p className="text-sm font-semibold">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-2">
+                {selectedNodeDetails.meta.map(meta => (
+                  <div key={meta.label} className="flex items-center justify-between text-xs">
+                    <span className="text-white/70">{meta.label}</span>
+                    <span className="font-semibold">{meta.value || '—'}</span>
+                  </div>
+                ))}
+              </div>
+
+              {relatedElements.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-white/60">Éléments liés</p>
+                  <div className="flex flex-wrap gap-2">
+                    {relatedElements.map(related => (
+                      <button
+                        key={related.id}
+                        onClick={() => applyFocus(related.id, related.type)}
+                        className="text-xs px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 transition border border-white/20"
+                      >
+                        <span className="font-semibold mr-1">{related.label}</span>
+                        {related.meta && <span className="text-white/60">({related.meta})</span>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400/40 via-fuchsia-500/30 to-blue-500/30 px-3 py-2 border border-white/40 shadow-[0_10px_30px_rgba(147,51,234,0.35)]">
+                  <button
+                    onClick={() => focusByOffset(-1)}
+                    disabled={!orderedNodes.length}
+                    className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-amber-100 disabled:opacity-30 disabled:cursor-not-allowed backdrop-blur"
+                    title="Élément précédent"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    onClick={() => focusByOffset(1)}
+                    disabled={!orderedNodes.length}
+                    className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-amber-100 disabled:opacity-30 disabled:cursor-not-allowed backdrop-blur"
+                    title="Élément suivant"
+                  >
+                    ›
+                  </button>
+                  <button
+                    onClick={handleFullscreenToggle}
+                    className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-cyan-100 backdrop-blur"
+                    title={isFullscreen ? 'Quitter le plein écran' : 'Passer en plein écran'}
+                  >
+                    <Maximize2 className={`h-4 w-4 ${isFullscreen ? 'rotate-45 transition-transform text-cyan-200' : 'text-cyan-100'}`} />
+                  </button>
+                </div>
+                <button
+                  onClick={handleOpenSelected}
+                  className="flex-1 px-4 py-2 rounded-2xl bg-white text-slate-900 font-semibold text-sm hover:bg-slate-100 transition"
+                >
+                  Ouvrir la fiche
+                </button>
+                <button
+                  onClick={handleSelectionClear}
+                  className="px-4 py-2 rounded-2xl border border-white/40 text-sm font-semibold hover:bg-white/10 transition"
+                >
+                  Relâcher
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Loading overlay for refresh */}
         {loading && (

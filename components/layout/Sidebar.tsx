@@ -41,13 +41,13 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       )}
 
       <aside className={`
-        fixed lg:sticky inset-y-0 left-0 lg:top-0 z-40 w-[82vw] max-w-[320px] lg:w-[260px]
+        fixed inset-y-0 left-0 lg:inset-y-auto lg:sticky lg:top-0 z-40 w-[82vw] max-w-[320px] lg:w-[260px]
         bg-gradient-to-b from-white/95 via-white/92 to-white/90 dark:from-slate-900/95 dark:via-slate-900/93 dark:to-slate-900/92
         backdrop-blur-2xl border-r border-slate-200/60 dark:border-slate-800/70
         shadow-[0_20px_60px_rgba(15,23,42,0.15)] lg:shadow-none
         transform transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1)
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        flex flex-col pb-8 pt-4 lg:pb-6
+        flex flex-col pb-8 pt-4 lg:pb-6 min-h-0 lg:h-screen
       `}>
         {/* Brand Logo */}
         <div className="h-16 flex items-center px-6 mb-4 border-b border-slate-200/60 dark:border-white/5">
@@ -63,7 +63,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar px-4">
+        <nav className="flex-1 min-h-0 space-y-2 overflow-y-auto custom-scrollbar px-4">
           <div className="px-1 mb-2">
             <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em]">Espace de travail</p>
           </div>
