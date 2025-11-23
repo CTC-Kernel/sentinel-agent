@@ -3,7 +3,6 @@ import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/
 import { OrbitControls, Text, Line, Points, PointMaterial, Float } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, MeshStandardMaterial, DoubleSide } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
-import { animated, useSpring } from '@react-spring/three';
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink } from '../types';
 
 interface VoxelNode {
@@ -243,8 +242,11 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
   xRayMode
 }) => {
   const modelLibrary = useModelLibrary();
-  const meshRef = useRef<any>(null);
+  const meshRef = useRef<Group>(null);
   const [hovered, setHovered] = useState(false);
+  const [currentScale, setCurrentScale] = useState(1);
+  const [currentGlow, setCurrentGlow] = useState(0);
+
   const isCritical = useMemo(() => {
     if (node.type === 'risk') {
       return (node.data as Risk).score >= 15;
@@ -263,20 +265,29 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
 
   const labelVisible = hovered || isSelected;
 
-  const { scale, glow } = useSpring({
-    scale: selectionScale * criticalBoost,
-    glow: (isSelected ? 1 : hovered ? 0.6 : 0) + (highlightCritical && isCritical ? 0.4 : 0),
-    config: { mass: 1, tension: 200, friction: 18 }
-  });
-
   useFrame((state) => {
     if (meshRef.current) {
       meshRef.current.rotation.y += 0.005;
     }
   });
 
-  const handleClick = (event: ThreeEvent<MouseEvent>) => {
-    event.stopPropagation();
+  // Animate scale and glow using useFrame
+  const targetScale = isSelected ? 1.3 : hovered ? 1.15 : 1;
+  const targetGlow = (isCritical && highlightCritical) ? 0.8 : 0;
+
+  useFrame(() => {
+    if (meshRef.current) {
+      // Smooth interpolation for scale
+      setCurrentScale(prev => prev + (targetScale - prev) * 0.1);
+      meshRef.current.scale.setScalar(currentScale);
+
+      // Smooth interpolation for glow
+      setCurrentGlow(prev => prev + (targetGlow - prev) * 0.1);
+    }
+  });
+
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
     onClick(node);
   };
 
@@ -289,7 +300,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
   }
   const baseOpacity = isDimmed ? 0.4 : highlightCritical && !isCritical ? 0.7 : 0.95;
   const opacity = usesLibraryModel ? Math.max(baseOpacity, 0.85) : baseOpacity;
-  const emissiveIntensity = 0.35 + glow.get() * 0.4;
+  const emissiveIntensity = 0.35 + currentGlow * 0.4;
 
   const sharedMaterialProps = {
     color: baseColor,
@@ -494,15 +505,14 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
 
   return (
     <group position={node.position}>
-      <animated.group
+      <group
         ref={meshRef}
-        scale={scale}
         onClick={handleClick}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
         {renderCategoryModel()}
-      </animated.group>
+      </group>
 
       {(hovered || isSelected) && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -node.size / 2, 0]}>
