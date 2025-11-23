@@ -1,11 +1,10 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../firebase';
+import { db } from '../firebase';
 import { Document, UserProfile, SystemLog, Control, Asset, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, UploadCloud, Edit, Users, Bell, FileText, X, History, MessageSquare, Save, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, AlertTriangle, CalendarDays } from '../components/ui/Icons';
+import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Save, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, AlertTriangle, CalendarDays } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { sendEmail } from '../services/emailService';
@@ -15,6 +14,8 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Comments } from '../components/ui/Comments';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
+import { FileUploader } from '../components/ui/FileUploader';
+import { FilePreview } from '../components/ui/FilePreview';
 
 export const Documents: React.FC = () => {
     const [documents, setDocuments] = useState<Document[]>([]);
@@ -40,9 +41,8 @@ export const Documents: React.FC = () => {
         owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
         relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
     });
-    const [fileToUpload, setFileToUpload] = useState<File | null>(null);
-    const [uploading, setUploading] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploadedFileUrl, setUploadedFileUrl] = useState<string>('');
+    const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null);
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -124,16 +124,9 @@ export const Documents: React.FC = () => {
         } catch (e) { console.error(e); }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setFileToUpload(e.target.files[0]);
-        }
-    };
-
-    const uploadFile = async (file: File, docId?: string): Promise<string> => {
-        const storageRef = ref(storage, `documents/${user?.organizationId}/${Date.now()}_${file.name}`);
-        await uploadBytes(storageRef, file);
-        return await getDownloadURL(storageRef);
+    const handleFileUploadComplete = (url: string, fileName: string) => {
+        setUploadedFileUrl(url);
+        addToast(`Fichier ${fileName} téléversé avec succès`, 'success');
     };
 
     const handleWorkflowAction = async (action: 'submit' | 'approve' | 'reject' | 'sign') => {
@@ -177,16 +170,10 @@ export const Documents: React.FC = () => {
         e.preventDefault();
         if (!user?.organizationId) return;
 
-        setUploading(true);
         try {
-            let url = '';
-            if (fileToUpload) {
-                url = await uploadFile(fileToUpload);
-            }
-
             await addDoc(collection(db, 'documents'), {
                 ...newDocData,
-                url,
+                url: uploadedFileUrl || '',
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -195,18 +182,21 @@ export const Documents: React.FC = () => {
             await logAction(user, 'CREATE', 'Document', `Nouveau document: ${newDocData.title}`);
             addToast("Document ajouté", "success");
             setShowCreateModal(false);
-            setFileToUpload(null);
+            setUploadedFileUrl('');
+            setNewDocData({
+                title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
+                owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
+                relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+            });
             fetchData();
         } catch (e) {
-            addToast("Erreur création document", "error");
-        } finally {
-            setUploading(false);
+            console.error(e);
+            addToast("Erreur lors de la création", "error");
         }
     };
 
     const handleUpdate = async () => {
         if (!canEditResource(user, 'Document', selectedDocument?.ownerId || selectedDocument?.owner) || !selectedDocument) return;
-        setUploading(true);
         try {
             const { id, ...data } = editForm as any;
 
@@ -223,8 +213,6 @@ export const Documents: React.FC = () => {
             addToast("Document mis à jour", "success");
         } catch (e) {
             addToast("Erreur mise à jour", "error");
-        } finally {
-            setUploading(false);
         }
     };
 
@@ -728,24 +716,51 @@ export const Documents: React.FC = () => {
 
                             <div className="pt-2">
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Fichier</label>
-                                <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                    <div className="w-full h-24 border-2 border-dashed border-gray-300 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                                        <UploadCloud className="h-8 w-8 text-slate-400 mb-2 group-hover:scale-110 transition-transform" />
-                                        <p className="text-xs text-slate-500">{fileToUpload ? fileToUpload.name : "Glisser ou cliquer pour uploader"}</p>
+                                <FileUploader
+                                    onUploadComplete={handleFileUploadComplete}
+                                    category="documents"
+                                    maxSizeMB={10}
+                                    allowedTypes={['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/*']}
+                                />
+                                {uploadedFileUrl && (
+                                    <div className="mt-2 flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                        <span className="text-sm text-green-600 dark:text-green-400">✓ Fichier téléversé</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setPreviewFile({ url: uploadedFileUrl, name: newDocData.title || 'Document', type: 'application/pdf' })}
+                                            className="text-sm text-blue-600 hover:underline"
+                                        >
+                                            Prévisualiser
+                                        </button>
                                     </div>
-                                    <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
-                                </div>
+                                )}
                             </div>
 
                             <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                                <button type="submit" disabled={uploading} className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg shadow-blue-500/20 flex items-center">
-                                    {uploading ? 'Upload...' : 'Créer'}
+                                <button type="button" onClick={() => { setShowCreateModal(false); setUploadedFileUrl(''); }} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                                <button type="submit" className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg shadow-blue-500/20 flex items-center">
+                                    Créer
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
+            )}
+
+            {/* File Preview Modal */}
+            {previewFile && (
+                <FilePreview
+                    url={previewFile.url}
+                    fileName={previewFile.name}
+                    fileType={previewFile.type}
+                    onClose={() => setPreviewFile(null)}
+                    onDownload={() => {
+                        const link = document.createElement('a');
+                        link.href = previewFile.url;
+                        link.download = previewFile.name;
+                        link.click();
+                    }}
+                />
             )}
         </div>
     );
