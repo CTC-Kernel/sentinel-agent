@@ -2,8 +2,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, writeBatch, where, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile } from '../types';
-import { Plus, Search, Server, Trash2, Upload, AlertTriangle, History, X, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Activity, Clock, Copy, Euro, TrendingDown } from '../components/ui/Icons';
+import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit } from '../types';
+import { canEditResource } from '../utils/permissions';
+import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
+import { Plus, Search, Server, Trash2, Upload, AlertTriangle, History, X, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Activity, Clock, Copy, Euro, TrendingDown, FolderKanban, CheckSquare } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { aiService } from '../services/aiService';
@@ -25,13 +27,17 @@ export const Assets: React.FC = () => {
     const { user, addToast } = useStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const canEdit = user?.role === 'admin';
+    const canEdit = canEditResource(user, 'Asset');
 
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'history' | 'comments'>('details');
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'projects' | 'audits' | 'history' | 'comments'>('details');
     const [assetHistory, setAssetHistory] = useState<SystemLog[]>([]);
     const [linkedRisks, setLinkedRisks] = useState<Risk[]>([]);
     const [linkedIncidents, setLinkedIncidents] = useState<Incident[]>([]);
+    const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
+    const [linkedAudits, setLinkedAudits] = useState<Audit[]>([]);
+    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+    const [activeFilters, setActiveFilters] = useState<SearchFilters>({ query: '', type: 'all' });
     const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
     const [newMaintenance, setNewMaintenance] = useState<Partial<MaintenanceRecord>>({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
     const [stats, setStats] = useState({ total: 0, critical: 0, maintenanceDue: 0, totalValue: 0 });
@@ -155,6 +161,12 @@ export const Assets: React.FC = () => {
 
             const incQ = query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId), where('affectedAssetId', '==', asset.id));
             getDocs(incQ).then(snap => { setLinkedIncidents(snap.docs.map(d => ({ id: d.id, ...d.data() } as Incident))); });
+
+            const projQ = query(collection(db, 'projects'), where('organizationId', '==', user?.organizationId), where('relatedAssetIds', 'array-contains', asset.id));
+            getDocs(projQ).then(snap => { setLinkedProjects(snap.docs.map(d => ({ id: d.id, ...d.data() } as Project))); });
+
+            const auditQ = query(collection(db, 'audits'), where('organizationId', '==', user?.organizationId), where('relatedAssetIds', 'array-contains', asset.id));
+            getDocs(auditQ).then(snap => { setLinkedAudits(snap.docs.map(d => ({ id: d.id, ...d.data() } as Audit))); });
 
             return () => unsubMaint();
         }
@@ -325,7 +337,18 @@ export const Assets: React.FC = () => {
         }
     };
 
-    const filteredAssets = assets.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
+    const filteredAssets = assets.filter(a => {
+        const matchesQuery = (a.name.toLowerCase().includes(activeFilters.query.toLowerCase()) ||
+            a.type.toLowerCase().includes(activeFilters.query.toLowerCase()) ||
+            a.owner.toLowerCase().includes(activeFilters.query.toLowerCase()));
+
+        const matchesType = activeFilters.type === 'all' || activeFilters.type === 'asset';
+        const matchesStatus = !activeFilters.status || a.lifecycleStatus?.toLowerCase().includes(activeFilters.status?.toLowerCase() || '');
+        const matchesOwner = !activeFilters.owner || a.owner.toLowerCase().includes(activeFilters.owner.toLowerCase());
+        const matchesCriticality = !activeFilters.criticality || a.confidentiality === activeFilters.criticality || a.integrity === activeFilters.criticality || a.availability === activeFilters.criticality;
+
+        return matchesQuery && matchesType && matchesStatus && matchesOwner && matchesCriticality;
+    });
     const { currentPage, paginatedItems, setCurrentPage, setItemsPerPage, totalItems, itemsPerPage } = usePagination(filteredAssets, 20);
 
     const handleAddMaintenance = async () => {
@@ -461,9 +484,28 @@ export const Assets: React.FC = () => {
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Maintenance &lt; 30j</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.maintenanceDue}</p></div><div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><Wrench className="h-6 w-6" /></div></div>
             </div>
 
+            {showAdvancedSearch && (
+                <AdvancedSearch
+                    onSearch={(filters) => { setActiveFilters(filters); setShowAdvancedSearch(false); }}
+                    onClose={() => setShowAdvancedSearch(false)}
+                />
+            )}
+
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5">
                 <Search className="h-5 w-5 text-slate-400" />
-                <input type="text" placeholder="Rechercher un actif..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-white py-2.5 font-medium placeholder-slate-400" value={filter} onChange={e => setFilter(e.target.value)} />
+                <input
+                    type="text"
+                    placeholder="Rechercher un actif..."
+                    className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-white py-2.5 font-medium placeholder-slate-400"
+                    value={activeFilters.query}
+                    onChange={e => setActiveFilters({ ...activeFilters, query: e.target.value })}
+                />
+                <button
+                    onClick={() => setShowAdvancedSearch(true)}
+                    className="px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
+                >
+                    Filtres Avancés
+                </button>
                 <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors"><FileSpreadsheet className="h-4 w-4" /></button>
             </div>
 
@@ -532,7 +574,7 @@ export const Assets: React.FC = () => {
                                     <div className="flex items-center"><div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-2xl flex items-center justify-center mr-5 shadow-lg shadow-brand-500/20 text-white"><Server className="h-6 w-6" strokeWidth={2} /></div><div><h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedAsset ? selectedAsset.name : 'Nouvel Actif'}</h2><p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">{selectedAsset?.type || editForm.type}<span className="w-1 h-1 rounded-full bg-slate-300"></span>{selectedAsset?.id || 'Brouillon'}</p></div></div>
                                     <div className="flex gap-2">{canEdit && selectedAsset && (<button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer"><Copy className="h-5 w-5" /></button>)}{canEdit && isDirty && (<button onClick={handleSave} className="flex items-center px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl shadow-lg hover:scale-105 transition-all"><Save className="h-4 w-4 mr-2" /> Enregistrer</button>)}<button onClick={() => { setSelectedAsset(null); setEditForm({}); }} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button></div>
                                 </div>
-                                <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent">{[{ id: 'details', label: 'Général', icon: Tag }, { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock }, { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert }, { id: 'history', label: 'Audit Trail', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }].map(tab => (<button key={tab.id} onClick={() => setInspectorTab(tab.id as any)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}><tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />{tab.label}</button>))}</div>
+                                <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent">{[{ id: 'details', label: 'Général', icon: Tag }, { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock }, { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert }, { id: 'projects', label: 'Projets', icon: FolderKanban }, { id: 'audits', label: 'Audits', icon: CheckSquare }, { id: 'history', label: 'Audit Trail', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }].map(tab => (<button key={tab.id} onClick={() => setInspectorTab(tab.id as any)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}><tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />{tab.label}</button>))}</div>
 
                                 <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-black/20 custom-scrollbar">
                                     {inspectorTab === 'details' && (
@@ -630,6 +672,61 @@ export const Assets: React.FC = () => {
                                         </div>
                                     )}
                                     {inspectorTab === 'security' && (<div className="space-y-8"><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})</h3>{linkedRisks.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>) : (<div className="grid gap-4">{linkedRisks.map(risk => (<div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span><span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{risk.vulnerability}</p>{risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}</div>))}</div>)}</div><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})</h3>{linkedIncidents.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>) : (<div className="grid gap-4">{linkedIncidents.map(inc => (<div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span><span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p></div>))}</div>)}</div></div>)}
+                                    {inspectorTab === 'projects' && (
+                                        <div className="space-y-8">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Liés ({linkedProjects.length})</h3>
+                                            {linkedProjects.length === 0 ? (
+                                                <p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé.</p>
+                                            ) : (
+                                                <div className="grid gap-4">
+                                                    {linkedProjects.map(proj => (
+                                                        <div key={proj.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
+                                                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{proj.status}</span>
+                                                            </div>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{proj.description}</p>
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="w-full bg-slate-200 rounded-full h-1.5 mr-4 max-w-[100px]">
+                                                                    <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${proj.progress}%` }}></div>
+                                                                </div>
+                                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{proj.progress}%</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    {inspectorTab === 'audits' && (
+                                        <div className="space-y-8">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><CheckSquare className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
+                                            {linkedAudits.length === 0 ? (
+                                                <p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé.</p>
+                                            ) : (
+                                                <div className="grid gap-4">
+                                                    {linkedAudits.map(audit => (
+                                                        <div key={audit.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{audit.name}</span>
+                                                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{audit.status}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-4 mt-2">
+                                                                <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                                                    <CalendarClock className="h-3 w-3" />
+                                                                    {new Date(audit.dateScheduled).toLocaleDateString()}
+                                                                </div>
+                                                                <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                                                    <AlertTriangle className="h-3 w-3" />
+                                                                    {audit.findingsCount} constats
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                     {inspectorTab === 'history' && (<div className="relative border-l-2 border-slate-200 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">{assetHistory.map((log, i) => (<div key={i} className="relative"><span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900"><div className="h-2 w-2 rounded-full bg-brand-500"></div></span><div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span><p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p><p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p><div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div></div></div>))}</div>)}
                                     {inspectorTab === 'comments' && selectedAsset && (<div className="h-full flex flex-col"><Comments collectionName="assets" documentId={selectedAsset.id} /></div>)}
                                 </div>

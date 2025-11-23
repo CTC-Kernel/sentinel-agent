@@ -35,7 +35,7 @@ export const Onboarding: React.FC = () => {
                 organizationName: user.organizationName || organizationName,
                 organizationId: newOrgId,
                 onboardingCompleted: true,
-                ...(user.photoURL && { photoURL: user.photoURL }),
+                photoURL: user.photoURL || null,
                 lastLogin: new Date().toISOString()
             };
 
