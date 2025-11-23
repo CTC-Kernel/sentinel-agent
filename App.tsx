@@ -34,6 +34,7 @@ const Continuity = React.lazy(() => import('./views/Continuity').then(module => 
 const VoxelView = React.lazy(() => import('./views/VoxelView').then(module => ({ default: module.VoxelView })));
 const Notifications = React.lazy(() => import('./views/Notifications').then(module => ({ default: module.Notifications })));
 const Search = React.lazy(() => import('./views/Search').then(module => ({ default: module.Search })));
+const KioskPage = React.lazy(() => import('./components/AssetIntake/KioskPage').then(module => ({ default: module.KioskPage })));
 
 const LoadingScreen = () => (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafafa] dark:bg-slate-900 transition-colors relative overflow-hidden">
@@ -373,6 +374,7 @@ const AppContent: React.FC = () => {
                                         <Route path="/notifications" element={<Notifications />} />
                                         <Route path="/search" element={<Search />} />
                                         <Route path="/help" element={<Help />} />
+                                        <Route path="/intake" element={<KioskPage />} />
                                         <Route path="*" element={<NotFound />} />
                                     </Routes>
                                 </Suspense>

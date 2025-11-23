@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, Upload, AlertTriangle, History, X, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Activity, Clock, Copy, Euro, TrendingDown, FolderKanban, CheckSquare } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, Upload, AlertTriangle, History, X, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Activity, Clock, Copy, Euro, TrendingDown, FolderKanban, CheckSquare, Link } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { aiService } from '../services/aiService';
@@ -412,6 +412,13 @@ export const Assets: React.FC = () => {
         } catch (error) { addToast("Erreur génération étiquette", "error"); }
     };
 
+    const generateIntakeLink = () => {
+        if (!user?.organizationId) return;
+        const url = `${window.location.origin}/#/intake?org=${user.organizationId}`;
+        navigator.clipboard.writeText(url);
+        addToast("Lien kiosque copié !", "success");
+    };
+
     return (
         <div className="space-y-8 animate-fade-in relative pb-10">
             {/* Confirm Modal */}
@@ -469,6 +476,7 @@ export const Assets: React.FC = () => {
                 <div><h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Inventaire des Actifs</h1><p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Base de connaissance de l'infrastructure.</p></div>
                 {canEdit && (
                     <div className="flex gap-3">
+                        <button onClick={generateIntakeLink} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white" title="Copier le lien Kiosque"><Link className="h-4 w-4 mr-2 text-brand-500" /> Lien Kiosque</button>
                         <input type="file" accept=".csv" ref={fileInputRef} onChange={handleAIImportAnalysis} className="hidden" />
                         <button onClick={() => fileInputRef.current?.click()} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Sparkles className="h-4 w-4 mr-2 text-brand-500" /> Import Intelligent</button>
                         <button onClick={() => openInspector(undefined)} className="group flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"><Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" /> Nouvel Actif</button>
