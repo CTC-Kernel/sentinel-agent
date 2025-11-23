@@ -10,6 +10,8 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
+import { ComplianceScorecard } from '../components/dashboard/ComplianceScorecard';
+import { TopRisksWidget } from '../components/dashboard/TopRisksWidget';
 
 const StatCard: React.FC<{ title: string; value: string | number | null; icon: any; trend?: string; colorClass: string; delay?: string; onClick?: () => void }> = ({ title, value, icon: Icon, trend, colorClass, delay, onClick }) => (
     <div onClick={onClick} className={`relative group glass-panel p-6 rounded-[2rem] hover:shadow-apple transition-all duration-500 hover:-translate-y-1 overflow-hidden ${delay} border border-white/60 dark:border-white/5 cursor-pointer`}>
@@ -42,6 +44,7 @@ export const Dashboard: React.FC = () => {
     const [historyData, setHistoryData] = useState<DailyStat[]>([]);
     const [healthIssues, setHealthIssues] = useState<HealthIssue[]>([]);
     const [topRisks, setTopRisks] = useState<Risk[]>([]);
+    const [controls, setControls] = useState<Control[]>([]);
     const [radarData, setRadarData] = useState<{ subject: string; A: number; fullMark: number }[]>([]);
     const [latestIncidents, setLatestIncidents] = useState<Incident[]>([]);
     const [myActionItems, setMyActionItems] = useState<ActionItem[]>([]);
@@ -102,6 +105,9 @@ export const Dashboard: React.FC = () => {
 
                 const allAudits = getData<Audit>(results[0]);
                 const controls = getRawData<Control>(results[1]);
+                const controlsData = getData<Control>(results[1]);
+                setControls(controlsData);
+
                 const allLogs = getData<SystemLog>(results[2]);
                 const historyStats = getRawData<DailyStat>(results[3]);
                 const allRisks = getData<Risk>(results[4]);

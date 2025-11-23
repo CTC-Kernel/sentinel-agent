@@ -23,6 +23,8 @@ export interface Asset {
   warrantyEnd?: string;
   nextMaintenance?: string;
   lifecycleStatus?: 'Neuf' | 'En service' | 'En réparation' | 'Fin de vie' | 'Rebut';
+  ownerId?: string;
+  relatedProjectIds?: string[];
 }
 
 export interface MaintenanceRecord {
