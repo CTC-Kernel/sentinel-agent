@@ -23,6 +23,9 @@ export const VoxelView: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<{ id: string; type: LayerType; data: any } | null>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [heatmapEnabled, setHeatmapEnabled] = useState(true);
+  const [xRayEnabled, setXRayEnabled] = useState(false);
+  const [autoRotateEnabled, setAutoRotateEnabled] = useState(true);
   const layerOptions: { id: LayerType; label: string; hint: string; color: string }[] = [
     { id: 'asset', label: 'Actifs', hint: 'Socle infrastructure', color: 'bg-blue-500' },
     { id: 'risk', label: 'Risques', hint: 'Menaces ISO 27005', color: 'bg-orange-500' },
@@ -32,6 +35,59 @@ export const VoxelView: React.FC = () => {
     { id: 'supplier', label: 'Fournisseurs', hint: 'Partenaires critiques', color: 'bg-green-500' }
   ];
   const [activeLayers, setActiveLayers] = useState<LayerType[]>(layerOptions.map(layer => layer.id));
+  const silhouetteMap: Record<LayerType, JSX.Element> = {
+    asset: (
+      <svg viewBox="0 0 64 64" className="w-12 h-12 text-blue-500 fill-current">
+        <rect x="10" y="28" width="16" height="26" rx="2" className="opacity-80" />
+        <rect x="28" y="18" width="18" height="36" rx="2" className="opacity-90" />
+        <rect x="48" y="34" width="8" height="20" rx="2" className="opacity-70" />
+        <rect x="14" y="34" width="6" height="8" className="text-white fill-current" />
+        <rect x="34" y="24" width="6" height="8" className="text-white fill-current" />
+      </svg>
+    ),
+    risk: (
+      <svg viewBox="0 0 64 64" className="w-12 h-12 text-orange-500 fill-current">
+        <path d="M32 6 L50 16 V34 C50 44 42 53 32 56 C22 53 14 44 14 34 V16 Z" className="opacity-80" />
+        <path d="M32 17 L42 23 V33 C42 40 37 46 32 48 C27 46 22 40 22 33 V23 Z" className="text-white fill-current opacity-70" />
+      </svg>
+    ),
+    project: (
+      <svg viewBox="0 0 64 64" className="w-12 h-12 text-purple-500 fill-current">
+        <rect x="10" y="40" width="44" height="10" rx="4" className="opacity-60" />
+        <rect x="14" y="28" width="36" height="10" rx="4" className="opacity-75" />
+        <rect x="20" y="16" width="24" height="10" rx="4" className="opacity-100" />
+        <circle cx="32" cy="21" r="3" className="text-white fill-current" />
+      </svg>
+    ),
+    audit: (
+      <svg viewBox="0 0 64 64" className="w-12 h-12 text-cyan-500 fill-current">
+        <rect x="16" y="10" width="32" height="44" rx="4" className="opacity-80" />
+        <rect x="22" y="16" width="20" height="4" className="text-white fill-current" />
+        <rect x="22" y="24" width="20" height="4" className="text-white/80 fill-current" />
+        <rect x="22" y="32" width="12" height="4" className="text-white/60 fill-current" />
+        <path d="M36 36 L44 44" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="33" cy="38" r="4" className="text-white fill-current" />
+      </svg>
+    ),
+    incident: (
+      <svg viewBox="0 0 64 64" className="w-12 h-12 text-rose-500 fill-current">
+        <path d="M32 8 C32 16 20 18 24 30 C20 28 16 32 16 38 C16 48 24 56 32 56 C40 56 48 48 48 38 C48 28 40 20 36 18 C38 26 32 28 32 20" className="opacity-90" />
+        <path d="M32 28 C26 34 26 44 32 48 C38 44 38 34 32 28" className="text-white fill-current opacity-80" />
+      </svg>
+    ),
+    supplier: (
+      <svg viewBox="0 0 64 64" className="w-12 h-12 text-green-500 fill-current">
+        <circle cx="32" cy="20" r="6" className="opacity-85" />
+        <circle cx="16" cy="42" r="5" className="opacity-75" />
+        <circle cx="48" cy="42" r="5" className="opacity-75" />
+        <circle cx="32" cy="52" r="4" className="opacity-65" />
+        <line x1="32" y1="26" x2="32" y2="48" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        <line x1="26" y1="38" x2="38" y2="38" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        <line x1="32" y1="20" x2="16" y2="42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <line x1="32" y1="20" x2="48" y2="42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    ),
+  };
 
   const summary = useMemo(() => {
     const avgRisk = risks.length ? (risks.reduce((acc, r) => acc + r.score, 0) / risks.length).toFixed(1) : '0.0';
@@ -217,6 +273,9 @@ export const VoxelView: React.FC = () => {
     setSelectedNode(null);
     setActiveLayers(layerOptions.map(layer => layer.id));
     setIsFullscreen(false);
+    setHeatmapEnabled(true);
+    setXRayEnabled(false);
+    setAutoRotateEnabled(true);
     setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
   };
 
@@ -425,7 +484,13 @@ export const VoxelView: React.FC = () => {
       </div>
 
       {/* Main Voxel View */}
-      <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-slate-900' : 'flex-1 relative'}`}>
+      <div
+        className={`${
+          isFullscreen
+            ? 'fixed inset-0 z-50 bg-slate-900'
+            : 'relative flex-1 min-h-[420px] max-h-[660px] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto w-full'
+        }`}
+      >
         {isFullscreen && (
           <>
             <div className="absolute top-6 right-80 z-20 flex items-center gap-2">
@@ -444,6 +509,33 @@ export const VoxelView: React.FC = () => {
                   Quitter (Esc)
                 </button>
               </div>
+            </div>
+            <div className="absolute bottom-6 left-6 z-20 flex flex-wrap gap-3 max-w-lg">
+              {[{
+                label: 'Heatmap',
+                active: heatmapEnabled,
+                onClick: () => setHeatmapEnabled(prev => !prev)
+              }, {
+                label: 'Mode X-Ray',
+                active: xRayEnabled,
+                onClick: () => setXRayEnabled(prev => !prev)
+              }, {
+                label: 'Auto-rotate',
+                active: autoRotateEnabled,
+                onClick: () => setAutoRotateEnabled(prev => !prev)
+              }].map(control => (
+                <button
+                  key={control.label}
+                  onClick={control.onClick}
+                  className={`px-4 py-2 rounded-2xl border text-xs font-semibold tracking-wide backdrop-blur-md transition ${
+                    control.active
+                      ? 'bg-white/90 text-slate-900 border-white/80'
+                      : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
+                  }`}
+                >
+                  {control.label}
+                </button>
+              ))}
             </div>
             <aside className="absolute inset-y-0 right-0 w-72 bg-slate-950/95 border-l border-white/10 backdrop-blur-xl z-30 p-4 overflow-y-auto space-y-4">
               <div className="flex items-center justify-between text-white">
@@ -464,14 +556,17 @@ export const VoxelView: React.FC = () => {
                       <button
                         key={item.id}
                         onClick={() => applyFocus(item.id, category.id)}
-                        className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition flex flex-col gap-0.5 ${
+                        className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition flex items-center gap-3 ${
                           focusedNodeId === item.id
                             ? 'border-white/40 bg-white/10 text-white'
                             : 'border-white/10 text-white/70 hover:border-white/30 hover:bg-white/5'
                         }`}
                       >
-                        <span className="font-medium line-clamp-1">{item.label}</span>
-                        {item.meta && <span className="text-xs text-white/60">{item.meta}</span>}
+                        <span className="shrink-0 w-6 h-6">{silhouetteMap[category.id]}</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium line-clamp-1">{item.label}</span>
+                          {item.meta && <span className="text-xs text-white/60">{item.meta}</span>}
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -491,7 +586,9 @@ export const VoxelView: React.FC = () => {
           className="w-full h-full"
           visibleTypes={activeLayers}
           focusNodeId={focusedNodeId}
-          highlightCritical
+          highlightCritical={heatmapEnabled}
+          xRayMode={xRayEnabled}
+          autoRotatePreference={autoRotateEnabled}
           summaryStats={{
             assets: assets.length,
             risks: risks.length,
@@ -557,31 +654,18 @@ export const VoxelView: React.FC = () => {
 
           <div className="text-sm text-slate-600 dark:text-slate-300">
             <p className="font-medium">Légende dynamique</p>
-            <div className="flex flex-wrap gap-4 mt-2">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-sm"></div>
-                <span>Actifs (Infrastructure)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <span>Risques (Menaces)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-purple-500 rounded-sm"></div>
-                <span>Projets (Transformations)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-cyan-500 rounded-sm"></div>
-                <span>Audits (Contrôles)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span>Incidents (Alertes)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded-sm"></div>
-                <span>Fournisseurs (Partenaires)</span>
-              </div>
+            <div className="grid sm:grid-cols-3 gap-4 mt-2">
+              {layerOptions.map(layer => (
+                <div key={layer.id} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-white/5">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900/60">
+                    {silhouetteMap[layer.id]}
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">{layer.label}</p>
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-100">{layer.hint}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           <div className="flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400">
@@ -660,10 +744,10 @@ export const VoxelView: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-white/10">
-                  <Bell className="h-4 w-4" />
+                  {silhouetteMap[selectedNode.type]}
                 </div>
                 <div>
-                  <p className="text-sm text-slate-300">{selectedNode.type}</p>
+                  <p className="text-sm text-slate-300 capitalize">{selectedNode.type}</p>
                   <p className="text-lg font-semibold">{(selectedNode.data as any).name || (selectedNode.data as any).title}</p>
                 </div>
               </div>
