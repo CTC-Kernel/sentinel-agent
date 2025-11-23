@@ -4,7 +4,7 @@ import { OrbitControls, Text, Line, Points, PointMaterial, Float } from '@react-
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, MeshStandardMaterial, DoubleSide } from 'three';
 import { Line2, LineMaterial, OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { animated, useSpring } from '@react-spring/three';
-import { Asset, Risk, Project, Audit, Incident, Supplier } from '../types';
+import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink } from '../types';
 
 interface VoxelNode {
   id: string;
@@ -37,6 +37,7 @@ interface VoxelStudioProps {
   xRayMode?: boolean;
   autoRotatePreference?: boolean | null;
   releaseToken?: number | null;
+  suggestedLinks?: AISuggestedLink[];
 }
 
 const AnimatedGroup = animated.group;
@@ -234,9 +235,9 @@ const PulseCore: React.FC = () => {
   );
 };
 
-const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void; isSelected: boolean; isDimmed: boolean; highlightCritical?: boolean; xRayMode?: boolean }> = ({ 
-  node, 
-  onClick, 
+const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void; isSelected: boolean; isDimmed: boolean; highlightCritical?: boolean; xRayMode?: boolean }> = ({
+  node,
+  onClick,
   isSelected,
   isDimmed,
   highlightCritical,
@@ -353,7 +354,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
               <boxGeometry args={[node.size * 0.55, node.size * 0.18, node.size * 0.4]} />
               <meshStandardMaterial {...sharedMaterialProps} />
             </mesh>
-            {[ -0.25, 0.25 ].map(offset => (
+            {[-0.25, 0.25].map(offset => (
               <mesh key={`asset-light-${node.id}-${offset}`} position={[offset * node.size, node.size * 0.28, node.size * 0.18]}>
                 <boxGeometry args={[node.size * 0.08, node.size * 0.06, node.size * 0.02]} />
                 <meshStandardMaterial color="#facc15" emissive="#facc15" emissiveIntensity={0.7} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
@@ -536,10 +537,10 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
   );
 };
 
-const ConnectionLine: React.FC<{ start: [number, number, number]; end: [number, number, number]; strength: number }> = ({ 
-  start, 
-  end, 
-  strength 
+const ConnectionLine: React.FC<{ start: [number, number, number]; end: [number, number, number]; strength: number }> = ({
+  start,
+  end,
+  strength
 }) => {
   const points = useMemo(() => [new Vector3(...start), new Vector3(...end)], [start, end]);
   const lineRef = useRef<Line2 | null>(null);
@@ -577,7 +578,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   focusNodeId,
   highlightCritical = false,
   summaryStats,
-  releaseToken
+  releaseToken,
+  suggestedLinks = []
 }) => {
   const [selectedNode, setSelectedNode] = useState<VoxelNode | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -675,8 +677,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       const z = Math.floor(index / gridSize) * spacing - (gridSize * spacing) / 2;
       const y = 8;
 
-      const incidentColor = incident.severity === 'Critique' ? '#dc2626' : 
-                           incident.severity === 'Élevée' ? '#ea580c' : '#f59e0b';
+      const incidentColor = incident.severity === 'Critique' ? '#dc2626' :
+        incident.severity === 'Élevée' ? '#ea580c' : '#f59e0b';
 
       nodes.push({
         id: incident.id,
@@ -698,8 +700,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         const z = Math.sin(angle) * radius;
         const y = 2;
 
-        const supplierColor = supplier.criticality === 'Critique' ? '#dc2626' : 
-                             supplier.criticality === 'Élevée' ? '#ea580c' : '#22c55e';
+        const supplierColor = supplier.criticality === 'Critique' ? '#dc2626' :
+          supplier.criticality === 'Élevée' ? '#ea580c' : '#22c55e';
 
         nodes.push({
           id: supplier.id,
@@ -788,6 +790,24 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     return pairs;
   }, [voxelNodes]);
 
+  const aiConnectionPairs = useMemo(() => {
+    const pairs: { start: [number, number, number]; end: [number, number, number]; strength: number; type: string }[] = [];
+    suggestedLinks.forEach(link => {
+      const source = voxelNodes.find(n => n.id === link.sourceId);
+      const target = voxelNodes.find(n => n.id === link.targetId);
+
+      if (source && target) {
+        pairs.push({
+          start: source.position,
+          end: target.position,
+          strength: link.confidence,
+          type: link.type
+        });
+      }
+    });
+    return pairs;
+  }, [voxelNodes, suggestedLinks]);
+
   const branchPivotNode = useMemo(() => {
     return selectedNode;
   }, [selectedNode]);
@@ -847,7 +867,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           <pointLight position={[12, 18, 18]} intensity={1.2} color="#93c5fd" />
           <pointLight position={[-14, -12, -8]} intensity={0.7} color="#4ecdc4" />
 
-          <OrbitControls 
+          <OrbitControls
             enablePan
             enableZoom
             enableRotate
@@ -870,13 +890,28 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           <ScanRing radius={25} color="#f97316" speed={0.18} />
 
           {/* Render connections */}
-          {connectionPairs.map((pair, index) => (
-            <ConnectionLine
-              key={`${pair.start.join('-')}-${pair.end.join('-')}-${index}`}
-              start={pair.start}
-              end={pair.end}
-              strength={pair.strength}
-            />
+          {connectionPairs.map((pair, i) => (
+            <ConnectionLine key={i} start={pair.start} end={pair.end} strength={pair.strength} />
+          ))}
+
+          {/* AI Suggested Links */}
+          {aiConnectionPairs.map((pair, i) => (
+            <group key={`ai-link-${i}`}>
+              <ConnectionLine start={pair.start} end={pair.end} strength={pair.strength * 0.8} />
+              {/* Add a particle effect or different color for AI links if possible, for now reusing ConnectionLine but maybe we can tint it via props if we modify ConnectionLine later. 
+                  Actually, let's just render a second line with a different color/style if we want to distinguish them, 
+                  but ConnectionLine is simple. Let's assume standard lines for now but maybe we can add a specialized AI line component later.
+                  For this iteration, I'll add a floating particle at the midpoint to signify "AI".
+              */}
+              <mesh position={[
+                (pair.start[0] + pair.end[0]) / 2,
+                (pair.start[1] + pair.end[1]) / 2,
+                (pair.start[2] + pair.end[2]) / 2
+              ]}>
+                <sphereGeometry args={[0.15, 8, 8]} />
+                <meshBasicMaterial color="#818cf8" transparent opacity={0.8} />
+              </mesh>
+            </group>
           ))}
 
           {/* Render voxel nodes */}
@@ -933,7 +968,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
               (selectedNode?.data as Audit)?.name ||
               (selectedNode?.data as Supplier)?.name ||
               (selectedNode?.data as Risk)?.threat ||
-              'Élément' }
+              'Élément'}
           </p>
           {selectedNode?.type === 'risk' && (
             <div className="text-xs text-slate-600 dark:text-slate-300">

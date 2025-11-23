@@ -12,6 +12,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
+import { generateICS } from '../utils/calendar';
 
 export const Projects: React.FC = () => {
     const [projects, setProjects] = useState<Project[]>([]);
@@ -587,7 +588,17 @@ export const Projects: React.FC = () => {
                                                                 {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
                                                             </button>
                                                             <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-gray-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{task.title}</span>
-                                                            {canEdit && <button onClick={() => deleteTask(task.id)} className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>}
+                                                            {canEdit && (
+                                                                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <button onClick={() => generateICS({
+                                                                        title: `Tâche : ${task.title}`,
+                                                                        description: `Tâche du projet ${selectedProject.name}`,
+                                                                        start: new Date(selectedProject.dueDate),
+                                                                        url: window.location.href
+                                                                    })} className="p-1.5 text-gray-400 hover:text-blue-500 transition-all" title="Ajouter au calendrier"><CalendarDays className="h-3.5 w-3.5" /></button>
+                                                                    <button onClick={() => deleteTask(task.id)} className="p-1.5 text-gray-400 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
