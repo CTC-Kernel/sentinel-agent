@@ -1,6 +1,12 @@
 {
+    "firestore": {
+        "rules": "firestore.rules"
+    },
+    "storage": {
+        "rules": "storage.rules"
+    },
     "hosting": {
-        "site": "sentinel-grc-a8701-6582c",
+        "site": "sentinel-grc-a8701",
         "public": "dist",
         "ignore": [
             "firebase.json",
