@@ -56,7 +56,7 @@ import {
   AreaChart,
   Copy,
   WifiOff,
-    Eye,
+  Eye,
   Command,
   FileSpreadsheet,
   Fingerprint,
@@ -90,7 +90,9 @@ import {
   Euro,
   TrendingDown,
   Info,
-  Check
+  Check,
+  Sparkles,
+  BrainCircuit
 } from 'lucide-react';
 
 export {
@@ -145,7 +147,7 @@ export {
   AreaChart,
   Copy,
   WifiOff,
-    Eye,
+  Eye,
   Command,
   FileSpreadsheet,
   Fingerprint,
@@ -183,5 +185,7 @@ export {
   Maximize2,
   RefreshCw,
   RotateCw,
-  ChevronLeft
+  ChevronLeft,
+  Sparkles,
+  BrainCircuit
 };

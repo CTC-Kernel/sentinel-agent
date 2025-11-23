@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { collection, addDoc, getDocs, query, orderBy, doc, deleteDoc, where, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Audit, Finding, Control, UserProfile } from '../types';
-import { Plus, XCircle, Activity, FileText, Briefcase, Search, CheckCircle2, AlertTriangle, ChevronRight, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Save, Download, ShieldAlert } from '../components/ui/Icons';
+import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document } from '../types';
+import { Plus, XCircle, Activity, FileText, Briefcase, Search, CheckCircle2, AlertTriangle, ChevronRight, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Save, Download, ShieldAlert, ClipboardCheck, Link } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
@@ -26,7 +26,10 @@ export const Audits: React.FC = () => {
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
     const [findings, setFindings] = useState<Finding[]>([]);
     const [showFindingsDrawer, setShowFindingsDrawer] = useState(false);
-    const [newFinding, setNewFinding] = useState<Partial<Finding>>({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '' });
+    const [newFinding, setNewFinding] = useState<Partial<Finding>>({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
+    const [checklist, setChecklist] = useState<AuditChecklist | null>(null);
+    const [documents, setDocuments] = useState<Document[]>([]);
+    const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist'>('findings');
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -50,7 +53,8 @@ export const Audits: React.FC = () => {
             const results = await Promise.allSettled([
                 getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
+                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId)))
             ]);
 
             const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
@@ -72,6 +76,9 @@ export const Audits: React.FC = () => {
             const userData = getDocsData<UserProfile>(results[2]);
             setUsersList(userData);
 
+            const docData = getDocsData<Document>(results[3]);
+            setDocuments(docData);
+
         } catch (err) {
             addToast("Erreur chargement données", "error");
         } finally {
@@ -88,8 +95,14 @@ export const Audits: React.FC = () => {
             const q = query(collection(db, 'findings'), where('organizationId', '==', user?.organizationId), where('auditId', '==', audit.id));
             const snap = await getDocs(q);
             setFindings(snap.docs.map(d => ({ id: d.id, ...d.data() } as Finding)));
+
+            const cq = query(collection(db, 'audit_checklists'), where('auditId', '==', audit.id));
+            const cSnap = await getDocs(cq);
+            if (!cSnap.empty) setChecklist({ id: cSnap.docs[0].id, ...cSnap.docs[0].data() } as AuditChecklist);
+            else setChecklist(null);
         } catch (error) {
             setFindings([]);
+            setChecklist(null);
         }
     };
 
@@ -125,7 +138,7 @@ export const Audits: React.FC = () => {
             const snap = await getDocs(q);
             setFindings(snap.docs.map(d => ({ id: d.id, ...d.data() } as Finding)));
 
-            setNewFinding({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '' });
+            setNewFinding({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
             addToast("Constat ajouté", "success");
         } catch (e) { addToast("Erreur ajout constat", "error"); }
     };
@@ -173,6 +186,40 @@ export const Audits: React.FC = () => {
             await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name}`);
             addToast("Audit supprimé", "info");
         } catch (e) { addToast("Erreur suppression", "error"); }
+    };
+
+    const generateChecklist = async () => {
+        if (!selectedAudit || !user?.organizationId) return;
+        try {
+            const questions: AuditQuestion[] = controls.map(c => ({
+                id: Math.random().toString(36).substr(2, 9),
+                controlCode: c.code,
+                question: `Le contrôle ${c.code} (${c.name}) est-il implémenté et efficace ?`,
+                response: 'Non-applicable'
+            }));
+
+            const newChecklist = {
+                auditId: selectedAudit.id,
+                organizationId: user.organizationId,
+                questions,
+                completedBy: user.email,
+                completedAt: new Date().toISOString()
+            };
+
+            const ref = await addDoc(collection(db, 'audit_checklists'), newChecklist);
+            setChecklist({ ...newChecklist, id: ref.id });
+            addToast("Checklist générée", "success");
+        } catch (e) { addToast("Erreur génération checklist", "error"); }
+    };
+
+    const handleChecklistAnswer = async (questionId: string, response: AuditQuestion['response'], comment?: string) => {
+        if (!checklist) return;
+        const updatedQuestions = checklist.questions.map(q => q.id === questionId ? { ...q, response, comment: comment !== undefined ? comment : q.comment } : q);
+        setChecklist({ ...checklist, questions: updatedQuestions });
+        // Debounced save could be better, but direct update for now
+        try {
+            await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: updatedQuestions });
+        } catch (e) { console.error("Error saving checklist", e); }
     };
 
     const handleExportCSV = () => {
@@ -360,66 +407,130 @@ export const Audits: React.FC = () => {
                                         </p>
                                     </div>
                                     <div className="flex gap-2">
+                                        <div className="flex bg-slate-100 dark:bg-white/10 p-1 rounded-xl mr-2">
+                                            <button onClick={() => setInspectorTab('findings')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${inspectorTab === 'findings' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Constats</button>
+                                            <button onClick={() => setInspectorTab('checklist')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${inspectorTab === 'checklist' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Checklist</button>
+                                        </div>
                                         <button onClick={generateAuditReport} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Rapport PDF"><Download className="h-5 w-5" /></button>
                                         <button onClick={() => setShowFindingsDrawer(false)} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
                                     </div>
                                 </div>
 
                                 <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar space-y-8">
-                                    {canEdit && (
-                                        <form onSubmit={handleAddFinding} className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm mb-8">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest flex items-center"><Plus className="h-3.5 w-3.5 mr-2" /> Ajouter un constat</h3>
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <textarea required className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium dark:text-white resize-none"
-                                                        rows={2} placeholder="Description de l'écart..." value={newFinding.description} onChange={e => setNewFinding({ ...newFinding, description: e.target.value })} />
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <select className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium appearance-none dark:text-white"
-                                                        value={newFinding.type} onChange={e => setNewFinding({ ...newFinding, type: e.target.value as any })}>
-                                                        {['Majeure', 'Mineure', 'Observation', 'Opportunité'].map(t => <option key={t} value={t}>{t}</option>)}
-                                                    </select>
-                                                    <select className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium appearance-none dark:text-white"
-                                                        value={newFinding.relatedControlId} onChange={e => setNewFinding({ ...newFinding, relatedControlId: e.target.value })}>
-                                                        <option value="">Lier un contrôle (Optionnel)</option>
-                                                        {controls.map(c => <option key={c.id} value={c.id}>{c.code} {c.name.substring(0, 30)}...</option>)}
-                                                    </select>
-                                                </div>
-                                                <div className="flex justify-end">
-                                                    <button type="submit" className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20">Ajouter</button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    )}
-
-                                    <div className="space-y-4">
-                                        <h3 className="text-xs font-bold uppercase text-slate-400 mb-2 tracking-widest px-2">Constats ({findings.length})</h3>
-                                        {findings.length === 0 ? (
-                                            <div className="text-center py-8 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic text-sm">Aucun écart relevé pour le moment.</div>
-                                        ) : (
-                                            findings.map(finding => (
-                                                <div key={finding.id} className="p-5 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group relative">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${finding.type === 'Majeure' ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400' : finding.type === 'Mineure' ? 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400'}`}>
-                                                            {finding.type}
-                                                        </span>
-                                                        {canEdit && (
-                                                            <button onClick={() => initiateDeleteFinding(finding.id)} className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3 leading-relaxed">{finding.description}</p>
-                                                    {finding.relatedControlId && (
-                                                        <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-black/20 px-3 py-1.5 rounded-lg w-fit">
-                                                            <ShieldAlert className="h-3 w-3 mr-1.5" />
-                                                            {controls.find(c => c.id === finding.relatedControlId)?.code || 'Contrôle Inconnu'}
+                                    {inspectorTab === 'findings' ? (
+                                        <>
+                                            {canEdit && (
+                                                <form onSubmit={handleAddFinding} className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm mb-8">
+                                                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest flex items-center"><Plus className="h-3.5 w-3.5 mr-2" /> Ajouter un constat</h3>
+                                                    <div className="space-y-4">
+                                                        <div>
+                                                            <textarea required className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium dark:text-white resize-none"
+                                                                rows={2} placeholder="Description de l'écart..." value={newFinding.description} onChange={e => setNewFinding({ ...newFinding, description: e.target.value })} />
                                                         </div>
-                                                    )}
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <select className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium appearance-none dark:text-white"
+                                                                value={newFinding.type} onChange={e => setNewFinding({ ...newFinding, type: e.target.value as any })}>
+                                                                {['Majeure', 'Mineure', 'Observation', 'Opportunité'].map(t => <option key={t} value={t}>{t}</option>)}
+                                                            </select>
+                                                            <select className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium appearance-none dark:text-white"
+                                                                value={newFinding.relatedControlId} onChange={e => setNewFinding({ ...newFinding, relatedControlId: e.target.value })}>
+                                                                <option value="">Lier un contrôle (Optionnel)</option>
+                                                                {controls.map(c => <option key={c.id} value={c.id}>{c.code} {c.name.substring(0, 30)}...</option>)}
+                                                            </select>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 gap-4">
+                                                            <select className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium appearance-none dark:text-white"
+                                                                value={newFinding.evidenceIds?.[0] || ''} onChange={e => setNewFinding({ ...newFinding, evidenceIds: e.target.value ? [e.target.value] : [] })}>
+                                                                <option value="">Lier une preuve (Document)...</option>
+                                                                {documents.map(d => <option key={d.id} value={d.id}>{d.title} (v{d.version})</option>)}
+                                                            </select>
+                                                        </div>
+                                                        <div className="flex justify-end">
+                                                            <button type="submit" className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20">Ajouter</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            )}
+
+                                            <div className="space-y-4">
+                                                <h3 className="text-xs font-bold uppercase text-slate-400 mb-2 tracking-widest px-2">Constats ({findings.length})</h3>
+                                                {findings.length === 0 ? (
+                                                    <div className="text-center py-8 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic text-sm">Aucun écart relevé pour le moment.</div>
+                                                ) : (
+                                                    findings.map(finding => (
+                                                        <div key={finding.id} className="p-5 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group relative">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${finding.type === 'Majeure' ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400' : finding.type === 'Mineure' ? 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400'}`}>
+                                                                    {finding.type}
+                                                                </span>
+                                                                {canEdit && (
+                                                                    <button onClick={() => initiateDeleteFinding(finding.id)} className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3 leading-relaxed">{finding.description}</p>
+                                                            {finding.relatedControlId && (
+                                                                <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-black/20 px-3 py-1.5 rounded-lg w-fit">
+                                                                    <ShieldAlert className="h-3 w-3 mr-1.5" />
+                                                                    {controls.find(c => c.id === finding.relatedControlId)?.code || 'Contrôle Inconnu'}
+                                                                </div>
+                                                            )}
+                                                            {finding.evidenceIds && finding.evidenceIds.length > 0 && (
+                                                                <div className="mt-2 flex items-center text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-lg w-fit">
+                                                                    <Link className="h-3 w-3 mr-1.5" />
+                                                                    {documents.find(d => d.id === finding.evidenceIds![0])?.title || 'Preuve liée'}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="space-y-6">
+                                            {!checklist ? (
+                                                <div className="text-center py-12">
+                                                    <ClipboardCheck className="h-16 w-16 mx-auto text-slate-300 mb-4" />
+                                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucune checklist générée</h3>
+                                                    <p className="text-slate-500 mb-6 max-w-xs mx-auto">Générez une checklist basée sur les contrôles ISO 27001 pour guider votre audit.</p>
+                                                    <button onClick={generateChecklist} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">Générer la Checklist ISO 27001</button>
                                                 </div>
-                                            ))
-                                        )}
-                                    </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-center mb-4">
+                                                        <h3 className="font-bold text-slate-900 dark:text-white">Checklist de conformité</h3>
+                                                        <span className="text-xs font-medium bg-slate-100 dark:bg-white/10 px-2 py-1 rounded-lg">{checklist.questions.filter(q => q.response === 'Conforme').length} / {checklist.questions.length} Conformes</span>
+                                                    </div>
+                                                    {checklist.questions.map(q => (
+                                                        <div key={q.id} className="p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                            <div className="flex justify-between items-start mb-3">
+                                                                <span className="text-xs font-bold bg-slate-100 dark:bg-white/10 px-2 py-1 rounded text-slate-600 dark:text-slate-300">{q.controlCode}</span>
+                                                                <select
+                                                                    className={`text-xs font-bold px-2 py-1 rounded border-none outline-none cursor-pointer ${q.response === 'Conforme' ? 'text-green-600 bg-green-50' : q.response === 'Non-conforme' ? 'text-red-600 bg-red-50' : 'text-slate-500 bg-slate-100'}`}
+                                                                    value={q.response}
+                                                                    onChange={(e) => handleChecklistAnswer(q.id, e.target.value as any)}
+                                                                >
+                                                                    <option value="Non-applicable">N/A</option>
+                                                                    <option value="Conforme">Conforme</option>
+                                                                    <option value="Non-conforme">Non-conforme</option>
+                                                                    <option value="Observation">Observation</option>
+                                                                </select>
+                                                            </div>
+                                                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 mb-3">{q.question}</p>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Commentaire ou observation..."
+                                                                className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-black/20 rounded-xl border-none focus:ring-1 focus:ring-indigo-500 outline-none"
+                                                                value={q.comment || ''}
+                                                                onChange={(e) => handleChecklistAnswer(q.id, q.response, e.target.value)}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
