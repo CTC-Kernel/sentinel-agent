@@ -12,7 +12,7 @@ const firebaseConfig = {
   apiKey: "***REDACTED***",
   authDomain: "sentinel-grc-a8701.firebaseapp.com",
   projectId: "sentinel-grc-a8701",
-  storageBucket: "sentinel-grc-a8701.appspot.com",
+  storageBucket: "sentinel-grc-a8701.firebasestorage.app",
   messagingSenderId: "728667422032",
   appId: "1:728667422032:web:f7bb344574e49320a1c055",
   measurementId: "G-2MLLGDZ6GP"
