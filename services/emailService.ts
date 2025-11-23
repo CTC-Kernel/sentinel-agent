@@ -4,7 +4,18 @@ import { db } from '../firebase';
 import { logAction } from './logger';
 
 // Types d'emails supportés
-type EmailType = 'INVITATION' | 'INCIDENT_ALERT' | 'DOCUMENT_REVIEW' | 'TASK_ASSIGNMENT';
+type EmailType =
+  | 'INVITATION'
+  | 'INCIDENT_ALERT'
+  | 'DOCUMENT_REVIEW'
+  | 'TASK_ASSIGNMENT'
+  | 'AUDIT_REMINDER'
+  | 'RISK_TREATMENT_DUE'
+  | 'COMPLIANCE_ALERT'
+  | 'PASSWORD_RESET'
+  | 'WELCOME_EMAIL'
+  | 'WEEKLY_DIGEST'
+  | 'SUPPLIER_REVIEW';
 
 interface EmailPayload {
   to: string;
@@ -80,3 +91,60 @@ const previewEmailInNewWindow = (payload: EmailPayload) => {
     win.document.close();
   }
 };
+
+/**
+ * Envoie plusieurs emails en une seule opération.
+ * Utile pour les notifications de masse (ex: rappels d'audit à toute l'équipe).
+ */
+export const sendBulkEmail = async (
+  user: { uid: string; email: string } | null,
+  recipients: string[],
+  payload: Omit<EmailPayload, 'to'>,
+  simulatePreview: boolean = false
+) => {
+  try {
+    const promises = recipients.map(recipient =>
+      sendEmail(user, { ...payload, to: recipient }, simulatePreview)
+    );
+
+    await Promise.all(promises);
+    await logAction(user, 'BULK_EMAIL_QUEUED', 'System', `${recipients.length} emails '${payload.type}' envoyés`);
+    return true;
+  } catch (error) {
+    console.error("Erreur lors de l'envoi groupé d'emails", error);
+    return false;
+  }
+};
+
+/**
+ * Programme l'envoi d'un email à une date future.
+ * Stocke l'email avec un timestamp de déclenchement.
+ */
+export const scheduleEmail = async (
+  user: { uid: string; email: string } | null,
+  payload: EmailPayload,
+  scheduledFor: Date
+) => {
+  try {
+    await addDoc(collection(db, 'scheduled_emails'), {
+      to: payload.to,
+      message: {
+        subject: payload.subject,
+        html: payload.html,
+      },
+      type: payload.type,
+      metadata: payload.metadata || {},
+      status: 'SCHEDULED',
+      scheduledFor: scheduledFor.toISOString(),
+      createdAt: new Date().toISOString(),
+      createdBy: user?.uid || 'system'
+    });
+
+    await logAction(user, 'EMAIL_SCHEDULED', 'System', `Email '${payload.type}' programmé pour ${scheduledFor.toLocaleString()}`);
+    return true;
+  } catch (error) {
+    console.error("Erreur lors de la programmation de l'email", error);
+    return false;
+  }
+};
+
