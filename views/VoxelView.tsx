@@ -2,10 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { VoxelStudio } from '../components/VoxelStudio';
 import { db } from '../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { Asset, Risk, Project, Audit, Incident, Supplier } from '../types';
+import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIInsight } from '../types';
+import { aiService } from '../services/aiService';
 import { useStore } from '../store';
 import { Skeleton } from '../components/ui/Skeleton';
-import { ChevronLeft, Settings, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, Bell, XCircle } from '../components/ui/Icons';
+import { ChevronLeft, Settings, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, Bell, XCircle, Sparkles, BrainCircuit } from '../components/ui/Icons';
 import { useNavigate } from 'react-router-dom';
 
 type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier';
@@ -28,6 +29,12 @@ export const VoxelView: React.FC = () => {
   const [heatmapEnabled, setHeatmapEnabled] = useState(true);
   const [xRayEnabled, setXRayEnabled] = useState(false);
   const [autoRotateEnabled, setAutoRotateEnabled] = useState(true);
+
+  // AI State
+  const [analyzing, setAnalyzing] = useState(false);
+  const [suggestedLinks, setSuggestedLinks] = useState<AISuggestedLink[]>([]);
+  const [aiInsights, setAiInsights] = useState<AIInsight[]>([]);
+  const [showInsights, setShowInsights] = useState(false);
   const detailRoutes: Record<LayerType, string> = {
     asset: '/assets',
     risk: '/risks',
@@ -212,10 +219,10 @@ export const VoxelView: React.FC = () => {
           option.id === 'risk'
             ? `Score ${(item as Risk).score}`
             : option.id === 'project'
-            ? `${(item as Project).progress || 0}%`
-            : option.id === 'incident'
-            ? (item as Incident).severity
-            : (item as any).owner || (item as any).status || '',
+              ? `${(item as Project).progress || 0}%`
+              : option.id === 'incident'
+                ? (item as Incident).severity
+                : (item as any).owner || (item as any).status || '',
       })),
     }));
   }, [layerOptions, assets, risks, projects, audits, incidents, suppliers]);
@@ -426,7 +433,7 @@ export const VoxelView: React.FC = () => {
     const fetchData = async () => {
       try {
         const orgId = user.organizationId;
-        
+
         const [
           assetsSnap,
           risksSnap,
@@ -449,7 +456,7 @@ export const VoxelView: React.FC = () => {
         setAudits(auditsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Audit[]);
         setIncidents(incidentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Incident[]);
         setSuppliers(suppliersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Supplier[]);
-        
+
       } catch (error) {
         console.error('Error fetching voxel data:', error);
         addToast('Erreur lors du chargement des données', 'error');
@@ -470,6 +477,31 @@ export const VoxelView: React.FC = () => {
     setLoading(true);
     // Refetch data
     window.location.reload();
+  };
+
+  const handleAIAnalysis = async () => {
+    setAnalyzing(true);
+    addToast("Analyse IA en cours...", "info");
+    try {
+      const result = await aiService.analyzeGraph({
+        assets,
+        risks,
+        projects,
+        audits,
+        incidents,
+        suppliers
+      });
+
+      setSuggestedLinks(result.suggestions);
+      setAiInsights(result.insights);
+      setShowInsights(true);
+      addToast("Analyse terminée avec succès", "success");
+    } catch (error) {
+      console.error(error);
+      addToast("Erreur lors de l'analyse IA", "error");
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
   if (loading) {
@@ -555,6 +587,22 @@ export const VoxelView: React.FC = () => {
 
           <div className="flex items-center gap-3">
             <button
+              onClick={handleAIAnalysis}
+              disabled={analyzing}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${analyzing
+                ? 'bg-indigo-100 text-indigo-400 dark:bg-indigo-900/30 dark:text-indigo-400 cursor-wait'
+                : 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5'
+                }`}
+            >
+              {analyzing ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              <span>{analyzing ? 'Analyse...' : 'IA Gemini'}</span>
+            </button>
+
+            <button
               onClick={handleRefresh}
               className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
               title="Actualiser les données"
@@ -598,11 +646,10 @@ export const VoxelView: React.FC = () => {
 
       {/* Main Voxel View */}
       <div
-        className={`${
-          isFullscreen
-            ? 'fixed inset-0 z-50 bg-slate-900'
-            : 'relative flex-1 min-h-[500px] max-h-[760px] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto w-full'
-        }`}
+        className={`${isFullscreen
+          ? 'fixed inset-0 z-50 bg-slate-900'
+          : 'relative flex-1 min-h-[500px] max-h-[760px] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto w-full'
+          }`}
       >
         {isFullscreen && (
           <>
@@ -640,11 +687,10 @@ export const VoxelView: React.FC = () => {
                 <button
                   key={control.label}
                   onClick={control.onClick}
-                  className={`px-4 py-2 rounded-2xl border text-xs font-semibold tracking-wide backdrop-blur-md transition ${
-                    control.active
-                      ? 'bg-white/90 text-slate-900 border-white/80'
-                      : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
-                  }`}
+                  className={`px-4 py-2 rounded-2xl border text-xs font-semibold tracking-wide backdrop-blur-md transition ${control.active
+                    ? 'bg-white/90 text-slate-900 border-white/80'
+                    : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
+                    }`}
                 >
                   {control.label}
                 </button>
@@ -680,11 +726,10 @@ export const VoxelView: React.FC = () => {
                           <button
                             key={item.id}
                             onClick={() => applyFocus(item.id, category.id)}
-                            className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition flex items-center gap-3 ${
-                              focusedNodeId === item.id
-                                ? 'border-white/40 bg-white/10 text-white'
-                                : 'border-white/10 text-white/70 hover:border-white/30 hover:bg-white/5'
-                            }`}
+                            className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition flex items-center gap-3 ${focusedNodeId === item.id
+                              ? 'border-white/40 bg-white/10 text-white'
+                              : 'border-white/10 text-white/70 hover:border-white/30 hover:bg-white/5'
+                              }`}
                           >
                             <span className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-white/5">
                               <span className="inline-block h-6 w-6 text-inherit">
@@ -741,7 +786,9 @@ export const VoxelView: React.FC = () => {
             projects: projects.length,
             incidents: incidents.length,
           }}
+
           releaseToken={releaseToken}
+          suggestedLinks={suggestedLinks}
         />
 
         <div className="absolute bottom-4 right-4 z-20 pointer-events-none">
@@ -754,6 +801,41 @@ export const VoxelView: React.FC = () => {
             <span className="text-sm font-semibold">{isFullscreen ? 'Quitter' : 'Plein écran'}</span>
           </button>
         </div>
+
+        {/* AI Insights Panel */}
+        {showInsights && aiInsights.length > 0 && (
+          <div className="absolute top-24 left-6 z-40 w-80 max-h-[calc(100vh-200px)] overflow-y-auto rounded-2xl border border-white/20 bg-slate-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[slideIn_0.3s_ease-out]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-indigo-400">
+                <BrainCircuit className="h-5 w-5" />
+                <h3 className="font-bold text-white">Insights IA</h3>
+              </div>
+              <button
+                onClick={() => setShowInsights(false)}
+                className="p-1 hover:bg-white/10 rounded-full text-white/60 hover:text-white transition"
+              >
+                <XCircle className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {aiInsights.map((insight) => (
+                <div key={insight.id} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition group">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <span className={`text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded ${insight.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
+                      insight.severity === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                        'bg-blue-500/20 text-blue-400'
+                      }`}>
+                      {insight.type}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-semibold text-white mb-1 group-hover:text-indigo-300 transition-colors">{insight.title}</h4>
+                  <p className="text-xs text-white/70 leading-relaxed">{insight.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {selectedNodeDetails && (
           <div className="absolute left-4 bottom-4 z-40 max-w-sm pointer-events-none">
@@ -891,11 +973,10 @@ export const VoxelView: React.FC = () => {
                   <button
                     key={option.id}
                     onClick={() => handleLayerToggle(option.id)}
-                    className={`group flex items-center gap-2 px-4 py-2 rounded-2xl border transition ${
-                      isActive
-                        ? 'border-transparent text-white bg-slate-900 dark:bg-white/10'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-500'
-                    }`}
+                    className={`group flex items-center gap-2 px-4 py-2 rounded-2xl border transition ${isActive
+                      ? 'border-transparent text-white bg-slate-900 dark:bg-white/10'
+                      : 'border-slate-200 dark:border-slate-700 text-slate-500'
+                      }`}
                   >
                     <span className={`w-2 h-2 rounded-full ${option.color}`}></span>
                     <div className="text-left">
