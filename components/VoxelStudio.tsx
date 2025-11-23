@@ -494,15 +494,15 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
 
   return (
     <group position={node.position}>
-      <group
+      <animated.group
         ref={meshRef}
-        scale={scale as any}
+        scale={scale}
         onClick={handleClick}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
         {renderCategoryModel()}
-      </group>
+      </animated.group>
 
       {(hovered || isSelected) && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -node.size / 2, 0]}>
