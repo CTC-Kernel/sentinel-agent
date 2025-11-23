@@ -94,9 +94,14 @@ const StarField: React.FC = () => {
     const starCount = 1200;
     const array = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount; i++) {
-      array[i * 3] = (Math.random() - 0.5) * 200;
-      array[i * 3 + 1] = (Math.random() - 0.5) * 80;
-      array[i * 3 + 2] = (Math.random() - 0.5) * 200;
+      // Deterministic random-like generation to avoid impure render warning
+      const r1 = Math.sin(i * 12.9898) * 43758.5453;
+      const r2 = Math.sin(i * 78.233) * 43758.5453;
+      const r3 = Math.sin(i * 37.312) * 43758.5453;
+
+      array[i * 3] = ((r1 - Math.floor(r1)) - 0.5) * 200;
+      array[i * 3 + 1] = ((r2 - Math.floor(r2)) - 0.5) * 80;
+      array[i * 3 + 2] = ((r3 - Math.floor(r3)) - 0.5) * 200;
     }
     return array;
   }, []);
@@ -755,7 +760,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
   useEffect(() => {
     if (selectedNode) {
-      setAutoRotate(false);
+      setTimeout(() => setAutoRotate(false), 0);
       return;
     }
     const timer = setTimeout(() => setAutoRotate(true), 700);
@@ -818,7 +823,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
   useEffect(() => {
     if (selectedNode && !voxelNodes.find(node => node.id === selectedNode.id)) {
-      setSelectedNode(null);
+      setTimeout(() => setSelectedNode(null), 0);
     }
   }, [voxelNodes, selectedNode]);
 
@@ -826,7 +831,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     if (focusNodeId === undefined) return;
     selectionUpdateFromOutside.current = true;
     if (focusNodeId === null) {
-      setSelectedNode(null);
+      setTimeout(() => setSelectedNode(null), 0);
       shouldSnapToTarget.current = false;
       return;
     }
@@ -847,7 +852,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
   useEffect(() => {
     if (!releaseToken) return;
-    setSelectedNode(null);
+    setTimeout(() => setSelectedNode(null), 0);
     shouldSnapToTarget.current = false;
     setAutoRotate(true);
   }, [releaseToken]);

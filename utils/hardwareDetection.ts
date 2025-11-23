@@ -40,10 +40,11 @@ export const detectHardware = async (): Promise<HardwareInfo> => {
     }
 
     // 3. RAM (Chrome/Edge only)
-    // @ts-ignore - deviceMemory is non-standard but supported in Chromium
-    if (navigator.deviceMemory) {
-        // @ts-ignore
-        info.ram = `${navigator.deviceMemory} GB`;
+    // navigator.deviceMemory is not standard yet
+    const deviceMemory = (navigator as any).deviceMemory || 4;
+    // navigator.hardwareConcurrency is standard but might be missing in types
+    if (deviceMemory) {
+        info.ram = `${deviceMemory} GB`;
     }
 
     // 4. Screen Resolution
