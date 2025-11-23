@@ -6,6 +6,8 @@ import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserP
 import { Plus, Search, Server, Trash2, Upload, AlertTriangle, History, X, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Activity, Clock, Copy, Euro, TrendingDown } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
+import { aiService } from '../services/aiService';
+import { Sparkles } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 import { Comments } from '../components/ui/Comments';
@@ -36,6 +38,16 @@ export const Assets: React.FC = () => {
     const [editForm, setEditForm] = useState<Partial<Asset>>({});
     const [isDirty, setIsDirty] = useState(false);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+
+    // AI Import State
+    const [importWizardOpen, setImportWizardOpen] = useState(false);
+    const [importPreview, setImportPreview] = useState<string>('');
+    const [importMappings, setImportMappings] = useState<Record<string, string>>({});
+    const [importConfidence, setImportConfidence] = useState(0);
+    const [isAnalyzingImport, setIsAnalyzingImport] = useState(false);
+
+    // AI Helper State
+    const [suggestingField, setSuggestingField] = useState<string | null>(null);
 
     const calculateDepreciation = (price: number, purchaseDate: string) => {
         if (!price || !purchaseDate) return price;
@@ -187,8 +199,7 @@ export const Assets: React.FC = () => {
         } catch (e) { addToast("Erreur duplication", "error"); }
     };
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!canEdit || !user?.organizationId) return;
+    const handleAIImportAnalysis = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
@@ -196,38 +207,113 @@ export const Assets: React.FC = () => {
         reader.onload = async (e) => {
             const text = e.target?.result as string;
             if (!text) return;
-            const lines = text.split('\n').slice(1).filter(line => line.trim() !== '');
-            if (lines.length === 0) return addToast("Fichier vide", "error");
 
-            setLoading(true);
+            setImportPreview(text.split('\n').slice(0, 5).join('\n')); // Preview first 5 lines
+            setImportWizardOpen(true);
+            setIsAnalyzingImport(true);
+
             try {
-                const batch = writeBatch(db);
-                let count = 0;
-                lines.forEach(line => {
-                    const cols = line.split(',');
-                    if (cols.length >= 3) {
-                        const newRef = doc(collection(db, 'assets'));
-                        batch.set(newRef, {
-                            organizationId: user.organizationId,
-                            name: cols[0]?.trim() || 'Unknown',
-                            type: (cols[1]?.trim() || 'Matériel') as any,
-                            owner: cols[2]?.trim() || 'Unknown',
-                            confidentiality: cols[3]?.trim() === 'Critique' ? Criticality.CRITICAL : Criticality.LOW,
-                            integrity: Criticality.LOW, availability: Criticality.LOW,
-                            location: cols[4]?.trim() || '',
-                            lifecycleStatus: 'En service',
-                            createdAt: new Date().toISOString()
-                        });
-                        count++;
-                    }
-                });
-                await batch.commit();
-                await logAction(user, 'IMPORT', 'Asset', `Import CSV de ${count} actifs`);
-                addToast(`${count} actifs importés`, "success");
-                fetchAssets();
-            } catch (error) { addToast("Erreur import CSV", "error"); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+                const analysis = await aiService.analyzeImportData(text.split('\n').slice(0, 10).join('\n'));
+                setImportMappings(analysis.mappings);
+                setImportConfidence(analysis.confidence);
+            } catch (error) {
+                addToast("Erreur analyse AI", "error");
+            } finally {
+                setIsAnalyzingImport(false);
+            }
         };
         reader.readAsText(file);
+    };
+
+    const executeImport = async () => {
+        if (!importPreview) return;
+        setLoading(true);
+        setImportWizardOpen(false);
+        try {
+            const lines = importPreview.split('\n').slice(1).filter(line => line.trim() !== ''); // Use full file content in real app, here using preview for simplicity or need to store full content
+            // Re-read file or store full content in state? Storing full content in state might be heavy. 
+            // For this demo, let's assume the user re-uploads or we store it. 
+            // Actually, let's just use the file input ref to read again or store the text.
+            // Simplified: We'll just use the preview text variable if it was full content, but we sliced it.
+            // Let's rely on the file input being present and re-read it, or just store the full text in a ref.
+        } catch (e) { }
+
+        // Re-implementing simple read for now to match previous logic but with mappings
+        // Ideally we would parse CSV properly.
+        // For this task, let's just do the actual import logic here.
+
+        const file = fileInputRef.current?.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const text = e.target?.result as string;
+            if (!text) return;
+            const lines = text.split('\n').slice(1).filter(line => line.trim() !== '');
+
+            const batch = writeBatch(db);
+            let count = 0;
+            const headers = text.split('\n')[0].split(',');
+
+            lines.forEach(line => {
+                const cols = line.split(',');
+                const assetData: any = {
+                    organizationId: user?.organizationId,
+                    createdAt: new Date().toISOString(),
+                    lifecycleStatus: 'En service',
+                    confidentiality: Criticality.LOW,
+                    integrity: Criticality.LOW,
+                    availability: Criticality.LOW
+                };
+
+                // Apply mappings
+                Object.entries(importMappings).forEach(([csvHeader, internalField]) => {
+                    const colIndex = headers.findIndex(h => h.trim() === csvHeader);
+                    if (colIndex !== -1 && cols[colIndex]) {
+                        let value = cols[colIndex].trim();
+                        // Basic normalization
+                        if (internalField === 'confidentiality') {
+                            if (value.toLowerCase().includes('critique')) value = Criticality.CRITICAL;
+                            else if (value.toLowerCase().includes('élevée')) value = Criticality.HIGH;
+                            else if (value.toLowerCase().includes('moyenne')) value = Criticality.MEDIUM;
+                            else value = Criticality.LOW;
+                        }
+                        assetData[internalField] = value;
+                    }
+                });
+
+                // Fallbacks if mapping failed or missing
+                if (!assetData.name) assetData.name = cols[0] || 'Unknown';
+                if (!assetData.type) assetData.type = 'Matériel';
+
+                const newRef = doc(collection(db, 'assets'));
+                batch.set(newRef, assetData);
+                count++;
+            });
+
+            await batch.commit();
+            await logAction(user, 'IMPORT', 'Asset', `Import AI de ${count} actifs`);
+            addToast(`${count} actifs importés avec succès`, "success");
+            fetchAssets();
+            setLoading(false);
+        };
+        reader.readAsText(file);
+    };
+
+    const handleSuggestField = async (field: string) => {
+        setSuggestingField(field);
+        try {
+            const suggestion = await aiService.suggestField(editForm, field);
+            if (suggestion.value) {
+                setEditForm(prev => ({ ...prev, [field]: suggestion.value }));
+                setIsDirty(true);
+                addToast(`Suggestion: ${suggestion.value}`, "info");
+            }
+        } catch (e) {
+            addToast("Impossible de générer une suggestion", "error");
+        } finally {
+            setSuggestingField(null);
+        }
     };
 
     const getCriticalityColor = (level: Criticality) => {
@@ -308,17 +394,65 @@ export const Assets: React.FC = () => {
             {/* Confirm Modal */}
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
+            {/* Import Wizard Modal */}
+            {importWizardOpen && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setImportWizardOpen(false)} />
+                    <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-in">
+                        <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center"><Sparkles className="h-5 w-5 mr-2 text-brand-500" /> Assistant d'Importation</h3>
+                            <button onClick={() => setImportWizardOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors"><X className="h-5 w-5 text-slate-500" /></button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            {isAnalyzingImport ? (
+                                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                                    <div className="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                                    <p className="text-slate-500 font-medium animate-pulse">Analyse de votre fichier en cours...</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10">
+                                        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Aperçu des données</h4>
+                                        <pre className="text-xs text-slate-500 font-mono overflow-x-auto">{importPreview}</pre>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">Correspondances Détectées</h4>
+                                            <span className={`text-xs font-bold px-2 py-1 rounded-lg ${importConfidence > 0.8 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>Confiance IA: {Math.round(importConfidence * 100)}%</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {Object.entries(importMappings).map(([csv, internal]) => (
+                                                <div key={csv} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl">
+                                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{csv}</span>
+                                                    <span className="text-slate-300">➔</span>
+                                                    <span className="text-sm font-bold text-brand-600">{internal}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 flex justify-end gap-3">
+                            <button onClick={() => setImportWizardOpen(false)} className="px-5 py-2.5 text-slate-600 font-bold hover:bg-white rounded-xl transition-colors">Annuler</button>
+                            <button onClick={executeImport} disabled={isAnalyzingImport} className="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">Confirmer l'Import</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div><h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Inventaire des Actifs</h1><p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Base de connaissance de l'infrastructure.</p></div>
                 {canEdit && (
                     <div className="flex gap-3">
-                        <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Upload className="h-4 w-4 mr-2" /> Importer CSV</button>
+                        <input type="file" accept=".csv" ref={fileInputRef} onChange={handleAIImportAnalysis} className="hidden" />
+                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Sparkles className="h-4 w-4 mr-2 text-brand-500" /> Import Intelligent</button>
                         <button onClick={() => openInspector(undefined)} className="group flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"><Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" /> Nouvel Actif</button>
                     </div>
                 )}
-            </div>
 
+            </div>
             {/* KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Actifs</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p></div><div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600"><Database className="h-6 w-6" /></div></div>
@@ -406,8 +540,20 @@ export const Assets: React.FC = () => {
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                                                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Informations Principales</h3>
                                                 <div className="grid grid-cols-2 gap-6">
-                                                    <div className="col-span-2"><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Nom de l'actif</label><input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium" value={editForm.name || ''} onChange={e => { setEditForm({ ...editForm, name: e.target.value }); setIsDirty(true); }} /></div>
-                                                    <div><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Type</label><div className="relative"><select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" value={editForm.type} onChange={e => { setEditForm({ ...editForm, type: e.target.value as any }); setIsDirty(true); }}>{['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].map(t => <option key={t} value={t}>{t}</option>)}</select></div></div>
+                                                    <div className="col-span-2">
+                                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Nom de l'actif</label>
+                                                        <div className="relative">
+                                                            <input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium pr-10" value={editForm.name || ''} onChange={e => { setEditForm({ ...editForm, name: e.target.value }); setIsDirty(true); }} />
+                                                            {canEdit && <button onClick={() => handleSuggestField('name')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-500 transition-colors" title="Suggérer un nom"><Sparkles className={`h-4 w-4 ${suggestingField === 'name' ? 'animate-spin' : ''}`} /></button>}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Type</label>
+                                                        <div className="relative">
+                                                            <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" value={editForm.type} onChange={e => { setEditForm({ ...editForm, type: e.target.value as any }); setIsDirty(true); }}>{['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].map(t => <option key={t} value={t}>{t}</option>)}</select>
+                                                            {canEdit && <button onClick={() => handleSuggestField('type')} className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-500 transition-colors" title="Suggérer le type"><Sparkles className={`h-4 w-4 ${suggestingField === 'type' ? 'animate-spin' : ''}`} /></button>}
+                                                        </div>
+                                                    </div>
                                                     <div>
                                                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Propriétaire</label>
                                                         <div className="relative">
@@ -420,7 +566,13 @@ export const Assets: React.FC = () => {
                                                     <div className="col-span-2"><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Localisation</label><input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium" value={editForm.location || ''} onChange={e => { setEditForm({ ...editForm, location: e.target.value }); setIsDirty(true); }} /></div>
                                                 </div>
                                             </div>
-                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm"><h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center"><AlertTriangle className="h-4 w-4 mr-2" /> Classification DIC</h3><div className="grid grid-cols-3 gap-4">{['confidentiality', 'integrity', 'availability'].map((field) => (<div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5"><label className="block text-[10px] font-bold uppercase text-slate-400 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label><select disabled={!canEdit} className="w-full bg-transparent border-none p-0 font-bold text-slate-900 dark:text-white focus:ring-0 cursor-pointer text-sm" value={(editForm as any)[field]} onChange={e => { setEditForm({ ...editForm, [field]: e.target.value }); setIsDirty(true); }}>{Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}</select></div>))}</div></div>
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                                <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center justify-between">
+                                                    <div className="flex items-center"><AlertTriangle className="h-4 w-4 mr-2" /> Classification DIC</div>
+                                                    {canEdit && <button onClick={() => handleSuggestField('confidentiality')} className="text-xs normal-case font-medium text-brand-500 hover:text-brand-600 flex items-center bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg transition-colors"><Sparkles className="h-3 w-3 mr-1.5" /> Suggérer Classification</button>}
+                                                </h3>
+                                                <div className="grid grid-cols-3 gap-4">{['confidentiality', 'integrity', 'availability'].map((field) => (<div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5"><label className="block text-[10px] font-bold uppercase text-slate-400 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label><select disabled={!canEdit} className="w-full bg-transparent border-none p-0 font-bold text-slate-900 dark:text-white focus:ring-0 cursor-pointer text-sm" value={(editForm as any)[field]} onChange={e => { setEditForm({ ...editForm, [field]: e.target.value }); setIsDirty(true); }}>{Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}</select></div>))}</div>
+                                            </div>
                                         </div>
                                     )}
                                     {inspectorTab === 'lifecycle' && (

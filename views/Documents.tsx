@@ -4,11 +4,12 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import { Document, UserProfile, SystemLog } from '../types';
-import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, UploadCloud, Edit, Users, Bell, FileText, X, History, MessageSquare, Save, Eye, FileSpreadsheet } from '../components/ui/Icons';
+import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, UploadCloud, Edit, Users, Bell, FileText, X, History, MessageSquare, Save, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, AlertTriangle, CalendarDays } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { sendEmail } from '../services/emailService';
 import { getDocumentReviewTemplate } from '../services/emailTemplates';
+import { generateICS } from '../utils/calendar';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Comments } from '../components/ui/Comments';
 import { CardSkeleton } from '../components/ui/Skeleton';
@@ -31,8 +32,8 @@ export const Documents: React.FC = () => {
     const [editForm, setEditForm] = useState<Partial<Document>>({});
 
     const [newDocData, setNewDocData] = useState<Partial<Document>>({
-        title: '', type: 'Politique', version: '1.0', status: 'Brouillon',
-        owner: user?.displayName || '', nextReviewDate: '', readBy: []
+        title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
+        owner: user?.displayName || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: []
     });
     const [fileToUpload, setFileToUpload] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
@@ -113,6 +114,43 @@ export const Documents: React.FC = () => {
         const storageRef = ref(storage, `documents/${user?.organizationId}/${Date.now()}_${file.name}`);
         await uploadBytes(storageRef, file);
         return await getDownloadURL(storageRef);
+    };
+
+    const handleWorkflowAction = async (action: 'submit' | 'approve' | 'reject' | 'sign') => {
+        if (!selectedDocument || !user) return;
+        let updates: Partial<Document> = {};
+        let logMsg = '';
+
+        if (action === 'submit') {
+            updates = { status: 'En revue', workflowStatus: 'Review' };
+            logMsg = 'Document soumis pour revue';
+        } else if (action === 'approve') {
+            updates = { status: 'Approuvé', workflowStatus: 'Approved' };
+            logMsg = 'Document approuvé';
+        } else if (action === 'reject') {
+            updates = { status: 'Rejeté', workflowStatus: 'Rejected' };
+            logMsg = 'Document rejeté';
+        } else if (action === 'sign') {
+            const newSignature = { userId: user.uid, date: new Date().toISOString(), role: user.role };
+            const currentSignatures = selectedDocument.signatures || [];
+            updates = {
+                status: 'Publié',
+                workflowStatus: 'Approved',
+                signatures: [...currentSignatures, newSignature]
+            };
+            logMsg = 'Document signé et publié';
+        }
+
+        try {
+            await updateDoc(doc(db, 'documents', selectedDocument.id), { ...updates, updatedAt: new Date().toISOString() });
+            await logAction(user, 'WORKFLOW', 'Document', `${logMsg}: ${selectedDocument.title}`);
+
+            setDocuments(prev => prev.map(d => d.id === selectedDocument.id ? { ...d, ...updates } : d));
+            setSelectedDocument({ ...selectedDocument, ...updates });
+            addToast(logMsg, "success");
+        } catch (e) {
+            addToast("Erreur workflow", "error");
+        }
     };
 
     const handleCreate = async (e: React.FormEvent) => {
@@ -233,8 +271,11 @@ export const Documents: React.FC = () => {
     const getStatusColor = (s: string) => {
         switch (s) {
             case 'Publié': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900/50';
-            case 'Obsolète': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50';
-            default: return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
+            case 'Approuvé': return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50';
+            case 'En revue': return 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50';
+            case 'Rejeté': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50';
+            case 'Obsolète': return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
+            default: return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
         }
     };
 
@@ -255,7 +296,7 @@ export const Documents: React.FC = () => {
                 </div>
                 {canEdit && (
                     <button onClick={() => {
-                        setNewDocData({ title: '', type: 'Politique', version: '1.0', status: 'Brouillon', owner: user?.displayName || '', nextReviewDate: '', readBy: [] });
+                        setNewDocData({ title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft', owner: user?.displayName || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [] });
                         setShowCreateModal(true);
                     }} className="flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-blue-500/20">
                         <Plus className="h-4 w-4 mr-2" /> Nouveau Document
@@ -283,7 +324,7 @@ export const Documents: React.FC = () => {
                             description={filter ? "Aucun document ne correspond à votre recherche." : "Centralisez vos politiques et procédures de sécurité."}
                             actionLabel={filter ? undefined : "Nouveau Document"}
                             onAction={filter ? undefined : () => {
-                                setNewDocData({ title: '', type: 'Politique', version: '1.0', status: 'Brouillon', owner: user?.displayName || '', nextReviewDate: '', readBy: [] });
+                                setNewDocData({ title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft', owner: user?.displayName || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [] });
                                 setShowCreateModal(true);
                             }}
                         />
@@ -378,7 +419,7 @@ export const Documents: React.FC = () => {
                                                     <div className="grid grid-cols-2 gap-6">
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label>
                                                             <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })}>
-                                                                {['Brouillon', 'Publié', 'Obsolète'].map(s => <option key={s} value={s}>{s}</option>)}
+                                                                {['Brouillon', 'En revue', 'Approuvé', 'Rejeté', 'Publié', 'Obsolète'].map(s => <option key={s} value={s}>{s}</option>)}
                                                             </select>
                                                         </div>
                                                         <div>
@@ -403,7 +444,71 @@ export const Documents: React.FC = () => {
                                                         </div>
                                                     </div>
 
-                                                    <div className="p-6 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                    {/* Workflow Actions */}
+                                                    <div className="p-6 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Workflow de Validation</h4>
+
+                                                        {/* Status Steps */}
+                                                        <div className="flex items-center justify-between mb-6 relative">
+                                                            <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-gray-200 dark:bg-gray-700 -z-10" />
+                                                            {['Brouillon', 'En revue', 'Approuvé', 'Publié'].map((step, idx) => {
+                                                                const isCompleted = ['Brouillon', 'En revue', 'Approuvé', 'Publié'].indexOf(selectedDocument.status) >= idx;
+                                                                const isCurrent = selectedDocument.status === step;
+                                                                return (
+                                                                    <div key={step} className="flex flex-col items-center bg-white dark:bg-slate-900 px-2">
+                                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${isCompleted ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-300'}`}>
+                                                                            {isCompleted ? <CheckCircle2 className="h-4 w-4" /> : <span className="text-xs font-bold">{idx + 1}</span>}
+                                                                        </div>
+                                                                        <span className={`text-[10px] font-bold mt-2 uppercase tracking-wide ${isCurrent ? 'text-blue-600' : 'text-gray-400'}`}>{step}</span>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+
+                                                        <div className="flex flex-wrap gap-3">
+                                                            {selectedDocument.status === 'Brouillon' && canEdit && (
+                                                                <button onClick={() => handleWorkflowAction('submit')} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">
+                                                                    Soumettre pour revue
+                                                                </button>
+                                                            )}
+                                                            {selectedDocument.status === 'En revue' && (
+                                                                <>
+                                                                    <button onClick={() => handleWorkflowAction('approve')} className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20 flex items-center justify-center">
+                                                                        <CheckCircle2 className="h-4 w-4 mr-2" /> Approuver
+                                                                    </button>
+                                                                    <button onClick={() => handleWorkflowAction('reject')} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20 flex items-center justify-center">
+                                                                        <X className="h-4 w-4 mr-2" /> Rejeter
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            {selectedDocument.status === 'Approuvé' && (
+                                                                <button onClick={() => handleWorkflowAction('sign')} className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20 flex items-center justify-center">
+                                                                    <ShieldCheck className="h-4 w-4 mr-2" /> Signer & Publier
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        {selectedDocument.signatures && selectedDocument.signatures.length > 0 && (
+                                                            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-white/10">
+                                                                <h5 className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wide">Signatures</h5>
+                                                                <div className="space-y-2">
+                                                                    {selectedDocument.signatures.map((sig, i) => (
+                                                                        <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-white/5">
+                                                                            <div className="flex items-center">
+                                                                                <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center mr-3">
+                                                                                    <ShieldCheck className="h-4 w-4" />
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-xs font-bold text-slate-900 dark:text-white">Signé par {usersList.find(u => u.uid === sig.userId)?.displayName || 'Utilisateur inconnu'}</p>
+                                                                                    <p className="text-[10px] text-slate-500">{new Date(sig.date).toLocaleString()}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                            <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-slate-500">{sig.role}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                         <div className="flex justify-between items-center mb-4">
                                                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">Révision</h4>
                                                             {selectedDocument.nextReviewDate && (
@@ -414,6 +519,14 @@ export const Documents: React.FC = () => {
                                                         </div>
                                                         <button onClick={sendReviewReminder} className="w-full py-3 bg-slate-50 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center border border-slate-200 dark:border-white/5">
                                                             <Bell className="h-3.5 w-3.5 mr-2" /> Envoyer rappel de révision
+                                                        </button>
+                                                        <button onClick={() => selectedDocument.nextReviewDate && generateICS({
+                                                            title: `Révision : ${selectedDocument.title}`,
+                                                            description: `Révision du document ${selectedDocument.title} (v${selectedDocument.version})`,
+                                                            start: new Date(selectedDocument.nextReviewDate),
+                                                            url: window.location.href
+                                                        })} className="w-full mt-2 py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-center border border-slate-200 dark:border-white/5">
+                                                            <CalendarDays className="h-3.5 w-3.5 mr-2" /> Ajouter au calendrier
                                                         </button>
                                                     </div>
 
@@ -497,6 +610,22 @@ export const Documents: React.FC = () => {
                                     <option value="">Sélectionner...</option>
                                     {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
                                 </select>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Reviewers</label>
+                                    <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
+                                        value={newDocData.reviewers || []} onChange={e => setNewDocData({ ...newDocData, reviewers: Array.from(e.target.selectedOptions, option => option.value) })}>
+                                        {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Approbateurs</label>
+                                    <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
+                                        value={newDocData.approvers || []} onChange={e => setNewDocData({ ...newDocData, approvers: Array.from(e.target.selectedOptions, option => option.value) })}>
+                                        {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
+                                    </select>
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Prochaine révision</label>

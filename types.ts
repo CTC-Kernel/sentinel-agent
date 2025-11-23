@@ -74,7 +74,11 @@ export interface Document {
   title: string;
   type: 'Politique' | 'Procédure' | 'Preuve' | 'Rapport' | 'Autre';
   version: string;
-  status: 'Brouillon' | 'Publié' | 'Obsolète';
+  status: 'Brouillon' | 'En revue' | 'Approuvé' | 'Rejeté' | 'Publié' | 'Obsolète';
+  workflowStatus?: 'Draft' | 'Review' | 'Approved' | 'Rejected';
+  reviewers?: string[];
+  approvers?: string[];
+  signatures?: Array<{ userId: string, date: string, role: string }>;
   url?: string;
   owner: string;
   readBy?: string[];
@@ -102,7 +106,40 @@ export interface Finding {
   type: 'Majeure' | 'Mineure' | 'Observation' | 'Opportunité';
   status: 'Ouvert' | 'Fermé';
   relatedControlId?: string;
+  evidenceIds?: string[];
   createdAt: string;
+}
+
+export interface RiskHistory {
+  id: string;
+  riskId: string;
+  organizationId: string;
+  date: string;
+  previousScore: number;
+  newScore: number;
+  previousProbability: number;
+  newProbability: number;
+  previousImpact: number;
+  newImpact: number;
+  changedBy: string;
+  reason?: string;
+}
+
+export interface AuditQuestion {
+  id: string;
+  controlCode: string;
+  question: string;
+  response: 'Conforme' | 'Non-conforme' | 'Observation' | 'Non-applicable';
+  comment?: string;
+}
+
+export interface AuditChecklist {
+  id: string;
+  auditId: string;
+  organizationId: string;
+  questions: AuditQuestion[];
+  completedBy?: string;
+  completedAt?: string;
 }
 
 export interface ProjectTask {
@@ -271,4 +308,22 @@ export interface Comment {
   userName: string;
   content: string;
   createdAt: string;
+}
+
+export interface AISuggestedLink {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  type: 'risk_factor' | 'dependency' | 'impact' | 'mitigation';
+  confidence: number;
+  reasoning: string;
+}
+
+export interface AIInsight {
+  id: string;
+  type: 'critical_path' | 'cluster' | 'anomaly' | 'recommendation';
+  title: string;
+  description: string;
+  relatedIds: string[];
+  severity: 'low' | 'medium' | 'high' | 'critical';
 }
