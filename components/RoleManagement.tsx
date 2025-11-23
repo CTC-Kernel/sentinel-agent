@@ -7,8 +7,7 @@ import {
     hasPermission,
     getRoleName,
     getRoleDescription,
-    Role,
-    PERMISSIONS
+    Role
 } from '../utils/permissions';
 import {
     Users,
@@ -70,7 +69,7 @@ export const RoleManagement: React.FC = () => {
         }
     };
 
-    const canManageRoles = hasPermission(user?.role as Role, 'users', 'update');
+    const canManageRoles = hasPermission(user, 'User', 'update');
 
     if (!canManageRoles) {
         return (
