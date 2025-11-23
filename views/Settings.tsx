@@ -9,10 +9,12 @@ import { signOut, updatePassword } from 'firebase/auth';
 import { SystemLog, UserProfile } from '../types';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { logAction } from '../services/logger';
+import { hasPermission } from '../utils/permissions';
 
 export const Settings: React.FC = () => {
     const { theme, toggleTheme, user, setUser, addToast } = useStore();
     const [logs, setLogs] = useState<SystemLog[]>([]);
+    const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
     const [hasMoreLogs, setHasMoreLogs] = useState(true);
     const [exporting, setExporting] = useState(false);
@@ -43,14 +45,49 @@ export const Settings: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
+    const fetchUsers = async () => {
+        if (!user?.organizationId) return;
+        try {
+            const q = query(collection(db, 'users'), where('organizationId', '==', user.organizationId));
+            const snap = await getDocs(q);
+            const users = snap.docs.map(d => ({ ...d.data(), uid: d.id } as UserProfile));
+            setUsersList(users);
+        } catch (e) { console.error("Error fetching users", e); }
+    };
+
+    const handleUpdateUserRole = async (targetUserId: string, newRole: UserProfile['role']) => {
+        if (!hasPermission(user, 'User', 'manage')) return;
+        try {
+            await updateDoc(doc(db, 'users', targetUserId), { role: newRole });
+            setUsersList(prev => prev.map(u => u.uid === targetUserId ? { ...u, role: newRole } : u));
+            addToast("Rôle mis à jour", "success");
+        } catch (e) { addToast("Erreur mise à jour rôle", "error"); }
+    };
+
+    const handleRemoveUser = async (targetUserId: string) => {
+        if (!hasPermission(user, 'User', 'manage')) return;
+        if (targetUserId === user!.uid) {
+            addToast("Vous ne pouvez pas vous supprimer vous-même", "error");
+            return;
+        }
+        if (!confirm("Êtes-vous sûr de vouloir retirer cet utilisateur de l'organisation ?")) return;
+
+        try {
+            await updateDoc(doc(db, 'users', targetUserId), { organizationId: '', organizationName: '', role: '' });
+            setUsersList(prev => prev.filter(u => u.uid !== targetUserId));
+            addToast("Utilisateur retiré", "success");
+        } catch (e) { addToast("Erreur suppression utilisateur", "error"); }
+    };
+
     useEffect(() => {
         if (user) {
             setProfile({ displayName: user.displayName || '', department: user.department || '' });
             setOrgName(user.organizationName || '');
         }
-        if (user?.role === 'admin' && user?.organizationId) {
+        if (hasPermission(user, 'Settings', 'manage') && user?.organizationId) {
             fetchLogs(true);
             fetchSystemStats();
+            fetchUsers();
             checkLatency();
         }
     }, [user?.organizationId]);
@@ -163,7 +200,7 @@ export const Settings: React.FC = () => {
 
     const handleUpdateOrg = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user || user.role !== 'admin' || !user.organizationId) return;
+        if (!hasPermission(user, 'Settings', 'manage') || !user?.organizationId) return;
         setSavingOrg(true);
         try {
             // Update all users in organization with new name
@@ -492,7 +529,7 @@ export const Settings: React.FC = () => {
                 </div>
 
                 {/* Admin / Organization */}
-                {user?.role === 'admin' ? (
+                {hasPermission(user, 'Settings', 'manage') ? (
                     <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm">
                         <div className="p-6 border-b border-gray-100 dark:border-white/5 flex items-center gap-4 bg-slate-50/50 dark:bg-white/5">
                             <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg">
@@ -558,8 +595,58 @@ export const Settings: React.FC = () => {
                     </div>
                 )}
 
+                {/* User Management (Admin) */}
+                {user && hasPermission(user, 'User', 'manage') && (
+                    <div className="glass-panel rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 shadow-sm">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg">
+                                <Users className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Utilisateurs</h3>
+                                <p className="text-xs text-slate-500 font-medium">Gestion des accès ({usersList.length} membres)</p>
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            {usersList.map(u => (
+                                <div key={u.uid} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold">
+                                            {u.photoURL ? <img src={u.photoURL} className="w-full h-full rounded-full object-cover" /> : u.displayName?.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900 dark:text-white">{u.displayName} {u.uid === user.uid && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded ml-1">Vous</span>}</p>
+                                            <p className="text-xs text-slate-500">{u.email}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <select
+                                            value={u.role}
+                                            onChange={(e) => handleUpdateUserRole(u.uid, e.target.value as any)}
+                                            disabled={u.uid === user.uid}
+                                            className="text-xs font-bold bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                            <option value="admin">Admin</option>
+                                            <option value="rssi">RSSI</option>
+                                            <option value="auditor">Auditeur</option>
+                                            <option value="project_manager">Chef de Projet</option>
+                                            <option value="direction">Direction</option>
+                                            <option value="user">Utilisateur</option>
+                                        </select>
+                                        {u.uid !== user.uid && (
+                                            <button onClick={() => handleRemoveUser(u.uid)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Audit Logs (Admin) */}
-                {user?.role === 'admin' && (
+                {hasPermission(user, 'SystemLog', 'read') && (
                     <div className="glass-panel rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 shadow-sm">
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center">

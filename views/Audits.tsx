@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { collection, addDoc, getDocs, query, orderBy, doc, deleteDoc, where, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document } from '../types';
-import { Plus, XCircle, Activity, FileText, Briefcase, Search, CheckCircle2, AlertTriangle, ChevronRight, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Save, Download, ShieldAlert, ClipboardCheck, Link } from '../components/ui/Icons';
+import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk } from '../types';
+import { canEditResource } from '../utils/permissions';
+import { Plus, XCircle, Activity, FileText, Briefcase, Search, CheckCircle2, AlertTriangle, ChevronRight, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Save, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
@@ -15,13 +16,15 @@ import { EmptyState } from '../components/ui/EmptyState';
 export const Audits: React.FC = () => {
     const [audits, setAudits] = useState<Audit[]>([]);
     const [controls, setControls] = useState<Control[]>([]);
+    const [assets, setAssets] = useState<Asset[]>([]);
+    const [risks, setRisks] = useState<Risk[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [filter, setFilter] = useState('');
     const { user, addToast } = useStore();
 
-    const canEdit = user?.role === 'admin' || user?.role === 'auditor';
+    const canEdit = canEditResource(user, 'Audit');
 
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
     const [findings, setFindings] = useState<Finding[]>([]);
@@ -29,7 +32,7 @@ export const Audits: React.FC = () => {
     const [newFinding, setNewFinding] = useState<Partial<Finding>>({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
     const [checklist, setChecklist] = useState<AuditChecklist | null>(null);
     const [documents, setDocuments] = useState<Document[]>([]);
-    const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist'>('findings');
+    const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist' | 'scope'>('findings');
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -42,7 +45,9 @@ export const Audits: React.FC = () => {
         auditor: user?.displayName || '',
         dateScheduled: new Date().toISOString().split('T')[0],
         status: 'Planifié',
-        findingsCount: 0
+        findingsCount: 0,
+        relatedAssetIds: [],
+        relatedRiskIds: []
     });
 
     const fetchAudits = async () => {
@@ -54,7 +59,9 @@ export const Audits: React.FC = () => {
                 getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId)))
+                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)))
             ]);
 
             const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
@@ -78,6 +85,14 @@ export const Audits: React.FC = () => {
 
             const docData = getDocsData<Document>(results[3]);
             setDocuments(docData);
+
+            const assetData = getDocsData<Asset>(results[4]);
+            assetData.sort((a, b) => a.name.localeCompare(b.name));
+            setAssets(assetData);
+
+            const riskData = getDocsData<Risk>(results[5]);
+            riskData.sort((a, b) => b.score - a.score);
+            setRisks(riskData);
 
         } catch (err) {
             addToast("Erreur chargement données", "error");
@@ -237,6 +252,28 @@ export const Audits: React.FC = () => {
         link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
         link.download = `audits_export_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
+    };
+
+    const generateSoA = () => {
+        if (!selectedAudit || !checklist) return;
+        const doc = new jsPDF();
+        doc.setFillColor(79, 70, 229);
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setFontSize(18);
+        doc.setTextColor(255, 255, 255);
+        doc.text("Statement of Applicability (SoA)", 14, 25);
+        doc.setFontSize(10);
+        doc.text(`Audit: ${selectedAudit.name} | Date: ${new Date().toLocaleDateString()}`, 14, 33);
+
+        const data = checklist.questions.map(q => [q.controlCode, q.response, q.comment || '']);
+        (doc as any).autoTable({
+            startY: 50,
+            head: [['Contrôle', 'Statut', 'Justification']],
+            body: data,
+            theme: 'striped',
+            headStyles: { fillColor: [79, 70, 229] }
+        });
+        doc.save('SoA.pdf');
     };
 
     const generateAuditReport = () => {
@@ -410,6 +447,7 @@ export const Audits: React.FC = () => {
                                         <div className="flex bg-slate-100 dark:bg-white/10 p-1 rounded-xl mr-2">
                                             <button onClick={() => setInspectorTab('findings')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${inspectorTab === 'findings' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Constats</button>
                                             <button onClick={() => setInspectorTab('checklist')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${inspectorTab === 'checklist' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Checklist</button>
+                                            <button onClick={() => setInspectorTab('scope')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${inspectorTab === 'scope' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Périmètre</button>
                                         </div>
                                         <button onClick={generateAuditReport} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Rapport PDF"><Download className="h-5 w-5" /></button>
                                         <button onClick={() => setShowFindingsDrawer(false)} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
@@ -500,7 +538,10 @@ export const Audits: React.FC = () => {
                                                 <div className="space-y-4">
                                                     <div className="flex justify-between items-center mb-4">
                                                         <h3 className="font-bold text-slate-900 dark:text-white">Checklist de conformité</h3>
-                                                        <span className="text-xs font-medium bg-slate-100 dark:bg-white/10 px-2 py-1 rounded-lg">{checklist.questions.filter(q => q.response === 'Conforme').length} / {checklist.questions.length} Conformes</span>
+                                                        <div className="flex gap-2">
+                                                            <button onClick={generateSoA} className="text-xs font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors">Générer SoA</button>
+                                                            <span className="text-xs font-medium bg-slate-100 dark:bg-white/10 px-2 py-1.5 rounded-lg flex items-center">{checklist.questions.filter(q => q.response === 'Conforme').length} / {checklist.questions.length} Conformes</span>
+                                                        </div>
                                                     </div>
                                                     {checklist.questions.map(q => (
                                                         <div key={q.id} className="p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
@@ -529,6 +570,40 @@ export const Audits: React.FC = () => {
                                                     ))}
                                                 </div>
                                             )}
+                                        </div>
+                                    )}
+                                    {inspectorTab === 'scope' && (
+                                        <div className="space-y-8">
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Server className="h-4 w-4 mr-2" /> Actifs Audités ({selectedAudit.relatedAssetIds?.length || 0})</h4>
+                                                <div className="space-y-2">
+                                                    {selectedAudit.relatedAssetIds?.map(aid => {
+                                                        const asset = assets.find(a => a.id === aid);
+                                                        return asset ? (
+                                                            <div key={aid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
+                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{asset.name}</span>
+                                                                <span className="text-xs text-slate-500">{asset.type}</span>
+                                                            </div>
+                                                        ) : null;
+                                                    })}
+                                                    {(!selectedAudit.relatedAssetIds || selectedAudit.relatedAssetIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun actif lié.</p>}
+                                                </div>
+                                            </div>
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Flame className="h-4 w-4 mr-2" /> Risques Audités ({selectedAudit.relatedRiskIds?.length || 0})</h4>
+                                                <div className="space-y-2">
+                                                    {selectedAudit.relatedRiskIds?.map(rid => {
+                                                        const risk = risks.find(r => r.id === rid);
+                                                        return risk ? (
+                                                            <div key={rid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
+                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{risk.threat}</span>
+                                                                <span className="text-xs font-bold text-red-500">Score: {risk.score}</span>
+                                                            </div>
+                                                        ) : null;
+                                                    })}
+                                                    {(!selectedAudit.relatedRiskIds || selectedAudit.relatedRiskIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun risque lié.</p>}
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -563,6 +638,38 @@ export const Audits: React.FC = () => {
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Date Prévue</label>
                                     <input type="date" required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
                                         value={newAudit.dateScheduled} onChange={e => setNewAudit({ ...newAudit, dateScheduled: e.target.value })} />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Actifs (Périmètre)</label>
+                                    <div className="h-32 overflow-y-auto custom-scrollbar border border-gray-200 dark:border-white/10 rounded-2xl p-3 bg-gray-50/50 dark:bg-black/20">
+                                        {assets.map(a => (
+                                            <label key={a.id} className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-white/5 rounded-lg cursor-pointer">
+                                                <input type="checkbox" checked={newAudit.relatedAssetIds?.includes(a.id)} onChange={() => {
+                                                    const current = newAudit.relatedAssetIds || [];
+                                                    const updated = current.includes(a.id) ? current.filter(id => id !== a.id) : [...current, a.id];
+                                                    setNewAudit({ ...newAudit, relatedAssetIds: updated });
+                                                }} className="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" />
+                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{a.name}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Risques (Périmètre)</label>
+                                    <div className="h-32 overflow-y-auto custom-scrollbar border border-gray-200 dark:border-white/10 rounded-2xl p-3 bg-gray-50/50 dark:bg-black/20">
+                                        {risks.map(r => (
+                                            <label key={r.id} className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-white/5 rounded-lg cursor-pointer">
+                                                <input type="checkbox" checked={newAudit.relatedRiskIds?.includes(r.id)} onChange={() => {
+                                                    const current = newAudit.relatedRiskIds || [];
+                                                    const updated = current.includes(r.id) ? current.filter(id => id !== r.id) : [...current, r.id];
+                                                    setNewAudit({ ...newAudit, relatedRiskIds: updated });
+                                                }} className="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" />
+                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{r.threat}</span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                             <div>
