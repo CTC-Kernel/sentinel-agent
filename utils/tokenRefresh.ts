@@ -52,10 +52,23 @@ export const hasCustomClaims = async (): Promise<boolean> => {
  */
 export const autoRefreshTokenIfNeeded = async (): Promise<void> => {
     try {
+        // Check if we just refreshed (to avoid infinite loop)
+        const justRefreshed = sessionStorage.getItem('tokenJustRefreshed');
+        if (justRefreshed === 'true') {
+            sessionStorage.removeItem('tokenJustRefreshed');
+            return;
+        }
+
         const hasClaims = await hasCustomClaims();
         if (!hasClaims) {
             console.log('Custom claims missing, refreshing token...');
-            await refreshUserToken();
+            const success = await refreshUserToken();
+
+            if (success) {
+                // Mark that we just refreshed and reload to use new token
+                sessionStorage.setItem('tokenJustRefreshed', 'true');
+                window.location.reload();
+            }
         }
     } catch (error) {
         console.error('Error in auto-refresh:', error);
