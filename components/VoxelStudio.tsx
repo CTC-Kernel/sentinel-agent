@@ -1,8 +1,8 @@
-import React, { useRef, useState, useMemo, useEffect } from 'react';
-import { Canvas, useFrame, ThreeEvent, useThree } from '@react-three/fiber';
+import React, { useRef, useState, useMemo, useEffect, createContext, useContext } from 'react';
+import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Points, PointMaterial, Float } from '@react-three/drei';
-import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial } from 'three';
-import { Line2, LineMaterial, OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, MeshStandardMaterial, DoubleSide } from 'three';
+import { Line2, LineMaterial, OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { animated, useSpring } from '@react-spring/three';
 import { Asset, Risk, Project, Audit, Incident, Supplier } from '../types';
 
@@ -39,6 +39,40 @@ interface VoxelStudioProps {
 }
 
 const AnimatedGroup = animated.group;
+
+const assetModelUrl = new URL('../3D/w2yurp9pjcow-ServerV2console/ServerV2+console.obj', import.meta.url).href;
+const riskModelUrl = new URL('../3D/A_Shield_with_a_Raised_Star_v1_L1.123c9f2a1173-8c93-4a8d-a572-89acfb9632eb/19329_A_Shield_with_a_Raised_Star_v1.obj', import.meta.url).href;
+const incidentModelUrl = new URL('../3D/Flame_v1_L1.123c9492eea4-9564-46cc-bdc9-fe01a6e3b117/21330_Flame_v1.obj', import.meta.url).href;
+
+type ModelLibrary = {
+  asset: Group;
+  risk: Group;
+  incident: Group;
+};
+
+const ModelLibraryContext = createContext<ModelLibrary | null>(null);
+
+const useModelLibrary = (): ModelLibrary => {
+  const context = useContext(ModelLibraryContext);
+  if (!context) {
+    throw new Error('ModelLibraryContext must be used within ModelLibraryProvider');
+  }
+  return context;
+};
+
+const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const asset = useLoader(OBJLoader, assetModelUrl);
+  const risk = useLoader(OBJLoader, riskModelUrl);
+  const incident = useLoader(OBJLoader, incidentModelUrl);
+  const value = useMemo(() => ({ asset, risk, incident }), [asset, risk, incident]);
+  return <ModelLibraryContext.Provider value={value}>{children}</ModelLibraryContext.Provider>;
+};
+
+const MODEL_LIBRARY_CONFIG: Partial<Record<VoxelNode['type'], { key: keyof ModelLibrary; scale: number; position?: [number, number, number]; rotation?: [number, number, number]; }>> = {
+  asset: { key: 'asset', scale: 0.28, position: [0, -0.28, 0], rotation: [0, Math.PI, 0] },
+  risk: { key: 'risk', scale: 0.25, position: [0, -0.22, 0], rotation: [-Math.PI / 2, 0, Math.PI] },
+  incident: { key: 'incident', scale: 0.22, position: [0, -0.2, 0], rotation: [-Math.PI / 2, 0, 0] },
+};
 
 const StarField: React.FC = () => {
   const positions = useMemo(() => {
@@ -219,6 +253,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
   highlightCritical,
   xRayMode
 }) => {
+  const modelLibrary = useModelLibrary();
   const meshRef = useRef<any>(null);
   const [hovered, setHovered] = useState(false);
   const isCritical = useMemo(() => {
@@ -234,8 +269,12 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
     return false;
   }, [node]);
 
+  const usesLibraryModel = Boolean(MODEL_LIBRARY_CONFIG[node.type]);
+  const selectionScale = usesLibraryModel ? (isSelected ? 1.08 : hovered ? 1.04 : 1) : (isSelected ? 1.5 : hovered ? 1.2 : 1);
+  const criticalBoost = highlightCritical && isCritical ? (usesLibraryModel ? 1.05 : 1.15) : 1;
+
   const { scale, glow } = useSpring({
-    scale: (isSelected ? 1.5 : hovered ? 1.2 : 1) * (highlightCritical && isCritical ? 1.15 : 1),
+    scale: selectionScale * criticalBoost,
     glow: (isSelected ? 1 : hovered ? 0.6 : 0) + (highlightCritical && isCritical ? 0.4 : 0),
     config: { mass: 1, tension: 200, friction: 18 }
   });
@@ -253,7 +292,8 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
 
   const baseColor = isSelected ? '#fde047' : hovered ? '#4ecdc4' : node.color;
   const emissiveColor = isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : node.color;
-  const opacity = isDimmed ? 0.4 : highlightCritical && !isCritical ? 0.7 : 0.95;
+  const baseOpacity = isDimmed ? 0.4 : highlightCritical && !isCritical ? 0.7 : 0.95;
+  const opacity = usesLibraryModel ? Math.max(baseOpacity, 0.85) : baseOpacity;
   const emissiveIntensity = 0.35 + glow.get() * 0.4;
 
   const sharedMaterialProps = {
@@ -267,41 +307,70 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
     wireframe: Boolean(xRayMode),
   };
 
+  const libraryPrimitive = useMemo(() => {
+    const config = MODEL_LIBRARY_CONFIG[node.type];
+    if (!config) return null;
+    const source = modelLibrary[config.key];
+    if (!source) return null;
+    const clone = source.clone(true);
+    const uniformScale = node.size * config.scale;
+    clone.scale.setScalar(uniformScale);
+    const [px = 0, py = 0, pz = 0] = config.position ?? [0, 0, 0];
+    clone.position.set(px * node.size, py * node.size, pz * node.size);
+    const [rx = 0, ry = 0, rz = 0] = config.rotation ?? [0, 0, 0];
+    clone.rotation.set(rx, ry, rz);
+    clone.traverse(child => {
+      if ((child as Mesh).isMesh) {
+        child.frustumCulled = false;
+        (child as Mesh).material = new MeshStandardMaterial({
+          color: baseColor,
+          emissive: emissiveColor,
+          emissiveIntensity,
+          metalness: 0.35,
+          roughness: 0.25,
+          transparent: true,
+          opacity,
+          wireframe: Boolean(xRayMode),
+          side: DoubleSide
+        });
+      }
+    });
+    return clone;
+  }, [modelLibrary, node.type, node.size, baseColor, emissiveColor, emissiveIntensity, opacity, xRayMode]);
+
   const renderCategoryModel = () => {
+    if (libraryPrimitive) {
+      return <primitive object={libraryPrimitive} />;
+    }
     switch (node.type) {
       case 'asset':
         return (
           <>
-            <mesh position={[0, -node.size * 0.35, 0]}>
-              <boxGeometry args={[node.size * 1.6, node.size * 0.5, node.size]} />
+            <mesh position={[0, -node.size * 0.2, 0]}>
+              <boxGeometry args={[node.size * 0.9, node.size * 0.25, node.size * 0.6]} />
               <meshStandardMaterial {...sharedMaterialProps} />
             </mesh>
-            <mesh position={[0, -node.size * 0.05, 0]}>
-              <boxGeometry args={[node.size * 1.4, node.size * 0.45, node.size * 0.9]} />
+            <mesh position={[0, 0, 0]}>
+              <boxGeometry args={[node.size * 0.75, node.size * 0.2, node.size * 0.5]} />
               <meshStandardMaterial {...sharedMaterialProps} />
             </mesh>
-            <mesh position={[0, node.size * 0.25, 0]}>
-              <boxGeometry args={[node.size * 1.2, node.size * 0.35, node.size * 0.85]} />
+            <mesh position={[0, node.size * 0.18, 0]}>
+              <boxGeometry args={[node.size * 0.55, node.size * 0.18, node.size * 0.4]} />
               <meshStandardMaterial {...sharedMaterialProps} />
             </mesh>
-            <mesh position={[node.size * 0.5, -node.size * 0.05, node.size * 0.55]}>
-              <boxGeometry args={[node.size * 0.2, node.size * 0.1, node.size * 0.05]} />
-              <meshStandardMaterial
-                color="#facc15"
-                emissive="#facc15"
-                emissiveIntensity={0.7}
-                transparent
-                opacity={opacity}
-                wireframe={Boolean(xRayMode)}
-              />
-            </mesh>
+            {[ -0.25, 0.25 ].map(offset => (
+              <mesh key={`asset-light-${node.id}-${offset}`} position={[offset * node.size, node.size * 0.28, node.size * 0.18]}>
+                <boxGeometry args={[node.size * 0.08, node.size * 0.06, node.size * 0.02]} />
+                <meshStandardMaterial color="#facc15" emissive="#facc15" emissiveIntensity={0.7} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+              </mesh>
+            ))}
           </>
         );
       case 'risk':
         return (
           <>
             <mesh rotation={[0, 0, Math.PI / 4]}>
-              <octahedronGeometry args={[node.size * 0.95, 0]} />
+              <octahedronGeometry args={[node.size * 0.6, 0]} />
               <meshStandardMaterial {...sharedMaterialProps} metalness={0.2} roughness={0.35} />
             </mesh>
             {[0, 1, 2, 3].map(index => {
@@ -309,10 +378,10 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
               return (
                 <mesh
                   key={`risk-spike-${node.id}-${index}`}
-                  position={[Math.cos(angle) * node.size * 0.9, 0, Math.sin(angle) * node.size * 0.9]}
+                  position={[Math.cos(angle) * node.size * 0.55, 0, Math.sin(angle) * node.size * 0.55]}
                   rotation={[Math.PI / 2, angle, 0]}
                 >
-                  <coneGeometry args={[node.size * 0.22, node.size * 0.8, 8]} />
+                  <coneGeometry args={[node.size * 0.15, node.size * 0.45, 8]} />
                   <meshStandardMaterial
                     color="#f97316"
                     emissive="#fb923c"
@@ -324,22 +393,30 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
                 </mesh>
               );
             })}
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[node.size * 0.55, node.size * 0.05, 16, 32]} />
+              <meshStandardMaterial color="#f97316" emissive="#fb923c" emissiveIntensity={0.5} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+            </mesh>
           </>
         );
       case 'project':
         return (
           <>
-            <mesh position={[0, -node.size * 0.3, 0]}>
-              <cylinderGeometry args={[node.size * 0.95, node.size * 0.95, node.size * 0.25, 24]} />
+            <mesh position={[0, -node.size * 0.18, 0]}>
+              <cylinderGeometry args={[node.size * 0.7, node.size * 0.7, node.size * 0.18, 24]} />
               <meshStandardMaterial {...sharedMaterialProps} />
             </mesh>
-            <mesh position={[0, 0, 0]}>
-              <cylinderGeometry args={[node.size * 0.7, node.size * 0.7, node.size * 0.7, 32]} />
+            <mesh position={[0, node.size * 0.05, 0]}>
+              <cylinderGeometry args={[node.size * 0.5, node.size * 0.5, node.size * 0.35, 24]} />
               <meshStandardMaterial {...sharedMaterialProps} />
             </mesh>
-            <mesh position={[0, node.size * 0.6, 0]}>
-              <cylinderGeometry args={[node.size * 0.25, node.size * 0.25, node.size * 1.2, 16]} />
+            <mesh position={[0, node.size * 0.32, 0]}>
+              <cylinderGeometry args={[node.size * 0.18, node.size * 0.18, node.size * 0.7, 12]} />
               <meshStandardMaterial color="#fcd34d" emissive="#fbbf24" emissiveIntensity={0.8} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+            </mesh>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, node.size * 0.05, 0]}>
+              <ringGeometry args={[node.size * 0.55, node.size * 0.58, 32]} />
+              <meshStandardMaterial color="#c084fc" emissive="#c084fc" emissiveIntensity={0.4} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
             </mesh>
           </>
         );
@@ -347,16 +424,20 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
         return (
           <>
             <mesh rotation={[-Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[node.size * 0.9, node.size * 0.18, 24, 48]} />
+              <torusGeometry args={[node.size * 0.6, node.size * 0.1, 24, 48]} />
               <meshStandardMaterial {...sharedMaterialProps} metalness={0.5} roughness={0.2} />
             </mesh>
-            <mesh position={[0, node.size * 0.4, 0]}>
-              <boxGeometry args={[node.size * 1.1, node.size * 0.05, node.size * 0.9]} />
+            <mesh position={[0, node.size * 0.18, 0]}>
+              <boxGeometry args={[node.size * 0.75, node.size * 0.04, node.size * 0.55]} />
               <meshStandardMaterial {...sharedMaterialProps} />
             </mesh>
-            <mesh position={[0, node.size * 0.2, 0]}>
-              <boxGeometry args={[node.size * 0.35, node.size * 0.5, node.size * 0.1]} />
+            <mesh position={[0, node.size * 0.06, 0]}>
+              <boxGeometry args={[node.size * 0.22, node.size * 0.25, node.size * 0.06]} />
               <meshStandardMaterial color="#67e8f9" emissive="#22d3ee" emissiveIntensity={0.7} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+            </mesh>
+            <mesh position={[node.size * 0.35, node.size * 0.05, node.size * 0.2]}>
+              <torusGeometry args={[node.size * 0.12, node.size * 0.03, 16, 32]} />
+              <meshStandardMaterial color="#f8fafc" emissive="#e2e8f0" emissiveIntensity={0.4} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
             </mesh>
           </>
         );
@@ -364,35 +445,39 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
         return (
           <>
             <mesh>
-              <sphereGeometry args={[node.size * 0.8, 32, 32]} />
+              <sphereGeometry args={[node.size * 0.55, 28, 28]} />
               <meshStandardMaterial {...sharedMaterialProps} metalness={0.15} roughness={0.35} />
             </mesh>
             <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[node.size * 1.05, node.size * 0.12, 24, 48]} />
+              <torusGeometry args={[node.size * 0.75, node.size * 0.08, 24, 48]} />
               <meshStandardMaterial color="#fb7185" emissive="#f43f5e" emissiveIntensity={0.8} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
             </mesh>
-            <mesh position={[0, node.size * 0.9, 0]}>
-              <coneGeometry args={[node.size * 0.35, node.size * 0.8, 12]} />
+            <mesh position={[0, node.size * 0.55, 0]}>
+              <coneGeometry args={[node.size * 0.2, node.size * 0.5, 12]} />
               <meshStandardMaterial color="#f97316" emissive="#f97316" emissiveIntensity={0.9} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+            </mesh>
+            <mesh position={[node.size * 0.45, 0, 0]} rotation={[0, 0, Math.PI / 6]}>
+              <boxGeometry args={[node.size * 0.2, node.size * 0.4, node.size * 0.04]} />
+              <meshStandardMaterial color="#fee2e2" emissive="#fecaca" emissiveIntensity={0.6} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
             </mesh>
           </>
         );
       case 'supplier':
         return (
           <>
-            <mesh position={[0, -node.size * 0.2, 0]}>
-              <cylinderGeometry args={[node.size * 0.7, node.size * 0.7, node.size * 0.6, 20]} />
+            <mesh position={[0, -node.size * 0.12, 0]}>
+              <cylinderGeometry args={[node.size * 0.45, node.size * 0.45, node.size * 0.35, 20]} />
               <meshStandardMaterial {...sharedMaterialProps} />
             </mesh>
-            <mesh position={[0, node.size * 0.4, 0]}>
-              <coneGeometry args={[node.size * 0.8, node.size * 1.1, 20]} />
+            <mesh position={[0, node.size * 0.22, 0]}>
+              <coneGeometry args={[node.size * 0.55, node.size * 0.75, 20]} />
               <meshStandardMaterial {...sharedMaterialProps} />
             </mesh>
             {[...Array(6)].map((_, index) => {
               const angle = (Math.PI * 2 * index) / 6;
               return (
-                <mesh key={`supplier-node-${node.id}-${index}`} position={[Math.cos(angle) * node.size * 1.2, node.size * 0.2, Math.sin(angle) * node.size * 1.2]}>
-                  <sphereGeometry args={[node.size * 0.2, 16, 16]} />
+                <mesh key={`supplier-node-${node.id}-${index}`} position={[Math.cos(angle) * node.size * 0.8, node.size * 0.12, Math.sin(angle) * node.size * 0.8]}>
+                  <sphereGeometry args={[node.size * 0.12, 16, 16]} />
                   <meshStandardMaterial color="#4ade80" emissive="#22c55e" emissiveIntensity={0.6} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
                 </mesh>
               );
@@ -746,60 +831,62 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         dpr={[1, 2]}
         gl={{ antialias: true }}
       >
-        <color attach="background" args={[new Color('#020617')]} />
-        <ambientLight intensity={0.55} />
-        <pointLight position={[12, 18, 18]} intensity={1.2} color="#93c5fd" />
-        <pointLight position={[-14, -12, -8]} intensity={0.7} color="#4ecdc4" />
+        <ModelLibraryProvider>
+          <color attach="background" args={[new Color('#020617')]} />
+          <ambientLight intensity={0.55} />
+          <pointLight position={[12, 18, 18]} intensity={1.2} color="#93c5fd" />
+          <pointLight position={[-14, -12, -8]} intensity={0.7} color="#4ecdc4" />
 
-        <OrbitControls 
-          enablePan
-          enableZoom
-          enableRotate
-          autoRotate={autoRotate}
-          autoRotateSpeed={0.35}
-          minDistance={4}
-          maxDistance={55}
-          zoomSpeed={0.8}
-          dampingFactor={0.12}
-          ref={controlsRef as any}
-        />
-
-        <Float floatIntensity={0.4} rotationIntensity={0.2} speed={1.2}>
-          <PulseCore />
-        </Float>
-        <StarField />
-        <NeonGrid />
-        <ScanRing radius={12} color="#0ea5e9" />
-        <ScanRing radius={18} color="#9333ea" speed={0.25} />
-        <ScanRing radius={25} color="#f97316" speed={0.18} />
-
-        {/* Render connections */}
-        {connectionPairs.map((pair, index) => (
-          <ConnectionLine
-            key={`${pair.start.join('-')}-${pair.end.join('-')}-${index}`}
-            start={pair.start}
-            end={pair.end}
-            strength={pair.strength}
+          <OrbitControls 
+            enablePan
+            enableZoom
+            enableRotate
+            autoRotate={autoRotate}
+            autoRotateSpeed={0.35}
+            minDistance={4}
+            maxDistance={55}
+            zoomSpeed={0.8}
+            dampingFactor={0.12}
+            ref={controlsRef as any}
           />
-        ))}
 
-        {/* Render voxel nodes */}
-        {voxelNodes.map(node => (
-          <VoxelMesh
-            key={node.id}
-            node={node}
-            onClick={handleNodeClick}
-            isSelected={selectedNode?.id === node.id}
-            isDimmed={Boolean(selectedNode && selectedNode.id !== node.id)}
-            highlightCritical={highlightCritical}
-          />
-        ))}
+          <Float floatIntensity={0.4} rotationIntensity={0.2} speed={1.2}>
+            <PulseCore />
+          </Float>
+          <StarField />
+          <NeonGrid />
+          <ScanRing radius={12} color="#0ea5e9" />
+          <ScanRing radius={18} color="#9333ea" speed={0.25} />
+          <ScanRing radius={25} color="#f97316" speed={0.18} />
 
-        <SelectionLockAura node={selectedNode} />
-        <FocusController target={branchPivotNode} controlsRef={controlsRef} setAutoRotate={setAutoRotate} userInteractingRef={isUserInteracting} shouldSnapRef={shouldSnapToTarget} />
+          {/* Render connections */}
+          {connectionPairs.map((pair, index) => (
+            <ConnectionLine
+              key={`${pair.start.join('-')}-${pair.end.join('-')}-${index}`}
+              start={pair.start}
+              end={pair.end}
+              strength={pair.strength}
+            />
+          ))}
 
-        {/* Fog for depth */}
-        <fog attach="fog" args={['#0f172a', 12, 60]} />
+          {/* Render voxel nodes */}
+          {voxelNodes.map(node => (
+            <VoxelMesh
+              key={node.id}
+              node={node}
+              onClick={handleNodeClick}
+              isSelected={selectedNode?.id === node.id}
+              isDimmed={Boolean(selectedNode && selectedNode.id !== node.id)}
+              highlightCritical={highlightCritical}
+            />
+          ))}
+
+          <SelectionLockAura node={selectedNode} />
+          <FocusController target={branchPivotNode} controlsRef={controlsRef} setAutoRotate={setAutoRotate} userInteractingRef={isUserInteracting} shouldSnapRef={shouldSnapToTarget} />
+
+          {/* Fog for depth */}
+          <fog attach="fog" args={['#0f172a', 12, 60]} />
+        </ModelLibraryProvider>
       </Canvas>
 
       {/* Controls overlay */}
