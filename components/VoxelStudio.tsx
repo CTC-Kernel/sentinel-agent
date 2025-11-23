@@ -36,18 +36,30 @@ interface VoxelStudioProps {
   };
   xRayMode?: boolean;
   autoRotatePreference?: boolean | null;
+  releaseToken?: number | null;
 }
 
 const AnimatedGroup = animated.group;
+const SCENE_OFFSET: [number, number, number] = [5.5, 0, 0];
+
+const applySceneOffset = (x: number, y: number, z: number): [number, number, number] => [
+  x + SCENE_OFFSET[0],
+  y + SCENE_OFFSET[1],
+  z + SCENE_OFFSET[2]
+];
 
 const assetModelUrl = new URL('../3D/w2yurp9pjcow-ServerV2console/ServerV2+console.obj', import.meta.url).href;
 const riskModelUrl = new URL('../3D/A_Shield_with_a_Raised_Star_v1_L1.123c9f2a1173-8c93-4a8d-a572-89acfb9632eb/19329_A_Shield_with_a_Raised_Star_v1.obj', import.meta.url).href;
 const incidentModelUrl = new URL('../3D/Flame_v1_L1.123c9492eea4-9564-46cc-bdc9-fe01a6e3b117/21330_Flame_v1.obj', import.meta.url).href;
+const supplierModelUrl = new URL('../3D/i8cotix2ujuo-Cap/Cap.obj', import.meta.url).href;
+const projectModelUrl = new URL('../3D/Models and Textures/Cardboard box.obj', import.meta.url).href;
 
 type ModelLibrary = {
   asset: Group;
   risk: Group;
   incident: Group;
+  supplier: Group;
+  project: Group;
 };
 
 const ModelLibraryContext = createContext<ModelLibrary | null>(null);
@@ -64,7 +76,9 @@ const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const asset = useLoader(OBJLoader, assetModelUrl);
   const risk = useLoader(OBJLoader, riskModelUrl);
   const incident = useLoader(OBJLoader, incidentModelUrl);
-  const value = useMemo(() => ({ asset, risk, incident }), [asset, risk, incident]);
+  const supplier = useLoader(OBJLoader, supplierModelUrl);
+  const project = useLoader(OBJLoader, projectModelUrl);
+  const value = useMemo(() => ({ asset, risk, incident, supplier, project }), [asset, risk, incident, supplier, project]);
   return <ModelLibraryContext.Provider value={value}>{children}</ModelLibraryContext.Provider>;
 };
 
@@ -72,6 +86,8 @@ const MODEL_LIBRARY_CONFIG: Partial<Record<VoxelNode['type'], { key: keyof Model
   asset: { key: 'asset', scale: 0.28, position: [0, -0.28, 0], rotation: [0, Math.PI, 0] },
   risk: { key: 'risk', scale: 0.25, position: [0, -0.22, 0], rotation: [-Math.PI / 2, 0, Math.PI] },
   incident: { key: 'incident', scale: 0.22, position: [0, -0.2, 0], rotation: [-Math.PI / 2, 0, 0] },
+  supplier: { key: 'supplier', scale: 0.0045, position: [0, -0.004, 0], rotation: [-Math.PI / 2, Math.PI, 0] },
+  project: { key: 'project', scale: 0.35, position: [0, -0.25, 0], rotation: [0, Math.PI, 0] },
 };
 
 const StarField: React.FC = () => {
@@ -100,39 +116,6 @@ const StarField: React.FC = () => {
   );
 };
 
-const SelectionLockAura: React.FC<{ node: VoxelNode | null }> = ({ node }) => {
-  const auraRef = useRef<Mesh>(null);
-  useFrame((_, delta) => {
-    if (!auraRef.current) return;
-    auraRef.current.rotation.y += delta * 0.4;
-  });
-
-  if (!node) return null;
-  return (
-    <group position={node.position}>
-      <mesh ref={auraRef} scale={[1.2, 1, 1.2]}> 
-        <ringGeometry args={[node.size * 1.6, node.size * 2.2, 64]} />
-        <meshBasicMaterial
-          color={node.color}
-          transparent
-          opacity={0.35}
-          blending={AdditiveBlending}
-        />
-      </mesh>
-      <mesh>
-        <sphereGeometry args={[node.size * 1.4, 32, 32]} />
-        <meshBasicMaterial
-          color={node.color}
-          transparent
-          opacity={0.08}
-          blending={AdditiveBlending}
-        />
-      </mesh>
-      <pointLight position={[0, node.size * 2, 0]} intensity={0.7} distance={18} color={node.color} />
-    </group>
-  );
-};
-
 const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.RefObject<OrbitControlsImpl | null>; setAutoRotate: (value: boolean) => void; userInteractingRef: React.MutableRefObject<boolean>; shouldSnapRef: React.MutableRefObject<boolean> }> = ({ target, controlsRef, setAutoRotate, userInteractingRef, shouldSnapRef }) => {
   const { camera } = useThree();
   const focusVec = useRef(new Vector3(0, 0, 0));
@@ -153,8 +136,14 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
 
     if (target) {
       focusVec.current.set(...target.position);
-      const magnitude = Math.max(3, target.size * 4);
-      offsetVec.current.set(magnitude * 0.9, magnitude + 3, magnitude * 1.2);
+      const magnitude = Math.max(4, target.size * 5);
+      const horizontalDir = focusVec.current.clone().setY(0);
+      if (horizontalDir.lengthSq() < 1e-3) {
+        horizontalDir.set(0, 0, 1);
+      }
+      horizontalDir.normalize().multiplyScalar(-1);
+      offsetVec.current.copy(horizontalDir.multiplyScalar(magnitude * 1.2));
+      offsetVec.current.y = magnitude * 0.6 + 2;
       desiredPos.current.copy(focusVec.current).add(offsetVec.current);
       if (!userInteractingRef.current && shouldSnapRef.current) {
         camera.position.lerp(desiredPos.current, 0.08);
@@ -268,10 +257,11 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
     }
     return false;
   }, [node]);
-
   const usesLibraryModel = Boolean(MODEL_LIBRARY_CONFIG[node.type]);
   const selectionScale = usesLibraryModel ? (isSelected ? 1.08 : hovered ? 1.04 : 1) : (isSelected ? 1.5 : hovered ? 1.2 : 1);
   const criticalBoost = highlightCritical && isCritical ? (usesLibraryModel ? 1.05 : 1.15) : 1;
+
+  const labelVisible = hovered || isSelected;
 
   const { scale, glow } = useSpring({
     scale: selectionScale * criticalBoost,
@@ -290,8 +280,13 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
     onClick(node);
   };
 
-  const baseColor = isSelected ? '#fde047' : hovered ? '#4ecdc4' : node.color;
-  const emissiveColor = isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : node.color;
+  let baseColor = isSelected ? '#fde047' : hovered ? '#4ecdc4' : node.color;
+  let emissiveColor = isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : node.color;
+
+  if (node.type === 'risk' && usesLibraryModel) {
+    baseColor = isSelected ? '#fdba74' : hovered ? '#fb923c' : '#f97316';
+    emissiveColor = isSelected ? '#fb923c' : hovered ? '#f97316' : '#ea580c';
+  }
   const baseOpacity = isDimmed ? 0.4 : highlightCritical && !isCritical ? 0.7 : 0.95;
   const opacity = usesLibraryModel ? Math.max(baseOpacity, 0.85) : baseOpacity;
   const emissiveIntensity = 0.35 + glow.get() * 0.4;
@@ -494,6 +489,9 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
     }
   };
 
+  const rawLabel = (node.data as any).name || (node.data as any).title || (node.data as any).threat || (node.data as any).label || 'Élément';
+  const label = rawLabel.length > 24 ? `${rawLabel.slice(0, 21)}…` : rawLabel;
+
   return (
     <group position={node.position}>
       <AnimatedGroup
@@ -519,17 +517,21 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
       )}
 
       {/* Label */}
-      <Text
-        position={[0, node.size + 1, 0]}
-        fontSize={0.8}
-        color="white"
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.1}
-        outlineColor="black"
-      >
-        {(node.data as any).name || (node.data as any).title || 'Unknown'}
-      </Text>
+      {labelVisible && (
+        <Text
+          position={[0, node.size + 0.8, 0]}
+          fontSize={0.55}
+          color="white"
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.08}
+          outlineColor="black"
+          maxWidth={3.5}
+          lineHeight={1.1}
+        >
+          {label}
+        </Text>
+      )}
     </group>
   );
 };
@@ -574,7 +576,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   visibleTypes,
   focusNodeId,
   highlightCritical = false,
-  summaryStats
+  summaryStats,
+  releaseToken
 }) => {
   const [selectedNode, setSelectedNode] = useState<VoxelNode | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -605,7 +608,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       nodes.push({
         id: asset.id,
         type: 'asset',
-        position: [x, y, z],
+        position: applySceneOffset(x, y, z),
         color: '#3b82f6',
         size: 0.8,
         data: asset,
@@ -624,7 +627,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       nodes.push({
         id: risk.id,
         type: 'risk',
-        position: [x, y, z],
+        position: applySceneOffset(x, y, z),
         color: riskColor,
         size: 0.6 + (risk.score / 25) * 0.4,
         data: risk,
@@ -641,7 +644,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       nodes.push({
         id: project.id,
         type: 'project',
-        position: [x, y, z],
+        position: applySceneOffset(x, y, z),
         color: '#8b5cf6',
         size: 0.7,
         data: project,
@@ -658,7 +661,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       nodes.push({
         id: audit.id,
         type: 'audit',
-        position: [x, y, z],
+        position: applySceneOffset(x, y, z),
         color: '#06b6d4',
         size: 0.6,
         data: audit,
@@ -678,7 +681,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       nodes.push({
         id: incident.id,
         type: 'incident',
-        position: [x, y, z],
+        position: applySceneOffset(x, y, z),
         color: incidentColor,
         size: 0.5 + (['Faible', 'Moyenne', 'Élevée', 'Critique'].indexOf(incident.severity) / 3) * 0.3,
         data: incident,
@@ -701,7 +704,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         nodes.push({
           id: supplier.id,
           type: 'supplier',
-          position: [x, y, z],
+          position: applySceneOffset(x, y, z),
           color: supplierColor,
           size: 0.6,
           data: supplier,
@@ -823,6 +826,13 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     onNodeClick?.(selectedNode ?? null);
   }, [selectedNode, onNodeClick]);
 
+  useEffect(() => {
+    if (!releaseToken) return;
+    setSelectedNode(null);
+    shouldSnapToTarget.current = false;
+    setAutoRotate(true);
+  }, [releaseToken]);
+
   return (
     <div className={`w-full h-full ${className}`}>
       <Canvas
@@ -880,8 +890,6 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
               highlightCritical={highlightCritical}
             />
           ))}
-
-          <SelectionLockAura node={selectedNode} />
           <FocusController target={branchPivotNode} controlsRef={controlsRef} setAutoRotate={setAutoRotate} userInteractingRef={isUserInteracting} shouldSnapRef={shouldSnapToTarget} />
 
           {/* Fog for depth */}

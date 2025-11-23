@@ -9,6 +9,7 @@
     "start": "npx serve dist -p 8080 -s"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.14.1",
     "@react-three/drei": "^9.88.17",
     "@react-three/fiber": "^8.15.12",
     "@react-three/postprocessing": "^3.0.4",
