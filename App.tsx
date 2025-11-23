@@ -14,6 +14,7 @@ import { UserProfile, AlertNotification, Risk, Supplier, Incident, Audit, Docume
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { NotificationCenter } from './components/ui/NotificationCenter';
+import { autoRefreshTokenIfNeeded } from './utils/tokenRefresh';
 
 
 // Lazy Loading des Vues
@@ -99,6 +100,13 @@ const AppContent: React.FC = () => {
 
         const unsubscribe = onAuthStateChanged(auth, async (u) => {
             if (u) {
+                // Auto-refresh token to get custom claims (organizationId)
+                try {
+                    await autoRefreshTokenIfNeeded();
+                } catch (e) {
+                    console.warn('Token refresh failed:', e);
+                }
+
                 // Update Last Login
                 try {
                     const userRef = doc(db, 'users', u.uid);
