@@ -2,7 +2,7 @@ import React, { useRef, useState, useMemo, useEffect, createContext, useContext 
 import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Points, PointMaterial, Float } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, MeshStandardMaterial, DoubleSide } from 'three';
-import { Line2, LineMaterial, OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
+import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { animated, useSpring } from '@react-spring/three';
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink } from '../types';
 
@@ -40,7 +40,6 @@ interface VoxelStudioProps {
   suggestedLinks?: AISuggestedLink[];
 }
 
-const AnimatedGroup = animated.group;
 const SCENE_OFFSET: [number, number, number] = [5.5, 0, 0];
 
 const applySceneOffset = (x: number, y: number, z: number): [number, number, number] => [
@@ -495,7 +494,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
 
   return (
     <group position={node.position}>
-      <AnimatedGroup
+      <group
         ref={meshRef}
         scale={scale as any}
         onClick={handleClick}
@@ -503,7 +502,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
         onPointerOut={() => setHovered(false)}
       >
         {renderCategoryModel()}
-      </AnimatedGroup>
+      </group>
 
       {(hovered || isSelected) && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -node.size / 2, 0]}>
@@ -543,19 +542,9 @@ const ConnectionLine: React.FC<{ start: [number, number, number]; end: [number, 
   strength
 }) => {
   const points = useMemo(() => [new Vector3(...start), new Vector3(...end)], [start, end]);
-  const lineRef = useRef<Line2 | null>(null);
-
-  useFrame(() => {
-    if (!lineRef.current) return;
-    const material = lineRef.current.material as LineMaterial | LineMaterial[];
-    if (Array.isArray(material)) return;
-    material.opacity = 0.35 + Math.sin(Date.now() * 0.001 + start[0]) * 0.15;
-    material.needsUpdate = true;
-  });
 
   return (
     <Line
-      ref={lineRef as any}
       points={points}
       color="#94a3b8"
       lineWidth={strength * 2.5}
