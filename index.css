@@ -116,6 +116,16 @@ textarea:focus {
   background: rgba(148, 163, 184, 0.5);
 }
 
+/* Utility to hide scrollbars only when explicitly desired */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Better focus indicators for accessibility */
 button:focus-visible,
 a:focus-visible {

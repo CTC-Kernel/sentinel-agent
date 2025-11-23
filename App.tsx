@@ -259,13 +259,13 @@ const AppContent: React.FC = () => {
             <ErrorBoundary>
                 <div className="flex h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-900 text-[#1d1d1f] dark:text-[#f5f5f7] font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300">
 
-                    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
                         <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-200/30 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float"></div>
                         <div className="absolute top-[20%] right-[-10%] w-[50rem] h-[50rem] bg-purple-200/30 dark:bg-purple-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{ animationDelay: '2s' }}></div>
                         <div className="absolute bottom-[-20%] left-[20%] w-[55rem] h-[55rem] bg-indigo-200/30 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{ animationDelay: '4s' }}></div>
                     </div>
 
-                    <div className="z-50">
+                    <div>
                         <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
                     </div>
 
@@ -279,7 +279,7 @@ const AppContent: React.FC = () => {
                         </div>
                     )}
 
-                    <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+                    <div className="flex-1 flex flex-col overflow-hidden relative">
                         <header className="h-16 flex items-center justify-between px-6 z-20 sticky top-0 bg-white/80 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/70 dark:border-white/10 transition-colors shadow-sm">
                             <div className="flex items-center lg:hidden">
                                 <button onClick={() => setMobileOpen(true)} className="p-2 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 transition-colors">
