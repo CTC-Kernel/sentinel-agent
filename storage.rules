@@ -7,21 +7,26 @@ service firebase.storage {
       return request.auth != null;
     }
     
+    function getUserOrg() {
+      // Fetch user's organizationId from Firestore
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.organizationId;
+    }
+    
     function belongsToOrg(orgId) {
-      return isAuthenticated() && request.auth.token.organizationId == orgId;
+      return isAuthenticated() && getUserOrg() == orgId;
     }
     
     function isValidFileSize(maxSizeMB) {
       return request.resource.size < maxSizeMB * 1024 * 1024;
     }
     
-    // Avatar uploads - user-specific
+    // Avatar uploads - user-specific (no org check needed)
     match /avatars/{allPaths=**} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && isValidFileSize(5);
     }
     
-    // Documents - organization-based with strict tenant isolation
+    // Documents - organization-based with Firestore lookup
     match /documents/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
       allow write: if belongsToOrg(orgId) && isValidFileSize(10);
