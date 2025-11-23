@@ -33,7 +33,7 @@ interface EmailPayload {
 export const sendEmail = async (
   user: { uid: string; email: string } | null,
   payload: EmailPayload,
-  simulatePreview: boolean = true
+  simulatePreview: boolean = false
 ) => {
   try {
     // 1. Écriture dans la file d'attente (Pattern standard Firebase Extension)
