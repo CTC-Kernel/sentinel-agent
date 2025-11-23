@@ -15,17 +15,13 @@ service firebase.storage {
       return request.resource.size < maxSizeMB * 1024 * 1024;
     }
     
-    function isValidFileType(allowedTypes) {
-      return request.resource.contentType in allowedTypes;
-    }
-    
     // Avatar uploads - user-specific
     match /avatars/{allPaths=**} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && isValidFileSize(5);
     }
     
-    // Documents - organization-based
+    // Documents - organization-based with strict tenant isolation
     match /documents/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
       allow write: if belongsToOrg(orgId) && isValidFileSize(10);
