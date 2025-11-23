@@ -7,7 +7,47 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   background-color: #fafafa;
+  font-size: 14px;
+  /* Reduced from default 16px for more compact UI */
 }
+
+/* Compact mode - reduce spacing globally */
+html {
+  font-size: 14px;
+  /* Base font size */
+}
+
+/* Make headings more compact */
+h1 {
+  font-size: 1.75rem;
+}
+
+/* ~24px */
+h2 {
+  font-size: 1.5rem;
+}
+
+/* ~21px */
+h3 {
+  font-size: 1.25rem;
+}
+
+/* ~17.5px */
+h4 {
+  font-size: 1.1rem;
+}
+
+/* ~15.4px */
+h5 {
+  font-size: 1rem;
+}
+
+/* ~14px */
+h6 {
+  font-size: 0.9rem;
+}
+
+/* ~12.6px */
 
 .dark body {
   background-color: #0f172a;
@@ -63,13 +103,12 @@ body {
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
-/* Form inputs - Better contrast and touch targets */
 input,
 select,
 textarea {
   transition: all 0.2s ease;
-  min-height: 44px;
-  /* WCAG touch target */
+  min-height: 38px;
+  /* Reduced from 44px for more compact UI */
 }
 
 input:focus,

@@ -325,17 +325,24 @@ const AppContent: React.FC = () => {
                                     </div>
 
                                     {showUserMenu && (
-                                        <div className="absolute top-14 right-0 w-56 glass-panel rounded-2xl shadow-2xl overflow-hidden border border-white/50 dark:border-white/10 animate-slide-up z-50 p-2">
-                                            <Link to="/settings" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-sm font-bold text-slate-700 dark:text-white">
+                                        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50">
+                                            <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                                                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user.displayName}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                                            </div>
+                                            <Link to="/settings" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 text-left text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                                 <User className="h-4 w-4 mr-3 text-slate-400" />
                                                 Mon Profil
                                             </Link>
-                                            <Link to="/settings" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-sm font-bold text-slate-700 dark:text-white">
+                                            <Link to="/settings" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 text-left text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                                 <SettingsIcon className="h-4 w-4 mr-3 text-slate-400" />
                                                 Paramètres
                                             </Link>
                                             <div className="h-px bg-slate-100 dark:bg-white/10 my-1"></div>
-                                            <button onClick={() => { handleLogout(); setShowUserMenu(false); }} className="w-full flex items-center px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-sm font-bold text-red-600 dark:text-red-400">
+                                            <button
+                                                onClick={() => { handleLogout(); setShowUserMenu(false); }}
+                                                className="w-full px-4 py-3 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center transition-colors"
+                                            >
                                                 <LogOut className="h-4 w-4 mr-3" />
                                                 Déconnexion
                                             </button>
