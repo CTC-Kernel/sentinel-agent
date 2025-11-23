@@ -1,0 +1,603 @@
+
+> sentinel-grc@2.0.0 lint
+> eslint .
+
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/App.tsx
+    3:47   warning  'Navigate' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+    5:88   warning  'orderBy' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+   12:10   warning  'LayoutDashboard' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   12:27   warning  'ShieldAlert' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+   12:40   warning  'Server' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+   12:48   warning  'FileText' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+   12:58   warning  'Users' is defined but never used                                                                                         @typescript-eslint/no-unused-vars
+   12:91   warning  'Bell' is defined but never used                                                                                          @typescript-eslint/no-unused-vars
+   12:174  warning  'CheckCircle2' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+   12:188  warning  'X' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+   77:12   warning  'showNotifications' is assigned a value but never used                                                                    @typescript-eslint/no-unused-vars
+   77:31   warning  'setShowNotifications' is assigned a value but never used                                                                 @typescript-eslint/no-unused-vars
+   78:12   warning  'alerts' is assigned a value but never used                                                                               @typescript-eslint/no-unused-vars
+   79:11   warning  'notifRef' is assigned a value but never used                                                                             @typescript-eslint/no-unused-vars
+  114:26   warning  'e' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+  139:36   warning  'e' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+  143:21   warning  'error' is defined but never used. Allowed unused args must match /^_/u                                                   @typescript-eslint/no-unused-vars
+  161:8    warning  React Hook useEffect has missing dependencies: 'setUser' and 'theme'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/AssetIntake/IntakeForm.tsx
+  5:10  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/RoleManagement.tsx
+  13:5  warning  'Users' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+  15:5  warning  'Check' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+  32:8  warning  React Hook useEffect has a missing dependency: 'fetchUsers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx
+   97:23   error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:97:23
+   95 |     const array = new Float32Array(starCount * 3);
+   96 |     for (let i = 0; i < starCount; i++) {
+>  97 |       array[i * 3] = (Math.random() - 0.5) * 200;
+      |                       ^^^^^^^^^^^^^ Cannot call impure function
+   98 |       array[i * 3 + 1] = (Math.random() - 0.5) * 80;
+   99 |       array[i * 3 + 2] = (Math.random() - 0.5) * 200;
+  100 |     }                                                                                                                                                                                                                                                                                                      react-hooks/purity
+   98:27   error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:98:27
+   96 |     for (let i = 0; i < starCount; i++) {
+   97 |       array[i * 3] = (Math.random() - 0.5) * 200;
+>  98 |       array[i * 3 + 1] = (Math.random() - 0.5) * 80;
+      |                           ^^^^^^^^^^^^^ Cannot call impure function
+   99 |       array[i * 3 + 2] = (Math.random() - 0.5) * 200;
+  100 |     }
+  101 |     return array;                                                                                                                                                                                                                                                                                                                                   react-hooks/purity
+   99:27   error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:99:27
+   97 |       array[i * 3] = (Math.random() - 0.5) * 200;
+   98 |       array[i * 3 + 1] = (Math.random() - 0.5) * 80;
+>  99 |       array[i * 3 + 2] = (Math.random() - 0.5) * 200;
+      |                           ^^^^^^^^^^^^^ Cannot call impure function
+  100 |     }
+  101 |     return array;
+  102 |   }, []);                                                                                                                                                                                                                                                                                                                                                                   react-hooks/purity
+  263:9    warning  'selectionScale' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  264:9    warning  'criticalBoost' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  268:13   warning  'state' is defined but never used. Allowed unused args must match /^_/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  503:34   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  503:61   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  503:89   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  503:118  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  590:9    warning  The 'safeAssets' logical expression could make the dependencies of useMemo Hook (at line 718) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'safeAssets' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  591:9    warning  The 'safeRisks' logical expression could make the dependencies of useMemo Hook (at line 718) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'safeRisks' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/exhaustive-deps
+  592:9    warning  The 'safeProjects' logical expression could make the dependencies of useMemo Hook (at line 718) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'safeProjects' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  593:9    warning  The 'safeAudits' logical expression could make the dependencies of useMemo Hook (at line 718) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'safeAudits' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  594:9    warning  The 'safeIncidents' logical expression could make the dependencies of useMemo Hook (at line 718) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'safeIncidents' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/exhaustive-deps
+  595:9    warning  The 'safeSuppliers' logical expression could make the dependencies of useMemo Hook (at line 718) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'safeSuppliers' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/exhaustive-deps
+  758:7    error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:758:7
+  756 |   useEffect(() => {
+  757 |     if (selectedNode) {
+> 758 |       setAutoRotate(false);
+      |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  759 |       return;
+  760 |     }
+  761 |     const timer = setTimeout(() => setAutoRotate(true), 700);                    react-hooks/set-state-in-effect
+  821:7    error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:821:7
+  819 |   useEffect(() => {
+  820 |     if (selectedNode && !voxelNodes.find(node => node.id === selectedNode.id)) {
+> 821 |       setSelectedNode(null);
+      |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  822 |     }
+  823 |   }, [voxelNodes, selectedNode]);
+  824 |  react-hooks/set-state-in-effect
+  829:7    error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:829:7
+  827 |     selectionUpdateFromOutside.current = true;
+  828 |     if (focusNodeId === null) {
+> 829 |       setSelectedNode(null);
+      |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  830 |       shouldSnapToTarget.current = false;
+  831 |       return;
+  832 |     }  react-hooks/set-state-in-effect
+  850:5    error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:850:5
+  848 |   useEffect(() => {
+  849 |     if (!releaseToken) return;
+> 850 |     setSelectedNode(null);
+      |     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  851 |     shouldSnapToTarget.current = false;
+  852 |     setAutoRotate(true);
+  853 |   }, [releaseToken]);         react-hooks/set-state-in-effect
+  879:33   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/layout/CommandPalette.tsx
+   13:11  warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   82:8   warning  React Hook useEffect has a missing dependency: 'handleSelect'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
+  172:8   warning  React Hook useEffect has a missing dependency: 'dbItems.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  195:8   warning  React Hook useEffect has a missing dependency: 'ACTION_ITEMS'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/AdvancedSearch.tsx
+    1:27  warning  'useEffect' is defined but never used     @typescript-eslint/no-unused-vars
+    2:39  warning  'Tag' is defined but never used           @typescript-eslint/no-unused-vars
+   95:89  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  171:96  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/CSVImport.tsx
+    9:22  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   11:20  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   21:12  warning  'file' is assigned a value but never used       @typescript-eslint/no-unused-vars
+   22:50  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   24:12  warning  'importing' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   29:38  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   34:21  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   38:24  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   59:33  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  133:18  warning  'error' is defined but never used               @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/ErrorBoundary.tsx
+  2:10  warning  'AlertTriangle' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/Icons.tsx
+  21:15  warning  'Settings3D' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/NotificationCenter.tsx
+  2:16  warning  'X' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/Pagination.tsx
+  143:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/firebase.ts
+  52:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  69:10  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/services/aiService.ts
+   90:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   91:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  138:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/services/emailService.ts
+  25:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/services/notificationService.ts
+    2:85  warning  'Timestamp' is defined but never used     @typescript-eslint/no-unused-vars
+  151:81  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  195:84  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  238:81  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  283:80  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/services/scheduledEmailService.ts
+    2:45  warning  'addDoc' is defined but never used        @typescript-eslint/no-unused-vars
+   38:79  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:79  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  158:79  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  217:80  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  277:79  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/utils/auditChecklists.ts
+  1:10  warning  'Control' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/utils/formValidation.ts
+   13:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   41:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   66:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   99:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  159:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  189:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  255:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/utils/hardwareDetection.ts
+  43:5  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  45:9  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/utils/userMigration.ts
+  27:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/utils/validation.tsx
+   14:22  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+   23:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   23:38  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+   70:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   71:26  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+   90:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   90:63  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+   95:56  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+  104:49  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+  145:12  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+  148:23  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Assets.tsx
+    8:40    warning  'Upload' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    8:210   warning  'Activity' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+    8:239   warning  'TrendingDown' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+   26:20    warning  'setFilter' is assigned a value but never used                                                                  @typescript-eslint/no-unused-vars
+   99:67    warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  101:54    warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  126:18    warning  'err' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  133:41    warning  React Hook useEffect has a missing dependency: 'fetchAssets'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  198:18    warning  'e' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  205:25    warning  '_id' is assigned a value but never used                                                                        @typescript-eslint/no-unused-vars
+  205:33    warning  'dataToUpdate' is assigned a value but never used                                                               @typescript-eslint/no-unused-vars
+  211:18    warning  'e' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  231:22    warning  'error' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  245:19    warning  'lines' is assigned a value but never used                                                                      @typescript-eslint/no-unused-vars
+  251:18    warning  'e' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  251:21    error    Empty block statement                                                                                           no-empty
+  272:34    warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  324:18    warning  'e' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  369:18    warning  'e' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  392:18    warning  'error' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  412:18    warning  'error' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  585:657   warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  603:405   warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  624:596   warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  636:428   warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  679:1051  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Audits.tsx
+    3:46   warning  'orderBy' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+    7:16   warning  'XCircle' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+    7:35   warning  'FileText' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+    7:45   warning  'Briefcase' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+    7:64   warning  'CheckCircle2' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+    7:78   warning  'AlertTriangle' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+    7:93   warning  'ChevronRight' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+    7:169  warning  'Save' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+   15:10   warning  'sendEmail' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+   16:10   warning  'getAuditReminderTemplate' is defined but never used                                                            @typescript-eslint/no-unused-vars
+   69:67   warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+   71:54   warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+   99:18   warning  'err' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  106:41   warning  React Hook useEffect has a missing dependency: 'fetchAudits'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  120:18   warning  'error' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  135:18   warning  'e' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  160:18   warning  'e' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  182:18   warning  'e' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  205:18   warning  'e' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  229:18   warning  'e' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  271:17   warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  320:17   warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  330:35   warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  472:159  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  555:132  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  635:129  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Compliance.tsx
+    6:10   warning  'CheckCircle2' is defined but never used                                                                      @typescript-eslint/no-unused-vars
+  155:85   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  157:54   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  201:18   warning  'err' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  217:39   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  235:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  244:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  257:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  278:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  320:17   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  336:35   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  475:171  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Continuity.tsx
+    6:42   warning  'Timer' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+    6:70   warning  'FileText' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+    6:102  warning  'Database' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+    6:160  warning  'Search' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+    6:168  warning  'Activity' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   18:12   warning  'documents' is assigned a value but never used                                                                @typescript-eslint/no-unused-vars
+   66:67   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   68:54   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  102:39   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  134:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  140:21   warning  'id' is assigned a value but never used                                                                       @typescript-eslint/no-unused-vars
+  140:49   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  148:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  168:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  188:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  433:86   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  450:362  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  628:133  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  636:133  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Dashboard.tsx
+    3:10   warning  'Radar' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+    4:37   warning  'Activity' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+    4:72   warning  'ChevronRight' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+    4:105  warning  'Lock' is defined but never used                                                                                         @typescript-eslint/no-unused-vars
+    4:111  warning  'Copy' is defined but never used                                                                                         @typescript-eslint/no-unused-vars
+    4:117  warning  'CheckSquare' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+    4:130  warning  'Clock' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+    4:137  warning  'FileText' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+    4:160  warning  'Building' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+    4:187  warning  'Briefcase' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+    4:205  warning  'FileSpreadsheet' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    4:236  warning  'FolderKanban' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+    4:256  warning  'Plus' is defined but never used                                                                                         @typescript-eslint/no-unused-vars
+    7:62   warning  'ProjectTask' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+   14:80   warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+   87:89   warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+   90:62   warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+   96:70   warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+   98:58   warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  116:72   warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  176:113  warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  212:30   warning  'e' is defined but never used                                                                                            @typescript-eslint/no-unused-vars
+  252:29   warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  258:8    warning  React Hook useEffect has missing dependencies: 'loading' and 'user'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  275:18   warning  'e' is defined but never used                                                                                            @typescript-eslint/no-unused-vars
+  283:17   warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  283:256  warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  286:17   warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  286:215  warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  287:254  warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  289:35   warning  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Documents.tsx
+    2:38   warning  'useRef' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+    7:181  warning  'AlertTriangle' is defined but never used                                                                     @typescript-eslint/no-unused-vars
+   68:67   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   70:54   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   82:84   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  105:39   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  164:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  201:21   warning  'id' is assigned a value but never used                                                                       @typescript-eslint/no-unused-vars
+  201:49   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  214:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  263:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  281:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  439:86   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  457:353  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  464:357  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  675:135  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Help.tsx
+   3:10  warning  'BookOpen' is defined but never used  @typescript-eslint/no-unused-vars
+  54:18  warning  'e' is defined but never used         @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Incidents.tsx
+    3:46    warning  'orderBy' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+    6:10    warning  'Plus' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    6:116   warning  'BookOpen' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+    6:126   warning  'FileText' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   58:67    warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   60:54    warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   86:18    warning  'err' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   93:39    warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  109:90    warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  124:18    warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  128:273   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  131:1213  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  131:1342  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  276:2408  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  276:2942  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  276:3535  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Login.tsx
+    5:34  warning  'ShieldAlert' is defined but never used   @typescript-eslint/no-unused-vars
+   33:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  118:16  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  118:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Notifications.tsx
+   3:45  warning  'updateDoc' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+   3:56  warning  'doc' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+   6:54  warning  'CalendarDays' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  14:19  warning  'addToast' is assigned a value but never used                                                                          @typescript-eslint/no-unused-vars
+  42:48  warning  React Hook useEffect has a missing dependency: 'fetchNotifications'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Onboarding.tsx
+   67:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  149:82  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Privacy.tsx
+   56:67   warning  Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+   58:54   warning  Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+   79:18   warning  'err' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+   86:45   warning  React Hook useEffect has a missing dependency: 'fetchActivities'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  113:18   warning  'e' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  119:21   warning  'id' is assigned a value but never used                                                                             @typescript-eslint/no-unused-vars
+  119:49   warning  Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+  127:18   warning  'e' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  148:18   warning  'e' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  209:22   warning  'error' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  407:86   warning  Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+  432:476  warning  Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+  433:463  warning  Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+  569:485  warning  Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+  570:472  warning  Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Projects.tsx
+    3:46   warning  'orderBy' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+    7:59   warning  'Clock' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+    7:96   warning  'ShieldAlert' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+    7:109  warning  'FileText' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+    7:136  warning  'Target' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+    7:200  warning  'ListTodo' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   61:67   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   63:54   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   87:18   warning  'err' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   94:39   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  134:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  140:21   warning  'id' is assigned a value but never used                                                                       @typescript-eslint/no-unused-vars
+  140:49   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  148:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  162:25   warning  '_id' is assigned a value but never used                                                                      @typescript-eslint/no-unused-vars
+  162:33   warning  'dataToUpdate' is assigned a value but never used                                                             @typescript-eslint/no-unused-vars
+  164:19   warning  'docRef' is assigned a value but never used                                                                   @typescript-eslint/no-unused-vars
+  168:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  187:18   warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  190:11   warning  'addTask' is assigned a value but never used                                                                  @typescript-eslint/no-unused-vars
+  263:17   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  270:21   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  286:17   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  508:86   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  534:358  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Risks.tsx
+   60:67    warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   62:54    warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   95:39    warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  129:29    warning  '_id' is assigned a value but never used                                                                      @typescript-eslint/no-unused-vars
+  164:18    warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  178:25    warning  '_id' is assigned a value but never used                                                                      @typescript-eslint/no-unused-vars
+  178:33    warning  'dataToUpdate' is assigned a value but never used                                                             @typescript-eslint/no-unused-vars
+  179:19    warning  'docRef' is assigned a value but never used                                                                   @typescript-eslint/no-unused-vars
+  183:18    warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  200:18    warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  211:18    warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  235:18    warning  'e' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  257:17    warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  286:50    warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  287:44    warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  302:22    warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  466:2366  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  471:438   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  527:356   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  536:655   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  536:1030  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  537:718   warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  537:1127  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Search.tsx
+   3:45  warning  'orderBy' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   3:54  warning  'limit' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+   6:32  warning  'Filter' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+   7:10  warning  'CardSkeleton' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+  39:8   warning  React Hook useEffect has a missing dependency: 'performSearch'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Settings.tsx
+    4:10   warning  'Moon' is defined but never used                                                                                                                                              @typescript-eslint/no-unused-vars
+    4:21   warning  'ShieldAlert' is defined but never used                                                                                                                                       @typescript-eslint/no-unused-vars
+    4:34   warning  'Database' is defined but never used                                                                                                                                          @typescript-eslint/no-unused-vars
+    4:94   warning  'FileText' is defined but never used                                                                                                                                          @typescript-eslint/no-unused-vars
+    4:122  warning  'CheckCircle2' is defined but never used                                                                                                                                      @typescript-eslint/no-unused-vars
+    4:167  warning  'Building' is defined but never used                                                                                                                                          @typescript-eslint/no-unused-vars
+    4:177  warning  'WifiOff' is defined but never used                                                                                                                                           @typescript-eslint/no-unused-vars
+    4:186  warning  'ArrowRight' is defined but never used                                                                                                                                        @typescript-eslint/no-unused-vars
+    5:38   warning  'orderBy' is defined but never used                                                                                                                                           @typescript-eslint/no-unused-vars
+    5:61   warning  'addDoc' is defined but never used                                                                                                                                            @typescript-eslint/no-unused-vars
+    5:85   warning  'startAfter' is defined but never used                                                                                                                                        @typescript-eslint/no-unused-vars
+    5:129  warning  'deleteDoc' is defined but never used                                                                                                                                         @typescript-eslint/no-unused-vars
+    5:140  warning  'Timestamp' is defined but never used                                                                                                                                         @typescript-eslint/no-unused-vars
+    5:151  warning  'enableNetwork' is defined but never used                                                                                                                                     @typescript-eslint/no-unused-vars
+    5:166  warning  'disableNetwork' is defined but never used                                                                                                                                    @typescript-eslint/no-unused-vars
+   11:10   warning  'logAction' is defined but never used                                                                                                                                         @typescript-eslint/no-unused-vars
+   64:18   warning  'e' is defined but never used                                                                                                                                                 @typescript-eslint/no-unused-vars
+   79:18   warning  'e' is defined but never used                                                                                                                                                 @typescript-eslint/no-unused-vars
+   93:8    warning  React Hook useEffect has missing dependencies: 'checkLatency', 'fetchLogs', 'fetchSystemStats', 'fetchUsers', and 'user'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  113:26   warning  'e' is defined but never used                                                                                                                                                 @typescript-eslint/no-unused-vars
+  135:81   warning  Unexpected any. Specify a different type                                                                                                                                      @typescript-eslint/no-explicit-any
+  194:18   warning  'err' is defined but never used                                                                                                                                               @typescript-eslint/no-unused-vars
+  218:18   warning  'e' is defined but never used                                                                                                                                                 @typescript-eslint/no-unused-vars
+  243:29   warning  Unexpected any. Specify a different type                                                                                                                                      @typescript-eslint/no-explicit-any
+  273:46   warning  Unexpected any. Specify a different type                                                                                                                                      @typescript-eslint/no-explicit-any
+  296:18   warning  'error' is defined but never used                                                                                                                                             @typescript-eslint/no-unused-vars
+  330:18   warning  'e' is defined but never used                                                                                                                                                 @typescript-eslint/no-unused-vars
+  366:18   warning  'e' is defined but never used                                                                                                                                                 @typescript-eslint/no-unused-vars
+  400:18   warning  'e' is defined but never used                                                                                                                                                 @typescript-eslint/no-unused-vars
+  425:18   warning  'e' is defined but never used                                                                                                                                                 @typescript-eslint/no-unused-vars
+  625:108  warning  Unexpected any. Specify a different type                                                                                                                                      @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Suppliers.tsx
+    6:110  warning  'CheckCircle2' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+    6:180  warning  'AlertTriangle' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   56:67   warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   58:54   warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   87:44   warning  React Hook useEffect has a missing dependency: 'fetchSuppliers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  130:18   warning  'e' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+  136:21   warning  'id' is assigned a value but never used                                                                            @typescript-eslint/no-unused-vars
+  136:49   warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  144:18   warning  'e' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+  165:18   warning  'e' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+  170:85   warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  225:71   warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  226:76   warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  244:22   warning  'error' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+  441:86   warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  459:362  warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  471:368  warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  476:358  warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  556:191  warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  558:102  warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  559:113  warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  628:137  warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  635:143  warning  Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Team.tsx
+   73:40   warning  React Hook useEffect has a missing dependency: 'fetchUsers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  103:18   warning  'e' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+  128:18   warning  'e' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+  160:18   warning  'e' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+  372:141  warning  Unexpected any. Specify a different type                                                                       @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/VoxelView.tsx
+    24:89   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+    47:9    warning  The 'layerOptions' array makes the dependencies of useMemo Hook (at line 228) change on every render. To fix this, wrap the initialization of 'layerOptions' in its own useMemo() Hook  react-hooks/exhaustive-deps
+   113:56   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   118:34   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   137:40   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   169:53   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   204:40   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   225:28   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   225:51   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   235:36   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   235:72   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   276:66   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   277:61   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   280:68   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   306:61   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   307:59   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   310:64   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   311:62   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   321:63   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   321:118  warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   322:58   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   325:62   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   326:61   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   356:58   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+   391:6    warning  React Hook useEffect has a missing dependency: 'applyFocus'. Either include it or remove the dependency array                                                                           react-hooks/exhaustive-deps
+   471:34   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+  1088:79   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+  1088:114  warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+  1116:84   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+  1120:84   warning  Unexpected any. Specify a different type                                                                                                                                                @typescript-eslint/no-explicit-any
+
+✖ 423 problems (10 errors, 413 warnings)
+

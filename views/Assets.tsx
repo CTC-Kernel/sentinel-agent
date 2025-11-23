@@ -5,7 +5,8 @@ import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, Upload, AlertTriangle, History, X, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Activity, Clock, Copy, Euro, TrendingDown, FolderKanban, CheckSquare, Link } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, Upload, AlertTriangle, History, X, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Activity, Clock, Copy, Euro, TrendingDown, FolderKanban, CheckSquare, Link, Network } from '../components/ui/Icons';
+import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { aiService } from '../services/aiService';
@@ -30,7 +31,7 @@ export const Assets: React.FC = () => {
     const canEdit = canEditResource(user, 'Asset');
 
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'projects' | 'audits' | 'history' | 'comments'>('details');
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'projects' | 'audits' | 'history' | 'comments' | 'graph'>('details');
     const [assetHistory, setAssetHistory] = useState<SystemLog[]>([]);
     const [linkedRisks, setLinkedRisks] = useState<Risk[]>([]);
     const [linkedIncidents, setLinkedIncidents] = useState<Incident[]>([]);
@@ -248,7 +249,9 @@ export const Assets: React.FC = () => {
             // Actually, let's just use the file input ref to read again or store the text.
             // Simplified: We'll just use the preview text variable if it was full content, but we sliced it.
             // Let's rely on the file input being present and re-read it, or just store the full text in a ref.
-        } catch (e) { }
+        } catch (e) {
+            console.error('Import preview error', e);
+        }
 
         // Re-implementing simple read for now to match previous logic but with mappings
         // Ideally we would parse CSV properly.
@@ -582,7 +585,7 @@ export const Assets: React.FC = () => {
                                     <div className="flex items-center"><div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-2xl flex items-center justify-center mr-5 shadow-lg shadow-brand-500/20 text-white"><Server className="h-6 w-6" strokeWidth={2} /></div><div><h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedAsset ? selectedAsset.name : 'Nouvel Actif'}</h2><p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">{selectedAsset?.type || editForm.type}<span className="w-1 h-1 rounded-full bg-slate-300"></span>{selectedAsset?.id || 'Brouillon'}</p></div></div>
                                     <div className="flex gap-2">{canEdit && selectedAsset && (<button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer"><Copy className="h-5 w-5" /></button>)}{canEdit && isDirty && (<button onClick={handleSave} className="flex items-center px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl shadow-lg hover:scale-105 transition-all"><Save className="h-4 w-4 mr-2" /> Enregistrer</button>)}<button onClick={() => { setSelectedAsset(null); setEditForm({}); }} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button></div>
                                 </div>
-                                <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent">{[{ id: 'details', label: 'Général', icon: Tag }, { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock }, { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert }, { id: 'projects', label: 'Projets', icon: FolderKanban }, { id: 'audits', label: 'Audits', icon: CheckSquare }, { id: 'history', label: 'Audit Trail', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }].map(tab => (<button key={tab.id} onClick={() => setInspectorTab(tab.id as any)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}><tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />{tab.label}</button>))}</div>
+                                <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent">{[{ id: 'details', label: 'Général', icon: Tag }, { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock }, { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert }, { id: 'projects', label: 'Projets', icon: FolderKanban }, { id: 'audits', label: 'Audits', icon: CheckSquare }, { id: 'history', label: 'Audit Trail', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }, { id: 'graph', label: 'Graphe', icon: Network }].map(tab => (<button key={tab.id} onClick={() => setInspectorTab(tab.id as any)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}><tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />{tab.label}</button>))}</div>
 
                                 <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-black/20 custom-scrollbar">
                                     {inspectorTab === 'details' && (
@@ -735,7 +738,12 @@ export const Assets: React.FC = () => {
                                             )}
                                         </div>
                                     )}
-                                    {inspectorTab === 'history' && (<div className="relative border-l-2 border-slate-200 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">{assetHistory.map((log, i) => (<div key={i} className="relative"><span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900"><div className="h-2 w-2 rounded-full bg-brand-500"></div></span><div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span><p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p><p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p><div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div></div></div>))}</div>)}
+                                    {inspectorTab === 'history' && (<div className="relative border-l-2 border-slate-200 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">{assetHistory.map((log, i) => (<div key={i} className="relative"><span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-900"><div className="h-2 w-2 rounded-full bg-brand-500"></div></span><div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span><p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p><p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p><div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div></div></div>))}</div>)}
+                                    {inspectorTab === 'graph' && selectedAsset && (
+                                        <div className="h-[500px]">
+                                            <RelationshipGraph rootId={selectedAsset.id} rootType="Asset" />
+                                        </div>
+                                    )}
                                     {inspectorTab === 'comments' && selectedAsset && (<div className="h-full flex flex-col"><Comments collectionName="assets" documentId={selectedAsset.id} /></div>)}
                                 </div>
                             </div>

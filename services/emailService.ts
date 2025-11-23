@@ -33,7 +33,7 @@ interface EmailPayload {
 export const sendEmail = async (
   user: { uid: string; email: string } | null,
   payload: EmailPayload,
-  simulatePreview: boolean = true
+  simulatePreview: boolean = import.meta.env.VITE_ENABLE_EMAIL_PREVIEW === 'true'
 ) => {
   try {
     // 1. Écriture dans la file d'attente (Pattern standard Firebase Extension)
@@ -100,7 +100,7 @@ export const sendBulkEmail = async (
   user: { uid: string; email: string } | null,
   recipients: string[],
   payload: Omit<EmailPayload, 'to'>,
-  simulatePreview: boolean = false
+  simulatePreview: boolean = import.meta.env.VITE_ENABLE_EMAIL_PREVIEW === 'true'
 ) => {
   try {
     const promises = recipients.map(recipient =>

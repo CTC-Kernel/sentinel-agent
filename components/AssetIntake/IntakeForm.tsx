@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { HardwareInfo } from '../../utils/hardwareDetection';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { CheckCircle2, Laptop, Cpu, HardDrive, Monitor, Save, AlertTriangle } from '../ui/Icons';
+import { CheckCircle2, Laptop, Cpu, HardDrive, Monitor, Save, AlertTriangle, Briefcase, User } from '../ui/Icons';
+import { Project, UserProfile } from '../../types';
 
 interface IntakeFormProps {
     hardwareInfo: HardwareInfo;
@@ -13,13 +14,40 @@ interface IntakeFormProps {
 export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [users, setUsers] = useState<UserProfile[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         serialNumber: '',
-        user: '',
+        userId: '', // Changed from user string to userId for linking
+        projectId: '',
         notes: '',
         type: hardwareInfo.isMobile ? 'Mobile' : 'Laptop' // Default guess
     });
+
+    React.useEffect(() => {
+        const fetchOptions = async () => {
+            if (!orgId) return;
+            try {
+                const [projSnap, userSnap] = await Promise.all([
+                    getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId))),
+                    getDocs(query(collection(db, 'users'), where('organizationId', '==', orgId)))
+                ]);
+                setProjects(projSnap.docs.map(d => ({ id: d.id, ...d.data() } as Project)));
+                setUsers(userSnap.docs.map(d => ({ uid: d.id, ...d.data() } as UserProfile)));
+            } catch (e) { console.error("Error fetching options", e); }
+        };
+        fetchOptions();
+
+        // Smart Categorization
+        if (hardwareInfo.os.includes('iOS') || hardwareInfo.os.includes('Android')) {
+            setFormData(prev => ({ ...prev, type: 'Mobile' }));
+        } else if (hardwareInfo.gpu.includes('NVIDIA') || Number(hardwareInfo.cpuCores) > 8) {
+            setFormData(prev => ({ ...prev, type: 'Workstation' }));
+        } else {
+            setFormData(prev => ({ ...prev, type: 'Laptop' }));
+        }
+    }, [orgId, hardwareInfo]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,15 +61,20 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
         }
 
         try {
+            const selectedUser = users.find(u => u.uid === formData.userId);
+
             await addDoc(collection(db, 'assets'), {
                 ...formData,
                 organizationId: orgId,
                 hardware: hardwareInfo,
-                status: 'En stock', // Default status for new intake
+                status: 'En stock',
                 criticality: 'Moyenne',
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-                source: 'Kiosk Intake'
+                source: 'Kiosk Intake',
+                owner: selectedUser ? selectedUser.displayName : '',
+                ownerId: formData.userId,
+                relatedProjectIds: formData.projectId ? [formData.projectId] : []
             });
             onSuccess();
         } catch (err) {
@@ -143,30 +176,51 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Utilisateur Principal
                                 </label>
-                                <input
-                                    type="text"
-                                    value={formData.user}
-                                    onChange={(e) => setFormData({ ...formData, user: e.target.value })}
-                                    placeholder="ex: jean.dupont@example.com"
+                                <select
+                                    value={formData.userId}
+                                    onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
                                     className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                                />
+                                >
+                                    <option value="">-- Sélectionner un utilisateur --</option>
+                                    {users.map(u => (
+                                        <option key={u.uid} value={u.uid}>{u.displayName}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Type d'équipement
+                                    Projet Associé
                                 </label>
                                 <select
-                                    value={formData.type}
-                                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                    value={formData.projectId}
+                                    onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
                                     className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
                                 >
-                                    <option value="Laptop">Ordinateur Portable</option>
-                                    <option value="Desktop">Ordinateur Fixe</option>
-                                    <option value="Mobile">Smartphone</option>
-                                    <option value="Tablet">Tablette</option>
-                                    <option value="Other">Autre</option>
+                                    <option value="">-- Aucun projet --</option>
+                                    {projects.map(p => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
                                 </select>
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                Type d'équipement
+                            </label>
+                            <select
+                                value={formData.type}
+                                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                            >
+                                <option value="Laptop">Ordinateur Portable</option>
+                                <option value="Desktop">Ordinateur Fixe</option>
+                                <option value="Mobile">Smartphone</option>
+                                <option value="Tablet">Tablette</option>
+                                <option value="Workstation">Station de Travail</option>
+                                <option value="Server">Serveur</option>
+                                <option value="Other">Autre</option>
+                            </select>
                         </div>
 
                         <div>
@@ -184,12 +238,14 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                     </div>
                 </div>
 
-                {error && (
-                    <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl flex items-center gap-2 text-sm font-medium border border-red-100 dark:border-red-900/30">
-                        <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-                        {error}
-                    </div>
-                )}
+                {
+                    error && (
+                        <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl flex items-center gap-2 text-sm font-medium border border-red-100 dark:border-red-900/30">
+                            <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                            {error}
+                        </div>
+                    )
+                }
 
                 <button
                     type="submit"
@@ -205,7 +261,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                         </>
                     )}
                 </button>
-            </form>
-        </div>
+            </form >
+        </div >
     );
 };

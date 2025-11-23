@@ -97,7 +97,8 @@ import {
   Laptop,
   Cpu,
   HardDrive,
-  Monitor
+  Monitor,
+  Network
 } from 'lucide-react';
 
 export {
@@ -197,5 +198,6 @@ export {
   Laptop,
   Cpu,
   HardDrive,
-  Monitor
+  Monitor,
+  Network
 };
