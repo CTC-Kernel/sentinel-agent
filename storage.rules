@@ -28,10 +28,10 @@ service firebase.storage {
     }
     
     // Avatar uploads (user profile photos)
-    match /avatars/{userId}_{fileName} {
+    match /avatars/{fileName} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && request.auth.uid == userId;
-      allow delete: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAuthenticated() && fileName.matches(request.auth.uid + '_.*');
+      allow delete: if isAuthenticated() && (fileName.matches(request.auth.uid + '_.*') || isAdmin());
     }
     
     // Document uploads (organized by organization)

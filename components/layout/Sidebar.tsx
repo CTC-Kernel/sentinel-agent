@@ -20,7 +20,31 @@ const navItems = [
   { name: 'Équipe', to: '/team', icon: Users },
 ];
 
+import { useStore } from '../../store';
+import { hasPermission } from '../../utils/permissions';
+
 export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean) => void }> = ({ mobileOpen, setMobileOpen }) => {
+  const { user } = useStore();
+
+  const filteredNavItems = navItems.filter(item => {
+    if (!user) return false;
+    if (item.name === 'Tableau de bord') return true;
+    if (item.name === 'Équipe') return hasPermission(user, 'User', 'read');
+    if (item.name === 'Paramètres') return true; // Always show settings, internal logic handles access
+
+    // Map nav items to resources for permission checks
+    switch (item.name) {
+      case 'Incidents': return hasPermission(user, 'Risk', 'read'); // Using Risk as proxy or add Incident resource
+      case 'Projets SSI': return hasPermission(user, 'Project', 'read');
+      case 'Actifs': return hasPermission(user, 'Asset', 'read');
+      case 'Gestion des Risques': return hasPermission(user, 'Risk', 'read');
+      case 'Audits': return hasPermission(user, 'Audit', 'read');
+      case 'Documents': return hasPermission(user, 'Document', 'read');
+      // For others, default to true or specific checks if needed. 
+      // Assuming 'read' permission is enough to see the menu item.
+      default: return true;
+    }
+  });
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -68,7 +92,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em]">Espace de travail</p>
           </div>
 
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <NavLink
               key={item.name}
               to={item.to}
