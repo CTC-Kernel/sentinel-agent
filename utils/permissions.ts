@@ -53,6 +53,59 @@ export const hasPermission = (user: UserProfile | null, resource: ResourceType, 
     }
 };
 
+// Role type representing possible user roles
+export type Role = 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user';
+
+// Human‑readable role names (French)
+export const getRoleName = (role: Role): string => {
+    switch (role) {
+        case 'admin':
+            return 'Administrateur';
+        case 'rssi':
+            return 'RSSI';
+        case 'auditor':
+            return 'Auditeur';
+        case 'project_manager':
+            return 'Chef de Projet';
+        case 'direction':
+            return 'Direction';
+        case 'user':
+            return 'Utilisateur';
+        default:
+            return role;
+    }
+};
+
+// Descriptions for each role
+export const getRoleDescription = (role: Role): string => {
+    switch (role) {
+        case 'admin':
+            return "Accès complet à toutes les fonctionnalités et paramètres du système.";
+        case 'rssi':
+            return "Responsable de la sécurité des systèmes d'information, gestion des risques et des incidents.";
+        case 'auditor':
+            return "Effectue les audits internes et externes, vérifie la conformité ISO 27001.";
+        case 'project_manager':
+            return "Gère les projets SSI, planifie les jalons et suit l’avancement.";
+        case 'direction':
+            return "Supervise l’ensemble des activités de conformité et de sécurité.";
+        case 'user':
+            return "Utilise l'application avec des droits limités selon les besoins métier.";
+        default:
+            return '';
+    }
+};
+
+// Placeholder permissions map – can be expanded later
+export const PERMISSIONS = {
+    admin: ['*'],
+    rssi: ['Asset:manage', 'Risk:manage', 'Project:manage', 'Audit:manage', 'Document:manage'],
+    auditor: ['Audit:read', 'Audit:update', 'Document:read'],
+    project_manager: ['Project:manage', 'Document:create'],
+    direction: ['Report:read'],
+    user: ['Document:read']
+};
+
 export const canEditResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string): boolean => {
     if (!user) return false;
     if (user.role === 'admin' || user.role === 'rssi') return true;
