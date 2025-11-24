@@ -10,12 +10,15 @@ import { ToastContainer } from './components/ui/Toast';
 import { Login } from './views/Login';
 import { Onboarding } from './views/Onboarding';
 import { LayoutDashboard, ShieldAlert, Server, FileText, Users, Settings as SettingsIcon, Bell, LogOut, Menu, Search as SearchIcon, Moon, Sun, WifiOff, Lock, AlertTriangle, CheckCircle2, X, User } from './components/ui/Icons';
-import { UserProfile, AlertNotification, Risk, Supplier, Incident, Audit, Document } from './types';
+import { UserProfile, Risk, Supplier, Incident, Audit, Document } from './types';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { NotificationCenter } from './components/ui/NotificationCenter';
 import { autoRefreshTokenIfNeeded } from './utils/tokenRefresh';
-
+import { NotificationService } from './services/notificationService';
+import { NotificationPermissionBanner } from './components/ui/NotificationPermissionBanner';
+import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
+import { OnboardingTrigger } from './components/onboarding/OnboardingTrigger';
 
 // Lazy Loading des Vues
 const Dashboard = React.lazy(() => import('./views/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -36,6 +39,10 @@ const VoxelView = React.lazy(() => import('./views/VoxelView').then(module => ({
 const Notifications = React.lazy(() => import('./views/Notifications').then(module => ({ default: module.Notifications })));
 const Search = React.lazy(() => import('./views/Search').then(module => ({ default: module.Search })));
 const KioskPage = React.lazy(() => import('./components/AssetIntake/KioskPage').then(module => ({ default: module.KioskPage })));
+const BackupRestore = React.lazy(() => import('./views/BackupRestore').then(module => ({ default: module.BackupRestore })));
+const AnalyticsDashboard = React.lazy(() => import('./components/dashboard/AnalyticsDashboard').then(module => ({ default: module.AnalyticsDashboard })));
+const InteractiveTimeline = React.lazy(() => import('./components/timeline/InteractiveTimeline').then(module => ({ default: module.InteractiveTimeline })));
+const AuditTrailViewer = React.lazy(() => import('./components/audit/AuditTrailViewer').then(module => ({ default: module.AuditTrailViewer })));
 
 const LoadingScreen = () => (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafafa] dark:bg-slate-900 transition-colors relative overflow-hidden">
@@ -74,12 +81,11 @@ const AppContent: React.FC = () => {
     const [initializing, setInitializing] = useState(true);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-    const [showNotifications, setShowNotifications] = useState(false);
-    const [alerts, setAlerts] = useState<AlertNotification[]>([]);
-    const notifRef = useRef<HTMLDivElement>(null);
-
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
+
+    // Activate global keyboard shortcuts
+    useGlobalShortcuts();
 
     useEffect(() => {
         // Apply theme to body immediately
@@ -160,92 +166,20 @@ const AppContent: React.FC = () => {
         };
     }, [user?.uid]);
 
-    // Real-time Notification Polling (OPTIMIZED)
+    // Notification automation: persist alerts in Firestore for real-time center
     useEffect(() => {
         if (!user?.organizationId) return;
 
-        const fetchNotifications = async () => {
-            const newAlerts: AlertNotification[] = [];
-            const today = new Date();
-            const oneYearAgo = new Date();
-            oneYearAgo.setFullYear(today.getFullYear() - 1);
-            const orgId = user.organizationId;
-
+        const runChecks = async () => {
             try {
-                const [incSnap, auditSnap, docSnap, riskSnap, suppSnap] = await Promise.all([
-                    getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId), limit(20))),
-                    getDocs(query(collection(db, 'audits'), where('organizationId', '==', orgId), limit(20))),
-                    getDocs(query(collection(db, 'documents'), where('organizationId', '==', orgId), limit(50))),
-                    getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId), limit(100))),
-                    getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', orgId), limit(50)))
-                ]);
-
-                incSnap.docs.forEach(doc => {
-                    const i = doc.data() as Incident;
-                    if (i.status !== 'Fermé' && i.severity === 'Critique') {
-                        newAlerts.push({
-                            id: `inc-${doc.id}`, type: 'danger', title: 'Incident Critique',
-                            message: i.title, date: i.dateReported, link: '/incidents'
-                        });
-                    }
-                });
-
-                auditSnap.docs.forEach(doc => {
-                    const a = doc.data() as Audit;
-                    if ((a.status === 'Planifié' || a.status === 'En cours') && new Date(a.dateScheduled) < today) {
-                        newAlerts.push({
-                            id: `audit-${doc.id}`, type: 'warning', title: 'Audit en retard',
-                            message: a.name, date: a.dateScheduled, link: '/audits'
-                        });
-                    }
-                });
-
-                docSnap.docs.forEach(doc => {
-                    const d = doc.data() as Document;
-                    if (d.status === 'Publié' && d.nextReviewDate && new Date(d.nextReviewDate) < today) {
-                        newAlerts.push({
-                            id: `doc-${doc.id}`, type: 'info', title: 'Révision requise',
-                            message: d.title, date: d.nextReviewDate, link: '/documents'
-                        });
-                    }
-                });
-
-                riskSnap.docs.forEach(doc => {
-                    const r = doc.data() as Risk;
-                    if (r.status !== 'Fermé') {
-                        const reviewDate = r.lastReviewDate ? new Date(r.lastReviewDate) : (r.createdAt ? new Date(r.createdAt) : null);
-                        if (reviewDate && reviewDate < oneYearAgo) {
-                            newAlerts.push({
-                                id: `risk-review-${doc.id}`, type: 'warning', title: 'Revue de risque requise',
-                                message: `Le risque "${r.threat}" n'a pas été revu depuis 1 an.`,
-                                date: new Date().toISOString(),
-                                link: '/risks'
-                            });
-                        }
-                    }
-                });
-
-                suppSnap.docs.forEach(doc => {
-                    const s = doc.data() as Supplier;
-                    if (s.status === 'Actif' && s.assessment?.lastAssessmentDate) {
-                        const assessDate = new Date(s.assessment.lastAssessmentDate);
-                        if (assessDate < oneYearAgo) {
-                            newAlerts.push({
-                                id: `supp-assess-${doc.id}`, type: 'info', title: 'Évaluation Fournisseur',
-                                message: `Réévaluer ${s.name} (Dernière: ${assessDate.toLocaleDateString()})`,
-                                date: new Date().toISOString(),
-                                link: '/suppliers'
-                            });
-                        }
-                    }
-                });
-
-                setAlerts(newAlerts);
-            } catch (e) { console.error("Notification fetch error", e); }
+                await NotificationService.runAutomatedChecks(user.organizationId!);
+            } catch (e) {
+                console.error('Notification automation failed', e);
+            }
         };
 
-        fetchNotifications();
-        const interval = setInterval(fetchNotifications, 300000);
+        runChecks();
+        const interval = setInterval(runChecks, 15 * 60 * 1000);
         return () => clearInterval(interval);
     }, [user?.organizationId]);
 
@@ -366,6 +300,9 @@ const AppContent: React.FC = () => {
                                 <Suspense fallback={<LoadingScreen />}>
                                     <Routes>
                                         <Route path="/" element={<Dashboard />} />
+                                        <Route path="/analytics" element={<AnalyticsDashboard />} />
+                                        <Route path="/timeline" element={<InteractiveTimeline />} />
+                                        <Route path="/audit-trail" element={<AuditTrailViewer />} />
                                         <Route path="/incidents" element={<Incidents />} />
                                         <Route path="/projects" element={<Projects />} />
                                         <Route path="/assets" element={<Assets />} />
@@ -376,6 +313,7 @@ const AppContent: React.FC = () => {
                                         <Route path="/team" element={<Team />} />
                                         <Route path="/settings" element={<Settings />} />
                                         <Route path="/suppliers" element={<Suppliers />} />
+                                        <Route path="/backup" element={<BackupRestore />} />
                                         <Route path="/privacy" element={<Privacy />} />
                                         <Route path="/continuity" element={<Continuity />} />
                                         <Route path="/voxel" element={<VoxelView />} />
@@ -390,6 +328,12 @@ const AppContent: React.FC = () => {
                         </main>
                     </div>
                 </div>
+
+                {/* Notification Permission Banner */}
+                <NotificationPermissionBanner />
+
+                {/* Onboarding Tour */}
+                <OnboardingTrigger />
             </ErrorBoundary>
         </Router>
     );

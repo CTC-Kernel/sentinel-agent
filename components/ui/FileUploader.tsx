@@ -50,20 +50,17 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         try {
             const path = generateFilePath(user.organizationId || 'default', category, selectedFile.name);
 
-            // Simulate progress (Firebase Storage doesn't provide real-time progress in web SDK)
-            const progressInterval = setInterval(() => {
-                setProgress(prev => Math.min(prev + 10, 90));
-            }, 200);
-
+            // Use uploadBytesResumable for real progress
             const downloadURL = await uploadFile(selectedFile, path, {
                 name: selectedFile.name,
                 size: selectedFile.size,
                 type: selectedFile.type,
                 uploadedBy: user.uid,
                 organizationId: user.organizationId,
+            }, (progress) => {
+                setProgress(progress);
             });
 
-            clearInterval(progressInterval);
             setProgress(100);
 
             setTimeout(() => {

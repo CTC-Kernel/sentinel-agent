@@ -13,7 +13,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
-import { generateICS } from '../utils/calendar';
+import { generateICS, downloadICS } from '../utils/calendar';
 
 export const Projects: React.FC = () => {
     const [projects, setProjects] = useState<Project[]>([]);
@@ -337,6 +337,10 @@ export const Projects: React.FC = () => {
         }
     };
 
+    const getAssetById = (id: string) => assets.find(a => a.id === id);
+    const getRiskById = (id: string) => risks.find(r => r.id === id);
+    const getControlById = (id: string) => controls.find(c => c.id === id);
+
     const getStatusColor = (s: string) => {
         switch (s) {
             case 'En cours': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
@@ -592,6 +596,96 @@ export const Projects: React.FC = () => {
                                                             <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedControlIds?.length || 0}</p>
                                                         </div>
                                                     </div>
+
+                                                    {(selectedProject.relatedAssetIds?.length || 0) > 0 && (
+                                                        <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
+                                                            <div className="flex items-center justify-between mb-4">
+                                                                <div>
+                                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Actifs critiques</p>
+                                                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Chaîne de valeur concernée</h4>
+                                                                </div>
+                                                                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedAssetIds?.length} actifs</span>
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                {selectedProject.relatedAssetIds?.map(assetId => {
+                                                                    const asset = getAssetById(assetId);
+                                                                    if (!asset) return null;
+                                                                    return (
+                                                                        <div key={assetId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                                            <div>
+                                                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{asset.name}</p>
+                                                                                <p className="text-xs text-slate-500 dark:text-slate-400">{asset.type} • {asset.owner || 'Responsable inconnu'}</p>
+                                                                            </div>
+                                                                            <div className="flex gap-1">
+                                                                                {[asset.confidentiality, asset.integrity, asset.availability].map((level, idx) => (
+                                                                                    <span key={idx} className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{level}</span>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {(selectedProject.relatedRiskIds?.length || 0) > 0 && (
+                                                        <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
+                                                            <div className="flex items-center justify-between mb-4">
+                                                                <div>
+                                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Risques suivis</p>
+                                                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Suivi ISO 27005</h4>
+                                                                </div>
+                                                                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedRiskIds?.length} risques</span>
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                {selectedProject.relatedRiskIds?.map(riskId => {
+                                                                    const risk = getRiskById(riskId);
+                                                                    if (!risk) return null;
+                                                                    const level = risk.score >= 15 ? 'Critique' : risk.score >= 10 ? 'Élevé' : risk.score >= 5 ? 'Moyen' : 'Faible';
+                                                                    const badgeColor = risk.score >= 15 ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' : risk.score >= 10 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' : risk.score >= 5 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+                                                                    return (
+                                                                        <div key={riskId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                                            <div>
+                                                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{risk.threat}</p>
+                                                                                <p className="text-xs text-slate-500 dark:text-slate-400">{risk.vulnerability}</p>
+                                                                            </div>
+                                                                            <div className="flex items-center gap-2">
+                                                                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg ${badgeColor}`}>{level}</span>
+                                                                                <span className="text-xs text-slate-400 dark:text-slate-500">Score {risk.score}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {(selectedProject.relatedControlIds?.length || 0) > 0 && (
+                                                        <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
+                                                            <div className="flex items-center justify-between mb-4">
+                                                                <div>
+                                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Contrôles ISO 27001</p>
+                                                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Mesures associées</h4>
+                                                                </div>
+                                                                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedControlIds?.length} contrôles</span>
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                {selectedProject.relatedControlIds?.map(controlId => {
+                                                                    const control = getControlById(controlId);
+                                                                    if (!control) return null;
+                                                                    return (
+                                                                        <div key={controlId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                                            <div>
+                                                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{control.code} — {control.name}</p>
+                                                                                {control.description && <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{control.description}</p>}
+                                                                            </div>
+                                                                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{control.status}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -633,12 +727,15 @@ export const Projects: React.FC = () => {
                                                             </span>
                                                             {canEdit && (
                                                                 <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                    <button onClick={() => generateICS({
-                                                                        title: `Tâche : ${task.title}`,
-                                                                        description: `Tâche du projet ${selectedProject.name}`,
-                                                                        start: new Date(selectedProject.dueDate),
-                                                                        url: window.location.href
-                                                                    })} className="p-1.5 text-gray-400 hover:text-blue-500 transition-all" title="Ajouter au calendrier"><CalendarDays className="h-3.5 w-3.5" /></button>
+                                                                    <button onClick={() => {
+                                                                        const icsContent = generateICS([{
+                                                                            title: `Tâche : ${task.title}`,
+                                                                            description: `Tâche du projet ${selectedProject.name}`,
+                                                                            startDate: task.dueDate ? new Date(task.dueDate) : new Date(selectedProject.dueDate),
+                                                                            location: 'Sentinel GRC'
+                                                                        }]);
+                                                                        downloadICS(`tache_${task.id}.ics`, icsContent);
+                                                                    }} className="p-1.5 text-gray-400 hover:text-blue-500 transition-all" title="Ajouter au calendrier"><CalendarDays className="h-3.5 w-3.5" /></button>
                                                                     <button onClick={() => deleteTask(task.id)} className="p-1.5 text-gray-400 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
                                                                 </div>
                                                             )}

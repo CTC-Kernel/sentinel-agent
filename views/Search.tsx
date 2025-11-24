@@ -7,6 +7,7 @@ import { Search as SearchIcon, Filter, ArrowRight, ShieldCheck, AlertTriangle, F
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useNavigate } from 'react-router-dom';
+import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 
 interface SearchResult {
     id: string;
@@ -23,12 +24,14 @@ export const Search: React.FC = () => {
     const [results, setResults] = useState<SearchResult[]>([]);
     const [loading, setLoading] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('all');
+    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+    const [advancedFilters, setAdvancedFilters] = useState<SearchFilters>({ query: '', type: 'all' });
     const { user } = useStore();
     const navigate = useNavigate();
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            if (queryText.length > 1) {
+            if (queryText.length > 1 || advancedFilters.status || advancedFilters.owner || advancedFilters.dateFrom) {
                 performSearch();
             } else {
                 setResults([]);
@@ -36,7 +39,7 @@ export const Search: React.FC = () => {
         }, 500);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [queryText, activeFilter]);
+    }, [queryText, activeFilter, advancedFilters]);
 
     const performSearch = async () => {
         if (!user?.organizationId) return;
@@ -44,17 +47,32 @@ export const Search: React.FC = () => {
 
         try {
             const searchResults: SearchResult[] = [];
-            const searchTerm = queryText.toLowerCase();
+            const searchTerm = (advancedFilters.query || queryText).toLowerCase();
 
             // Helper to check if item matches
             const matches = (text: string) => text?.toLowerCase().includes(searchTerm);
 
+            // Helper to check date range
+            const matchesDateRange = (dateStr: string) => {
+                if (!advancedFilters.dateFrom && !advancedFilters.dateTo) return true;
+                const itemDate = new Date(dateStr);
+                if (advancedFilters.dateFrom && itemDate < new Date(advancedFilters.dateFrom)) return false;
+                if (advancedFilters.dateTo && itemDate > new Date(advancedFilters.dateTo)) return false;
+                return true;
+            };
+
             // 1. Assets
-            if (activeFilter === 'all' || activeFilter === 'asset') {
+            if (activeFilter === 'all' || activeFilter === 'asset' || advancedFilters.type === 'asset' || advancedFilters.type === 'all') {
                 const assetsSnap = await getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId)));
                 assetsSnap.forEach(doc => {
                     const data = doc.data();
                     if (matches(data.name) || matches(data.type)) {
+                        // Apply advanced filters
+                        if (advancedFilters.status && data.status !== advancedFilters.status) return;
+                        if (advancedFilters.owner && !data.owner?.toLowerCase().includes(advancedFilters.owner.toLowerCase())) return;
+                        if (advancedFilters.criticality && data.criticality !== advancedFilters.criticality) return;
+                        if (!matchesDateRange(data.updatedAt)) return;
+
                         searchResults.push({
                             id: doc.id,
                             type: 'asset',
@@ -68,11 +86,15 @@ export const Search: React.FC = () => {
             }
 
             // 2. Risks
-            if (activeFilter === 'all' || activeFilter === 'risk') {
+            if (activeFilter === 'all' || activeFilter === 'risk' || advancedFilters.type === 'risk' || advancedFilters.type === 'all') {
                 const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)));
                 risksSnap.forEach(doc => {
                     const data = doc.data();
                     if (matches(data.threat) || matches(data.scenario)) {
+                        if (advancedFilters.status && data.status !== advancedFilters.status) return;
+                        if (advancedFilters.owner && !data.owner?.toLowerCase().includes(advancedFilters.owner.toLowerCase())) return;
+                        if (!matchesDateRange(data.updatedAt)) return;
+
                         searchResults.push({
                             id: doc.id,
                             type: 'risk',
@@ -86,11 +108,15 @@ export const Search: React.FC = () => {
             }
 
             // 3. Documents
-            if (activeFilter === 'all' || activeFilter === 'document') {
+            if (activeFilter === 'all' || activeFilter === 'document' || advancedFilters.type === 'document' || advancedFilters.type === 'all') {
                 const docsSnap = await getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId)));
                 docsSnap.forEach(doc => {
                     const data = doc.data();
                     if (matches(data.title) || matches(data.reference)) {
+                        if (advancedFilters.status && data.status !== advancedFilters.status) return;
+                        if (advancedFilters.owner && !data.owner?.toLowerCase().includes(advancedFilters.owner.toLowerCase())) return;
+                        if (!matchesDateRange(data.updatedAt)) return;
+
                         searchResults.push({
                             id: doc.id,
                             type: 'document',
@@ -104,11 +130,15 @@ export const Search: React.FC = () => {
             }
 
             // 4. Projects
-            if (activeFilter === 'all' || activeFilter === 'project') {
+            if (activeFilter === 'all' || activeFilter === 'project' || advancedFilters.type === 'project' || advancedFilters.type === 'all') {
                 const projSnap = await getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId)));
                 projSnap.forEach(doc => {
                     const data = doc.data();
                     if (matches(data.name) || matches(data.description)) {
+                        if (advancedFilters.status && data.status !== advancedFilters.status) return;
+                        if (advancedFilters.owner && !data.manager?.toLowerCase().includes(advancedFilters.owner.toLowerCase())) return;
+                        if (!matchesDateRange(data.dueDate)) return;
+
                         searchResults.push({
                             id: doc.id,
                             type: 'project',
@@ -148,8 +178,28 @@ export const Search: React.FC = () => {
         }
     };
 
+    const handleAdvancedSearch = (filters: SearchFilters) => {
+        setAdvancedFilters(filters);
+        setQueryText(filters.query);
+        setShowAdvancedSearch(false);
+    };
+
+    const clearAdvancedFilters = () => {
+        setAdvancedFilters({ query: '', type: 'all' });
+        setQueryText('');
+    };
+
+    const hasActiveFilters = advancedFilters.status || advancedFilters.owner || advancedFilters.dateFrom || advancedFilters.dateTo || advancedFilters.criticality;
+
     return (
         <div className="space-y-6 animate-fade-in pb-10">
+            {showAdvancedSearch && (
+                <AdvancedSearch
+                    onSearch={handleAdvancedSearch}
+                    onClose={() => setShowAdvancedSearch(false)}
+                />
+            )}
+
             <div className="flex flex-col gap-2">
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Recherche Avancée</h1>
                 <p className="text-slate-500 dark:text-slate-400 font-medium">Recherchez dans tous vos actifs, risques, documents et projets.</p>
@@ -168,7 +218,46 @@ export const Search: React.FC = () => {
                     autoFocus
                 />
                 {loading && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-brand-600 mr-4"></div>}
+                <button
+                    onClick={() => setShowAdvancedSearch(true)}
+                    className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-sm shadow-lg transition-all hover:scale-105 flex items-center gap-2"
+                >
+                    <Filter className="h-4 w-4" />
+                    Filtres
+                </button>
             </div>
+
+            {hasActiveFilters && (
+                <div className="flex flex-wrap gap-2 items-center">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Filtres actifs:</span>
+                    {advancedFilters.status && (
+                        <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold">
+                            Statut: {advancedFilters.status}
+                        </span>
+                    )}
+                    {advancedFilters.owner && (
+                        <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-bold">
+                            Propriétaire: {advancedFilters.owner}
+                        </span>
+                    )}
+                    {advancedFilters.criticality && (
+                        <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-lg text-xs font-bold">
+                            Criticité: {advancedFilters.criticality}
+                        </span>
+                    )}
+                    {(advancedFilters.dateFrom || advancedFilters.dateTo) && (
+                        <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-xs font-bold">
+                            Période: {advancedFilters.dateFrom || '...'} → {advancedFilters.dateTo || '...'}
+                        </span>
+                    )}
+                    <button
+                        onClick={clearAdvancedFilters}
+                        className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    >
+                        Effacer
+                    </button>
+                </div>
+            )}
 
             <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
                 {[

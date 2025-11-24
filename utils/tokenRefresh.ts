@@ -9,7 +9,6 @@ export const refreshUserToken = async (): Promise<boolean> => {
     try {
         const user = auth.currentUser;
         if (!user) {
-            console.warn('No user logged in');
             return false;
         }
 
@@ -22,11 +21,8 @@ export const refreshUserToken = async (): Promise<boolean> => {
 
         // Force token refresh on client side
         await user.getIdToken(true);
-
-        console.log('User token refreshed successfully');
         return true;
     } catch (error) {
-        console.error('Error refreshing user token:', error);
         return false;
     }
 };
@@ -42,7 +38,6 @@ export const hasCustomClaims = async (): Promise<boolean> => {
         const tokenResult = await user.getIdTokenResult();
         return !!(tokenResult.claims.organizationId);
     } catch (error) {
-        console.error('Error checking custom claims:', error);
         return false;
     }
 };
@@ -61,7 +56,6 @@ export const autoRefreshTokenIfNeeded = async (): Promise<void> => {
 
         const hasClaims = await hasCustomClaims();
         if (!hasClaims) {
-            console.log('Custom claims missing, refreshing token...');
             const success = await refreshUserToken();
 
             if (success) {
@@ -71,6 +65,6 @@ export const autoRefreshTokenIfNeeded = async (): Promise<void> => {
             }
         }
     } catch (error) {
-        console.error('Error in auto-refresh:', error);
+        // Error handled silently
     }
 };

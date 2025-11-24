@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, Upload, AlertTriangle, History, X, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Activity, Clock, Copy, Euro, TrendingDown, FolderKanban, CheckSquare, Link, Network } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, Upload, AlertTriangle, History, X, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Activity, Clock, Copy, Euro, TrendingDown, FolderKanban, CheckSquare, Link } from '../components/ui/Icons';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';

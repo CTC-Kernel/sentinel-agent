@@ -41,8 +41,9 @@ export const detectHardware = async (): Promise<HardwareInfo> => {
 
     // 3. RAM (Chrome/Edge only)
     // navigator.deviceMemory is not standard yet
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const deviceMemory = (navigator as any).deviceMemory || 4;
-    // navigator.hardwareConcurrency is standard but might be missing in types
+
     if (deviceMemory) {
         info.ram = `${deviceMemory} GB`;
     }
