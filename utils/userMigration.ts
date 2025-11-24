@@ -20,13 +20,9 @@ export const fixAllUsers = async (): Promise<{
         const functions = getFunctions(app);
         const fixAllUsersFunc = httpsCallable(functions, 'fixAllUsers');
 
-        console.log('Calling fixAllUsers Cloud Function...');
         const result = await fixAllUsersFunc();
-
-        console.log('Migration complete:', result.data);
         return result.data as any;
     } catch (error) {
-        console.error('Error calling fixAllUsers:', error);
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error'

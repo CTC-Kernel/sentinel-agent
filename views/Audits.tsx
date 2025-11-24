@@ -14,6 +14,7 @@ import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { sendEmail } from '../services/emailService';
 import { getAuditReminderTemplate } from '../services/emailTemplates';
+import { generateICS, downloadICS } from '../utils/calendar';
 
 export const Audits: React.FC = () => {
     const [audits, setAudits] = useState<Audit[]>([]);
@@ -256,6 +257,18 @@ export const Audits: React.FC = () => {
         link.click();
     };
 
+    const handleExportCalendar = () => {
+        const events = filteredAudits.map(audit => ({
+            title: `Audit: ${audit.name}`,
+            description: `Type: ${audit.type} | Auditeur: ${audit.auditor} | Statut: ${audit.status}`,
+            startDate: new Date(audit.dateScheduled),
+            location: 'Sentinel GRC'
+        }));
+        const icsContent = generateICS(events);
+        downloadICS(`audits_calendar_${new Date().toISOString().split('T')[0]}.ics`, icsContent);
+        addToast("Calendrier exporté", "success");
+    };
+
     const generateSoA = () => {
         if (!selectedAudit || !checklist) return;
         const doc = new jsPDF();
@@ -379,6 +392,9 @@ export const Audits: React.FC = () => {
                     value={filter} onChange={e => setFilter(e.target.value)} />
                 <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
                     <FileSpreadsheet className="h-4 w-4" />
+                </button>
+                <button onClick={handleExportCalendar} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter Calendrier">
+                    <CalendarDays className="h-4 w-4" />
                 </button>
             </div>
 

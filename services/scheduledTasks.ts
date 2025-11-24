@@ -27,10 +27,8 @@ export const scheduledNotificationChecks = async () => {
         );
 
         await Promise.allSettled(promises);
-
-        console.log(`Notification checks completed for ${organizationIds.size} organizations`);
     } catch (error) {
-        console.error('Error running notification checks:', error);
+        // Error handled silently
     }
 };
 

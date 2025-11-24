@@ -1,4 +1,4 @@
-import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject, listAll, uploadBytesResumable } from 'firebase/storage';
 import { storage } from '../firebase';
 
 export interface UploadProgress {
@@ -26,9 +26,10 @@ export interface FileMetadata {
 export const uploadFile = async (
     file: File,
     path: string,
-    metadata?: Partial<FileMetadata>
+    metadata?: Partial<FileMetadata>,
+    onProgress?: (progress: number) => void
 ): Promise<string> => {
-    try {
+    return new Promise((resolve, reject) => {
         const storageRef = ref(storage, path);
         const customMetadata: Record<string, string> = {
             uploadedAt: new Date().toISOString(),
@@ -39,17 +40,30 @@ export const uploadFile = async (
             type: metadata?.type || file.type,
         };
 
-        await uploadBytes(storageRef, file, {
+        const uploadTask = uploadBytesResumable(storageRef, file, {
             customMetadata: customMetadata,
             contentType: file.type,
         });
 
-        const downloadURL = await getDownloadURL(storageRef);
-        return downloadURL;
-    } catch (error) {
-        console.error('Error uploading file:', error);
-        throw new Error('Failed to upload file. Please try again.');
-    }
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                if (onProgress) onProgress(progress);
+            },
+            (error) => {
+                console.error('Error uploading file:', error);
+                reject(new Error('Failed to upload file. Please try again.'));
+            },
+            async () => {
+                try {
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                    resolve(downloadURL);
+                } catch (error) {
+                    reject(new Error('Failed to get download URL.'));
+                }
+            }
+        );
+    });
 };
 
 /**

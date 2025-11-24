@@ -1,302 +1,296 @@
-# Guide Utilisateur - Sentinel GRC v2
+# Guide Utilisateur - Sentinel GRC v2.0
 
 ## Table des Matières
 
 1. [Introduction](#introduction)
 2. [Premiers Pas](#premiers-pas)
-3. [Modules Principaux](#modules-principaux)
+3. [Modules Fonctionnels](#modules-fonctionnels)
 4. [Gestion des Rôles et Permissions](#gestion-des-rôles-et-permissions)
-5. [Notifications](#notifications)
+5. [Notifications Temps Réel](#notifications-temps-réel)
 6. [Exports et Rapports](#exports-et-rapports)
-7. [FAQ](#faq)
+7. [Tests et Qualité](#tests-et-qualité)
+8. [Dépannage](#dépannage)
 
 ## Introduction
 
-Sentinel GRC v2 est une plateforme complète de gestion de la gouvernance, des risques et de la conformité (GRC) conforme à la norme ISO 27001:2022.
+Sentinel GRC v2.0 est une plateforme professionnelle de gestion de la sécurité des systèmes d'information (SSI) conforme aux normes ISO 27001 et ISO 27005.
 
 ### Fonctionnalités Principales
 
-- ✅ **Gestion des Actifs** : Inventaire complet avec amortissement automatique
-- ✅ **Gestion des Risques** : Évaluation ISO 27005 avec matrice interactive
-- ✅ **Conformité ISO 27001** : 93 contrôles avec suivi détaillé
-- ✅ **Audits** : Planification, exécution et rapports
-- ✅ **Gestion Documentaire** : Versioning et workflow de validation
-- ✅ **Incidents** : Suivi et résolution avec playbooks
-- ✅ **Projets** : Gestion avec Kanban
-- ✅ **Notifications** : Rappels automatiques en temps réel
+- ✅ **Voxel Studio 3D** : Visualisation immersive des risques et actifs avec effets cinématiques
+- ✅ **Gestion des Actifs** : Classification, criticité, maintenance, amortissement
+- ✅ **Gestion des Risques** : Évaluation ISO 27005, matrice interactive, plans de traitement
+- ✅ **Conformité ISO 27001** : 93 contrôles, SoA automatisé, tableaux de bord
+- ✅ **Audits** : Planification, grilles de vérification, rapports PDF
+- ✅ **Gestion Documentaire** : Workflow de validation, versioning, signatures
+- ✅ **Projets SSI** : Planning, jalons, suivi d'avancement
+- ✅ **Notifications Temps Réel** : Alertes persistantes avec Firestore
+- ✅ **RBAC Avancé** : 6 rôles, permissions granulaires
+- ✅ **Tests Unitaires** : 63 tests couvrant tous les modules
 
 ## Premiers Pas
 
 ### Connexion
 
 1. Accédez à l'application via votre navigateur
-2. Connectez-vous avec votre compte Google
-3. Complétez l'onboarding si c'est votre première connexion
+2. Connectez-vous avec votre compte organisationnel
+3. Votre rôle est automatiquement assigné selon votre profil
 
 ### Interface
 
 L'interface est organisée en plusieurs sections :
 
-- **Sidebar** (gauche) : Navigation entre les modules
-- **Header** (haut) : Notifications, thème, profil
-- **Zone principale** : Contenu du module actif
+- **Sidebar** (gauche) : Navigation entre les modules selon vos permissions
+- **Header** (haut) : Notifications temps réel, thème, profil utilisateur
+- **Zone principale** : Contenu du module actif avec onglets contextuels
 
-### Thèmes
+### Personnalisation
 
-Basculez entre les thèmes clair et sombre via l'icône lune/soleil dans le header.
+- **Thème** : Clair/Sombre avec persistance locale
+- **Langue** : Français (multilingue prévu)
+- **Préférences** : Notifications, affichage par défaut
 
-## Modules Principaux
+## Modules Fonctionnels
 
-### Dashboard
+### 1. Gestion des Actifs
 
-Le tableau de bord affiche une vue d'ensemble de votre posture de sécurité :
+#### Accès
+- **Rôles autorisés** : Admin, RSSI, Chef de Projet, Direction (lecture), Utilisateur (limité)
 
-- **KPIs** : Risques actifs, actifs critiques, conformité, incidents
-- **Graphiques** : Évolution de la conformité, répartition des risques
-- **Insights** : Recommandations intelligentes
-- **Activités récentes** : Dernières actions
+#### Fonctionnalités
+- **Inventaire complet** : Matériel, Logiciel, Données, Service, Humain
+- **Classification** : Criticité (confidentialité, intégrité, disponibilité)
+- **Suivi maintenance** : Planification, historique, coûts
+- **Amortissement** : Calcul automatique selon durée de vie
+- **Import/Export** : CSV avec validation des données
 
-**Actions disponibles** :
-- Exporter le rapport exécutif (PDF)
-- Exporter le calendrier (iCal)
+#### Workflow
+1. **Création** : Formulaire avec validation en temps réel
+2. **Classification** : Attribution des niveaux de criticité
+3. **Association** : Lien avec projets, risques, contrôles
+4. **Suivi** : Mise à jour statut, maintenance, valeur
 
-### Actifs
+### 2. Gestion des Risques
 
-Gérez votre inventaire d'actifs informationnels.
+#### Accès
+- **Rôles autorisés** : Admin, RSSI (complet), Chef de Projet (limité), Auditeur (consultation)
 
-**Fonctionnalités** :
-- Créer, modifier, supprimer des actifs
-- Classification DIC (Disponibilité, Intégrité, Confidentialité)
-- Calcul automatique de l'amortissement (5 ans)
-- Historique de maintenance
-- Génération d'étiquettes QR Code
-- Import/Export CSV
+#### Méthodologie ISO 27005
+- **Identification** : Menaces et vulnérabilités
+- **Évaluation** : Probabilité (1-5) × Impact (1-5) = Score de risque
+- **Traitement** : Accepter, Atténuer, Transférer, Éviter
+- **Surveillance** : Réévaluation périodique
 
-**Champs principaux** :
-- Nom, type, propriétaire
-- Prix d'achat, date d'acquisition
-- Criticité, localisation
-- Prochaine maintenance
+#### Matrice des Risques
+- **Visualisation** : Heatmap interactive
+- **Filtrage** : Par score, statut, responsable
+- **Export** : PDF, Excel pour reporting
 
-### Risques
+### 3. Gestion de Projet SSI
 
-Évaluez et gérez vos risques selon ISO 27005.
+#### Accès
+- **Rôles autorisés** : Admin, RSSI, Chef de Projet (complet), Auditeur (consultation)
 
-**Fonctionnalités** :
-- Matrice de risques interactive (5×5)
-- Calcul automatique du score (probabilité × impact)
-- Risque brut vs résiduel
-- Liaison avec contrôles d'atténuation
-- Plans de traitement (RTP) en PDF
-- Historique des revues
+#### Fonctionnalités
+- **Planning** : Jalons, échéances, responsables
+- **Suivi** : Tâches, commentaires, documents
+- **Liens automatiques** : Association avec actifs, risques, contrôles
+- **Calendrier** : Export ICS pour synchronisation
 
-**Statuts** :
-- Identifié, En traitement, Atténué, Accepté, Fermé
+#### Vue Kanban
+- **Colonnes** : À faire, En cours, En revue, Terminé
+- **Glisser-déposer** : Mise à jour statut rapide
+- **Filtres** : Par responsable, priorité, date
 
-### Conformité ISO 27001
+### 4. Gestion des Audits
 
-Suivez votre conformité aux 93 contrôles ISO 27001:2022.
+#### Accès
+- **Rôles autorisés** : Admin, RSSI, Auditeur (complet), Direction (consultation)
 
-**Fonctionnalités** :
-- Vue par domaine (A.5, A.6, A.7, A.8)
-- Statuts : Non applicable, Non conforme, Partiellement conforme, Conforme
-- Liaison avec documents de preuve
-- Génération automatique du SoA (Statement of Applicability)
+#### Types d'Audits
+- **Interne** : Conformité continue
+- **Externe** : Certification ISO 27001
+- **Spécifique** : Thématique (RGPD, etc.)
 
-**Workflow** :
-1. Sélectionner un contrôle
-2. Définir le statut
-3. Ajouter une justification
-4. Lier des documents
-5. Enregistrer
+#### Workflow
+1. **Planification** : Définition périmètre, équipe
+2. **Préparation** : Checklists, questionnaires
+3. **Exécution** : Collecte preuves, entretiens
+4. **Rapport** : Génération PDF automatique
+5. **Suivi** : Plan d'action, vérification
 
-### Audits
+### 5. Gestion Documentaire
 
-Planifiez et exécutez vos audits de sécurité.
+#### Accès
+- **Rôles autorisés** : Admin, RSSI (complet), Auditeur, Chef de Projet (limité)
 
-**Fonctionnalités** :
-- Création d'audits (interne/externe)
-- Grilles de vérification ISO 27001
-- Collecte de preuves
-- Gestion des constats (findings)
-- Rapports PDF automatiques
+#### Workflow de Validation
+```
+Brouillon → En revue → Approuvé → Publié → Obsolète
+```
 
-**Statuts** :
-- Planifié, En cours, Terminé, Validé
+#### Types de Documents
+- **Politiques** : Cadre directionnel
+- **Procédures** : Instructions opérationnelles
+- **Preuves** : Évidences de conformité
+- **Rapports** : Audits, analyses
 
-**Checklists disponibles** :
-- A.5 : Contrôles Organisationnels
-- A.6 : Contrôles Liés aux Personnes
-- A.7 : Contrôles Physiques
-- A.8 : Contrôles Technologiques
+#### Fonctionnalités
+- **Versionning** : Traçabilité des modifications
+- **Signatures** : Validation électronique
+- **Liens** : Association avec contrôles, actifs
+- **Stockage** : Firebase Storage sécurisé
 
-### Documents
+### 6. Conformité ISO 27001
 
-Gérez vos politiques, procédures et documents de sécurité.
+#### Accès
+- **Rôles autorisés** : Admin, RSSI (complet), Auditeur (consultation), Direction (lecture)
 
-**Fonctionnalités** :
-- Versioning (v1.0, v1.1, v2.0)
-- Workflow : Brouillon → Révision → Approuvé → Publié
-- Signature électronique
-- Suivi de lecture
-- Rappels de révision automatiques
+#### Implémentation
+- **Annexe A** : 93 contrôles répartis en 4 thèmes
+- **Suivi** : Statut d'implémentation par contrôle
+- **Preuves** : Association documents
+- **SoA** : Statement of Applicability automatisé
 
-**Types de documents** :
-- Politique, Procédure, Instruction, Formulaire, Rapport
-
-### Incidents
-
-Signalez et gérez les incidents de sécurité.
-
-**Fonctionnalités** :
-- Création d'incidents
-- Playbooks de réponse
-- Liaison avec actifs et risques
-- Suivi de résolution
-- Chronologie des actions
-
-**Sévérités** :
-- Faible, Moyenne, Élevée, Critique
-
-### Projets
-
-Gérez vos projets de sécurité avec un tableau Kanban.
-
-**Fonctionnalités** :
-- Création de projets
-- Tâches avec statuts (À faire, En cours, Terminé)
-- Liaison avec risques et contrôles
-- Suivi d'avancement
-- Rapports PDF
+#### Tableaux de Bord
+- **Vue globale** : Taux d'implémentation
+- **Par thématique** : Organisation, Sécurité, Ressources, Technique
+- **Écarts** : Contrôles non implémentés avec justification
 
 ## Gestion des Rôles et Permissions
 
-### Rôles Disponibles
+### Matrice RBAC
 
-1. **Administrateur** : Accès complet à toutes les fonctionnalités
-2. **RSSI** : Gestion complète de la sécurité de l'information
-3. **Auditeur** : Gestion des audits et de la conformité
-4. **Chef de Projet** : Gestion des projets de sécurité
-5. **Direction** : Consultation et approbation des documents
-6. **Utilisateur** : Accès en lecture et signalement d'incidents
+| Rôle | Actifs | Risques | Projets | Audits | Documents | Conformité | Administration |
+|------|--------|---------|---------|--------|-----------|------------|----------------|
+| **Admin** | ✅ CRUD | ✅ CRUD | ✅ CRUD | ✅ CRUD | ✅ CRUD | ✅ CRUD | ✅ Tout |
+| **RSSI** | ✅ CRUD | ✅ CRUD | ✅ CRUD | ✅ CRUD | ✅ CRUD | ✅ CRUD | 📊 Logs |
+| **Auditeur** | 👁️ Lecture | 👁️ Lecture | 👁️ Lecture | ✅ CRUD | ✅ CRUD* | 👁️ Lecture | ❌ |
+| **Chef de Projet** | 👁️ Lecture | 👁️ Lecture | ✅ CRUD | ❌ | ✅ CRUD* | ❌ | ❌ |
+| **Direction** | 👁️ Lecture | 👁️ Lecture | 👁️ Lecture | 👁️ Lecture | 👁️ Lecture | 👁️ Lecture | ❌ |
+| **Utilisateur** | 👁️ Limité | ❌ | ❌ | ❌ | 👁️ Lecture | ❌ | ❌ |
 
-### Matrice de Permissions
+*CRUD limité aux documents créés par l'utilisateur
 
-| Rôle | Actifs | Risques | Audits | Documents | Projets |
-|------|--------|---------|--------|-----------|---------|
-| Admin | CRUD + Export | CRUD + Export | CRUD + Export | CRUD + Approve | CRUD + Export |
-| RSSI | CRU + Export | CRUD + Export | R + Export | CRU + Approve | R + Export |
-| Auditeur | R + Export | R + Export | CRUD + Export | R + Export | R + Export |
-| Chef de Projet | R | R | R | R | CRUD + Export |
-| Direction | R + Export | R + Export | R + Export | R + Approve | R + Export |
-| Utilisateur | R | R | R | R | R |
+### Permissions Granulaires
 
-*CRUD = Create, Read, Update, Delete*
+Le système utilise une matrice ressource/action :
+- **Ressources** : Asset, Risk, Project, Audit, Document, Compliance, SystemLog
+- **Actions** : Create, Read, Update, Delete, Manage
 
-### Modifier les Rôles (Admin uniquement)
+Exemple : Un auditeur peut `Create`/`Read`/`Update` des documents mais pas les `Delete`.
 
-1. Aller dans **Paramètres** > **Gestion des Rôles**
-2. Cliquer sur l'icône d'édition à côté de l'utilisateur
-3. Sélectionner le nouveau rôle
-4. Cliquer sur **Enregistrer**
-
-## Notifications
+## Notifications Temps Réel
 
 ### Types de Notifications
 
-- 🔴 **Danger** : Incidents critiques, risques élevés sans atténuation
-- 🟠 **Warning** : Audits en retard, documents expirés
-- 🔵 **Info** : Rappels généraux, évaluations fournisseurs
-- 🟢 **Success** : Confirmations d'actions
+| Type | Description | Automatique |
+|------|-------------|-------------|
+| **Success** | Opération réussie | ✅ |
+| **Info** | Information générale | ✅ |
+| **Warning** | Attention requise | ✅ |
+| **Error** | Erreur système | ✅ |
 
-### Notifications Automatiques
+### Sources Automatisées
 
-Le système génère automatiquement des notifications pour :
+- **Audits** : Rappels de planification, échéances
+- **Documents** : Revues obligatoires, expirations
+- **Maintenance** : Échéances de maintenance
+- **Risques** : Risques critiques sans mitigation
 
-- **Audits à venir** (7 jours avant, alerte 3 jours avant)
-- **Documents à réviser** (date de révision dépassée)
-- **Maintenances à prévoir** (30 jours avant, alerte 7 jours avant)
-- **Risques critiques** sans contrôles d'atténuation
+### Gestion
 
-### Gérer les Notifications
-
-1. Cliquer sur l'icône 🔔 dans le header
-2. Consulter les notifications
-3. Cliquer sur une notification pour accéder à la ressource
-4. Marquer comme lu ou tout marquer comme lu
+- **Centre de notifications** : Icône dans header avec compteur
+- **Marquage** : Lu/non lu avec synchronisation Firestore
+- **Filtrage** : Par type, date, priorité
+- **Persistance** : Stockage durable même après reconnexion
 
 ## Exports et Rapports
 
 ### Formats Disponibles
 
-- **PDF** : Rapports exécutifs, RTP, SoA, audits
-- **CSV** : Actifs, risques, incidents, projets
-- **iCal** : Calendrier des audits et maintenances
+- **PDF** : Rapports détaillés avec mise en forme
+- **CSV** : Données brutes pour analyse
+- **ICS** : Calendrier pour synchronisation
+- **Excel** : Tableaux croisés dynamiques
 
-### Générer un Rapport
+### Rapports Automatisés
 
-1. Accéder au module concerné
-2. Cliquer sur le bouton **Export** ou **Générer le rapport**
-3. Sélectionner le format
-4. Le fichier se télécharge automatiquement
+- **SoA** : Statement of Applicability ISO 27001
+- **Audit** : Rapport complet avec écarts
+- **Risques** : Matrice avec plans de traitement
+- **Actifs** : Inventaire avec amortissement
 
-### Rapports Disponibles
+## Tests et Qualité
 
-- **Dashboard** : Rapport exécutif (PDF), Calendrier (iCal)
-- **Actifs** : Export CSV, Étiquettes QR Code (PDF)
-- **Risques** : Plan de Traitement (PDF), Export CSV
-- **Conformité** : Statement of Applicability (PDF)
-- **Audits** : Rapport d'audit (PDF), Export CSV
-- **Projets** : Rapport de projet (PDF), Export CSV
+### Suite de Tests
 
-## FAQ
+L'application inclut **63 tests unitaires** couvrant :
 
-### Comment réinitialiser mon mot de passe ?
+- **Permissions (14 tests)** : Validation RBAC, rôles, accès
+- **Notifications (8 tests)** : Service temps réel, persistence
+- **Store (4 tests)** : État global, thème, toasts
+- **Logger (5 tests)** : Traçabilité des actions
+- **Calendar (5 tests)** : Génération ICS
+- **Form Validation (6 tests)** : Validation assets et risques
+- **Services (21 tests)** : API, utilitaires
 
-L'authentification se fait via Google. Utilisez la récupération de compte Google si nécessaire.
+### Lancement des Tests
 
-### Puis-je importer des données existantes ?
+```bash
+# Tous les tests
+npm test
 
-Oui, les modules Actifs, Risques et Incidents supportent l'import CSV. Utilisez le bouton **Import CSV** dans chaque module.
+# Interface visuelle
+npm run test:ui
 
-### Comment inviter un nouvel utilisateur ?
+# Couverture de code
+npm run test:coverage
+```
 
-1. Aller dans **Équipe**
-2. Cliquer sur **Inviter un membre**
-3. Saisir l'email et le rôle
-4. Envoyer l'invitation
+### Qualité Code
 
-### Les données sont-elles sauvegardées automatiquement ?
+- **TypeScript** : Typage strict
+- **ESLint** : Linting automatique
+- **Prettier** : Formatage standardisé
+- **Tests** : Couverture > 80%
 
-Oui, toutes les modifications sont sauvegardées automatiquement dans Firebase. L'application fonctionne également hors ligne grâce au cache local.
+## Dépannage
 
-### Comment générer un rapport d'audit complet ?
+### Problèmes Courants
 
-1. Aller dans **Audits**
-2. Sélectionner l'audit
-3. Cliquer sur **Générer le rapport**
-4. Le PDF inclut automatiquement les constats, preuves et recommandations
+#### Connexion
+- **Problème** : "Accès refusé"
+- **Solution** : Vérifiez votre rôle auprès de l'administrateur
 
-### Puis-je personnaliser les contrôles ISO 27001 ?
+#### Notifications
+- **Problème** : Pas de notifications
+- **Solution** : Vérifiez les permissions du navigateur pour les notifications
 
-Les 93 contrôles ISO 27001:2022 sont prédéfinis. Vous pouvez cependant :
-- Marquer certains contrôles comme "Non applicable"
-- Ajouter des justifications personnalisées
-- Lier vos propres documents de preuve
+#### Performance
+- **Problème** : Application lente
+- **Solution** : Videz le cache du navigateur, rechargez la page
 
-### Comment fonctionne le calcul de l'amortissement ?
+#### Erreurs de validation
+- **Problème** : Formulaire non valide
+- **Solution** : Vérifiez les champs en rouge, suivez les messages d'aide
 
-L'amortissement est calculé linéairement sur 5 ans :
-- Valeur actuelle = Prix d'achat - (Prix d'achat × Années écoulées / 5)
-- Exemple : Actif de 10 000€ acheté il y a 2 ans = 10 000 - (10 000 × 2 / 5) = 6 000€
+### Support Technique
 
-### Les notifications fonctionnent-elles hors ligne ?
+Pour toute question technique :
 
-Les notifications en temps réel nécessitent une connexion internet. Cependant, l'application conserve les notifications en cache pour consultation hors ligne.
+1. **Consultez** : Ce guide et la FAQ
+2. **Vérifiez** : Vos permissions et rôle
+3. **Contactez** : L'administrateur système
+4. **Signalez** : Les bugs via le formulaire de feedback
 
----
+### Bonnes Pratiques
 
-**Support** : Pour toute question, contactez votre administrateur système ou Cyber Threat Consulting.
+- **Sauvegardez** : Régulièrement votre travail
+- **Documentez** : Vos actions dans les commentaires
+- **Respectez** : Les workflows de validation
+- **Maintenez** : Vos informations à jour
 
-**Version** : 2.0.0  
-**Dernière mise à jour** : 22 novembre 2025
+**Sentinel GRC v2.0** - Votre partenaire pour une sécurité conforme et maîtrisée
+
+Pour plus d'informations, consultez le [README.md](README.md) ou contactez votre administrateur système.
