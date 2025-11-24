@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, limit, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset } from '../types';
+import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, ProjectMilestone, ProjectTemplate } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, MoreHorizontal, Clock, Trash2, FolderKanban, Search, ShieldAlert, FileText, FileSpreadsheet, Target, Edit, X, History, MessageSquare, Save, LayoutDashboard, ListTodo, Download, Copy } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, MoreHorizontal, Clock, Trash2, FolderKanban, Search, ShieldAlert, FileText, FileSpreadsheet, Target, Edit, X, History, MessageSquare, Save, LayoutDashboard, ListTodo, Download, Copy, Zap } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
@@ -14,6 +14,9 @@ import 'jspdf-autotable';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { generateICS, downloadICS } from '../utils/calendar';
+import { ProjectDashboard } from '../components/projects/ProjectDashboard';
+import { TemplateModal } from '../components/projects/TemplateModal';
+import { createProjectFromTemplate } from '../utils/projectTemplates';
 
 export const Projects: React.FC = () => {
     const [projects, setProjects] = useState<Project[]>([]);
@@ -23,14 +26,16 @@ export const Projects: React.FC = () => {
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showTemplateModal, setShowTemplateModal] = useState(false);
     const { user, addToast } = useStore();
     const [filter, setFilter] = useState('');
 
     // Inspector State
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'history' | 'comments'>('overview');
+    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments'>('overview');
     const [taskViewMode, setTaskViewMode] = useState<'list' | 'board'>('list');
     const [projectHistory, setProjectHistory] = useState<SystemLog[]>([]);
+    const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
 
     const canEdit = canEditResource(user, 'Project');
 
@@ -108,6 +113,16 @@ export const Projects: React.FC = () => {
             filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setProjectHistory(filteredLogs);
         } catch (e) { console.error(e); }
+
+        // Fetch Milestones
+        try {
+            const milestonesRef = collection(db, 'project_milestones');
+            const q = query(milestonesRef, where('projectId', '==', project.id), where('organizationId', '==', user?.organizationId));
+            const snap = await getDocs(q);
+            const milestones = snap.docs.map(d => ({ id: d.id, ...d.data() } as ProjectMilestone));
+            milestones.sort((a, b) => new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime());
+            setProjectMilestones(milestones);
+        } catch (e) { console.error(e); }
     };
 
     const openCreateModal = () => {
@@ -132,6 +147,33 @@ export const Projects: React.FC = () => {
             setShowModal(false);
             fetchData();
         } catch (e) { addToast("Erreur création projet", "error"); }
+    };
+
+    const handleCreateFromTemplate = async (template: ProjectTemplate, projectName: string, startDate: Date, manager: string) => {
+        if (!canEdit || !user?.organizationId) return;
+        try {
+            const { project, milestones } = createProjectFromTemplate(template, projectName, startDate, manager, user.organizationId);
+
+            // Create project
+            const projectDoc = await addDoc(collection(db, 'projects'), project);
+
+            // Create milestones
+            for (const milestone of milestones) {
+                await addDoc(collection(db, 'project_milestones'), {
+                    ...milestone,
+                    projectId: projectDoc.id,
+                    organizationId: user.organizationId
+                });
+            }
+
+            await logAction(user, 'CREATE', 'Project', `Projet créé depuis template ${template.name}: ${projectName}`);
+            addToast(`Projet créé avec ${project.tasks.length} tâches et ${milestones.length} jalons`, "success");
+            setShowTemplateModal(false);
+            fetchData();
+        } catch (e) {
+            console.error(e);
+            addToast("Erreur création depuis template", "error");
+        }
     };
 
     const handleUpdateProject = async () => {
@@ -380,6 +422,13 @@ export const Projects: React.FC = () => {
 
     return (
         <div className="space-y-6 relative">
+            <TemplateModal
+                isOpen={showTemplateModal}
+                onClose={() => setShowTemplateModal(false)}
+                onSelectTemplate={handleCreateFromTemplate}
+                managers={usersList.map(u => u.displayName || u.email)}
+            />
+
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -394,10 +443,22 @@ export const Projects: React.FC = () => {
                     <p className="text-slate-500 dark:text-slate-400">Pilotage des plans d'actions et mise en conformité.</p>
                 </div>
                 {canEdit && (
-                    <button onClick={openCreateModal} className="flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Nouveau Projet
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setShowTemplateModal(true)}
+                            className="flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20"
+                        >
+                            <Zap className="h-4 w-4 mr-2" />
+                            Depuis Template
+                        </button>
+                        <button
+                            onClick={openCreateModal}
+                            className="flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Nouveau Projet
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -688,6 +749,16 @@ export const Projects: React.FC = () => {
                                                     )}
                                                 </div>
                                             )}
+                                        </div>
+                                    )}
+
+                                    {inspectorTab === 'dashboard' && (
+                                        <div className="space-y-6 h-full flex flex-col">
+                                            <ProjectDashboard
+                                                project={selectedProject}
+                                                milestones={projectMilestones}
+                                                relatedRisks={risks.filter(r => selectedProject.relatedRiskIds?.includes(r.id))}
+                                            />
                                         </div>
                                     )}
 
