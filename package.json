@@ -6,6 +6,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
     "start": "npx serve dist -p 8080 -s"
   },
   "dependencies": {
@@ -14,6 +17,8 @@
     "@react-three/fiber": "^8.17.10",
     "@react-three/postprocessing": "^2.16.3",
     "@types/three": "^0.181.0",
+    "driver.js": "^1.4.0",
+    "exceljs": "^4.4.0",
     "express": "^4.18.2",
     "firebase": "^12.6.0",
     "jspdf": "^2.5.1",
@@ -21,11 +26,15 @@
     "lucide-react": "^0.344.0",
     "qrcode": "^1.5.3",
     "react": "^18.2.0",
+    "react-diff-viewer-continued": "^3.4.0",
     "react-dom": "^18.2.0",
+    "react-hotkeys-hook": "^5.2.1",
     "react-router-dom": "^6.22.2",
     "react-spring": "^10.0.3",
     "recharts": "^2.12.2",
     "three": "^0.160.0",
+    "vis-data": "^8.0.3",
+    "vis-timeline": "^8.4.0",
     "zustand": "^4.5.1"
   },
   "devDependencies": {
@@ -34,16 +43,20 @@
     "@types/react": "^18.2.56",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/ui": "^2.1.8",
     "autoprefixer": "^10.4.18",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "jsdom": "^26.0.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.2.2",
     "typescript-eslint": "^8.47.0",
-    "vite": "^5.1.4"
+    "vite": "^5.1.4",
+    "vitest": "^2.1.8"
   },
   "overrides": {
     "@react-three/fiber": "^8.17.10"

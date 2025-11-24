@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { HardwareInfo } from '../../utils/hardwareDetection';
 import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { CheckCircle2, Laptop, Cpu, HardDrive, Monitor, Save, AlertTriangle, Briefcase, User } from '../ui/Icons';
+import { CheckCircle2, Laptop, Save, AlertTriangle, Briefcase, User, Server, Database } from '../ui/Icons';
 import { Project, UserProfile } from '../../types';
 
 interface IntakeFormProps {
@@ -24,6 +24,17 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
         notes: '',
         type: hardwareInfo.isMobile ? 'Mobile' : 'Laptop' // Default guess
     });
+
+    const assetTypeIcons: Record<string, JSX.Element> = {
+        'Laptop': <Laptop className="h-8 w-8 text-blue-600" />,
+        'Server': <Server className="h-8 w-8 text-blue-600" />,
+        'Workstation': <Laptop className="h-8 w-8 text-blue-600" />,
+        'Mobile': <Laptop className="h-8 w-8 text-blue-600" />,
+        'Tablet': <Laptop className="h-8 w-8 text-blue-600" />,
+        'Network': <Server className="h-8 w-8 text-blue-600" />,
+        'Storage': <Server className="h-8 w-8 text-blue-600" />,
+        'Other': <AlertTriangle className="h-8 w-8 text-blue-600" />
+    };
 
     React.useEffect(() => {
         const fetchOptions = async () => {
@@ -92,14 +103,14 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                 {/* Hardware Detected Section */}
                 <div className="glass-panel p-6 rounded-2xl border border-white/40 dark:border-white/10 bg-white/50 dark:bg-slate-800/50">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                        <Laptop className="h-5 w-5 text-brand-600" />
+                        {assetTypeIcons[formData.type]}
                         Matériel Détecté
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                             <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-1">
-                                <Cpu className="h-4 w-4" />
+                                <User className="h-4 w-4" />
                                 <span className="text-xs font-bold uppercase">Processeur / GPU</span>
                             </div>
                             <div className="font-medium text-slate-900 dark:text-white truncate" title={hardwareInfo.gpu}>
@@ -112,7 +123,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
 
                         <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                             <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-1">
-                                <HardDrive className="h-4 w-4" />
+                                <Database className="h-4 w-4" />
                                 <span className="text-xs font-bold uppercase">Mémoire & OS</span>
                             </div>
                             <div className="font-medium text-slate-900 dark:text-white">
@@ -125,7 +136,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
 
                         <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 col-span-1 md:col-span-2">
                             <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-1">
-                                <Monitor className="h-4 w-4" />
+                                <Laptop className="h-4 w-4" />
                                 <span className="text-xs font-bold uppercase">Affichage</span>
                             </div>
                             <div className="font-medium text-slate-900 dark:text-white">

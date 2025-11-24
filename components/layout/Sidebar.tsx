@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
-import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight } from '../ui/Icons';
+import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database } from '../ui/Icons';
 
 const navItems = [
   { name: 'Tableau de bord', to: '/', icon: LayoutDashboard },
@@ -17,6 +17,7 @@ const navItems = [
   { name: 'Conformité DdA', to: '/compliance', icon: FileText },
   { name: 'Confidentialité (RGPD)', to: '/privacy', icon: Fingerprint },
   { name: 'Audits', to: '/audits', icon: Activity },
+  { name: 'Sauvegarde', to: '/backup', icon: Database },
   { name: 'Équipe', to: '/team', icon: Users },
 ];
 
