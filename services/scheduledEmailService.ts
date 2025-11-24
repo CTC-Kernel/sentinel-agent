@@ -67,10 +67,8 @@ export const sendAuditReminders = async (organizationId: string) => {
             }
         }
 
-        console.log(`✅ ${sentCount} rappels d'audit envoyés`);
         return sentCount;
     } catch (error) {
-        console.error('Erreur lors de l\'envoi des rappels d\'audit:', error);
         return 0;
     }
 };
@@ -127,10 +125,8 @@ export const sendRiskTreatmentReminders = async (organizationId: string) => {
             }
         }
 
-        console.log(`✅ ${sentCount} rappels de traitement de risque envoyés`);
         return sentCount;
     } catch (error) {
-        console.error('Erreur lors de l\'envoi des rappels de risque:', error);
         return 0;
     }
 };
@@ -187,10 +183,8 @@ export const sendDocumentReviewReminders = async (organizationId: string) => {
             }
         }
 
-        console.log(`✅ ${sentCount} rappels de révision de document envoyés`);
         return sentCount;
     } catch (error) {
-        console.error('Erreur lors de l\'envoi des rappels de document:', error);
         return 0;
     }
 };
@@ -246,10 +240,8 @@ export const sendSupplierReviewReminders = async (organizationId: string) => {
             }
         }
 
-        console.log(`✅ ${sentCount} rappels de révision fournisseur envoyés`);
         return sentCount;
     } catch (error) {
-        console.error('Erreur lors de l\'envoi des rappels fournisseur:', error);
         return 0;
     }
 };
@@ -314,10 +306,8 @@ export const sendWeeklyDigest = async (organizationId: string) => {
             }
         }
 
-        console.log(`✅ ${sentCount} digests hebdomadaires envoyés`);
         return sentCount;
     } catch (error) {
-        console.error('Erreur lors de l\'envoi du digest hebdomadaire:', error);
         return 0;
     }
 };
@@ -326,8 +316,6 @@ export const sendWeeklyDigest = async (organizationId: string) => {
  * Fonction principale à appeler quotidiennement par une Cloud Function.
  */
 export const runDailyEmailTasks = async (organizationId: string) => {
-    console.log(`🚀 Démarrage des tâches email quotidiennes pour ${organizationId}`);
-
     const results = await Promise.allSettled([
         sendAuditReminders(organizationId),
         sendRiskTreatmentReminders(organizationId),
@@ -342,6 +330,5 @@ export const runDailyEmailTasks = async (organizationId: string) => {
         return acc;
     }, 0);
 
-    console.log(`✅ Total: ${totalSent} emails envoyés`);
     return totalSent;
 };

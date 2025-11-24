@@ -196,24 +196,140 @@ export interface Supplier {
   id: string;
   organizationId: string;
   name: string;
-  category: 'SaaS' | 'Hébergement' | 'Matériel' | 'Consulting' | 'Autre';
-  criticality: Criticality;
-  contactName: string;
-  contactEmail: string;
-  contractEnd?: string;
-  contractDocumentId?: string;
-  status: 'Actif' | 'En cours' | 'Terminé';
-  securityScore?: number;
-  assessment?: {
+  category: 'Software' | 'Hardware' | 'Services' | 'Cloud' | 'Consulting' | 'Other' | 'Matériel';
+  contact: {
+    email: string;
+    phone: string;
+    address: string;
+    website?: string;
+    contactName?: string;
+  };
+  contactName?: string; // Added for compatibility
+  contactEmail?: string; // Added for compatibility
+  contract: {
+    startDate: string;
+    endDate?: string;
+    value: number;
+    currency: string;
+    renewalTerms?: string;
+    contractDocumentId?: string;
+  };
+  contractEnd?: string; // Added for compatibility
+  contractDocumentId?: string; // Added for compatibility
+  compliance: {
+    iso27001: boolean;
+    gdpr: boolean;
+    soc2: boolean;
+    hipaa: boolean;
+    otherCertifications: string[];
+  };
+  riskAssessment: {
+    overallScore: 1 | 2 | 3 | 4 | 5;
+    dataAccess: 'Low' | 'Medium' | 'High' | 'Critical';
+    dependencyLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+    geographicRisk: 'Low' | 'Medium' | 'High';
+    financialStability: 1 | 2 | 3 | 4 | 5;
+    securityMaturity: 1 | 2 | 3 | 4 | 5;
+    lastAssessment: string;
+    nextAssessment: string;
+  };
+  assessment?: { // Added for compatibility
     hasIso27001: boolean;
     hasGdprPolicy: boolean;
     hasEncryption: boolean;
     hasBcp: boolean;
     hasIncidentProcess: boolean;
-    lastAssessmentDate: string;
+    lastAssessmentDate?: string;
+  };
+  documents: {
+    contractUrl?: string;
+    complianceReportUrl?: string;
+    auditReportUrl?: string;
+    securityQuestionnaireUrl?: string;
+  };
+  status: 'Active' | 'Under Review' | 'Suspended' | 'Terminated' | 'Actif' | 'En cours' | 'Terminé';
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  criticality?: Criticality; // Added for compatibility
+  securityScore?: number; // Added for compatibility
+  owner: string;
+  ownerId?: string;
+  createdAt: string;
+  updatedAt: string;
+  reviewDates: {
+    contractReview: string;
+    securityReview: string;
+    complianceReview: string;
+    contractEnd?: string;
   };
   description?: string;
+}
+
+export interface SupplierAssessment {
+  id: string;
+  supplierId: string;
+  organizationId: string;
+  assessmentDate: string;
+  assessorId: string;
+  assessorName: string;
+  categories: {
+    security: {
+      score: 1 | 2 | 3 | 4 | 5;
+      findings: string[];
+      evidence: string[];
+    };
+    compliance: {
+      score: 1 | 2 | 3 | 4 | 5;
+      findings: string[];
+      evidence: string[];
+    };
+    operational: {
+      score: 1 | 2 | 3 | 4 | 5;
+      findings: string[];
+      evidence: string[];
+    };
+    financial: {
+      score: 1 | 2 | 3 | 4 | 5;
+      findings: string[];
+      evidence: string[];
+    };
+  };
+  overallScore: number;
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  recommendations: string[];
+  requiredActions: string[];
+  followUpDate: string;
+  status: 'Draft' | 'In Review' | 'Approved' | 'Rejected';
+  approvedBy?: string;
+  approvedDate?: string;
+}
+
+export interface SupplierIncident {
+  id: string;
+  supplierId: string;
+  organizationId: string;
+  title: string;
+  description: string;
+  severity: 'Low' | 'Medium' | 'High' | 'Critical';
+  category: 'Security' | 'Availability' | 'Data' | 'Compliance' | 'Other';
+  impact: {
+    operational: 'None' | 'Minor' | 'Moderate' | 'Major' | 'Critical';
+    financial: number;
+    reputational: 'None' | 'Minor' | 'Moderate' | 'Major' | 'Critical';
+  };
+  timeline: {
+    detected: string;
+    reported: string;
+    contained?: string;
+    resolved?: string;
+    rootCauseIdentified?: string;
+  };
+  rootCause: string;
+  lessonsLearned: string[];
+  preventiveActions: string[];
+  status: 'Open' | 'Investigating' | 'Contained' | 'Resolved' | 'Closed';
+  assignedTo?: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ProcessingActivity {
@@ -302,13 +418,17 @@ export interface Invitation {
   createdAt: string;
 }
 
-export interface AlertNotification {
+export interface NotificationRecord {
   id: string;
-  type: 'warning' | 'danger' | 'info';
+  organizationId: string;
+  userId: string;
+  type: 'warning' | 'danger' | 'info' | 'success';
   title: string;
   message: string;
-  date: string;
   link?: string;
+  read: boolean;
+  createdAt: string;
+  expiresAt?: string;
 }
 
 export interface Comment {

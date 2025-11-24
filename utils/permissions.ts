@@ -2,60 +2,77 @@ import { UserProfile } from '../types';
 
 export type ResourceType = 'Asset' | 'Risk' | 'Project' | 'Audit' | 'Document' | 'User' | 'Settings' | 'SystemLog';
 export type ActionType = 'create' | 'read' | 'update' | 'delete' | 'manage';
+export type Role = 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user';
 
-export const hasPermission = (user: UserProfile | null, resource: ResourceType, action: ActionType): boolean => {
-    if (!user) return false;
+type PermissionMatrix = Partial<Record<ResourceType | '*', ActionType[]>>;
 
-    // Admin and RSSI have full access
-    if (user.role === 'admin' || user.role === 'rssi') return true;
-
-    switch (resource) {
-        case 'Asset':
-            // Read-only for everyone else
-            if (action === 'read') return true;
-            return false;
-
-        case 'Risk':
-            // Read-only for everyone else
-            if (action === 'read') return true;
-            return false;
-
-        case 'Project':
-            // Project Managers can manage projects
-            if (user.role === 'project_manager') return true;
-            if (action === 'read') return true;
-            return false;
-
-        case 'Audit':
-            // Auditors can manage audits
-            if (user.role === 'auditor') return true;
-            if (action === 'read') return true;
-            return false;
-
-        case 'Document':
-            // Everyone can read
-            if (action === 'read') return true;
-            // Creation allowed for most roles? Let's say yes for now, or restrict.
-            // For now, let's allow creation for Project Managers and Auditors too.
-            if (action === 'create' && (user.role === 'project_manager' || user.role === 'auditor')) return true;
-            // Update/Delete handled by ownership check in component usually, but here we define role-based base permission
-            return false;
-
-        case 'User':
-            // Only admins manage users (handled by first check)
-            return false;
-
-        case 'Settings':
-            return false;
-
-        default:
-            return false;
+const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
+    admin: { '*': ['manage'] },
+    rssi: {
+        '*': ['read', 'update'],
+        Asset: ['manage'],
+        Risk: ['manage'],
+        Project: ['manage'],
+        Audit: ['manage'],
+        Document: ['manage'],
+        SystemLog: ['read']
+    },
+    auditor: {
+        Audit: ['manage'],
+        Document: ['read', 'create', 'update'],
+        Risk: ['read'],
+        Project: ['read'],
+        Asset: ['read']
+    },
+    project_manager: {
+        Project: ['manage'],
+        Document: ['create', 'read', 'update'],
+        Risk: ['read'],
+        Asset: ['read']
+    },
+    direction: {
+        Project: ['read'],
+        Risk: ['read'],
+        Audit: ['read'],
+        Document: ['read'],
+        Asset: ['read']
+    },
+    user: {
+        Document: ['read'],
+        Asset: ['read'],
+        Risk: ['read']
     }
 };
 
-// Role type representing possible user roles
-export type Role = 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user';
+const expandActions = (actions: ActionType[] = []): ActionType[] => {
+    if (actions.includes('manage')) {
+        return ['create', 'read', 'update', 'delete', 'manage'];
+    }
+    return actions;
+};
 
+const getAllowedActions = (role: Role, resource: ResourceType): ActionType[] => {
+    const matrix = ROLE_PERMISSIONS[role];
+    if (!matrix) return [];
+    const specific = matrix[resource] || [];
+    const wildcard = matrix['*'] || [];
+    return Array.from(new Set([...expandActions(specific), ...expandActions(wildcard)]));
+};
+
+export const hasPermission = (user: UserProfile | null, resource: ResourceType, action: ActionType): boolean => {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+
+    const allowed = getAllowedActions(user.role, resource);
+    if (allowed.includes(action)) return true;
+
+    // RSSI acts as super-user when not already covered by matrix wildcard
+    if (user.role === 'rssi') return true;
+
+    return false;
+};
+
+// Role type representing possible user roles
 // Human‑readable role names (French)
 export const getRoleName = (role: Role): string => {
     switch (role) {
@@ -96,30 +113,19 @@ export const getRoleDescription = (role: Role): string => {
     }
 };
 
-// Placeholder permissions map – can be expanded later
-export const PERMISSIONS = {
-    admin: ['*'],
-    rssi: ['Asset:manage', 'Risk:manage', 'Project:manage', 'Audit:manage', 'Document:manage'],
-    auditor: ['Audit:read', 'Audit:update', 'Document:read'],
-    project_manager: ['Project:manage', 'Document:create'],
-    direction: ['Report:read'],
-    user: ['Document:read']
+export const PERMISSIONS = ROLE_PERMISSIONS;
+
+const isResourceOwner = (user: UserProfile, ownerId?: string): boolean => {
+    if (!ownerId) return false;
+    return ownerId === user.uid || ownerId === user.displayName || ownerId === user.email;
 };
 
 export const canEditResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string): boolean => {
     if (!user) return false;
     if (user.role === 'admin' || user.role === 'rssi') return true;
 
-    if (resource === 'Document') {
-        // Users can edit their own documents
-        if (user.role === 'user') {
-            return resourceOwnerId === user.uid || resourceOwnerId === user.displayName;
-        }
-        // Owner can edit their document
-        // Note: owner in Document is stored as displayName currently, which is not ideal, but we follow existing pattern
-        if (resourceOwnerId === user.displayName) {
-            return true;
-        }
+    if (resource === 'Document' && isResourceOwner(user, resourceOwnerId)) {
+        return true;
     }
 
     return hasPermission(user, resource, 'update');

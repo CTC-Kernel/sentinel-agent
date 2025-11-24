@@ -24,8 +24,8 @@ export const aiService = {
      */
     async analyzeGraph(data: GraphData): Promise<{ suggestions: AISuggestedLink[]; insights: AIInsight[] }> {
         if (!API_KEY) {
-            console.warn("Gemini API Key is missing. Returning mock data for demonstration.");
-            return this.getMockAnalysis(data);
+            console.warn("Gemini API Key is missing. AI features disabled.");
+            return { suggestions: [], insights: [] };
         }
 
         try {
@@ -156,37 +156,6 @@ export const aiService = {
         }
     },
 
-    /**
-     * Fallback mock data generator for when API key is missing or error occurs.
-     */
-    getMockAnalysis(data: GraphData): { suggestions: AISuggestedLink[]; insights: AIInsight[] } {
-        const suggestions: AISuggestedLink[] = [];
-        const insights: AIInsight[] = [];
 
-        // Mock Logic: Link high severity incidents to high value assets if not already linked
-        data.incidents.filter(i => i.severity === 'Critique').forEach((incident, idx) => {
-            const criticalAsset = data.assets.find(a => a.confidentiality === 'Critique' && a.id !== incident.affectedAssetId);
-            if (criticalAsset) {
-                suggestions.push({
-                    id: `mock-link-${idx}`,
-                    sourceId: incident.id,
-                    targetId: criticalAsset.id,
-                    type: 'impact',
-                    confidence: 0.85,
-                    reasoning: `L'incident critique "${incident.title}" pourrait avoir un impact latéral sur l'actif critique "${criticalAsset.name}".`
-                });
-            }
-        });
 
-        insights.push({
-            id: 'mock-insight-1',
-            type: 'cluster',
-            title: 'Concentration de Risques',
-            description: 'Une concentration anormale de risques élevés a été détectée sur les actifs de type "Serveur".',
-            relatedIds: data.risks.slice(0, 3).map(r => r.id),
-            severity: 'high'
-        });
-
-        return { suggestions, insights };
-    }
 };

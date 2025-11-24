@@ -2,8 +2,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Supplier, Criticality, Document, SystemLog } from '../types';
-import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, CheckCircle2, X, History, MessageSquare, Save, FileSpreadsheet, Link, AlertTriangle, CalendarDays, TrendingUp, Upload } from '../components/ui/Icons';
+import { Supplier, SupplierAssessment, SupplierIncident, Document, SystemLog, Criticality } from '../types';
+import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, CheckCircle2, X, History, MessageSquare, Save, FileSpreadsheet, Link, AlertTriangle, CalendarDays, TrendingUp, Upload, AlertCircle, Clock, DollarSign, Globe, Lock, BarChart3, FileCheck, Users, Briefcase, Star } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
@@ -14,6 +14,8 @@ import { EmptyState } from '../components/ui/EmptyState';
 export const Suppliers: React.FC = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [documents, setDocuments] = useState<Document[]>([]);
+    const [assessments, setAssessments] = useState<SupplierAssessment[]>([]);
+    const [incidents, setIncidents] = useState<SupplierIncident[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [filter, setFilter] = useState('');
@@ -22,15 +24,19 @@ export const Suppliers: React.FC = () => {
 
     // Inspector State
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'history' | 'comments'>('profile');
+    const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'incidents' | 'history' | 'comments'>('profile');
     const [supplierHistory, setSupplierHistory] = useState<SystemLog[]>([]);
 
     // Stats State
-    const [stats, setStats] = useState({ total: 0, critical: 0, avgScore: 0, expired: 0 });
+    const [stats, setStats] = useState({ total: 0, critical: 0, avgScore: 0, expired: 0, highRisk: 0, activeIncidents: 0 });
 
     // Edit Form State
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState<Partial<Supplier>>({});
+
+    // Assessment Modal State
+    const [showAssessmentModal, setShowAssessmentModal] = useState(false);
+    const [assessmentData, setAssessmentData] = useState<Partial<SupplierAssessment>>({});
 
     // Import
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,7 +56,9 @@ export const Suppliers: React.FC = () => {
             // Use Promise.allSettled for robustness
             const results = await Promise.allSettled([
                 getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId)))
+                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'supplierAssessments'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'supplierIncidents'), where('organizationId', '==', user.organizationId)))
             ]);
 
             const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
@@ -67,14 +75,22 @@ export const Suppliers: React.FC = () => {
             const docData = getDocsData<Document>(results[1]);
             setDocuments(docData);
 
+            const assessmentData = getDocsData<SupplierAssessment>(results[2]);
+            setAssessments(assessmentData);
+
+            const incidentData = getDocsData<SupplierIncident>(results[3]);
+            setIncidents(incidentData);
+
             // Calculate Stats
             const total = data.length;
-            const critical = data.filter(s => s.criticality === Criticality.CRITICAL || s.criticality === Criticality.HIGH).length;
-            const avgScore = total > 0 ? Math.round(data.reduce((acc, s) => acc + (s.securityScore || 0), 0) / total) : 0;
+            const critical = data.filter(s => s.riskLevel === 'Critical' || s.riskLevel === 'High').length;
+            const avgScore = total > 0 ? Math.round(data.reduce((acc, s) => acc + s.riskAssessment.overallScore, 0) / total) : 0;
             const today = new Date();
-            const expired = data.filter(s => s.contractEnd && new Date(s.contractEnd) < today).length;
+            const expired = data.filter(s => s.contract.endDate && new Date(s.contract.endDate) < today).length;
+            const highRisk = data.filter(s => s.riskLevel === 'High' || s.riskLevel === 'Critical').length;
+            const activeIncidents = incidentData.filter(i => i.status === 'Open' || i.status === 'Investigating').length;
 
-            setStats({ total, critical, avgScore, expired });
+            setStats({ total, critical, avgScore, expired, highRisk, activeIncidents });
 
         } catch (err) {
             console.error(err);
@@ -106,12 +122,45 @@ export const Suppliers: React.FC = () => {
 
     const openCreateModal = () => {
         setFormData({
-            name: '', category: 'SaaS', criticality: Criticality.MEDIUM,
-            contactName: '', contactEmail: '', status: 'Actif', securityScore: 0,
-            contractDocumentId: '', contractEnd: '',
-            assessment: {
-                hasIso27001: false, hasGdprPolicy: false, hasEncryption: false,
-                hasBcp: false, hasIncidentProcess: false, lastAssessmentDate: new Date().toISOString()
+            name: '',
+            category: 'Software',
+            contact: {
+                email: '',
+                phone: '',
+                address: '',
+                website: '',
+                contactName: ''
+            },
+            contract: {
+                startDate: new Date().toISOString(),
+                value: 0,
+                currency: 'EUR'
+            },
+            compliance: {
+                iso27001: false,
+                gdpr: false,
+                soc2: false,
+                hipaa: false,
+                otherCertifications: []
+            },
+            riskAssessment: {
+                overallScore: 3,
+                dataAccess: 'Medium',
+                dependencyLevel: 'Medium',
+                geographicRisk: 'Low',
+                financialStability: 3,
+                securityMaturity: 3,
+                lastAssessment: new Date().toISOString(),
+                nextAssessment: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            documents: {},
+            status: 'Active',
+            riskLevel: 'Medium',
+            owner: user?.displayName || '',
+            reviewDates: {
+                contractReview: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+                securityReview: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+                complianceReview: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
             }
         });
         setIsEditing(false);
@@ -122,7 +171,12 @@ export const Suppliers: React.FC = () => {
         e.preventDefault();
         if (!canEdit || !user?.organizationId) return;
         try {
-            await addDoc(collection(db, 'suppliers'), { ...formData, organizationId: user.organizationId, createdAt: new Date().toISOString() });
+            await addDoc(collection(db, 'suppliers'), {
+                ...formData,
+                organizationId: user.organizationId,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            });
             await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${formData.name}`);
             addToast("Fournisseur ajouté", "success");
             setShowModal(false);
@@ -134,7 +188,10 @@ export const Suppliers: React.FC = () => {
         if (!canEdit || !selectedSupplier) return;
         try {
             const { id, ...data } = formData as any;
-            await updateDoc(doc(db, 'suppliers', selectedSupplier.id), data);
+            await updateDoc(doc(db, 'suppliers', selectedSupplier.id), {
+                ...data,
+                updatedAt: new Date().toISOString()
+            });
             await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${formData.name}`);
             setSuppliers(prev => prev.map(s => s.id === selectedSupplier.id ? { ...s, ...data } : s));
             setSelectedSupplier({ ...selectedSupplier, ...data });
@@ -356,7 +413,7 @@ export const Suppliers: React.FC = () => {
                                     <div className="p-3 bg-indigo-50 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
                                         {supplier.category === 'Matériel' ? <Truck className="h-6 w-6" /> : <Building className="h-6 w-6" />}
                                     </div>
-                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(supplier.criticality)}`}>
+                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
                                         {supplier.criticality}
                                     </span>
                                 </div>
@@ -497,7 +554,7 @@ export const Suppliers: React.FC = () => {
                                                     <div className="grid grid-cols-2 gap-6">
                                                         <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
                                                             <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Criticité</span>
-                                                            <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase border ${getCriticalityColor(selectedSupplier.criticality)}`}>{selectedSupplier.criticality}</span>
+                                                            <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase border ${getCriticalityColor(selectedSupplier.criticality || Criticality.MEDIUM)}`}>{selectedSupplier.criticality}</span>
                                                         </div>
                                                         <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
                                                             <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Score Sécurité</span>

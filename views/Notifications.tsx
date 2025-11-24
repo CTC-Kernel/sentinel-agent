@@ -1,39 +1,26 @@
 
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, updateDoc, doc, orderBy, limit } from 'firebase/firestore';
-import { db } from '../firebase';
-import { AlertNotification } from '../types';
-import { Bell, CheckCircle2, AlertTriangle, Info, X, CalendarDays, ArrowRight } from '../components/ui/Icons';
+import { Bell, CheckCircle2, AlertTriangle, Info, X, ArrowRight } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { EmptyState } from '../components/ui/EmptyState';
 import { CardSkeleton } from '../components/ui/Skeleton';
+import { NotificationRecord } from '../types';
+import { NotificationService } from '../services/notificationService';
 
 export const Notifications: React.FC = () => {
-    const [notifications, setNotifications] = useState<AlertNotification[]>([]);
+    const [notifications, setNotifications] = useState<NotificationRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const { user, addToast } = useStore();
 
     const fetchNotifications = async () => {
-        if (!user?.organizationId) return;
+        if (!user?.uid) return;
         setLoading(true);
         try {
-            // Fetch from 'notifications' collection (assuming it exists or will be populated)
-            // For now, we might not have any, so we can also simulate some based on system state if needed.
-            // But let's stick to the collection pattern for scalability.
-            const q = query(
-                collection(db, 'notifications'),
-                where('organizationId', '==', user.organizationId),
-                where('userId', '==', user.uid), // Target specific user
-                orderBy('date', 'desc'),
-                limit(50)
-            );
-
-            const snap = await getDocs(q);
-            const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as AlertNotification));
+            const data = await NotificationService.getAll(user.uid, 100);
             setNotifications(data);
         } catch (e) {
             console.error(e);
-            // addToast("Erreur chargement notifications", "error"); // Silent fail is better for notifs
+            addToast("Erreur chargement notifications", "error");
         } finally {
             setLoading(false);
         }
@@ -43,11 +30,23 @@ export const Notifications: React.FC = () => {
 
     const markAsRead = async (id: string) => {
         try {
-            // In a real app, we'd update the 'read' status in Firestore
-            // For now, let's just remove it from the local list or mark it visually
-            // await updateDoc(doc(db, 'notifications', id), { read: true });
-            setNotifications(prev => prev.filter(n => n.id !== id));
-        } catch (e) { console.error(e); }
+            await NotificationService.markAsRead(id);
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+        } catch (e) {
+            console.error(e);
+            addToast("Erreur lors de la mise à jour", "error");
+        }
+    };
+
+    const markAll = async () => {
+        if (!user?.uid) return;
+        try {
+            await NotificationService.markAllAsRead(user.uid);
+            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        } catch (e) {
+            console.error(e);
+            addToast("Impossible de marquer comme lu", "error");
+        }
     };
 
     const getIcon = (type: string) => {
@@ -66,9 +65,11 @@ export const Notifications: React.FC = () => {
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Notifications</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Restez informé des activités importantes.</p>
                 </div>
-                <button onClick={() => setNotifications([])} className="text-sm font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+                {notifications.some(n => !n.read) && (
+                    <button onClick={markAll} className="text-sm font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
                     Tout marquer comme lu
-                </button>
+                    </button>
+                )}
             </div>
 
             {loading ? (
@@ -91,7 +92,7 @@ export const Notifications: React.FC = () => {
                             <div className="flex-1">
                                 <div className="flex justify-between items-start">
                                     <h3 className="text-base font-bold text-slate-900 dark:text-white">{notif.title}</h3>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{new Date(notif.date).toLocaleDateString()}</span>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{new Date(notif.createdAt).toLocaleDateString()}</span>
                                 </div>
                                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{notif.message}</p>
                                 {notif.link && (
@@ -100,9 +101,11 @@ export const Notifications: React.FC = () => {
                                     </a>
                                 )}
                             </div>
-                            <button onClick={() => markAsRead(notif.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all self-center">
-                                <X className="h-4 w-4" />
-                            </button>
+                            {!notif.read && (
+                                <button onClick={() => markAsRead(notif.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all self-center">
+                                    <X className="h-4 w-4" />
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>
