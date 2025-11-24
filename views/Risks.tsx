@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -14,6 +13,9 @@ import 'jspdf-autotable';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
+import { RiskDashboard } from '../components/risks/RiskDashboard';
+import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
+import { RiskTemplate, createRisksFromTemplate } from '../utils/riskTemplates';
 
 const STANDARD_THREATS = ["Panne matérielle serveur", "Incendie", "Inondation", "Vol d'équipement", "Attaque par Ransomware", "Phishing / Ingénierie Sociale", "Erreur humaine / Configuration", "Divulgation non autorisée", "Interruption de service FAI", "Sabotage interne", "Obsolescence technologique", "Perte de personnel clé"];
 
@@ -24,6 +26,7 @@ export const Risks: React.FC = () => {
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [filter, setFilter] = useState('');
     const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
 
@@ -36,7 +39,7 @@ export const Risks: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [currentRiskId, setCurrentRiskId] = useState<string | null>(null);
     const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'treatment' | 'projects' | 'history' | 'comments' | 'graph'>('details');
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'treatment' | 'dashboard' | 'projects' | 'history' | 'comments' | 'graph'>('details');
     const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
     const [riskHistory, setRiskHistory] = useState<SystemLog[]>([]);
     const [riskScoreHistory, setRiskScoreHistory] = useState<RiskHistory[]>([]);
@@ -236,6 +239,28 @@ export const Risks: React.FC = () => {
         } catch (e) { addToast("Erreur validation revue", "error"); }
     };
 
+    const handleImportTemplate = async (template: RiskTemplate, owner: string) => {
+        if (!canEdit || !user?.organizationId) return;
+        try {
+            const risksToImport = createRisksFromTemplate(template, user.organizationId, owner);
+
+            const batch = writeBatch(db);
+            risksToImport.forEach(risk => {
+                const newRiskRef = doc(collection(db, 'risks'));
+                batch.set(newRiskRef, risk);
+            });
+
+            await batch.commit();
+            await logAction(user, 'CREATE', 'Risk', `Import de ${risksToImport.length} risques depuis template ${template.name}`);
+            addToast(`${risksToImport.length} risques importés avec succès`, "success");
+            setShowTemplateModal(false);
+            fetchData();
+        } catch (e) {
+            console.error(e);
+            addToast("Erreur lors de l'import des risques", "error");
+        }
+    };
+
     const toggleControlSelection = (controlId: string) => {
         const currentIds = newRisk.mitigationControlIds || [];
         if (currentIds.includes(controlId)) { setNewRisk({ ...newRisk, mitigationControlIds: currentIds.filter(id => id !== controlId) }); }
@@ -321,12 +346,39 @@ export const Risks: React.FC = () => {
     const getRiskLevel = (score: number) => { if (score >= 15) return { label: 'Critique', color: 'bg-rose-500 text-white shadow-lg shadow-rose-500/30 border-rose-400' }; if (score >= 10) return { label: 'Élevé', color: 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 border-orange-400' }; if (score >= 5) return { label: 'Moyen', color: 'bg-amber-400 text-white shadow-lg shadow-amber-400/30 border-amber-300' }; return { label: 'Faible', color: 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 border-emerald-400' }; };
 
     return (
-        <div className="space-y-8 animate-fade-in relative pb-10">
-            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
+        <div className="space-y-6 relative">
+            <RiskTemplateModal
+                isOpen={showTemplateModal}
+                onClose={() => setShowTemplateModal(false)}
+                onSelectTemplate={handleImportTemplate}
+                owners={usersList.map(u => u.displayName || u.email)}
+            />
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div><h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Registre des Risques</h1><p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Cartographie et traitement des menaces (ISO 27005).</p></div>
-                {canEdit && (<div className="flex gap-3"><input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" /><button onClick={() => fileInputRef.current?.click()} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Upload className="h-4 w-4 mr-2" /> Importer</button><button onClick={() => openModal()} className="group flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"><Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" /> Nouveau Risque</button></div>)}
+            <ConfirmModal
+                isOpen={confirmData.isOpen}
+                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                onConfirm={confirmData.onConfirm}
+                title={confirmData.title}
+                message={confirmData.message}
+            />
+
+            <div className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Gestion des Risques</h1>
+                    <p className="text-slate-500 dark:text-slate-400">Analyse et traitement des risques selon ISO 27005.</p>
+                </div>
+                {canEdit && (
+                    <div className="flex gap-2">
+                        <button onClick={() => setShowTemplateModal(true)} className="flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20">
+                            <Download className="h-4 w-4 mr-2" />
+                            Importer Template
+                        </button>
+                        <button onClick={() => openModal()} className="flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Nouveau Risque
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Stats */}
@@ -477,7 +529,16 @@ export const Risks: React.FC = () => {
                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Propriétaire</h4>
                             <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.owner || 'Non assigné'}</div>
                         </div>
-                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm"><h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Statut Actuel</h4><div className="flex justify-between items-center">{canEdit ? (<div className="flex gap-3">{['Ouvert', 'En cours', 'Fermé'].map(s => (<button key={s} onClick={() => handleStatusChange(selectedRisk, s as any)} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'}`}>{s}</button>))}</div>) : <span className="px-4 py-2 bg-gray-100 dark:bg-slate-700 rounded-xl text-sm font-bold">{selectedRisk.status}</span>}{canEdit && (<button onClick={handleReview} className="flex items-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors"><CalendarDays className="h-3.5 w-3.5 mr-2" /> Valider la revue</button>)}</div>{selectedRisk.lastReviewDate && (<p className="text-xs text-slate-400 mt-3 text-right">Dernière revue le : {new Date(selectedRisk.lastReviewDate).toLocaleDateString()}</p>)}</div></div>)}{inspectorTab === 'treatment' && (<div className="space-y-6"><div className="flex items-center justify-between"><h3 className="text-sm font-bold text-slate-900 dark:text-white">Mesures de sécurité (Contrôles ISO)</h3><span className="text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-600 px-2.5 py-1 rounded-full">{selectedRisk.mitigationControlIds?.length || 0} mesures</span></div>{selectedRisk.mitigationControlIds && selectedRisk.mitigationControlIds.length > 0 ? (<div className="space-y-3">{selectedRisk.mitigationControlIds.map(cid => { const ctrl = controls.find(c => c.id === cid); return ctrl ? (<div key={cid} className="flex items-start p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all"><div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-xl mr-4 text-green-600"><CheckCircle2 className="h-5 w-5" /></div><div><div className="font-bold text-sm text-slate-900 dark:text-white mb-1">{ctrl.code}</div><div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{ctrl.name}</div></div></div>) : null; })}</div>) : (<div className="text-center py-12 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10"><ShieldAlert className="h-10 w-10 mx-auto mb-3 opacity-30" />Aucun contrôle d'atténuation lié.</div>)}</div>)}
+                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm"><h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Statut Actuel</h4><div className="flex justify-between items-center">{canEdit ? (<div className="flex gap-3">{['Ouvert', 'En cours', 'Fermé'].map(s => (<button key={s} onClick={() => handleStatusChange(selectedRisk, s as any)} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'}`}>{s}</button>))}</div>) : <span className="px-4 py-2 bg-gray-100 dark:bg-slate-700 rounded-xl text-sm font-bold">{selectedRisk.status}</span>}{canEdit && (<button onClick={handleReview} className="flex items-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors"><CalendarDays className="h-3.5 w-3.5 mr-2" /> Valider la revue</button>)}</div>{selectedRisk.lastReviewDate && (<p className="text-xs text-slate-400 mt-3 text-right">Dernière revue le : {new Date(selectedRisk.lastReviewDate).toLocaleDateString()}</p>)}</div></div>)}                        {inspectorTab === 'treatment' && (
+                            <div className="space-y-6"><div className="flex items-center justify-between"><h3 className="text-sm font-bold text-slate-900 dark:text-white">Mesures de sécurité (Contrôles ISO)</h3><span className="text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-600 px-2.5 py-1 rounded-full">{selectedRisk.mitigationControlIds?.length || 0} mesures</span></div>{selectedRisk.mitigationControlIds && selectedRisk.mitigationControlIds.length > 0 ? (<div className="space-y-3">{selectedRisk.mitigationControlIds.map(cid => { const ctrl = controls.find(c => c.id === cid); return ctrl ? (<div key={cid} className="flex items-start p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all"><div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-xl mr-4 text-green-600"><CheckCircle2 className="h-5 w-5" /></div><div><div className="font-bold text-sm text-slate-900 dark:text-white mb-1">{ctrl.code}</div><div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{ctrl.name}</div></div></div>) : null; })}</div>) : (<div className="text-center py-12 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10"><ShieldAlert className="h-10 w-10 mx-auto mb-3 opacity-30" />Aucun contrôle d'atténuation lié.</div>)}</div>
+                        )}
+
+                        {inspectorTab === 'dashboard' && (
+                            <div className="space-y-6">
+                                <RiskDashboard risks={[selectedRisk]} />
+                            </div>
+                        )}
+
                         {inspectorTab === 'projects' && (
                             <div className="space-y-8">
                                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
