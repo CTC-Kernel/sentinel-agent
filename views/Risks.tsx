@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
+import { createPortal } from 'react-dom';
+import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project } from '../types';
 import { canEditResource } from '../utils/permissions';
@@ -67,9 +68,9 @@ export const Risks: React.FC = () => {
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
             ]);
 
-            const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
+            const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
                 if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
+                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() })) as unknown as T[];
                 }
                 return [];
             };
@@ -548,7 +549,7 @@ export const Risks: React.FC = () => {
             )}
 
             {/* Inspector */}
-            {selectedRisk && (
+            {selectedRisk && createPortal(
                 <div className="fixed inset-0 z-[9999] overflow-hidden"><div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedRisk(null)} /><div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none"><div className="w-screen max-w-2xl pointer-events-auto"><div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up"><div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5"><div><h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedRisk.threat}</h2><p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2"><Server className="h-3.5 w-3.5" /> {getAssetName(selectedRisk.assetId)}</p></div><div className="flex gap-2">{canEdit && (<><button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer"><Copy className="h-5 w-5" /></button><button onClick={() => openModal(selectedRisk)} className="p-2.5 text-gray-500 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button><button onClick={() => initiateDelete(selectedRisk.id, selectedRisk.threat)} className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button></>)}<button onClick={() => setSelectedRisk(null)} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button></div></div>
                     <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent">
                         {[{ id: 'details', label: 'Détails', icon: ShieldAlert }, { id: 'treatment', label: 'Traitement', icon: CheckCircle2 }, { id: 'projects', label: 'Projets', icon: FolderKanban }, { id: 'history', label: 'Historique', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }, { id: 'graph', label: 'Graphe', icon: Network }].map(tab => (
@@ -605,7 +606,7 @@ export const Risks: React.FC = () => {
                         )}
 
                         {inspectorTab === 'history' && (<div className="space-y-8"><div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2"><h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Évolution du Score</h4>{riskScoreHistory.length === 0 ? <p className="text-sm text-gray-400 italic">Aucun changement de score enregistré.</p> : riskScoreHistory.map((h, i) => (<div key={i} className="relative"><span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900"><div className="h-2 w-2 rounded-full bg-blue-500"></div></span><div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(h.date).toLocaleString()}</span><div className="flex items-center gap-2 mt-1"><span className="text-sm font-bold text-slate-500">Score:</span><span className="text-sm font-bold text-slate-900 dark:text-white">{h.previousScore} ➔ {h.newScore}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Par: {h.changedBy}</p></div></div>))}</div><div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2"><h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Journal d'Audit</h4>{riskHistory.map((log, i) => (<div key={i} className="relative"><span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900"><div className="h-2 w-2 rounded-full bg-brand-500"></div></span><div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span><p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p><p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p><div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div></div></div>))}</div></div>)}{inspectorTab === 'comments' && (<div className="h-full flex flex-col"><Comments collectionName="risks" documentId={selectedRisk.id} /></div>)}</div></div></div></div></div>
-            )}
+                , document.body)}
 
             {/* Create/Edit Modal */}
             {showModal && canEdit && (

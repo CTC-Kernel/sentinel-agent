@@ -9,7 +9,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "start": "npx serve dist -p 8080 -s"
+    "start": "node server.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.14.1",

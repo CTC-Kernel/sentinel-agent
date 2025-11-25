@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
+import { createPortal } from 'react-dom';
+import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Document, UserProfile, SystemLog, Control, Asset, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
@@ -64,9 +65,9 @@ export const Documents: React.FC = () => {
                 getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId)))
             ]);
 
-            const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
+            const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
                 if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
+                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() })) as unknown as T[];
                 }
                 return [];
             };
@@ -78,7 +79,7 @@ export const Documents: React.FC = () => {
             // If users load fails, list is empty, but docs still show
             const usersData = getDocsData<UserProfile>(results[1]);
             // Fix for users collection sometimes having uid as id or field
-            const formattedUsers = usersData.map(u => ({ ...u, uid: u.uid || (u as any).id }));
+            const formattedUsers = usersData.map(u => ({ ...u, uid: u.uid || (u as { id?: string }).id || '' }));
             setUsersList(formattedUsers);
 
             const ctrlData = getDocsData<Control>(results[2]);
@@ -411,7 +412,7 @@ export const Documents: React.FC = () => {
             </div>
 
             {/* Inspector */}
-            {selectedDocument && (
+            {selectedDocument && createPortal(
                 <div className="fixed inset-0 z-[9999] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedDocument(null)} />
                     <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
@@ -664,11 +665,12 @@ export const Documents: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Create Modal */}
-            {showCreateModal && (
+            {showCreateModal && createPortal(
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                     <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-lg border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-blue-50/30 dark:bg-blue-900/10">
@@ -684,7 +686,7 @@ export const Documents: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none"
-                                        value={newDocData.type} onChange={e => setNewDocData({ ...newDocData, type: e.target.value as any })}>
+                                        value={newDocData.type} onChange={e => setNewDocData({ ...newDocData, type: e.target.value as Document['type'] })}>
                                         {['Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
                                 </div>
@@ -781,7 +783,8 @@ export const Documents: React.FC = () => {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* File Preview Modal */}

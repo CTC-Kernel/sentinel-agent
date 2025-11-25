@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where } from 'firebase/firestore';
+import { createPortal } from 'react-dom';
+import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Control, Document, Risk, Finding } from '../types';
 import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown } from '../components/ui/Icons';
@@ -154,9 +155,9 @@ export const Compliance: React.FC = () => {
                 getDocs(query(collection(db, 'findings'), where('organizationId', '==', orgId)))
             ]);
 
-            const getData = <T extends { id: string }>(result: PromiseSettledResult<any>): T[] => {
+            const getData = <T extends { id: string }>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
                 if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
+                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() })) as unknown as T[];
                 }
                 return [];
             };
@@ -475,7 +476,7 @@ export const Compliance: React.FC = () => {
             )}
 
             {/* Inspector (Keep existing implementation but styled) */}
-            {selectedControl && (
+            {selectedControl && createPortal(
                 <div className="fixed inset-0 z-[9999] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedControl(null)} />
                     <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
@@ -505,7 +506,8 @@ export const Compliance: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
