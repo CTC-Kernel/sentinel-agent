@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { PROJECT_TEMPLATES, createProjectFromTemplate } from '../../utils/projectTemplates';
 import { ProjectTemplate } from '../../types';
 import { X, Zap, Calendar, Users } from '../ui/Icons';
@@ -31,8 +32,8 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-slate-200 dark:border-white/10">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/10">
@@ -191,6 +192,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };

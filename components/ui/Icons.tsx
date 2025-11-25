@@ -108,7 +108,8 @@ import {
   Bot,
   Loader2,
   Minimize2,
-  CheckCheck
+  CheckCheck,
+  Layers
 } from 'lucide-react';
 
 export {
@@ -220,5 +221,6 @@ export {
   Bot,
   Loader2,
   Minimize2,
-  CheckCheck
+  CheckCheck,
+  Layers
 };

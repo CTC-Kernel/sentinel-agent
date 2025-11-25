@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Calendar, User, Clock, Target, AlertCircle } from 'lucide-react';
 import { ProjectTask } from '../../types';
 
@@ -67,8 +68,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
             <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-white/10 animate-scale-in">
                 {/* Header */}
                 <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-white/10 px-8 py-6 flex items-center justify-between z-10">
@@ -298,6 +299,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
