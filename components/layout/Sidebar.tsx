@@ -4,21 +4,41 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database } from '../ui/Icons';
 
-const navItems = [
-  { name: 'Tableau de bord', to: '/', icon: LayoutDashboard },
-  { name: 'Voxel Studio', to: '/voxel', icon: Settings3D },
-  { name: 'Incidents', to: '/incidents', icon: Siren },
-  { name: 'Projets SSI', to: '/projects', icon: FolderKanban },
-  { name: 'Actifs', to: '/assets', icon: Server },
-  { name: 'Gestion des Risques', to: '/risks', icon: ShieldAlert },
-  { name: 'Continuité (PCA)', to: '/continuity', icon: HeartPulse },
-  { name: 'Fournisseurs', to: '/suppliers', icon: Building },
-  { name: 'Documents', to: '/documents', icon: Briefcase },
-  { name: 'Conformité DdA', to: '/compliance', icon: FileText },
-  { name: 'Confidentialité (RGPD)', to: '/privacy', icon: Fingerprint },
-  { name: 'Audits', to: '/audits', icon: Activity },
-  { name: 'Sauvegarde', to: '/backup', icon: Database },
-  { name: 'Équipe', to: '/team', icon: Users },
+const navGroups = [
+  {
+    title: 'Pilotage',
+    items: [
+      { name: 'Tableau de bord', to: '/', icon: LayoutDashboard },
+      { name: 'Voxel Studio', to: '/voxel', icon: Settings3D },
+      { name: 'Incidents', to: '/incidents', icon: Siren },
+      { name: 'Projets SSI', to: '/projects', icon: FolderKanban },
+    ]
+  },
+  {
+    title: 'Gouvernance',
+    items: [
+      { name: 'Gestion des Risques', to: '/risks', icon: ShieldAlert },
+      { name: 'Continuité (PCA)', to: '/continuity', icon: HeartPulse },
+      { name: 'Conformité DdA', to: '/compliance', icon: FileText },
+      { name: 'Audits', to: '/audits', icon: Activity },
+    ]
+  },
+  {
+    title: 'Référentiel',
+    items: [
+      { name: 'Actifs', to: '/assets', icon: Server },
+      { name: 'Fournisseurs', to: '/suppliers', icon: Building },
+      { name: 'Documents', to: '/documents', icon: Briefcase },
+      { name: 'Confidentialité (RGPD)', to: '/privacy', icon: Fingerprint },
+    ]
+  },
+  {
+    title: 'Administration',
+    items: [
+      { name: 'Équipe', to: '/team', icon: Users },
+      { name: 'Sauvegarde', to: '/backup', icon: Database },
+    ]
+  }
 ];
 
 import { useStore } from '../../store';
@@ -27,25 +47,22 @@ import { hasPermission } from '../../utils/permissions';
 export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean) => void }> = ({ mobileOpen, setMobileOpen }) => {
   const { user } = useStore();
 
-  const filteredNavItems = navItems.filter(item => {
+  const filterItem = (item: { name: string }) => {
     if (!user) return false;
     if (item.name === 'Tableau de bord') return true;
     if (item.name === 'Équipe') return hasPermission(user, 'User', 'read');
-    if (item.name === 'Paramètres') return true; // Always show settings, internal logic handles access
 
-    // Map nav items to resources for permission checks
     switch (item.name) {
-      case 'Incidents': return hasPermission(user, 'Risk', 'read'); // Using Risk as proxy or add Incident resource
+      case 'Incidents': return hasPermission(user, 'Risk', 'read');
       case 'Projets SSI': return hasPermission(user, 'Project', 'read');
       case 'Actifs': return hasPermission(user, 'Asset', 'read');
       case 'Gestion des Risques': return hasPermission(user, 'Risk', 'read');
       case 'Audits': return hasPermission(user, 'Audit', 'read');
       case 'Documents': return hasPermission(user, 'Document', 'read');
-      // For others, default to true or specific checks if needed. 
-      // Assuming 'read' permission is enough to see the menu item.
       default: return true;
     }
-  });
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -88,34 +105,44 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 min-h-0 space-y-2 overflow-y-auto custom-scrollbar px-4">
-          <div className="px-1 mb-2">
-            <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em]">Espace de travail</p>
-          </div>
+        <nav className="flex-1 min-h-0 space-y-6 overflow-y-auto custom-scrollbar px-4">
+          {navGroups.map((group, groupIndex) => {
+            const visibleItems = group.items.filter(filterItem);
+            if (visibleItems.length === 0) return null;
 
-          {filteredNavItems.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.to}
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) => `
-                group relative flex items-center gap-3 rounded-2xl px-4 py-3 text-[15px] sm:text-[13.5px] font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
-                ${isActive
-                  ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/15 dark:bg-white dark:text-slate-900'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}
-              `}
-            >
-              {({ isActive }) => (
-                <>
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm transition-all duration-200 ${isActive ? 'bg-white/10 text-white dark:bg-slate-900/10 dark:text-slate-900' : 'bg-slate-100/70 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
-                    <item.icon className="h-4.5 w-4.5" strokeWidth={2.1} />
-                  </span>
-                  <span className="flex-1 truncate">{item.name}</span>
-                  <ChevronRight className={`h-3.5 w-3.5 transition-opacity duration-200 ${isActive ? 'opacity-80 text-white dark:text-slate-900' : 'opacity-0 text-slate-400 dark:text-slate-500 group-hover:opacity-70'}`} />
-                </>
-              )}
-            </NavLink>
-          ))}
+            return (
+              <div key={groupIndex}>
+                <div className="px-1 mb-2">
+                  <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em]">{group.title}</p>
+                </div>
+                <div className="space-y-1">
+                  {visibleItems.map((item) => (
+                    <NavLink
+                      key={item.name}
+                      to={item.to}
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) => `
+                         group relative flex items-center gap-3 rounded-2xl px-4 py-2.5 text-[14px] font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
+                         ${isActive
+                          ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/15 dark:bg-white dark:text-slate-900'
+                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}
+                       `}
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-200 ${isActive ? 'bg-white/10 text-white dark:bg-slate-900/10 dark:text-slate-900' : 'bg-slate-100/70 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
+                            <item.icon className="h-4 w-4" strokeWidth={2.1} />
+                          </span>
+                          <span className="flex-1 truncate">{item.name}</span>
+                          {isActive && <ChevronRight className="h-3.5 w-3.5 opacity-80 text-white dark:text-slate-900" />}
+                        </>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
 
           <div className="px-1 mb-2 mt-6">
             <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em]">Support</p>
@@ -124,7 +151,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             to="/help"
             onClick={() => setMobileOpen(false)}
             className={({ isActive }) => `
-                group relative flex items-center gap-3 rounded-2xl px-4 py-3 text-[15px] sm:text-[13.5px] font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
+                group relative flex items-center gap-3 rounded-2xl px-4 py-2.5 text-[14px] font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
                 ${isActive
                 ? 'bg-slate-100 text-slate-900 shadow-inner shadow-white/60 dark:bg-white/10 dark:text-white'
                 : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
@@ -132,11 +159,10 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
           >
             {({ isActive }) => (
               <>
-                <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${isActive ? 'bg-slate-200 text-slate-900 dark:bg-white/20 dark:text-white' : 'bg-slate-100/70 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
-                  <HelpCircle className="h-4.5 w-4.5" strokeWidth={2} />
+                <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? 'bg-slate-200 text-slate-900 dark:bg-white/20 dark:text-white' : 'bg-slate-100/70 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
+                  <HelpCircle className="h-4 w-4" strokeWidth={2} />
                 </span>
                 <span className="flex-1 truncate">Centre d'aide</span>
-                <ChevronRight className={`h-3.5 w-3.5 transition-opacity duration-200 ${isActive ? 'opacity-80 text-slate-900 dark:text-white' : 'opacity-0 text-slate-400 dark:text-slate-500 group-hover:opacity-70'}`} />
               </>
             )}
           </NavLink>
