@@ -57,10 +57,22 @@ export const VoxelView: React.FC = () => {
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [releaseToken, setReleaseToken] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [navCollapsed, setNavCollapsed] = useState(true);
-  const [heatmapEnabled, setHeatmapEnabled] = useState(true);
-  const [xRayEnabled, setXRayEnabled] = useState(false);
-  const [autoRotateEnabled, setAutoRotateEnabled] = useState(true);
+  const [navCollapsed, setNavCollapsed] = useState(() => {
+    const saved = localStorage.getItem('voxel_navCollapsed');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [heatmapEnabled, setHeatmapEnabled] = useState(() => {
+    const saved = localStorage.getItem('voxel_heatmapEnabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [xRayEnabled, setXRayEnabled] = useState(() => {
+    const saved = localStorage.getItem('voxel_xRayEnabled');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
+  const [autoRotateEnabled, setAutoRotateEnabled] = useState(() => {
+    const saved = localStorage.getItem('voxel_autoRotateEnabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
 
   // AI State
   const [analyzing, setAnalyzing] = useState(false);
@@ -98,7 +110,17 @@ export const VoxelView: React.FC = () => {
     { id: 'incident', label: 'Incidents', hint: 'Alertes SOC', color: 'bg-red-500' },
     { id: 'supplier', label: 'Fournisseurs', hint: 'Partenaires critiques', color: 'bg-green-500' }
   ];
-  const [activeLayers, setActiveLayers] = useState<LayerType[]>(layerOptions.map(layer => layer.id));
+  const [activeLayers, setActiveLayers] = useState<LayerType[]>(() => {
+    const saved = localStorage.getItem('voxel_activeLayers');
+    return saved !== null ? JSON.parse(saved) : layerOptions.map(l => l.id);
+  });
+
+  // Persistence Effects
+  useEffect(() => { localStorage.setItem('voxel_navCollapsed', JSON.stringify(navCollapsed)); }, [navCollapsed]);
+  useEffect(() => { localStorage.setItem('voxel_heatmapEnabled', JSON.stringify(heatmapEnabled)); }, [heatmapEnabled]);
+  useEffect(() => { localStorage.setItem('voxel_xRayEnabled', JSON.stringify(xRayEnabled)); }, [xRayEnabled]);
+  useEffect(() => { localStorage.setItem('voxel_autoRotateEnabled', JSON.stringify(autoRotateEnabled)); }, [autoRotateEnabled]);
+  useEffect(() => { localStorage.setItem('voxel_activeLayers', JSON.stringify(activeLayers)); }, [activeLayers]);
   const silhouetteMap: Record<LayerType, JSX.Element> = {
     asset: (
       <svg viewBox="0 0 64 64" className="w-full h-full text-blue-500 fill-current">
