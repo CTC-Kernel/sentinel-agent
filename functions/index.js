@@ -381,10 +381,13 @@ exports.processMailQueue = onDocumentCreated("mail_queue/{docId}", async (event)
         console.error("Error sending email:", error);
 
         // Update Firestore document with error
+        // Use FieldValue from the admin instance correctly or fallback
+        const increment = admin.firestore.FieldValue?.increment || ((n) => n);
+
         return snap.ref.update({
             status: "ERROR",
             error: error.message,
-            attempts: admin.firestore.FieldValue.increment(1),
+            attempts: increment(1),
         });
     }
 });
