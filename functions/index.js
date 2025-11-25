@@ -250,11 +250,19 @@ exports.createPortalSession = onCall(async (request) => {
     }
 
     const { organizationId, returnUrl } = request.data;
+    
+    if (!organizationId) {
+        console.error("No organizationId provided");
+        throw new HttpsError("invalid-argument", "Organization ID is required");
+    }
+    
+    console.log(`Fetching organization: ${organizationId}`);
     const orgRef = admin.firestore().collection("organizations").doc(organizationId);
     const orgSnap = await orgRef.get();
 
     if (!orgSnap.exists) {
-        throw new HttpsError("not-found", "Organization not found");
+        console.error(`Organization not found: ${organizationId}`);
+        throw new HttpsError("not-found", `Organization not found: ${organizationId}`);
     }
 
     const orgData = orgSnap.data();
