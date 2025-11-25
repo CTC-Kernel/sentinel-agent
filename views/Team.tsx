@@ -11,8 +11,11 @@ import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { logAction } from '../services/logger';
+import { SubscriptionService } from '../services/subscriptionService';
+import { useNavigate } from 'react-router-dom';
 
 export const Team: React.FC = () => {
+    const navigate = useNavigate();
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -71,6 +74,22 @@ export const Team: React.FC = () => {
     };
 
     useEffect(() => { fetchUsers(); }, [user?.organizationId]);
+
+    const handleOpenInviteModal = async () => {
+        if (!user?.organizationId) return;
+        
+        // Check plan limits
+        const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', users.length);
+        
+        if (!canAddUser) {
+            if (confirm("Vous avez atteint la limite d'utilisateurs de votre plan actuel. Voulez-vous passer au plan supérieur ?")) {
+                navigate('/pricing');
+            }
+            return;
+        }
+        
+        setShowInviteModal(true);
+    };
 
     const handleAddUser = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -240,7 +259,7 @@ export const Team: React.FC = () => {
                         <button onClick={handleExportCSV} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white">
                             <FileSpreadsheet className="h-4 w-4 mr-2" /> Export CSV
                         </button>
-                        <button onClick={() => setShowInviteModal(true)} className="flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none">
+                        <button onClick={handleOpenInviteModal} className="flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none">
                             <Plus className="h-4 w-4 mr-2" />
                             Inviter un membre
                         </button>
@@ -258,7 +277,7 @@ export const Team: React.FC = () => {
                             title="Aucun membre"
                             description="Invitez des collaborateurs pour travailler ensemble."
                             actionLabel={canAdmin ? "Inviter un membre" : undefined}
-                            onAction={canAdmin ? () => setShowInviteModal(true) : undefined}
+                            onAction={canAdmin ? handleOpenInviteModal : undefined}
                         />
                     </div>
                 ) : (

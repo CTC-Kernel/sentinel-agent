@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, Info } from './Icons';
 
 interface ConfirmModalProps {
@@ -38,8 +39,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     type === 'warning' ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20' :
       'text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20';
 
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
       <div className="bg-white dark:bg-slate-850 rounded-[2rem] shadow-2xl w-full max-w-md border border-white/20 overflow-hidden animate-scale-in mx-4 sm:mx-0">
         <div className="p-6 text-center">
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg ${colorClass}`}>
@@ -72,6 +73,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

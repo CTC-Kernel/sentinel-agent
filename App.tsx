@@ -45,6 +45,7 @@ const BackupRestore = React.lazy(() => import('./views/BackupRestore').then(modu
 const AnalyticsDashboard = React.lazy(() => import('./components/dashboard/AnalyticsDashboard').then(module => ({ default: module.AnalyticsDashboard })));
 const InteractiveTimeline = React.lazy(() => import('./components/timeline/InteractiveTimeline').then(module => ({ default: module.InteractiveTimeline })));
 const AuditTrailViewer = React.lazy(() => import('./components/audit/AuditTrailViewer').then(module => ({ default: module.AuditTrailViewer })));
+const Pricing = React.lazy(() => import('./views/Pricing'));
 
 const LoadingScreen = () => (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafafa] dark:bg-slate-900 transition-colors relative overflow-hidden">
@@ -233,7 +234,7 @@ const AppContent: React.FC = () => {
                     )}
 
                     <div className="flex-1 flex flex-col overflow-hidden relative">
-                        <header className="h-16 flex items-center justify-between px-6 z-20 sticky top-0 bg-white/80 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/70 dark:border-white/10 transition-colors shadow-sm">
+                        <header className="h-16 flex items-center justify-between px-6 z-10 sticky top-0 bg-white/80 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/70 dark:border-white/10 transition-colors shadow-sm">
                             <div className="flex items-center space-x-2 sm:space-x-4">
                                 <button onClick={() => setMobileOpen(true)} className="p-2 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 transition-colors lg:hidden">
                                     <Menu className="h-5 w-5" />
@@ -288,6 +289,10 @@ const AppContent: React.FC = () => {
                                             <Link to="/settings" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 text-left text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                                 <SettingsIcon className="h-4 w-4 mr-3 text-slate-400" />
                                                 Paramètres
+                                            </Link>
+                                            <Link to="/pricing" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 text-left text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                                <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[10px]">€</span>
+                                                Plans & Facturation
                                             </Link>
                                             <div className="h-px bg-slate-100 dark:bg-white/10 my-1"></div>
                                             <button

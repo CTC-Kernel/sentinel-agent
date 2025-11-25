@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { RISK_TEMPLATES, RiskTemplate, createRisksFromTemplate } from '../../utils/riskTemplates';
 import { X, Zap, AlertTriangle, ShieldAlert } from '../ui/Icons';
 
@@ -36,8 +37,8 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-slate-200 dark:border-white/10">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/10">
@@ -183,6 +184,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
