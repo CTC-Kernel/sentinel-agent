@@ -129,7 +129,60 @@ const AppContent: React.FC = () => {
                 const userDocRef = doc(db, 'users', u.uid);
                 const unsubProfile = onSnapshot(userDocRef, async (docSnap) => {
                     if (docSnap.exists()) {
-                        const userData = docSnap.data() as UserProfile;
+                        let userData = docSnap.data() as UserProfile;
+
+                        // SELF-HEALING: If user has no organizationId, check if they own one
+                        if (!userData.organizationId) {
+                            try {
+                                // Try client-side first (fastest)
+                                const orgsQuery = query(collection(db, 'organizations'), where('ownerId', '==', u.uid));
+                                const orgsSnap = await getDocs(orgsQuery);
+                                if (!orgsSnap.empty) {
+                                    const org = orgsSnap.docs[0].data();
+                                    await updateDoc(userDocRef, {
+                                        organizationId: org.id,
+                                        organizationName: org.name,
+                                        onboardingCompleted: true
+                                    });
+                                    userData = { ...userData, organizationId: org.id, organizationName: org.name, onboardingCompleted: true };
+                                } else {
+                                    // Fallback: Try Cloud Function (bypasses rules)
+                                    // This is needed if client-side rules block the query
+                                    const { httpsCallable, getFunctions } = await import('firebase/functions');
+                                    const functions = getFunctions();
+                                    const healMe = httpsCallable(functions, 'healMe');
+                                    const result = await healMe();
+                                    const data = result.data as any;
+                                    if (data.success && data.restored) {
+                                        // Reload user data
+                                        const freshSnap = await getDocs(query(collection(db, 'users'), where('uid', '==', u.uid))); // Force refresh
+                                        if (!freshSnap.empty) userData = freshSnap.docs[0].data() as UserProfile;
+                                    }
+                                }
+                            } catch (e) {
+                                console.error("Self-healing failed, trying Cloud Function fallback...", e);
+                                try {
+                                    const { httpsCallable, getFunctions } = await import('firebase/functions');
+                                    const functions = getFunctions();
+                                    const healMe = httpsCallable(functions, 'healMe');
+                                    const result = await healMe();
+                                    const data = result.data as any;
+                                    if (data.success) {
+                                        // Reload user data manually since snapshot might not trigger immediately
+                                        userData = { ...userData, organizationId: data.organizationId, onboardingCompleted: true };
+                                    }
+                                } catch (err) {
+                                    console.error("Cloud Function healing also failed", err);
+                                }
+                            }
+                        }
+
+                        // SELF-HEALING: If user has organizationId but onboardingCompleted is missing/false
+                        if (userData.organizationId && !userData.onboardingCompleted) {
+                            await updateDoc(userDocRef, { onboardingCompleted: true });
+                            userData = { ...userData, onboardingCompleted: true };
+                        }
+
                         setUser(userData);
                         if (userData.theme && userData.theme !== theme) {
                             if (userData.theme === 'dark') document.documentElement.classList.add('dark');
@@ -207,7 +260,13 @@ const AppContent: React.FC = () => {
 
     if (initializing) return <LoadingScreen />;
     if (!user) return <Login />;
-    if (!user.onboardingCompleted || !user.organizationId) return <Onboarding />;
+    if (!user.onboardingCompleted || !user.organizationId) {
+        return (
+            <Router>
+                <Onboarding />
+            </Router>
+        );
+    }
 
     return (
         <Router>

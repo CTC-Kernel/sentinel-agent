@@ -17,7 +17,12 @@ export const refreshUserToken = async (): Promise<boolean> => {
         const functions = getFunctions(app);
         const refreshToken = httpsCallable(functions, 'refreshUserToken');
 
-        await refreshToken();
+        const result = await refreshToken();
+        const data = result.data as any;
+
+        if (!data.success) {
+            return false;
+        }
 
         // Force token refresh on client side
         await user.getIdToken(true);

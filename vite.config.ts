@@ -6,7 +6,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '0.0.0.0',
-    port: 8080
+    port: 8080,
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'unsafe-none',
+      'Cross-Origin-Opener-Policy': 'unsafe-none'
+    }
   },
   build: {
     outDir: 'dist',

@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk } from '../types';
@@ -574,7 +575,7 @@ export const Audits: React.FC = () => {
             </div>
 
             {/* Findings Drawer */}
-            {showFindingsDrawer && selectedAudit && (
+            {showFindingsDrawer && selectedAudit && createPortal(
                 <div className="fixed inset-0 z-[9999] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setShowFindingsDrawer(false)} />
                     <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
@@ -771,7 +772,8 @@ export const Audits: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Create Audit Modal */}
