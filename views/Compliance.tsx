@@ -11,6 +11,7 @@ import 'jspdf-autotable';
 import { Skeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
 
 const ISO_DOMAINS = [
     { id: 'A.5', title: 'Contrôles Organisationnels', description: 'Politiques, Rôles, RH, Actifs, Accès...' },
@@ -129,6 +130,7 @@ export const Compliance: React.FC = () => {
     const [selectedControl, setSelectedControl] = useState<Control | null>(null);
     const [editJustification, setEditJustification] = useState('');
     const [filter, setFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string | null>(null);
     const [showMissingEvidence, setShowMissingEvidence] = useState(false);
     const [expandedDomains, setExpandedDomains] = useState<string[]>(['A.5']); // Default open first
 
@@ -348,7 +350,8 @@ export const Compliance: React.FC = () => {
     const filteredControls = controls.filter(c => {
         const matchesSearch = c.code.toLowerCase().includes(filter.toLowerCase()) || c.name.toLowerCase().includes(filter.toLowerCase());
         const matchesMissing = showMissingEvidence ? (c.status === 'Implémenté' && (!c.evidenceIds || c.evidenceIds.length === 0)) : true;
-        return matchesSearch && matchesMissing;
+        const matchesStatus = statusFilter ? c.status === statusFilter : true;
+        return matchesSearch && matchesMissing && matchesStatus;
     });
 
     return (
@@ -364,9 +367,20 @@ export const Compliance: React.FC = () => {
                 </div>
             </div>
 
+            {/* Dashboard Integration */}
+            <ComplianceDashboard controls={controls} onFilterChange={setStatusFilter} />
+
             {/* Filter Bar */}
             <div className="flex flex-col sm:flex-row gap-4">
                 <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1"><Search className="h-5 w-5 text-gray-400" /><input type="text" placeholder="Rechercher (ex: A.5.1, Accès)..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
+
+                {/* Status Filter Badge */}
+                {statusFilter && (
+                    <button onClick={() => setStatusFilter(null)} className="flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-brand-50 text-brand-600 border border-brand-200 dark:bg-brand-900/20 dark:text-brand-400 animate-fade-in">
+                        Filtre: {statusFilter} <X className="h-4 w-4 ml-2" />
+                    </button>
+                )}
+
                 <button onClick={() => setShowMissingEvidence(!showMissingEvidence)} className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold border transition-all ${showMissingEvidence ? 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-gray-200'}`}><Filter className="h-4 w-4 mr-2" />Preuves manquantes</button>
             </div>
 

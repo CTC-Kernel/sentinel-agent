@@ -103,7 +103,8 @@ import {
   BrainCircuit,
   Calendar,
   Laptop,
-  Network
+  Network,
+  Shield
 } from 'lucide-react';
 
 export {
@@ -210,5 +211,6 @@ export {
   BrainCircuit,
   Calendar,
   Laptop,
-  Network
+  Network,
+  Shield
 };

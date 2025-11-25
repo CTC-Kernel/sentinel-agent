@@ -1,12 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    LineChart,
-    Line,
     AreaChart,
     Area,
-    BarChart,
-    Bar,
     PieChart,
     Pie,
     Cell,
@@ -19,25 +15,21 @@ import {
 } from 'recharts';
 import {
     TrendingUp,
-    TrendingDown,
     Activity,
-    ShieldAlert,
     AlertTriangle,
     CheckCircle2,
     Clock,
-    FileText,
-    Users,
-    Server,
-    Calendar,
-    Download
+    HelpCircle
 } from '../ui/Icons';
 import { useStore } from '../../store';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Risk, Asset, Incident, Audit, Control, Project } from '../../types';
+import { Risk, Asset, Incident, Control, Project } from '../../types';
 import { StatCard } from '../ui/StatCard';
 import { ProgressRing } from '../ui/ProgressRing';
 import { DataTable, Column } from '../ui/DataTable';
+import { StatsService } from '../../services/statsService';
+import { OnboardingService } from '../../services/onboardingService';
 
 interface TrendData {
     date: string;
@@ -63,7 +55,6 @@ export const AnalyticsDashboard: React.FC = () => {
     const [risks, setRisks] = useState<Risk[]>([]);
     const [assets, setAssets] = useState<Asset[]>([]);
     const [incidents, setIncidents] = useState<Incident[]>([]);
-    const [audits, setAudits] = useState<Audit[]>([]);
     const [controls, setControls] = useState<Control[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
 
@@ -74,21 +65,19 @@ export const AnalyticsDashboard: React.FC = () => {
             try {
                 const orgId = user.organizationId;
 
-                const [risksSnap, assetsSnap, incidentsSnap, auditsSnap, controlsSnap, projectsSnap] = await Promise.all([
+                const [risksSnap, assetsSnap, incidentsSnap, controlsSnap, projectsSnap] = await Promise.all([
                     getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId))),
                     getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId))),
                     getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId))),
-                    getDocs(query(collection(db, 'audits'), where('organizationId', '==', orgId))),
                     getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId))),
                     getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId)))
                 ]);
 
-                setRisks(risksSnap.docs.map(d => ({ id: d.id, ...d.data() } as Risk)));
-                setAssets(assetsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Asset)));
-                setIncidents(incidentsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Incident)));
-                setAudits(auditsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Audit)));
-                setControls(controlsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Control)));
-                setProjects(projectsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Project)));
+                setRisks(risksSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Risk)));
+                setAssets(assetsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Asset)));
+                setIncidents(incidentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Incident)));
+                setControls(controlsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Control)));
+                setProjects(projectsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
 
                 setLoading(false);
             } catch (error) {
@@ -124,26 +113,42 @@ export const AnalyticsDashboard: React.FC = () => {
     }, [risks, incidents, controls, projects]);
 
     // Trend data for charts
-    const trendData: TrendData[] = useMemo(() => {
-        // Mock data - in production, this would come from historical stats
-        const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
-        const data: TrendData[] = [];
+    const [trendData, setTrendData] = useState<TrendData[]>([]);
 
-        for (let i = days; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
+    useEffect(() => {
+        if (!user?.organizationId) return;
 
-            data.push({
-                date: date.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }),
-                risks: Math.floor(Math.random() * 20) + risks.length - 10,
-                incidents: Math.floor(Math.random() * 10) + incidents.length - 5,
-                compliance: Math.floor(Math.random() * 10) + metrics.complianceRate - 5,
-                assets: Math.floor(Math.random() * 30) + assets.length - 15
-            });
-        }
+        const fetchHistory = async () => {
+            // Trigger snapshot (will only run once per day per org)
+            await StatsService.snapshotDailyStats(user.organizationId!);
 
-        return data;
-    }, [timeRange, risks, incidents, assets, metrics.complianceRate]);
+            // Fetch history
+            const history = await StatsService.getHistory(user.organizationId!, timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365);
+
+            const mappedData: TrendData[] = history.map(day => ({
+                date: new Date(day.date).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }),
+                risks: day.metrics.totalRisks,
+                incidents: day.metrics.openIncidents,
+                compliance: day.metrics.complianceRate,
+                assets: day.metrics.totalAssets
+            }));
+
+            // If no history yet, show current state as a single point or empty
+            if (mappedData.length === 0) {
+                setTrendData([{
+                    date: new Date().toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }),
+                    risks: metrics.criticalRisks + metrics.trends.riskTrend, // Fallback
+                    incidents: metrics.openIncidents,
+                    compliance: metrics.complianceRate,
+                    assets: assets.length
+                }]);
+            } else {
+                setTrendData(mappedData);
+            }
+        };
+
+        fetchHistory();
+    }, [user, timeRange, metrics]);
 
     // Risk distribution by category
     const risksByCategory: CategoryData[] = useMemo(() => {
@@ -228,25 +233,35 @@ export const AnalyticsDashboard: React.FC = () => {
                     </p>
                 </div>
 
-                {/* Time range selector */}
-                <div className="flex gap-2 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-white/10">
-                    {(['7d', '30d', '90d', '1y'] as const).map((range) => (
-                        <button
-                            key={range}
-                            onClick={() => setTimeRange(range)}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${timeRange === range
-                                ? 'bg-brand-600 text-white'
-                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                }`}
-                        >
-                            {range === '7d' ? '7 jours' : range === '30d' ? '30 jours' : range === '90d' ? '90 jours' : '1 an'}
-                        </button>
-                    ))}
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => OnboardingService.startAnalyticsTour()}
+                        className="px-4 py-2 bg-white dark:bg-slate-800 text-brand-600 border border-brand-200 dark:border-brand-900/30 rounded-xl text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-900/10 transition-colors flex items-center gap-2"
+                    >
+                        <HelpCircle className="h-4 w-4" />
+                        Visite guidée
+                    </button>
+
+                    {/* Time range selector */}
+                    <div className="flex gap-2 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-white/10">
+                        {(['7d', '30d', '90d', '1y'] as const).map((range) => (
+                            <button
+                                key={range}
+                                onClick={() => setTimeRange(range)}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${timeRange === range
+                                    ? 'bg-brand-600 text-white'
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                    }`}
+                            >
+                                {range === '7d' ? '7 jours' : range === '30d' ? '30 jours' : range === '90d' ? '90 jours' : '1 an'}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-tour="analytics-kpi">
                 <StatCard
                     title="Risques Critiques"
                     value={metrics.criticalRisks}
@@ -291,7 +306,7 @@ export const AnalyticsDashboard: React.FC = () => {
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Trend Chart */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10" data-tour="analytics-trends">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">
                         Évolution des Risques et Incidents
                     </h3>

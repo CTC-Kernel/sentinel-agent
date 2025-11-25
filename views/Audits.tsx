@@ -1,10 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
-import { collection, addDoc, getDocs, query, orderBy, doc, deleteDoc, where, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, XCircle, Activity, FileText, Briefcase, Search, CheckCircle2, AlertTriangle, ChevronRight, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Save, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame } from '../components/ui/Icons';
+import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
@@ -130,7 +130,27 @@ export const Audits: React.FC = () => {
         try {
             await addDoc(collection(db, 'audits'), { ...newAudit, organizationId: user.organizationId, findingsCount: 0 });
             await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${newAudit.name}`);
-            addToast("Audit planifié", "success");
+
+            // Send notification
+            if (newAudit.auditor) {
+                const auditorUser = usersList.find(u => u.displayName === newAudit.auditor);
+                if (auditorUser) {
+                    const emailContent = getAuditReminderTemplate(
+                        newAudit.name || 'Audit',
+                        auditorUser.displayName || 'Auditeur',
+                        newAudit.dateScheduled || '',
+                        'https://sentinel-grc.web.app/audits'
+                    );
+                    await sendEmail(user, {
+                        to: auditorUser.email,
+                        subject: `[Sentinel] Nouvel audit assigné : ${newAudit.name}`,
+                        html: emailContent,
+                        type: 'AUDIT_REMINDER'
+                    });
+                }
+            }
+
+            addToast("Audit planifié et notifié", "success");
             setShowModal(false);
             fetchAudits();
         } catch (e) { addToast("Erreur création audit", "error"); }
@@ -195,6 +215,14 @@ export const Audits: React.FC = () => {
 
     const handleDeleteAudit = async (id: string, name: string) => {
         try {
+            // Delete findings first (Cascade)
+            const findingsQ = query(collection(db, 'findings'), where('auditId', '==', id));
+            const findingsSnap = await getDocs(findingsQ);
+
+            // Actually, let's use Promise.all for simplicity or import writeBatch
+            const deletePromises = findingsSnap.docs.map(d => deleteDoc(doc(db, 'findings', d.id)));
+            await Promise.all(deletePromises);
+
             await deleteDoc(doc(db, 'audits', id));
             setAudits(prev => prev.filter(a => a.id !== id));
             if (selectedAudit?.id === id) {
@@ -202,7 +230,7 @@ export const Audits: React.FC = () => {
                 setShowFindingsDrawer(false);
             }
             await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name}`);
-            addToast("Audit supprimé", "info");
+            addToast("Audit et constats supprimés", "info");
         } catch (e) { addToast("Erreur suppression", "error"); }
     };
 

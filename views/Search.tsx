@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
 import { Search as SearchIcon, Filter, ArrowRight, ShieldCheck, AlertTriangle, FileText, FolderKanban } from '../components/ui/Icons';
-import { CardSkeleton } from '../components/ui/Skeleton';
+
 import { EmptyState } from '../components/ui/EmptyState';
 import { useNavigate } from 'react-router-dom';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
