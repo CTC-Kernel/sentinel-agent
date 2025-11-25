@@ -267,9 +267,22 @@ export const InteractiveTimeline: React.FC = () => {
         setZoomLevel(level);
     };
 
-    const handleExportPNG = () => {
-        // TODO: Implement PNG export using html2canvas
-        alert('Export PNG - À implémenter');
+    const handleExportPNG = async () => {
+        if (!timelineRef.current) return;
+
+        try {
+            const html2canvas = (await import('html2canvas')).default;
+            const canvas = await html2canvas(timelineRef.current);
+            const image = canvas.toDataURL('image/png');
+
+            const link = document.createElement('a');
+            link.href = image;
+            link.download = `timeline-export-${new Date().toISOString().split('T')[0]}.png`;
+            link.click();
+        } catch (error) {
+            console.error('Error exporting timeline:', error);
+            alert('Erreur lors de l\'exportation de la timeline');
+        }
     };
 
     const toggleFilter = (type: keyof typeof filters) => {

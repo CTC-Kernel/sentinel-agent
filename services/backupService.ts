@@ -2,6 +2,7 @@ import { collection, addDoc, getDocs, query, where, doc, setDoc, getDoc, writeBa
 import { ref, uploadBytes, getDownloadURL, listAll, deleteObject } from 'firebase/storage';
 import { db, storage, auth } from '../firebase';
 import { logAction } from './logger';
+import { UserProfile } from '../types';
 
 export interface BackupConfig {
   includeDocuments: boolean;
@@ -39,16 +40,15 @@ export interface RestoreConfig {
 export class BackupService {
   private static readonly BACKUP_COLLECTION = 'backups';
 
-  static async createBackup(config: BackupConfig): Promise<string> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('Utilisateur non authentifié');
+  static async createBackup(user: UserProfile, config: BackupConfig): Promise<string> {
+    if (!user.organizationId) throw new Error('Organisation non définie');
 
     const backupId = `backup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const metadata: BackupMetadata = {
       id: backupId,
-      organizationId: user.uid,
+      organizationId: user.organizationId,
       createdAt: new Date().toISOString(),
-      createdBy: user.email || user.uid,
+      createdBy: user.email,
       config,
       size: 0,
       collections: this.getCollectionsToBackup(config),
@@ -65,12 +65,13 @@ export class BackupService {
 
       for (const collectionName of metadata.collections) {
         try {
-          const snapshot = await getDocs(collection(db, collectionName));
+          const snapshot = await getDocs(query(collection(db, collectionName), where('organizationId', '==', user.organizationId)));
           const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           backupData[collectionName] = data;
           totalSize += JSON.stringify(data).length;
         } catch (error) {
           // Silently skip collections that cannot be backed up
+          // Skip
         }
       }
 
@@ -79,7 +80,7 @@ export class BackupService {
 
       // Créer le fichier JSON de backup
       const backupBlob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-      const backupRef = ref(storage, `backups/${user.uid}/${backupId}.json`);
+      const backupRef = ref(storage, `backups/${user.organizationId}/${backupId}.json`);
       await uploadBytes(backupRef, backupBlob);
       const downloadUrl = await getDownloadURL(backupRef);
 
@@ -90,11 +91,7 @@ export class BackupService {
         downloadUrl
       });
 
-      await logAction({
-        uid: user.uid,
-        email: user.email || '',
-        organizationId: (user as any).organizationId || 'default'
-      }, 'CREATE', 'Backup', `Backup créé: ${backupId}`);
+      await logAction(user, 'CREATE', 'Backup', `Backup créé: ${backupId}`);
       return backupId;
 
     } catch (error) {
@@ -106,22 +103,21 @@ export class BackupService {
     }
   }
 
-  static async restoreBackup(config: RestoreConfig): Promise<{ success: boolean; summary: any }> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('Utilisateur non authentifié');
+  static async restoreBackup(user: UserProfile, config: RestoreConfig): Promise<{ success: boolean; summary: any }> {
+    if (!user.organizationId) throw new Error('Organisation non définie');
 
     // Récupérer les métadonnées du backup
     const backupDoc = await getDoc(doc(db, this.BACKUP_COLLECTION, config.backupId));
     if (!backupDoc.exists()) throw new Error('Backup introuvable');
 
     const backupMetadata = backupDoc.data() as BackupMetadata;
-    if (backupMetadata.organizationId !== user.uid) {
+    if (backupMetadata.organizationId !== user.organizationId) {
       throw new Error('Accès non autorisé à ce backup');
     }
 
     try {
       // Télécharger le fichier de backup
-      const backupRef = ref(storage, `backups/${user.uid}/${config.backupId}.json`);
+      const backupRef = ref(storage, `backups/${user.organizationId}/${config.backupId}.json`);
       const downloadUrl = await getDownloadURL(backupRef);
       const response = await fetch(downloadUrl);
       const backupData = await response.json();
@@ -188,30 +184,21 @@ export class BackupService {
         }
       }
 
-      await logAction({
-        uid: user.uid,
-        email: user.email || '',
-        organizationId: (user as any).organizationId || 'default'
-      }, 'RESTORE', 'Backup', `Backup restauré: ${config.backupId}`);
+      await logAction(user, 'RESTORE', 'Backup', `Backup restauré: ${config.backupId}`);
       return { success: summary.errors.length === 0, summary };
 
     } catch (error) {
-      await logAction({
-        uid: user.uid,
-        email: user.email || '',
-        organizationId: (user as any).organizationId || 'default'
-      }, 'ERROR', 'Backup', `Erreur restauration: ${error}`);
+      await logAction(user, 'ERROR', 'Backup', `Erreur restauration: ${error}`);
       throw error;
     }
   }
 
-  static async listBackups(): Promise<BackupMetadata[]> {
-    const user = auth.currentUser;
-    if (!user) return [];
+  static async listBackups(organizationId: string): Promise<BackupMetadata[]> {
+    if (!organizationId) return [];
 
     try {
       const snapshot = await getDocs(
-        query(collection(db, this.BACKUP_COLLECTION), where('organizationId', '==', user.uid))
+        query(collection(db, this.BACKUP_COLLECTION), where('organizationId', '==', organizationId))
       );
       return snapshot.docs.map(doc => doc.data() as BackupMetadata);
     } catch (error) {
@@ -219,38 +206,28 @@ export class BackupService {
     }
   }
 
-  static async deleteBackup(backupId: string): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('Utilisateur non authentifié');
+  static async deleteBackup(user: UserProfile, backupId: string): Promise<void> {
+    if (!user.organizationId) throw new Error('Organisation non définie');
 
     try {
       // Supprimer le document de métadonnées
       await deleteDoc(doc(db, this.BACKUP_COLLECTION, backupId));
 
       // Supprimer le fichier de stockage
-      const backupRef = ref(storage, `backups/${user.uid}/${backupId}.json`);
+      const backupRef = ref(storage, `backups/${user.organizationId}/${backupId}.json`);
       await deleteObject(backupRef);
 
-      await logAction({
-        uid: user.uid,
-        email: user.email || '',
-        organizationId: (user as any).organizationId || 'default'
-      }, 'DELETE', 'Backup', `Backup supprimé: ${backupId}`);
+      await logAction(user, 'DELETE', 'Backup', `Backup supprimé: ${backupId}`);
     } catch (error) {
-      await logAction({
-        uid: user.uid,
-        email: user.email || '',
-        organizationId: (user as any).organizationId || 'default'
-      }, 'ERROR', 'Backup', `Erreur suppression backup: ${error}`);
+      await logAction(user, 'ERROR', 'Backup', `Erreur suppression backup: ${error}`);
       throw error;
     }
   }
 
-  static async getBackupUrl(backupId: string): Promise<string> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('Utilisateur non authentifié');
+  static async getBackupUrl(user: UserProfile, backupId: string): Promise<string> {
+    if (!user.organizationId) throw new Error('Organisation non définie');
 
-    const backupRef = ref(storage, `backups/${user.uid}/${backupId}.json`);
+    const backupRef = ref(storage, `backups/${user.organizationId}/${backupId}.json`);
     return await getDownloadURL(backupRef);
   }
 
@@ -271,12 +248,11 @@ export class BackupService {
     return collections;
   }
 
-  static async getBackupStats(): Promise<{ totalBackups: number; totalSize: number; lastBackup?: string }> {
-    const user = auth.currentUser;
-    if (!user) return { totalBackups: 0, totalSize: 0 };
+  static async getBackupStats(organizationId: string): Promise<{ totalBackups: number; totalSize: number; lastBackup?: string }> {
+    if (!organizationId) return { totalBackups: 0, totalSize: 0 };
 
     try {
-      const backups = await this.listBackups();
+      const backups = await this.listBackups(organizationId);
       const totalBackups = backups.length;
       const totalSize = backups.reduce((sum, backup) => sum + backup.size, 0);
       const lastBackup = backups.length > 0
@@ -289,15 +265,56 @@ export class BackupService {
     }
   }
 
-  static async scheduleBackup(config: BackupConfig, frequency: 'daily' | 'weekly' | 'monthly'): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('Utilisateur non authentifié');
+  static async scheduleBackup(user: UserProfile, config: BackupConfig, frequency: 'daily' | 'weekly' | 'monthly'): Promise<void> {
+    if (!user.organizationId) throw new Error('Organisation non définie');
 
-    // Future implementation with Firebase Functions or cron job
-    await logAction({
-      uid: user.uid,
-      email: user.email || '',
-      organizationId: (user as any).organizationId || 'default'
-    }, 'SCHEDULE', 'Backup', `Backup programmé: ${frequency}`);
+    const scheduleId = `schedule_${user.organizationId}`;
+    const scheduleData = {
+      organizationId: user.organizationId,
+      config,
+      frequency,
+      lastBackup: null,
+      nextBackup: this.calculateNextBackup(frequency).toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await setDoc(doc(db, 'backup_schedules', scheduleId), scheduleData);
+
+    await logAction(user, 'SCHEDULE', 'Backup', `Backup programmé: ${frequency}`);
+  }
+
+  static async checkScheduledBackups(user: UserProfile): Promise<void> {
+    if (!user.organizationId) return;
+
+    try {
+      const scheduleDoc = await getDoc(doc(db, 'backup_schedules', `schedule_${user.organizationId}`));
+      if (!scheduleDoc.exists()) return;
+
+      const schedule = scheduleDoc.data();
+      const now = new Date();
+      const nextBackup = new Date(schedule.nextBackup);
+
+      if (now >= nextBackup) {
+        console.log('Triggering scheduled backup...');
+        // Trigger backup
+        await this.createBackup(user, schedule.config);
+
+        // Update schedule
+        await updateDoc(doc(db, 'backup_schedules', `schedule_${user.organizationId}`), {
+          lastBackup: now.toISOString(),
+          nextBackup: this.calculateNextBackup(schedule.frequency).toISOString()
+        });
+      }
+    } catch (error) {
+      console.error('Error checking scheduled backups:', error);
+    }
+  }
+
+  private static calculateNextBackup(frequency: 'daily' | 'weekly' | 'monthly'): Date {
+    const date = new Date();
+    if (frequency === 'daily') date.setDate(date.getDate() + 1);
+    if (frequency === 'weekly') date.setDate(date.getDate() + 7);
+    if (frequency === 'monthly') date.setMonth(date.getMonth() + 1);
+    return date;
   }
 }

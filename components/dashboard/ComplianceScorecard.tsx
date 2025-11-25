@@ -4,9 +4,10 @@ import { CheckCircle2, AlertTriangle, ShieldAlert } from '../ui/Icons';
 
 interface ComplianceScorecardProps {
     controls: Control[];
+    trend?: number;
 }
 
-export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ controls }) => {
+export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ controls, trend }) => {
     // Group controls by domain (assuming code starts with A.5, A.6 etc or similar)
     // For ISO 27001:2022, domains are 5, 6, 7, 8.
     // Let's try to parse the domain from the code (e.g., "5.1" -> Domain 5)
@@ -37,8 +38,15 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Scorecard Conformité</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400">ISO 27001:2022</p>
                 </div>
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-lg shadow-lg">
-                    {totalScore}%
+                <div className="flex flex-col items-end">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-lg shadow-lg">
+                        {totalScore}%
+                    </div>
+                    {trend !== undefined && (
+                        <span className={`text-xs font-bold mt-1 ${trend >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {trend > 0 ? '+' : ''}{trend}%
+                        </span>
+                    )}
                 </div>
             </div>
 

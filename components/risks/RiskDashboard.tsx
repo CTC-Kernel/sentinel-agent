@@ -5,9 +5,10 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 
 interface RiskDashboardProps {
     risks: Risk[];
+    onFilterChange?: (filter: { type: 'level' | 'strategy' | 'category', value: string } | null) => void;
 }
 
-export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
+export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterChange }) => {
     // Calculate metrics
     const totalRisks = risks.length;
     const criticalRisks = risks.filter(r => r.score >= 15).length;
@@ -61,7 +62,10 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
             {/* Metrics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {/* Total Risks */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                <div
+                    onClick={() => onFilterChange?.(null)}
+                    className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 cursor-pointer hover:scale-[1.02] transition-transform"
+                >
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Total Risques</span>
                         <ShieldAlert className="h-5 w-5 text-blue-500" />
@@ -71,7 +75,10 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 </div>
 
                 {/* Critical Risks */}
-                <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 p-6 rounded-2xl border border-red-200 dark:border-red-800">
+                <div
+                    onClick={() => onFilterChange?.({ type: 'level', value: 'Critique' })}
+                    className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 p-6 rounded-2xl border border-red-200 dark:border-red-800 cursor-pointer hover:scale-[1.02] transition-transform"
+                >
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-bold uppercase tracking-wider text-red-700 dark:text-red-400">Critiques</span>
                         <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -195,9 +202,9 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                             <div className="text-lg font-bold text-red-600 dark:text-red-400">{risk.score}</div>
                                         </div>
                                         <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.strategy === 'Atténuer' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                                                risk.strategy === 'Transférer' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
-                                                    risk.strategy === 'Éviter' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
-                                                        'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                                            risk.strategy === 'Transférer' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
+                                                risk.strategy === 'Éviter' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
+                                                    'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
                                             }`}>
                                             {risk.strategy}
                                         </div>

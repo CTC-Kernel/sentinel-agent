@@ -16,6 +16,7 @@ import { CommandPalette } from './components/layout/CommandPalette';
 import { NotificationCenter } from './components/ui/NotificationCenter';
 import { autoRefreshTokenIfNeeded } from './utils/tokenRefresh';
 import { NotificationService } from './services/notificationService';
+import { BackupService } from './services/backupService';
 import { NotificationPermissionBanner } from './components/ui/NotificationPermissionBanner';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { OnboardingTrigger } from './components/onboarding/OnboardingTrigger';
@@ -173,8 +174,9 @@ const AppContent: React.FC = () => {
         const runChecks = async () => {
             try {
                 await NotificationService.runAutomatedChecks(user.organizationId!);
+                await BackupService.checkScheduledBackups(user);
             } catch (e) {
-                console.error('Notification automation failed', e);
+                console.error('Automation checks failed', e);
             }
         };
 

@@ -215,6 +215,8 @@ export interface Incident {
   financialImpact?: number; // Coût estimé de l'incident
   reporter: string;
   dateReported: string;
+  dateAnalysis?: string;
+  dateContained?: string;
   dateResolved?: string;
   lessonsLearned?: string;
 }
