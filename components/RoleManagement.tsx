@@ -10,9 +10,7 @@ import {
     Role
 } from '../utils/permissions';
 import {
-    Users,
     ShieldCheck,
-    Check,
     X,
     Edit,
     Save,

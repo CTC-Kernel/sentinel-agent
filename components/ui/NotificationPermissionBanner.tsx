@@ -4,7 +4,9 @@ import { PushNotificationService } from '../../services/pushNotificationService'
 
 export const NotificationPermissionBanner: React.FC = () => {
     const [show, setShow] = useState(false);
-    const [permission, setPermission] = useState<NotificationPermission>('default');
+    const [permission, setPermission] = useState<NotificationPermission>(() => 
+        typeof Notification !== 'undefined' ? Notification.permission : 'default'
+    );
 
     useEffect(() => {
         // Vérifier si les notifications sont supportées
@@ -12,17 +14,13 @@ export const NotificationPermissionBanner: React.FC = () => {
             return;
         }
 
-        // Vérifier la permission actuelle
-        const currentPermission = Notification.permission;
-        setPermission(currentPermission);
-
         // Afficher la bannière si la permission n'a pas été demandée
-        if (currentPermission === 'default') {
+        if (permission === 'default') {
             // Attendre 3 secondes avant d'afficher pour ne pas être intrusif
             const timer = setTimeout(() => setShow(true), 3000);
             return () => clearTimeout(timer);
         }
-    }, []);
+    }, [permission]);
 
     const handleEnable = async () => {
         const granted = await PushNotificationService.initialize();

@@ -97,6 +97,22 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                     <div className="text-xs text-slate-500 mt-1">Résiduel: {avgResidual.toFixed(1)}</div>
                 </div>
 
+                {/* Untreated Risks */}
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Non Traités</span>
+                        {untreatedRisks === 0 ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        ) : (
+                            <AlertTriangle className="h-5 w-5 text-amber-500" />
+                        )}
+                    </div>
+                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{untreatedRisks}</div>
+                    <div className="text-xs text-slate-500 mt-1">
+                        {untreatedRisks === 0 ? 'Tous traités !' : 'Acceptés'}
+                    </div>
+                </div>
+
                 {/* Risk Reduction */}
                 <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 rounded-2xl border border-green-200 dark:border-green-800">
                     <div className="flex items-center justify-between mb-2">
@@ -143,7 +159,8 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                             <XAxis dataKey="name" stroke="#64748b" />
                             <YAxis stroke="#64748b" />
                             <Tooltip />
-                            <Bar dataKey="value" fill="#3b82f6" />
+                            <Legend />
+                            <Bar dataKey="value" fill="#3b82f6" name="Nombre de risques" />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>

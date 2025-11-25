@@ -98,7 +98,7 @@ export const Projects: React.FC = () => {
             const usersData = getDocsData<UserProfile>(results[4]);
             setUsersList(usersData);
 
-        } catch (err) {
+        } catch (_err) {
             addToast("Erreur chargement projets", "error");
         } finally {
             setLoading(false);
@@ -187,7 +187,7 @@ export const Projects: React.FC = () => {
             setShowModal(false);
             setIsEditing(false);
             fetchData();
-        } catch (e) { addToast("Erreur sauvegarde projet", "error"); }
+        } catch (_e) { addToast("Erreur sauvegarde projet", "error"); }
     };
 
     const handleCreateFromTemplate = async (template: ProjectTemplate, projectName: string, startDate: Date, manager: string) => {
@@ -255,7 +255,7 @@ export const Projects: React.FC = () => {
             await logAction(user, 'CREATE', 'Project', `Duplication Projet: ${newProjData.name}`);
             addToast("Projet dupliqué", "success");
             fetchData();
-        } catch (e) { addToast("Erreur duplication", "error"); }
+        } catch (_e) { addToast("Erreur duplication", "error"); }
     };
 
     const initiateDelete = (id: string, name: string) => {
@@ -274,7 +274,7 @@ export const Projects: React.FC = () => {
             setProjects(prev => prev.filter(p => p.id !== id));
             setSelectedProject(null);
             addToast("Projet supprimé", "info");
-        } catch (e) { addToast("Erreur suppression", "error"); }
+        } catch (_e) { addToast("Erreur suppression", "error"); }
     };
 
     const toggleTaskStatus = async (taskId: string) => {
@@ -880,7 +880,7 @@ export const Projects: React.FC = () => {
                                                         });
                                                         addToast('Tâche mise à jour', 'success');
                                                         fetchData();
-                                                    } catch (error) {
+                                                    } catch (_error) {
                                                         addToast('Erreur de mise à jour', 'error');
                                                     }
                                                 }}

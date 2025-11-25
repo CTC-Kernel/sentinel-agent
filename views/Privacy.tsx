@@ -76,7 +76,7 @@ export const Privacy: React.FC = () => {
 
             setStats({ total, sensitive, dpiaMissing, review });
 
-        } catch (err) {
+        } catch (_err) {
             addToast("Erreur chargement traitements", "error");
         } finally {
             setLoading(false);
@@ -206,7 +206,7 @@ export const Privacy: React.FC = () => {
                 await logAction(user, 'IMPORT', 'Privacy', `Import CSV de ${count} traitements`);
                 addToast(`${count} traitements importés`, "success");
                 fetchActivities();
-            } catch (error) { addToast("Erreur import CSV", "error"); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+            } catch (_error) { addToast("Erreur import CSV", "error"); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
         };
         reader.readAsText(file);
     };

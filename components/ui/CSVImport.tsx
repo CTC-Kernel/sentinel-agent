@@ -130,7 +130,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
             setImportedCount(parsedData.length);
             setStep('complete');
             addToast(`${parsedData.length} éléments importés avec succès`, 'success');
-        } catch (error) {
+        } catch (_error) {
             addToast('Erreur lors de l\'importation', 'error');
             setStep('preview');
         } finally {
@@ -187,6 +187,11 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     <Upload className="h-12 w-12 text-slate-400 mx-auto mb-3" />
                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Cliquez pour sélectionner un fichier CSV</p>
                                     <p className="text-xs text-slate-500 mt-1">ou glissez-déposez ici</p>
+                                    {file && (
+                                        <p className="text-xs text-brand-600 dark:text-brand-400 mt-2 font-medium">
+                                            Fichier sélectionné : {file.name}
+                                        </p>
+                                    )}
                                 </label>
                             </div>
 
@@ -278,7 +283,9 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                     {step === 'importing' && (
                         <div className="text-center py-12">
                             <div className="w-16 h-16 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Importation en cours...</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                                {importing ? 'Importation en cours...' : 'Préparation...'}
+                            </h3>
                             <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Veuillez patienter</p>
                         </div>
                     )}

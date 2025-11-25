@@ -78,7 +78,7 @@ export const BackupRestore: React.FC = () => {
     try {
       const backupsList = await BackupService.listBackups(user.organizationId);
       setBackups(backupsList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    } catch (error) {
+    } catch (_error) {
       addToast('Erreur chargement backups', 'error');
     } finally {
       setLoading(false);
@@ -90,7 +90,7 @@ export const BackupRestore: React.FC = () => {
     try {
       const backupStats = await BackupService.getBackupStats(user.organizationId);
       setStats(backupStats);
-    } catch (error) {
+    } catch (_error) {
       // Error handled by toast
     }
   };
@@ -105,7 +105,7 @@ export const BackupRestore: React.FC = () => {
       setShowCreateModal(false);
       loadBackups();
       loadStats();
-    } catch (error) {
+    } catch (_error) {
       addToast('Erreur lors de la création du backup', 'error');
     } finally {
       setCreatingBackup(false);
@@ -118,7 +118,7 @@ export const BackupRestore: React.FC = () => {
       await BackupService.scheduleBackup(user, backupConfig, frequency);
       addToast(`Backup programmé (${frequency})`, 'success');
       setShowScheduleModal(false);
-    } catch (error) {
+    } catch (_error) {
       addToast('Erreur lors de la programmation', 'error');
     }
   };
@@ -138,7 +138,7 @@ export const BackupRestore: React.FC = () => {
 
       setShowRestoreModal(false);
       // Restoration complete
-    } catch (error) {
+    } catch (_error) {
       addToast('Erreur lors de la restauration', 'error');
     } finally {
       setRestoring(false);
@@ -152,7 +152,7 @@ export const BackupRestore: React.FC = () => {
       addToast('Backup supprimé avec succès', 'success');
       loadBackups();
       loadStats();
-    } catch (error) {
+    } catch (_error) {
       addToast('Erreur lors de la suppression', 'error');
     }
   };
@@ -169,7 +169,7 @@ export const BackupRestore: React.FC = () => {
       document.body.removeChild(link);
 
       await logAction(user!, 'DOWNLOAD', 'Backup', `Backup téléchargé: ${backupId}`);
-    } catch (error) {
+    } catch (_error) {
       addToast('Erreur lors du téléchargement', 'error');
     }
   };

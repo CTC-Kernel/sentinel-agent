@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useStore } from '../store';
 import { Check, X, Shield, Zap, Building, ArrowRight, Star } from 'lucide-react';
 import { SubscriptionService } from '../services/subscriptionService';
