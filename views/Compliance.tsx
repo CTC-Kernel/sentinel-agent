@@ -476,7 +476,7 @@ export const Compliance: React.FC = () => {
 
             {/* Inspector (Keep existing implementation but styled) */}
             {selectedControl && (
-                <div className="fixed inset-0 z-[100] overflow-hidden">
+                <div className="fixed inset-0 z-[9999] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedControl(null)} />
                     <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
                         <div className="w-screen max-w-xl pointer-events-auto">
