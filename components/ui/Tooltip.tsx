@@ -51,12 +51,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
         >
             {children}
             {isVisible && (
-                <div className={`absolute z-50 px-2 py-1 text-xs font-medium text-white bg-slate-900 rounded-lg shadow-lg whitespace-nowrap animate-fade-in ${getPositionClasses()}`}>
+                <div className={`absolute z-50 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-xl shadow-xl whitespace-nowrap animate-fade-in ${getPositionClasses()}`}>
                     {content}
-                    <div className={`absolute w-2 h-2 bg-slate-900 transform rotate-45 ${position === 'top' ? 'bottom-[-4px] left-1/2 -translate-x-1/2' :
-                            position === 'bottom' ? 'top-[-4px] left-1/2 -translate-x-1/2' :
-                                position === 'left' ? 'right-[-4px] top-1/2 -translate-y-1/2' :
-                                    'left-[-4px] top-1/2 -translate-y-1/2'
+                    <div className={`absolute w-2 h-2 bg-white/90 dark:bg-slate-900/90 border-r border-b border-white/20 dark:border-white/10 transform rotate-45 ${position === 'top' ? 'bottom-[-5px] left-1/2 -translate-x-1/2' :
+                        position === 'bottom' ? 'top-[-5px] left-1/2 -translate-x-1/2 rotate-180' :
+                            position === 'left' ? 'right-[-5px] top-1/2 -translate-y-1/2 -rotate-45' :
+                                'left-[-5px] top-1/2 -translate-y-1/2 rotate-135'
                         }`}></div>
                 </div>
             )}
