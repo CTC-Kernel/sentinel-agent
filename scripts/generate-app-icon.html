@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur d'Icône Sentinel GRC - Premium</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 { color: #1d1d1f; margin: 0 0 10px 0; font-size: 32px; letter-spacing: -0.5px; }
+        .subtitle { color: #86868b; margin: 0 0 40px 0; font-size: 18px; }
+        
+        canvas {
+            border-radius: 22%; /* Forme iOS Squircle approximative */
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-width: 256px;
+            height: auto;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+        }
+        
+        canvas:hover { transform: scale(1.02); }
+        
+        button {
+            background: linear-gradient(135deg, #0071e3, #0077ed);
+            color: white;
+            border: none;
+            border-radius: 980px;
+            padding: 16px 32px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+        }
+        
+        button:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0, 113, 227, 0.4); }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 15px; margin-top: 40px; }
+        .grid-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .grid-item canvas { box-shadow: none; border-radius: 22%; margin: 0; }
+        .grid-item span { font-size: 12px; color: #86868b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sentinel GRC</h1>
+        <p class="subtitle">Icône Premium iOS • Design "Cyber Glass"</p>
+        
+        <canvas id="mainCanvas" width="1024" height="1024"></canvas>
+        
+        <br>
+        <button onclick="downloadIcon()">📥 Télécharger icon.png (1024px)</button>
+        
+        <div class="grid" id="previewGrid"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const size = 1024;
+        const center = size / 2;
+
+        // Configuration des couleurs
+        const colors = {
+            bgTop: '#1e293b',      // Slate 800
+            bgBottom: '#020617',   // Slate 950
+            shieldLight: '#3b82f6', // Blue 500
+            shieldDark: '#1d4ed8',  // Blue 700
+            accent: '#60a5fa',      // Blue 400
+            glow: 'rgba(59, 130, 246, 0.4)'
+        };
+
+        function drawIcon(ctx, width) {
+            const scale = width / 1024;
+            const c = width / 2;
+            
+            ctx.clearRect(0, 0, width, width);
+
+            // 1. FOND (Background)
+            // Dégradé subtil et profond
+            const bgGrad = ctx.createLinearGradient(0, 0, width, width);
+            bgGrad.addColorStop(0, colors.bgTop);
+            bgGrad.addColorStop(1, colors.bgBottom);
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, width, width);
+
+            // Motif de fond (Cyber Grid subtil)
+            ctx.save();
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 2 * scale;
+            const step = 80 * scale;
+            for(let i=0; i<width; i+=step) {
+                ctx.moveTo(i, 0); ctx.lineTo(i, width);
+                ctx.moveTo(0, i); ctx.lineTo(width, i);
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            // 2. OMBRE DU BOUCLIER (Drop Shadow)
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 60 * scale;
+            ctx.shadowOffsetY = 30 * scale;
+            
+            // Forme du bouclier pour l'ombre
+            drawShieldPath(ctx, c, c, scale);
+            ctx.fillStyle = 'rgba(0,0,0,0.1)'; // Invisible, juste pour l'ombre
+            ctx.fill();
+            ctx.restore();
+
+            // 3. BOUCLIER PRINCIPAL (Main Shield)
+            ctx.save();
+            drawShieldPath(ctx, c, c, scale);
+            
+            // Dégradé du bouclier (Cyber Blue)
+            const shieldGrad = ctx.createLinearGradient(c - 200*scale, c - 300*scale, c + 200*scale, c + 300*scale);
+            shieldGrad.addColorStop(0, colors.shieldLight);
+            shieldGrad.addColorStop(1, colors.shieldDark);
+            ctx.fillStyle = shieldGrad;
+            ctx.fill();
+
+            // 4. EFFET VERRE/LUMIÈRE (Glass Reflection)
+            // Reflet supérieur
+            ctx.globalCompositeOperation = 'source-atop';
+            const reflectionGrad = ctx.createLinearGradient(c, c - 400*scale, c, c);
+            reflectionGrad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+            reflectionGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.0)');
+            ctx.fillStyle = reflectionGrad;
+            ctx.fill();
+            
+            // Lueur interne (Inner Glow)
+            ctx.shadowColor = 'rgba(96, 165, 250, 0.8)';
+            ctx.shadowBlur = 40 * scale;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 4 * scale;
+            ctx.stroke();
+            ctx.restore();
+
+            // 5. SYMBOLE CENTRAL (Le "S" stylisé ou Checkmark sécurisé)
+            ctx.save();
+            ctx.translate(c, c);
+            ctx.scale(scale, scale);
+            
+            // Cercle de fond du symbole
+            ctx.beginPath();
+            ctx.arc(0, 0, 140, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.fill();
+            
+            // Checkmark stylisé "Cyber"
+            ctx.beginPath();
+            ctx.moveTo(-70, 10);
+            ctx.lineTo(-20, 60);
+            ctx.lineTo(80, -60);
+            
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 35;
+            ctx.strokeStyle = '#ffffff';
+            
+            // Ombre portée du checkmark
+            ctx.shadowColor = 'rgba(0,0,0,0.2)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 5;
+            ctx.stroke();
+            
+            ctx.restore();
+
+            // 6. EFFET DE BORDURE (Border Stroke)
+            // Un contour très fin pour la netteté
+            /*
+            ctx.save();
+            drawShieldPath(ctx, c, c, scale);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 2 * scale;
+            ctx.stroke();
+            ctx.restore();
+            */
+        }
+
+        function drawShieldPath(ctx, x, y, scale) {
+            ctx.beginPath();
+            const w = 340 * scale; // Largeur demi
+            const h_top = 380 * scale;
+            const h_bot = 420 * scale;
+            
+            ctx.moveTo(x, y - h_top); // Top Center
+            
+            // Courbe haut droite
+            ctx.bezierCurveTo(
+                x + w * 0.8, y - h_top, 
+                x + w, y - h_top * 0.8, 
+                x + w, y - h_top * 0.2
+            );
+            
+            // Côté droit vers bas
+            ctx.lineTo(x + w, y + h_bot * 0.2);
+            
+            // Pointe bas
+            ctx.bezierCurveTo(
+                x + w, y + h_bot * 0.6, 
+                x + w * 0.5, y + h_bot, 
+                x, y + h_bot
+            );
+            
+            // Remontée gauche
+            ctx.bezierCurveTo(
+                x - w * 0.5, y + h_bot, 
+                x - w, y + h_bot * 0.6, 
+                x - w, y + h_bot * 0.2
+            );
+            
+            // Côté gauche vers haut
+            ctx.lineTo(x - w, y - h_top * 0.2);
+            
+            // Courbe haut gauche
+            ctx.bezierCurveTo(
+                x - w, y - h_top * 0.8, 
+                x - w * 0.8, y - h_top, 
+                x, y - h_top
+            );
+            
+            ctx.closePath();
+        }
+
+        // Rendu initial
+        drawIcon(ctx, size);
+
+        // Générer les aperçus
+        const sizes = [180, 120, 80, 60];
+        const grid = document.getElementById('previewGrid');
+        sizes.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'grid-item';
+            const cvs = document.createElement('canvas');
+            cvs.width = s * 2; // Retina
+            cvs.height = s * 2;
+            cvs.style.width = s + 'px';
+            cvs.style.height = s + 'px';
+            const cx = cvs.getContext('2d');
+            drawIcon(cx, s * 2); // Dessiner en double résolution
+            
+            div.appendChild(cvs);
+            div.appendChild(document.createElement('span')).innerText = `${s}px`;
+            grid.appendChild(div);
+        });
+
+        function downloadIcon() {
+            const link = document.createElement('a');
+            link.download = 'icon.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
