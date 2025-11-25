@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>fr_FR</string>
+	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Sentinel GRC</string>
+        <string>Sentinel GRC</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -45,95 +45,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	
-	<!-- Privacy Descriptions - REQUIRED by Apple -->
-	<key>NSCameraUsageDescription</key>
-	<string>Sentinel GRC a besoin d'accéder à votre appareil photo pour scanner des QR codes et capturer des preuves d'audit.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Sentinel GRC a besoin d'accéder à vos photos pour joindre des preuves documentaires aux audits et contrôles.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Sentinel GRC souhaite enregistrer des captures d'écran et rapports dans votre bibliothèque photo.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Sentinel GRC utilise votre localisation pour géolocaliser les audits sur site et les actifs physiques.</string>
-	<key>NSCalendarsUsageDescription</key>
-	<string>Sentinel GRC synchronise les échéances d'audit et de conformité avec votre calendrier.</string>
-	<key>NSRemindersUsageDescription</key>
-	<string>Sentinel GRC crée des rappels pour les revues de sécurité et les plans de traitement des risques.</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Sentinel GRC utilise Face ID pour sécuriser l'accès aux données sensibles de conformité.</string>
-	
-	<!-- App Transport Security -->
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<false/>
-		<key>NSAllowsArbitraryLoadsInWebContent</key>
-		<false/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>firebaseapp.com</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<false/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-				<key>NSExceptionRequiresForwardSecrecy</key>
-				<true/>
-				<key>NSExceptionMinimumTLSVersion</key>
-				<string>TLSv1.2</string>
-			</dict>
-			<key>googleapis.com</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<false/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-				<key>NSExceptionRequiresForwardSecrecy</key>
-				<true/>
-				<key>NSExceptionMinimumTLSVersion</key>
-				<string>TLSv1.2</string>
-			</dict>
-		</dict>
-	</dict>
-	
-	<!-- Background Modes -->
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>remote-notification</string>
-	</array>
-	
-	<!-- Supported File Types -->
-	<key>CFBundleDocumentTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeName</key>
-			<string>PDF Document</string>
-			<key>LSHandlerRank</key>
-			<string>Alternate</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>com.adobe.pdf</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeName</key>
-			<string>Excel Document</string>
-			<key>LSHandlerRank</key>
-			<string>Alternate</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>org.openxmlformats.spreadsheetml.sheet</string>
-			</array>
-		</dict>
-	</array>
-	
-	<!-- Minimum iOS Version -->
-	<key>MinimumOSVersion</key>
-	<string>13.0</string>
-	
-	<!-- App Category -->
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.business</string>
 </dict>
 </plist>

@@ -119,7 +119,7 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full"></div></div>;
 
     return (
-        <div className="w-full h-full overflow-hidden bg-slate-50/50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/10 relative">
+        <div className="w-full h-full overflow-hidden bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm rounded-3xl border border-white/60 dark:border-white/10 relative shadow-inner">
             <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="cursor-grab active:cursor-grabbing">
                 <defs>
                     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
@@ -153,9 +153,9 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
                         <circle
                             r={node.type === rootType ? 30 : 20}
                             className={`${node.type === 'Asset' ? 'fill-blue-100 stroke-blue-500 dark:fill-blue-900/50 dark:stroke-blue-400' :
-                                    node.type === 'Risk' ? 'fill-red-100 stroke-red-500 dark:fill-red-900/50 dark:stroke-red-400' :
-                                        'fill-emerald-100 stroke-emerald-500 dark:fill-emerald-900/50 dark:stroke-emerald-400'
-                                }`}
+                                node.type === 'Risk' ? 'fill-red-100 stroke-red-500 dark:fill-red-900/50 dark:stroke-red-400' :
+                                    'fill-emerald-100 stroke-emerald-500 dark:fill-emerald-900/50 dark:stroke-emerald-400'
+                                } shadow-lg`}
                             strokeWidth="2"
                         />
                         <foreignObject x="-12" y="-12" width="24" height="24">
@@ -176,10 +176,10 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
                 ))}
             </svg>
 
-            <div className="absolute bottom-4 right-4 flex gap-4 text-xs font-bold text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-black/40 p-2 rounded-lg backdrop-blur-sm border border-slate-200 dark:border-white/10">
-                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Actif</div>
-                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Risque</div>
-                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Contrôle</div>
+            <div className="absolute bottom-4 right-4 flex gap-4 text-xs font-bold text-slate-600 dark:text-slate-300 bg-white/80 dark:bg-slate-900/80 p-3 rounded-2xl backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-lg">
+                <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></div> Actif</div>
+                <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm"></div> Risque</div>
+                <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></div> Contrôle</div>
             </div>
         </div>
     );

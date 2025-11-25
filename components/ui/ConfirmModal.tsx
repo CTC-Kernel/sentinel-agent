@@ -41,7 +41,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-white dark:bg-slate-850 rounded-[2rem] shadow-2xl w-full max-w-md border border-white/20 overflow-hidden animate-scale-in mx-4 sm:mx-0">
+      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-md border border-white/20 dark:border-white/10 overflow-hidden animate-scale-in mx-4 sm:mx-0">
         <div className="p-6 text-center">
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg ${colorClass}`}>
             <Icon className="h-8 w-8" />

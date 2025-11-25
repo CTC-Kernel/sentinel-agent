@@ -437,6 +437,9 @@ exports.stripeWebhook = onRequest(async (req, res) => {
     res.json({ received: true });
 });
 
+const mailFrom = defineString("MAIL_FROM", { default: '"Sentinel GRC" <no-reply@sentinel-grc.com>' });
+const mailReplyTo = defineString("MAIL_REPLY_TO", { default: "" });
+
 exports.processMailQueue = onDocumentCreated("mail_queue/{docId}", async (event) => {
     const snap = event.data;
     if (!snap) {
@@ -450,14 +453,23 @@ exports.processMailQueue = onDocumentCreated("mail_queue/{docId}", async (event)
         return;
     }
 
+    const host = smtpHost.value();
+    const user = smtpUser.value();
+    const pass = smtpPass.value();
+
+    // Check for placeholder values
+    if (host === "smtp.ethereal.email" && user === "placeholder_user") {
+        console.warn("WARNING: Using placeholder SMTP settings. Email will likely fail or be trapped by Ethereal. Configure SMTP_HOST, SMTP_USER, SMTP_PASS via Firebase secrets/params.");
+    }
+
     // Create transporter inside the function to ensure params are loaded
     const transporter = nodemailer.createTransport({
-        host: smtpHost.value(),
+        host: host,
         port: smtpPort.value(),
         secure: smtpPort.value() === 465,
         auth: {
-            user: smtpUser.value(),
-            pass: smtpPass.value(),
+            user: user,
+            pass: pass,
         },
     });
 
@@ -465,11 +477,15 @@ exports.processMailQueue = onDocumentCreated("mail_queue/{docId}", async (event)
         console.log(`Processing email for ${data.to}`);
 
         const mailOptions = {
-            from: '"Sentinel GRC" <no-reply@sentinel-grc.com>',
+            from: mailFrom.value(),
             to: data.to,
             subject: data.message.subject,
             html: data.message.html,
         };
+
+        if (mailReplyTo.value()) {
+            mailOptions.replyTo = mailReplyTo.value();
+        }
 
         // Send email
         const info = await transporter.sendMail(mailOptions);

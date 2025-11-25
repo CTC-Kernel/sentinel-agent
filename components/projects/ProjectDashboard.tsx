@@ -10,6 +10,7 @@ import {
 } from '../ui/Icons';
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
+import { ChartTooltip } from '../ui/ChartTooltip';
 
 interface ProjectDashboardProps {
     project: Project;
@@ -170,43 +171,88 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Task Distribution */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Distribution des Tâches</h4>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <PieChart>
-                            <Pie
-                                data={taskDistribution}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                label={({ name, value }) => `${name}: ${value}`}
-                                outerRadius={80}
-                                fill="#8884d8"
-                                dataKey="value"
-                            >
-                                {taskDistribution.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                        </PieChart>
-                    </ResponsiveContainer>
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-6 uppercase tracking-wider">Distribution des Tâches</h4>
+                    <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={taskDistribution}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={80}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                    stroke="none"
+                                >
+                                    {taskDistribution.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Pie>
+                                <Tooltip content={<ChartTooltip />} cursor={false} />
+                                <Legend
+                                    verticalAlign="bottom"
+                                    height={36}
+                                    iconType="circle"
+                                    formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
                 {/* Burndown Chart */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Burndown Chart</h4>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <LineChart data={burndownData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="week" stroke="#64748b" />
-                            <YAxis stroke="#64748b" />
-                            <Tooltip />
-                            <Legend />
-                            <Line type="monotone" dataKey="ideal" stroke="#94a3b8" strokeDasharray="5 5" name="Idéal" />
-                            <Line type="monotone" dataKey="actual" stroke="#3b82f6" strokeWidth={2} name="Réel" />
-                        </LineChart>
-                    </ResponsiveContainer>
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-6 uppercase tracking-wider">Burndown Chart</h4>
+                    <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={burndownData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.5} />
+                                <XAxis
+                                    dataKey="week"
+                                    stroke="#94a3b8"
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    stroke="#94a3b8"
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dx={-10}
+                                />
+                                <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                                <Legend
+                                    verticalAlign="top"
+                                    height={36}
+                                    iconType="circle"
+                                    formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="ideal"
+                                    stroke="#94a3b8"
+                                    strokeDasharray="5 5"
+                                    strokeWidth={2}
+                                    dot={false}
+                                    name="Idéal"
+                                    activeDot={{ r: 6, strokeWidth: 0 }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="actual"
+                                    stroke="#3b82f6"
+                                    strokeWidth={3}
+                                    name="Réel"
+                                    dot={{ r: 4, strokeWidth: 2, fill: '#fff' }}
+                                    activeDot={{ r: 6, strokeWidth: 0 }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
 
