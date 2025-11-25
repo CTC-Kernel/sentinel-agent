@@ -40,6 +40,17 @@ interface VoxelStudioProps {
   suggestedLinks?: AISuggestedLink[];
 }
 
+const safeRender = (value: any): React.ReactNode => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'object') {
+    if ('seconds' in value && 'nanoseconds' in value) {
+      return new Date(value.seconds * 1000).toLocaleDateString();
+    }
+    return ''; // Safely ignore other objects to prevent crashes
+  }
+  return value;
+};
+
 const SCENE_OFFSET: [number, number, number] = [5.5, 0, 0];
 
 const applySceneOffset = (x: number, y: number, z: number): [number, number, number] => [
@@ -599,6 +610,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
 
   const rawLabel = (node.data as any).name || (node.data as any).title || (node.data as any).threat || (node.data as any).label || 'Élément';
   const label = rawLabel.length > 24 ? `${rawLabel.slice(0, 21)}…` : rawLabel;
+  const safeLabel = safeRender(label);
 
   return (
     <group position={node.position}>
@@ -636,7 +648,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
           maxWidth={3.5}
           lineHeight={1.1}
         >
-          {label}
+          {safeLabel}
         </Text>
       )}
     </group>
@@ -1083,30 +1095,30 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
             </button>
           </div>
           <p className="text-slate-700 dark:text-white text-sm mb-2">
-            {(selectedNode?.data as Asset)?.name ||
-              (selectedNode?.data as Project)?.name ||
-              (selectedNode?.data as Incident)?.title ||
-              (selectedNode?.data as Audit)?.name ||
-              (selectedNode?.data as Supplier)?.name ||
-              (selectedNode?.data as Risk)?.threat ||
+            {safeRender((selectedNode?.data as Asset)?.name) ||
+              safeRender((selectedNode?.data as Project)?.name) ||
+              safeRender((selectedNode?.data as Incident)?.title) ||
+              safeRender((selectedNode?.data as Audit)?.name) ||
+              safeRender((selectedNode?.data as Supplier)?.name) ||
+              safeRender((selectedNode?.data as Risk)?.threat) ||
               'Élément'}
           </p>
           {selectedNode?.type === 'risk' && (
             <div className="text-xs text-slate-600 dark:text-slate-300">
-              <p>Score: {(selectedNode?.data as Risk)?.score}</p>
-              <p>Stratégie: {(selectedNode?.data as Risk)?.strategy}</p>
+              <p>Score: {safeRender((selectedNode?.data as Risk)?.score)}</p>
+              <p>Stratégie: {safeRender((selectedNode?.data as Risk)?.strategy)}</p>
             </div>
           )}
           {selectedNode?.type === 'asset' && (
             <div className="text-xs text-slate-600 dark:text-slate-300">
-              <p>Type: {(selectedNode?.data as Asset)?.type}</p>
-              <p>Propriétaire: {(selectedNode?.data as Asset)?.owner}</p>
+              <p>Type: {safeRender((selectedNode?.data as Asset)?.type)}</p>
+              <p>Propriétaire: {safeRender((selectedNode?.data as Asset)?.owner)}</p>
             </div>
           )}
           {selectedNode?.type === 'project' && (
             <div className="text-xs text-slate-600 dark:text-slate-300">
-              <p>Progression: {(selectedNode?.data as Project)?.progress}%</p>
-              <p>Statut: {(selectedNode?.data as Project)?.status}</p>
+              <p>Progression: {safeRender((selectedNode?.data as Project)?.progress)}%</p>
+              <p>Statut: {safeRender((selectedNode?.data as Project)?.status)}</p>
             </div>
           )}
         </div>

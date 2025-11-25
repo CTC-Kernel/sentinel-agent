@@ -287,8 +287,16 @@ export class BackupService {
     if (!user.organizationId) return;
 
     try {
-      const scheduleDoc = await getDoc(doc(db, 'backup_schedules', `schedule_${user.organizationId}`));
-      if (!scheduleDoc.exists()) return;
+      // Use query instead of getDoc to avoid permission denied on non-existent docs
+      const q = query(
+        collection(db, 'backup_schedules'),
+        where('organizationId', '==', user.organizationId)
+      );
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) return;
+
+      const scheduleDoc = snapshot.docs[0];
 
       const schedule = scheduleDoc.data();
       const now = new Date();
