@@ -1,9 +1,9 @@
 import React, { useRef, useState, useMemo, useEffect, createContext, useContext } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/fiber';
-import { OrbitControls, Text, Line, Points, PointMaterial, Float, MeshTransmissionMaterial, Edges, Environment, Sparkles } from '@react-three/drei';
-import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, MeshStandardMaterial, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial } from 'three';
+import { OrbitControls, Text, Line, Points, PointMaterial, Float, MeshTransmissionMaterial, Edges, Environment } from '@react-three/drei';
+import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
-import { EffectComposer, Bloom, Vignette, ChromaticAberration } from '@react-three/postprocessing';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink } from '../types';
 
 interface VoxelNode {
@@ -251,7 +251,7 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
 
   return (
     <group>
-      <Line points={points} color={color} opacity={0.15} transparent lineWidth={1} />
+      <Line points={points} color={color} opacity={0.5} transparent lineWidth={2} />
       {[...Array(particleCount)].map((_, i) => (
         <MovingParticle
           key={i}
@@ -335,12 +335,10 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
     return false;
   }, [node]);
   const usesLibraryModel = Boolean(MODEL_LIBRARY_CONFIG[node.type]);
-  const selectionScale = usesLibraryModel ? (isSelected ? 1.08 : hovered ? 1.04 : 1) : (isSelected ? 1.5 : hovered ? 1.2 : 1);
-  const criticalBoost = highlightCritical && isCritical ? (usesLibraryModel ? 1.05 : 1.15) : 1;
 
   const labelVisible = hovered || isSelected;
 
-  useFrame((state) => {
+  useFrame(() => {
     if (meshRef.current) {
       meshRef.current.rotation.y += 0.005;
     }
@@ -1010,11 +1008,6 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           <EffectComposer>
             <Bloom luminanceThreshold={1} mipmapBlur intensity={1.5} radius={0.6} />
             <Vignette eskil={false} offset={0.1} darkness={1.1} />
-            <ChromaticAberration
-              offset={[0.002, 0.002] as any}
-              radialModulation={false}
-              modulationOffset={0}
-            />
           </EffectComposer>
         </ModelLibraryProvider>
       </Canvas>
