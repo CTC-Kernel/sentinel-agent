@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { OnboardingService } from '../../services/onboardingService';
+import { useStore } from '../../store';
 import { HelpCircle, Zap, X } from '../ui/Icons';
 
 interface OnboardingBannerProps {
@@ -50,15 +51,19 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onD
 };
 
 export const OnboardingTrigger: React.FC = () => {
+    const { user } = useStore();
     const [showBanner, setShowBanner] = React.useState(false);
 
     useEffect(() => {
         // Show banner after 3 seconds if onboarding not completed
-        if (!OnboardingService.hasCompletedOnboarding()) {
+        // Check both Firestore profile (user.onboardingCompleted) and localStorage (fallback)
+        const isCompleted = user?.onboardingCompleted || OnboardingService.hasCompletedOnboarding();
+
+        if (!isCompleted && !localStorage.getItem('onboarding-dismissed')) {
             const timer = setTimeout(() => setShowBanner(true), 3000);
             return () => clearTimeout(timer);
         }
-    }, []);
+    }, [user?.onboardingCompleted]);
 
     const handleStart = () => {
         setShowBanner(false);
