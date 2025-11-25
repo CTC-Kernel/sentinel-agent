@@ -11,6 +11,7 @@ import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
 import { RiskMatrixSelector } from '../components/risks/RiskMatrixSelector';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
 import { jsPDF } from 'jspdf';
@@ -34,11 +35,11 @@ export const Risks: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
-    const [filter, setFilter] = useState('');
-    const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
+    const [filter, setFilter] = usePersistedState<string>('risks_filter', '');
+    const [viewMode, setViewMode] = usePersistedState<'list' | 'matrix'>('risks_view_mode', 'list');
 
     // Matrix Filter State
-    const [matrixFilter, setMatrixFilter] = useState<{ p: number, i: number } | null>(null);
+    const [matrixFilter, setMatrixFilter] = usePersistedState<{ p: number, i: number } | null>('risks_matrix_filter', null);
 
     const { user, addToast } = useStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
