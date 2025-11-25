@@ -1,4 +1,4 @@
-import { Control } from '../types';
+import '../types';
 
 export interface AuditChecklistItem {
     id: string;

@@ -1,6 +1,6 @@
-import { collection, addDoc, getDocs, query, where, doc, setDoc, getDoc, writeBatch, deleteDoc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, listAll, deleteObject } from 'firebase/storage';
-import { db, storage, auth } from '../firebase';
+import { collection, getDocs, query, where, updateDoc, doc, writeBatch, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { ref, getDownloadURL, deleteObject, uploadBytes } from 'firebase/storage';
+import { db, storage } from '../firebase';
 import { logAction } from './logger';
 import { UserProfile } from '../types';
 
@@ -69,7 +69,7 @@ export class BackupService {
           const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           backupData[collectionName] = data;
           totalSize += JSON.stringify(data).length;
-        } catch (error) {
+        } catch (_error) {
           // Silently skip collections that cannot be backed up
           // Skip
         }
@@ -201,7 +201,7 @@ export class BackupService {
         query(collection(db, this.BACKUP_COLLECTION), where('organizationId', '==', organizationId))
       );
       return snapshot.docs.map(doc => doc.data() as BackupMetadata);
-    } catch (error) {
+    } catch (_error) {
       return [];
     }
   }
@@ -260,7 +260,7 @@ export class BackupService {
         : undefined;
 
       return { totalBackups, totalSize, lastBackup };
-    } catch (error) {
+    } catch (_error) {
       return { totalBackups: 0, totalSize: 0 };
     }
   }

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store';
 import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, RefreshCw, Key, Building, WifiOff, ArrowRight, FileSpreadsheet } from '../components/ui/Icons';
-import { collection, getDocs, query, orderBy, limit, where, addDoc, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, Timestamp, enableNetwork, disableNetwork } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, where, addDoc, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, Timestamp, enableNetwork, disableNetwork, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, auth, functions } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -13,9 +13,7 @@ import { logAction } from '../services/logger';
 import { hasPermission } from '../utils/permissions';
 import { SubscriptionService } from '../services/subscriptionService';
 import { AccountService } from '../services/accountService';
-import { PLANS, PlanType } from '../config/plans';
 import { Organization } from '../types';
-import { getDoc } from 'firebase/firestore';
 
 export const Settings: React.FC = () => {
     const { theme, toggleTheme, user, setUser, addToast } = useStore();
@@ -82,7 +80,7 @@ export const Settings: React.FC = () => {
             await updateDoc(doc(db, 'users', targetUserId), { role: newRole });
             setUsersList(prev => prev.map(u => u.uid === targetUserId ? { ...u, role: newRole } : u));
             addToast("Rôle mis à jour", "success");
-        } catch (e) { addToast("Erreur mise à jour rôle", "error"); }
+        } catch (_e) { addToast("Erreur mise à jour rôle", "error"); }
     };
 
     const handleRemoveUser = async (targetUserId: string) => {
@@ -97,13 +95,14 @@ export const Settings: React.FC = () => {
             await updateDoc(doc(db, 'users', targetUserId), { organizationId: '', organizationName: '', role: '' });
             setUsersList(prev => prev.filter(u => u.uid !== targetUserId));
             addToast("Utilisateur retiré", "success");
-        } catch (e) { addToast("Erreur suppression utilisateur", "error"); }
+        } catch (_e) { addToast("Erreur suppression utilisateur", "error"); }
     };
 
     useEffect(() => {
         if (user) {
             setProfile({ displayName: user.displayName || '', department: user.department || '' });
             setOrgName(user.organizationName || '');
+            fetchOrgDetails();
         }
         if (hasPermission(user, 'Settings', 'manage') && user?.organizationId) {
             fetchLogs(true);
@@ -131,7 +130,7 @@ export const Settings: React.FC = () => {
                 try {
                     const snap = await getCountFromServer(query(collection(db, col), where('organizationId', '==', user.organizationId)));
                     return snap.data().count;
-                } catch (e) { return 0; }
+                } catch (_e) { return 0; }
             };
 
             const [assets, docs, risks, logs] = await Promise.all([
@@ -149,7 +148,26 @@ export const Settings: React.FC = () => {
         if (loadingLogs || (!hasMoreLogs && !reset) || !user?.organizationId) return;
         setLoadingLogs(true);
         try {
-            const q = query(collection(db, 'system_logs'), where('organizationId', '==', user.organizationId), limit(50));
+            let q;
+            if (reset || logs.length === 0) {
+                q = query(
+                    collection(db, 'system_logs'), 
+                    where('organizationId', '==', user.organizationId),
+                    orderBy('timestamp', 'desc'),
+                    limit(50)
+                );
+            } else {
+                const lastLog = logs[logs.length - 1];
+                const lastTimestamp = Timestamp.fromDate(new Date(lastLog.timestamp));
+                q = query(
+                    collection(db, 'system_logs'),
+                    where('organizationId', '==', user.organizationId),
+                    orderBy('timestamp', 'desc'),
+                    startAfter(lastTimestamp),
+                    limit(50)
+                );
+            }
+            
             const snap = await getDocs(q);
 
             if (!snap.empty) {
@@ -161,9 +179,13 @@ export const Settings: React.FC = () => {
                         timestamp: data.timestamp?.toDate ? data.timestamp.toDate().toISOString() : data.timestamp
                     } as SystemLog;
                 });
-                newLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-                setLogs(newLogs);
-                setHasMoreLogs(false);
+                
+                if (reset) {
+                    setLogs(newLogs);
+                } else {
+                    setLogs(prev => [...prev, ...newLogs]);
+                }
+                setHasMoreLogs(snap.docs.length === 50);
             } else {
                 setHasMoreLogs(false);
             }
@@ -219,7 +241,7 @@ export const Settings: React.FC = () => {
 
             setUser(userData);
             addToast("Profil mis à jour avec succès.", "success");
-        } catch (err) {
+        } catch (_err) {
             addToast("Erreur lors de la mise à jour du profil.", "error");
         } finally {
             setSavingProfile(false);
@@ -243,7 +265,7 @@ export const Settings: React.FC = () => {
 
             setUser({ ...user, organizationName: orgName });
             addToast("Nom de l'organisation mis à jour pour tous les membres", "success");
-        } catch (e) {
+        } catch (_e) {
             addToast("Erreur mise à jour organisation", "error");
         } finally {
             setSavingOrg(false);
@@ -321,7 +343,7 @@ export const Settings: React.FC = () => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             addToast("Sauvegarde complète téléchargée", "success");
-        } catch (error) {
+        } catch (_error) {
             addToast("L'export a échoué.", "error");
         } finally {
             setExporting(false);
@@ -355,7 +377,7 @@ export const Settings: React.FC = () => {
             link.download = `audit_logs_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
             addToast("Logs d'audit exportés (CSV)", "success");
-        } catch (e) {
+        } catch (_e) {
             addToast("Erreur lors de l'export des logs", "error");
         } finally {
             setExportingLogs(false);
@@ -384,14 +406,43 @@ export const Settings: React.FC = () => {
             if (toDelete.length === 0) {
                 addToast("Aucun log ancien à purger.", "info");
             } else {
-                const batch = writeBatch(db);
-                toDelete.forEach(d => batch.delete(d.ref));
-                await batch.commit();
+                // Use deleteDoc for individual deletions or batch for multiple
+                if (toDelete.length < 10) {
+                    await Promise.all(toDelete.map(d => deleteDoc(d.ref)));
+                } else {
+                    const batch = writeBatch(db);
+                    toDelete.forEach(d => batch.delete(d.ref));
+                    await batch.commit();
+                }
+                
+                // Log the purge action
+                await logAction(user, 'Purge Logs', 'SystemLogs', `${toDelete.length} logs supprimés (>90 jours)`);
+                
                 addToast(`${toDelete.length} logs anciens supprimés.`, "success");
                 fetchLogs(true);
                 fetchSystemStats();
             }
-        } catch (e) { addToast("Erreur lors de la purge.", "error"); } finally { setMaintenanceLoading(false); }
+        } catch (_e) { addToast("Erreur lors de la purge.", "error"); } finally { setMaintenanceLoading(false); }
+    };
+
+    const handleTestLog = async () => {
+        if (!user) return;
+        try {
+            await addDoc(collection(db, 'system_logs'), {
+                organizationId: user.organizationId,
+                userId: user.uid,
+                userEmail: user.email,
+                action: 'Test Log',
+                resource: 'Settings',
+                details: 'Log de test créé manuellement',
+                timestamp: Timestamp.now()
+            });
+            addToast("Log de test créé", "success");
+            fetchLogs(true);
+        } catch (e) {
+            console.error(e);
+            addToast("Erreur création log", "error");
+        }
     };
 
     const initiateIntegrityCheck = () => {
@@ -425,7 +476,7 @@ export const Settings: React.FC = () => {
             } else {
                 addToast("Intégrité des données validée.", "success");
             }
-        } catch (e) { addToast("Erreur lors de la vérification.", "error"); } finally { setMaintenanceLoading(false); }
+        } catch (_e) { addToast("Erreur lors de la vérification.", "error"); } finally { setMaintenanceLoading(false); }
     };
 
     const handleMigration = async () => {
@@ -470,7 +521,7 @@ export const Settings: React.FC = () => {
             });
             // Local state update handled by onSnapshot in App.tsx, forcing redirect to Onboarding
             window.location.reload();
-        } catch (e) {
+        } catch (_e) {
             addToast("Erreur lors de la sortie de l'organisation", "error");
         }
     };
@@ -488,7 +539,7 @@ export const Settings: React.FC = () => {
             } else {
                 await SubscriptionService.manageSubscription(user.organizationId);
             }
-        } catch (e) {
+        } catch (_e) {
             addToast("Impossible d'accéder à la gestion de l'abonnement", "error");
         } finally {
             setSubLoading(false);
@@ -652,11 +703,17 @@ export const Settings: React.FC = () => {
 
                     <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm flex flex-col h-full">
                         <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><Sun className="h-5 w-5 mr-3 text-blue-500" />Apparence</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                                {theme === 'dark' ? <Moon className="h-5 w-5 mr-3 text-indigo-500" /> : <Sun className="h-5 w-5 mr-3 text-amber-500" />}
+                                Apparence
+                            </h3>
                         </div>
                         <div className="p-6 flex-1 flex flex-col justify-center space-y-6">
                             <div className="flex items-center justify-between">
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Thème Sombre</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Thème Sombre</span>
+                                    {theme === 'dark' && <Moon className="h-4 w-4 text-indigo-400" />}
+                                </div>
                                 <button onClick={handleThemeToggle} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${theme === 'dark' ? 'bg-slate-700' : 'bg-gray-200'}`}>
                                     <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${theme === 'dark' ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
@@ -664,6 +721,20 @@ export const Settings: React.FC = () => {
                             <button onClick={handleExport} disabled={exporting} className="w-full flex items-center justify-center px-4 py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors">
                                 {exporting ? 'Export en cours...' : <><Download className="h-4 w-4 mr-2" /> Sauvegarde JSON</>}
                             </button>
+                            <div className="pt-4 border-t border-slate-200 dark:border-white/10">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Mode Hors Ligne</span>
+                                    <WifiOff className="h-4 w-4 text-slate-400" />
+                                </div>
+                                <div className="flex gap-2">
+                                    <button onClick={async () => { try { await enableNetwork(db); addToast("Mode en ligne activé", "success"); } catch (e) { console.error(e); } }} className="flex-1 px-3 py-2 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-xs font-bold hover:bg-green-200 dark:hover:bg-green-900/30 transition-colors flex items-center justify-center gap-1">
+                                        <CheckCircle2 className="h-3 w-3" /> En ligne
+                                    </button>
+                                    <button onClick={async () => { try { await disableNetwork(db); addToast("Mode hors ligne activé", "info"); } catch (e) { console.error(e); } }} className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1">
+                                        <WifiOff className="h-3 w-3" /> Hors ligne
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -723,13 +794,26 @@ export const Settings: React.FC = () => {
                         </div>
 
                         <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-slate-50/30 dark:bg-black/20">
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">État du Système</h4>
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">État du Système</h4>
+                                <div className="flex items-center gap-2">
+                                    <Database className="h-4 w-4 text-green-500" />
+                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                </div>
+                            </div>
                             <div className="grid grid-cols-5 gap-4 text-center">
                                 <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.assets}</span><span className="text-[9px] font-bold text-slate-400 uppercase">Actifs</span></div>
-                                <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.docs}</span><span className="text-[9px] font-bold text-slate-400 uppercase">Docs</span></div>
-                                <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.risks}</span><span className="text-[9px] font-bold text-slate-400 uppercase">Risques</span></div>
+                                <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.docs}</span><span className="text-[9px] font-bold text-slate-400 uppercase flex justify-center items-center"><FileText className="h-2.5 w-2.5 mr-1" />Docs</span></div>
+                                <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.risks}</span><span className="text-[9px] font-bold text-slate-400 uppercase flex justify-center items-center"><ShieldAlert className="h-2.5 w-2.5 mr-1" />Risques</span></div>
                                 <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.logs}</span><span className="text-[9px] font-bold text-slate-400 uppercase">Logs</span></div>
                                 <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/10" onClick={checkLatency}><span className={`block text-lg font-black ${networkLatency !== 'Erreur' && parseInt(networkLatency) < 200 ? 'text-emerald-500' : 'text-orange-500'}`}>{networkLatency}</span><span className="text-[9px] font-bold text-slate-400 uppercase flex justify-center items-center"><Activity className="h-2.5 w-2.5 mr-1" /> Ping</span></div>
+                            </div>
+                            <div className="mt-4 flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
+                                <div className="flex items-center gap-2">
+                                    <Building className="h-4 w-4 text-blue-500" />
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Organisation</span>
+                                </div>
+                                <span className="text-xs font-mono text-slate-900 dark:text-white">{orgName}</span>
                             </div>
                         </div>
                     </div>
@@ -835,12 +919,24 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Journal d'audit</h3>
-                                    <p className="text-xs text-slate-500 font-medium">Traçabilité des actions</p>
+                                    <p className="text-xs text-slate-500 font-medium">Traçabilité des actions ({logs.length} entrées)</p>
                                 </div>
                             </div>
-                            <button onClick={handleExportLogsCSV} disabled={exportingLogs} className="flex items-center px-3 py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
-                                <FileSpreadsheet className="h-3.5 w-3.5 mr-1.5" /> {exportingLogs ? 'Export...' : 'CSV'}
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {hasPermission(user, 'Settings', 'manage') && (
+                                    <button onClick={handleTestLog} className="flex items-center px-3 py-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg text-xs font-bold text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors">
+                                        + Test
+                                    </button>
+                                )}
+                                {hasMoreLogs && (
+                                    <button onClick={() => fetchLogs(false)} disabled={loadingLogs} className="flex items-center px-3 py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+                                        {loadingLogs ? '...' : <><ArrowRight className="h-3.5 w-3.5 mr-1" /> Plus</>}
+                                    </button>
+                                )}
+                                <button onClick={handleExportLogsCSV} disabled={exportingLogs} className="flex items-center px-3 py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+                                    <FileSpreadsheet className="h-3.5 w-3.5 mr-1.5" /> {exportingLogs ? 'Export...' : 'CSV'}
+                                </button>
+                            </div>
                         </div>
                         <div className="relative border-l border-slate-200 dark:border-white/10 ml-4 space-y-8 pl-8">
                             {logs.map(log => (

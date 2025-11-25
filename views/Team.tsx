@@ -119,7 +119,7 @@ export const Team: React.FC = () => {
             setNewUser({ displayName: '', email: '', role: 'user', department: '' });
             addToast("Invitation envoyée par email", "success");
             fetchUsers();
-        } catch (e) {
+        } catch (_e) {
             addToast("Erreur lors de l'invitation", "error");
         }
     };
@@ -144,7 +144,7 @@ export const Team: React.FC = () => {
             setUsers(prev => prev.map(u => u.uid === selectedUser.uid ? selectedUser : u));
             setShowEditModal(false);
             addToast("Utilisateur mis à jour", "success");
-        } catch (e) {
+        } catch (_e) {
             addToast("Erreur mise à jour", "error");
         }
     };
@@ -206,7 +206,7 @@ export const Team: React.FC = () => {
                 addToast("Utilisateur supprimé", "info");
             }
             setUsers(prev => prev.filter(user => user.uid !== u.uid));
-        } catch (e) {
+        } catch (_e) {
             addToast("Erreur suppression", "error");
         }
     };

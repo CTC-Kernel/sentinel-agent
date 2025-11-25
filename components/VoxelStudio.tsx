@@ -430,7 +430,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
       }
     });
     return clone;
-  }, [modelLibrary, node.type, node.size, baseColor, emissiveColor, emissiveIntensity, opacity, xRayMode]);
+  }, [modelLibrary, node.type, node.size, baseColor, emissiveColor, emissiveIntensity, opacity, xRayMode, isDimmed]);
 
   const renderCategoryModel = () => {
     if (libraryPrimitive) {

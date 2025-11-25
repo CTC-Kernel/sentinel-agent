@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, X, Check, AlertTriangle, Info, CheckCircle2, XCircle } from './Icons';
+import { Bell, CheckCircle2, AlertTriangle, Info, X, Check } from './Icons';
 import { NotificationService, Notification } from '../../services/notificationService';
 import { useStore } from '../../store';
 import { useNavigate } from 'react-router-dom';
@@ -59,7 +59,7 @@ export const NotificationCenter: React.FC = () => {
     const getIcon = (type: Notification['type']) => {
         switch (type) {
             case 'danger':
-                return <XCircle className="h-5 w-5 text-red-500" />;
+                return <X className="h-5 w-5 text-red-500" />;
             case 'warning':
                 return <AlertTriangle className="h-5 w-5 text-orange-500" />;
             case 'success':

@@ -27,7 +27,7 @@ export const scheduledNotificationChecks = async () => {
         );
 
         await Promise.allSettled(promises);
-    } catch (error) {
+    } catch (_error) {
         // Error handled silently
     }
 };

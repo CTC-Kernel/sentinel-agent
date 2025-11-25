@@ -12,6 +12,7 @@ export interface DailyStats {
         openIncidents: number;
         complianceRate: number;
         totalAssets: number;
+        activeProjects: number;
     };
 }
 
@@ -35,22 +36,25 @@ export class StatsService {
 
         try {
             // Fetch current data counts
-            const [risksSnap, incidentsSnap, controlsSnap, assetsSnap] = await Promise.all([
+            const [risksSnap, incidentsSnap, controlsSnap, assetsSnap, projectsSnap] = await Promise.all([
                 getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId))),
                 getDocs(query(collection(db, 'incidents'), where('organizationId', '==', organizationId))),
                 getDocs(query(collection(db, 'controls'), where('organizationId', '==', organizationId))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', organizationId)))
+                getDocs(query(collection(db, 'assets'), where('organizationId', '==', organizationId))),
+                getDocs(query(collection(db, 'projects'), where('organizationId', '==', organizationId)))
             ]);
 
             const risks = risksSnap.docs.map(d => d.data() as Risk);
             const incidents = incidentsSnap.docs.map(d => d.data() as Incident);
             const controls = controlsSnap.docs.map(d => d.data() as Control);
             const assets = assetsSnap.docs.map(d => d.data() as Asset);
+            const projects = projectsSnap.docs.map(d => d.data() as any); // Project type might need to be imported or cast
 
             // Calculate metrics
             const criticalRisks = risks.filter(r => (r.score || 0) >= 15).length;
             const highRisks = risks.filter(r => (r.score || 0) >= 10 && (r.score || 0) < 15).length;
             const openIncidents = incidents.filter(i => i.status !== 'Résolu' && i.status !== 'Fermé').length;
+            const activeProjects = projects.filter(p => p.status === 'En cours').length;
 
             const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
             const complianceRate = controls.length > 0 ? Math.round((implementedControls / controls.length) * 100) : 0;
@@ -64,7 +68,8 @@ export class StatsService {
                     highRisks,
                     openIncidents,
                     complianceRate,
-                    totalAssets: assets.length
+                    totalAssets: assets.length,
+                    activeProjects
                 }
             };
 
@@ -78,6 +83,10 @@ export class StatsService {
 
     /**
      * Retrieves historical stats for the last N days.
+     *
+     * @param organizationId
+     * @param days
+     * @returns
      */
     static async getHistory(organizationId: string, days: number = 30): Promise<DailyStats[]> {
         try {

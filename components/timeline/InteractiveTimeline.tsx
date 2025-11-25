@@ -6,16 +6,14 @@ import 'vis-timeline/styles/vis-timeline-graph2d.css';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
-import { Risk, Asset, Incident, Audit, Project, Document } from '../../types';
+import { Risk, Project, Audit, Document, Incident } from '../../types';
 import {
-    Siren,
-    Activity,
-    FolderKanban,
+    Download,
     ShieldAlert,
     FileText,
-    Download,
-    Filter,
-    Calendar
+    Siren,
+    Activity,
+    FolderKanban
 } from '../ui/Icons';
 
 interface TimelineEvent {

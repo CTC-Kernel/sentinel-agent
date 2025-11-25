@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide reCAPTCHA badge - improve UX while maintaining security */
+.grecaptcha-badge {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

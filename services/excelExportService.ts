@@ -95,7 +95,7 @@ export class ExcelExportService {
             });
 
             // Ajouter des bordures
-            worksheet.eachRow((row, rowNumber) => {
+            worksheet.eachRow((row) => {
                 row.eachCell((cell) => {
                     cell.border = {
                         top: { style: 'thin', color: { argb: 'FFE5E7EB' } },

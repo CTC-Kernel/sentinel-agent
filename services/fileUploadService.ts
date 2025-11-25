@@ -1,4 +1,4 @@
-import { ref, uploadBytes, getDownloadURL, deleteObject, listAll, uploadBytesResumable } from 'firebase/storage';
+import { uploadBytesResumable, getDownloadURL, ref, deleteObject, listAll } from 'firebase/storage';
 import { storage } from '../firebase';
 
 export interface UploadProgress {
@@ -58,7 +58,7 @@ export const uploadFile = async (
                 try {
                     const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                     resolve(downloadURL);
-                } catch (error) {
+                } catch (_error) {
                     reject(new Error('Failed to get download URL.'));
                 }
             }

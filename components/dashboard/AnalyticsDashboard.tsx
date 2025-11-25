@@ -57,6 +57,12 @@ export const AnalyticsDashboard: React.FC = () => {
     const [incidents, setIncidents] = useState<Incident[]>([]);
     const [controls, setControls] = useState<Control[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
+    const [trends, setTrends] = useState({
+        riskTrend: 0,
+        incidentTrend: 0,
+        complianceTrend: 0,
+        projectTrend: 0
+    });
 
     useEffect(() => {
         if (!user?.organizationId) return;
@@ -80,7 +86,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 setProjects(projectsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
 
                 setLoading(false);
-            } catch (error) {
+            } catch (_error) {
                 setLoading(false);
             }
         };
@@ -97,20 +103,14 @@ export const AnalyticsDashboard: React.FC = () => {
             : 0;
         const activeProjects = projects.filter(p => p.status === 'En cours').length;
 
-        // Calculate trends (mock for now - would need historical data)
-        const riskTrend = 5.2;
-        const incidentTrend = -12.3;
-        const complianceTrend = 8.1;
-        const projectTrend = 3.4;
-
         return {
             criticalRisks,
             openIncidents,
             complianceRate,
             activeProjects,
-            trends: { riskTrend, incidentTrend, complianceTrend, projectTrend }
+            trends
         };
-    }, [risks, incidents, controls, projects]);
+    }, [risks, incidents, controls, projects, trends]);
 
     // Trend data for charts
     const [trendData, setTrendData] = useState<TrendData[]>([]);
@@ -133,11 +133,29 @@ export const AnalyticsDashboard: React.FC = () => {
                 assets: day.metrics.totalAssets
             }));
 
+            // Calculate trends
+            if (history.length >= 2) {
+                const current = history[history.length - 1];
+                const previous = history[history.length - 2];
+
+                const calculateTrend = (curr: number, prev: number) => {
+                    if (prev === 0) return curr > 0 ? 100 : 0;
+                    return Number(((curr - prev) / prev * 100).toFixed(1));
+                };
+
+                setTrends({
+                    riskTrend: calculateTrend(current.metrics.criticalRisks, previous.metrics.criticalRisks),
+                    incidentTrend: calculateTrend(current.metrics.openIncidents, previous.metrics.openIncidents),
+                    complianceTrend: calculateTrend(current.metrics.complianceRate, previous.metrics.complianceRate),
+                    projectTrend: calculateTrend(current.metrics.activeProjects || 0, previous.metrics.activeProjects || 0)
+                });
+            }
+
             // If no history yet, show current state as a single point or empty
             if (mappedData.length === 0) {
                 setTrendData([{
                     date: new Date().toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }),
-                    risks: metrics.criticalRisks + metrics.trends.riskTrend, // Fallback
+                    risks: metrics.criticalRisks, 
                     incidents: metrics.openIncidents,
                     compliance: metrics.complianceRate,
                     assets: assets.length

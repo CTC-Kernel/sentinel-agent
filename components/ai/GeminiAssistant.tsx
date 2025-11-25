@@ -66,7 +66,7 @@ export const GeminiAssistant: React.FC = () => {
             };
 
             setMessages(prev => [...prev, aiMsg]);
-        } catch (error) {
+        } catch (_error) {
             const errorMsg: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
