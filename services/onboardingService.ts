@@ -68,7 +68,7 @@ export class OnboardingService {
                     }
                 }
             ],
-            onDestroyStarted: () => {
+            onDestroyStarted: async () => {
                 if (driverObj.hasNextStep()) {
                     const confirmed = window.confirm('Voulez-vous vraiment quitter le tour guidé?');
                     if (!confirmed) {
@@ -77,6 +77,20 @@ export class OnboardingService {
                 }
                 driverObj.destroy();
                 localStorage.setItem('onboarding-completed', 'true');
+
+                // Sync to Firestore
+                try {
+                    const { auth, db } = await import('../firebase');
+                    const { doc, updateDoc } = await import('firebase/firestore');
+                    const user = auth.currentUser;
+                    if (user) {
+                        await updateDoc(doc(db, 'users', user.uid), {
+                            onboardingCompleted: true
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error syncing onboarding status:', error);
+                }
             }
         });
 
