@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { RadarChart, PolarGrid, PolarAngleAxis, Radar as RechartsRadar, ResponsiveContainer, Tooltip, AreaChart, Area, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartsRadar, ResponsiveContainer, Tooltip, AreaChart, Area, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { ShieldAlert, CheckCircle2, AlertTriangle, Download, Siren, TrendingUp, Stethoscope, History, Server, Flame, CalendarDays, User, Zap, ArrowRight, Euro, Settings as Settings3D } from '../components/ui/Icons';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { ChartTooltip } from '../components/ui/ChartTooltip';
 import { db } from '../firebase';
 import { collection, getDocs, query, where, doc, setDoc, limit, getCountFromServer } from 'firebase/firestore';
 import { Risk, Control, Audit, Project, DailyStat, Document, Asset, SystemLog, Supplier, Incident } from '../types';
@@ -345,10 +346,21 @@ export const Dashboard: React.FC = () => {
                     <div className="hidden lg:block w-48 h-48 cursor-pointer" onClick={() => navigate('/compliance')} title="Voir le détail par domaine">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                                <PolarGrid stroke="currentColor" className="text-slate-300 dark:text-slate-700 opacity-50" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 'bold' }} className="text-slate-500 dark:text-slate-400" />
-                                <RechartsRadar name="Maturité" dataKey="A" stroke="#3b82f6" strokeWidth={3} fill="#3b82f6" fillOpacity={0.3} />
-                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderRadius: '10px', border: 'none', color: '#fff' }} itemStyle={{ color: '#fff' }} />
+                                <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3" />
+                                <PolarAngleAxis
+                                    dataKey="subject"
+                                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                                />
+                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                <RechartsRadar
+                                    name="Maturité"
+                                    dataKey="A"
+                                    stroke="#3b82f6"
+                                    strokeWidth={3}
+                                    fill="#3b82f6"
+                                    fillOpacity={0.3}
+                                />
+                                <Tooltip content={<ChartTooltip />} />
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>
@@ -415,7 +427,39 @@ export const Dashboard: React.FC = () => {
                         <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20"><TrendingUp className="w-5 h-5 text-emerald-500" /></div>
                     </div>
                     <div className="flex-1 w-full p-4 bg-white/40 dark:bg-transparent">
-                        {loading ? <Skeleton className="h-full w-full rounded-2xl" /> : (<ResponsiveContainer width="100%" height="100%"><AreaChart data={historyData}><defs><linearGradient id="colorCompliance" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.3} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} /><XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} /><YAxis hide domain={[0, 100]} /><Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '12px', fontWeight: 'bold' }} /><Area type="monotone" dataKey="compliance" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorCompliance)" animationDuration={1500} /></AreaChart></ResponsiveContainer>)}
+                        {loading ? <Skeleton className="h-full w-full rounded-2xl" /> : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={historyData}>
+                                    <defs>
+                                        <linearGradient id="colorCompliance" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
+                                    <XAxis
+                                        dataKey="date"
+                                        tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 500 }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        dy={10}
+                                        tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                                    />
+                                    <YAxis hide domain={[0, 100]} />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#10b981', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="compliance"
+                                        name="Conformité"
+                                        stroke="#10b981"
+                                        strokeWidth={3}
+                                        fillOpacity={1}
+                                        fill="url(#colorCompliance)"
+                                        animationDuration={1500}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
             </div>

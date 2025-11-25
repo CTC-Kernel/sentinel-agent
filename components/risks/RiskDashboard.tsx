@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChartTooltip } from '../ui/ChartTooltip';
 import { Risk } from '../../types';
 import { AlertTriangle, TrendingUp, TrendingDown, ShieldAlert, Target, CheckCircle2 } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, ZAxis } from 'recharts';
@@ -135,17 +136,23 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                 data={distributionData}
                                 cx="50%"
                                 cy="50%"
-                                labelLine={false}
-                                label={({ name, value }) => `${name}: ${value}`}
-                                outerRadius={90}
-                                fill="#8884d8"
+                                innerRadius={60}
+                                outerRadius={80}
+                                paddingAngle={5}
                                 dataKey="value"
+                                stroke="none"
                             >
                                 {distributionData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))}
                             </Pie>
-                            <Tooltip />
+                            <Tooltip content={<ChartTooltip />} cursor={false} />
+                            <Legend
+                                verticalAlign="bottom"
+                                height={36}
+                                iconType="circle"
+                                formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                            />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
@@ -154,13 +161,26 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Distribution par Catégorie</h4>
                     <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={categoryChartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="name" stroke="#64748b" />
-                            <YAxis stroke="#64748b" />
-                            <Tooltip />
-                            <Legend />
-                            <Bar dataKey="value" fill="#3b82f6" name="Nombre de risques" />
+                        <BarChart data={categoryChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.5} />
+                            <XAxis
+                                dataKey="name"
+                                stroke="#94a3b8"
+                                fontSize={11}
+                                tickLine={false}
+                                axisLine={false}
+                                dy={10}
+                                tickFormatter={(value) => value.length > 10 ? `${value.substring(0, 10)}...` : value}
+                            />
+                            <YAxis
+                                stroke="#94a3b8"
+                                fontSize={11}
+                                tickLine={false}
+                                axisLine={false}
+                                dx={-10}
+                            />
+                            <Tooltip content={<ChartTooltip />} cursor={{ fill: '#f1f5f9', opacity: 0.4 }} />
+                            <Bar dataKey="value" fill="#3b82f6" name="Nombre de risques" radius={[4, 4, 0, 0]} barSize={30} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -169,13 +189,41 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 lg:col-span-2">
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Matrice des Risques (Probabilité × Impact)</h4>
                     <ResponsiveContainer width="100%" height={300}>
-                        <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis type="number" dataKey="likelihood" name="Probabilité" domain={[0, 5]} stroke="#64748b" />
-                            <YAxis type="number" dataKey="impact" name="Impact" domain={[0, 5]} stroke="#64748b" />
-                            <ZAxis type="number" dataKey="score" range={[50, 400]} />
-                            <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                            <Scatter name="Risques" data={matrixData} fill="#3b82f6" />
+                        <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
+                            <XAxis
+                                type="number"
+                                dataKey="likelihood"
+                                name="Probabilité"
+                                domain={[0, 5]}
+                                stroke="#94a3b8"
+                                fontSize={11}
+                                tickLine={false}
+                                axisLine={{ stroke: '#e2e8f0' }}
+                                dy={10}
+                            />
+                            <YAxis
+                                type="number"
+                                dataKey="impact"
+                                name="Impact"
+                                domain={[0, 5]}
+                                stroke="#94a3b8"
+                                fontSize={11}
+                                tickLine={false}
+                                axisLine={{ stroke: '#e2e8f0' }}
+                                dx={-10}
+                            />
+                            <ZAxis type="number" dataKey="score" range={[100, 600]} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3' }} />
+                            <Scatter name="Risques" data={matrixData} fill="#3b82f6" shape="circle">
+                                {matrixData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={
+                                        entry.score >= 15 ? '#ef4444' :
+                                            entry.score >= 10 ? '#f97316' :
+                                                entry.score >= 5 ? '#eab308' : '#22c55e'
+                                    } />
+                                ))}
+                            </Scatter>
                         </ScatterChart>
                     </ResponsiveContainer>
                 </div>
@@ -184,12 +232,28 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 lg:col-span-2">
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Stratégies de Traitement</h4>
                     <ResponsiveContainer width="100%" height={200}>
-                        <BarChart data={treatmentData} layout="vertical">
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis type="number" stroke="#64748b" />
-                            <YAxis dataKey="name" type="category" stroke="#64748b" />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#8b5cf6" />
+                        <BarChart data={treatmentData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} opacity={0.5} />
+                            <XAxis type="number" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                            <YAxis
+                                dataKey="name"
+                                type="category"
+                                stroke="#94a3b8"
+                                fontSize={11}
+                                tickLine={false}
+                                axisLine={false}
+                                width={80}
+                            />
+                            <Tooltip content={<ChartTooltip />} cursor={{ fill: '#f1f5f9', opacity: 0.4 }} />
+                            <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={20}>
+                                {treatmentData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={
+                                        entry.name === 'Atténuer' ? '#3b82f6' :
+                                            entry.name === 'Transférer' ? '#8b5cf6' :
+                                                entry.name === 'Éviter' ? '#22c55e' : '#f97316'
+                                    } />
+                                ))}
+                            </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
