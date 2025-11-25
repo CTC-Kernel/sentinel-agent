@@ -267,6 +267,29 @@ service cloud.firestore {
       );
     }
 
+    // Backups
+    match /backups/{backupId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (isAdmin() || isAuditor());
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
+    // Backup Schedules
+    match /backup_schedules/{scheduleId} {
+      allow read: if isAuthenticated() && 
+        resource.data.organizationId == getUserData().organizationId;
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (isAdmin() || isAuditor());
+      allow update: if isAuthenticated() && 
+        resource.data.organizationId == getUserData().organizationId &&
+        (isAdmin() || isAuditor());
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
     // Mail Queue (for Cloud Functions)
     match /mail_queue/{mailId} {
       allow read: if false; // Only Cloud Functions need to read
