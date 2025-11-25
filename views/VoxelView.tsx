@@ -1117,7 +1117,13 @@ export const VoxelView: React.FC = () => {
                 </div>
                 <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
                   <p className="uppercase tracking-wide text-[10px] text-slate-400">Dernière mise à jour</p>
-                  <p className="mt-1 text-sm font-semibold">{(selectedNode.data as any).updatedAt || 'N/A'}</p>
+                  <p className="mt-1 text-sm font-semibold">
+                    {(selectedNode.data as any).updatedAt
+                      ? (typeof (selectedNode.data as any).updatedAt === 'object' && (selectedNode.data as any).updatedAt.toDate
+                        ? new Date((selectedNode.data as any).updatedAt.toDate()).toLocaleDateString('fr-FR')
+                        : new Date((selectedNode.data as any).updatedAt).toLocaleDateString('fr-FR'))
+                      : 'N/A'}
+                  </p>
                 </div>
               </div>
 
@@ -1165,6 +1171,6 @@ export const VoxelView: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
