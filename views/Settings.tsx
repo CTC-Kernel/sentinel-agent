@@ -12,6 +12,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { logAction } from '../services/logger';
 import { hasPermission } from '../utils/permissions';
 import { SubscriptionService } from '../services/subscriptionService';
+import { AccountService } from '../services/accountService';
 import { PLANS, PlanType } from '../config/plans';
 import { Organization } from '../types';
 import { getDoc } from 'firebase/firestore';
@@ -152,7 +153,14 @@ export const Settings: React.FC = () => {
             const snap = await getDocs(q);
 
             if (!snap.empty) {
-                const newLogs = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as SystemLog));
+                const newLogs = snap.docs.map(d => {
+                    const data = d.data();
+                    return {
+                        id: d.id,
+                        ...data,
+                        timestamp: data.timestamp?.toDate ? data.timestamp.toDate().toISOString() : data.timestamp
+                    } as SystemLog;
+                });
                 newLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
                 setLogs(newLogs);
                 setHasMoreLogs(false);
@@ -487,6 +495,52 @@ export const Settings: React.FC = () => {
         }
     };
 
+    const handleDeleteAccount = () => {
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer mon compte ?",
+            message: "Cette action est irréversible. Toutes vos données personnelles seront supprimées.",
+            onConfirm: async () => {
+                if (!user || !auth.currentUser) return;
+                try {
+                    await AccountService.deleteAccount(user, auth.currentUser);
+                    addToast("Compte supprimé avec succès", "success");
+                    // Redirect handled by auth state change in App.tsx
+                } catch (e: any) {
+                    console.error(e);
+                    if (e.code === 'auth/requires-recent-login') {
+                        addToast("Veuillez vous reconnecter pour supprimer votre compte", "error");
+                    } else {
+                        addToast("Erreur lors de la suppression du compte", "error");
+                    }
+                }
+            }
+        });
+    };
+
+    const handleDeleteOrganization = () => {
+        const confirmationWord = "SUPPRIMER";
+        const input = prompt(`Pour confirmer la suppression DÉFINITIVE de l'organisation et de TOUTES ses données, tapez "${confirmationWord}" :`);
+        
+        if (input === confirmationWord && user?.organizationId) {
+            setMaintenanceLoading(true);
+            AccountService.deleteOrganization(user.organizationId)
+                .then(async () => {
+                    addToast("Organisation supprimée avec succès", "success");
+                    // Force logout and reload
+                    await signOut(auth);
+                    window.location.reload();
+                })
+                .catch((e) => {
+                    console.error(e);
+                    addToast("Erreur lors de la suppression de l'organisation", "error");
+                })
+                .finally(() => setMaintenanceLoading(false));
+        } else if (input !== null) {
+            addToast("Code de confirmation incorrect", "error");
+        }
+    };
+
     return (
         <div className="max-w-3xl mx-auto pb-12 animate-fade-in pt-6 relative">
             <ConfirmModal
@@ -506,6 +560,36 @@ export const Settings: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Subscription Status - Visible to all org members */}
+            {user?.organizationId && (
+                <div className="mb-8 glass-panel rounded-[2rem] p-6 border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/30 dark:bg-indigo-900/10 shadow-sm flex items-center justify-between animate-fade-in-up">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                            <FileSpreadsheet className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Abonnement {currentOrg?.subscription?.planId === 'professional' ? 'Professional' : currentOrg?.subscription?.planId === 'enterprise' ? 'Enterprise' : 'Discovery'}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                                    {currentOrg?.subscription?.status === 'active' ? 'Actif' : 'Gratuit'}
+                                </span>
+                                {currentOrg?.subscription?.currentPeriodEnd && (
+                                    <span className="text-xs text-slate-500">Renouvellement le {new Date((currentOrg.subscription.currentPeriodEnd as any).seconds ? (currentOrg.subscription.currentPeriodEnd as any).seconds * 1000 : currentOrg.subscription.currentPeriodEnd).toLocaleDateString()}</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={handleManageSubscription}
+                        disabled={subLoading}
+                        className="px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-bold rounded-xl hover:shadow-md transition-all border border-slate-200 dark:border-white/10 flex items-center"
+                    >
+                        {subLoading ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div> : null}
+                        {currentOrg?.subscription?.planId === 'discovery' ? 'Mettre à niveau' : 'Gérer'}
+                    </button>
+                </div>
+            )}
 
             <div className="space-y-8">
                 {/* Profile */}
@@ -585,7 +669,7 @@ export const Settings: React.FC = () => {
                 </div>
 
                 {/* Admin / Organization */}
-                {hasPermission(user, 'Settings', 'manage') ? (
+                {hasPermission(user, 'Settings', 'manage') && (
                     <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm">
                         <div className="p-6 border-b border-gray-100 dark:border-white/5 flex items-center gap-4 bg-slate-50/50 dark:bg-white/5">
                             <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg">
@@ -649,16 +733,47 @@ export const Settings: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                ) : (
-                    // User Action: Leave Org
-                    <div className="glass-panel rounded-[2.5rem] p-6 border border-red-100 dark:border-red-900/30 shadow-sm">
-                        <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2 flex items-center"><AlertTriangle className="h-5 w-5 mr-2" /> Zone de Danger</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Si vous quittez l'organisation, vous perdrez l'accès à toutes les données partagées.</p>
-                        <button onClick={initiateLeaveOrg} className="px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl text-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border border-red-200 dark:border-red-900/50">
-                            Quitter l'organisation
-                        </button>
-                    </div>
                 )}
+
+                {/* Danger Zone - For everyone */}
+                <div className="glass-panel rounded-[2.5rem] p-6 border border-red-100 dark:border-red-900/30 shadow-sm">
+                    <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-4 flex items-center"><AlertTriangle className="h-5 w-5 mr-2" /> Zone de Danger</h3>
+                    <div className="space-y-4">
+                        {!hasPermission(user, 'Settings', 'manage') && (
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
+                                <div>
+                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Quitter l'organisation</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Vous perdrez l'accès à toutes les données partagées.</p>
+                                </div>
+                                <button onClick={initiateLeaveOrg} className="px-4 py-2 bg-white dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl text-xs hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30 shadow-sm">
+                                    Quitter
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Supprimer mon compte</h4>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Cette action est irréversible et supprimera vos données personnelles.</p>
+                            </div>
+                            <button onClick={handleDeleteAccount} className="px-4 py-2 bg-white dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl text-xs hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30 shadow-sm">
+                                Supprimer mon compte
+                            </button>
+                        </div>
+
+                        {hasPermission(user, 'Settings', 'manage') && (
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40">
+                                <div>
+                                    <h4 className="text-sm font-bold text-red-700 dark:text-red-300">Supprimer l'organisation</h4>
+                                    <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1">ATTENTION : Supprime définitivement l'organisation et TOUTES ses données.</p>
+                                </div>
+                                <button onClick={handleDeleteOrganization} className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20">
+                                    {maintenanceLoading ? '...' : 'Supprimer tout'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
 
                 {/* User Management (Admin) */}
                 {user && hasPermission(user, 'User', 'manage') && (

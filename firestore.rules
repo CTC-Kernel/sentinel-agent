@@ -35,6 +35,14 @@ service cloud.firestore {
       return belongsToOrganization(orgId) && isAdmin();
     }
     
+    // Organizations
+    match /organizations/{orgId} {
+      allow read: if belongsToOrganization(orgId);
+      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
+      allow update: if canWrite(orgId);
+      allow delete: if false;
+    }
+
     // Users collection
     match /users/{userId} {
       allow read: if isAuthenticated() && (
