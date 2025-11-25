@@ -195,11 +195,7 @@ a:focus-visible {
 }
 
 /* Ensure modals and overlays are never clipped by parent overflow */
-[class*="z-50"],
-[class*="z-[100]"],
-[class*="z-[200]"] {
-  isolation: isolate;
-}
+
 
 /* Force body to allow fixed positioning to work correctly */
 body {
@@ -291,4 +287,15 @@ body {
 .card-hover:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Voxel View Fullscreen Mode - Hide Sidebar and Header to prevent z-index issues */
+body.voxel-fullscreen aside,
+body.voxel-fullscreen header {
+  display: none !important;
+}
+
+body.voxel-fullscreen main {
+  padding: 0 !important;
+  overflow: hidden !important;
 }

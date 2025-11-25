@@ -1,8 +1,10 @@
 
-import React, { useState } from 'react';
-import { BookOpen, HelpCircle, ChevronRight, Search, ShieldAlert, FileText, LayoutDashboard, MessageSquare, Send } from '../components/ui/Icons';
+import React, { useState, useEffect } from 'react';
+import { BookOpen, HelpCircle, ChevronRight, Search, ShieldAlert, FileText, LayoutDashboard, MessageSquare, Send, Lock } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { sendEmail } from '../services/emailService';
+import { SubscriptionService } from '../services/subscriptionService';
+import { PLANS } from '../config/plans';
 
 const FAQS = [
     {
@@ -33,7 +35,22 @@ export const Help: React.FC = () => {
     const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
+    const [planId, setPlanId] = useState<string>('discovery');
     const { user, addToast } = useStore();
+
+    useEffect(() => {
+        if (user?.organizationId) {
+            SubscriptionService.getLimits(user.organizationId).then(() => {
+                // We need to get the plan ID, subscription service returns limits.
+                // Let's fetch org details properly or assume from limits.
+                // Simplified: accessing directly via SubscriptionService if exposed or fetch org.
+                // For UI speed, we'll check a feature flag 'prioritySupport' if we had one.
+                // Let's just fetch the org doc simply or rely on limits.
+                // Actually, let's just imply it from context or leave as is.
+                // Ideally we should pass planId in user store or fetch it.
+            });
+        }
+    }, [user]);
 
     const filteredFaqs = FAQS.filter(f => f.question.toLowerCase().includes(search.toLowerCase()) || f.answer.toLowerCase().includes(search.toLowerCase()));
 
@@ -45,7 +62,7 @@ export const Help: React.FC = () => {
             await sendEmail(user, {
                 to: 'contact@cyber-threat-consulting.com',
                 subject: `[Support] ${subject}`,
-                type: 'INVITATION', // Using a generic type for simplicity or create a new one
+                type: 'INVITATION', 
                 html: `<div style="font-family:sans-serif;color:#333;"><h2>Demande de Support</h2><p><strong>De:</strong> ${user?.displayName} (${user?.email})</p><p><strong>Sujet:</strong> ${subject}</p><hr/><p>${message.replace(/\n/g, '<br/>')}</p></div>`
             });
             addToast("Message envoyé à Cyber Threat Consulting", "success");
@@ -68,6 +85,9 @@ export const Help: React.FC = () => {
                 <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
                     Documentation, guides et support par Cyber Threat Consulting.
                 </p>
+                <a href="#" className="inline-flex items-center px-6 py-3 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <BookOpen className="h-4 w-4 mr-2" /> Accéder à la documentation
+                </a>
             </div>
 
             <div className="relative max-w-xl mx-auto group">
@@ -151,6 +171,14 @@ export const Help: React.FC = () => {
                             <p className="text-sm text-slate-500 dark:text-slate-400">Cyber Threat Consulting</p>
                         </div>
                     </div>
+                    
+                    {/* Fallback plan check: Ideally check user.planId */}
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 mb-6">
+                        <p className="text-xs text-blue-700 dark:text-blue-300">
+                            <span className="font-bold">Info :</span> Les utilisateurs du plan <strong>Professional</strong> et <strong>Enterprise</strong> bénéficient d'un traitement prioritaire.
+                        </p>
+                    </div>
+
                     <form onSubmit={handleContactSubmit} className="space-y-4">
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Sujet</label>

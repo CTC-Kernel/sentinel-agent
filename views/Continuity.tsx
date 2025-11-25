@@ -1,9 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import { BusinessProcess, Asset, Document, BcpDrill, SystemLog, UserProfile } from '../types';
-import { Plus, HeartPulse, Trash2, Edit, Timer, Zap, ClipboardCheck, FileText, Server, CalendarDays, Database, AlertTriangle, X, History, MessageSquare, Save, Search, Activity, LayoutDashboard, FileSpreadsheet } from '../components/ui/Icons';
+import { BusinessProcess, Asset, BcpDrill, SystemLog, UserProfile } from '../types';
+import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, X, History, MessageSquare, Save, LayoutDashboard, FileSpreadsheet } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -15,7 +16,7 @@ export const Continuity: React.FC = () => {
     const [processes, setProcesses] = useState<BusinessProcess[]>([]);
     const [drills, setDrills] = useState<BcpDrill[]>([]);
     const [assets, setAssets] = useState<Asset[]>([]);
-    const [documents, setDocuments] = useState<Document[]>([]);
+
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -59,7 +60,7 @@ export const Continuity: React.FC = () => {
                 getDocs(query(collection(db, 'business_processes'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'bcp_drills'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId))),
+
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
             ]);
 
@@ -83,12 +84,9 @@ export const Continuity: React.FC = () => {
             assetData.sort((a, b) => a.name.localeCompare(b.name));
             setAssets(assetData);
 
-            // Filter documents client-side instead of using complex IN query
-            const allDocs = getDocsData<Document>(results[3]);
-            const relevantDocs = allDocs.filter(d => ['Procédure', 'Politique', 'Plan'].includes(d.type));
-            setDocuments(relevantDocs);
 
-            const usersData = getDocsData<UserProfile>(results[4]);
+
+            const usersData = getDocsData<UserProfile>(results[3]);
             setUsersList(usersData);
 
         } catch (err) {
@@ -394,8 +392,8 @@ export const Continuity: React.FC = () => {
             )}
 
             {/* Inspector Drawer */}
-            {selectedProcess && (
-                <div className="fixed inset-0 z-[100] overflow-hidden">
+            {selectedProcess && createPortal(
+                <div className="fixed inset-0 z-[9999] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedProcess(null)} />
                     <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
                         <div className="w-screen max-w-2xl pointer-events-auto">
@@ -554,14 +552,15 @@ export const Continuity: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
 
             {/* Create Process Modal */}
             {
-                showCreateModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+                showCreateModal && createPortal(
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-xl border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
                             <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-rose-50/30 dark:bg-rose-900/10">
                                 <h2 className="text-2xl font-bold text-rose-900 dark:text-rose-100 tracking-tight">Nouveau Processus Critique</h2>
@@ -596,14 +595,15 @@ export const Continuity: React.FC = () => {
                                 </div>
                             </form>
                         </div>
-                    </div>
+                    </div>,
+                    document.body
                 )
             }
 
             {/* Drill Modal */}
             {
-                showDrillModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+                showDrillModal && createPortal(
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
                             <div className="p-8 border-b border-gray-100 dark:border-white/5">
                                 <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Enregistrer un exercice</h2>
@@ -648,7 +648,8 @@ export const Continuity: React.FC = () => {
                                 </div>
                             </form>
                         </div>
-                    </div>
+                    </div>,
+                    document.body
                 )
             }
         </div >

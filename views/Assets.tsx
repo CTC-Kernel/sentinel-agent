@@ -20,8 +20,11 @@ import { TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
 import { LifecycleTimeline } from '../components/assets/LifecycleTimeline';
+import { SubscriptionService } from '../services/subscriptionService';
+import { useNavigate } from 'react-router-dom';
 
 export const Assets: React.FC = () => {
+    const navigate = useNavigate();
     const [assets, setAssets] = useState<Asset[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
@@ -135,6 +138,17 @@ export const Assets: React.FC = () => {
 
     const openInspector = async (asset?: Asset) => {
         if (!asset) {
+            // Creation mode: check limits
+            if (user?.organizationId) {
+                const canAdd = await SubscriptionService.checkLimit(user.organizationId, 'assets', assets.length);
+                if (!canAdd) {
+                    if (confirm("Vous avez atteint la limite d'actifs de votre plan actuel. Voulez-vous passer au plan supérieur ?")) {
+                        navigate('/pricing');
+                    }
+                    return;
+                }
+            }
+
             const newAssetStub: Partial<Asset> = { name: 'Nouvel Actif', type: 'Matériel', owner: '', confidentiality: Criticality.LOW, integrity: Criticality.LOW, availability: Criticality.LOW, location: '', lifecycleStatus: 'Neuf' };
             setEditForm(newAssetStub);
             setSelectedAsset(null);
@@ -268,6 +282,19 @@ export const Assets: React.FC = () => {
             const batch = writeBatch(db);
             let count = 0;
             const headers = text.split('\n')[0].split(',');
+
+            // Check limits before processing
+            const estimatedCount = lines.length;
+            if (user?.organizationId) {
+                const canAdd = await SubscriptionService.checkLimit(user.organizationId, 'assets', assets.length + estimatedCount);
+                if (!canAdd) {
+                    setLoading(false);
+                    if (confirm(`L'import de ${estimatedCount} actifs dépasserait la limite de votre plan. Voulez-vous passer au plan supérieur ?`)) {
+                        navigate('/pricing');
+                    }
+                    return;
+                }
+            }
 
             lines.forEach(line => {
                 const cols = line.split(',');
