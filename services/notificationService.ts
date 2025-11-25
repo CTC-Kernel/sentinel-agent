@@ -166,16 +166,30 @@ export class NotificationService {
 
                 if (!auditorSnap.empty) {
                     const auditorId = auditorSnap.docs[0].id;
-                    await addDoc(collection(db, 'notifications'), {
-                        organizationId,
-                        userId: auditorId,
-                        type: daysUntil <= 3 ? 'danger' : 'warning',
-                        title: `Audit à venir : ${audit.name}`,
-                        message: `L'audit est prévu dans ${daysUntil} jour(s) - ${new Date(audit.dateScheduled).toLocaleDateString()}`,
-                        link: '/audits',
-                        read: false,
-                        createdAt: new Date().toISOString(),
-                    });
+
+                    // Idempotency check: Check if a similar notification was sent in the last 24h
+                    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                    const existingNotifs = await getDocs(query(
+                        collection(db, 'notifications'),
+                        where('userId', '==', auditorId),
+                        where('link', '==', '/audits'),
+                        where('createdAt', '>=', yesterday)
+                    ));
+
+                    const alreadyNotified = existingNotifs.docs.some(d => d.data().message.includes(audit.name));
+
+                    if (!alreadyNotified) {
+                        await addDoc(collection(db, 'notifications'), {
+                            organizationId,
+                            userId: auditorId,
+                            type: daysUntil <= 3 ? 'danger' : 'warning',
+                            title: `Audit à venir : ${audit.name}`,
+                            message: `L'audit est prévu dans ${daysUntil} jour(s) - ${new Date(audit.dateScheduled).toLocaleDateString()}`,
+                            link: '/audits',
+                            read: false,
+                            createdAt: new Date().toISOString(),
+                        });
+                    }
                 }
             }
         }
@@ -207,16 +221,30 @@ export class NotificationService {
 
                 if (!ownerSnap.empty) {
                     const ownerId = ownerSnap.docs[0].id;
-                    await addDoc(collection(db, 'notifications'), {
-                        organizationId,
-                        userId: ownerId,
-                        type: 'warning',
-                        title: `Document à réviser : ${doc.title}`,
-                        message: `La date de révision est dépassée depuis le ${new Date(doc.nextReviewDate).toLocaleDateString()}`,
-                        link: '/documents',
-                        read: false,
-                        createdAt: new Date().toISOString(),
-                    });
+
+                    // Idempotency check
+                    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                    const existingNotifs = await getDocs(query(
+                        collection(db, 'notifications'),
+                        where('userId', '==', ownerId),
+                        where('link', '==', '/documents'),
+                        where('createdAt', '>=', yesterday)
+                    ));
+
+                    const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(doc.title));
+
+                    if (!alreadyNotified) {
+                        await addDoc(collection(db, 'notifications'), {
+                            organizationId,
+                            userId: ownerId,
+                            type: 'warning',
+                            title: `Document à réviser : ${doc.title}`,
+                            message: `La date de révision est dépassée depuis le ${new Date(doc.nextReviewDate).toLocaleDateString()}`,
+                            link: '/documents',
+                            read: false,
+                            createdAt: new Date().toISOString(),
+                        });
+                    }
                 }
             }
         }
@@ -254,16 +282,30 @@ export class NotificationService {
 
                     if (!ownerSnap.empty) {
                         const ownerId = ownerSnap.docs[0].id;
-                        await addDoc(collection(db, 'notifications'), {
-                            organizationId,
-                            userId: ownerId,
-                            type: daysUntil <= 7 ? 'warning' : 'info',
-                            title: `Maintenance à prévoir : ${asset.name}`,
-                            message: `Maintenance prévue dans ${daysUntil} jour(s)`,
-                            link: '/assets',
-                            read: false,
-                            createdAt: new Date().toISOString(),
-                        });
+
+                        // Idempotency check
+                        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                        const existingNotifs = await getDocs(query(
+                            collection(db, 'notifications'),
+                            where('userId', '==', ownerId),
+                            where('link', '==', '/assets'),
+                            where('createdAt', '>=', yesterday)
+                        ));
+
+                        const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(asset.name));
+
+                        if (!alreadyNotified) {
+                            await addDoc(collection(db, 'notifications'), {
+                                organizationId,
+                                userId: ownerId,
+                                type: daysUntil <= 7 ? 'warning' : 'info',
+                                title: `Maintenance à prévoir : ${asset.name}`,
+                                message: `Maintenance prévue dans ${daysUntil} jour(s)`,
+                                link: '/assets',
+                                read: false,
+                                createdAt: new Date().toISOString(),
+                            });
+                        }
                     }
                 }
             }
@@ -297,16 +339,29 @@ export class NotificationService {
             );
 
             for (const adminDoc of adminsSnap.docs) {
-                await addDoc(collection(db, 'notifications'), {
-                    organizationId,
-                    userId: adminDoc.id,
-                    type: 'danger',
-                    title: `${criticalRisksWithoutMitigation.length} risque(s) critique(s) sans atténuation`,
-                    message: `Des risques critiques n'ont pas de contrôles d'atténuation associés`,
-                    link: '/risks',
-                    read: false,
-                    createdAt: new Date().toISOString(),
-                });
+                // Idempotency check
+                const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                const existingNotifs = await getDocs(query(
+                    collection(db, 'notifications'),
+                    where('userId', '==', adminDoc.id),
+                    where('link', '==', '/risks'),
+                    where('createdAt', '>=', yesterday)
+                ));
+
+                const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes('risque(s) critique(s)'));
+
+                if (!alreadyNotified) {
+                    await addDoc(collection(db, 'notifications'), {
+                        organizationId,
+                        userId: adminDoc.id,
+                        type: 'danger',
+                        title: `${criticalRisksWithoutMitigation.length} risque(s) critique(s) sans atténuation`,
+                        message: `Des risques critiques n'ont pas de contrôles d'atténuation associés`,
+                        link: '/risks',
+                        read: false,
+                        createdAt: new Date().toISOString(),
+                    });
+                }
             }
         }
     }

@@ -11,6 +11,7 @@ export const Onboarding: React.FC = () => {
     const { user, setUser, addToast } = useStore();
     const [role, setRole] = useState<'admin' | 'user' | 'auditor'>('admin'); // Default to admin for first user
     const [department, setDepartment] = useState('');
+    const [industry, setIndustry] = useState('');
     const [displayName, setDisplayName] = useState(user?.displayName || '');
     const [organizationName, setOrganizationName] = useState('');
     const [loading, setLoading] = useState(false);
@@ -23,16 +24,15 @@ export const Onboarding: React.FC = () => {
         setError('');
 
         try {
-            // Generate a simple ID for the organization or use a UUID. 
-            // For simplicity and uniqueness, we can use the user's UID if they are the first creator, 
-            // or a random string.
-            const newOrgId = user.organizationId || Math.random().toString(36).substring(2, 15);
+            // Generate a robust ID for the organization
+            const newOrgId = user.organizationId || crypto.randomUUID();
 
             const updates = {
                 uid: user.uid,
                 email: user.email,
                 role,
                 department,
+                industry,
                 displayName,
                 organizationName: user.organizationName || organizationName,
                 organizationId: newOrgId,
@@ -140,19 +140,39 @@ export const Onboarding: React.FC = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Rôle</label>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Secteur</label>
                                 <div className="relative">
-                                    <ShieldAlert className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                    <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
                                     <select
                                         className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
-                                        value={role}
-                                        onChange={e => setRole(e.target.value as any)}
+                                        value={industry}
+                                        onChange={e => setIndustry(e.target.value)}
                                     >
-                                        <option value="admin">Admin (Responsable)</option>
-                                        <option value="auditor">Auditeur</option>
-                                        <option value="user">Utilisateur</option>
+                                        <option value="">Sélectionner...</option>
+                                        <option value="tech">Technologie / SaaS</option>
+                                        <option value="finance">Finance / Banque</option>
+                                        <option value="health">Santé</option>
+                                        <option value="retail">Retail / E-commerce</option>
+                                        <option value="public">Secteur Public</option>
+                                        <option value="other">Autre</option>
                                     </select>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Rôle</label>
+                            <div className="relative">
+                                <ShieldAlert className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                <select
+                                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
+                                    value={role}
+                                    onChange={e => setRole(e.target.value as any)}
+                                >
+                                    <option value="admin">Admin (Responsable)</option>
+                                    <option value="auditor">Auditeur</option>
+                                    <option value="user">Utilisateur</option>
+                                </select>
                             </div>
                         </div>
 

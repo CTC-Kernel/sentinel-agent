@@ -207,19 +207,35 @@ export const Suppliers: React.FC = () => {
             isOpen: true,
             title: "Supprimer le fournisseur ?",
             message: "Cette action est définitive et supprimera toutes les données associées à ce fournisseur.",
-            onConfirm: () => handleDelete(id, name)
+            onConfirm: () => handleDelete(id)
         });
     };
 
-    const handleDelete = async (id: string, name: string) => {
+    const handleDelete = async (id: string) => {
+        if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ? Cette action supprimera également les évaluations et incidents associés.')) return;
+
         try {
-            await deleteDoc(doc(db, 'suppliers', id));
+            // 1. Delete related assessments
+            const assessmentsQuery = query(collection(db, 'supplierAssessments'), where('supplierId', '==', id));
+            const assessmentsSnap = await getDocs(assessmentsQuery);
+            const deleteAssessments = assessmentsSnap.docs.map(doc => deleteDoc(doc.ref));
+
+            // 2. Delete related incidents
+            const incidentsQuery = query(collection(db, 'supplierIncidents'), where('supplierId', '==', id));
+            const incidentsSnap = await getDocs(incidentsQuery);
+            const deleteIncidents = incidentsSnap.docs.map(doc => deleteDoc(doc.ref));
+
+            // 3. Delete the supplier itself
+            await Promise.all([...deleteAssessments, ...deleteIncidents, deleteDoc(doc(db, 'suppliers', id))]);
+
             setSuppliers(prev => prev.filter(s => s.id !== id));
-            setSelectedSupplier(null);
-            await logAction(user, 'DELETE', 'Supplier', `Suppression: ${name}`);
-            addToast("Fournisseur supprimé", "info");
-            fetchSuppliers(); // Refresh stats
-        } catch (e) { addToast("Erreur suppression", "error"); }
+            addToast('Fournisseur et données associées supprimés', 'success');
+            if (selectedSupplier?.id === id) setSelectedSupplier(null);
+            fetchSuppliers(); // Refresh stats and clear related data
+        } catch (error) {
+            console.error('Error deleting supplier:', error);
+            addToast('Erreur lors de la suppression', 'error');
+        }
     };
 
     const toggleAssessment = (field: keyof NonNullable<Supplier['assessment']>) => {

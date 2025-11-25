@@ -130,18 +130,48 @@ export const Team: React.FC = () => {
         }
     };
 
-    const initiateDelete = (u: UserProfile) => {
+    const checkDependencies = async (uid: string): Promise<string[]> => {
+        const dependencies: string[] = [];
+
+        const assetsSnap = await getDocs(query(collection(db, 'assets'), where('ownerId', '==', uid)));
+        if (!assetsSnap.empty) dependencies.push(`${assetsSnap.size} actif(s)`);
+
+        const risksSnap = await getDocs(query(collection(db, 'risks'), where('owner', '==', uid))); // Note: Risk uses 'owner' string mostly, but let's check if we can match by ID or if we need to match by email/name. 
+        // Actually, Risk interface has 'owner' as string. Let's check if we can match by email since we have user email.
+
+        const docsSnap = await getDocs(query(collection(db, 'documents'), where('ownerId', '==', uid)));
+        if (!docsSnap.empty) dependencies.push(`${docsSnap.size} document(s)`);
+
+        return dependencies;
+    };
+
+    const initiateDelete = async (u: UserProfile) => {
         if (!canAdmin) return;
         if (u.uid === user?.uid) {
             addToast("Vous ne pouvez pas vous supprimer vous-même.", "error");
             return;
         }
+
+        let message = u.isPending
+            ? `Voulez-vous révoquer l'invitation pour ${u.email} ?`
+            : `L'utilisateur ${u.email} perdra définitivement l'accès à l'organisation.`;
+
+        if (!u.isPending) {
+            // Check for dependencies
+            const deps = await checkDependencies(u.uid);
+            // Also check by email for Risks since they might use email string
+            const risksSnap = await getDocs(query(collection(db, 'risks'), where('owner', '==', u.displayName)));
+            if (!risksSnap.empty) deps.push(`${risksSnap.size} risque(s)`);
+
+            if (deps.length > 0) {
+                message += `\n\nATTENTION: Cet utilisateur est propriétaire de : ${deps.join(', ')}. Ces éléments resteront orphelins.`;
+            }
+        }
+
         setConfirmData({
             isOpen: true,
             title: u.isPending ? "Annuler l'invitation ?" : "Supprimer l'utilisateur ?",
-            message: u.isPending
-                ? `Voulez-vous révoquer l'invitation pour ${u.email} ?`
-                : `L'utilisateur ${u.email} perdra définitivement l'accès à l'organisation.`,
+            message,
             onConfirm: () => handleDeleteUser(u)
         });
     };
