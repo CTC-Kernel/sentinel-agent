@@ -1,11 +1,12 @@
-
-export const generateICS = (events: {
+export interface CalendarEvent {
     title: string;
     description?: string;
     startDate: Date;
     endDate?: Date;
     location?: string;
-}[]) => {
+}
+
+export const generateICS = (events: CalendarEvent[]) => {
     let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Sentinel GRC//NONSGML v1.0//EN\n";
 
     events.forEach(event => {

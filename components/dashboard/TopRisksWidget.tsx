@@ -25,7 +25,11 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
 
             <div className="space-y-3">
                 {topRisks.length === 0 ? (
-                    <div className="text-center py-8 text-slate-400 text-sm">Aucun risque critique identifié.</div>
+                    <div className="text-center py-8 text-slate-400 text-sm flex flex-col items-center">
+                        <CheckCircle2 className="h-12 w-12 mb-2 text-green-500 opacity-50" />
+                        <p>Aucun risque critique identifié.</p>
+                        <p className="text-xs mt-1">Excellente posture de sécurité !</p>
+                    </div>
                 ) : (
                     topRisks.map(risk => (
                         <div key={risk.id} className="group p-4 bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-slate-100 dark:border-white/5 rounded-2xl transition-all cursor-pointer">
@@ -36,7 +40,10 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                                 </span>
                             </div>
                             <div className="flex justify-between items-center mt-3">
-                                <span className="text-xs font-medium text-slate-500">{risk.strategy}</span>
+                                <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                                    {risk.status === 'Fermé' && <CheckCircle2 className="h-3 w-3 text-green-500" />}
+                                    {risk.strategy}
+                                </span>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onMitigate(risk); }}
                                     className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs font-bold text-brand-600 hover:text-brand-700"

@@ -124,7 +124,7 @@ const AppContent: React.FC = () => {
                 try {
                     const userRef = doc(db, 'users', u.uid);
                     updateDoc(userRef, { lastLogin: new Date().toISOString() }).catch(() => { });
-                } catch (e) { /* Ignore */ }
+                } catch { /* Ignore */ }
 
                 const userDocRef = doc(db, 'users', u.uid);
                 const unsubProfile = onSnapshot(userDocRef, async (docSnap) => {
@@ -149,7 +149,7 @@ const AppContent: React.FC = () => {
                                 onboardingCompleted: false
                             };
                             try { await setDoc(userDocRef, newProfile); setUser(newProfile); }
-                            catch (e) { setUser(newProfile); }
+                            catch { setUser(newProfile); }
                         }
                     }
                     setInitializing(false);
@@ -171,7 +171,7 @@ const AppContent: React.FC = () => {
             window.removeEventListener('offline', handleOffline);
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [user?.uid]);
+    }, [user?.uid, setUser, theme]);
 
     // Notification automation: persist alerts in Firestore for real-time center
     useEffect(() => {
@@ -191,7 +191,7 @@ const AppContent: React.FC = () => {
         runChecks();
         const interval = setInterval(runChecks, 15 * 60 * 1000);
         return () => clearInterval(interval);
-    }, [user?.organizationId]);
+    }, [user, user?.organizationId]);
 
     const handleThemeToggle = () => {
         toggleTheme();

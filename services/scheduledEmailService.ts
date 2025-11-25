@@ -1,5 +1,4 @@
-
-import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { sendEmail } from './emailService';
 import {
@@ -68,7 +67,7 @@ export const sendAuditReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch (error) {
+    } catch (_error) {
         return 0;
     }
 };
@@ -126,7 +125,7 @@ export const sendRiskTreatmentReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch (error) {
+    } catch (_error) {
         return 0;
     }
 };
@@ -184,7 +183,7 @@ export const sendDocumentReviewReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch (error) {
+    } catch (_error) {
         return 0;
     }
 };
@@ -241,7 +240,7 @@ export const sendSupplierReviewReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch (error) {
+    } catch (_error) {
         return 0;
     }
 };
@@ -307,7 +306,7 @@ export const sendWeeklyDigest = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch (error) {
+    } catch (_error) {
         return 0;
     }
 };

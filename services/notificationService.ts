@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit } from 'firebase/firestore';
 import { UserProfile } from '../types';
 
 export interface Notification {

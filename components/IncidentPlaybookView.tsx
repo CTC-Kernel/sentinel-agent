@@ -1,30 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, doc, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
+import React, { useState, useEffect, useCallback } from 'react';
+import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Incident, Criticality } from '../types';
+import { Incident } from '../types';
 import { IncidentPlaybookService, IncidentPlaybook, IncidentResponse } from '../services/incidentPlaybookService';
 import { useStore } from '../store';
-import { logAction } from '../services/logger';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { 
   AlertTriangle, 
   CheckCircle2, 
-  Clock, 
   Users, 
   MessageSquare, 
-  FileText, 
   Activity,
   ChevronRight,
-  AlertCircle,
-  CheckSquare,
   XCircle,
   ArrowRight,
-  Calendar,
   Timer,
   Target,
   Zap,
   Eye,
-  Edit,
   ShieldCheck
 } from '../components/ui/Icons';
 
@@ -47,23 +40,18 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   const [confirmMessage, setConfirmMessage] = useState('');
   const { user, addToast } = useStore();
 
-  useEffect(() => {
-    loadPlaybooks();
-    loadResponse();
-  }, [incident.id]);
-
-  const loadPlaybooks = async () => {
+  const loadPlaybooks = useCallback(async () => {
     try {
       const availablePlaybooks = await IncidentPlaybookService.getPlaybooks(incident.category);
       setPlaybooks(availablePlaybooks);
-    } catch (error) {
+    } catch (_error) {
       addToast('Erreur chargement playbooks', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [incident.category, addToast]);
 
-  const loadResponse = async () => {
+  const loadResponse = useCallback(async () => {
     try {
       const existingResponse = await IncidentPlaybookService.getResponse(incident.id);
       setResponse(existingResponse);
@@ -75,14 +63,19 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
     } catch (error) {
       console.error('Erreur chargement response:', error);
     }
-  };
+  }, [incident.id]);
+
+  useEffect(() => {
+    loadPlaybooks();
+    loadResponse();
+  }, [loadPlaybooks, loadResponse]);
 
   const handleInitiateResponse = async () => {
     if (!selectedPlaybook || !user) return;
 
     setInitiating(true);
     try {
-      const responseId = await IncidentPlaybookService.initiateResponse(
+      await IncidentPlaybookService.initiateResponse(
         incident.id,
         selectedPlaybook.id,
         [user.uid]
@@ -90,7 +83,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
       
       await loadResponse();
       addToast('Response initiée avec succès', 'success');
-    } catch (error) {
+    } catch (_error) {
       addToast('Erreur lors de l\'initialisation', 'error');
     } finally {
       setInitiating(false);
@@ -114,7 +107,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
       setEvidence({});
       setCurrentStep(currentStep + 1);
       addToast('Étape complétée', 'success');
-    } catch (error) {
+    } catch (_error) {
       addToast('Erreur lors de la complétion', 'error');
     }
   };
@@ -132,7 +125,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         );
         await loadResponse();
         addToast('Incident escaladé', 'success');
-      } catch (error) {
+      } catch (_error) {
         addToast('Erreur lors de l\'escalade', 'error');
       }
     });
@@ -153,7 +146,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         });
         addToast('Response terminée', 'success');
         onClose();
-      } catch (error) {
+      } catch (_error) {
         addToast('Erreur lors de la finalisation', 'error');
       }
     });
@@ -406,7 +399,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               <div className="mt-6">
                 <h4 className="font-semibold mb-3">Timeline</h4>
                 <div className="space-y-2">
-                  {response.timeline.map((event, index) => (
+                  {response.timeline.map((event) => (
                     <div key={event.id} className="flex items-start gap-3 text-sm">
                       <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5"></div>
                       <div className="flex-1">

@@ -1,10 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { BookOpen, HelpCircle, ChevronRight, Search, ShieldAlert, FileText, LayoutDashboard, MessageSquare, Send, Lock } from '../components/ui/Icons';
+import { BookOpen, HelpCircle, ChevronRight, Search, ShieldAlert, FileText, LayoutDashboard, MessageSquare, Send } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { sendEmail } from '../services/emailService';
 import { SubscriptionService } from '../services/subscriptionService';
-import { PLANS } from '../config/plans';
 
 const FAQS = [
     {
@@ -35,7 +34,6 @@ export const Help: React.FC = () => {
     const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
-    const [planId, setPlanId] = useState<string>('discovery');
     const { user, addToast } = useStore();
 
     useEffect(() => {
@@ -68,7 +66,7 @@ export const Help: React.FC = () => {
             addToast("Message envoyé à Cyber Threat Consulting", "success");
             setSubject('');
             setMessage('');
-        } catch (e) {
+        } catch (_e) {
             addToast("Erreur lors de l'envoi", "error");
         } finally {
             setSending(false);

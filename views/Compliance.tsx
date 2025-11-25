@@ -200,7 +200,7 @@ export const Compliance: React.FC = () => {
             } else {
                 setControls(sortControls(ctrlData));
             }
-        } catch (err) {
+        } catch (_err) {
             addToast("Erreur chargement données conformité", "error");
         } finally {
             setLoading(false);
@@ -234,7 +234,7 @@ export const Compliance: React.FC = () => {
             setControls(prev => prev.map(c => c.id === selectedControl.id ? { ...c, justification: editJustification } : c));
             setSelectedControl({ ...selectedControl, justification: editJustification });
             addToast("Justification enregistrée", "success");
-        } catch (e) { addToast("Erreur enregistrement", "error"); }
+        } catch (_e) { addToast("Erreur enregistrement", "error"); }
     };
 
     const toggleStatus = async (control: Control, newStatus: Control['status']) => {
@@ -243,7 +243,7 @@ export const Compliance: React.FC = () => {
             setControls(prev => prev.map(c => c.id === control.id ? { ...c, status: newStatus } : c));
             if (selectedControl?.id === control.id) setSelectedControl({ ...selectedControl, status: newStatus });
             addToast(`Statut changé : ${newStatus}`, "success");
-        } catch (e) { addToast("Erreur MAJ statut", "error"); }
+        } catch (_e) { addToast("Erreur MAJ statut", "error"); }
     };
 
     const linkDocument = async (docId: string) => {
@@ -256,7 +256,7 @@ export const Compliance: React.FC = () => {
             setSelectedControl({ ...selectedControl, evidenceIds: newEvidence });
             await logAction(user, 'LINK', 'Compliance', `Preuve liée au contrôle ${selectedControl.code}`);
             addToast("Preuve ajoutée", "success");
-        } catch (e) { addToast("Erreur lors de la liaison", "error"); }
+        } catch (_e) { addToast("Erreur lors de la liaison", "error"); }
     };
 
     const initiateUnlinkDocument = (docId: string) => {
@@ -277,7 +277,7 @@ export const Compliance: React.FC = () => {
             setControls(prev => prev.map(c => c.id === selectedControl.id ? { ...c, evidenceIds: newEvidence } : c));
             setSelectedControl({ ...selectedControl, evidenceIds: newEvidence });
             addToast("Preuve retirée", "info");
-        } catch (e) { addToast("Erreur suppression lien", "error"); }
+        } catch (_e) { addToast("Erreur suppression lien", "error"); }
     };
 
     const getDomainStats = (prefix: string) => {

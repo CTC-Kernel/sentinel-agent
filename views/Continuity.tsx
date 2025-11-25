@@ -129,7 +129,7 @@ export const Continuity: React.FC = () => {
             addToast("Processus créé", "success");
             setShowCreateModal(false);
             fetchData();
-        } catch (e) { addToast("Erreur enregistrement", "error"); }
+        } catch (_e) { addToast("Erreur enregistrement", "error"); }
     };
 
     const handleUpdateProcess = async () => {
@@ -143,7 +143,7 @@ export const Continuity: React.FC = () => {
             setSelectedProcess({ ...selectedProcess, ...data });
             setIsEditing(false);
             addToast("Processus mis à jour", "success");
-        } catch (e) { addToast("Erreur mise à jour", "error"); }
+        } catch (_e) { addToast("Erreur mise à jour", "error"); }
     };
 
     const initiateDelete = (id: string, name: string) => {
@@ -163,7 +163,7 @@ export const Continuity: React.FC = () => {
             setSelectedProcess(null);
             await logAction(user, 'DELETE', 'BCP', `Suppression: ${name}`);
             addToast("Processus supprimé", "info");
-        } catch (e) { addToast("Erreur suppression", "error"); }
+        } catch (_e) { addToast("Erreur suppression", "error"); }
     };
 
     const openDrillModal = () => {
@@ -183,7 +183,7 @@ export const Continuity: React.FC = () => {
             addToast("Exercice enregistré", "success");
             setShowDrillModal(false);
             fetchData();
-        } catch (e) { addToast("Erreur enregistrement exercice", "error"); }
+        } catch (_e) { addToast("Erreur enregistrement exercice", "error"); }
     };
 
     const handleExportCSV = () => {

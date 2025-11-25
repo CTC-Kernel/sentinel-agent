@@ -78,16 +78,26 @@ export const SubscriptionService = {
    * Manage existing subscription (Portal)
    */
   manageSubscription: async (organizationId: string) => {
-    const functions = getFunctions();
-    const createPortalSession = httpsCallable(functions, 'createPortalSession');
-    
-    const { data } = await createPortalSession({
-      organizationId,
-      returnUrl: `${window.location.origin}/settings`
-    }) as { data: { url: string } };
-    
-    if (data.url) {
-      window.location.href = data.url;
+    try {
+      const functions = getFunctions();
+      const createPortalSession = httpsCallable(functions, 'createPortalSession');
+      
+      const { data } = await createPortalSession({
+        organizationId,
+        returnUrl: `${window.location.origin}/settings`
+      }) as { data: { url: string } };
+      
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error: any) {
+      console.error('Error creating portal session:', error);
+      
+      // Fallback: Si les Cloud Functions ne sont pas déployées, rediriger vers Stripe directement
+      if (error.code === 'functions/not-found' || error.message?.includes('404')) {
+        throw new Error('La gestion des abonnements n\'est pas encore configurée. Veuillez contacter le support ou déployer les Cloud Functions.');
+      }
+      throw error;
     }
   }
 };

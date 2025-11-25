@@ -171,7 +171,7 @@ export const Risks: React.FC = () => {
             }
             setShowModal(false);
             fetchData();
-        } catch (error) { addToast("Erreur lors de l'enregistrement", "error"); }
+        } catch (_error) { addToast("Erreur lors de l'enregistrement", "error"); }
     };
 
     const openModal = (risk?: Risk) => {
@@ -356,7 +356,7 @@ export const Risks: React.FC = () => {
                 await logAction(user, 'IMPORT', 'Risk', `Import CSV de ${count} risques`);
                 addToast(`${count} risques importés`, "success");
                 fetchData();
-            } catch (error) { addToast("Erreur import CSV", "error"); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+            } catch (_error) { addToast("Erreur import CSV", "error"); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
         };
         reader.readAsText(file);
     };

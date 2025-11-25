@@ -127,7 +127,7 @@ export const Assets: React.FC = () => {
                 totalValue: data.reduce((acc, a) => acc + (a.currentValue || 0), 0)
             });
 
-        } catch (err) {
+        } catch (_err) {
             addToast("Erreur chargement actifs", "error");
         } finally {
             setLoading(false);
@@ -210,7 +210,7 @@ export const Assets: React.FC = () => {
             }
             setIsDirty(false);
             fetchAssets(); // Refresh stats
-        } catch (e) { addToast("Erreur lors de l'enregistrement", "error"); }
+        } catch (_e) { addToast("Erreur lors de l'enregistrement", "error"); }
     };
 
     const handleDuplicate = async () => {
@@ -222,7 +222,7 @@ export const Assets: React.FC = () => {
             addToast("Actif dupliqué", "success");
             setAssets(prev => [...prev, { ...newAssetData, id: docRef.id } as Asset]);
             openInspector({ ...newAssetData, id: docRef.id } as Asset);
-        } catch (e) { addToast("Erreur duplication", "error"); }
+        } catch (_e) { addToast("Erreur duplication", "error"); }
     };
 
     const handleAIImportAnalysis = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -242,7 +242,7 @@ export const Assets: React.FC = () => {
                 const analysis = await aiService.analyzeImportData(text.split('\n').slice(0, 10).join('\n'));
                 setImportMappings(analysis.mappings);
                 setImportConfidence(analysis.confidence);
-            } catch (error) {
+            } catch (_error) {
                 addToast("Erreur analyse AI", "error");
             } finally {
                 setIsAnalyzingImport(false);
@@ -350,7 +350,7 @@ export const Assets: React.FC = () => {
                 setIsDirty(true);
                 addToast(`Suggestion: ${suggestion.value}`, "info");
             }
-        } catch (e) {
+        } catch (_e) {
             addToast("Impossible de générer une suggestion", "error");
         } finally {
             setSuggestingField(null);
@@ -395,7 +395,7 @@ export const Assets: React.FC = () => {
                 addToast("Intervention enregistrée", "success");
             }
             setNewMaintenance({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
-        } catch (e) { addToast("Erreur ajout maintenance", "error"); }
+        } catch (_e) { addToast("Erreur ajout maintenance", "error"); }
     };
 
     const initiateDelete = async (id: string, name: string) => {
@@ -435,7 +435,7 @@ export const Assets: React.FC = () => {
             setSelectedAsset(null);
             addToast("Actif supprimé", "info");
             fetchAssets();
-        } catch (error) { addToast("Erreur lors de la suppression", "error"); }
+        } catch (_error) { addToast("Erreur lors de la suppression", "error"); }
     };
 
     const handleExportCSV = () => {
@@ -455,7 +455,7 @@ export const Assets: React.FC = () => {
             doc.setFillColor(0, 0, 0); doc.rect(30, 20, 18, 5, 'F');
             doc.setTextColor(255, 255, 255); doc.setFontSize(6); doc.setFont("helvetica", "bold"); doc.text(asset.confidentiality.toUpperCase(), 39, 23.5, { align: 'center' });
             doc.save(`Label_${asset.name}.pdf`);
-        } catch (error) { addToast("Erreur génération étiquette", "error"); }
+        } catch (_error) { addToast("Erreur génération étiquette", "error"); }
     };
 
     const generateIntakeLink = () => {

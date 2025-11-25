@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { RISK_TEMPLATES, RiskTemplate, createRisksFromTemplate } from '../../utils/riskTemplates';
+import { RISK_TEMPLATES, RiskTemplate } from '../../utils/riskTemplates';
 import { X, Zap, AlertTriangle, ShieldAlert } from '../ui/Icons';
 
 interface RiskTemplateModalProps {

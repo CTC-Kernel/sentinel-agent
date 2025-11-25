@@ -1,5 +1,5 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, Activity, ArrowRight } from './Icons';
+import { Component, ErrorInfo, ReactNode } from 'react';
+import { Activity, ArrowRight } from './Icons';
 
 interface Props {
   children?: ReactNode;
