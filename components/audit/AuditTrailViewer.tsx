@@ -247,6 +247,28 @@ export const AuditTrailViewer: React.FC = () => {
                     </select>
                 </div>
 
+                {/* Date Range Filter */}
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                            type="date"
+                            value={dateRange.start.toISOString().split('T')[0]}
+                            onChange={(e) => setDateRange({ ...dateRange, start: new Date(e.target.value) })}
+                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        />
+                    </div>
+                    <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                            type="date"
+                            value={dateRange.end.toISOString().split('T')[0]}
+                            onChange={(e) => setDateRange({ ...dateRange, end: new Date(e.target.value) })}
+                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        />
+                    </div>
+                </div>
+
                 <div className="mt-4 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                     <Filter className="h-4 w-4" />
                     <span>{filteredLogs.length} événement(s) trouvé(s)</span>

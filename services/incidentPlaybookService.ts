@@ -382,6 +382,7 @@ export class IncidentPlaybookService {
       const updates: Partial<IncidentResponse> = {
         status: 'completed',
         completedAt: new Date().toISOString(),
+        completedSteps: response.completedSteps, // Ensure this is preserved or updated if needed
         timeline: [
           ...response.timeline,
           {

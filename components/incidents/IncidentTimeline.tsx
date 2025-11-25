@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarDays, CheckCircle2, AlertCircle, Clock, FileText } from '../ui/Icons';
+import { CheckCircle2, AlertCircle, Clock, FileText } from '../ui/Icons';
 import { Incident } from '../../types';
 
 interface IncidentTimelineProps {
@@ -69,7 +69,7 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
             </div>
 
             <div className="relative pl-4 border-l-2 border-slate-100 dark:border-slate-700 space-y-8 my-4">
-                {steps.map((step, index) => {
+                {steps.map((step) => {
                     const isCompleted = step.status === 'completed';
                     const isCurrent = step.status === 'current';
 

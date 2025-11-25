@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Asset, Risk, Control } from '../types';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import { ShieldAlert, Server, CheckCircle2, Activity } from './ui/Icons';
+import { ShieldAlert, Server, CheckCircle2 } from './ui/Icons';
 
 interface RelationshipGraphProps {
     rootId: string;
@@ -95,8 +95,6 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
                             const controls = controlsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Control));
 
                             controls.forEach((control, i) => {
-                                const angle = (i / controls.length) * Math.PI - Math.PI / 2; // Semi-circle right
-                                const r = 200;
                                 const nx = cx + 200;
                                 const ny = cy + (i - controls.length / 2) * 60;
                                 newNodes.push({ id: control.id, type: 'Control', label: control.code, x: nx, y: ny, data: control });
@@ -116,7 +114,7 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
         };
 
         fetchData();
-    }, [rootId, rootType]);
+    }, [rootId, rootType, width, height]);
 
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full"></div></div>;
 

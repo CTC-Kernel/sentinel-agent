@@ -210,7 +210,7 @@ export const Dashboard: React.FC = () => {
                             organizationId: orgId, date: todayStr, risks: allRisks.length,
                             compliance: complianceScore, incidents: activeIncidentsCount, timestamp: new Date().toISOString()
                         });
-                    } catch (e) { /* Silent fail */ }
+                    } catch (_e) { /* Silent fail */ }
                 }
                 setHistoryData(historyStats.sort((a, b) => a.date.localeCompare(b.date)));
 
@@ -273,7 +273,7 @@ export const Dashboard: React.FC = () => {
             projectsSnap.forEach(doc => { const d = doc.data(); const date = d.dueDate ? d.dueDate.replace(/-/g, '') : ''; if (date) icsContent += `BEGIN:VEVENT\nSUMMARY:Projet: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:Manager: ${d.manager}\nEND:VEVENT\n`; });
             icsContent += "END:VCALENDAR";
             const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })); link.download = 'sentinel_calendar.ics'; link.click(); addToast("Calendrier exporté (.ics)", "success");
-        } catch (e) { addToast("Erreur export calendrier", "error"); }
+        } catch (_e) { addToast("Erreur export calendrier", "error"); }
     };
 
     const generateExecutiveReport = () => {

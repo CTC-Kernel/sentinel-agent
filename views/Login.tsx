@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, db } from '../firebase';
-import { Lock, Mail, ArrowRight, ShieldAlert, AlertTriangle, Server, X, CheckCircle2 } from '../components/ui/Icons';
+import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2, Server } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { Invitation } from '../types';
@@ -231,8 +230,19 @@ export const Login: React.FC = () => {
                 </div>
             </div>
 
-            <div className="py-6 text-center relative z-10">
+            <div className="py-6 text-center relative z-10 space-y-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Développé par Cyber Threat Consulting</p>
+                <p className="text-[9px] text-slate-400">
+                    Ce site est protégé par reCAPTCHA et les{' '}
+                    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">
+                        Règles de confidentialité
+                    </a>
+                    {' '}et{' '}
+                    <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">
+                        Conditions d'utilisation
+                    </a>
+                    {' '}de Google s'appliquent.
+                </p>
             </div>
 
             {/* Reset Password Modal */}

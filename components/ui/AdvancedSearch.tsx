@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, X, Filter, Calendar, Tag, User as UserIcon } from './Icons';
+import React, { useState } from 'react';
+import { Search, X, Filter, Calendar, User as UserIcon } from './Icons';
 
 export interface SearchFilters {
     query: string;

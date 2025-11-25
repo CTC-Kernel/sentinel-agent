@@ -132,7 +132,7 @@ export const Audits: React.FC = () => {
             riskData.sort((a, b) => b.score - a.score);
             setRisks(riskData);
 
-        } catch (err) {
+        } catch (_err) {
             addToast("Erreur chargement données", "error");
         } finally {
             setLoading(false);
@@ -153,7 +153,7 @@ export const Audits: React.FC = () => {
             const cSnap = await getDocs(cq);
             if (!cSnap.empty) setChecklist({ id: cSnap.docs[0].id, ...cSnap.docs[0].data() } as AuditChecklist);
             else setChecklist(null);
-        } catch (error) {
+        } catch (_error) {
             setFindings([]);
             setChecklist(null);
         }
@@ -188,7 +188,7 @@ export const Audits: React.FC = () => {
             addToast("Audit planifié et notifié", "success");
             setShowModal(false);
             fetchAudits();
-        } catch (e) { addToast("Erreur création audit", "error"); }
+        } catch (_e) { addToast("Erreur création audit", "error"); }
     };
 
     const handleAddFinding = async (e: React.FormEvent) => {
@@ -213,7 +213,7 @@ export const Audits: React.FC = () => {
 
             setNewFinding({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
             addToast("Constat ajouté", "success");
-        } catch (e) { addToast("Erreur ajout constat", "error"); }
+        } catch (_e) { addToast("Erreur ajout constat", "error"); }
     };
 
     const initiateDeleteFinding = (findingId: string) => {
@@ -235,7 +235,7 @@ export const Audits: React.FC = () => {
             setAudits(prev => prev.map(a => a.id === selectedAudit.id ? { ...a, findingsCount: newCount } : a));
             setFindings(prev => prev.filter(f => f.id !== findingId));
             addToast("Constat supprimé", "info");
-        } catch (e) { addToast("Erreur suppression", "error"); }
+        } catch (_e) { addToast("Erreur suppression", "error"); }
     };
 
     const initiateDeleteAudit = (id: string, name: string) => {
@@ -266,7 +266,7 @@ export const Audits: React.FC = () => {
             }
             await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name}`);
             addToast("Audit et constats supprimés", "info");
-        } catch (e) { addToast("Erreur suppression", "error"); }
+        } catch (_e) { addToast("Erreur suppression", "error"); }
     };
 
     const generateChecklist = async () => {
@@ -290,7 +290,7 @@ export const Audits: React.FC = () => {
             const ref = await addDoc(collection(db, 'audit_checklists'), newChecklist);
             setChecklist({ ...newChecklist, id: ref.id });
             addToast("Checklist générée", "success");
-        } catch (e) { addToast("Erreur génération checklist", "error"); }
+        } catch (_e) { addToast("Erreur génération checklist", "error"); }
     };
 
     const handleChecklistAnswer = async (questionId: string, response: AuditQuestion['response'], comment?: string) => {

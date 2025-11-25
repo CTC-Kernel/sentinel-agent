@@ -38,13 +38,12 @@ describe('calendar', () => {
       const event: CalendarEvent = {
         title: 'Annual Security Audit',
         description: 'Complete security audit including all controls',
-        start: new Date('2024-06-15T09:00:00'),
-        end: new Date('2024-06-16T17:00:00'),
-        location: 'Main Office',
-        url: 'https://example.com/audit'
+        startDate: new Date('2024-06-15T09:00:00'),
+        endDate: new Date('2024-06-16T17:00:00'),
+        location: 'Main Office'
       };
 
-      generateICS(event);
+      generateICS([event]);
 
       expect(document.createElement).toHaveBeenCalledWith('a');
       expect(window.URL.createObjectURL).toHaveBeenCalled();
@@ -56,11 +55,11 @@ describe('calendar', () => {
       const event: CalendarEvent = {
         title: 'Team Meeting',
         description: 'Weekly team sync',
-        start: new Date('2024-07-20T10:00:00'),
+        startDate: new Date('2024-07-20T10:00:00'),
         location: 'Conference Room'
       };
 
-      generateICS(event);
+      generateICS([event]);
 
       expect(document.createElement).toHaveBeenCalledWith('a');
       expect(window.URL.createObjectURL).toHaveBeenCalled();
@@ -70,10 +69,10 @@ describe('calendar', () => {
       const event: CalendarEvent = {
         title: 'Simple Meeting',
         description: 'Basic meeting',
-        start: new Date('2024-08-10T14:00:00')
+        startDate: new Date('2024-08-10T14:00:00')
       };
 
-      generateICS(event);
+      generateICS([event]);
 
       expect(document.createElement).toHaveBeenCalledWith('a');
       expect(window.URL.createObjectURL).toHaveBeenCalled();
@@ -83,10 +82,10 @@ describe('calendar', () => {
       const event: CalendarEvent = {
         title: 'Test Event With Spaces',
         description: 'Test',
-        start: new Date('2024-08-10T14:00:00')
+        startDate: new Date('2024-08-10T14:00:00')
       };
 
-      generateICS(event);
+      generateICS([event]);
 
       const mockLink = (document.createElement as any).mock.results[0].value;
       expect(mockLink.setAttribute).toHaveBeenCalledWith('download', 'Test_Event_With_Spaces.ics');
@@ -96,10 +95,10 @@ describe('calendar', () => {
       const event: CalendarEvent = {
         title: 'Test Event',
         description: 'Test',
-        start: new Date('2024-08-10T14:00:00')
+        startDate: new Date('2024-08-10T14:00:00')
       };
 
-      generateICS(event);
+      generateICS([event]);
 
       expect(window.Blob).toHaveBeenCalledWith(
         expect.any(Array),

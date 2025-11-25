@@ -29,7 +29,7 @@ const formatSafeDate = (date: any): string => {
       return isNaN(d.getTime()) ? date : d.toLocaleDateString('fr-FR');
     }
     return String(date);
-  } catch (e) {
+  } catch (_e) {
     return '—';
   }
 };

@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Supplier, SupplierAssessment, SupplierIncident, Document, SystemLog, Criticality } from '../types';
-import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, CheckCircle2, X, History, MessageSquare, Save, FileSpreadsheet, Link, AlertTriangle, CalendarDays, TrendingUp, Upload, AlertCircle, Clock, DollarSign, Globe, Lock, BarChart3, FileCheck, Users, Briefcase, Star } from '../components/ui/Icons';
+import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, X, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, TrendingUp, Upload } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
@@ -33,10 +33,6 @@ export const Suppliers: React.FC = () => {
     // Edit Form State
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState<Partial<Supplier>>({});
-
-    // Assessment Modal State
-    const [showAssessmentModal, setShowAssessmentModal] = useState(false);
-    const [assessmentData, setAssessmentData] = useState<Partial<SupplierAssessment>>({});
 
     // Import
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -198,14 +194,14 @@ export const Suppliers: React.FC = () => {
             setIsEditing(false);
             addToast("Fournisseur mis à jour", "success");
             fetchSuppliers(); // Refresh stats
-        } catch (e) { addToast("Erreur mise à jour", "error"); }
+        } catch (_e) { addToast("Erreur mise à jour", "error"); }
     };
 
     const initiateDelete = (id: string, name: string) => {
         if (!canEdit) return;
         setConfirmData({
             isOpen: true,
-            title: "Supprimer le fournisseur ?",
+            title: `Supprimer ${name} ?`,
             message: "Cette action est définitive et supprimera toutes les données associées à ce fournisseur.",
             onConfirm: () => handleDelete(id)
         });
@@ -314,7 +310,7 @@ export const Suppliers: React.FC = () => {
                 await logAction(user, 'IMPORT', 'Supplier', `Import CSV de ${count} fournisseurs`);
                 addToast(`${count} fournisseurs importés`, "success");
                 fetchSuppliers();
-            } catch (error) { addToast("Erreur import CSV", "error"); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+            } catch (_error) { addToast("Erreur import CSV", "error"); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
         };
         reader.readAsText(file);
     };
@@ -365,7 +361,7 @@ export const Suppliers: React.FC = () => {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Fournisseurs</p>
@@ -393,6 +389,20 @@ export const Suppliers: React.FC = () => {
                         <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.expired}</p>
                     </div>
                     <div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><CalendarDays className="h-6 w-6" /></div>
+                </div>
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-purple-600 mb-1">Évaluations</p>
+                        <p className="text-3xl font-black text-slate-900 dark:text-white">{assessments.length}</p>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-600"><ClipboardList className="h-6 w-6" /></div>
+                </div>
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">Incidents</p>
+                        <p className="text-3xl font-black text-slate-900 dark:text-white">{incidents.length}</p>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 text-amber-600"><ShieldAlert className="h-6 w-6" /></div>
                 </div>
             </div>
 

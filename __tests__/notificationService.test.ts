@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NotificationService } from '../services/notificationService';
-import { collection, doc, getDocs, query, where, orderBy, limit, writeBatch, getDoc, updateDoc, setDoc, addDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, query, where, orderBy, limit, updateDoc, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserProfile } from '../types';
 

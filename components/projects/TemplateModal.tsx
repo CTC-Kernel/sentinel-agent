@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { PROJECT_TEMPLATES, createProjectFromTemplate } from '../../utils/projectTemplates';
+import { PROJECT_TEMPLATES } from '../../utils/projectTemplates';
 import { ProjectTemplate } from '../../types';
-import { X, Zap, Calendar, Users } from '../ui/Icons';
+import { X, Zap, Calendar } from '../ui/Icons';
 
 interface TemplateModalProps {
     isOpen: boolean;

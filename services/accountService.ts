@@ -1,6 +1,6 @@
-import { collection, getDocs, query, where, writeBatch, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { deleteUser, User } from 'firebase/auth';
-import { db, auth, storage } from '../firebase';
+import { db, storage } from '../firebase';
 import { ref, deleteObject, listAll } from 'firebase/storage';
 import { UserProfile } from '../types';
 
@@ -125,7 +125,7 @@ export class AccountService {
       
       // Recurse for subfolders
       await Promise.all(list.prefixes.map(prefix => this.deleteStorageFolder(prefix)));
-    } catch (error) {
+    } catch (_error) {
       // Folder might not exist or permission denied
     }
   }

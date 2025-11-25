@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { HardwareInfo } from '../../utils/hardwareDetection';
 import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { CheckCircle2, Laptop, Save, AlertTriangle, Briefcase, User, Server, Database } from '../ui/Icons';
+import { Laptop, Save, AlertTriangle, User, Server, Database } from '../ui/Icons';
 import { Project, UserProfile } from '../../types';
 
 interface IntakeFormProps {

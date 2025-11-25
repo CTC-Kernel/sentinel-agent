@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -16,11 +15,8 @@ import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FileUploader } from '../components/ui/FileUploader';
 import { FilePreview } from '../components/ui/FilePreview';
-import { SubscriptionService } from '../services/subscriptionService';
-import { useNavigate } from 'react-router-dom';
 
 export const Documents: React.FC = () => {
-    const navigate = useNavigate();
     const [documents, setDocuments] = useState<Document[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [controls, setControls] = useState<Control[]>([]);
@@ -164,7 +160,7 @@ export const Documents: React.FC = () => {
             setDocuments(prev => prev.map(d => d.id === selectedDocument.id ? { ...d, ...updates } : d));
             setSelectedDocument({ ...selectedDocument, ...updates });
             addToast(logMsg, "success");
-        } catch (e) {
+        } catch (_e) {
             addToast("Erreur workflow", "error");
         }
     };
@@ -214,7 +210,7 @@ export const Documents: React.FC = () => {
             setSelectedDocument({ ...selectedDocument, ...data, updatedAt: new Date().toISOString() });
             setIsEditing(false);
             addToast("Document mis à jour", "success");
-        } catch (e) {
+        } catch (_e) {
             addToast("Erreur mise à jour", "error");
         }
     };
@@ -277,7 +273,7 @@ export const Documents: React.FC = () => {
             setSelectedDocument(null);
             await logAction(user, 'DELETE', 'Document', `Suppression: ${title}`);
             addToast("Document supprimé", "info");
-        } catch (e) {
+        } catch (_e) {
             addToast("Erreur suppression", "error");
         }
     };
@@ -295,7 +291,7 @@ export const Documents: React.FC = () => {
                 html
             });
             addToast("Rappel envoyé au propriétaire", "success");
-        } catch (e) {
+        } catch (_e) {
             addToast("Erreur envoi rappel", "error");
         }
     };
