@@ -16,8 +16,11 @@ import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FileUploader } from '../components/ui/FileUploader';
 import { FilePreview } from '../components/ui/FilePreview';
+import { SubscriptionService } from '../services/subscriptionService';
+import { useNavigate } from 'react-router-dom';
 
 export const Documents: React.FC = () => {
+    const navigate = useNavigate();
     const [documents, setDocuments] = useState<Document[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [controls, setControls] = useState<Control[]>([]);

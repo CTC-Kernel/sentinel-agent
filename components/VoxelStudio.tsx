@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useEffect, createContext, useContext } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/fiber';
-import { OrbitControls, Text, Line, Points, PointMaterial, Float, MeshTransmissionMaterial, Edges, Environment } from '@react-three/drei';
+import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
@@ -151,12 +151,12 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
       offsetVec.current.y = magnitude * 0.6 + 2;
       desiredPos.current.copy(focusVec.current).add(offsetVec.current);
       if (!userInteractingRef.current && shouldSnapRef.current) {
-        camera.position.lerp(desiredPos.current, 0.08);
+        camera.position.lerp(desiredPos.current, 0.04);
         if (camera.position.distanceTo(desiredPos.current) < 0.05) {
           shouldSnapRef.current = false;
         }
       }
-      controls.target.lerp(focusVec.current, 0.15);
+      controls.target.lerp(focusVec.current, 0.08);
     } else {
       camera.position.lerp(defaultPos.current, 0.02);
       controls.target.lerp(defaultTarget.current, 0.05);
@@ -239,7 +239,7 @@ const PulseCore: React.FC = () => {
   );
 };
 
-const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string; speed?: number }> = ({ start, end, color, speed = 1 }) => {
+const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string; speed?: number; opacity?: number; showParticles?: boolean }> = ({ start, end, color, speed = 1, opacity = 0.5, showParticles = true }) => {
   const curve = useMemo(() => {
     const mid = new Vector3().addVectors(start, end).multiplyScalar(0.5);
     mid.y += 2; // Arc height
@@ -251,8 +251,8 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
 
   return (
     <group>
-      <Line points={points} color={color} opacity={0.5} transparent lineWidth={2} />
-      {[...Array(particleCount)].map((_, i) => (
+      <Line points={points} color={color} opacity={opacity} transparent lineWidth={2} />
+      {showParticles && [...Array(particleCount)].map((_, i) => (
         <MovingParticle
           key={i}
           curve={curve}
@@ -287,34 +287,33 @@ const MovingParticle: React.FC<{ curve: CatmullRomCurve3; offset: number; color:
   );
 };
 
-const GlassMaterial: React.FC<any> = ({ color, emissive, opacity, ...props }) => (
-  <MeshTransmissionMaterial
-    backside
-    samples={4}
-    thickness={0.5}
-    chromaticAberration={0.06}
-    anisotropy={0.1}
-    distortion={0.0}
-    distortionScale={0.3}
-    temporalDistortion={0.5}
-    color={color}
-    emissive={emissive}
-    emissiveIntensity={0.2}
-    roughness={0.2}
-    metalness={0.1}
+const GlassMaterial: React.FC<any> = ({ color, emissive, opacity, isDimmed, isHighlighted, ...props }) => (
+  <meshPhysicalMaterial
+    color={isDimmed ? '#1e293b' : isHighlighted ? '#ffffff' : color}
+    emissive={isDimmed ? '#000000' : isHighlighted ? color : emissive}
+    emissiveIntensity={isDimmed ? 0 : isHighlighted ? 2.0 : 0.4}
+    roughness={isDimmed ? 0.9 : isHighlighted ? 0.1 : 0.15}
+    metalness={isDimmed ? 0.1 : isHighlighted ? 0.5 : 0.3}
+    transmission={isDimmed ? 0 : 0.45}
+    thickness={isDimmed ? 0 : 1.5}
+    clearcoat={isDimmed ? 0 : 1}
+    clearcoatRoughness={0.1}
     transparent
-    opacity={opacity}
+    opacity={isDimmed ? 0.1 : Math.max(opacity, 0.6)}
+    side={DoubleSide}
     {...props}
   />
 );
 
-const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void; isSelected: boolean; isDimmed: boolean; highlightCritical?: boolean; xRayMode?: boolean }> = ({
+const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void; isSelected: boolean; isDimmed: boolean; isHighlighted: boolean; highlightCritical?: boolean; xRayMode?: boolean; opacity?: number }> = ({
   node,
   onClick,
   isSelected,
   isDimmed,
+  isHighlighted,
   highlightCritical,
-  xRayMode
+  xRayMode,
+  opacity
 }) => {
   const modelLibrary = useModelLibrary();
   const meshRef = useRef<Group>(null);
@@ -336,7 +335,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
   }, [node]);
   const usesLibraryModel = Boolean(MODEL_LIBRARY_CONFIG[node.type]);
 
-  const labelVisible = hovered || isSelected;
+  const labelVisible = hovered || isSelected || isHighlighted;
 
   useFrame(() => {
     if (meshRef.current) {
@@ -345,7 +344,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
   });
 
   // Animate scale and glow using useFrame
-  const targetScale = isSelected ? 1.3 : hovered ? 1.15 : 1;
+  const targetScale = isSelected ? 1.3 : (hovered || isHighlighted) ? 1.15 : 1;
   const targetGlow = (isCritical && highlightCritical) ? 0.8 : 0;
 
   useFrame(() => {
@@ -372,7 +371,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
     emissiveColor = isSelected ? '#fb923c' : hovered ? '#f97316' : '#ea580c';
   }
   const baseOpacity = isDimmed ? 0.4 : highlightCritical && !isCritical ? 0.7 : 0.95;
-  const opacity = usesLibraryModel ? Math.max(baseOpacity, 0.85) : baseOpacity;
+  const calculatedOpacity = usesLibraryModel ? Math.max(baseOpacity, 0.85) : baseOpacity;
   const emissiveIntensity = 0.35 + currentGlow * 0.4;
 
   const sharedMaterialProps = {
@@ -381,9 +380,11 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
     emissiveIntensity,
     metalness: 0.35,
     roughness: 0.25,
-    opacity,
+    opacity: opacity !== undefined ? opacity : calculatedOpacity,
     transparent: true,
     wireframe: Boolean(xRayMode),
+    isHighlighted,
+    isDimmed
   };
 
   const libraryPrimitive = useMemo(() => {
@@ -402,15 +403,16 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
       if ((child as Mesh).isMesh) {
         child.frustumCulled = false;
         (child as Mesh).material = new MeshPhysicalMaterial({
-          color: baseColor,
-          emissive: emissiveColor,
-          emissiveIntensity,
-          metalness: 0.1,
-          roughness: 0.2,
-          transmission: 0.6,
-          thickness: 0.5,
+          color: isDimmed ? '#1e293b' : baseColor,
+          emissive: isDimmed ? '#000000' : emissiveColor,
+          emissiveIntensity: isDimmed ? 0 : emissiveIntensity,
+          metalness: isDimmed ? 0.1 : 0.3,
+          roughness: isDimmed ? 0.9 : 0.2,
+          transmission: isDimmed ? 0 : 0.5,
+          thickness: isDimmed ? 0 : 1.2,
+          clearcoat: isDimmed ? 0 : 1,
           transparent: true,
-          opacity: Math.max(opacity, 0.6),
+          opacity: isDimmed ? 0.1 : Math.max(opacity ?? 1, 0.6),
           wireframe: Boolean(xRayMode),
           side: DoubleSide
         });
@@ -609,7 +611,7 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
         {renderCategoryModel()}
       </group>
 
-      {(hovered || isSelected) && (
+      {(hovered || isSelected || isHighlighted) && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -node.size / 2, 0]}>
           <ringGeometry args={[node.size * 0.8, node.size * 1.6, 64]} />
           <meshBasicMaterial
@@ -657,7 +659,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   highlightCritical = false,
   summaryStats,
   releaseToken,
-  suggestedLinks = []
+  suggestedLinks = [],
+  xRayMode
 }) => {
   const [selectedNode, setSelectedNode] = useState<VoxelNode | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -850,7 +853,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   }, [baseNodes, visibleTypes]);
 
   const connectionPairs = useMemo(() => {
-    const pairs: { start: [number, number, number]; end: [number, number, number]; strength: number }[] = [];
+    const pairs: { start: [number, number, number]; end: [number, number, number]; strength: number; sourceId: string; targetId: string }[] = [];
     voxelNodes.forEach(node => {
       node.connections.forEach(connectionId => {
         const target = voxelNodes.find(n => n.id === connectionId);
@@ -861,7 +864,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
             (node.position[2] - target.position[2]) ** 2
           );
           const strength = Math.max(0.3, 1 - distance / 25);
-          pairs.push({ start: node.position, end: target.position, strength });
+          pairs.push({ start: node.position, end: target.position, strength, sourceId: node.id, targetId: target.id });
         }
       });
     });
@@ -869,7 +872,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   }, [voxelNodes]);
 
   const aiConnectionPairs = useMemo(() => {
-    const pairs: { start: [number, number, number]; end: [number, number, number]; strength: number; type: string }[] = [];
+    const pairs: { start: [number, number, number]; end: [number, number, number]; strength: number; type: string; sourceId: string; targetId: string }[] = [];
     suggestedLinks.forEach(link => {
       const source = voxelNodes.find(n => n.id === link.sourceId);
       const target = voxelNodes.find(n => n.id === link.targetId);
@@ -879,7 +882,9 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           start: source.position,
           end: target.position,
           strength: link.confidence,
-          type: link.type
+          type: link.type,
+          sourceId: source.id,
+          targetId: target.id
         });
       }
     });
@@ -931,6 +936,17 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     setTimeout(() => setAutoRotate(true), 0);
   }, [releaseToken]);
 
+  const relatedNodeIds = useMemo(() => {
+    const set = new Set<string>();
+    if (selectedNode) {
+      selectedNode.connections.forEach(id => set.add(id));
+      voxelNodes.forEach(n => {
+        if (n.connections.includes(selectedNode.id)) set.add(n.id);
+      });
+    }
+    return set;
+  }, [selectedNode, voxelNodes]);
+
   return (
     <div className={`w-full h-full ${className}`}>
       <Canvas
@@ -949,12 +965,13 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
             enablePan
             enableZoom
             enableRotate
+            enableDamping
             autoRotate={autoRotate}
             autoRotateSpeed={0.35}
             minDistance={4}
             maxDistance={55}
-            zoomSpeed={0.8}
-            dampingFactor={0.12}
+            zoomSpeed={0.6}
+            dampingFactor={0.05}
             ref={controlsRef as any}
           />
 
@@ -970,39 +987,63 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           <Environment preset="city" />
 
           {/* Render connections */}
-          {connectionPairs.map((pair, i) => (
-            <DataFlowParticles
-              key={i}
-              start={new Vector3(...pair.start)}
-              end={new Vector3(...pair.end)}
-              color="#94a3b8"
-              speed={pair.strength}
-            />
-          ))}
+          {connectionPairs.map((pair, i) => {
+            const isRelevant = !selectedNode ||
+              pair.sourceId === selectedNode.id ||
+              pair.targetId === selectedNode.id;
 
-          {/* AI Suggested Links */}
-          {aiConnectionPairs.map((pair, i) => (
-            <group key={`ai-link-${i}`}>
+            return (
               <DataFlowParticles
+                key={`conn-${i}`}
                 start={new Vector3(...pair.start)}
                 end={new Vector3(...pair.end)}
-                color="#818cf8"
-                speed={pair.strength * 1.5}
+                color="#94a3b8"
+                speed={pair.strength * 2}
+                opacity={isRelevant ? 0.5 : 0.05}
+                showParticles={isRelevant}
               />
-            </group>
-          ))}
+            );
+          })}
+
+          {/* AI Suggested Links */}
+          {aiConnectionPairs.map((pair, i) => {
+            const isRelevant = !selectedNode ||
+              pair.sourceId === selectedNode.id ||
+              pair.targetId === selectedNode.id;
+
+            return (
+              <DataFlowParticles
+                key={`ai-conn-${i}`}
+                start={new Vector3(...pair.start)}
+                end={new Vector3(...pair.end)}
+                color="#fbbf24"
+                speed={pair.strength * 2}
+                opacity={isRelevant ? 0.6 : 0.1}
+                showParticles={isRelevant}
+              />
+            );
+          })}
 
           {/* Render voxel nodes */}
-          {voxelNodes.map(node => (
-            <VoxelMesh
-              key={node.id}
-              node={node}
-              onClick={handleNodeClick}
-              isSelected={selectedNode?.id === node.id}
-              isDimmed={Boolean(selectedNode && selectedNode.id !== node.id)}
-              highlightCritical={highlightCritical}
-            />
-          ))}
+          {voxelNodes.map(node => {
+            const isRelated = relatedNodeIds.has(node.id);
+            const isDimmed = Boolean(selectedNode && node.id !== selectedNode.id && !isRelated);
+            const isHighlighted = Boolean(selectedNode && (node.id === selectedNode.id || isRelated));
+
+            return (
+              <VoxelMesh
+                key={node.id}
+                node={node}
+                onClick={handleNodeClick}
+                isSelected={selectedNode?.id === node.id}
+                isDimmed={isDimmed}
+                isHighlighted={isHighlighted}
+                opacity={xRayMode ? 0.3 : 0.9}
+                highlightCritical={highlightCritical}
+                xRayMode={xRayMode}
+              />
+            );
+          })}
           <FocusController target={branchPivotNode} controlsRef={controlsRef} setAutoRotate={setAutoRotate} userInteractingRef={isUserInteracting} shouldSnapRef={shouldSnapToTarget} />
 
           <EffectComposer>

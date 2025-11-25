@@ -23,8 +23,11 @@ import { GanttChart } from '../components/projects/GanttChart';
 import { TaskFormModal } from '../components/projects/TaskFormModal';
 import '../components/projects/gantt.css';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { SubscriptionService } from '../services/subscriptionService';
+import { useNavigate } from 'react-router-dom';
 
 export const Projects: React.FC = () => {
+    const navigate = useNavigate();
     const [projects, setProjects] = useState<Project[]>([]);
     const [risks, setRisks] = useState<Risk[]>([]);
     const [controls, setControls] = useState<Control[]>([]);
@@ -201,6 +204,16 @@ export const Projects: React.FC = () => {
 
     const handleDuplicate = async () => {
         if (!selectedProject || !canEdit || !user?.organizationId) return;
+
+        // Check limits
+        const canAdd = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
+        if (!canAdd) {
+            if (confirm("Vous avez atteint la limite de projets de votre plan actuel. Voulez-vous passer au plan supérieur ?")) {
+                navigate('/pricing');
+            }
+            return;
+        }
+
         try {
             const newProjData = {
                 ...selectedProject,

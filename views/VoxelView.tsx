@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+
 import { VoxelStudio } from '../components/VoxelStudio';
 import { db } from '../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
@@ -6,10 +7,32 @@ import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIIns
 import { aiService } from '../services/aiService';
 import { useStore } from '../store';
 import { Skeleton } from '../components/ui/Skeleton';
-import { ChevronLeft, Settings, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, Bell, XCircle, Sparkles, BrainCircuit } from '../components/ui/Icons';
+import { ChevronLeft, Settings, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, Bell, XCircle, Sparkles, BrainCircuit, ChevronDown, ChevronUp, Layers, Eye, Flame, Search, RotateCw, Minimize2, CheckCheck } from '../components/ui/Icons';
 import { useNavigate } from 'react-router-dom';
 
 type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier';
+
+const formatSafeDate = (date: any): string => {
+  if (!date) return '—';
+  try {
+    // Handle Firestore Timestamp
+    if (date && typeof date === 'object' && 'seconds' in date) {
+      return new Date(date.seconds * 1000).toLocaleDateString('fr-FR');
+    }
+    // Handle Date object
+    if (date instanceof Date) {
+      return date.toLocaleDateString('fr-FR');
+    }
+    // Handle string
+    if (typeof date === 'string') {
+      const d = new Date(date);
+      return isNaN(d.getTime()) ? date : d.toLocaleDateString('fr-FR');
+    }
+    return String(date);
+  } catch (e) {
+    return '—';
+  }
+};
 
 export const VoxelView: React.FC = () => {
   const { user, addToast } = useStore();
@@ -25,7 +48,7 @@ export const VoxelView: React.FC = () => {
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [releaseToken, setReleaseToken] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [navCollapsed, setNavCollapsed] = useState(false);
+  const [navCollapsed, setNavCollapsed] = useState(true);
   const [heatmapEnabled, setHeatmapEnabled] = useState(true);
   const [xRayEnabled, setXRayEnabled] = useState(false);
   const [autoRotateEnabled, setAutoRotateEnabled] = useState(true);
@@ -35,6 +58,20 @@ export const VoxelView: React.FC = () => {
   const [suggestedLinks, setSuggestedLinks] = useState<AISuggestedLink[]>([]);
   const [aiInsights, setAiInsights] = useState<AIInsight[]>([]);
   const [showInsights, setShowInsights] = useState(false);
+  const [isDetailMinimized, setIsDetailMinimized] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showLayerMenu, setShowLayerMenu] = useState(false);
+
+  // Toggle body class for fullscreen mode to hide Sidebar and Header
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.classList.add('voxel-fullscreen');
+    } else {
+      document.body.classList.remove('voxel-fullscreen');
+    }
+    return () => document.body.classList.remove('voxel-fullscreen');
+  }, [isFullscreen]);
   const detailRoutes: Record<LayerType, string> = {
     asset: '/assets',
     risk: '/risks',
@@ -223,7 +260,7 @@ export const VoxelView: React.FC = () => {
               : option.id === 'incident'
                 ? (item as Incident).severity
                 : (item as any).owner || (item as any).status || '',
-      })),
+      })).filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase())),
     }));
   }, [layerOptions, assets, risks, projects, audits, incidents, suppliers]);
 
@@ -288,7 +325,7 @@ export const VoxelView: React.FC = () => {
           gradient: 'from-cyan-500/90 via-sky-500/80 to-blue-500/70',
           stats: [
             { label: 'Type', value: (selectedNode.data as Audit).type },
-            { label: 'Date', value: (selectedNode.data as Audit).dateScheduled },
+            { label: 'Date', value: formatSafeDate((selectedNode.data as Audit).dateScheduled) },
             { label: 'Statut', value: (selectedNode.data as Audit).status },
           ],
           meta: [
@@ -307,7 +344,7 @@ export const VoxelView: React.FC = () => {
             { label: 'État', value: (selectedNode.data as any).status || '—' },
           ],
           meta: [
-            { label: 'Détection', value: (selectedNode.data as any).detectedAt || '—' },
+            { label: 'Détection', value: formatSafeDate((selectedNode.data as any).detectedAt) },
             { label: 'Réponse', value: (selectedNode.data as any).responseOwner || 'Non assigné' },
           ],
         };
@@ -471,6 +508,7 @@ export const VoxelView: React.FC = () => {
   const handleNodeClick = (node: any) => {
     setSelectedNode(node);
     setFocusedNodeId(node?.id ?? null);
+    setIsDetailMinimized(false);
   };
 
   const handleRefresh = () => {
@@ -647,7 +685,7 @@ export const VoxelView: React.FC = () => {
       {/* Main Voxel View */}
       <div
         className={`${isFullscreen
-          ? 'fixed inset-0 z-50 bg-slate-900'
+          ? 'fixed !inset-0 !z-[9999] bg-slate-900'
           : 'relative flex-1 min-h-[500px] max-h-[760px] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto w-full'
           }`}
       >
@@ -655,116 +693,172 @@ export const VoxelView: React.FC = () => {
           <>
             <div className="absolute top-6 right-80 z-20 flex items-center gap-2">
               <span className="text-xs text-white/70 uppercase tracking-wide">Plein écran</span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleResetView}
-                  className="px-3 py-1.5 rounded-full bg-white/10 text-white text-xs font-semibold hover:bg-white/20 transition"
-                >
-                  Réinitialiser
-                </button>
-                <button
-                  onClick={handleFullscreenToggle}
-                  className="px-3 py-1.5 rounded-full bg-white/10 text-white text-xs font-semibold hover:bg-white/20 transition"
-                >
-                  Quitter (Esc)
-                </button>
-              </div>
             </div>
-            <div className="absolute bottom-6 left-6 z-20 flex flex-wrap gap-3 max-w-lg">
-              {[{
-                label: 'Heatmap',
-                active: heatmapEnabled,
-                onClick: () => setHeatmapEnabled(prev => !prev)
-              }, {
-                label: 'Mode X-Ray',
-                active: xRayEnabled,
-                onClick: () => setXRayEnabled(prev => !prev)
-              }, {
-                label: 'Auto-rotate',
-                active: autoRotateEnabled,
-                onClick: () => setAutoRotateEnabled(prev => !prev)
-              }].map(control => (
-                <button
-                  key={control.label}
-                  onClick={control.onClick}
-                  className={`px-4 py-2 rounded-2xl border text-xs font-semibold tracking-wide backdrop-blur-md transition ${control.active
-                    ? 'bg-white/90 text-slate-900 border-white/80'
-                    : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
-                    }`}
-                >
-                  {control.label}
-                </button>
-              ))}
+          </>
+        )}
+
+        {/* Sidebar Navigation (Available in all modes) */}
+        <aside className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-100'} bg-slate-950/95 border-l border-white/10 backdrop-blur-xl z-30 p-4 overflow-hidden transition-all duration-300 flex flex-col`}>
+          <div className="flex items-center justify-between text-white mb-4 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">Explorateur</span>
+              <span className="text-xs text-white/50">{orderedNodes.length}</span>
             </div>
-            <aside className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-20' : 'w-72'} bg-slate-950/95 border-l border-white/10 backdrop-blur-xl z-30 p-4 overflow-hidden transition-all duration-300`}
+            <button
+              onClick={() => setNavCollapsed(true)}
+              className="p-1 rounded-lg hover:bg-white/10 text-white/60 hover:text-white"
             >
-              <div className="flex items-center justify-between text-white mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold">Navigation</span>
-                  <span className="text-xs text-white/50">{orderedNodes.length}</span>
+              <XCircle className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="relative mb-4 shrink-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+            <input
+              id="voxel-search"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher un élément..."
+              className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition"
+            />
+          </div>
+
+          <div className="space-y-6 overflow-y-auto flex-1 pr-1 custom-scrollbar">
+            {categorizedNodes.map(category => (
+              <div key={category.id}>
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-bold text-white/40 mb-2 px-1">
+                  <span className="flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full ${category.color}`}></span>
+                    {category.label}
+                  </span>
+                  <span>{category.items.length}</span>
                 </div>
-                <button
-                  onClick={() => setNavCollapsed(prev => !prev)}
-                  className="text-xs uppercase tracking-wide px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20"
-                >
-                  {navCollapsed ? 'Ouvrir' : 'Réduire'}
-                </button>
-              </div>
-              {!navCollapsed && (
-                <div className="space-y-4 overflow-y-auto h-[calc(100%-2rem)] pr-1">
-                  {categorizedNodes.map(category => (
-                    <div key={category.id}>
-                      <div className="flex items-center justify-between text-xs uppercase tracking-wide text-white/60 mb-2">
-                        <span className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${category.color}`}></span>
-                          {category.label}
-                        </span>
-                        <span>{category.items.length}</span>
-                      </div>
-                      <div className="space-y-1">
-                        {category.items.map(item => (
-                          <button
-                            key={item.id}
-                            onClick={() => applyFocus(item.id, category.id)}
-                            className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition flex items-center gap-3 ${focusedNodeId === item.id
-                              ? 'border-white/40 bg-white/10 text-white'
-                              : 'border-white/10 text-white/70 hover:border-white/30 hover:bg-white/5'
-                              }`}
-                          >
-                            <span className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-white/5">
-                              <span className="inline-block h-6 w-6 text-inherit">
-                                {silhouetteMap[category.id]}
-                              </span>
-                            </span>
-                            <div className="flex flex-col flex-1 min-w-0">
-                              <span className="font-medium line-clamp-1">{item.label}</span>
-                              {item.meta && <span className="text-xs text-white/60">{item.meta}</span>}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {navCollapsed && (
-                <div className="flex flex-col items-center gap-3 text-white/70 text-xs">
-                  {layerOptions.map(option => (
+                <div className="space-y-1">
+                  {category.items.map(item => (
                     <button
-                      key={option.id}
-                      onClick={() => applyFocus((categorizedNodes.find(cat => cat.id === option.id)?.items[0]?.id) || '', option.id)}
-                      className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/10 hover:bg-white/20"
-                      title={option.label}
+                      key={item.id}
+                      onClick={() => applyFocus(item.id, category.id)}
+                      className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition flex items-center gap-3 group ${focusedNodeId === item.id
+                        ? 'border-indigo-500/50 bg-indigo-500/10 text-white shadow-[0_0_15px_rgba(99,102,241,0.15)]'
+                        : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
+                        }`}
                     >
-                      <span className="h-7 w-7">
-                        {silhouetteMap[option.id]}
+                      <span className={`shrink-0 flex h-8 w-8 items-center justify-center rounded-lg ${focusedNodeId === item.id ? 'bg-indigo-500/20 text-indigo-300' : 'bg-white/5 text-white/40 group-hover:text-white/60'}`}>
+                        <span className="inline-block h-5 w-5 text-inherit">
+                          {silhouetteMap[category.id]}
+                        </span>
                       </span>
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <span className="font-medium line-clamp-1">{item.label}</span>
+                        {item.meta && <span className="text-[10px] text-white/40 group-hover:text-white/50">{item.meta}</span>}
+                      </div>
                     </button>
                   ))}
                 </div>
-              )}
-            </aside>
-          </>
+              </div>
+            ))}
+            {categorizedNodes.length === 0 && (
+              <div className="text-center py-8 text-white/30 text-sm">
+                Aucun résultat trouvé
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* Unified Command Bar (Dock) */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-1.5 p-1.5 rounded-full bg-slate-900/80 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all hover:scale-[1.02] hover:bg-slate-900/90">
+          <button
+            onClick={() => { setNavCollapsed(false); setTimeout(() => document.getElementById('voxel-search')?.focus(), 100); }}
+            className={`p-3 rounded-full transition tooltip-trigger group relative ${!navCollapsed ? 'bg-white text-slate-900' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+            title="Rechercher (Cmd+K)"
+          >
+            <Search className="h-5 w-5" />
+            {searchQuery && <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border border-slate-900"></span>}
+          </button>
+
+          <div className="w-px h-6 bg-white/10 mx-1" />
+
+          <button
+            onClick={() => setShowLayerMenu(!showLayerMenu)}
+            className={`p-3 rounded-full transition relative ${showLayerMenu ? 'bg-white text-slate-900' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+            title="Calques"
+          >
+            <Layers className="h-5 w-5" />
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[9px] font-bold text-white border border-slate-900">
+              {activeLayers.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setHeatmapEnabled(!heatmapEnabled)}
+            className={`p-3 rounded-full transition ${heatmapEnabled ? 'bg-orange-500/20 text-orange-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+            title="Heatmap"
+          >
+            <Flame className="h-5 w-5" />
+          </button>
+
+          <button
+            onClick={() => setXRayEnabled(!xRayEnabled)}
+            className={`p-3 rounded-full transition ${xRayEnabled ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+            title="Mode X-Ray"
+          >
+            <Eye className="h-5 w-5" />
+          </button>
+
+          <button
+            onClick={() => setAutoRotateEnabled(!autoRotateEnabled)}
+            className={`p-3 rounded-full transition ${autoRotateEnabled ? 'bg-green-500/20 text-green-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+            title="Auto-rotate"
+          >
+            <RotateCw className={`h-5 w-5 ${autoRotateEnabled ? 'animate-spin-slow' : ''}`} />
+          </button>
+
+          <div className="w-px h-6 bg-white/10 mx-1" />
+
+          <button
+            onClick={handleResetView}
+            className="p-3 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition"
+            title="Réinitialiser la vue"
+          >
+            <RefreshCw className="h-5 w-5" />
+          </button>
+
+          <button
+            onClick={handleFullscreenToggle}
+            className="p-3 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition"
+            title={isFullscreen ? "Quitter plein écran" : "Plein écran"}
+          >
+            {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+          </button>
+        </div>
+
+        {/* Layer Menu Popover */}
+        {showLayerMenu && (
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-[100] w-64 p-2 rounded-2xl bg-slate-900/95 border border-white/10 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-2 fade-in duration-200">
+            <div className="px-3 py-2 border-b border-white/10 mb-2 flex items-center justify-between">
+              <span className="text-xs font-semibold text-white">Calques actifs</span>
+              <span className="text-xs text-white/50">{activeLayers.length}/{layerOptions.length}</span>
+            </div>
+            <div className="space-y-1">
+              {layerOptions.map(option => {
+                const isActive = activeLayers.includes(option.id);
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => handleLayerToggle(option.id)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition ${isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${option.color}`}></span>
+                      <span>{option.label}</span>
+                    </div>
+                    {isActive && <CheckCheck className="h-3.5 w-3.5 text-indigo-400" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
         <VoxelStudio
           assets={assets}
@@ -791,20 +885,11 @@ export const VoxelView: React.FC = () => {
           suggestedLinks={suggestedLinks}
         />
 
-        <div className="absolute bottom-4 right-4 z-20 pointer-events-none">
-          <button
-            onClick={handleFullscreenToggle}
-            className="pointer-events-auto inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900/80 text-white border border-white/15 backdrop-blur-md shadow-[0_15px_35px_rgba(2,6,23,0.55)] hover:bg-slate-900"
-            title={isFullscreen ? 'Quitter le plein écran' : 'Passer en plein écran'}
-          >
-            <Maximize2 className={`h-4 w-4 ${isFullscreen ? 'rotate-45 transition-transform' : ''}`} />
-            <span className="text-sm font-semibold">{isFullscreen ? 'Quitter' : 'Plein écran'}</span>
-          </button>
-        </div>
+
 
         {/* AI Insights Panel */}
         {showInsights && aiInsights.length > 0 && (
-          <div className="absolute top-24 left-6 z-40 w-80 max-h-[calc(100vh-200px)] overflow-y-auto rounded-2xl border border-white/20 bg-slate-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[slideIn_0.3s_ease-out]">
+          <div className="absolute top-24 left-6 z-[100] w-80 max-h-[calc(100%-200px)] overflow-y-auto rounded-2xl border border-white/20 bg-slate-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[slideIn_0.3s_ease-out]">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2 text-indigo-400">
                 <BrainCircuit className="h-5 w-5" />
@@ -837,100 +922,113 @@ export const VoxelView: React.FC = () => {
           </div>
         )}
 
+        {/* Selected Node Details */}
         {selectedNodeDetails && (
-          <div className="absolute left-4 bottom-4 z-40 max-w-sm pointer-events-none">
+          <div className="absolute left-4 bottom-4 z-[100] max-w-sm pointer-events-none transition-all duration-300">
             <div className={`pointer-events-auto rounded-3xl border border-white/20 bg-gradient-to-br ${selectedNodeDetails.gradient} shadow-[0_20px_70px_rgba(2,6,23,0.65)] backdrop-blur-xl text-white p-5 space-y-4 animate-[fadeIn_0.35s_ease-out]`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <span className="text-[10px] tracking-[0.4em] uppercase text-white/70 block mb-2">{selectedNodeDetails.badge}</span>
                   <h3 className="text-2xl font-semibold leading-tight">{selectedNodeDetails.title}</h3>
-                  {selectedNodeDetails.owner && (
+                  {!isDetailMinimized && selectedNodeDetails.owner && (
                     <p className="text-xs text-white/80 mt-1">Pilote : {selectedNodeDetails.owner}</p>
                   )}
                 </div>
-                <button
-                  onClick={handleSelectionClear}
-                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
-                >
-                  <XCircle className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setIsDetailMinimized(prev => !prev); }}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+                  >
+                    {isDetailMinimized ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
+                  <button
+                    onClick={handleSelectionClear}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                {selectedNodeDetails.stats.map(item => (
-                  <div key={item.label} className="rounded-2xl bg-white/10 px-3 py-2">
-                    <p className="text-[10px] uppercase tracking-wide text-white/70">{item.label}</p>
-                    <p className="text-sm font-semibold">{item.value}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-2">
-                {selectedNodeDetails.meta.map(meta => (
-                  <div key={meta.label} className="flex items-center justify-between text-xs">
-                    <span className="text-white/70">{meta.label}</span>
-                    <span className="font-semibold">{meta.value || '—'}</span>
-                  </div>
-                ))}
-              </div>
-
-              {relatedElements.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-[0.3em] text-white/60">Éléments liés</p>
-                  <div className="flex flex-wrap gap-2">
-                    {relatedElements.map(related => (
-                      <button
-                        key={related.id}
-                        onClick={() => applyFocus(related.id, related.type)}
-                        className="text-xs px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 transition border border-white/20"
-                      >
-                        <span className="font-semibold mr-1">{related.label}</span>
-                        {related.meta && <span className="text-white/60">({related.meta})</span>}
-                      </button>
+              {!isDetailMinimized && (
+                <>
+                  <div className="grid grid-cols-3 gap-2">
+                    {selectedNodeDetails.stats.map(item => (
+                      <div key={item.label} className="rounded-2xl bg-white/10 px-3 py-2">
+                        <p className="text-[10px] uppercase tracking-wide text-white/70">{item.label}</p>
+                        <p className="text-sm font-semibold">{item.value}</p>
+                      </div>
                     ))}
                   </div>
-                </div>
-              )}
 
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400/40 via-fuchsia-500/30 to-blue-500/30 px-3 py-2 border border-white/40 shadow-[0_10px_30px_rgba(147,51,234,0.35)]">
-                  <button
-                    onClick={() => focusByOffset(-1)}
-                    disabled={!orderedNodes.length}
-                    className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-amber-100 disabled:opacity-30 disabled:cursor-not-allowed backdrop-blur"
-                    title="Élément précédent"
-                  >
-                    ‹
-                  </button>
-                  <button
-                    onClick={() => focusByOffset(1)}
-                    disabled={!orderedNodes.length}
-                    className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-amber-100 disabled:opacity-30 disabled:cursor-not-allowed backdrop-blur"
-                    title="Élément suivant"
-                  >
-                    ›
-                  </button>
-                  <button
-                    onClick={handleFullscreenToggle}
-                    className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-cyan-100 backdrop-blur"
-                    title={isFullscreen ? 'Quitter le plein écran' : 'Passer en plein écran'}
-                  >
-                    <Maximize2 className={`h-4 w-4 ${isFullscreen ? 'rotate-45 transition-transform text-cyan-200' : 'text-cyan-100'}`} />
-                  </button>
-                </div>
-                <button
-                  onClick={handleOpenSelected}
-                  className="flex-1 px-4 py-2 rounded-2xl bg-white text-slate-900 font-semibold text-sm hover:bg-slate-100 transition"
-                >
-                  Ouvrir la fiche
-                </button>
-                <button
-                  onClick={handleSelectionClear}
-                  className="px-4 py-2 rounded-2xl border border-white/40 text-sm font-semibold hover:bg-white/10 transition"
-                >
-                  Relâcher
-                </button>
-              </div>
+                  <div className="space-y-2">
+                    {selectedNodeDetails.meta.map(meta => (
+                      <div key={meta.label} className="flex items-center justify-between text-xs">
+                        <span className="text-white/70">{meta.label}</span>
+                        <span className="font-semibold">{meta.value || '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {relatedElements.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[11px] uppercase tracking-[0.3em] text-white/60">Éléments liés</p>
+                      <div className="flex flex-wrap gap-2">
+                        {relatedElements.map(related => (
+                          <button
+                            key={related.id}
+                            onClick={() => applyFocus(related.id, related.type)}
+                            className="text-xs px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 transition border border-white/20"
+                          >
+                            <span className="font-semibold mr-1">{related.label}</span>
+                            {related.meta && <span className="text-white/60">({related.meta})</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400/40 via-fuchsia-500/30 to-blue-500/30 px-3 py-2 border border-white/40 shadow-[0_10px_30px_rgba(147,51,234,0.35)]">
+                      <button
+                        onClick={() => focusByOffset(-1)}
+                        disabled={!orderedNodes.length}
+                        className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-amber-100 disabled:opacity-30 disabled:cursor-not-allowed backdrop-blur"
+                        title="Élément précédent"
+                      >
+                        ‹
+                      </button>
+                      <button
+                        onClick={() => focusByOffset(1)}
+                        disabled={!orderedNodes.length}
+                        className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-amber-100 disabled:opacity-30 disabled:cursor-not-allowed backdrop-blur"
+                        title="Élément suivant"
+                      >
+                        ›
+                      </button>
+                      <button
+                        onClick={handleFullscreenToggle}
+                        className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-cyan-100 backdrop-blur"
+                        title={isFullscreen ? 'Quitter le plein écran' : 'Passer en plein écran'}
+                      >
+                        <Maximize2 className={`h-4 w-4 ${isFullscreen ? 'rotate-45 transition-transform text-cyan-200' : 'text-cyan-100'}`} />
+                      </button>
+                    </div>
+                    <button
+                      onClick={handleOpenSelected}
+                      className="flex-1 px-4 py-2 rounded-2xl bg-white text-slate-900 font-semibold text-sm hover:bg-slate-100 transition"
+                    >
+                      Ouvrir la fiche
+                    </button>
+                    <button
+                      onClick={handleSelectionClear}
+                      className="px-4 py-2 rounded-2xl border border-white/40 text-sm font-semibold hover:bg-white/10 transition"
+                    >
+                      Relâcher
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -961,33 +1059,7 @@ export const VoxelView: React.FC = () => {
             ))}
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Focalisation visuelle</p>
-              <span className="text-xs text-slate-500 dark:text-slate-400">{activeLayers.length} couches actives</span>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {layerOptions.map(option => {
-                const isActive = activeLayers.includes(option.id);
-                return (
-                  <button
-                    key={option.id}
-                    onClick={() => handleLayerToggle(option.id)}
-                    className={`group flex items-center gap-2 px-4 py-2 rounded-2xl border transition ${isActive
-                      ? 'border-transparent text-white bg-slate-900 dark:bg-white/10'
-                      : 'border-slate-200 dark:border-slate-700 text-slate-500'
-                      }`}
-                  >
-                    <span className={`w-2 h-2 rounded-full ${option.color}`}></span>
-                    <div className="text-left">
-                      <p className="text-sm font-semibold capitalize">{option.label}</p>
-                      <p className="text-[11px] opacity-70">{option.hint}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+
 
           <div className="text-sm text-slate-600 dark:text-slate-300">
             <p className="font-medium">Légende dynamique</p>
@@ -1118,11 +1190,7 @@ export const VoxelView: React.FC = () => {
                 <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
                   <p className="uppercase tracking-wide text-[10px] text-slate-400">Dernière mise à jour</p>
                   <p className="mt-1 text-sm font-semibold">
-                    {(selectedNode.data as any).updatedAt
-                      ? (typeof (selectedNode.data as any).updatedAt === 'object' && (selectedNode.data as any).updatedAt.toDate
-                        ? new Date((selectedNode.data as any).updatedAt.toDate()).toLocaleDateString('fr-FR')
-                        : new Date((selectedNode.data as any).updatedAt).toLocaleDateString('fr-FR'))
-                      : 'N/A'}
+                    {formatSafeDate((selectedNode.data as any).updatedAt)}
                   </p>
                 </div>
               </div>

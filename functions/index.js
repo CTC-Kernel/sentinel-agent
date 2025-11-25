@@ -129,6 +129,209 @@ exports.fixAllUsers = onCall(async (request) => {
     }
 });
 
+// --- STRIPE SUBSCRIPTION LOGIC ---
+
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY || "***REDACTED***");
+
+// Define Plans mapping for backend
+const PLANS = {
+  'discovery': { monthly: null, yearly: null },
+  'professional': { 
+      monthly: 'price_1SXOWoDKg6Juwz5xp4oBw1eM',
+      yearly: 'price_1SXOWpDKg6Juwz5xk5puuJDg'
+  },
+  'enterprise': { 
+      monthly: 'price_1SXOWqDKg6Juwz5xaOzjO7IC',
+      yearly: 'price_1SXOWrDKg6Juwz5xQGPV1309'
+  }
+};
+
+/**
+ * Create a Stripe Checkout Session for a subscription.
+ */
+exports.createCheckoutSession = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "User must be logged in.");
+  }
+
+  // interval is 'month' or 'year', default to month
+  const { planId, organizationId, successUrl, cancelUrl, interval = 'month' } = request.data;
+
+  if (!organizationId || !planId) {
+    throw new HttpsError("invalid-argument", "Missing organizationId or planId.");
+  }
+
+  // 1. Verify User is Admin of the Organization
+  const userRef = admin.firestore().collection("users").doc(request.auth.uid);
+  const userSnap = await userRef.get();
+  const userData = userSnap.data();
+
+  const orgRef = admin.firestore().collection("organizations").doc(organizationId);
+  const orgSnap = await orgRef.get();
+
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organization not found.");
+  }
+  const orgData = orgSnap.data();
+
+  if (orgData.ownerId !== request.auth.uid && userData.role !== 'admin') {
+    throw new HttpsError("permission-denied", "Only admins or owners can manage billing.");
+  }
+
+  // Resolve Price ID based on Plan and Interval
+  const planConfig = PLANS[planId];
+  const priceId = interval === 'year' ? planConfig?.yearly : planConfig?.monthly;
+
+  // Discovery plan or invalid plan handling
+  if (!priceId && planId !== 'discovery') {
+     // If it's not discovery and has no priceId, it's invalid or custom
+     throw new HttpsError("invalid-argument", "Invalid Plan ID or Interval.");
+  }
+
+  // If it's the free plan, just update Firestore directly
+  if (planId === 'discovery') {
+    await orgRef.update({
+      'subscription.planId': 'discovery',
+      'subscription.status': 'active',
+      'subscription.stripeSubscriptionId': null,
+    });
+    return { url: successUrl };
+  }
+
+  try {
+    // 2. Get or Create Stripe Customer
+    let customerId = orgData.subscription?.stripeCustomerId;
+
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: userData.email,
+        metadata: {
+          organizationId: organizationId,
+          firebaseUid: request.auth.uid
+        },
+        name: orgData.name
+      });
+      customerId = customer.id;
+      
+      await orgRef.update({ 'subscription.stripeCustomerId': customerId });
+    }
+
+    // 3. Create Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      line_items: [{
+        price: priceId,
+        quantity: 1,
+      }],
+      mode: 'subscription',
+      allow_promotion_codes: true,
+      subscription_data: {
+        metadata: { organizationId }
+      },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      client_reference_id: organizationId
+    });
+
+    return { url: session.url };
+  } catch (error) {
+    console.error("Stripe Checkout Error", error);
+    throw new HttpsError("internal", "Unable to create checkout session.");
+  }
+});
+
+/**
+ * Create a Billing Portal Session for managing existing subscriptions.
+ */
+exports.createPortalSession = onCall(async (request) => {
+  if (!request.auth) {
+     throw new HttpsError("unauthenticated", "User must be logged in.");
+  }
+  
+  const { organizationId, returnUrl } = request.data;
+  const orgRef = admin.firestore().collection("organizations").doc(organizationId);
+  const orgSnap = await orgRef.get();
+  
+  if (!orgSnap.exists) {
+      throw new HttpsError("not-found", "Organization not found");
+  }
+
+  const orgData = orgSnap.data();
+  
+  if (orgData.ownerId !== request.auth.uid) {
+      throw new HttpsError("permission-denied", "Not authorized.");
+  }
+
+  const customerId = orgData.subscription?.stripeCustomerId;
+  if (!customerId) {
+      throw new HttpsError("failed-precondition", "No billing account found.");
+  }
+
+  try {
+      const session = await stripe.billingPortal.sessions.create({
+          customer: customerId,
+          return_url: returnUrl,
+      });
+      return { url: session.url };
+  } catch(err) {
+      console.error("Portal Error", err);
+      throw new HttpsError("internal", "Could not create portal session");
+  }
+});
+
+/**
+ * Stripe Webhook to sync subscription status with Firestore.
+ */
+exports.stripeWebhook = onRequest(async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+  } catch (err) {
+    console.error(`Webhook Error: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted' || event.type === 'customer.subscription.created') {
+      const subscription = event.data.object;
+      const organizationId = subscription.metadata.organizationId; 
+      
+      if (!organizationId) {
+          console.warn("Missing organizationId in subscription metadata");
+          return res.json({received: true});
+      }
+
+      const status = subscription.status; 
+      const priceId = subscription.items.data[0].price.id;
+      let planId = 'discovery';
+      
+      // Check Professional
+      if (priceId === PLANS.professional.monthly || priceId === PLANS.professional.yearly) {
+          planId = 'professional';
+      }
+      // Check Enterprise
+      if (priceId === PLANS.enterprise.monthly || priceId === PLANS.enterprise.yearly) {
+          planId = 'enterprise';
+      }
+
+      await admin.firestore().collection('organizations').doc(organizationId).update({
+          'subscription.status': status,
+          'subscription.planId': planId,
+          'subscription.stripeSubscriptionId': subscription.id,
+          'subscription.currentPeriodEnd': admin.firestore.Timestamp.fromMillis(subscription.current_period_end * 1000),
+          'subscription.cancelAtPeriodEnd': subscription.cancel_at_period_end
+      });
+      
+      console.log(`Updated subscription for org ${organizationId} to ${status}`);
+  }
+
+  res.json({received: true});
+});
+
 exports.processMailQueue = onDocumentCreated("mail_queue/{docId}", async (event) => {
     const snap = event.data;
     if (!snap) {

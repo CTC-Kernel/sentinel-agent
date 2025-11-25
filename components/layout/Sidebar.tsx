@@ -59,14 +59,14 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-slate-900/40 z-30 lg:hidden backdrop-blur-sm transition-opacity duration-500"
+          className="fixed inset-0 bg-slate-900/40 z-20 lg:hidden backdrop-blur-sm transition-opacity duration-500"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />
       )}
 
       <aside className={`
-        fixed inset-y-0 left-0 lg:inset-y-auto lg:sticky lg:top-0 z-40 w-[82vw] max-w-[320px] lg:w-[260px]
+        fixed inset-y-0 left-0 lg:inset-y-auto lg:sticky lg:top-0 z-30 w-[82vw] max-w-[320px] lg:w-[260px]
         bg-gradient-to-b from-white/95 via-white/92 to-white/90 dark:from-slate-900/95 dark:via-slate-900/93 dark:to-slate-900/92
         backdrop-blur-2xl border-r border-slate-200/60 dark:border-slate-800/70
         shadow-[0_20px_60px_rgba(15,23,42,0.15)] lg:shadow-none

@@ -11,6 +11,10 @@ import { SystemLog, UserProfile } from '../types';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { logAction } from '../services/logger';
 import { hasPermission } from '../utils/permissions';
+import { SubscriptionService } from '../services/subscriptionService';
+import { PLANS, PlanType } from '../config/plans';
+import { Organization } from '../types';
+import { getDoc } from 'firebase/firestore';
 
 export const Settings: React.FC = () => {
     const { theme, toggleTheme, user, setUser, addToast } = useStore();
@@ -45,6 +49,21 @@ export const Settings: React.FC = () => {
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
+
+    // Subscription State
+    const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
+    const [subLoading, setSubLoading] = useState(false);
+
+    const fetchOrgDetails = async () => {
+        if (!user?.organizationId) return;
+        try {
+            const orgRef = doc(db, 'organizations', user.organizationId);
+            const orgSnap = await getDoc(orgRef);
+            if (orgSnap.exists()) {
+                setCurrentOrg({ id: orgSnap.id, ...orgSnap.data() } as Organization);
+            }
+        } catch (e) { console.error("Error fetching org", e); }
+    };
 
     const fetchUsers = async () => {
         if (!user?.organizationId) return;
@@ -450,6 +469,22 @@ export const Settings: React.FC = () => {
 
     const handleLogout = async () => {
         try { await signOut(auth); } catch (e) { console.error("Logout failed", e); }
+    };
+
+    const handleManageSubscription = async () => {
+        if (!user?.organizationId) return;
+        setSubLoading(true);
+        try {
+            if (currentOrg?.subscription?.planId === 'discovery') {
+                window.location.href = '#/pricing';
+            } else {
+                await SubscriptionService.manageSubscription(user.organizationId);
+            }
+        } catch (e) {
+            addToast("Impossible d'accéder à la gestion de l'abonnement", "error");
+        } finally {
+            setSubLoading(false);
+        }
     };
 
     return (
