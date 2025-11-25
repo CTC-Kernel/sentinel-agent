@@ -14,6 +14,7 @@ import { hasPermission } from '../utils/permissions';
 import { SubscriptionService } from '../services/subscriptionService';
 import { AccountService } from '../services/accountService';
 import { Organization } from '../types';
+import { MigrationTool } from '../components/admin/MigrationTool';
 
 export const Settings: React.FC = () => {
     const { theme, toggleTheme, user, setUser, addToast } = useStore();
@@ -151,7 +152,7 @@ export const Settings: React.FC = () => {
             let q;
             if (reset || logs.length === 0) {
                 q = query(
-                    collection(db, 'system_logs'), 
+                    collection(db, 'system_logs'),
                     where('organizationId', '==', user.organizationId),
                     orderBy('timestamp', 'desc'),
                     limit(50)
@@ -167,7 +168,7 @@ export const Settings: React.FC = () => {
                     limit(50)
                 );
             }
-            
+
             const snap = await getDocs(q);
 
             if (!snap.empty) {
@@ -179,7 +180,7 @@ export const Settings: React.FC = () => {
                         timestamp: data.timestamp?.toDate ? data.timestamp.toDate().toISOString() : data.timestamp
                     } as SystemLog;
                 });
-                
+
                 if (reset) {
                     setLogs(newLogs);
                 } else {
@@ -414,10 +415,10 @@ export const Settings: React.FC = () => {
                     toDelete.forEach(d => batch.delete(d.ref));
                     await batch.commit();
                 }
-                
+
                 // Log the purge action
                 await logAction(user, 'Purge Logs', 'SystemLogs', `${toDelete.length} logs supprimés (>90 jours)`);
-                
+
                 addToast(`${toDelete.length} logs anciens supprimés.`, "success");
                 fetchLogs(true);
                 fetchSystemStats();
@@ -577,7 +578,7 @@ export const Settings: React.FC = () => {
     const handleDeleteOrganization = () => {
         const confirmationWord = "SUPPRIMER";
         const input = prompt(`Pour confirmer la suppression DÉFINITIVE de l'organisation et de TOUTES ses données, tapez "${confirmationWord}" :`);
-        
+
         if (input === confirmationWord && user?.organizationId) {
             setMaintenanceLoading(true);
             AccountService.deleteOrganization(user.organizationId)
@@ -636,7 +637,7 @@ export const Settings: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <button 
+                    <button
                         onClick={handleManageSubscription}
                         disabled={subLoading}
                         className="px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-bold rounded-xl hover:shadow-md transition-all border border-slate-200 dark:border-white/10 flex items-center"
@@ -796,6 +797,10 @@ export const Settings: React.FC = () => {
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">Migration Utilisateurs</h4>
                                 <p className="text-xs text-slate-500 mt-1">Corriger les comptes sans organisation.</p>
                             </div>
+                        </div>
+
+                        <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-slate-50/30 dark:bg-white/5">
+                            <MigrationTool />
                         </div>
 
                         <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-slate-50/30 dark:bg-black/20">

@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, arrayUnion, arrayRemove, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Incident, Asset, Criticality, Risk, UserProfile } from '../types';
@@ -190,67 +191,14 @@ export const Incidents: React.FC = () => {
                 ) : filteredIncidents.map(incident => (<div key={incident.id} onClick={() => setSelectedIncident(incident)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5">{incident.severity === Criticality.CRITICAL && (<div className="absolute top-6 right-6"><span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span></div>)}<div className="flex justify-between items-start mb-4"><div className="flex gap-2"><span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getSeverityColor(incident.severity)}`}>{incident.severity}</span><span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusColor(incident.status)}`}>{incident.status}</span></div></div><h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand-600 transition-colors leading-tight">{incident.title}</h3><p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 leading-relaxed">{incident.description}</p><div className="flex gap-3 flex-wrap mb-6"><div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg"><ListTodo className="h-3.5 w-3.5 mr-2 text-slate-400" />{incident.category || 'Autre'}</div>{incident.affectedAssetId && (<div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg"><Server className="h-3.5 w-3.5 mr-2 text-slate-400" />{assets.find(a => a.id === incident.affectedAssetId)?.name || 'Inconnu'}</div>)}</div><div className="flex items-center justify-between pt-5 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto"><div className="text-xs font-medium text-slate-400">{new Date(incident.dateReported).toLocaleDateString()} • {incident.reporter}</div><div className="text-xs text-brand-600 font-bold flex items-center group-hover:translate-x-1 transition-transform">Ouvrir le dossier <Siren className="ml-1.5 h-3.5 w-3.5" /></div></div></div>))}
             </div>
 
-            {/* Incident Inspector */}
-            {selectedIncident && (
-                <div className="fixed inset-0 z-[9999] overflow-hidden"><div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedIncident(null)} /><div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none"><div className="w-screen max-w-xl pointer-events-auto"><div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up"><div className="px-8 py-6 border-b border-red-50 dark:border-red-900/20 flex items-start justify-between bg-red-50/30 dark:bg-red-900/10"><div><div className="flex items-center gap-3 mb-2"><span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border ${getSeverityColor(selectedIncident.severity)}`}>{selectedIncident.severity}</span><span className="text-xs text-red-600 dark:text-red-400 font-bold">{new Date(selectedIncident.dateReported).toLocaleString()}</span></div><h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">{selectedIncident.title}</h2></div><div className="flex gap-2"><button onClick={() => OnboardingService.startIncidentsTour()} className="p-2.5 text-slate-500 hover:bg-white/50 rounded-xl transition-colors shadow-sm" title="Visite guidée"><HelpCircle className="h-5 w-5" /></button><button onClick={() => generateReport()} className="p-2.5 text-slate-500 hover:bg-white/50 rounded-xl transition-colors shadow-sm"><Download className="h-5 w-5" /></button>{canEdit && (<><button onClick={() => openModal(selectedIncident)} className="p-2.5 text-slate-500 hover:bg-white/50 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button><button onClick={() => initiateDelete(selectedIncident.id)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50/50 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button></>)}<button onClick={() => setSelectedIncident(null)} className="p-2.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-white/50 transition-colors"><X className="h-5 w-5" /></button></div></div>
+            import {createPortal} from 'react-dom';
 
-                <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-8 custom-scrollbar">
+            // ... (imports remain the same, just adding createPortal to the top or ensuring it's available)
+            // Actually, I'll just add the import in a separate block or use multi_replace if I can't do it in one go.
+            // replace_file_content is for a SINGLE contiguous block.
+            // Adding an import and wrapping code at the bottom are two separate edits.
+            // So I should use multi_replace_file_content.
 
-                    <div data-tour="incidents-timeline">
-                        <IncidentTimeline selectedIncident={selectedIncident} getTimeToResolve={getTimeToResolve} />
-                    </div>
-
-                    {/* Timeline & Progress */}
-                    {selectedIncident.category && PLAYBOOKS[selectedIncident.category] && (
-                        <div className="bg-white dark:bg-slate-800/80 rounded-3xl border border-brand-200 dark:border-brand-900/50 shadow-sm p-6 relative overflow-hidden" data-tour="incidents-playbook">
-                            <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-500"></div>
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ListTodo className="h-4 w-4 mr-2 text-brand-600" /> Playbook : {selectedIncident.category}</h3>
-                                <span className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-2 py-1 rounded-lg">{getPlaybookProgress()}% Complété</span>
-                            </div>
-
-                            <div className="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-2 mb-6">
-                                <div className="bg-brand-500 h-2 rounded-full transition-all duration-500 shadow-sm shadow-brand-500/30" style={{ width: `${getPlaybookProgress()}%` }}></div>
-                            </div>
-
-                            <div className="space-y-2.5">
-                                {PLAYBOOKS[selectedIncident.category].map((step, idx) => {
-                                    const isDone = selectedIncident.playbookStepsCompleted?.includes(step);
-                                    return (
-                                        <label key={idx} className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all ${isDone ? 'bg-green-50/50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 border border-transparent'}`}>
-                                            <div className={`mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center transition-all ${isDone ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 dark:border-gray-600'}`}>
-                                                {isDone && <CheckCircle2 className="w-3.5 h-3.5" />}
-                                            </div>
-                                            <input type="checkbox" className="hidden" checked={isDone} onChange={() => togglePlaybookStep(step)} disabled={!canEdit} />
-                                            <span className={`text-sm font-medium ${isDone ? 'text-green-800 dark:text-green-300 line-through decoration-green-500/30' : 'text-slate-700 dark:text-slate-200'}`}>{step}</span>
-                                        </label>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    )}
-
-                    {selectedIncident.financialImpact && selectedIncident.financialImpact > 0 && (
-                        <div className="bg-emerald-50/80 dark:bg-emerald-900/10 p-6 rounded-3xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm flex items-center gap-4">
-                            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl text-emerald-600">
-                                <Euro className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-1">Impact Financier Estimé</h4>
-                                <p className="text-2xl font-black text-slate-900 dark:text-white">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(selectedIncident.financialImpact)}</p>
-                            </div>
-                        </div>
-                    )}
-
-                    <div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Description</h3><div className="p-6 bg-slate-50/80 dark:bg-slate-800/50 rounded-3xl text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap border border-gray-100 dark:border-white/5 shadow-sm">{selectedIncident.description}</div></div>
-
-                    <div className="flex-1 flex flex-col border-t border-gray-100 dark:border-white/5 pt-6 min-h-[350px]">
-                        <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 flex items-center tracking-widest"><MessageSquare className="h-3.5 w-3.5 mr-2" /> Main Courante & Discussion</h3>
-                        <div className="flex-1 bg-slate-50/50 dark:bg-slate-900/30 rounded-3xl border border-gray-100 dark:border-white/5 p-4">
-                            <Comments collectionName="incidents" documentId={selectedIncident.id} />
-                        </div>
-                    </div>
-                </div></div></div></div></div>)}
 
             {/* Create/Edit Modal */}
             <IncidentPlaybookModal

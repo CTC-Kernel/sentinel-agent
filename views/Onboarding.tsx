@@ -7,12 +7,10 @@ import { sendEmail } from '../services/emailService';
 import { getWelcomeEmailTemplate } from '../services/emailTemplates';
 import { PLANS } from '../config/plans';
 import { PlanType } from '../types';
-import { useNavigate } from 'react-router-dom';
 import { SubscriptionService } from '../services/subscriptionService';
 
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast } = useStore();
-    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [selectedPlan, setSelectedPlan] = useState<PlanType>('discovery');
     const [role, setRole] = useState<'admin' | 'user' | 'auditor'>('admin');
@@ -30,9 +28,10 @@ export const Onboarding: React.FC = () => {
         setError('');
 
         try {
-            // Generate a robust ID for the organization if not exists
-            const newOrgId = user.organizationId || crypto.randomUUID();
-            const orgName = user.organizationName || organizationName;
+            // Generate a NEW organization ID (always create fresh org on onboarding)
+            // Don't reuse old organizationId as the org might have been deleted
+            const newOrgId = crypto.randomUUID();
+            const orgName = organizationName || user.organizationName || 'Mon Organisation';
 
             // 1. Create/Update User Profile
             const userUpdates = {
@@ -54,16 +53,31 @@ export const Onboarding: React.FC = () => {
 
             // 2. Create Organization Document (CRITICAL for SubscriptionService)
             const orgRef = doc(db, 'organizations', newOrgId);
+
+            // Generate slug from organization name
+            const slug = orgName
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // Remove accents
+                .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with dash
+                .replace(/^-+|-+$/g, ''); // Remove leading/trailing dashes
+
             await setDoc(orgRef, {
                 id: newOrgId,
                 name: orgName,
+                slug: slug,
                 ownerId: user.uid,
                 createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
                 industry,
                 subscription: {
                     planId: 'discovery', // Default to discovery, will be updated in step 2
                     status: 'active',
-                    startDate: new Date().toISOString()
+                    startDate: new Date().toISOString(),
+                    stripeCustomerId: null,
+                    stripeSubscriptionId: null,
+                    currentPeriodEnd: null,
+                    cancelAtPeriodEnd: false
                 }
             }, { merge: true });
 
@@ -73,7 +87,7 @@ export const Onboarding: React.FC = () => {
                     displayName || user.email,
                     orgName,
                     role,
-                    `${window.location.origin}/dashboard`
+                    `${window.location.origin}/`
                 );
                 sendEmail(user, {
                     to: user.email,
@@ -104,15 +118,14 @@ export const Onboarding: React.FC = () => {
         try {
             // Update user onboarding status
             await setDoc(doc(db, 'users', user.uid), { onboardingCompleted: true }, { merge: true });
-            
+
             // Update local user state to unlock app access immediately for free plan
             // For paid plans, Stripe redirection happens, so state update is less critical here but good practice
             setUser({ ...user, onboardingCompleted: true });
 
             if (selectedPlan === 'discovery') {
-                // Free plan: Direct access
-                navigate('/dashboard');
-                window.location.reload(); // Force reload to clear onboarding state from App.tsx check
+                // Free plan: Direct access - use window.location to ensure clean state
+                window.location.href = '/';
             } else {
                 // Paid plan: Redirect to Stripe
                 await SubscriptionService.startSubscription(user.organizationId, selectedPlan, 'month'); // Default to monthly for onboarding
@@ -213,7 +226,7 @@ export const Onboarding: React.FC = () => {
                                     const plan = PLANS[planId as PlanType];
                                     const isSelected = selectedPlan === planId;
                                     return (
-                                        <div 
+                                        <div
                                             key={planId}
                                             onClick={() => setSelectedPlan(planId as PlanType)}
                                             className={`relative p-6 rounded-3xl border-2 cursor-pointer transition-all ${isSelected ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-900/20' : 'border-slate-200 dark:border-slate-700 hover:border-brand-200'}`}
@@ -235,7 +248,7 @@ export const Onboarding: React.FC = () => {
                                     )
                                 })}
                             </div>
-                            
+
                             <div className="pt-4 flex gap-3">
                                 <button onClick={() => setStep(1)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 transition-colors">
                                     Retour

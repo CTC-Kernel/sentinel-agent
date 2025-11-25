@@ -37,7 +37,7 @@ service cloud.firestore {
     
     // Organizations
     match /organizations/{orgId} {
-      allow read: if belongsToOrganization(orgId);
+      allow read: if belongsToOrganization(orgId) || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
       allow update: if canWrite(orgId);
       allow delete: if false;

@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, writeBatch, where, limit, onSnapshot } from 'firebase/firestore';
+import { createPortal } from 'react-dom';
+import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, writeBatch, where, limit, onSnapshot, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
@@ -100,9 +101,9 @@ export const Assets: React.FC = () => {
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
             ]);
 
-            const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
+            const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
                 if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
+                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() })) as unknown as T[];
                 }
                 return [];
             };
@@ -618,7 +619,7 @@ export const Assets: React.FC = () => {
             )}
 
             {/* Inspector Drawer */}
-            {(selectedAsset || (!selectedAsset && Object.keys(editForm).length > 0 && !loading && inspectorTab === 'details')) && (
+            {(selectedAsset || (!selectedAsset && Object.keys(editForm).length > 0 && !loading && inspectorTab === 'details')) && createPortal(
                 <div className="fixed inset-0 z-[9999] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm transition-opacity" onClick={() => { setSelectedAsset(null); setEditForm({}); }} />
                     <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
@@ -803,7 +804,8 @@ export const Assets: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

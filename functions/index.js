@@ -20,6 +20,12 @@ exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
     const userData = snap.data();
     const userId = event.params.userId;
 
+    // Validate organizationId before setting claims
+    if (!userData.organizationId) {
+        console.warn(`User ${userId} has no organizationId - skipping claims creation`);
+        return;
+    }
+
     try {
         // Set custom claims with organizationId and role
         await admin.auth().setCustomUserClaims(userId, {
@@ -49,6 +55,12 @@ exports.refreshUserToken = onCall(async (request) => {
 
         const userData = userDoc.data();
 
+        // Only update claims if user has an organizationId
+        if (!userData.organizationId) {
+            console.warn(`User ${uid} has no organizationId - skipping token refresh`);
+            return { success: false, message: 'User has no organization - onboarding required' };
+        }
+
         // Update custom claims
         await admin.auth().setCustomUserClaims(uid, {
             organizationId: userData.organizationId,
@@ -59,6 +71,56 @@ exports.refreshUserToken = onCall(async (request) => {
     } catch (error) {
         console.error('Error refreshing token:', error);
         throw new HttpsError('internal', 'Failed to refresh token: ' + error.message);
+    }
+});
+
+// Self-healing function for users stuck in onboarding
+exports.healMe = onCall(async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) return { success: false, error: 'Unauthenticated' };
+
+    try {
+        const db = admin.firestore();
+        const userRef = db.collection('users').doc(uid);
+        const userSnap = await userRef.get();
+
+        if (!userSnap.exists) return { success: false, error: 'User not found' };
+        const userData = userSnap.data();
+
+        // If already has org, just ensure claims
+        if (userData.organizationId) {
+            await admin.auth().setCustomUserClaims(uid, {
+                organizationId: userData.organizationId,
+                role: userData.role || 'user'
+            });
+            return { success: true, organizationId: userData.organizationId };
+        }
+
+        // Find org owned by user
+        const orgsSnap = await db.collection('organizations').where('ownerId', '==', uid).limit(1).get();
+
+        if (!orgsSnap.empty) {
+            const org = orgsSnap.docs[0];
+            const orgData = org.data();
+
+            await userRef.update({
+                organizationId: org.id,
+                organizationName: orgData.name,
+                onboardingCompleted: true
+            });
+
+            await admin.auth().setCustomUserClaims(uid, {
+                organizationId: org.id,
+                role: userData.role || 'user'
+            });
+
+            return { success: true, organizationId: org.id, restored: true };
+        }
+
+        return { success: false, error: 'No organization found' };
+    } catch (e) {
+        console.error('HealMe failed', e);
+        throw new HttpsError('internal', e.message);
     }
 });
 
@@ -77,6 +139,35 @@ exports.fixAllUsers = onCall(async (request) => {
         }
 
         console.log('Starting user migration...');
+
+        // 1. Create default organization if it doesn't exist
+        const defaultOrgId = 'default-organization';
+        const defaultOrgRef = admin.firestore().collection('organizations').doc(defaultOrgId);
+        const defaultOrgSnap = await defaultOrgRef.get();
+
+        if (!defaultOrgSnap.exists) {
+            console.log('Creating default organization...');
+            await defaultOrgRef.set({
+                id: defaultOrgId,
+                name: 'Organisation par Défaut',
+                slug: 'default-organization',
+                ownerId: 'system',
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                subscription: {
+                    planId: 'discovery',
+                    status: 'active',
+                    startDate: new Date().toISOString(),
+                    stripeCustomerId: null,
+                    stripeSubscriptionId: null,
+                    currentPeriodEnd: null,
+                    cancelAtPeriodEnd: false
+                }
+            });
+            console.log('Default organization created');
+        }
+
+        // 2. Fix users
         const usersSnapshot = await admin.firestore().collection('users').get();
         const results = {
             total: usersSnapshot.size,
@@ -96,12 +187,13 @@ exports.fixAllUsers = onCall(async (request) => {
 
                     // Add organizationId to Firestore
                     await userDoc.ref.update({
-                        organizationId: 'default-org'
+                        organizationId: defaultOrgId,
+                        organizationName: 'Organisation par Défaut'
                     });
 
                     // Set custom claims
                     await admin.auth().setCustomUserClaims(userId, {
-                        organizationId: 'default-org',
+                        organizationId: defaultOrgId,
                         role: userData.role || 'user'
                     });
 
@@ -250,12 +342,12 @@ exports.createPortalSession = onCall(async (request) => {
     }
 
     const { organizationId, returnUrl } = request.data;
-    
+
     if (!organizationId) {
         console.error("No organizationId provided");
         throw new HttpsError("invalid-argument", "Organization ID is required");
     }
-    
+
     console.log(`Fetching organization: ${organizationId}`);
     const orgRef = admin.firestore().collection("organizations").doc(organizationId);
     const orgSnap = await orgRef.get();
@@ -266,7 +358,7 @@ exports.createPortalSession = onCall(async (request) => {
     }
 
     const orgData = orgSnap.data();
-    
+
     // Check if user is admin or owner
     const userRef = admin.firestore().collection("users").doc(request.auth.uid);
     const userSnap = await userRef.get();

@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Search, Command, LayoutDashboard, Siren, FolderKanban, Server, ShieldAlert, Building, Briefcase, FileText, Activity, Users, Settings, ArrowRight, Fingerprint, HelpCircle, HeartPulse, Plus, Zap } from '../ui/Icons';
 import { collection, getDocs, limit, query, where } from 'firebase/firestore';
@@ -93,7 +94,7 @@ export const CommandPalette: React.FC = () => {
                 const orgId = user.organizationId;
                 try {
                     const items: CommandItem[] = [];
-                    
+
                     // Fetch Assets
                     const assetsSnap = await getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId), limit(10)));
                     assetsSnap.forEach(doc => items.push({
@@ -177,17 +178,17 @@ export const CommandPalette: React.FC = () => {
             return;
         }
         const lowerQuery = queryStr.toLowerCase();
-        
+
         const actionResults = ACTION_ITEMS.filter(item =>
             item.title.toLowerCase().includes(lowerQuery)
         );
 
-        const navResults = NAVIGATION_ITEMS.filter(item => 
+        const navResults = NAVIGATION_ITEMS.filter(item =>
             item.title.toLowerCase().includes(lowerQuery)
         );
 
-        const dbResults = dbItems.filter(item => 
-            item.title.toLowerCase().includes(lowerQuery) || 
+        const dbResults = dbItems.filter(item =>
+            item.title.toLowerCase().includes(lowerQuery) ||
             (item.subtitle && item.subtitle.toLowerCase().includes(lowerQuery))
         );
 
@@ -206,23 +207,23 @@ export const CommandPalette: React.FC = () => {
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] px-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={() => setIsOpen(false)} />
-            
+
             <div className="relative w-full max-w-2xl glass-panel rounded-2xl shadow-2xl overflow-hidden animate-scale-in flex flex-col border border-white/20 dark:border-white/10">
                 <div className="flex items-center px-4 py-4 border-b border-gray-200/50 dark:border-white/10 bg-white/50 dark:bg-white/5">
                     <Search className="h-5 w-5 text-slate-400 mr-3" />
-                    <input 
-                        type="text" 
-                        placeholder="Rechercher ou exécuter une commande..." 
+                    <input
+                        type="text"
+                        placeholder="Rechercher ou exécuter une commande..."
                         className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-slate-900 dark:text-white placeholder-slate-400 outline-none font-medium"
                         value={queryStr}
                         onChange={e => setQueryStr(e.target.value)}
                         autoFocus
                     />
                     <div className="hidden sm:flex items-center gap-2">
-                         {loading && <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>}
+                        {loading && <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>}
                         <kbd className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-white/10 rounded-md text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider shadow-sm border border-gray-200 dark:border-white/5">
                             ESC
                         </kbd>
@@ -238,21 +239,19 @@ export const CommandPalette: React.FC = () => {
                     ) : (
                         <div className="space-y-1">
                             {filteredItems.map((item, index) => (
-                                <button 
+                                <button
                                     key={item.id}
                                     onClick={() => handleSelect(item)}
                                     onMouseEnter={() => setSelectedIndex(index)}
-                                    className={`w-full flex items-center px-4 py-3.5 rounded-xl group transition-all duration-200 ${
-                                        index === selectedIndex 
-                                        ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-[1.01]' 
-                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
-                                    }`}
+                                    className={`w-full flex items-center px-4 py-3.5 rounded-xl group transition-all duration-200 ${index === selectedIndex
+                                            ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 scale-[1.01]'
+                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                                        }`}
                                 >
-                                    <div className={`p-2 rounded-lg mr-4 transition-colors ${
-                                        index === selectedIndex 
-                                        ? 'bg-white/20 text-white' 
-                                        : 'bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-gray-100 dark:border-white/5 shadow-sm'
-                                    }`}>
+                                    <div className={`p-2 rounded-lg mr-4 transition-colors ${index === selectedIndex
+                                            ? 'bg-white/20 text-white'
+                                            : 'bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-gray-100 dark:border-white/5 shadow-sm'
+                                        }`}>
                                         <item.icon className="h-5 w-5" />
                                     </div>
                                     <div className="flex-1 text-left">
@@ -260,11 +259,10 @@ export const CommandPalette: React.FC = () => {
                                         {item.subtitle && <span className={`text-xs block mt-0.5 ${index === selectedIndex ? 'text-white/80' : 'text-slate-400'}`}>{item.subtitle}</span>}
                                     </div>
                                     <div className="flex items-center">
-                                        <span className={`text-[10px] uppercase tracking-wider font-bold mr-3 px-2 py-0.5 rounded-md ${
-                                            index === selectedIndex 
-                                            ? 'bg-white/20 text-white' 
-                                            : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'
-                                        }`}>{item.category}</span>
+                                        <span className={`text-[10px] uppercase tracking-wider font-bold mr-3 px-2 py-0.5 rounded-md ${index === selectedIndex
+                                                ? 'bg-white/20 text-white'
+                                                : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'
+                                            }`}>{item.category}</span>
                                         <ArrowRight className={`h-4 w-4 transition-transform duration-300 ${index === selectedIndex ? 'text-white translate-x-1' : 'text-slate-300 opacity-0 group-hover:opacity-100'}`} />
                                     </div>
                                 </button>
@@ -272,15 +270,16 @@ export const CommandPalette: React.FC = () => {
                         </div>
                     )}
                 </div>
-                
+
                 <div className="px-4 py-3 bg-gray-50/80 dark:bg-black/60 border-t border-gray-200/50 dark:border-white/5 flex justify-between items-center text-[10px] font-medium text-slate-400 uppercase tracking-wider backdrop-blur-sm">
-                     <span className="flex items-center"><Zap className="h-3 w-3 mr-1.5 text-amber-500"/> Sentinel GRC</span>
-                     <div className="flex gap-4 items-center">
-                         <span className="flex items-center"><ArrowRight className="h-3 w-3 mr-1"/> Sélectionner</span>
-                         <span className="flex items-center"><Command className="h-3 w-3 mr-1"/> K pour ouvrir</span>
-                     </div>
+                    <span className="flex items-center"><Zap className="h-3 w-3 mr-1.5 text-amber-500" /> Sentinel GRC</span>
+                    <div className="flex gap-4 items-center">
+                        <span className="flex items-center"><ArrowRight className="h-3 w-3 mr-1" /> Sélectionner</span>
+                        <span className="flex items-center"><Command className="h-3 w-3 mr-1" /> K pour ouvrir</span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
