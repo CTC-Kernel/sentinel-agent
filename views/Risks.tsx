@@ -179,8 +179,7 @@ export const Risks: React.FC = () => {
         if (!selectedRisk || !canEdit || !user?.organizationId) return;
         try {
             const newRiskData = { ...selectedRisk, threat: `${selectedRisk.threat} (Copie)`, createdAt: new Date().toISOString() };
-            const { id: _id, ...dataToUpdate } = newRiskData;
-            const docRef = await addDoc(collection(db, 'risks'), { ...newRiskData, organizationId: user.organizationId });
+            await addDoc(collection(db, 'risks'), { ...newRiskData, organizationId: user.organizationId });
             await logAction(user, 'CREATE', 'Risk', `Duplication Risque: ${newRiskData.threat}`);
             addToast("Risque dupliqué", "success");
             fetchData();
@@ -190,14 +189,13 @@ export const Risks: React.FC = () => {
     const initiateDelete = async (id: string, threat: string) => {
         if (!canEdit) return;
         const incQ = query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId), where('relatedRiskId', '==', id));
-        const projQ = query(collection(db, 'projects'), where('organizationId', '==', user?.organizationId));
+        const projQ = query(collection(db, 'projects'), where('organizationId', '==', user?.organizationId), where('relatedRiskIds', 'array-contains', id));
 
         try {
             const [incSnap, projSnap] = await Promise.all([getDocs(incQ), getDocs(projQ)]);
-            const linkedProjects = projSnap.docs.filter(d => d.data().relatedRiskIds?.includes(id));
 
-            if (!incSnap.empty || linkedProjects.length > 0) {
-                addToast(`Impossible de supprimer : Lié à ${incSnap.size} incidents et ${linkedProjects.length} projets.`, "error");
+            if (!incSnap.empty || !projSnap.empty) {
+                addToast(`Impossible de supprimer : Lié à ${incSnap.size} incidents et ${projSnap.size} projets.`, "error");
                 return;
             }
             setConfirmData({ isOpen: true, title: "Supprimer le risque ?", message: `Cette action est irréversible.`, onConfirm: () => handleDeleteRisk(id, threat) });
@@ -392,7 +390,9 @@ export const Risks: React.FC = () => {
             <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div className="flex items-center space-x-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 border border-slate-200 dark:border-white/5"><Search className="h-5 w-5 text-gray-400" /><input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
                 <div className="flex gap-2">
+                    <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                     <button onClick={generateRTP} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Download className="h-4 w-4 mr-2" /> RTP (PDF)</button>
+                    <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>
                     <button onClick={handleExportCSV} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"><FileSpreadsheet className="h-4 w-4" /></button>
                     <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm ml-2"><button onClick={() => setViewMode('list')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'list' ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-700'}`}>Liste</button><button onClick={() => setViewMode('matrix')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center ${viewMode === 'matrix' ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-700'}`}><LayoutDashboard className="h-4 w-4 mr-2" /> Matrice</button></div>
                 </div>

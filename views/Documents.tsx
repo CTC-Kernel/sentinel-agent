@@ -1,10 +1,10 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Document, UserProfile, SystemLog, Control, Asset, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Save, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, AlertTriangle, CalendarDays } from '../components/ui/Icons';
+import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Save, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, CalendarDays } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { sendEmail } from '../services/emailService';
@@ -225,17 +225,31 @@ export const Documents: React.FC = () => {
             // Check Controls (evidence)
             const linkedControls = controls.filter(c => c.evidenceIds?.includes(id));
 
-            // Check Suppliers (contracts) - Need to query as not in local state
+            // Check Suppliers (contracts)
             const suppliersQ = query(collection(db, 'suppliers'), where('organizationId', '==', user?.organizationId), where('contractDocumentId', '==', id));
-            const suppliersSnap = await getDocs(suppliersQ);
 
-            if (linkedControls.length > 0 || !suppliersSnap.empty) {
+            // Check Business Processes (DRP)
+            const bcpQ = query(collection(db, 'business_processes'), where('organizationId', '==', user?.organizationId), where('drpDocumentId', '==', id));
+
+            // Check Findings (evidence)
+            const findingsQ = query(collection(db, 'findings'), where('organizationId', '==', user?.organizationId), where('evidenceIds', 'array-contains', id));
+
+            const [suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
+                getDocs(suppliersQ),
+                getDocs(bcpQ),
+                getDocs(findingsQ)
+            ]);
+
+            if (linkedControls.length > 0 || !suppliersSnap.empty || !bcpSnap.empty || !findingsSnap.empty) {
                 const controlNames = linkedControls.map(c => c.code).join(', ');
                 const supplierNames = suppliersSnap.docs.map(d => d.data().name).join(', ');
+                const bcpNames = bcpSnap.docs.map(d => d.data().name).join(', ');
 
                 let msg = "Impossible de supprimer ce document car il est utilisé :";
                 if (linkedControls.length > 0) msg += `\n- Preuve pour ${linkedControls.length} contrôle(s) (${controlNames})`;
                 if (!suppliersSnap.empty) msg += `\n- Contrat pour ${suppliersSnap.size} fournisseur(s) (${supplierNames})`;
+                if (!bcpSnap.empty) msg += `\n- DRP pour ${bcpSnap.size} processus (${bcpNames})`;
+                if (!findingsSnap.empty) msg += `\n- Preuve pour ${findingsSnap.size} constat(s) d'audit`;
 
                 addToast(msg, "error");
                 return;
@@ -566,12 +580,11 @@ export const Documents: React.FC = () => {
                                                         <button onClick={sendReviewReminder} className="w-full py-3 bg-slate-50 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center border border-slate-200 dark:border-white/5">
                                                             <Bell className="h-3.5 w-3.5 mr-2" /> Envoyer rappel de révision
                                                         </button>
-                                                        <button onClick={() => selectedDocument.nextReviewDate && generateICS({
+                                                        <button onClick={() => selectedDocument.nextReviewDate && generateICS([{
                                                             title: `Révision : ${selectedDocument.title}`,
                                                             description: `Révision du document ${selectedDocument.title} (v${selectedDocument.version})`,
-                                                            start: new Date(selectedDocument.nextReviewDate),
-                                                            url: window.location.href
-                                                        })} className="w-full mt-2 py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-center border border-slate-200 dark:border-white/5">
+                                                            startDate: new Date(selectedDocument.nextReviewDate)
+                                                        }])} className="w-full mt-2 py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-center border border-slate-200 dark:border-white/5">
                                                             <CalendarDays className="h-3.5 w-3.5 mr-2" /> Ajouter au calendrier
                                                         </button>
                                                     </div>

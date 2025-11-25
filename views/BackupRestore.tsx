@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, deleteDoc, doc, getDoc } from 'firebase/firestore';
-import { ref, getDownloadURL } from 'firebase/storage';
-import { db, storage, auth } from '../firebase';
 import { BackupService, BackupConfig, BackupMetadata, RestoreConfig } from '../services/backupService';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -11,16 +8,16 @@ import {
   Upload,
   Trash2,
   RefreshCw,
+  Calendar,
   CalendarDays,
   Database,
   CheckCircle2,
   AlertTriangle,
   Clock,
   FileText,
-  Settings,
-  Eye,
-  AlertCircle
+  HelpCircle
 } from '../components/ui/Icons';
+import { OnboardingService } from '../services/onboardingService';
 
 export const BackupRestore: React.FC = () => {
   const [backups, setBackups] = useState<BackupMetadata[]>([]);
@@ -29,6 +26,7 @@ export const BackupRestore: React.FC = () => {
   const [restoring, setRestoring] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<BackupMetadata | null>(null);
   const [stats, setStats] = useState<{ totalBackups: number; totalSize: number; lastBackup?: string }>({ totalBackups: 0, totalSize: 0 });
   const { user, addToast } = useStore();
@@ -68,13 +66,16 @@ export const BackupRestore: React.FC = () => {
   });
 
   useEffect(() => {
-    loadBackups();
-    loadStats();
-  }, []);
+    if (user?.organizationId) {
+      loadBackups();
+      loadStats();
+    }
+  }, [user?.organizationId]);
 
   const loadBackups = async () => {
+    if (!user?.organizationId) return;
     try {
-      const backupsList = await BackupService.listBackups();
+      const backupsList = await BackupService.listBackups(user.organizationId);
       setBackups(backupsList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     } catch (error) {
       addToast('Erreur chargement backups', 'error');
@@ -84,8 +85,9 @@ export const BackupRestore: React.FC = () => {
   };
 
   const loadStats = async () => {
+    if (!user?.organizationId) return;
     try {
-      const backupStats = await BackupService.getBackupStats();
+      const backupStats = await BackupService.getBackupStats(user.organizationId);
       setStats(backupStats);
     } catch (error) {
       // Error handled by toast
@@ -97,7 +99,7 @@ export const BackupRestore: React.FC = () => {
 
     setCreatingBackup(true);
     try {
-      const backupId = await BackupService.createBackup(backupConfig);
+      await BackupService.createBackup(user, backupConfig);
       addToast('Backup créé avec succès', 'success');
       setShowCreateModal(false);
       loadBackups();
@@ -109,12 +111,23 @@ export const BackupRestore: React.FC = () => {
     }
   };
 
+  const handleScheduleBackup = async (frequency: 'daily' | 'weekly' | 'monthly') => {
+    if (!user) return;
+    try {
+      await BackupService.scheduleBackup(user, backupConfig, frequency);
+      addToast(`Backup programmé (${frequency})`, 'success');
+      setShowScheduleModal(false);
+    } catch (error) {
+      addToast('Erreur lors de la programmation', 'error');
+    }
+  };
+
   const handleRestoreBackup = async () => {
     if (!user || !selectedBackup) return;
 
     setRestoring(true);
     try {
-      const result = await BackupService.restoreBackup(restoreConfig);
+      const result = await BackupService.restoreBackup(user, restoreConfig);
 
       if (result.success) {
         addToast('Restauration terminée avec succès', 'success');
@@ -132,8 +145,9 @@ export const BackupRestore: React.FC = () => {
   };
 
   const handleDeleteBackup = async (backupId: string) => {
+    if (!user) return;
     try {
-      await BackupService.deleteBackup(backupId);
+      await BackupService.deleteBackup(user, backupId);
       addToast('Backup supprimé avec succès', 'success');
       loadBackups();
       loadStats();
@@ -143,8 +157,9 @@ export const BackupRestore: React.FC = () => {
   };
 
   const handleDownloadBackup = async (backupId: string) => {
+    if (!user) return;
     try {
-      const url = await BackupService.getBackupUrl(backupId);
+      const url = await BackupService.getBackupUrl(user, backupId);
       const link = document.createElement('a');
       link.href = url;
       link.download = `backup_${backupId}.json`;
@@ -253,12 +268,28 @@ export const BackupRestore: React.FC = () => {
           Créer un backup
         </button>
         <button
+          onClick={() => setShowScheduleModal(true)}
+          className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          data-tour="backup-schedule"
+        >
+          <CalendarDays className="h-4 w-4 mr-2" />
+          Planifier
+        </button>
+        <button
           onClick={() => setShowRestoreModal(true)}
           className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           disabled={backups.length === 0}
+          data-tour="backup-restore"
         >
           <Download className="h-4 w-4 mr-2" />
           Restaurer
+        </button>
+        <button
+          onClick={() => OnboardingService.startBackupTour()}
+          className="flex items-center px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 ml-auto"
+        >
+          <HelpCircle className="h-4 w-4 mr-2" />
+          Aide
         </button>
       </div>
 
@@ -387,6 +418,57 @@ export const BackupRestore: React.FC = () => {
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
               >
                 {creatingBackup ? 'Création...' : 'Créer le backup'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de planification */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-6 border-b">
+              <h2 className="text-xl font-semibold">Planifier des sauvegardes</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-gray-600 text-sm">Choisissez la fréquence des sauvegardes automatiques. Les sauvegardes incluront toutes les collections sélectionnées par défaut.</p>
+              <div className="grid grid-cols-1 gap-3">
+                <button onClick={() => handleScheduleBackup('daily')} className="p-4 border rounded-xl hover:bg-blue-50 hover:border-blue-200 flex items-center justify-between group transition-colors">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg mr-3"><Clock className="h-5 w-5" /></div>
+                    <div className="text-left">
+                      <p className="font-bold text-gray-900">Quotidien</p>
+                      <p className="text-xs text-gray-500">Tous les jours à minuit</p>
+                    </div>
+                  </div>
+                </button>
+                <button onClick={() => handleScheduleBackup('weekly')} className="p-4 border rounded-xl hover:bg-purple-50 hover:border-purple-200 flex items-center justify-between group transition-colors">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-purple-100 text-purple-600 rounded-lg mr-3"><CalendarDays className="h-5 w-5" /></div>
+                    <div className="text-left">
+                      <p className="font-bold text-gray-900">Hebdomadaire</p>
+                      <p className="text-xs text-gray-500">Tous les lundis</p>
+                    </div>
+                  </div>
+                </button>
+                <button onClick={() => handleScheduleBackup('monthly')} className="p-4 border rounded-xl hover:bg-green-50 hover:border-green-200 flex items-center justify-between group transition-colors">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-green-100 text-green-600 rounded-lg mr-3"><Calendar className="h-5 w-5" /></div>
+                    <div className="text-left">
+                      <p className="font-bold text-gray-900">Mensuel</p>
+                      <p className="text-xs text-gray-500">Le 1er du mois</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+            <div className="p-6 border-t flex justify-end">
+              <button
+                onClick={() => setShowScheduleModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-900"
+              >
+                Fermer
               </button>
             </div>
           </div>

@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, Upload, AlertTriangle, History, X, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Activity, Clock, Copy, Euro, TrendingDown, FolderKanban, CheckSquare, Link } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, AlertTriangle, History, X, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Clock, Copy, Euro, FolderKanban, CheckSquare, Link, Network } from '../components/ui/Icons';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -24,7 +24,6 @@ export const Assets: React.FC = () => {
     const [assets, setAssets] = useState<Asset[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('');
     const { user, addToast } = useStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -203,7 +202,6 @@ export const Assets: React.FC = () => {
         if (!selectedAsset || !canEdit || !user?.organizationId) return;
         try {
             const newAssetData = { ...selectedAsset, name: `${selectedAsset.name} (Copie)`, createdAt: new Date().toISOString() };
-            const { id: _id, ...dataToUpdate } = newAssetData;
             const docRef = await addDoc(collection(db, 'assets'), newAssetData);
             await logAction(user, 'CREATE', 'Asset', `Duplication Actif: ${newAssetData.name}`);
             addToast("Actif dupliqué", "success");
@@ -243,7 +241,7 @@ export const Assets: React.FC = () => {
         setLoading(true);
         setImportWizardOpen(false);
         try {
-            const lines = importPreview.split('\n').slice(1).filter(line => line.trim() !== ''); // Use full file content in real app, here using preview for simplicity or need to store full content
+            // Use full file content in real app, here using preview for simplicity or need to store full content
             // Re-read file or store full content in state? Storing full content in state might be heavy. 
             // For this demo, let's assume the user re-uploads or we store it. 
             // Actually, let's just use the file input ref to read again or store the text.
@@ -376,10 +374,27 @@ export const Assets: React.FC = () => {
         if (!canEdit) return;
         const risksQ = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('assetId', '==', id));
         const incQ = query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId), where('affectedAssetId', '==', id));
-        const [rSnap, iSnap] = await Promise.all([getDocs(risksQ), getDocs(incQ)]);
+        const projQ = query(collection(db, 'projects'), where('organizationId', '==', user?.organizationId), where('relatedAssetIds', 'array-contains', id));
+        const auditQ = query(collection(db, 'audits'), where('organizationId', '==', user?.organizationId), where('relatedAssetIds', 'array-contains', id));
+        const bcpQ = query(collection(db, 'business_processes'), where('organizationId', '==', user?.organizationId), where('supportingAssetIds', 'array-contains', id));
 
-        if (!rSnap.empty || !iSnap.empty) {
-            return addToast(`Impossible de supprimer: lié à ${rSnap.size} risques et ${iSnap.size} incidents.`, "error");
+        const [rSnap, iSnap, pSnap, aSnap, bSnap] = await Promise.all([
+            getDocs(risksQ),
+            getDocs(incQ),
+            getDocs(projQ),
+            getDocs(auditQ),
+            getDocs(bcpQ)
+        ]);
+
+        if (!rSnap.empty || !iSnap.empty || !pSnap.empty || !aSnap.empty || !bSnap.empty) {
+            let msg = "Impossible de supprimer cet actif car il est lié à :";
+            if (!rSnap.empty) msg += `\n- ${rSnap.size} risque(s)`;
+            if (!iSnap.empty) msg += `\n- ${iSnap.size} incident(s)`;
+            if (!pSnap.empty) msg += `\n- ${pSnap.size} projet(s)`;
+            if (!aSnap.empty) msg += `\n- ${aSnap.size} audit(s)`;
+            if (!bSnap.empty) msg += `\n- ${bSnap.size} processus métier`;
+
+            return addToast(msg, "error");
         }
         setConfirmData({ isOpen: true, title: "Supprimer l'actif ?", message: `Voulez-vous vraiment supprimer "${name}" ?`, onConfirm: () => handleDeleteAsset(id, name) });
     };
@@ -536,9 +551,9 @@ export const Assets: React.FC = () => {
                                         <EmptyState
                                             icon={Server}
                                             title="Aucun actif trouvé"
-                                            description={filter ? "Aucun actif ne correspond à votre recherche." : "Commencez par ajouter votre premier actif pour suivre votre parc."}
-                                            actionLabel={filter ? undefined : "Nouvel Actif"}
-                                            onAction={filter ? undefined : () => openInspector(undefined)}
+                                            description={activeFilters.query ? "Aucun actif ne correspond à votre recherche." : "Commencez par ajouter votre premier actif pour suivre votre parc."}
+                                            actionLabel={activeFilters.query ? undefined : "Nouvel Actif"}
+                                            onAction={activeFilters.query ? undefined : () => openInspector(undefined)}
                                         />
                                     </td>
                                 </tr>

@@ -1,10 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
-import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, limit, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, limit, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, ProjectMilestone, ProjectTemplate } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, MoreHorizontal, Clock, Trash2, FolderKanban, Search, ShieldAlert, FileText, FileSpreadsheet, Target, Edit, X, History, MessageSquare, Save, LayoutDashboard, ListTodo, Download, Copy, Zap } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, MoreHorizontal, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, X, History, MessageSquare, Save, LayoutDashboard, Download, Copy, Zap } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
@@ -201,9 +201,8 @@ export const Projects: React.FC = () => {
                 progress: 0,
                 tasks: selectedProject.tasks.map(t => ({ ...t, status: 'A faire', id: Date.now() + Math.random().toString() })) // Reset tasks
             };
-            const { id: _id, ...dataToUpdate } = newProjData;
 
-            const docRef = await addDoc(collection(db, 'projects'), newProjData);
+            await addDoc(collection(db, 'projects'), newProjData);
             await logAction(user, 'CREATE', 'Project', `Duplication Projet: ${newProjData.name}`);
             addToast("Projet dupliqué", "success");
             fetchData();
@@ -227,15 +226,6 @@ export const Projects: React.FC = () => {
             setSelectedProject(null);
             addToast("Projet supprimé", "info");
         } catch (e) { addToast("Erreur suppression", "error"); }
-    };
-
-    const addTask = async (taskTitle: string) => {
-        if (!canEdit || !selectedProject) return;
-        if (!taskTitle.trim()) return;
-
-        const newTask: ProjectTask = { id: Date.now().toString(), title: taskTitle, status: 'A faire', dueDate: '' };
-        const updatedTasks = [...(selectedProject.tasks || []), newTask];
-        updateTasks(updatedTasks);
     };
 
     const toggleTaskStatus = async (taskId: string) => {

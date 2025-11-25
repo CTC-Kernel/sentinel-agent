@@ -620,13 +620,36 @@ export class IncidentPlaybookService {
     return `${hours}h ${minutes}m`;
   }
 
-  private static async getCommonCategories(responses: IncidentResponse[]): Promise<any> {
-    // Implementation to get most common incident categories
-    return {};
+  private static async getCommonCategories(responses: IncidentResponse[]): Promise<Record<string, number>> {
+    const categories: Record<string, number> = {};
+    const playbookCache: Record<string, IncidentPlaybook> = {};
+
+    for (const response of responses) {
+      let playbook = playbookCache[response.playbookId];
+      if (!playbook) {
+        const fetched = await this.getPlaybook(response.playbookId);
+        if (fetched) {
+          playbook = fetched;
+          playbookCache[response.playbookId] = fetched;
+        }
+      }
+
+      if (playbook) {
+        const category = playbook.category || 'Autre';
+        categories[category] = (categories[category] || 0) + 1;
+      }
+    }
+
+    return categories;
   }
 
   private static calculateEscalationRate(responses: IncidentResponse[]): number {
-    // Implementation to calculate escalation rate
-    return 0;
+    if (responses.length === 0) return 0;
+
+    const escalatedCount = responses.filter(r =>
+      r.timeline.some(event => event.type === 'escalation')
+    ).length;
+
+    return Math.round((escalatedCount / responses.length) * 100);
   }
 }

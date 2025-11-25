@@ -5,7 +5,6 @@ import 'driver.js/dist/driver.css';
  * Service pour gérer le tour guidé interactif
  */
 export class OnboardingService {
-    private static driverInstance: ReturnType<typeof driver> | null = null;
 
     /**
      * Initialise et démarre le tour guidé principal
@@ -81,7 +80,7 @@ export class OnboardingService {
             }
         });
 
-        this.driverInstance = driverObj;
+
         driverObj.drive();
     }
 
@@ -234,6 +233,89 @@ export class OnboardingService {
             ]
         });
 
+        driverObj.drive();
+    }
+    /**
+     * Tour guidé pour le module Analytics
+     */
+    static startAnalyticsTour() {
+        const driverObj = driver({
+            showProgress: true,
+            steps: [
+                {
+                    element: '[data-tour="analytics-trends"]',
+                    popover: {
+                        title: '📈 Tendances Historiques',
+                        description: 'Analysez l\'évolution de vos risques et de votre conformité sur les 30 derniers jours.',
+                        side: 'bottom'
+                    }
+                },
+                {
+                    element: '[data-tour="analytics-kpi"]',
+                    popover: {
+                        title: '🎯 KPIs Clés',
+                        description: 'Suivez les indicateurs de performance essentiels pour votre gouvernance.',
+                        side: 'bottom'
+                    }
+                }
+            ]
+        });
+        driverObj.drive();
+    }
+
+    /**
+     * Tour guidé pour le module Incidents
+     */
+    static startIncidentsTour() {
+        const driverObj = driver({
+            showProgress: true,
+            steps: [
+                {
+                    element: '[data-tour="incidents-timeline"]',
+                    popover: {
+                        title: '⏱️ Timeline Visuelle',
+                        description: 'Suivez le cycle de vie de chaque incident étape par étape.',
+                        side: 'left'
+                    }
+                },
+                {
+                    element: '[data-tour="incidents-playbook"]',
+                    popover: {
+                        title: '📖 Playbooks',
+                        description: 'Accédez aux procédures de réponse standardisées pour chaque type d\'incident.',
+                        side: 'bottom'
+                    }
+                }
+            ]
+        });
+        driverObj.drive();
+    }
+
+    /**
+     * Tour guidé pour le module Backup
+     */
+    static startBackupTour() {
+        const driverObj = driver({
+            showProgress: true,
+            steps: [
+                {
+                    element: '[data-tour="backup-schedule"]',
+                    popover: {
+                        title: '📅 Planification',
+                        description: 'Configurez des sauvegardes automatiques quotidiennes, hebdomadaires ou mensuelles.',
+                        side: 'bottom'
+                    }
+                },
+                {
+                    element: '[data-tour="backup-restore"]',
+                    popover: {
+                        title: '↺ Restauration',
+                        description: 'Restaurez vos données à partir d\'un point de sauvegarde précédent en un clic.',
+                        side: 'top'
+                    }
+                }
+            ]
+        });
         driverObj.drive();
     }
 }
