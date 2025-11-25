@@ -206,6 +206,7 @@ export const VoxelView: React.FC = () => {
     const target = orderedNodes[nextIndex];
     if (target) {
       applyFocus(target.id, target.type as LayerType);
+      setIsDetailMinimized(false);
     }
   };
 
@@ -473,17 +474,17 @@ export const VoxelView: React.FC = () => {
   // Helper to convert Firestore Timestamps to ISO strings
   const convertTimestamps = (obj: any): any => {
     if (!obj || typeof obj !== 'object') return obj;
-    
+
     // Handle Firestore Timestamp
     if (obj.seconds !== undefined && obj.nanoseconds !== undefined) {
       return new Date(obj.seconds * 1000).toISOString();
     }
-    
+
     // Handle arrays
     if (Array.isArray(obj)) {
       return obj.map(item => convertTimestamps(item));
     }
-    
+
     // Handle objects recursively
     const converted: any = {};
     for (const key in obj) {
@@ -537,9 +538,11 @@ export const VoxelView: React.FC = () => {
   }, [user?.organizationId, addToast]);
 
   const handleNodeClick = (node: any) => {
+    if (selectedNode?.id !== node?.id) {
+      setIsDetailMinimized(false);
+    }
     setSelectedNode(node);
     setFocusedNodeId(node?.id ?? null);
-    setIsDetailMinimized(false);
   };
 
   const handleRefresh = () => {
@@ -729,7 +732,7 @@ export const VoxelView: React.FC = () => {
         )}
 
         {/* Sidebar Navigation (Available in all modes) */}
-        <aside className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-100'} bg-slate-950/95 border-l border-white/10 backdrop-blur-xl z-30 p-4 overflow-hidden transition-all duration-300 flex flex-col`}>
+        <aside className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-100'} bg-slate-950/95 border-l border-white/10 backdrop-blur-xl z-[90] p-4 overflow-hidden transition-all duration-300 flex flex-col`}>
           <div className="flex items-center justify-between text-white mb-4 shrink-0">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold">Explorateur</span>
@@ -1183,7 +1186,7 @@ export const VoxelView: React.FC = () => {
           {selectedNode ? (
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-white/10">
+                <div className="p-2 rounded-xl bg-white/10 w-12 h-12 flex items-center justify-center shrink-0">
                   {silhouetteMap[selectedNode.type]}
                 </div>
                 <div>
