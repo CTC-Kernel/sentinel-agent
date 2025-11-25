@@ -531,7 +531,10 @@ export const Settings: React.FC = () => {
     };
 
     const handleManageSubscription = async () => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId) {
+            addToast("Aucune organisation associée à votre compte", "error");
+            return;
+        }
         setSubLoading(true);
         try {
             if (currentOrg?.subscription?.planId === 'discovery') {
@@ -539,8 +542,10 @@ export const Settings: React.FC = () => {
             } else {
                 await SubscriptionService.manageSubscription(user.organizationId);
             }
-        } catch (_e) {
-            addToast("Impossible d'accéder à la gestion de l'abonnement", "error");
+        } catch (error: any) {
+            console.error("Error managing subscription:", error);
+            const errorMessage = error?.message || "Impossible d'accéder à la gestion de l'abonnement";
+            addToast(errorMessage, "error");
         } finally {
             setSubLoading(false);
         }
