@@ -37,14 +37,14 @@ exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
 exports.refreshUserToken = onCall(async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
-        throw new Error('User not authenticated');
+        throw new HttpsError('unauthenticated', 'User not authenticated');
     }
 
     try {
         // Get user data from Firestore
         const userDoc = await admin.firestore().collection('users').doc(uid).get();
         if (!userDoc.exists) {
-            throw new Error('User document not found');
+            throw new HttpsError('not-found', 'User document not found');
         }
 
         const userData = userDoc.data();
@@ -58,7 +58,7 @@ exports.refreshUserToken = onCall(async (request) => {
         return { success: true, message: 'Token refreshed successfully' };
     } catch (error) {
         console.error('Error refreshing token:', error);
-        throw new Error('Failed to refresh token');
+        throw new HttpsError('internal', 'Failed to refresh token: ' + error.message);
     }
 });
 
@@ -66,14 +66,14 @@ exports.refreshUserToken = onCall(async (request) => {
 exports.fixAllUsers = onCall(async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
-        throw new Error('User not authenticated');
+        throw new HttpsError('unauthenticated', 'User not authenticated');
     }
 
     try {
         // Check if caller is admin
         const callerDoc = await admin.firestore().collection('users').doc(uid).get();
         if (!callerDoc.exists || callerDoc.data().role !== 'admin') {
-            throw new Error('Only admins can run this function');
+            throw new HttpsError('permission-denied', 'Only admins can run this function');
         }
 
         console.log('Starting user migration...');
@@ -125,7 +125,7 @@ exports.fixAllUsers = onCall(async (request) => {
         return { success: true, results };
     } catch (error) {
         console.error('Error in fixAllUsers:', error);
-        throw new Error('Migration failed: ' + error.message);
+        throw new HttpsError('internal', 'Migration failed: ' + error.message);
     }
 });
 
@@ -258,9 +258,14 @@ exports.createPortalSession = onCall(async (request) => {
     }
 
     const orgData = orgSnap.data();
+    
+    // Check if user is admin or owner
+    const userRef = admin.firestore().collection("users").doc(request.auth.uid);
+    const userSnap = await userRef.get();
+    const userData = userSnap.data();
 
-    if (orgData.ownerId !== request.auth.uid) {
-        throw new HttpsError("permission-denied", "Not authorized.");
+    if (orgData.ownerId !== request.auth.uid && userData?.role !== 'admin') {
+        throw new HttpsError("permission-denied", "Only admins or owners can access billing portal.");
     }
 
     const customerId = orgData.subscription?.stripeCustomerId;
