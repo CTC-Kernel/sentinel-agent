@@ -345,10 +345,10 @@ export const Dashboard: React.FC = () => {
                     <div className="hidden lg:block w-48 h-48 cursor-pointer" onClick={() => navigate('/compliance')} title="Voir le détail par domaine">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                                <PolarGrid stroke="rgba(100,116,139,0.2)" className="dark:stroke-slate-700" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgb(100,116,139)', fontSize: 10, fontWeight: 'bold' }} className="dark:fill-slate-400" />
+                                <PolarGrid stroke="currentColor" className="text-slate-300 dark:text-slate-700 opacity-50" />
+                                <PolarAngleAxis dataKey="subject" tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 'bold' }} className="text-slate-500 dark:text-slate-400" />
                                 <RechartsRadar name="Maturité" dataKey="A" stroke="#3b82f6" strokeWidth={3} fill="#3b82f6" fillOpacity={0.3} />
-                                <Tooltip contentStyle={{ backgroundColor: 'rgb(30,41,59)', borderRadius: '10px', border: 'none', color: '#fff' }} itemStyle={{ color: '#fff' }} />
+                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderRadius: '10px', border: 'none', color: '#fff' }} itemStyle={{ color: '#fff' }} />
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>

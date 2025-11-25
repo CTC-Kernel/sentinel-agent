@@ -619,7 +619,7 @@ export const Assets: React.FC = () => {
 
             {/* Inspector Drawer */}
             {(selectedAsset || (!selectedAsset && Object.keys(editForm).length > 0 && !loading && inspectorTab === 'details')) && (
-                <div className="fixed inset-0 z-[100] overflow-hidden">
+                <div className="fixed inset-0 z-[9999] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm transition-opacity" onClick={() => { setSelectedAsset(null); setEditForm({}); }} />
                     <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
                         <div className="w-screen max-w-2xl pointer-events-auto">
