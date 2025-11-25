@@ -136,8 +136,8 @@ export const Team: React.FC = () => {
         const assetsSnap = await getDocs(query(collection(db, 'assets'), where('ownerId', '==', uid)));
         if (!assetsSnap.empty) dependencies.push(`${assetsSnap.size} actif(s)`);
 
-        const risksSnap = await getDocs(query(collection(db, 'risks'), where('owner', '==', uid))); // Note: Risk uses 'owner' string mostly, but let's check if we can match by ID or if we need to match by email/name. 
-        // Actually, Risk interface has 'owner' as string. Let's check if we can match by email since we have user email.
+        const risksSnap = await getDocs(query(collection(db, 'risks'), where('owner', '==', uid)));
+        if (!risksSnap.empty) dependencies.push(`${risksSnap.size} risque(s)`);
 
         const docsSnap = await getDocs(query(collection(db, 'documents'), where('ownerId', '==', uid)));
         if (!docsSnap.empty) dependencies.push(`${docsSnap.size} document(s)`);
@@ -263,7 +263,7 @@ export const Team: React.FC = () => {
                     </div>
                 ) : (
                     users.map((u, i) => (
-                        <div key={i} className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center hover:shadow-apple transition-all duration-300 hover:-translate-y-1 group relative border border-white/50 dark:border-white/5 ${u.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
+                        <div key={i} className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${u.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
                             {canAdmin && (
                                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     {!u.isPending && (

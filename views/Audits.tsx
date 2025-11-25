@@ -4,7 +4,10 @@ import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc } 
 import { db } from '../firebase';
 import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame } from '../components/ui/Icons';
+import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck } from '../components/ui/Icons';
+import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
+import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
+import { SeveritySelector } from '../components/audits/SeveritySelector';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
@@ -15,6 +18,8 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { sendEmail } from '../services/emailService';
 import { getAuditReminderTemplate } from '../services/emailTemplates';
 import { generateICS, downloadICS } from '../utils/calendar';
+import { FileUploader } from '../components/ui/FileUploader';
+import JSZip from 'jszip';
 
 export const Audits: React.FC = () => {
     const [audits, setAudits] = useState<Audit[]>([]);
@@ -52,6 +57,36 @@ export const Audits: React.FC = () => {
         relatedAssetIds: [],
         relatedRiskIds: []
     });
+
+    const handleEvidenceUpload = async (url: string, fileName: string) => {
+        if (!user?.organizationId || !selectedAudit) return;
+        try {
+            // Auto-create Document
+            const docRef = await addDoc(collection(db, 'documents'), {
+                title: `Preuve - ${fileName}`,
+                type: 'Preuve',
+                version: '1.0',
+                status: 'Publié',
+                url: url,
+                organizationId: user.organizationId,
+                owner: user.displayName || user.email,
+                ownerId: user.uid,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                relatedAuditIds: [selectedAudit.id]
+            });
+
+            // Link to new finding
+            setNewFinding(prev => ({
+                ...prev,
+                evidenceIds: [...(prev.evidenceIds || []), docRef.id]
+            }));
+            addToast("Preuve téléversée et liée", "success");
+        } catch (e) {
+            console.error(e);
+            addToast("Erreur création document preuve", "error");
+        }
+    };
 
     const fetchAudits = async () => {
         if (!user?.organizationId) return;
@@ -268,6 +303,16 @@ export const Audits: React.FC = () => {
         } catch (e) { console.error("Error saving checklist", e); }
     };
 
+    const markAllConform = async () => {
+        if (!checklist) return;
+        const updatedQuestions = checklist.questions.map(q => ({ ...q, response: 'Conforme' as const }));
+        setChecklist({ ...checklist, questions: updatedQuestions });
+        try {
+            await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: updatedQuestions });
+            addToast("Tout marqué comme conforme", "success");
+        } catch (e) { console.error(e); }
+    };
+
     const handleExportCSV = () => {
         const headers = ["Audit", "Type", "Auditeur", "Date", "Statut", "Écarts"];
         const rows = filteredAudits.map(a => [
@@ -380,6 +425,59 @@ export const Audits: React.FC = () => {
         doc.save(`Audit_Report_${selectedAudit.name.replace(/\s+/g, '_')}.pdf`);
     };
 
+    const handleExportPack = async () => {
+        if (!selectedAudit) return;
+        addToast("Génération du pack en cours...", "info");
+        try {
+            const zip = new JSZip();
+            const folder = zip.folder(`Audit_Pack_${selectedAudit.name.replace(/\s+/g, '_')}`);
+            if (!folder) return;
+
+            // 1. Generate Report PDF
+            const doc = new jsPDF();
+            doc.setFillColor(79, 70, 229); doc.rect(0, 0, 210, 40, 'F');
+            doc.setFontSize(18); doc.setTextColor(255, 255, 255); doc.text(`Rapport d'Audit: ${selectedAudit.name}`, 14, 25);
+            doc.setFontSize(10); doc.setTextColor(220); doc.text(`Auditeur: ${selectedAudit.auditor} | Date: ${new Date(selectedAudit.dateScheduled).toLocaleDateString()}`, 14, 33);
+
+            const rows = findings.map(f => [f.type, f.description, f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-', f.status]);
+            (doc as any).autoTable({ startY: 50, head: [['Type', 'Description', 'Contrôle', 'Statut']], body: rows, theme: 'striped', headStyles: { fillColor: [79, 70, 229] } });
+
+            const pdfBlob = doc.output('blob');
+            folder.file(`Rapport_Audit.pdf`, pdfBlob);
+
+            // 2. Fetch Evidence Files
+            const evidenceIds = new Set<string>();
+            findings.forEach(f => f.evidenceIds?.forEach(id => evidenceIds.add(id)));
+
+            if (evidenceIds.size > 0) {
+                const evidenceFolder = folder.folder("Preuves");
+                const evidenceDocs = documents.filter(d => evidenceIds.has(d.id));
+
+                await Promise.all(evidenceDocs.map(async (d) => {
+                    if (!d.url) return;
+                    try {
+                        const response = await fetch(d.url);
+                        const blob = await response.blob();
+                        evidenceFolder?.file(`${d.title.replace(/[^a-z0-9]/gi, '_')}.pdf`, blob); // Assuming PDF or appending extension based on type if possible
+                    } catch (e) {
+                        console.error(`Failed to fetch evidence ${d.title}`, e);
+                    }
+                }));
+            }
+
+            // 3. Generate Zip
+            const content = await zip.generateAsync({ type: "blob" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `Audit_Pack_${selectedAudit.name}.zip`;
+            link.click();
+            addToast("Pack d'audit téléchargé", "success");
+        } catch (e) {
+            console.error(e);
+            addToast("Erreur lors de l'export du pack", "error");
+        }
+    };
+
     const getStatusColor = (s: string) => {
         switch (s) {
             case 'Planifié': return 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30';
@@ -441,7 +539,7 @@ export const Audits: React.FC = () => {
                     </div>
                 ) : (
                     filteredAudits.map(audit => (
-                        <div key={audit.id} onClick={() => handleOpenAudit(audit)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 cursor-pointer group border border-white/50 dark:border-white/5">
+                        <div key={audit.id} onClick={() => handleOpenAudit(audit)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover cursor-pointer group border border-white/50 dark:border-white/5">
                             <div className="flex justify-between items-start mb-5">
                                 <div className="p-3 bg-indigo-50 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
                                     <Activity className="h-6 w-6" />
@@ -489,12 +587,13 @@ export const Audits: React.FC = () => {
                                             {selectedAudit.type} • {new Date(selectedAudit.dateScheduled).toLocaleDateString()}
                                         </p>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <div className="flex bg-slate-100 dark:bg-white/10 p-1 rounded-xl mr-2">
-                                            <button onClick={() => setInspectorTab('findings')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${inspectorTab === 'findings' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Constats</button>
-                                            <button onClick={() => setInspectorTab('checklist')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${inspectorTab === 'checklist' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Checklist</button>
-                                            <button onClick={() => setInspectorTab('scope')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${inspectorTab === 'scope' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Périmètre</button>
+                                    <div className="flex gap-2 items-center">
+                                        <div className="flex bg-slate-100 dark:bg-white/10 p-1 rounded-xl overflow-x-auto no-scrollbar max-w-[200px] sm:max-w-none">
+                                            <button onClick={() => setInspectorTab('findings')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${inspectorTab === 'findings' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Constats</button>
+                                            <button onClick={() => setInspectorTab('checklist')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${inspectorTab === 'checklist' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Checklist</button>
+                                            <button onClick={() => setInspectorTab('scope')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${inspectorTab === 'scope' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Périmètre</button>
                                         </div>
+                                        <button onClick={handleExportPack} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Exporter Pack (Zip)"><FolderKanban className="h-5 w-5" /></button>
                                         <button onClick={generateAuditReport} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Rapport PDF"><Download className="h-5 w-5" /></button>
                                         <button onClick={() => setShowFindingsDrawer(false)} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
                                     </div>
@@ -506,28 +605,43 @@ export const Audits: React.FC = () => {
                                             {canEdit && (
                                                 <form onSubmit={handleAddFinding} className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm mb-8">
                                                     <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest flex items-center"><Plus className="h-3.5 w-3.5 mr-2" /> Ajouter un constat</h3>
-                                                    <div className="space-y-4">
+                                                    <div className="space-y-6">
+                                                        <FloatingLabelTextarea
+                                                            label="Description de l'écart"
+                                                            value={newFinding.description}
+                                                            onChange={e => setNewFinding({ ...newFinding, description: e.target.value })}
+                                                            required
+                                                            rows={2}
+                                                        />
+
+                                                        <SeveritySelector
+                                                            value={newFinding.type || 'Mineure'}
+                                                            onChange={val => setNewFinding({ ...newFinding, type: val as any })}
+                                                        />
+
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                            <FloatingLabelSelect
+                                                                label="Contrôle Lié (Optionnel)"
+                                                                value={newFinding.relatedControlId || ''}
+                                                                onChange={e => setNewFinding({ ...newFinding, relatedControlId: e.target.value })}
+                                                                options={controls.map(c => ({ value: c.id, label: `${c.code} ${c.name.substring(0, 30)}...` }))}
+                                                            />
+                                                            <FloatingLabelSelect
+                                                                label="Lier une preuve existante"
+                                                                value={newFinding.evidenceIds?.[0] || ''}
+                                                                onChange={e => setNewFinding({ ...newFinding, evidenceIds: e.target.value ? [e.target.value] : [] })}
+                                                                options={documents.map(d => ({ value: d.id, label: `${d.title} (v${d.version})` }))}
+                                                            />
+                                                        </div>
+
                                                         <div>
-                                                            <textarea required className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium dark:text-white resize-none"
-                                                                rows={2} placeholder="Description de l'écart..." value={newFinding.description} onChange={e => setNewFinding({ ...newFinding, description: e.target.value })} />
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <select className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium appearance-none dark:text-white"
-                                                                value={newFinding.type} onChange={e => setNewFinding({ ...newFinding, type: e.target.value as any })}>
-                                                                {['Majeure', 'Mineure', 'Observation', 'Opportunité'].map(t => <option key={t} value={t}>{t}</option>)}
-                                                            </select>
-                                                            <select className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium appearance-none dark:text-white"
-                                                                value={newFinding.relatedControlId} onChange={e => setNewFinding({ ...newFinding, relatedControlId: e.target.value })}>
-                                                                <option value="">Lier un contrôle (Optionnel)</option>
-                                                                {controls.map(c => <option key={c.id} value={c.id}>{c.code} {c.name.substring(0, 30)}...</option>)}
-                                                            </select>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 gap-4">
-                                                            <select className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium appearance-none dark:text-white"
-                                                                value={newFinding.evidenceIds?.[0] || ''} onChange={e => setNewFinding({ ...newFinding, evidenceIds: e.target.value ? [e.target.value] : [] })}>
-                                                                <option value="">Lier une preuve (Document)...</option>
-                                                                {documents.map(d => <option key={d.id} value={d.id}>{d.title} (v{d.version})</option>)}
-                                                            </select>
+                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Ou téléverser une nouvelle preuve</label>
+                                                            <FileUploader
+                                                                onUploadComplete={handleEvidenceUpload}
+                                                                category="evidence"
+                                                                maxSizeMB={10}
+                                                                allowedTypes={['application/pdf', 'image/*']}
+                                                            />
                                                         </div>
                                                         <div className="flex justify-end">
                                                             <button type="submit" className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20">Ajouter</button>
@@ -542,7 +656,7 @@ export const Audits: React.FC = () => {
                                                     <div className="text-center py-8 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic text-sm">Aucun écart relevé pour le moment.</div>
                                                 ) : (
                                                     findings.map(finding => (
-                                                        <div key={finding.id} className="p-5 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group relative">
+                                                        <div key={finding.id} className="p-5 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm card-hover group relative">
                                                             <div className="flex justify-between items-start mb-2">
                                                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${finding.type === 'Majeure' ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400' : finding.type === 'Mineure' ? 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400'}`}>
                                                                     {finding.type}
@@ -585,6 +699,7 @@ export const Audits: React.FC = () => {
                                                     <div className="flex justify-between items-center mb-4">
                                                         <h3 className="font-bold text-slate-900 dark:text-white">Checklist de conformité</h3>
                                                         <div className="flex gap-2">
+                                                            <button onClick={markAllConform} className="text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors flex items-center"><CheckCheck className="h-3.5 w-3.5 mr-1" /> Tout Conforme</button>
                                                             <button onClick={generateSoA} className="text-xs font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors">Générer SoA</button>
                                                             <span className="text-xs font-medium bg-slate-100 dark:bg-white/10 px-2 py-1.5 rounded-lg flex items-center">{checklist.questions.filter(q => q.response === 'Conforme').length} / {checklist.questions.length} Conformes</span>
                                                         </div>

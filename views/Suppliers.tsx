@@ -424,7 +424,7 @@ export const Suppliers: React.FC = () => {
                         const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
 
                         return (
-                            <div key={supplier.id} onClick={() => openInspector(supplier)} className="glass-panel rounded-[2.5rem] border border-white/50 dark:border-white/5 p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group cursor-pointer flex flex-col h-full">
+                            <div key={supplier.id} onClick={() => openInspector(supplier)} className="glass-panel rounded-[2.5rem] border border-white/50 dark:border-white/5 p-7 shadow-sm card-hover relative group cursor-pointer flex flex-col h-full">
                                 <div className="flex justify-between items-start mb-5">
                                     <div className="p-3 bg-indigo-50 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
                                         {supplier.category === 'Matériel' ? <Truck className="h-6 w-6" /> : <Building className="h-6 w-6" />}

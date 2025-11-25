@@ -15,7 +15,8 @@ import {
   AlertTriangle,
   Clock,
   FileText,
-  HelpCircle
+  HelpCircle,
+  User
 } from '../components/ui/Icons';
 import { OnboardingService } from '../services/onboardingService';
 
@@ -294,83 +295,80 @@ export const BackupRestore: React.FC = () => {
       </div>
 
       {/* Liste des backups */}
-      <div className="bg-white rounded-lg shadow border">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold">Backups disponibles</h2>
-        </div>
-        <div className="divide-y">
-          {backups.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              <Database className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>Aucun backup disponible</p>
-              <p className="text-sm mt-2">Créez votre premier backup pour commencer</p>
-            </div>
-          ) : (
-            backups.map((backup) => (
-              <div key={backup.id} className="p-6 hover:bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-4">
-                      <h3 className="font-medium text-gray-900">{backup.id}</h3>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(backup.status)}`}>
-                        {getStatusIcon(backup.status)}
-                        <span className="ml-1">{backup.status}</span>
-                      </span>
-                    </div>
-                    <div className="mt-2 flex items-center gap-6 text-sm text-gray-500">
-                      <span>Créé le {formatDate(backup.createdAt)}</span>
-                      <span>Par {backup.createdBy}</span>
-                      <span>Taille: {formatSize(backup.size)}</span>
-                      <span>{backup.collections.length} collections</span>
-                    </div>
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Backups disponibles</h2>
+
+        {backups.length === 0 ? (
+          <div className="glass-panel p-12 rounded-[2.5rem] text-center border border-white/50 dark:border-white/5">
+            <Database className="h-16 w-16 mx-auto mb-6 text-slate-300 dark:text-slate-600" />
+            <p className="text-lg font-bold text-slate-900 dark:text-white">Aucun backup disponible</p>
+            <p className="text-slate-500 dark:text-slate-400 mt-2">Créez votre premier backup pour commencer</p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {backups.map((backup) => (
+              <div key={backup.id} className="glass-panel p-6 rounded-2xl border border-white/50 dark:border-white/5 card-hover flex items-center justify-between group">
+                <div className="flex-1">
+                  <div className="flex items-center gap-4">
+                    <h3 className="font-bold text-slate-900 dark:text-white font-mono">{backup.id}</h3>
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${getStatusColor(backup.status)}`}>
+                      {getStatusIcon(backup.status)}
+                      <span className="ml-1.5">{backup.status}</span>
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {backup.status === 'completed' && (
-                      <>
-                        <button
-                          onClick={() => handleDownloadBackup(backup.id)}
-                          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
-                          title="Télécharger"
-                        >
-                          <Download className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedBackup(backup);
-                            setRestoreConfig({
-                              ...restoreConfig,
-                              backupId: backup.id,
-                              collections: backup.collections
-                            });
-                            setShowRestoreModal(true);
-                          }}
-                          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
-                          title="Restaurer"
-                        >
-                          <CheckCircle2 className="h-4 w-4" />
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => {
-                        setConfirmData({
-                          isOpen: true,
-                          title: 'Supprimer le backup',
-                          message: `Êtes-vous sûr de vouloir supprimer le backup ${backup.id} ?`,
-                          onConfirm: () => handleDeleteBackup(backup.id)
-                        });
-                      }}
-                      className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded"
-                      title="Supprimer"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                  <div className="mt-3 flex items-center gap-6 text-sm font-medium text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center"><Calendar className="h-4 w-4 mr-2 opacity-70" /> {formatDate(backup.createdAt)}</span>
+                    <span className="flex items-center"><User className="h-4 w-4 mr-2 opacity-70" /> {backup.createdBy}</span>
+                    <span className="flex items-center"><Database className="h-4 w-4 mr-2 opacity-70" /> {formatSize(backup.size)}</span>
+                    <span className="flex items-center"><FileText className="h-4 w-4 mr-2 opacity-70" /> {backup.collections.length} collections</span>
                   </div>
                 </div>
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {backup.status === 'completed' && (
+                    <>
+                      <button
+                        onClick={() => handleDownloadBackup(backup.id)}
+                        className="p-2.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-colors"
+                        title="Télécharger"
+                      >
+                        <Download className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedBackup(backup);
+                          setRestoreConfig({
+                            ...restoreConfig,
+                            backupId: backup.id,
+                            collections: backup.collections
+                          });
+                          setShowRestoreModal(true);
+                        }}
+                        className="p-2.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl transition-colors"
+                        title="Restaurer"
+                      >
+                        <CheckCircle2 className="h-5 w-5" />
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => {
+                      setConfirmData({
+                        isOpen: true,
+                        title: 'Supprimer le backup',
+                        message: `Êtes-vous sûr de vouloir supprimer le backup ${backup.id} ?`,
+                        onConfirm: () => handleDeleteBackup(backup.id)
+                      });
+                    }}
+                    className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                    title="Supprimer"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Modal de création de backup */}

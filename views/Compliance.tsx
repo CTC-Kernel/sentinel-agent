@@ -1,9 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Control, Document, Risk, Finding } from '../types';
-import { CheckCircle2, FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown } from '../components/ui/Icons';
+import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
@@ -12,6 +11,7 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 const ISO_DOMAINS = [
     { id: 'A.5', title: 'Contrôles Organisationnels', description: 'Politiques, Rôles, RH, Actifs, Accès...' },
@@ -412,7 +412,7 @@ export const Compliance: React.FC = () => {
                         const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
 
                         return (
-                            <div key={domain.id} className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm hover:shadow-apple hover:-translate-y-0.5 transition-all duration-300">
+                            <div key={domain.id} className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm card-hover transition-all duration-300">
                                 <div
                                     onClick={() => toggleDomain(domain.id)}
                                     className="p-6 flex items-center justify-between cursor-pointer bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
@@ -446,22 +446,24 @@ export const Compliance: React.FC = () => {
                                             const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
                                             const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
                                             return (
-                                                <div key={control.id} onClick={() => openInspector(control)} className="p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex items-center justify-between pl-8 active:scale-[0.99] duration-200">
-                                                    <div className="flex items-center space-x-5 flex-1 min-w-0">
-                                                        <div className="min-w-[50px]"><span className="text-xs font-black text-slate-400 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
-                                                        <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
-                                                            <div className="flex items-center mt-1 gap-3 text-xs">
-                                                                {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded"><Paperclip className="h-3 w-3 mr-1" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium"><AlertTriangle className="h-3 w-3 mr-1" /> Preuve manquante</span>) : null}
-                                                                {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded"><ShieldAlert className="h-3 w-3 mr-1" /> {riskCount} risques</span>)}
-                                                                {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded"><AlertOctagon className="h-3 w-3 mr-1" /> {findingsCount} écarts</span>)}
+                                                <CustomTooltip key={control.id} content={`Cliquez pour voir les détails de ${control.code}`} position="top" className="w-full">
+                                                    <div onClick={() => openInspector(control)} className="p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex items-center justify-between pl-8 active:scale-[0.99] duration-200">
+                                                        <div className="flex items-center space-x-5 flex-1 min-w-0">
+                                                            <div className="min-w-[50px]"><span className="text-xs font-black text-slate-400 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
+                                                            <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
+                                                                <div className="flex items-center mt-1 gap-3 text-xs">
+                                                                    {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded"><Paperclip className="h-3 w-3 mr-1" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium"><AlertTriangle className="h-3 w-3 mr-1" /> Preuve manquante</span>) : null}
+                                                                    {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded"><ShieldAlert className="h-3 w-3 mr-1" /> {riskCount} risques</span>)}
+                                                                    {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded"><AlertOctagon className="h-3 w-3 mr-1" /> {findingsCount} écarts</span>)}
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                        <div className="flex items-center gap-4">
+                                                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-500 bg-slate-100 border-slate-200'}`}>{control.status}</span>
+                                                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-4">
-                                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-500 bg-slate-100 border-slate-200'}`}>{control.status}</span>
-                                                        <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
-                                                    </div>
-                                                </div>
+                                                </CustomTooltip>
                                             );
                                         })}
                                     </div>

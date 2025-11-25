@@ -3,7 +3,11 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, Trash2, Edit, Search, CheckCircle2, ShieldAlert, Filter, Server, ArrowRight, History, X, LayoutDashboard, FileSpreadsheet, Upload, MessageSquare, Flame, Clock, TrendingUp, TrendingDown, Copy, RefreshCw, Download, CalendarDays, FolderKanban, Network } from '../components/ui/Icons';
+import { Plus, Trash2, Edit, Search, CheckCircle2, ShieldAlert, Filter, Server, ArrowRight, History, X, LayoutDashboard, FileSpreadsheet, Upload, MessageSquare, Flame, Clock, TrendingUp, TrendingDown, Copy, RefreshCw, Download, CalendarDays, FolderKanban, Network, Sparkles } from '../components/ui/Icons';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
+import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
+import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
+import { RiskMatrixSelector } from '../components/risks/RiskMatrixSelector';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -16,6 +20,8 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { RiskDashboard } from '../components/risks/RiskDashboard';
 import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
 import { RiskTemplate, createRisksFromTemplate } from '../utils/riskTemplates';
+import { getSuggestionsForAsset } from '../utils/riskKnowledgeBase';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 const STANDARD_THREATS = ["Panne matérielle serveur", "Incendie", "Inondation", "Vol d'équipement", "Attaque par Ransomware", "Phishing / Ingénierie Sociale", "Erreur humaine / Configuration", "Divulgation non autorisée", "Interruption de service FAI", "Sabotage interne", "Obsolescence technologique", "Perte de personnel clé"];
 
@@ -265,6 +271,33 @@ export const Risks: React.FC = () => {
         else { setNewRisk({ ...newRisk, mitigationControlIds: [...currentIds, controlId] }); }
     };
 
+    const handleSuggest = () => {
+        if (!newRisk.assetId) {
+            addToast("Veuillez d'abord sélectionner un actif", "error");
+            return;
+        }
+        const asset = assets.find(a => a.id === newRisk.assetId);
+        if (!asset) return;
+
+        const suggestions = getSuggestionsForAsset(asset.type);
+        if (suggestions.length === 0) {
+            addToast("Aucune suggestion pour ce type d'actif", "info");
+            return;
+        }
+
+        // Pick a random suggestion for demo purposes, or could be a modal to choose
+        const suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+        setNewRisk({
+            ...newRisk,
+            threat: suggestion.threat,
+            vulnerability: suggestion.vulnerability,
+            probability: suggestion.probability as any,
+            impact: suggestion.impact as any,
+            strategy: suggestion.strategy as any
+        });
+        addToast("Suggestion appliquée !", "success");
+    };
+
     const handleExportCSV = () => {
         const headers = ["Menace", "Vulnérabilité", "Actif", "Score Brut", "Score Résiduel", "Stratégie", "Statut", "Propriétaire"];
         const rows = filteredRisks.map(r => [r.threat, r.vulnerability, getAssetName(r.assetId), r.score.toString(), (r.residualScore || r.score).toString(), r.strategy, r.status, r.owner || '']);
@@ -434,24 +467,24 @@ export const Risks: React.FC = () => {
                                             const isSelected = matrixFilter?.p === prob && matrixFilter?.i === impact;
 
                                             return (
-                                                <div
-                                                    key={`${prob}-${impact}`}
-                                                    onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
-                                                    className={`
+                                                <CustomTooltip key={`${prob}-${impact}`} content={`Prob: ${prob}, Impact: ${impact}, Risques: ${cellRisks.length}`} position="top">
+                                                    <div
+                                                        onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
+                                                        className={`
                                                   relative rounded-2xl flex items-center justify-center transition-all duration-300 border cursor-pointer border-white/20 dark:border-black/10 group
                                                   ${getCellColor(prob, impact)}
                                                   ${hasRisks ? 'hover:scale-[1.02] hover:z-10 hover:shadow-xl cursor-pointer' : 'opacity-40 scale-95 grayscale cursor-default'}
                                                   ${isSelected ? 'ring-4 ring-slate-900 dark:ring-white scale-[1.05] z-20 shadow-2xl opacity-100 animate-pulse' : matrixFilter && hasRisks ? 'opacity-40' : ''}
                                               `}
-                                                    title={`Prob: ${prob}, Impact: ${impact}, Risques: ${cellRisks.length}`}
-                                                >
-                                                    {hasRisks && (
-                                                        <>
-                                                            <span className="text-3xl font-black text-white drop-shadow-md">{cellRisks.length}</span>
-                                                            <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                                        </>
-                                                    )}
-                                                </div>
+                                                    >
+                                                        {hasRisks && (
+                                                            <>
+                                                                <span className="text-3xl font-black text-white drop-shadow-md">{cellRisks.length}</span>
+                                                                <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </CustomTooltip>
                                             )
                                         })}
                                     </React.Fragment>
@@ -485,7 +518,7 @@ export const Risks: React.FC = () => {
                         const trend = risk.previousScore && risk.score > risk.previousScore ? 'up' : risk.previousScore && risk.score < risk.previousScore ? 'down' : 'stable';
 
                         return (
-                            <div key={risk.id} onClick={() => openInspector(risk)} className="group glass-panel p-6 rounded-[2rem] hover:shadow-apple transition-all duration-300 hover:-translate-y-1 flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5">
+                            <div key={risk.id} onClick={() => openInspector(risk)} className="group glass-panel p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5">
                                 <div className="flex justify-between items-start mb-5">
                                     <div className="flex items-center gap-2">
                                         <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm flex items-center border ${level.color}`}>{level.label} {risk.score}</div>
@@ -519,7 +552,7 @@ export const Risks: React.FC = () => {
                 <div className="fixed inset-0 z-[100] overflow-hidden"><div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedRisk(null)} /><div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none"><div className="w-screen max-w-2xl pointer-events-auto"><div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up"><div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5"><div><h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedRisk.threat}</h2><p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2"><Server className="h-3.5 w-3.5" /> {getAssetName(selectedRisk.assetId)}</p></div><div className="flex gap-2">{canEdit && (<><button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer"><Copy className="h-5 w-5" /></button><button onClick={() => openModal(selectedRisk)} className="p-2.5 text-gray-500 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button><button onClick={() => initiateDelete(selectedRisk.id, selectedRisk.threat)} className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button></>)}<button onClick={() => setSelectedRisk(null)} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button></div></div>
                     <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent">
                         {[{ id: 'details', label: 'Détails', icon: ShieldAlert }, { id: 'treatment', label: 'Traitement', icon: CheckCircle2 }, { id: 'projects', label: 'Projets', icon: FolderKanban }, { id: 'history', label: 'Historique', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }, { id: 'graph', label: 'Graphe', icon: Network }].map(tab => (
-                            <button key={tab.id} onClick={() => setInspectorTab(tab.id as any)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
+                            <button key={tab.id} onClick={() => setInspectorTab(tab.id as any)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
                                 <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
                                 {tab.label}
                             </button>
@@ -586,31 +619,78 @@ export const Risks: React.FC = () => {
                             {/* Inputs */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                 <div className="space-y-6">
-                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Actif concerné</label><div className="relative"><select required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-sm focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium" value={newRisk.assetId} onChange={e => setNewRisk({ ...newRisk, assetId: e.target.value })}><option value="">Sélectionner un actif...</option>{assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select><div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400"><ArrowRight className="h-4 w-4 rotate-90" /></div></div></div>
-                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Menace</label><div className="relative"><input list="threatsList" required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-sm focus:ring-2 focus:ring-brand-500 dark:text-white font-medium outline-none" value={newRisk.threat} onChange={e => setNewRisk({ ...newRisk, threat: e.target.value })} placeholder="Ex: Incendie, Ransomware..." /><datalist id="threatsList">{STANDARD_THREATS.map(t => <option key={t} value={t} />)}</datalist></div></div>
-                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Vulnérabilité</label><textarea required rows={3} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-sm focus:ring-2 focus:ring-brand-500 dark:text-white font-medium outline-none resize-none" value={newRisk.vulnerability} onChange={e => setNewRisk({ ...newRisk, vulnerability: e.target.value })} placeholder="Ex: Absence de patch, Mots de passe faibles..." /></div>
+                                    <FloatingLabelSelect
+                                        label="Actif concerné"
+                                        value={newRisk.assetId}
+                                        onChange={e => setNewRisk({ ...newRisk, assetId: e.target.value })}
+                                        options={assets.map(a => ({ value: a.id, label: a.name }))}
+                                        required
+                                    />
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Propriétaire</label>
-                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-sm focus:ring-2 focus:ring-brand-500 dark:text-white outline-none appearance-none font-medium" value={newRisk.owner} onChange={e => setNewRisk({ ...newRisk, owner: e.target.value })}>
-                                                <option value="">Non assigné</option>
-                                                {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Stratégie</label>
-                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-sm focus:ring-2 focus:ring-brand-500 dark:text-white outline-none appearance-none font-medium" value={newRisk.strategy} onChange={e => setNewRisk({ ...newRisk, strategy: e.target.value as any })}>
-                                                <option value="Atténuer">Atténuer</option>
-                                                <option value="Accepter">Accepter</option>
-                                                <option value="Transférer">Transférer</option>
-                                                <option value="Éviter">Éviter</option>
-                                            </select>
-                                        </div>
+                                    <div className="relative">
+                                        <FloatingLabelInput
+                                            label="Menace"
+                                            value={newRisk.threat}
+                                            onChange={e => setNewRisk({ ...newRisk, threat: e.target.value })}
+                                            list="threatsList"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleSuggest}
+                                            className="absolute right-2 top-2 p-2 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors z-10"
+                                            title="Suggérer avec l'IA"
+                                        >
+                                            <Sparkles className="h-5 w-5" />
+                                        </button>
+                                        <datalist id="threatsList">
+                                            {STANDARD_THREATS.map(t => <option key={t} value={t} />)}
+                                        </datalist>
                                     </div>
 
-                                    <div className="p-6 bg-red-50/80 dark:bg-red-900/10 rounded-3xl border border-red-100 dark:border-red-900/30"><h4 className="text-xs font-bold uppercase tracking-widest text-red-600 mb-4">Risque Brut</h4><div className="grid grid-cols-2 gap-4"><div><label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5">Probabilité</label><input type="number" min="1" max="5" className="w-full px-3 py-2 rounded-xl border-transparent bg-white dark:bg-black/20 text-lg font-bold text-center shadow-sm" value={newRisk.probability} onChange={e => setNewRisk({ ...newRisk, probability: parseInt(e.target.value) as any })} /></div><div><label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5">Impact</label><input type="number" min="1" max="5" className="w-full px-3 py-2 rounded-xl border-transparent bg-white dark:bg-black/20 text-lg font-bold text-center shadow-sm" value={newRisk.impact} onChange={e => setNewRisk({ ...newRisk, impact: parseInt(e.target.value) as any })} /></div></div></div>
-                                    <div className="p-6 bg-emerald-50/80 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-900/30"><h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-4">Risque Résiduel</h4><div className="grid grid-cols-2 gap-4"><div><label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5">Probabilité</label><input type="number" min="1" max="5" className="w-full px-3 py-2 rounded-xl border-transparent bg-white dark:bg-black/20 text-lg font-bold text-center shadow-sm" value={newRisk.residualProbability || newRisk.probability} onChange={e => setNewRisk({ ...newRisk, residualProbability: parseInt(e.target.value) as any })} /></div><div><label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5">Impact</label><input type="number" min="1" max="5" className="w-full px-3 py-2 rounded-xl border-transparent bg-white dark:bg-black/20 text-lg font-bold text-center shadow-sm" value={newRisk.residualImpact || newRisk.impact} onChange={e => setNewRisk({ ...newRisk, residualImpact: parseInt(e.target.value) as any })} /></div></div></div>
+                                    <FloatingLabelTextarea
+                                        label="Vulnérabilité"
+                                        value={newRisk.vulnerability}
+                                        onChange={e => setNewRisk({ ...newRisk, vulnerability: e.target.value })}
+                                        required
+                                        rows={3}
+                                    />
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <FloatingLabelSelect
+                                            label="Propriétaire"
+                                            value={newRisk.owner || ''}
+                                            onChange={e => setNewRisk({ ...newRisk, owner: e.target.value })}
+                                            options={usersList.map(u => ({ value: u.displayName || '', label: u.displayName || '' }))}
+                                        />
+                                        <FloatingLabelSelect
+                                            label="Stratégie"
+                                            value={newRisk.strategy}
+                                            onChange={e => setNewRisk({ ...newRisk, strategy: e.target.value as any })}
+                                            options={[
+                                                { value: 'Atténuer', label: 'Atténuer' },
+                                                { value: 'Accepter', label: 'Accepter' },
+                                                { value: 'Transférer', label: 'Transférer' },
+                                                { value: 'Éviter', label: 'Éviter' }
+                                            ]}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <RiskMatrixSelector
+                                            label="Risque Brut"
+                                            probability={newRisk.probability || 1}
+                                            impact={newRisk.impact || 1}
+                                            onChange={(p, i) => setNewRisk({ ...newRisk, probability: p as any, impact: i as any })}
+                                        />
+
+                                        <RiskMatrixSelector
+                                            label="Risque Résiduel"
+                                            probability={newRisk.residualProbability || newRisk.probability || 1}
+                                            impact={newRisk.residualImpact || newRisk.impact || 1}
+                                            onChange={(p, i) => setNewRisk({ ...newRisk, residualProbability: p as any, residualImpact: i as any })}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="bg-slate-50/80 dark:bg-slate-900/30 rounded-3xl p-6 border border-gray-100 dark:border-white/5 flex flex-col h-full"><label className="flex items-center text-xs font-bold uppercase tracking-widest text-brand-600 mb-4"><CheckCircle2 className="h-4 w-4 mr-2" /> Contrôles d'atténuation</label><div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar max-h-[400px]">{controls.map(ctrl => (<label key={ctrl.id} className={`flex items-start space-x-3 p-3.5 rounded-xl cursor-pointer transition-all border ${newRisk.mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 border-brand-200 dark:border-brand-800 shadow-md' : 'border-transparent hover:bg-white dark:hover:bg-slate-800'}`}><div className={`mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${newRisk.mitigationControlIds?.includes(ctrl.id) ? 'bg-brand-500 border-brand-500' : 'border-gray-300 bg-white dark:bg-black/20'}`}>{newRisk.mitigationControlIds?.includes(ctrl.id) && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}</div><input type="checkbox" className="hidden" checked={newRisk.mitigationControlIds?.includes(ctrl.id)} onChange={() => toggleControlSelection(ctrl.id)} /><div><span className="text-xs font-bold text-slate-900 dark:text-white block mb-0.5">{ctrl.code}</span><span className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug block">{ctrl.name}</span></div></label>))}</div></div>

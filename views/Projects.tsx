@@ -4,7 +4,8 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, limit, w
 import { db } from '../firebase';
 import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, ProjectMilestone, ProjectTemplate } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, MoreHorizontal, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, X, History, MessageSquare, Save, LayoutDashboard, Download, Copy, Zap } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, MoreHorizontal, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, X, History, MessageSquare, LayoutDashboard, Download, Copy, Zap } from '../components/ui/Icons';
+import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
@@ -18,6 +19,11 @@ import { ProjectDashboard } from '../components/projects/ProjectDashboard';
 import { TemplateModal } from '../components/projects/TemplateModal';
 import { createProjectFromTemplate } from '../utils/projectTemplates';
 
+import { GanttChart } from '../components/projects/GanttChart';
+import { TaskFormModal } from '../components/projects/TaskFormModal';
+import '../components/projects/gantt.css';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+
 export const Projects: React.FC = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [risks, setRisks] = useState<Risk[]>([]);
@@ -27,24 +33,24 @@ export const Projects: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
+    const [showTaskModal, setShowTaskModal] = useState(false);
+    const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
     const { user, addToast } = useStore();
     const [filter, setFilter] = useState('');
 
     // Inspector State
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments'>('overview');
+    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt'>('overview');
     const [taskViewMode, setTaskViewMode] = useState<'list' | 'board'>('list');
     const [projectHistory, setProjectHistory] = useState<SystemLog[]>([]);
     const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
+    const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
     const canEdit = canEditResource(user, 'Project');
 
     // Form State
     const [isEditing, setIsEditing] = useState(false);
-    const [formData, setFormData] = useState<Partial<Project>>({
-        name: '', description: '', manager: '', status: 'Planifié', dueDate: '',
-        tasks: [], relatedRiskIds: [], relatedControlIds: [], relatedAssetIds: []
-    });
+
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -101,7 +107,6 @@ export const Projects: React.FC = () => {
     const openInspector = async (project: Project) => {
         setSelectedProject(project);
         setInspectorTab('overview');
-        setFormData(project); // For potential edits
         setIsEditing(false);
 
         // Fetch History
@@ -126,27 +131,43 @@ export const Projects: React.FC = () => {
     };
 
     const openCreateModal = () => {
-        setFormData({ name: '', description: '', manager: '', status: 'Planifié', dueDate: '', tasks: [], relatedRiskIds: [], relatedControlIds: [], relatedAssetIds: [] });
         setIsEditing(false);
         setShowModal(true);
     };
 
-    const handleCreateProject = async (e: React.FormEvent) => {
-        e.preventDefault();
+    // Unified handler for ProjectFormModal submission (create or update)
+    const handleProjectFormSubmit = async (projectData: Omit<Project, 'id' | 'organizationId' | 'tasks' | 'progress' | 'createdAt'>) => {
         if (!canEdit || !user?.organizationId) return;
+
         try {
-            await addDoc(collection(db, 'projects'), {
-                ...formData,
-                organizationId: user.organizationId,
-                progress: 0,
-                tasks: [],
-                createdAt: new Date().toISOString()
-            });
-            await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${formData.name}`);
-            addToast("Projet créé avec succès", "success");
+            if (isEditing && selectedProject) {
+                // Update existing project
+                await updateDoc(doc(db, 'projects', selectedProject.id), {
+                    ...projectData
+                });
+                await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${projectData.name}`);
+                addToast("Projet mis à jour", "success");
+
+                // Update local state
+                const updatedProject = { ...selectedProject, ...projectData };
+                setSelectedProject(updatedProject);
+                setProjects(prev => prev.map(p => p.id === selectedProject.id ? updatedProject : p));
+            } else {
+                // Create new project
+                await addDoc(collection(db, 'projects'), {
+                    ...projectData,
+                    organizationId: user.organizationId,
+                    progress: 0,
+                    tasks: [],
+                    createdAt: new Date().toISOString()
+                });
+                await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${projectData.name}`);
+                addToast("Projet créé avec succès", "success");
+            }
             setShowModal(false);
+            setIsEditing(false);
             fetchData();
-        } catch (e) { addToast("Erreur création projet", "error"); }
+        } catch (e) { addToast("Erreur sauvegarde projet", "error"); }
     };
 
     const handleCreateFromTemplate = async (template: ProjectTemplate, projectName: string, startDate: Date, manager: string) => {
@@ -176,19 +197,7 @@ export const Projects: React.FC = () => {
         }
     };
 
-    const handleUpdateProject = async () => {
-        if (!canEdit || !selectedProject) return;
-        try {
-            const { id, ...data } = formData as any;
-            await updateDoc(doc(db, 'projects', selectedProject.id), data);
-            await logAction(user, 'UPDATE', 'Project', `MAJ projet: ${formData.name}`);
 
-            setProjects(prev => prev.map(p => p.id === selectedProject.id ? { ...p, ...data } : p));
-            setSelectedProject({ ...selectedProject, ...data });
-            setIsEditing(false);
-            addToast("Projet mis à jour", "success");
-        } catch (e) { addToast("Erreur mise à jour", "error"); }
-    };
 
     const handleDuplicate = async () => {
         if (!selectedProject || !canEdit || !user?.organizationId) return;
@@ -342,32 +351,7 @@ export const Projects: React.FC = () => {
         link.click();
     };
 
-    const toggleRiskSelection = (riskId: string) => {
-        const currentIds = formData.relatedRiskIds || [];
-        if (currentIds.includes(riskId)) {
-            setFormData({ ...formData, relatedRiskIds: currentIds.filter(id => id !== riskId) });
-        } else {
-            setFormData({ ...formData, relatedRiskIds: [...currentIds, riskId] });
-        }
-    };
 
-    const toggleControlSelection = (controlId: string) => {
-        const currentIds = formData.relatedControlIds || [];
-        if (currentIds.includes(controlId)) {
-            setFormData({ ...formData, relatedControlIds: currentIds.filter(id => id !== controlId) });
-        } else {
-            setFormData({ ...formData, relatedControlIds: [...currentIds, controlId] });
-        }
-    };
-
-    const toggleAssetSelection = (assetId: string) => {
-        const currentIds = formData.relatedAssetIds || [];
-        if (currentIds.includes(assetId)) {
-            setFormData({ ...formData, relatedAssetIds: currentIds.filter(id => id !== assetId) });
-        } else {
-            setFormData({ ...formData, relatedAssetIds: [...currentIds, assetId] });
-        }
-    };
 
     const getAssetById = (id: string) => assets.find(a => a.id === id);
     const getRiskById = (id: string) => risks.find(r => r.id === id);
@@ -384,27 +368,55 @@ export const Projects: React.FC = () => {
 
     const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
 
+    const handleDragStart = (e: React.DragEvent, taskId: string) => {
+        setDraggedTaskId(taskId);
+        e.dataTransfer.effectAllowed = 'move';
+        // Create a custom drag image if needed, or rely on browser default
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDrop = (e: React.DragEvent, status: 'A faire' | 'En cours' | 'Terminé') => {
+        e.preventDefault();
+        if (draggedTaskId) {
+            moveTaskToStatus(draggedTaskId, status);
+            setDraggedTaskId(null);
+        }
+    };
+
     const KanbanColumn = ({ status, tasks }: { status: 'A faire' | 'En cours' | 'Terminé', tasks: ProjectTask[] }) => (
-        <div className="flex-1 bg-gray-50/50 dark:bg-slate-800/30 rounded-2xl p-4 border border-gray-100 dark:border-white/5 flex flex-col min-h-[400px]">
+        <div
+            className={`flex-1 bg-gray-50/50 dark:bg-slate-800/30 rounded-2xl p-4 border border-gray-100 dark:border-white/5 flex flex-col min-h-[400px] transition-colors ${draggedTaskId ? 'border-dashed border-brand-300 dark:border-brand-700' : ''}`}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, status)}
+        >
             <h4 className="text-xs font-bold uppercase text-slate-500 mb-3 flex justify-between tracking-wider">
                 {status} <span className="bg-white dark:bg-slate-700 px-2 py-0.5 rounded-lg text-[10px] shadow-sm border border-black/5 dark:border-white/5">{tasks.length}</span>
             </h4>
             <div className="space-y-2.5 flex-1">
                 {tasks.map(task => (
-                    <div key={task.id} className="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm group relative hover:shadow-md transition-all">
-                        <div className="flex justify-between items-start">
-                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-snug">{task.title}</p>
-                            {task.dueDate && <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{new Date(task.dueDate).toLocaleDateString()}</span>}
-                        </div>
-                        {canEdit && (
-                            <div className="flex justify-end gap-1.5 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                {status !== 'A faire' && <button onClick={() => moveTaskToStatus(task.id, 'A faire')} className="text-[9px] font-bold px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 transition-colors">← Todo</button>}
-                                {status !== 'En cours' && <button onClick={() => moveTaskToStatus(task.id, 'En cours')} className="text-[9px] font-bold px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">En cours</button>}
-                                {status !== 'Terminé' && <button onClick={() => moveTaskToStatus(task.id, 'Terminé')} className="text-[9px] font-bold px-2 py-1 bg-green-50 dark:bg-green-900/20 text-green-600 rounded-lg hover:bg-green-100 transition-colors">Fait →</button>}
-                                <button onClick={() => deleteTask(task.id)} className="text-slate-400 hover:text-red-500 ml-1 p-1"><Trash2 className="h-3 w-3" /></button>
+                    <CustomTooltip key={task.id} content="Glisser pour déplacer" position="top" className="w-full">
+                        <div
+                            draggable={canEdit}
+                            onDragStart={(e) => handleDragStart(e, task.id)}
+                            className={`p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-md transition-all group cursor-grab active:cursor-grabbing ${draggedTaskId === task.id ? 'opacity-50 scale-95' : 'hover:scale-[1.02]'}`}
+                        >
+                            <div className="flex justify-between items-start mb-2">
+                                <span className="text-sm font-bold text-slate-800 dark:text-white line-clamp-2">{task.title}</span>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={() => { setEditingTask(task); setShowTaskModal(true); }} className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded text-slate-400 hover:text-brand-500"><Edit className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => deleteTask(task.id)} className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-slate-400 hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                                </div>
                             </div>
-                        )}
-                    </div>
+                            <div className="flex items-center justify-between mt-2">
+                                <span className="text-[10px] font-medium px-2 py-0.5 bg-slate-100 dark:bg-white/5 rounded text-slate-500">{task.assignee || 'Non assigné'}</span>
+                                {task.dueDate && <span className={`text-[10px] font-bold flex items-center ${new Date(task.dueDate) < new Date() ? 'text-red-500' : 'text-slate-400'}`}><CalendarDays className="h-3 w-3 mr-1" />{new Date(task.dueDate).toLocaleDateString()}</span>}
+                            </div>
+                        </div>
+                    </CustomTooltip>
                 ))}
             </div>
         </div>
@@ -412,6 +424,38 @@ export const Projects: React.FC = () => {
 
     return (
         <div className="space-y-6 relative">
+            {/* Task Form Modal */}
+            <TaskFormModal
+                isOpen={showTaskModal}
+                onClose={() => {
+                    setShowTaskModal(false);
+                    setEditingTask(undefined);
+                }}
+                onSubmit={(taskData) => {
+                    if (!selectedProject) return;
+
+                    if (editingTask) {
+                        // Update existing task
+                        const updatedTasks = selectedProject.tasks?.map(t =>
+                            t.id === editingTask.id ? { ...t, ...taskData } : t
+                        ) || [];
+                        updateTasks(updatedTasks);
+                    } else {
+                        // Create new task
+                        const newTask: ProjectTask = {
+                            id: Date.now().toString(),
+                            ...taskData
+                        };
+                        const updatedTasks = [...(selectedProject.tasks || []), newTask];
+                        updateTasks(updatedTasks);
+                    }
+                }}
+                existingTask={editingTask}
+                availableTasks={selectedProject?.tasks || []}
+                availableUsers={usersList.map(u => u.displayName)}
+            />
+
+            {/* Template Selection Modal */}
             <TemplateModal
                 isOpen={showTemplateModal}
                 onClose={() => setShowTemplateModal(false)}
@@ -480,7 +524,7 @@ export const Projects: React.FC = () => {
                     </div>
                 ) : (
                     filteredProjects.map(project => (
-                        <div key={project.id} onClick={() => openInspector(project)} className="glass-panel rounded-[2.5rem] p-6 hover:shadow-apple transition-all duration-300 hover:-translate-y-1 flex flex-col cursor-pointer group border border-white/50 dark:border-white/5">
+                        <div key={project.id} onClick={() => openInspector(project)} className="glass-panel rounded-[2.5rem] p-6 card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5">
                             <div className="flex justify-between items-start mb-4">
                                 <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border shadow-sm ${getStatusColor(project.status)}`}>
                                     {project.status}
@@ -537,11 +581,8 @@ export const Projects: React.FC = () => {
                                         {canEdit && (
                                             <button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer"><Copy className="h-5 w-5" /></button>
                                         )}
-                                        {canEdit && !isEditing && (
-                                            <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
-                                        )}
-                                        {canEdit && isEditing && (
-                                            <button onClick={handleUpdateProject} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+                                        {canEdit && (
+                                            <button onClick={() => { setIsEditing(true); setShowModal(true); }} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                         )}
                                         {canEdit && (
                                             <button onClick={() => initiateDelete(selectedProject.id, selectedProject.name)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
@@ -551,17 +592,19 @@ export const Projects: React.FC = () => {
                                 </div>
 
                                 {/* Tabs */}
-                                <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5">
+                                <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5 overflow-x-auto no-scrollbar">
                                     {[
                                         { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
                                         { id: 'tasks', label: 'Tâches', icon: CheckSquare },
+                                        { id: 'gantt', label: 'Gantt', icon: CalendarDays },
+                                        { id: 'dashboard', label: 'Dashboard', icon: FolderKanban },
                                         { id: 'history', label: 'Historique', icon: History },
-                                        { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                                        { id: 'comments', label: 'Commentaires', icon: MessageSquare }
                                     ].map(tab => (
                                         <button
                                             key={tab.id}
                                             onClick={() => setInspectorTab(tab.id as any)}
-                                            className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                            className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                         >
                                             <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
                                             {tab.label}
@@ -573,172 +616,119 @@ export const Projects: React.FC = () => {
                                 <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
                                     {inspectorTab === 'overview' && (
                                         <div className="space-y-8">
-                                            {isEditing ? (
-                                                <div className="space-y-6">
-                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
-                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={3} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} /></div>
-                                                    <div className="grid grid-cols-2 gap-6">
-                                                        <div>
-                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Manager</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.manager} onChange={e => setFormData({ ...formData, manager: e.target.value })}>
-                                                                <option value="">Non assigné</option>
-                                                                {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
-                                                            </select>
-                                                        </div>
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as any })}>
-                                                                {['Planifié', 'En cours', 'Terminé', 'Suspendu'].map(s => <option key={s} value={s}>{s}</option>)}
-                                                            </select>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Dépendances (Risques & Contrôles)</h4>
-                                                        <div className="grid grid-cols-3 gap-6 h-48">
-                                                            <div className="overflow-y-auto custom-scrollbar border border-gray-100 dark:border-white/10 rounded-2xl p-3 bg-slate-50/50 dark:bg-black/20">
-                                                                <p className="text-[10px] font-bold mb-3 sticky top-0 uppercase tracking-wide text-slate-400">Actifs liés</p>
-                                                                {assets.map(a => (
-                                                                    <label key={a.id} className="flex items-center gap-3 p-2.5 hover:bg-white dark:hover:bg-white/5 rounded-xl cursor-pointer transition-colors">
-                                                                        <input type="checkbox" checked={formData.relatedAssetIds?.includes(a.id)} onChange={() => toggleAssetSelection(a.id)} className="rounded text-brand-600 focus:ring-brand-500 border-gray-300" />
-                                                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{a.name}</span>
-                                                                    </label>
-                                                                ))}
-                                                            </div>
-                                                            <div className="overflow-y-auto custom-scrollbar border border-gray-100 dark:border-white/10 rounded-2xl p-3 bg-slate-50/50 dark:bg-black/20">
-                                                                <p className="text-[10px] font-bold mb-3 sticky top-0 uppercase tracking-wide text-slate-400">Risques liés</p>
-                                                                {risks.map(r => (
-                                                                    <label key={r.id} className="flex items-center gap-3 p-2.5 hover:bg-white dark:hover:bg-white/5 rounded-xl cursor-pointer transition-colors">
-                                                                        <input type="checkbox" checked={formData.relatedRiskIds?.includes(r.id)} onChange={() => toggleRiskSelection(r.id)} className="rounded text-brand-600 focus:ring-brand-500 border-gray-300" />
-                                                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{r.threat}</span>
-                                                                    </label>
-                                                                ))}
-                                                            </div>
-                                                            <div className="overflow-y-auto custom-scrollbar border border-gray-100 dark:border-white/10 rounded-2xl p-3 bg-slate-50/50 dark:bg-black/20">
-                                                                <p className="text-[10px] font-bold mb-3 sticky top-0 uppercase tracking-wide text-slate-400">Contrôles liés</p>
-                                                                {controls.map(c => (
-                                                                    <label key={c.id} className="flex items-center gap-3 p-2.5 hover:bg-white dark:hover:bg-white/5 rounded-xl cursor-pointer transition-colors">
-                                                                        <input type="checkbox" checked={formData.relatedControlIds?.includes(c.id)} onChange={() => toggleControlSelection(c.id)} className="rounded text-brand-600 focus:ring-brand-500 border-gray-300" />
-                                                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{c.code} {c.name}</span>
-                                                                    </label>
-                                                                ))}
-                                                            </div>
-                                                        </div>
+                                            <div className="space-y-8">
+                                                <div>
+                                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Objectif</h3>
+                                                    <div className="p-6 bg-white dark:bg-slate-800/50 rounded-3xl text-sm text-slate-700 dark:text-slate-300 leading-relaxed border border-gray-100 dark:border-white/5 shadow-sm">
+                                                        {selectedProject.description}
                                                     </div>
                                                 </div>
-                                            ) : (
-                                                <div className="space-y-8">
-                                                    <div>
-                                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Objectif</h3>
-                                                        <div className="p-6 bg-white dark:bg-slate-800/50 rounded-3xl text-sm text-slate-700 dark:text-slate-300 leading-relaxed border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            {selectedProject.description}
-                                                        </div>
+                                                <div className="grid grid-cols-3 gap-6">
+                                                    <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                        <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1">Actifs Concernés</p>
+                                                        <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedAssetIds?.length || 0}</p>
                                                     </div>
-                                                    <div className="grid grid-cols-3 gap-6">
-                                                        <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1">Actifs Concernés</p>
-                                                            <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedAssetIds?.length || 0}</p>
-                                                        </div>
-                                                        <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1">Risques Traités</p>
-                                                            <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedRiskIds?.length || 0}</p>
-                                                        </div>
-                                                        <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1">Contrôles Implémentés</p>
-                                                            <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedControlIds?.length || 0}</p>
-                                                        </div>
+                                                    <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                        <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1">Risques Traités</p>
+                                                        <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedRiskIds?.length || 0}</p>
                                                     </div>
-
-                                                    {(selectedProject.relatedAssetIds?.length || 0) > 0 && (
-                                                        <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
-                                                            <div className="flex items-center justify-between mb-4">
-                                                                <div>
-                                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Actifs critiques</p>
-                                                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Chaîne de valeur concernée</h4>
-                                                                </div>
-                                                                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedAssetIds?.length} actifs</span>
-                                                            </div>
-                                                            <div className="space-y-3">
-                                                                {selectedProject.relatedAssetIds?.map(assetId => {
-                                                                    const asset = getAssetById(assetId);
-                                                                    if (!asset) return null;
-                                                                    return (
-                                                                        <div key={assetId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
-                                                                            <div>
-                                                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{asset.name}</p>
-                                                                                <p className="text-xs text-slate-500 dark:text-slate-400">{asset.type} • {asset.owner || 'Responsable inconnu'}</p>
-                                                                            </div>
-                                                                            <div className="flex gap-1">
-                                                                                {[asset.confidentiality, asset.integrity, asset.availability].map((level, idx) => (
-                                                                                    <span key={idx} className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{level}</span>
-                                                                                ))}
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {(selectedProject.relatedRiskIds?.length || 0) > 0 && (
-                                                        <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
-                                                            <div className="flex items-center justify-between mb-4">
-                                                                <div>
-                                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Risques suivis</p>
-                                                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Suivi ISO 27005</h4>
-                                                                </div>
-                                                                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedRiskIds?.length} risques</span>
-                                                            </div>
-                                                            <div className="space-y-3">
-                                                                {selectedProject.relatedRiskIds?.map(riskId => {
-                                                                    const risk = getRiskById(riskId);
-                                                                    if (!risk) return null;
-                                                                    const level = risk.score >= 15 ? 'Critique' : risk.score >= 10 ? 'Élevé' : risk.score >= 5 ? 'Moyen' : 'Faible';
-                                                                    const badgeColor = risk.score >= 15 ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' : risk.score >= 10 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' : risk.score >= 5 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
-                                                                    return (
-                                                                        <div key={riskId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
-                                                                            <div>
-                                                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{risk.threat}</p>
-                                                                                <p className="text-xs text-slate-500 dark:text-slate-400">{risk.vulnerability}</p>
-                                                                            </div>
-                                                                            <div className="flex items-center gap-2">
-                                                                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg ${badgeColor}`}>{level}</span>
-                                                                                <span className="text-xs text-slate-400 dark:text-slate-500">Score {risk.score}</span>
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {(selectedProject.relatedControlIds?.length || 0) > 0 && (
-                                                        <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
-                                                            <div className="flex items-center justify-between mb-4">
-                                                                <div>
-                                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Contrôles ISO 27001</p>
-                                                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Mesures associées</h4>
-                                                                </div>
-                                                                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedControlIds?.length} contrôles</span>
-                                                            </div>
-                                                            <div className="space-y-3">
-                                                                {selectedProject.relatedControlIds?.map(controlId => {
-                                                                    const control = getControlById(controlId);
-                                                                    if (!control) return null;
-                                                                    return (
-                                                                        <div key={controlId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
-                                                                            <div>
-                                                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{control.code} — {control.name}</p>
-                                                                                {control.description && <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{control.description}</p>}
-                                                                            </div>
-                                                                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{control.status}</span>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                    <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                        <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1">Contrôles Implémentés</p>
+                                                        <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedControlIds?.length || 0}</p>
+                                                    </div>
                                                 </div>
-                                            )}
+
+                                                {(selectedProject.relatedAssetIds?.length || 0) > 0 && (
+                                                    <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <div>
+                                                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Actifs critiques</p>
+                                                                <h4 className="text-lg font-bold text-slate-900 dark:text-white">Chaîne de valeur concernée</h4>
+                                                            </div>
+                                                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedAssetIds?.length} actifs</span>
+                                                        </div>
+                                                        <div className="space-y-3">
+                                                            {selectedProject.relatedAssetIds?.map(assetId => {
+                                                                const asset = getAssetById(assetId);
+                                                                if (!asset) return null;
+                                                                return (
+                                                                    <div key={assetId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                                        <div>
+                                                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{asset.name}</p>
+                                                                            <p className="text-xs text-slate-500 dark:text-slate-400">{asset.type} • {asset.owner || 'Responsable inconnu'}</p>
+                                                                        </div>
+                                                                        <div className="flex gap-1">
+                                                                            {[asset.confidentiality, asset.integrity, asset.availability].map((level, idx) => (
+                                                                                <span key={idx} className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{level}</span>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {(selectedProject.relatedRiskIds?.length || 0) > 0 && (
+                                                    <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <div>
+                                                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Risques suivis</p>
+                                                                <h4 className="text-lg font-bold text-slate-900 dark:text-white">Suivi ISO 27005</h4>
+                                                            </div>
+                                                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedRiskIds?.length} risques</span>
+                                                        </div>
+                                                        <div className="space-y-3">
+                                                            {selectedProject.relatedRiskIds?.map(riskId => {
+                                                                const risk = getRiskById(riskId);
+                                                                if (!risk) return null;
+                                                                const level = risk.score >= 15 ? 'Critique' : risk.score >= 10 ? 'Élevé' : risk.score >= 5 ? 'Moyen' : 'Faible';
+                                                                const badgeColor = risk.score >= 15 ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' : risk.score >= 10 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' : risk.score >= 5 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+                                                                return (
+                                                                    <div key={riskId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                                        <div>
+                                                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{risk.threat}</p>
+                                                                            <p className="text-xs text-slate-500 dark:text-slate-400">{risk.vulnerability}</p>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg ${badgeColor}`}>{level}</span>
+                                                                            <span className="text-xs text-slate-400 dark:text-slate-500">Score {risk.score}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {(selectedProject.relatedControlIds?.length || 0) > 0 && (
+                                                    <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <div>
+                                                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Contrôles ISO 27001</p>
+                                                                <h4 className="text-lg font-bold text-slate-900 dark:text-white">Mesures associées</h4>
+                                                            </div>
+                                                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedControlIds?.length} contrôles</span>
+                                                        </div>
+                                                        <div className="space-y-3">
+                                                            {selectedProject.relatedControlIds?.map(controlId => {
+                                                                const control = getControlById(controlId);
+                                                                if (!control) return null;
+                                                                return (
+                                                                    <div key={controlId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                                        <div>
+                                                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{control.code} — {control.name}</p>
+                                                                            {control.description && <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{control.description}</p>}
+                                                                        </div>
+                                                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{control.status}</span>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
                                         </div>
                                     )}
 
@@ -760,19 +750,17 @@ export const Projects: React.FC = () => {
                                                     <button onClick={() => setTaskViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500'}`}>Tableau</button>
                                                 </div>
                                                 {canEdit && (
-                                                    <button onClick={() => {
-                                                        const t = prompt("Nouvelle tâche ?");
-                                                        if (t) {
-                                                            const d = prompt("Date d'échéance (optionnel, YYYY-MM-DD) ?");
-                                                            const newTask: ProjectTask = { id: Date.now().toString(), title: t, status: 'A faire', dueDate: d || undefined };
-                                                            const updatedTasks = [...(selectedProject.tasks || []), newTask];
-                                                            updateTasks(updatedTasks);
-                                                        }
-                                                    }} className="flex items-center px-3 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-xs font-bold hover:scale-105 transition-transform">
-                                                        <Plus className="h-3 w-3 mr-1" /> Ajouter
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingTask(undefined);
+                                                            setShowTaskModal(true);
+                                                        }}
+                                                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 hover:scale-105 transition-all shadow-lg shadow-brand-500/30"
+                                                    >
+                                                        <Plus className="h-4 w-4" />
+                                                        Nouvelle tâche
                                                     </button>
-                                                )}
-                                            </div>
+                                                )}</div>
 
                                             {taskViewMode === 'list' ? (
                                                 <div className="space-y-2">
@@ -836,6 +824,29 @@ export const Projects: React.FC = () => {
                                             <Comments collectionName="projects" documentId={selectedProject.id} />
                                         </div>
                                     )}
+
+                                    {inspectorTab === 'gantt' && (
+                                        <div className="space-y-6 h-full">
+                                            <GanttChart
+                                                tasks={selectedProject.tasks || []}
+                                                onTaskUpdate={async (task, _start, end) => {
+                                                    if (!selectedProject.id) return;
+                                                    try {
+                                                        const updatedTasks = selectedProject.tasks?.map(t =>
+                                                            t.id === task.id ? { ...t, dueDate: end.toISOString() } : t
+                                                        ) || [];
+                                                        await updateDoc(doc(db, 'projects', selectedProject.id), {
+                                                            tasks: updatedTasks
+                                                        });
+                                                        addToast('Tâche mise à jour', 'success');
+                                                        fetchData();
+                                                    } catch (error) {
+                                                        addToast('Erreur de mise à jour', 'error');
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -845,34 +856,15 @@ export const Projects: React.FC = () => {
 
             {/* Create Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-2xl border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-brand-50/30 dark:bg-brand-900/10">
-                            <h2 className="text-2xl font-bold text-brand-900 dark:text-brand-100 tracking-tight">Nouveau Projet</h2>
-                        </div>
-                        <form onSubmit={handleCreateProject} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
-                            <div className="space-y-6">
-                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
-                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={3} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} /></div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Manager</label>
-                                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.manager} onChange={e => setFormData({ ...formData, manager: e.target.value })}>
-                                            <option value="">Non assigné</option>
-                                            {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
-                                        </select>
-                                    </div>
-                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Échéance</label><input required type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={formData.dueDate} onChange={e => setFormData({ ...formData, dueDate: e.target.value })} /></div>
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                                <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                                <button type="submit" className="px-8 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-brand-500/30">Créer</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <ProjectFormModal
+                    isOpen={showModal}
+                    onClose={() => setShowModal(false)}
+                    onSubmit={handleProjectFormSubmit}
+                    availableUsers={usersList.map(u => u.displayName)}
+                    existingProject={isEditing && selectedProject ? selectedProject : undefined}
+                />
             )}
         </div>
     );
 };
+

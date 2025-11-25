@@ -1,25 +1,23 @@
-
 import React, { useEffect, useState } from 'react';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, Radar as RechartsRadar, ResponsiveContainer, Tooltip, AreaChart, Area, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { ShieldAlert, CheckCircle2, Activity, AlertTriangle, Download, ChevronRight, Siren, TrendingUp, Lock, Copy, CheckSquare, Clock, FileText, Stethoscope, Building, History, Server, Briefcase, Flame, FileSpreadsheet, CalendarDays, FolderKanban, User, Plus, Zap, ArrowRight, Euro, Settings as Settings3D } from '../components/ui/Icons';
+import { RadarChart, PolarGrid, PolarAngleAxis, Radar as RechartsRadar, ResponsiveContainer, Tooltip, AreaChart, Area, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { ShieldAlert, CheckCircle2, AlertTriangle, Download, Siren, TrendingUp, Stethoscope, History, Server, Flame, CalendarDays, User, Zap, ArrowRight, Euro, Settings as Settings3D } from '../components/ui/Icons';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { db } from '../firebase';
 import { collection, getDocs, query, where, doc, setDoc, limit, getCountFromServer } from 'firebase/firestore';
-import { Risk, Control, Audit, Project, DailyStat, Document, ProjectTask, Asset, SystemLog, Supplier, Incident } from '../types';
+import { Risk, Control, Audit, Project, DailyStat, Document, Asset, SystemLog, Supplier, Incident } from '../types';
 import { Skeleton } from '../components/ui/Skeleton';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
-import { ComplianceScorecard } from '../components/dashboard/ComplianceScorecard';
-import { TopRisksWidget } from '../components/dashboard/TopRisksWidget';
 
 const StatCard: React.FC<{ title: string; value: string | number | null; icon: any; trend?: string; colorClass: string; delay?: string; onClick?: () => void }> = ({ title, value, icon: Icon, trend, colorClass, delay, onClick }) => (
-    <div onClick={onClick} className={`relative group glass-panel p-6 rounded-[2rem] hover:shadow-apple transition-all duration-500 hover:-translate-y-1 overflow-hidden ${delay} border border-white/60 dark:border-white/5 cursor-pointer`}>
+    <div onClick={onClick} className={`relative group glass - panel p - 6 rounded - [2rem] hover: shadow - apple transition - all duration - 500 hover: -translate - y - 1 overflow - hidden ${delay} border border - white / 60 dark: border - white / 5 cursor - pointer`}>
         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
         <div className="flex flex-col h-full justify-between relative z-10">
             <div className="flex justify-between items-start mb-6">
-                <div className={`p-3.5 rounded-[1.2rem] ${colorClass} bg-opacity-10 ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm group-hover:scale-110 transition-transform duration-500`}>
-                    <Icon className={`h-6 w-6 ${colorClass.replace('bg-', 'text-')}`} strokeWidth={2} />
+                <div className={`p - 3.5 rounded - [1.2rem] ${colorClass} bg - opacity - 10 ring - 1 ring - inset ring - black / 5 dark: ring - white / 10 shadow - sm group - hover: scale - 110 transition - transform duration - 500`}>
+                    <Icon className={`h - 6 w - 6 ${colorClass.replace('bg-', 'text-')} `} strokeWidth={2} />
                 </div>
                 {trend && <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20 shadow-sm">
                     {trend}
@@ -44,7 +42,6 @@ export const Dashboard: React.FC = () => {
     const [historyData, setHistoryData] = useState<DailyStat[]>([]);
     const [healthIssues, setHealthIssues] = useState<HealthIssue[]>([]);
     const [topRisks, setTopRisks] = useState<Risk[]>([]);
-    const [controls, setControls] = useState<Control[]>([]);
     const [radarData, setRadarData] = useState<{ subject: string; A: number; fullMark: number }[]>([]);
     const [latestIncidents, setLatestIncidents] = useState<Incident[]>([]);
     const [myActionItems, setMyActionItems] = useState<ActionItem[]>([]);
@@ -105,8 +102,6 @@ export const Dashboard: React.FC = () => {
 
                 const allAudits = getData<Audit>(results[0]);
                 const controls = getRawData<Control>(results[1]);
-                const controlsData = getData<Control>(results[1]);
-                setControls(controlsData);
 
                 const allLogs = getData<SystemLog>(results[2]);
                 const historyStats = getRawData<DailyStat>(results[3]);
@@ -398,7 +393,7 @@ export const Dashboard: React.FC = () => {
                         ) : (
                             <div className="divide-y divide-slate-100 dark:divide-white/5">
                                 {myActionItems.map(item => (
-                                    <div key={item.id} onClick={() => navigate(item.link)} className="p-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+                                    <div key={item.id} onClick={() => navigate(item.link)} className="p-5 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer group card-hover rounded-xl">
                                         <div className="flex items-center justify-between mb-1">
                                             <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${item.type === 'audit' ? 'bg-blue-50 text-blue-600' : item.type === 'policy' ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'}`}>
                                                 {item.type === 'audit' ? 'Audit' : item.type === 'policy' ? 'À Signer' : item.type === 'document' ? 'Revue' : 'Projet'}
@@ -429,10 +424,16 @@ export const Dashboard: React.FC = () => {
                 <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm flex flex-col">
                     <div className="px-8 pt-8 pb-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
                         <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Diagnostic Santé</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">Alertes Système</p></div>
-                        <Stethoscope className={`w-6 h-6 ${healthIssues.length > 0 ? 'text-orange-500' : 'text-emerald-500'}`} />
+                        <CustomTooltip content={healthIssues.length > 0 ? "Des actions sont requises" : "Système sain"} position="left">
+                            <Stethoscope className={`w-6 h-6 ${healthIssues.length > 0 ? 'text-orange-500' : 'text-emerald-500'}`} />
+                        </CustomTooltip>
                     </div>
                     <div className="p-6 flex-1 space-y-4 bg-white/40 dark:bg-transparent">
-                        {loading ? <Skeleton className="h-full w-full" /> : healthIssues.length === 0 ? (<div className="flex items-center p-4 bg-emerald-50/80 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30"><CheckCircle2 className="h-5 w-5 text-emerald-500 mr-3 flex-shrink-0" /><span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Aucune anomalie détectée.</span></div>) : (healthIssues.map(issue => (<div key={issue.id} onClick={() => navigate(issue.link)} className={`flex items-start p-4 rounded-2xl border cursor-pointer transition-transform hover:scale-[1.02] ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30'}`}><AlertTriangle className={`h-5 w-5 mr-3 mt-0.5 flex-shrink-0 ${issue.type === 'danger' ? 'text-red-500' : 'text-orange-500'}`} /><div><p className={`text-sm font-bold leading-tight ${issue.type === 'danger' ? 'text-red-800 dark:text-red-200' : 'text-orange-800 dark:text-orange-200'}`}>{issue.message}</p><span className={`text-xs font-medium mt-1 block ${issue.type === 'danger' ? 'text-red-600/70 dark:text-red-400' : 'text-orange-600/70 dark:text-orange-400'}`}>{issue.count} éléments concernés</span></div></div>)))}
+                        {loading ? <Skeleton className="h-full w-full" /> : healthIssues.length === 0 ? (<div className="flex items-center p-4 bg-emerald-50/80 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30"><CheckCircle2 className="h-5 w-5 text-emerald-500 mr-3 flex-shrink-0" /><span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Aucune anomalie détectée.</span></div>) : (healthIssues.map(issue => (
+                            <CustomTooltip key={issue.id} content="Cliquez pour résoudre" position="top" className="w-full">
+                                <div onClick={() => navigate(issue.link)} className={`flex items-start p-4 rounded-2xl border cursor-pointer card-hover w-full ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30'}`}><AlertTriangle className={`h-5 w-5 mr-3 mt-0.5 flex-shrink-0 ${issue.type === 'danger' ? 'text-red-500' : 'text-orange-500'}`} /><div><p className={`text-sm font-bold leading-tight ${issue.type === 'danger' ? 'text-red-800 dark:text-red-200' : 'text-orange-800 dark:text-orange-200'}`}>{issue.message}</p><span className={`text-xs font-medium mt-1 block ${issue.type === 'danger' ? 'text-red-600/70 dark:text-red-400' : 'text-orange-600/70 dark:text-orange-400'}`}>{issue.count} éléments concernés</span></div></div>
+                            </CustomTooltip>
+                        )))}
                     </div>
                 </div>
 
@@ -441,7 +442,7 @@ export const Dashboard: React.FC = () => {
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Risques Prioritaires</h3><Flame className="w-5 h-5 text-red-500" />
                     </div>
                     <div className="p-8 space-y-3">
-                        {loading ? [1, 2].map(i => <Skeleton key={i} className="h-16 w-full rounded-2xl" />) : topRisks.slice(0, 3).map(risk => (<div key={risk.id} onClick={() => navigate('/risks')} className="p-4 rounded-2xl bg-white/60 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 transition-all group flex items-center justify-between shadow-sm hover:shadow-md cursor-pointer"><div className="flex items-center"><div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mr-4 text-red-600 font-black text-lg shadow-inner">{risk.score}</div><div><h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{risk.threat}</h4><p className="text-xs text-slate-500 font-medium mt-0.5">{risk.vulnerability}</p></div></div><span className="text-[10px] font-bold bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 text-slate-600 dark:text-slate-300">{risk.strategy}</span></div>))}
+                        {loading ? [1, 2].map(i => <Skeleton key={i} className="h-16 w-full rounded-2xl" />) : topRisks.slice(0, 3).map(risk => (<div key={risk.id} onClick={() => navigate('/risks')} className="p-4 rounded-2xl bg-white/60 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 transition-all group flex items-center justify-between shadow-sm card-hover cursor-pointer"><div className="flex items-center"><div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mr-4 text-red-600 font-black text-lg shadow-inner">{risk.score}</div><div><h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{risk.threat}</h4><p className="text-xs text-slate-500 font-medium mt-0.5">{risk.vulnerability}</p></div></div><span className="text-[10px] font-bold bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 text-slate-600 dark:text-slate-300">{risk.strategy}</span></div>))}
                         {topRisks.length === 0 && !loading && <p className="text-sm text-slate-400 italic text-center">Aucun risque majeur identifié.</p>}
                     </div>
                 </div>
