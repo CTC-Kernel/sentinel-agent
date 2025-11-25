@@ -34,6 +34,15 @@ const formatSafeDate = (date: any): string => {
   }
 };
 
+const safeRender = (value: any): string => {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'object') {
+    if ('seconds' in value) return formatSafeDate(value);
+    return JSON.stringify(value);
+  }
+  return String(value);
+};
+
 export const VoxelView: React.FC = () => {
   const { user, addToast } = useStore();
   const navigate = useNavigate();
@@ -251,15 +260,15 @@ export const VoxelView: React.FC = () => {
       ...option,
       items: sourceMap[option.id].map(item => ({
         id: item.id,
-        label: item.name || item.title || item.threat || 'Élément',
+        label: safeRender(item.name || item.title || item.threat || 'Élément'),
         meta:
           option.id === 'risk'
             ? `Score ${(item as Risk).score}`
             : option.id === 'project'
               ? `${(item as Project).progress || 0}%`
               : option.id === 'incident'
-                ? (item as Incident).severity
-                : (item as any).owner || (item as any).status || '',
+                ? safeRender((item as Incident).severity)
+                : safeRender((item as any).owner || (item as any).status || ''),
       })).filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase())),
     }));
   }, [layerOptions, assets, risks, projects, audits, incidents, suppliers]);
@@ -461,6 +470,28 @@ export const VoxelView: React.FC = () => {
     setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
   };
 
+  // Helper to convert Firestore Timestamps to ISO strings
+  const convertTimestamps = (obj: any): any => {
+    if (!obj || typeof obj !== 'object') return obj;
+    
+    // Handle Firestore Timestamp
+    if (obj.seconds !== undefined && obj.nanoseconds !== undefined) {
+      return new Date(obj.seconds * 1000).toISOString();
+    }
+    
+    // Handle arrays
+    if (Array.isArray(obj)) {
+      return obj.map(item => convertTimestamps(item));
+    }
+    
+    // Handle objects recursively
+    const converted: any = {};
+    for (const key in obj) {
+      converted[key] = convertTimestamps(obj[key]);
+    }
+    return converted;
+  };
+
   useEffect(() => {
     if (!user?.organizationId) {
       setLoading(false);
@@ -487,12 +518,12 @@ export const VoxelView: React.FC = () => {
           getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', orgId)))
         ]);
 
-        setAssets(assetsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Asset[]);
-        setRisks(risksSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Risk[]);
-        setProjects(projectsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Project[]);
-        setAudits(auditsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Audit[]);
-        setIncidents(incidentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Incident[]);
-        setSuppliers(suppliersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Supplier[]);
+        setAssets(assetsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Asset[]);
+        setRisks(risksSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Risk[]);
+        setProjects(projectsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Project[]);
+        setAudits(auditsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Audit[]);
+        setIncidents(incidentsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Incident[]);
+        setSuppliers(suppliersSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Supplier[]);
 
       } catch (error) {
         console.error('Error fetching voxel data:', error);
@@ -914,8 +945,8 @@ export const VoxelView: React.FC = () => {
                       {insight.type}
                     </span>
                   </div>
-                  <h4 className="text-sm font-semibold text-white mb-1 group-hover:text-indigo-300 transition-colors">{insight.title}</h4>
-                  <p className="text-xs text-white/70 leading-relaxed">{insight.description}</p>
+                  <h4 className="text-sm font-semibold text-white mb-1 group-hover:text-indigo-300 transition-colors">{safeRender(insight.title)}</h4>
+                  <p className="text-xs text-white/70 leading-relaxed">{safeRender(insight.description)}</p>
                 </div>
               ))}
             </div>

@@ -116,7 +116,14 @@ export const Projects: React.FC = () => {
         try {
             const q = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), limit(50));
             const snap = await getDocs(q);
-            const logs = snap.docs.map(d => d.data() as SystemLog);
+            const logs = snap.docs.map(d => {
+                const data = d.data();
+                return {
+                    id: d.id,
+                    ...data,
+                    timestamp: data.timestamp?.toDate ? data.timestamp.toDate().toISOString() : data.timestamp
+                } as SystemLog;
+            });
             const filteredLogs = logs.filter(l => l.resource === 'Project' && l.details?.includes(project.name));
             filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setProjectHistory(filteredLogs);
@@ -133,7 +140,17 @@ export const Projects: React.FC = () => {
         } catch (e) { console.error(e); }
     };
 
-    const openCreateModal = () => {
+    const openCreateModal = async () => {
+        // Check limits
+        if (user?.organizationId) {
+            const canAdd = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
+            if (!canAdd) {
+                if (confirm("Vous avez atteint la limite de projets de votre plan actuel. Voulez-vous passer au plan supérieur ?")) {
+                    navigate('/pricing');
+                }
+                return;
+            }
+        }
         setIsEditing(false);
         setShowModal(true);
     };
@@ -175,6 +192,16 @@ export const Projects: React.FC = () => {
 
     const handleCreateFromTemplate = async (template: ProjectTemplate, projectName: string, startDate: Date, manager: string) => {
         if (!canEdit || !user?.organizationId) return;
+
+        // Check limits
+        const canAdd = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
+        if (!canAdd) {
+            if (confirm("Vous avez atteint la limite de projets de votre plan actuel. Voulez-vous passer au plan supérieur ?")) {
+                navigate('/pricing');
+            }
+            return;
+        }
+
         try {
             const { project, milestones } = createProjectFromTemplate(template, projectName, startDate, manager, user.organizationId);
 

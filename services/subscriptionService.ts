@@ -65,7 +65,7 @@ export const SubscriptionService = {
       organizationId,
       planId,
       interval,
-      successUrl: `${window.location.origin}/settings/billing?success=true`,
+      successUrl: `${window.location.origin}/settings?billing_success=true`,
       cancelUrl: `${window.location.origin}/pricing?canceled=true`
     }) as { data: { url: string } };
     
@@ -83,7 +83,7 @@ export const SubscriptionService = {
     
     const { data } = await createPortalSession({
       organizationId,
-      returnUrl: `${window.location.origin}/settings/billing`
+      returnUrl: `${window.location.origin}/settings`
     }) as { data: { url: string } };
     
     if (data.url) {

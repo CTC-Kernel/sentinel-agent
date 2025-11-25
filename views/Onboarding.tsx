@@ -7,9 +7,12 @@ import { sendEmail } from '../services/emailService';
 import { getWelcomeEmailTemplate } from '../services/emailTemplates';
 import { PLANS } from '../config/plans';
 import { PlanType } from '../types';
+import { useNavigate } from 'react-router-dom';
+import { SubscriptionService } from '../services/subscriptionService';
 
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast } = useStore();
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [selectedPlan, setSelectedPlan] = useState<PlanType>('discovery');
     const [role, setRole] = useState<'admin' | 'user' | 'auditor'>('admin');
@@ -27,50 +30,96 @@ export const Onboarding: React.FC = () => {
         setError('');
 
         try {
-            // Generate a robust ID for the organization
+            // Generate a robust ID for the organization if not exists
             const newOrgId = user.organizationId || crypto.randomUUID();
+            const orgName = user.organizationName || organizationName;
 
-            const updates = {
+            // 1. Create/Update User Profile
+            const userUpdates = {
                 uid: user.uid,
                 email: user.email,
                 role,
                 department,
                 industry,
                 displayName,
-                organizationName: user.organizationName || organizationName,
+                organizationName: orgName,
                 organizationId: newOrgId,
-                onboardingCompleted: true,
+                // onboardingCompleted will be set to true ONLY after plan selection
                 photoURL: user.photoURL || null,
                 lastLogin: new Date().toISOString()
             };
 
-            await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
-            setUser({ ...user, ...updates });
+            await setDoc(doc(db, 'users', user.uid), userUpdates, { merge: true });
+            setUser({ ...user, ...userUpdates });
 
-            // Send welcome email
+            // 2. Create Organization Document (CRITICAL for SubscriptionService)
+            const orgRef = doc(db, 'organizations', newOrgId);
+            await setDoc(orgRef, {
+                id: newOrgId,
+                name: orgName,
+                ownerId: user.uid,
+                createdAt: new Date().toISOString(),
+                industry,
+                subscription: {
+                    planId: 'discovery', // Default to discovery, will be updated in step 2
+                    status: 'active',
+                    startDate: new Date().toISOString()
+                }
+            }, { merge: true });
+
+            // 3. Send welcome email (async, don't block)
             try {
                 const htmlContent = getWelcomeEmailTemplate(
                     displayName || user.email,
-                    updates.organizationName,
+                    orgName,
                     role,
                     `${window.location.origin}/dashboard`
                 );
-                await sendEmail(user, {
+                sendEmail(user, {
                     to: user.email,
                     subject: '🎉 Bienvenue sur Sentinel GRC',
                     html: htmlContent,
                     type: 'WELCOME_EMAIL'
-                }, false);
+                }, false).catch(console.error);
             } catch (emailError) {
-                console.error('Error sending welcome email:', emailError);
+                console.error('Error preparing welcome email:', emailError);
             }
 
-            addToast("Configuration terminée avec succès !", "success");
+            // Move to Step 2 (Plan Selection)
+            setStep(2);
+            addToast("Profil créé ! Choisissez votre offre.", "success");
+
         } catch (error: any) {
-            console.error("Error completing onboarding", error);
-            setError(error.message || "Une erreur est survenue. Veuillez réessayer.");
-            addToast("Erreur lors de la configuration. Vérifiez vos permissions Firebase.", "error");
+            console.error("Error completing step 1", error);
+            setError(error.message || "Une erreur est survenue.");
+            addToast("Erreur lors de la configuration.", "error");
         } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFinalize = async () => {
+        if (!user?.organizationId) return;
+        setLoading(true);
+        try {
+            // Update user onboarding status
+            await setDoc(doc(db, 'users', user.uid), { onboardingCompleted: true }, { merge: true });
+            
+            // Update local user state to unlock app access immediately for free plan
+            // For paid plans, Stripe redirection happens, so state update is less critical here but good practice
+            setUser({ ...user, onboardingCompleted: true });
+
+            if (selectedPlan === 'discovery') {
+                // Free plan: Direct access
+                navigate('/dashboard');
+                window.location.reload(); // Force reload to clear onboarding state from App.tsx check
+            } else {
+                // Paid plan: Redirect to Stripe
+                await SubscriptionService.startSubscription(user.organizationId, selectedPlan, 'month'); // Default to monthly for onboarding
+            }
+        } catch (e) {
+            console.error("Finalize error", e);
+            addToast("Erreur lors de la finalisation.", "error");
             setLoading(false);
         }
     };
