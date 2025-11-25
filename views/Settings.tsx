@@ -576,7 +576,7 @@ export const Settings: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-white/5">
-                            <div className="p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group" onClick={initiatePurgeLogs}>
+                            <div className="p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group card-hover" onClick={initiatePurgeLogs}>
                                 <div className="flex items-center justify-between mb-3">
                                     <Trash2 className="h-6 w-6 text-orange-500 group-hover:scale-110 transition-transform" />
                                     {maintenanceLoading && <div className="animate-spin h-4 w-4 border-2 border-orange-500 border-t-transparent rounded-full"></div>}
@@ -584,7 +584,7 @@ export const Settings: React.FC = () => {
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">Purger les Logs</h4>
                                 <p className="text-xs text-slate-500 mt-1">Nettoyer l&apos;historique &gt; 90 jours.</p>
                             </div>
-                            <div className="p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group" onClick={initiateIntegrityCheck}>
+                            <div className="p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group card-hover" onClick={initiateIntegrityCheck}>
                                 <div className="flex items-center justify-between mb-3">
                                     <RefreshCw className="h-6 w-6 text-blue-500 group-hover:rotate-180 transition-transform duration-700" />
                                     {maintenanceLoading && <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>}
@@ -593,7 +593,7 @@ export const Settings: React.FC = () => {
                                 <p className="text-xs text-slate-500 mt-1">Réparer les liens cassés.</p>
 
                             </div>
-                            <div className="p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group col-span-2 border-t border-gray-100 dark:border-white/5" onClick={handleMigration}>
+                            <div className="p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group col-span-2 border-t border-gray-100 dark:border-white/5 card-hover" onClick={handleMigration}>
                                 <div className="flex items-center justify-between mb-3">
                                     <Users className="h-6 w-6 text-purple-500 group-hover:scale-110 transition-transform" />
                                     {maintenanceLoading && <div className="animate-spin h-4 w-4 border-2 border-purple-500 border-t-transparent rounded-full"></div>}
@@ -639,7 +639,7 @@ export const Settings: React.FC = () => {
                         </div>
                         <div className="space-y-4">
                             {usersList.map(u => (
-                                <div key={u.uid} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                                <div key={u.uid} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 card-hover transition-all">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold">
                                             {u.photoURL ? <img src={u.photoURL} className="w-full h-full rounded-full object-cover" /> : u.displayName?.charAt(0)}
