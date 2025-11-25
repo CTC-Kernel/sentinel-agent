@@ -21,6 +21,7 @@ import { NotificationPermissionBanner } from './components/ui/NotificationPermis
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { OnboardingTrigger } from './components/onboarding/OnboardingTrigger';
 import { GeminiAssistant } from './components/ai/GeminiAssistant';
+import { hasPermission } from './utils/permissions';
 
 // Lazy Loading des Vues
 const Dashboard = React.lazy(() => import('./views/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -179,7 +180,9 @@ const AppContent: React.FC = () => {
         const runChecks = async () => {
             try {
                 await NotificationService.runAutomatedChecks(user.organizationId!);
-                await BackupService.checkScheduledBackups(user);
+                if (hasPermission(user, 'Settings', 'manage')) {
+                    await BackupService.checkScheduledBackups(user);
+                }
             } catch (e) {
                 console.error('Automation checks failed', e);
             }
@@ -334,6 +337,7 @@ const AppContent: React.FC = () => {
                                         <Route path="/search" element={<Search />} />
                                         <Route path="/help" element={<Help />} />
                                         <Route path="/intake" element={<KioskPage />} />
+                                        <Route path="/pricing" element={<Pricing />} />
                                         <Route path="*" element={<NotFound />} />
                                     </Routes>
                                 </Suspense>
