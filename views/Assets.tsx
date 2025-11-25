@@ -19,6 +19,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
+import { LifecycleTimeline } from '../components/assets/LifecycleTimeline';
 
 export const Assets: React.FC = () => {
     const [assets, setAssets] = useState<Asset[]>([]);
@@ -600,7 +601,7 @@ export const Assets: React.FC = () => {
                                     <div className="flex items-center"><div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-2xl flex items-center justify-center mr-5 shadow-lg shadow-brand-500/20 text-white"><Server className="h-6 w-6" strokeWidth={2} /></div><div><h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedAsset ? selectedAsset.name : 'Nouvel Actif'}</h2><p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">{selectedAsset?.type || editForm.type}<span className="w-1 h-1 rounded-full bg-slate-300"></span>{selectedAsset?.id || 'Brouillon'}</p></div></div>
                                     <div className="flex gap-2">{canEdit && selectedAsset && (<button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer"><Copy className="h-5 w-5" /></button>)}{canEdit && isDirty && (<button onClick={handleSave} className="flex items-center px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl shadow-lg hover:scale-105 transition-all"><Save className="h-4 w-4 mr-2" /> Enregistrer</button>)}<button onClick={() => { setSelectedAsset(null); setEditForm({}); }} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button></div>
                                 </div>
-                                <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent">{[{ id: 'details', label: 'Général', icon: Tag }, { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock }, { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert }, { id: 'projects', label: 'Projets', icon: FolderKanban }, { id: 'audits', label: 'Audits', icon: CheckSquare }, { id: 'history', label: 'Audit Trail', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }, { id: 'graph', label: 'Graphe', icon: Network }].map(tab => (<button key={tab.id} onClick={() => setInspectorTab(tab.id as any)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}><tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />{tab.label}</button>))}</div>
+                                <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent">{[{ id: 'details', label: 'Général', icon: Tag }, { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock }, { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert }, { id: 'projects', label: 'Projets', icon: FolderKanban }, { id: 'audits', label: 'Audits', icon: CheckSquare }, { id: 'history', label: 'Audit Trail', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }, { id: 'graph', label: 'Graphe', icon: Network }].map(tab => (<button key={tab.id} onClick={() => setInspectorTab(tab.id as any)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}><tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />{tab.label}</button>))}</div>
 
                                 <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-black/20 custom-scrollbar">
                                     {inspectorTab === 'details' && (
@@ -645,6 +646,17 @@ export const Assets: React.FC = () => {
                                     )}
                                     {inspectorTab === 'lifecycle' && (
                                         <div className="space-y-8">
+                                            <div className="bg-white dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-x-auto">
+                                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-8">Timeline du cycle de vie</h3>
+                                                <div className="min-w-[600px] px-4">
+                                                    <LifecycleTimeline
+                                                        status={editForm.lifecycleStatus || 'Neuf'}
+                                                        purchaseDate={editForm.purchaseDate}
+                                                        warrantyEnd={editForm.warrantyEnd}
+                                                        nextMaintenance={editForm.nextMaintenance}
+                                                    />
+                                                </div>
+                                            </div>
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                                                 <div className="flex items-center justify-between mb-6">
                                                     <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600/80 flex items-center"><Archive className="h-4 w-4 mr-2" /> État du cycle de vie</h3>

@@ -158,4 +158,75 @@ export const aiService = {
 
 
 
+    /**
+     * General chat with the AI assistant.
+     */
+    async chatWithAI(message: string, context?: any): Promise<string> {
+        if (!API_KEY) return "Je ne peux pas répondre car la clé API Gemini est manquante.";
+
+        try {
+            const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+
+            let systemPrompt = `Tu es Sentinel AI, un assistant expert en cybersécurité et GRC (Gouvernance, Risque, Conformité).
+            Ton rôle est d'aider les utilisateurs à gérer leur sécurité, comprendre les normes (ISO 27001, RGPD) et rédiger des documents.
+            Sois professionnel, concis et précis. Réponds toujours en Français.`;
+
+            if (context) {
+                systemPrompt += `\n\nContexte actuel de l'application :\n${JSON.stringify(context)}`;
+            }
+
+            const chat = model.startChat({
+                history: [
+                    {
+                        role: "user",
+                        parts: [{ text: systemPrompt }],
+                    },
+                    {
+                        role: "model",
+                        parts: [{ text: "Bien reçu. Je suis Sentinel AI, prêt à vous assister sur tous les sujets GRC." }],
+                    },
+                ],
+            });
+
+            const result = await chat.sendMessage(message);
+            const response = await result.response;
+            return response.text();
+        } catch (error) {
+            console.error("AI Chat failed:", error);
+            return "Désolé, une erreur est survenue lors de la communication avec l'IA.";
+        }
+    },
+
+    /**
+     * Generates a policy document based on parameters.
+     */
+    async generatePolicy(type: string, topic: string, details: string): Promise<string> {
+        if (!API_KEY) return "Clé API manquante.";
+
+        try {
+            const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+            const prompt = `
+                Rédige un document de politique de sécurité (Format Markdown).
+                Type: ${type}
+                Sujet: ${topic}
+                Détails spécifiques: ${details}
+
+                Structure attendue:
+                1. Objectif
+                2. Champ d'application
+                3. Responsabilités
+                4. Règles et Directives
+                5. Conformité et Sanctions
+
+                Le ton doit être formel et adapté à une entreprise certifiée ISO 27001.
+            `;
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            return response.text();
+        } catch (error) {
+            console.error("Policy generation failed:", error);
+            throw new Error("Échec de la génération de politique.");
+        }
+    }
 };

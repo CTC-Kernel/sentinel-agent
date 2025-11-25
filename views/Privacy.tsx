@@ -321,7 +321,7 @@ export const Privacy: React.FC = () => {
                     </div>
                 ) : (
                     filteredActivities.map(activity => (
-                        <div key={activity.id} onClick={() => openInspector(activity)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5">
+                        <div key={activity.id} onClick={() => openInspector(activity)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5">
                             <div className="flex justify-between items-start mb-5">
                                 <div className="p-3 bg-purple-50 dark:bg-slate-800 rounded-2xl text-purple-600 shadow-inner">
                                     <Fingerprint className="h-6 w-6" />
@@ -395,7 +395,7 @@ export const Privacy: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5">
+                                <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5 overflow-x-auto no-scrollbar">
                                     {[
                                         { id: 'details', label: 'Fiche Registre', icon: LayoutDashboard },
                                         { id: 'data', label: 'Données & Sécurité', icon: GlobeLock },
@@ -405,7 +405,7 @@ export const Privacy: React.FC = () => {
                                         <button
                                             key={tab.id}
                                             onClick={() => setInspectorTab(tab.id as any)}
-                                            className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                            className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                         >
                                             <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
                                             {tab.label}

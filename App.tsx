@@ -1,16 +1,16 @@
 
 import React, { useEffect, useState, useRef, Suspense } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, query, onSnapshot, doc, where, getDocs, setDoc, updateDoc, limit, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, where, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { useStore } from './store';
 import { Sidebar } from './components/layout/Sidebar';
 import { ToastContainer } from './components/ui/Toast';
 import { Login } from './views/Login';
 import { Onboarding } from './views/Onboarding';
-import { LayoutDashboard, ShieldAlert, Server, FileText, Users, Settings as SettingsIcon, Bell, LogOut, Menu, Search as SearchIcon, Moon, Sun, WifiOff, Lock, AlertTriangle, CheckCircle2, X, User } from './components/ui/Icons';
-import { UserProfile, Risk, Supplier, Incident, Audit, Document } from './types';
+import { Settings as SettingsIcon, LogOut, Menu, Search as SearchIcon, Moon, Sun, WifiOff, Lock, AlertTriangle, User } from './components/ui/Icons';
+import { UserProfile } from './types';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { NotificationCenter } from './components/ui/NotificationCenter';
@@ -20,6 +20,7 @@ import { BackupService } from './services/backupService';
 import { NotificationPermissionBanner } from './components/ui/NotificationPermissionBanner';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { OnboardingTrigger } from './components/onboarding/OnboardingTrigger';
+import { GeminiAssistant } from './components/ai/GeminiAssistant';
 
 // Lazy Loading des Vues
 const Dashboard = React.lazy(() => import('./views/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -76,6 +77,12 @@ const NotFound = () => (
     </div>
 );
 
+// Wrapper to activate global shortcuts inside Router context
+const GlobalShortcutsWrapper: React.FC = () => {
+    useGlobalShortcuts();
+    return null;
+};
+
 const AppContent: React.FC = () => {
     const { theme, toggleTheme, setUser, user } = useStore();
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -84,9 +91,6 @@ const AppContent: React.FC = () => {
 
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
-
-    // Activate global keyboard shortcuts
-    useGlobalShortcuts();
 
     useEffect(() => {
         // Apply theme to body immediately
@@ -147,7 +151,7 @@ const AppContent: React.FC = () => {
                         }
                     }
                     setInitializing(false);
-                }, (error) => {
+                }, () => {
                     // Fallback in case of error or missing user doc
                     setUser({ uid: u.uid, email: u.email || '', role: 'user', displayName: u.displayName || 'User', onboardingCompleted: false });
                     setInitializing(false);
@@ -203,6 +207,7 @@ const AppContent: React.FC = () => {
 
     return (
         <Router>
+            <GlobalShortcutsWrapper />
             <ErrorBoundary>
                 <div className="flex h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-900 text-[#1d1d1f] dark:text-[#f5f5f7] font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300">
 
@@ -218,6 +223,7 @@ const AppContent: React.FC = () => {
 
                     <ToastContainer />
                     <CommandPalette />
+                    <GeminiAssistant />
 
                     {!isOnline && (
                         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[100] glass-panel px-4 py-2 rounded-full flex items-center text-xs font-medium text-slate-600 shadow-lg animate-slide-up border border-slate-200">
