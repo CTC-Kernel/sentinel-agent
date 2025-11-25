@@ -154,13 +154,14 @@ export interface ProjectTask {
   id: string;
   title: string;
   description?: string;
-  status: 'A faire' | 'En cours' | 'Terminé';
+  status: 'A faire' | 'En cours' | 'Terminé' | 'Bloqué';
   assignee?: string;
   dueDate?: string;
   priority?: 'low' | 'medium' | 'high';
   estimatedHours?: number;
   actualHours?: number;
   dependencies?: string[]; // IDs of tasks this depends on
+  progress?: number; // 0-100 percentage
 }
 
 export interface ProjectMilestone {

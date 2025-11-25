@@ -104,7 +104,11 @@ import {
   Calendar,
   Laptop,
   Network,
-  Shield
+  Shield,
+  Bot,
+  Loader2,
+  Minimize2,
+  CheckCheck
 } from 'lucide-react';
 
 export {
@@ -212,5 +216,9 @@ export {
   Calendar,
   Laptop,
   Network,
-  Shield
+  Shield,
+  Bot,
+  Loader2,
+  Minimize2,
+  CheckCheck
 };
