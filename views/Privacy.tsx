@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
+import { createPortal } from 'react-dom';
+import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ProcessingActivity, SystemLog, UserProfile } from '../types';
 import { Plus, Search, Fingerprint, Trash2, Edit, GlobeLock, Scale, FileSpreadsheet, CheckCircle2, Clock, Activity, AlertTriangle, X, History, MessageSquare, Save, LayoutDashboard, Upload } from '../components/ui/Icons';
@@ -53,9 +54,9 @@ export const Privacy: React.FC = () => {
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
             ]);
 
-            const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
+            const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
                 if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
+                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() })) as unknown as T[];
                 }
                 return [];
             };
@@ -368,7 +369,7 @@ export const Privacy: React.FC = () => {
             </div>
 
             {/* Inspector Drawer */}
-            {selectedActivity && (
+            {selectedActivity && createPortal(
                 <div className="fixed inset-0 z-[9999] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedActivity(null)} />
                     <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
@@ -532,13 +533,14 @@ export const Privacy: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )
             }
 
             {/* Create Modal */}
             {
-                showCreateModal && (
+                showCreateModal && createPortal(
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-2xl border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
                             <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-purple-50/30 dark:bg-purple-900/10">
@@ -590,7 +592,8 @@ export const Privacy: React.FC = () => {
                                 </div>
                             </form>
                         </div>
-                    </div>
+                    </div>,
+                    document.body
                 )
             }
         </div >

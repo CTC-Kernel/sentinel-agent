@@ -46,7 +46,24 @@ export class AccountService {
         }
       }
 
-      // 3. Delete Firebase Auth user
+      // 3. If user is the only member of their organization, delete the organization
+      if (user.organizationId) {
+        try {
+          const usersInOrg = await getDocs(
+            query(collection(db, 'users'), where('organizationId', '==', user.organizationId))
+          );
+          
+          // If no other users in this org (we already deleted current user doc), delete the org
+          if (usersInOrg.empty) {
+            await deleteDoc(doc(db, 'organizations', user.organizationId));
+            console.log(`Organization ${user.organizationId} deleted (no remaining users)`);
+          }
+        } catch (e) {
+          console.warn("Could not delete organization:", e);
+        }
+      }
+
+      // 4. Delete Firebase Auth user
       await deleteUser(firebaseUser);
     } catch (error) {
       console.error("Error deleting account:", error);
