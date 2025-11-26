@@ -49,7 +49,7 @@ export const Dashboard: React.FC = () => {
     const [insight, setInsight] = useState<{ text: string, type: 'success' | 'warning' | 'danger', details?: string, action?: string, link?: string }>({ text: "Analyse en cours...", type: 'success' });
     const [scoreGrade, setScoreGrade] = useState('?');
 
-    const { user, addToast } = useStore();
+    const { user, theme, addToast } = useStore();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -312,24 +312,24 @@ export const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-850 dark:to-slate-900 shadow-xl ring-1 ring-slate-200/50 dark:ring-white/5 transition-all hover:shadow-2xl duration-500">
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] dark:opacity-[0.02] mix-blend-overlay"></div>
+            <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 shadow-2xl ring-1 ring-slate-200/50 dark:ring-white/5 transition-all hover:shadow-3xl duration-500 group">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-overlay"></div>
                 <div className="relative z-10 p-10 md:p-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
                     <div>
-                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-slate-900/5 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest mb-4 backdrop-blur-sm shadow-sm">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-slate-900/5 dark:bg-white/10 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest mb-6 backdrop-blur-md shadow-sm">
                             <span className="w-1.5 h-1.5 bg-emerald-500 dark:bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
                             {user?.organizationName || 'Système Opérationnel'}
                         </div>
-                        <div className="flex items-center gap-4 mb-3">
+                        <div className="flex items-center gap-5 mb-4">
                             <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter font-display">Sentinel GRC</h1>
-                            <div className={`flex items-center justify-center w-14 h-14 rounded-2xl text-3xl font-black shadow-lg border-2 ${scoreGrade === 'A' ? 'bg-emerald-500 border-emerald-400 text-white' : scoreGrade === 'B' ? 'bg-blue-500 border-blue-400 text-white' : scoreGrade === 'C' ? 'bg-orange-500 border-orange-400 text-white' : 'bg-red-500 border-red-400 text-white'}`}>
+                            <div className={`flex items-center justify-center w-14 h-14 rounded-2xl text-3xl font-black shadow-2xl border-4 ${scoreGrade === 'A' ? 'bg-emerald-500 border-emerald-400/50 text-white' : scoreGrade === 'B' ? 'bg-blue-500 border-blue-400/50 text-white' : scoreGrade === 'C' ? 'bg-orange-500 border-orange-400/50 text-white' : 'bg-red-500 border-red-400/50 text-white'}`}>
                                 {scoreGrade}
                             </div>
                         </div>
                         <p className="text-slate-600 dark:text-slate-400 text-lg font-medium max-w-lg leading-relaxed">Votre score de sécurité reflète la maturité actuelle : <strong className="text-slate-900 dark:text-white font-bold">{loading ? '...' : stats.compliance}%</strong> de conformité.</p>
 
-                        <div className={`mt-6 p-4 rounded-2xl backdrop-blur-sm border flex items-start gap-4 ${insight.type === 'danger' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50 text-red-800 dark:text-red-200' : insight.type === 'warning' ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800/50 text-orange-800 dark:text-orange-200' : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-200'}`}>
-                            <div className="p-2 bg-white/50 dark:bg-white/10 rounded-xl shrink-0">
+                        <div className={`mt-8 p-4 rounded-2xl backdrop-blur-md border flex items-start gap-4 transition-all duration-300 hover:scale-[1.02] cursor-default shadow-lg ${insight.type === 'danger' ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-500/20 text-red-800 dark:text-red-200' : insight.type === 'warning' ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-500/20 text-orange-800 dark:text-orange-200' : 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-200'}`}>
+                            <div className={`p-2 rounded-xl shrink-0 ${insight.type === 'danger' ? 'bg-red-100 dark:bg-red-500/20' : insight.type === 'warning' ? 'bg-orange-100 dark:bg-orange-500/20' : 'bg-emerald-100 dark:bg-emerald-500/20'}`}>
                                 <Zap className="h-5 w-5" fill="currentColor" />
                             </div>
                             <div className="flex-1">
@@ -337,30 +337,47 @@ export const Dashboard: React.FC = () => {
                                 {insight.details && <p className="text-xs opacity-80 mt-1 font-medium leading-snug">{insight.details}</p>}
                             </div>
                             {insight.link && (
-                                <button onClick={() => navigate(insight.link!)} className="px-3 py-1.5 bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 rounded-lg text-xs font-bold transition-colors flex items-center">
+                                <button onClick={() => navigate(insight.link!)} className="px-3 py-1.5 bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 rounded-lg text-xs font-bold transition-colors flex items-center border border-slate-200 dark:border-white/10">
                                     {insight.action} <ArrowRight className="h-3 w-3 ml-1" />
                                 </button>
                             )}
                         </div>
                     </div>
-                    <div className="hidden lg:block w-48 h-48 cursor-pointer" onClick={() => navigate('/compliance')} title="Voir le détail par domaine">
+                    <div className="hidden lg:block w-64 h-64 cursor-pointer hover:scale-105 transition-transform duration-500 relative" onClick={() => navigate('/compliance')} title="Voir le détail par domaine">
                         <ResponsiveContainer width="100%" height="100%">
-                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                                <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3" />
+                            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                                <defs>
+                                    <linearGradient id="radarFill" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor={theme === 'dark' ? '#3b82f6' : '#0f172a'} stopOpacity={0.5} />
+                                        <stop offset="95%" stopColor={theme === 'dark' ? '#3b82f6' : '#0f172a'} stopOpacity={0.1} />
+                                    </linearGradient>
+                                </defs>
+                                <PolarGrid
+                                    stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(15,23,42,0.1)'}
+                                    strokeDasharray="4 4"
+                                />
                                 <PolarAngleAxis
                                     dataKey="subject"
-                                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                                    tick={{
+                                        fill: theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(15,23,42,0.7)',
+                                        fontSize: 10,
+                                        fontWeight: 700,
+                                        fontFamily: 'SF Pro Display, sans-serif'
+                                    }}
                                 />
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                 <RechartsRadar
                                     name="Maturité"
                                     dataKey="A"
-                                    stroke="#3b82f6"
-                                    strokeWidth={3}
-                                    fill="#3b82f6"
-                                    fillOpacity={0.3}
+                                    stroke={theme === 'dark' ? '#60a5fa' : '#0f172a'}
+                                    strokeWidth={2.5}
+                                    fill="url(#radarFill)"
+                                    fillOpacity={1}
                                 />
-                                <Tooltip content={<ChartTooltip />} />
+                                <Tooltip
+                                    content={<ChartTooltip />}
+                                    cursor={{ stroke: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(15,23,42,0.2)', strokeWidth: 1 }}
+                                />
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>

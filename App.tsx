@@ -1,7 +1,7 @@
 
-import React, { useEffect, useState, useRef, Suspense } from 'react';
-import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import React, { useEffect, useState, Suspense } from 'react';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, onSnapshot, doc, where, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { useStore } from './store';
@@ -9,11 +9,11 @@ import { Sidebar } from './components/layout/Sidebar';
 import { ToastContainer } from './components/ui/Toast';
 import { Login } from './views/Login';
 import { Onboarding } from './views/Onboarding';
-import { Settings as SettingsIcon, LogOut, Menu, Search as SearchIcon, Moon, Sun, WifiOff, Lock, AlertTriangle, User } from './components/ui/Icons';
+import { WifiOff, Lock, AlertTriangle } from './components/ui/Icons';
 import { UserProfile } from './types';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { CommandPalette } from './components/layout/CommandPalette';
-import { NotificationCenter } from './components/ui/NotificationCenter';
+import { TopBar } from './components/layout/TopBar';
 import { autoRefreshTokenIfNeeded } from './utils/tokenRefresh';
 import { NotificationService } from './services/notificationService';
 import { BackupService } from './services/backupService';
@@ -86,13 +86,10 @@ const GlobalShortcutsWrapper: React.FC = () => {
 };
 
 const AppContent: React.FC = () => {
-    const { theme, toggleTheme, setUser, user } = useStore();
+    const { theme, setUser, setTheme, user } = useStore();
     const [mobileOpen, setMobileOpen] = useState(false);
     const [initializing, setInitializing] = useState(true);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
-
-    const [showUserMenu, setShowUserMenu] = useState(false);
-    const userMenuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         // Apply theme to body immediately
@@ -103,13 +100,6 @@ const AppContent: React.FC = () => {
         const handleOffline = () => setIsOnline(false);
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
-
-        const handleClickOutside = (event: MouseEvent) => {
-            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-                setShowUserMenu(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
 
         const unsubscribe = onAuthStateChanged(auth, async (u) => {
             if (u) {
@@ -185,9 +175,7 @@ const AppContent: React.FC = () => {
 
                         setUser(userData);
                         if (userData.theme && userData.theme !== theme) {
-                            if (userData.theme === 'dark') document.documentElement.classList.add('dark');
-                            else document.documentElement.classList.remove('dark');
-                            localStorage.setItem('theme', userData.theme);
+                            setTheme(userData.theme);
                         }
                     } else {
                         const q = query(collection(db, 'users'), where('email', '==', u.email));
@@ -222,7 +210,6 @@ const AppContent: React.FC = () => {
             unsubscribe();
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
-            document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [user?.uid, setUser, theme]);
 
@@ -245,18 +232,6 @@ const AppContent: React.FC = () => {
         const interval = setInterval(runChecks, 15 * 60 * 1000);
         return () => clearInterval(interval);
     }, [user, user?.organizationId]);
-
-    const handleThemeToggle = () => {
-        toggleTheme();
-        if (user) {
-            const userRef = doc(db, 'users', user.uid);
-            updateDoc(userRef, { theme: theme === 'light' ? 'dark' : 'light' }).catch(() => { });
-        }
-    };
-
-    const handleLogout = async () => {
-        try { await signOut(auth); } catch (error) { console.error("Error logging out:", error); }
-    };
 
     if (initializing) return <LoadingScreen />;
     if (!user) return <Login />;
@@ -296,68 +271,7 @@ const AppContent: React.FC = () => {
                     )}
 
                     <div className="flex-1 flex flex-col overflow-hidden relative">
-                        <header className="h-14 flex items-center justify-between px-6 z-10 sticky top-0 bg-white/80 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/70 dark:border-white/10 transition-colors shadow-sm">
-                            <div className="flex items-center space-x-3">
-                                <button onClick={() => setMobileOpen(true)} className="p-2 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 transition-colors lg:hidden">
-                                    <Menu className="h-5 w-5" />
-                                </button>
-                                <Link to="/search" className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
-                                    <SearchIcon className="h-5 w-5" />
-                                </Link>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <NotificationCenter />
-
-                                <button onClick={handleThemeToggle} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all">
-                                    {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
-                                </button>
-
-                                <div className="relative" ref={userMenuRef}>
-                                    <div
-                                        className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-                                        onClick={() => setShowUserMenu(!showUserMenu)}
-                                    >
-                                        {user?.photoURL ? (
-                                            <img src={user.photoURL} alt="Profile" className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700 shadow-sm" />
-                                        ) : (
-                                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-slate-800 to-black dark:from-white dark:to-slate-200 flex items-center justify-center text-white dark:text-black font-bold text-sm shadow-sm ring-2 ring-slate-200 dark:ring-slate-700">
-                                                {user?.displayName?.charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {showUserMenu && (
-                                        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50">
-                                            <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-                                                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user.displayName}</p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
-                                            </div>
-                                            <Link to="/settings" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 text-left text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                                <User className="h-4 w-4 mr-3 text-slate-400" />
-                                                Mon Profil
-                                            </Link>
-                                            <Link to="/settings" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 text-left text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                                <SettingsIcon className="h-4 w-4 mr-3 text-slate-400" />
-                                                Paramètres
-                                            </Link>
-                                            <Link to="/pricing" onClick={() => setShowUserMenu(false)} className="flex items-center px-4 py-3 text-left text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                                <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[10px]">€</span>
-                                                Plans & Facturation
-                                            </Link>
-                                            <div className="h-px bg-slate-100 dark:bg-white/10 my-1"></div>
-                                            <button
-                                                onClick={() => { handleLogout(); setShowUserMenu(false); }}
-                                                className="w-full px-4 py-3 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center transition-colors"
-                                            >
-                                                <LogOut className="h-4 w-4 mr-3" />
-                                                Déconnexion
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </header>
+                        <TopBar setMobileOpen={setMobileOpen} />
 
                         <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth no-scrollbar bg-[#fafafa] dark:bg-slate-900">
                             <div className="max-w-[1600px] mx-auto animate-fade-in h-full pb-10">

@@ -194,7 +194,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-300 group-hover:bg-red-100 group-hover:text-red-600">
               <LogOut className="h-4.5 w-4.5" strokeWidth={2} />
             </span>
-            <span className="flex-1">Déconnexion</span>
+            <span className="flex-1 text-left">Déconnexion</span>
           </button>
         </div>
       </aside>

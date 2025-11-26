@@ -13,6 +13,7 @@ interface AppState {
   isLoading: boolean;
   toasts: ToastMessage[];
   setUser: (user: UserProfile | null) => void;
+  setTheme: (theme: 'light' | 'dark') => void;
   toggleTheme: () => void;
   setLoading: (loading: boolean) => void;
   addToast: (message: string, type?: 'success' | 'error' | 'info') => void;
@@ -25,6 +26,15 @@ export const useStore = create<AppState>((set) => ({
   isLoading: true,
   toasts: [],
   setUser: (user) => set({ user }),
+  setTheme: (theme) => set(() => {
+    localStorage.setItem('theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    return { theme };
+  }),
   toggleTheme: () => set((state) => {
     const newTheme = state.theme === 'light' ? 'dark' : 'light';
     localStorage.setItem('theme', newTheme);

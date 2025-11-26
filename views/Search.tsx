@@ -6,7 +6,7 @@ import { useStore } from '../store';
 import { Search as SearchIcon, Filter, ArrowRight, ShieldCheck, AlertTriangle, FileText, FolderKanban } from '../components/ui/Icons';
 
 import { EmptyState } from '../components/ui/EmptyState';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 
 interface SearchResult {
@@ -20,7 +20,8 @@ interface SearchResult {
 }
 
 export const Search: React.FC = () => {
-    const [queryText, setQueryText] = useState('');
+    const [searchParams] = useSearchParams();
+    const [queryText, setQueryText] = useState(searchParams.get('q') || '');
     const [results, setResults] = useState<SearchResult[]>([]);
     const [loading, setLoading] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('all');
