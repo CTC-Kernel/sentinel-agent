@@ -1,10 +1,11 @@
 import React, { useRef, useState, useMemo, useEffect, createContext, useContext } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/fiber';
-import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment } from '@react-three/drei';
+import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment, Html } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink } from '../types';
+import { VoxelDetailOverlay } from './VoxelDetailOverlay';
 
 interface VoxelNode {
   id: string;
@@ -38,6 +39,14 @@ interface VoxelStudioProps {
   autoRotatePreference?: boolean | null;
   releaseToken?: number | null;
   suggestedLinks?: AISuggestedLink[];
+  // Overlay props
+  selectedNodeDetails?: any;
+  isDetailMinimized?: boolean;
+  setIsDetailMinimized?: (v: boolean | ((prev: boolean) => boolean)) => void;
+  handleSelectionClear?: () => void;
+  relatedElements?: any[];
+  applyFocus?: (id: string, type: any) => void;
+  handleOpenSelected?: () => void;
 }
 
 const safeRender = (value: any): React.ReactNode => {
@@ -102,11 +111,11 @@ const MODEL_LIBRARY_CONFIG: Partial<Record<VoxelNode['type'], { key: keyof Model
 };
 
 const StarField: React.FC = () => {
+  const starsRef = useRef<any>(null);
   const positions = useMemo(() => {
     const starCount = 1200;
     const array = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount; i++) {
-      // Deterministic random-like generation to avoid impure render warning
       const r1 = Math.sin(i * 12.9898) * 43758.5453;
       const r2 = Math.sin(i * 78.233) * 43758.5453;
       const r3 = Math.sin(i * 37.312) * 43758.5453;
@@ -118,8 +127,15 @@ const StarField: React.FC = () => {
     return array;
   }, []);
 
+  useFrame((_, delta) => {
+    if (starsRef.current) {
+      starsRef.current.rotation.y += delta * 0.015;
+      starsRef.current.rotation.x += delta * 0.005;
+    }
+  });
+
   return (
-    <Points positions={positions} stride={3} frustumCulled={false}>
+    <Points ref={starsRef} positions={positions} stride={3} frustumCulled={false}>
       <PointMaterial
         transparent
         color="#94a3b8"
@@ -129,6 +145,79 @@ const StarField: React.FC = () => {
         opacity={0.6}
       />
     </Points>
+  );
+};
+
+// Dynamic connector line that follows the overlay
+const DynamicConnectorLine: React.FC<{ 
+  startPos: [number, number, number]; 
+  baseEndPos: [number, number, number];
+  offset: { x: number; y: number };
+}> = ({ startPos, baseEndPos }) => {
+  // The baseEndPos already includes the offset, so we just connect the two points
+  return (
+    <>
+      <Line
+        points={[startPos, baseEndPos]}
+        color="white"
+        opacity={0.3}
+        transparent
+        lineWidth={2}
+      />
+      <mesh position={baseEndPos}>
+        <sphereGeometry args={[0.1]} />
+        <meshBasicMaterial color="white" transparent opacity={0.7} />
+      </mesh>
+    </>
+  );
+};
+
+const TargetReticle: React.FC<{ position: [number, number, number]; size: number; color: string }> = ({ position, size, color }) => {
+  const ref1 = useRef<Mesh>(null);
+  const ref2 = useRef<Mesh>(null);
+  const ref3 = useRef<Group>(null);
+
+  useFrame((_, delta) => {
+    if (ref1.current) ref1.current.rotation.z -= delta * 0.5;
+    if (ref2.current) ref2.current.rotation.z += delta * 0.3;
+    if (ref3.current) {
+      ref3.current.rotation.x += delta * 0.2;
+      ref3.current.rotation.y += delta * 0.2;
+    }
+  });
+
+  const scale = size * 1.8;
+
+  return (
+    <group position={position}>
+      {/* Inner dashed ring */}
+      <mesh ref={ref1} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[scale * 0.9, scale * 0.95, 32]} />
+        <meshBasicMaterial color={color} transparent opacity={0.4} side={DoubleSide} />
+      </mesh>
+      
+      {/* Outer bracket ring */}
+      <mesh ref={ref2} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[scale * 1.1, scale * 1.15, 4, 1, 0, Math.PI / 2]} />
+        <meshBasicMaterial color="white" transparent opacity={0.6} side={DoubleSide} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, Math.PI]}>
+        <ringGeometry args={[scale * 1.1, scale * 1.15, 4, 1, 0, Math.PI / 2]} />
+        <meshBasicMaterial color="white" transparent opacity={0.6} side={DoubleSide} />
+      </mesh>
+
+      {/* Orbital atom-like rings */}
+      <group ref={ref3}>
+         <mesh rotation={[0, 0, 0]}>
+            <torusGeometry args={[scale * 1.4, 0.02, 8, 32]} />
+            <meshBasicMaterial color={color} transparent opacity={0.2} />
+         </mesh>
+         <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[scale * 1.4, 0.02, 8, 32]} />
+            <meshBasicMaterial color={color} transparent opacity={0.2} />
+         </mesh>
+      </group>
+    </group>
   );
 };
 
@@ -204,24 +293,31 @@ const ScanRing: React.FC<{ radius: number; color: string; y?: number; speed?: nu
 
 const NeonGrid: React.FC = () => {
   const gridRef = useRef<Mesh>(null);
-  useFrame((_, delta) => {
-    if (!gridRef.current) return;
-    gridRef.current.rotation.z += delta * 0.02;
-    const material = gridRef.current.material;
-    if (Array.isArray(material)) return;
-    (material as MeshBasicMaterial).opacity = 0.15 + (Math.sin(Date.now() * 0.0008) + 1) * 0.05;
+  const grid2Ref = useRef<Mesh>(null);
+
+  useFrame((state, delta) => {
+    if (gridRef.current) {
+      gridRef.current.rotation.z += delta * 0.02;
+      (gridRef.current.material as MeshBasicMaterial).opacity = 0.15 + (Math.sin(state.clock.elapsedTime * 0.5) + 1) * 0.05;
+    }
+    if (grid2Ref.current) {
+      grid2Ref.current.rotation.z -= delta * 0.01;
+      const scale = 1 + Math.sin(state.clock.elapsedTime * 0.2) * 0.05;
+      grid2Ref.current.scale.set(scale, scale, 1);
+    }
   });
 
   return (
-    <mesh ref={gridRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -10.2, 0]} frustumCulled={false}>
-      <planeGeometry args={[140, 140, 40, 40]} />
-      <meshBasicMaterial
-        color="#1d4ed8"
-        wireframe
-        transparent
-        opacity={0.2}
-      />
-    </mesh>
+    <group position={[0, -10.2, 0]}>
+      <mesh ref={gridRef} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[140, 140, 40, 40]} />
+        <meshBasicMaterial color="#1d4ed8" wireframe transparent opacity={0.2} />
+      </mesh>
+      <mesh ref={grid2Ref} rotation={[-Math.PI / 2, 0, Math.PI / 4]} position={[0, -0.1, 0]}>
+        <planeGeometry args={[100, 100, 20, 20]} />
+        <meshBasicMaterial color="#3b82f6" wireframe transparent opacity={0.1} />
+      </mesh>
+    </group>
   );
 };
 
@@ -250,19 +346,19 @@ const PulseCore: React.FC = () => {
   );
 };
 
-const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string; speed?: number; opacity?: number; showParticles?: boolean }> = ({ start, end, color, speed = 1, opacity = 0.5, showParticles = true }) => {
+const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string; speed?: number; opacity?: number; showParticles?: boolean; particleSize?: number }> = ({ start, end, color, speed = 1, opacity = 0.5, showParticles = true, particleSize = 0.08 }) => {
   const curve = useMemo(() => {
     const mid = new Vector3().addVectors(start, end).multiplyScalar(0.5);
     mid.y += 2; // Arc height
     return new CatmullRomCurve3([start, mid, end]);
   }, [start, end]);
 
-  const particleCount = 8;
+  const particleCount = Math.max(3, Math.floor(8 * speed)); // More particles for faster flows
   const points = useMemo(() => curve.getPoints(50), [curve]);
 
   return (
     <group>
-      <Line points={points} color={color} opacity={opacity} transparent lineWidth={2} />
+      <Line points={points} color={color} opacity={opacity * 0.6} transparent lineWidth={1.5} />
       {showParticles && [...Array(particleCount)].map((_, i) => (
         <MovingParticle
           key={i}
@@ -270,13 +366,14 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
           offset={i / particleCount}
           color={color}
           speed={speed}
+          size={particleSize}
         />
       ))}
     </group>
   );
 };
 
-const MovingParticle: React.FC<{ curve: CatmullRomCurve3; offset: number; color: string; speed: number }> = ({ curve, offset, color, speed }) => {
+const MovingParticle: React.FC<{ curve: CatmullRomCurve3; offset: number; color: string; speed: number; size: number }> = ({ curve, offset, color, speed, size }) => {
   const meshRef = useRef<Mesh>(null);
 
   useFrame((state) => {
@@ -292,7 +389,7 @@ const MovingParticle: React.FC<{ curve: CatmullRomCurve3; offset: number; color:
 
   return (
     <mesh ref={meshRef}>
-      <sphereGeometry args={[0.08, 8, 8]} />
+      <sphereGeometry args={[size, 8, 8]} />
       <meshBasicMaterial color={color} toneMapped={false} />
     </mesh>
   );
@@ -316,7 +413,18 @@ const GlassMaterial: React.FC<any> = ({ color, emissive, opacity, isDimmed, isHi
   />
 );
 
-const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void; isSelected: boolean; isDimmed: boolean; isHighlighted: boolean; highlightCritical?: boolean; xRayMode?: boolean; opacity?: number }> = ({
+const VoxelMesh: React.FC<{
+  node: VoxelNode;
+  onClick: (node: VoxelNode) => void;
+  isSelected: boolean;
+  isDimmed: boolean;
+  isHighlighted: boolean;
+  highlightCritical?: boolean;
+  xRayMode?: boolean;
+  opacity?: number;
+  overlayProps?: any;
+  overlayOffset?: { x: number; y: number };
+}> = ({
   node,
   onClick,
   isSelected,
@@ -324,7 +432,9 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
   isHighlighted,
   highlightCritical,
   xRayMode,
-  opacity
+  opacity,
+  overlayProps,
+  overlayOffset = { x: 0, y: 0 }
 }) => {
   const modelLibrary = useModelLibrary();
   const meshRef = useRef<Group>(null);
@@ -651,11 +761,56 @@ const VoxelMesh: React.FC<{ node: VoxelNode; onClick: (node: VoxelNode) => void;
           {safeLabel}
         </Text>
       )}
+      
+      {isSelected && overlayProps && (
+        <group>
+          <DynamicConnectorLine 
+            startPos={[0, 0, 0]}
+            baseEndPos={[-5 + overlayOffset.x * 0.01, 2 - overlayOffset.y * 0.01, 0]}
+            offset={overlayOffset}
+          />
+          <Html
+            position={[-5 + overlayOffset.x * 0.01, 2 - overlayOffset.y * 0.01, 0]}
+            zIndexRange={[100, 0]}
+            distanceFactor={10}
+            occlude={false}
+            transform
+            sprite
+            style={{ pointerEvents: 'none' }}
+          >
+             <div style={{ pointerEvents: 'auto', transform: 'translate3d(0, -50%, 0)' }}>
+               <VoxelDetailOverlay {...overlayProps} />
+             </div>
+          </Html>
+        </group>
+      )}
     </group>
   );
 };
 
 
+
+const ImpactWave: React.FC<{ position: [number, number, number] }> = ({ position }) => {
+  const ref = useRef<Mesh>(null);
+  const [active, setActive] = useState(true);
+
+  useFrame((_, delta) => {
+    if (!active || !ref.current) return;
+    const scale = ref.current.scale.x + delta * 15;
+    ref.current.scale.setScalar(scale);
+    (ref.current.material as MeshBasicMaterial).opacity -= delta * 2.5;
+    if ((ref.current.material as MeshBasicMaterial).opacity <= 0) setActive(false);
+  });
+
+  if (!active) return null;
+
+  return (
+    <mesh ref={ref} position={position} rotation={[-Math.PI / 2, 0, 0]}>
+      <ringGeometry args={[0.8, 1, 32]} />
+      <meshBasicMaterial color="#ffffff" transparent opacity={0.8} />
+    </mesh>
+  );
+};
 
 export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   assets,
@@ -672,7 +827,15 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   summaryStats,
   releaseToken,
   suggestedLinks = [],
-  xRayMode
+  xRayMode,
+  // Overlay props
+  selectedNodeDetails,
+  isDetailMinimized,
+  setIsDetailMinimized,
+  handleSelectionClear,
+  relatedElements,
+  applyFocus,
+  handleOpenSelected,
 }) => {
   const [selectedNode, setSelectedNode] = useState<VoxelNode | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -680,6 +843,25 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   const selectionUpdateFromOutside = useRef(false);
   const isUserInteracting = useRef(false);
   const shouldSnapToTarget = useRef(false);
+  const [impactPosition, setImpactPosition] = useState<[number, number, number] | null>(null);
+  const [impactKey, setImpactKey] = useState(0);
+  const [overlayOffset, setOverlayOffset] = useState({ x: 0, y: 0 });
+
+  const handleOverlayPositionChange = (x: number, y: number) => {
+    setOverlayOffset({ x, y });
+  };
+
+  const overlayProps = {
+    selectedNodeDetails,
+    isDetailMinimized,
+    setIsDetailMinimized,
+    handleSelectionClear,
+    relatedElements,
+    applyFocus,
+    handleOpenSelected,
+    onPositionChange: handleOverlayPositionChange,
+  };
+
 
   const safeAssets = assets ?? [];
   const safeRisks = risks ?? [];
@@ -910,6 +1092,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   const handleNodeClick = (node: VoxelNode) => {
     setSelectedNode(node);
     shouldSnapToTarget.current = true;
+    setImpactPosition(node.position);
+    setImpactKey(prev => prev + 1);
   };
 
   useEffect(() => {
@@ -967,6 +1151,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         dpr={[1, 2]}
         gl={{ antialias: true }}
       >
+        <fog attach="fog" args={['#020617', 40, 90]} />
         <ModelLibraryProvider>
           <color attach="background" args={[new Color('#020617')]} />
           <ambientLight intensity={0.55} />
@@ -997,6 +1182,16 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           <ScanRing radius={25} color="#f97316" speed={0.18} />
 
           <Environment preset="city" />
+
+          {/* Target Reticle */}
+          {selectedNode && (
+            <TargetReticle position={selectedNode.position} size={selectedNode.size} color={selectedNode.color} />
+          )}
+
+          {/* Click Impact Wave */}
+          {impactPosition && (
+            <ImpactWave key={impactKey} position={impactPosition} />
+          )}
 
           {/* Render connections */}
           {connectionPairs.map((pair, i) => {
@@ -1053,6 +1248,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                 opacity={xRayMode ? 0.3 : 0.9}
                 highlightCritical={highlightCritical}
                 xRayMode={xRayMode}
+                overlayProps={overlayProps}
+                overlayOffset={overlayOffset}
               />
             );
           })}
@@ -1078,48 +1275,6 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           </div>
           {highlightCritical && (
             <div className="text-[10px] uppercase tracking-[0.2em] text-rose-600 dark:text-rose-300">Heatmap active</div>
-          )}
-        </div>
-      )}
-
-      {/* Node info panel */}
-      {selectedNode && (
-        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-slate-900/95 backdrop-blur-sm rounded-xl p-4 border border-slate-200 dark:border-slate-700 max-w-sm shadow-2xl">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-slate-900 dark:text-white font-bold capitalize">{selectedNode?.type}</h3>
-            <button
-              onClick={() => setSelectedNode(null)}
-              className="text-slate-400 hover:text-slate-900 dark:hover:text-white"
-            >
-              ×
-            </button>
-          </div>
-          <p className="text-slate-700 dark:text-white text-sm mb-2">
-            {safeRender((selectedNode?.data as Asset)?.name) ||
-              safeRender((selectedNode?.data as Project)?.name) ||
-              safeRender((selectedNode?.data as Incident)?.title) ||
-              safeRender((selectedNode?.data as Audit)?.name) ||
-              safeRender((selectedNode?.data as Supplier)?.name) ||
-              safeRender((selectedNode?.data as Risk)?.threat) ||
-              'Élément'}
-          </p>
-          {selectedNode?.type === 'risk' && (
-            <div className="text-xs text-slate-600 dark:text-slate-300">
-              <p>Score: {safeRender((selectedNode?.data as Risk)?.score)}</p>
-              <p>Stratégie: {safeRender((selectedNode?.data as Risk)?.strategy)}</p>
-            </div>
-          )}
-          {selectedNode?.type === 'asset' && (
-            <div className="text-xs text-slate-600 dark:text-slate-300">
-              <p>Type: {safeRender((selectedNode?.data as Asset)?.type)}</p>
-              <p>Propriétaire: {safeRender((selectedNode?.data as Asset)?.owner)}</p>
-            </div>
-          )}
-          {selectedNode?.type === 'project' && (
-            <div className="text-xs text-slate-600 dark:text-slate-300">
-              <p>Progression: {safeRender((selectedNode?.data as Project)?.progress)}%</p>
-              <p>Statut: {safeRender((selectedNode?.data as Project)?.status)}</p>
-            </div>
           )}
         </div>
       )}

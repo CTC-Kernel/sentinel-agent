@@ -296,24 +296,17 @@ const AppContent: React.FC = () => {
                     )}
 
                     <div className="flex-1 flex flex-col overflow-hidden relative">
-                        <header className="h-16 flex items-center justify-between px-6 z-10 sticky top-0 bg-white/80 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/70 dark:border-white/10 transition-colors shadow-sm">
-                            <div className="flex items-center space-x-2 sm:space-x-4">
+                        <header className="h-14 flex items-center justify-between px-6 z-10 sticky top-0 bg-white/80 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/70 dark:border-white/10 transition-colors shadow-sm">
+                            <div className="flex items-center space-x-3">
                                 <button onClick={() => setMobileOpen(true)} className="p-2 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 transition-colors lg:hidden">
                                     <Menu className="h-5 w-5" />
                                 </button>
-                                <Link to="/search" className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors relative group">
+                                <Link to="/search" className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
                                     <SearchIcon className="h-5 w-5" />
-                                    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">Recherche (Cmd+K)</span>
                                 </Link>
                             </div>
 
-                            <div className="hidden md:flex items-center text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100/80 dark:bg-white/5 px-3 py-1.5 rounded-full border border-slate-200 dark:border-white/5 shadow-sm backdrop-blur-sm">
-                                <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
-                                {user.organizationName || 'Espace Personnel'} • {user.department ? user.department : 'Général'}
-                            </div>
-
-                            <div className="flex ml-auto items-center gap-4">
-                                {/* New Notification Center */}
+                            <div className="flex items-center gap-3">
                                 <NotificationCenter />
 
                                 <button onClick={handleThemeToggle} className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all">
@@ -322,17 +315,13 @@ const AppContent: React.FC = () => {
 
                                 <div className="relative" ref={userMenuRef}>
                                     <div
-                                        className="flex items-center pl-4 border-l border-slate-200 dark:border-white/10 ml-2 gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                                        className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
                                         onClick={() => setShowUserMenu(!showUserMenu)}
                                     >
-                                        <div className="flex flex-col items-end">
-                                            <span className="text-sm font-bold text-slate-800 dark:text-white leading-none">{user.displayName}</span>
-                                            <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">{user.role}</span>
-                                        </div>
                                         {user?.photoURL ? (
-                                            <img src={user.photoURL} alt="Profile" className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md" />
+                                            <img src={user.photoURL} alt="Profile" className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700 shadow-sm" />
                                         ) : (
-                                            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-slate-800 to-black dark:from-white dark:to-slate-200 flex items-center justify-center text-white dark:text-black font-bold text-sm shadow-md ring-2 ring-white dark:ring-slate-800">
+                                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-slate-800 to-black dark:from-white dark:to-slate-200 flex items-center justify-center text-white dark:text-black font-bold text-sm shadow-sm ring-2 ring-slate-200 dark:ring-slate-700">
                                                 {user?.displayName?.charAt(0).toUpperCase()}
                                             </div>
                                         )}

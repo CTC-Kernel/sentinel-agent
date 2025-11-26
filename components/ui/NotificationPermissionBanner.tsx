@@ -27,6 +27,8 @@ export const NotificationPermissionBanner: React.FC = () => {
         if (granted) {
             setPermission('granted');
             setShow(false);
+            // Sauvegarder l'état activé pour ne plus afficher
+            localStorage.setItem('notification-banner-action', 'granted');
 
             // Envoyer une notification de test
             await PushNotificationService.sendNotification({
@@ -35,6 +37,7 @@ export const NotificationPermissionBanner: React.FC = () => {
             });
         } else {
             setPermission('denied');
+            localStorage.setItem('notification-banner-action', 'denied');
         }
     };
 
@@ -48,8 +51,8 @@ export const NotificationPermissionBanner: React.FC = () => {
         return null;
     }
 
-    // Ne pas afficher si déjà refusé précédemment
-    if (localStorage.getItem('notification-banner-dismissed')) {
+    // Ne pas afficher si déjà géré (activé, refusé ou ignoré)
+    if (localStorage.getItem('notification-banner-dismissed') || localStorage.getItem('notification-banner-action')) {
         return null;
     }
 
