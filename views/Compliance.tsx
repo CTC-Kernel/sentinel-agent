@@ -59,7 +59,7 @@ export const Compliance: React.FC = () => {
 
             const getData = <T extends { id: string }>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
                 if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() })) as unknown as T[];
+                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as T));
                 }
                 return [];
             };
@@ -248,7 +248,7 @@ export const Compliance: React.FC = () => {
             c.justification || (c.status === 'Exclu' ? 'Non justifié' : '-')
         ]);
 
-        (doc as any).autoTable({
+        (doc as jsPDF & { autoTable: any }).autoTable({
             startY: 60,
             head: [['Code', 'Contrôle', 'Statut', 'Justification / Commentaire']],
             body: rows,
@@ -264,7 +264,7 @@ export const Compliance: React.FC = () => {
         });
 
         // Footer
-        const pageCount = (doc as any).internal.getNumberOfPages();
+        const pageCount = (doc as jsPDF & { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(8);
@@ -295,27 +295,27 @@ export const Compliance: React.FC = () => {
                 ]}
                 icon={<ShieldCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
-                <div className="flex gap-3 items-center">
-                    {/* Framework Switcher - Clean Style */}
-                    <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10">
-                        <button
-                            onClick={() => setCurrentFramework('ISO27001')}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${currentFramework === 'ISO27001' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                        >
-                            ISO 27001
-                        </button>
-                        <button
-                            onClick={() => setCurrentFramework('NIS2')}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${currentFramework === 'NIS2' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                        >
-                            NIS 2 <span className="ml-1.5 px-1.5 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 text-[10px] rounded uppercase tracking-wider">New</span>
+                    <div className="flex gap-3 items-center">
+                        {/* Framework Switcher - Clean Style */}
+                        <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10">
+                            <button
+                                onClick={() => setCurrentFramework('ISO27001')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${currentFramework === 'ISO27001' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                            >
+                                ISO 27001
+                            </button>
+                            <button
+                                onClick={() => setCurrentFramework('NIS2')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${currentFramework === 'NIS2' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                            >
+                                NIS 2 <span className="ml-1.5 px-1.5 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 text-[10px] rounded uppercase tracking-wider">New</span>
+                            </button>
+                        </div>
+
+                        <button onClick={generateSoAReport} className="flex items-center px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm">
+                            <Download className="h-4 w-4 mr-2" /> Rapport
                         </button>
                     </div>
-
-                    <button onClick={generateSoAReport} className="flex items-center px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm">
-                        <Download className="h-4 w-4 mr-2" /> Rapport
-                    </button>
-                </div>
                 }
             />
 
@@ -326,12 +326,12 @@ export const Compliance: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 p-1">
                 <div className="flex-1 relative group">
                     <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
-                    <input 
-                        type="text" 
-                        placeholder="Rechercher un contrôle (ex: A.5.1, Accès)..." 
-                        className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm font-medium transition-all shadow-sm placeholder:text-slate-400" 
-                        value={filter} 
-                        onChange={e => setFilter(e.target.value)} 
+                    <input
+                        type="text"
+                        placeholder="Rechercher un contrôle (ex: A.5.1, Accès)..."
+                        className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm font-medium transition-all shadow-sm placeholder:text-slate-400"
+                        value={filter}
+                        onChange={e => setFilter(e.target.value)}
                     />
                 </div>
 
@@ -343,8 +343,8 @@ export const Compliance: React.FC = () => {
                         </button>
                     )}
 
-                    <button 
-                        onClick={() => setShowMissingEvidence(!showMissingEvidence)} 
+                    <button
+                        onClick={() => setShowMissingEvidence(!showMissingEvidence)}
                         className={`flex items-center px-5 py-3 rounded-xl text-sm font-bold border transition-all shadow-sm ${showMissingEvidence ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'}`}
                     >
                         <Filter className={`h-4 w-4 mr-2 ${showMissingEvidence ? 'fill-current' : ''}`} />
@@ -465,7 +465,7 @@ export const Compliance: React.FC = () => {
                                         <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Statut d'implémentation</h3>
                                         {canEdit ? (
                                             <div className="grid grid-cols-3 gap-3">
-                                                {['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'].map((s: any) => (
+                                                {(['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => (
                                                     <button
                                                         key={s}
                                                         onClick={() => toggleStatus(selectedControl, s)}

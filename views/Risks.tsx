@@ -75,7 +75,7 @@ export const Risks: React.FC = () => {
 
             const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
                 if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() })) as unknown as T[];
+                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as T));
                 }
                 return [];
             };
@@ -305,7 +305,7 @@ export const Risks: React.FC = () => {
         doc.setFontSize(18); doc.setTextColor(255, 255, 255); doc.text("Plan de Traitement des Risques (RTP)", 14, 25);
         doc.setFontSize(10); doc.text(`ISO 27001 | ${new Date().toLocaleDateString()} | Cyber Threat Consulting`, 14, 32);
         const data = filteredRisks.map(r => [r.threat, r.score.toString(), r.strategy, r.status, (r.residualScore || r.score).toString()]);
-        (doc as any).autoTable({ startY: 50, head: [['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel']], body: data, theme: 'striped', headStyles: { fillColor: [59, 130, 246] } });
+        (doc as jsPDF & { autoTable: any }).autoTable({ startY: 50, head: [['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel']], body: data, theme: 'striped', headStyles: { fillColor: [59, 130, 246] } });
         doc.save('RTP.pdf');
     };
 
@@ -327,15 +327,15 @@ export const Risks: React.FC = () => {
                     const cols = line.split(',');
                     if (cols.length >= 3) {
                         const newRef = doc(collection(db, 'risks'));
-                        const prob = parseInt(cols[3]?.trim()) || 3;
-                        const imp = parseInt(cols[4]?.trim()) || 3;
+                        const prob = Math.min(Math.max(parseInt(cols[3]?.trim()) || 3, 1), 5) as Risk['probability'];
+                        const imp = Math.min(Math.max(parseInt(cols[4]?.trim()) || 3, 1), 5) as Risk['impact'];
                         batch.set(newRef, {
                             organizationId: user.organizationId,
                             threat: cols[0]?.trim() || 'Menace importée',
                             vulnerability: cols[1]?.trim() || '',
                             assetId: '',
-                            probability: prob as any,
-                            impact: imp as any,
+                            probability: prob,
+                            impact: imp,
                             score: prob * imp,
                             residualScore: prob * imp,
                             strategy: 'Atténuer',
@@ -583,7 +583,7 @@ export const Risks: React.FC = () => {
                     <>
                         <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent sticky top-0 z-10 backdrop-blur-md bg-opacity-90">
                             {[{ id: 'details', label: 'Détails', icon: ShieldAlert }, { id: 'treatment', label: 'Traitement', icon: CheckCircle2 }, { id: 'projects', label: 'Projets', icon: FolderKanban }, { id: 'history', label: 'Historique', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }, { id: 'graph', label: 'Graphe', icon: Network }].map(tab => (
-                                <button key={tab.id} onClick={() => setInspectorTab(tab.id as any)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
+                                <button key={tab.id} onClick={() => setInspectorTab(tab.id as typeof inspectorTab)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
                                     <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
                                     {tab.label}
                                 </button>
@@ -619,7 +619,7 @@ export const Risks: React.FC = () => {
                                             {canEdit ? (
                                                 <div className="flex gap-3">
                                                     {['Ouvert', 'En cours', 'Fermé'].map(s => (
-                                                        <button key={s} onClick={() => handleStatusChange(selectedRisk, s as any)} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'}`}>{s}</button>
+                                                        <button key={s} onClick={() => handleStatusChange(selectedRisk, s as Risk['status'])} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'}`}>{s}</button>
                                                     ))}
                                                 </div>
                                             ) : <span className="px-4 py-2 bg-gray-100 dark:bg-slate-700 rounded-xl text-sm font-bold">{selectedRisk.status}</span>}
@@ -816,7 +816,7 @@ export const Risks: React.FC = () => {
                                         <FloatingLabelSelect
                                             label="Stratégie"
                                             value={newRisk.strategy}
-                                            onChange={e => setNewRisk({ ...newRisk, strategy: e.target.value as any })}
+                                            onChange={e => setNewRisk({ ...newRisk, strategy: e.target.value as Risk['strategy'] })}
                                             options={[
                                                 { value: 'Atténuer', label: 'Atténuer' },
                                                 { value: 'Accepter', label: 'Accepter' },
@@ -830,13 +830,13 @@ export const Risks: React.FC = () => {
                                             label="Risque Brut"
                                             probability={newRisk.probability || 1}
                                             impact={newRisk.impact || 1}
-                                            onChange={(p, i) => setNewRisk({ ...newRisk, probability: p as any, impact: i as any })}
+                                            onChange={(p, i) => setNewRisk({ ...newRisk, probability: p as Risk['probability'], impact: i as Risk['impact'] })}
                                         />
                                         <RiskMatrixSelector
                                             label="Risque Résiduel"
                                             probability={newRisk.residualProbability || newRisk.probability || 1}
                                             impact={newRisk.residualImpact || newRisk.impact || 1}
-                                            onChange={(p, i) => setNewRisk({ ...newRisk, residualProbability: p as any, residualImpact: i as any })}
+                                            onChange={(p, i) => setNewRisk({ ...newRisk, residualProbability: p as Risk['probability'], residualImpact: i as Risk['impact'] })}
                                         />
                                     </div>
                                 </div>
