@@ -128,10 +128,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         const userData = snapshot.data() as UserProfile;
                         
                         // SELF-HEALING: Vérifier la cohérence des données
-                        // Si le rôle est manquant (cause du menu vide), on le force à 'admin' par sécurité en dev/onboarding
+                        // 1. Si le rôle est manquant, on le force à 'admin'
                         if (!userData.role) {
                             console.warn("User role missing in Firestore, defaulting to admin for recovery");
                             userData.role = 'admin';
+                        }
+
+                        // 2. Si l'utilisateur a une organisation mais onboarding non validé -> Auto-fix
+                        if (userData.organizationId && !userData.onboardingCompleted) {
+                             console.warn("User has organization but onboarding not marked complete. Auto-fixing.");
+                             userData.onboardingCompleted = true;
+                             // Corriger la source en arrière-plan
+                             setDoc(userRef, { onboardingCompleted: true }, { merge: true }).catch(e => console.error("Auto-fix failed", e));
                         }
 
                         if (!userData.organizationId && !userData.onboardingCompleted) {
