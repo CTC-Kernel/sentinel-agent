@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Control, Document, Risk, Finding } from '../types';
-import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown } from '../components/ui/Icons';
+import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, ArrowRight } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
@@ -14,108 +14,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
-const ISO_DOMAINS = [
-    { id: 'A.5', title: 'Contrôles Organisationnels', description: 'Politiques, Rôles, RH, Actifs, Accès...' },
-    { id: 'A.6', title: 'Contrôles liés aux Personnes', description: 'Sécurité RH, Sensibilisation, Télétravail...' },
-    { id: 'A.7', title: 'Contrôles Physiques', description: 'Locaux, Matériel, Maintenance, Rebut...' },
-    { id: 'A.8', title: 'Contrôles Technologiques', description: 'Réseau, Crypto, DevSecOps, Malware...' }
-];
-
-const ISO_SEED_CONTROLS = [
-    { code: 'A.5.1', name: 'Politiques de sécurité de l\'information' },
-    { code: 'A.5.2', name: 'Rôles et responsabilités' },
-    { code: 'A.5.3', name: 'Ségrégation des tâches' },
-    { code: 'A.5.4', name: 'Responsabilités de la direction' },
-    { code: 'A.5.5', name: 'Contact avec les autorités' },
-    { code: 'A.5.6', name: 'Contact avec des groupes d\'intérêt' },
-    { code: 'A.5.7', name: 'Renseignement sur la menace' },
-    { code: 'A.5.8', name: 'Sécurité dans la gestion de projet' },
-    { code: 'A.5.9', name: 'Inventaire des actifs' },
-    { code: 'A.5.10', name: 'Utilisation acceptable des actifs' },
-    { code: 'A.5.11', name: 'Restitution des actifs' },
-    { code: 'A.5.12', name: 'Classification des informations' },
-    { code: 'A.5.13', name: 'Marquage de l\'information' },
-    { code: 'A.5.14', name: 'Transfert de l\'information' },
-    { code: 'A.5.15', name: 'Contrôle d\'accès' },
-    { code: 'A.5.16', name: 'Gestion des identités' },
-    { code: 'A.5.17', name: 'Informations d\'authentification' },
-    { code: 'A.5.18', name: 'Droits d\'accès' },
-    { code: 'A.5.19', name: 'Sécurité fournisseurs' },
-    { code: 'A.5.20', name: 'Accords fournisseurs' },
-    { code: 'A.5.21', name: 'Sécurité chaîne d\'approvisionnement' },
-    { code: 'A.5.22', name: 'Surveillance fournisseurs' },
-    { code: 'A.5.23', name: 'Sécurité Cloud' },
-    { code: 'A.5.24', name: 'Planification incidents' },
-    { code: 'A.5.25', name: 'Évaluation événements sécu' },
-    { code: 'A.5.26', name: 'Réponse incidents' },
-    { code: 'A.5.27', name: 'Apprentissage incidents' },
-    { code: 'A.5.28', name: 'Collecte de preuves' },
-    { code: 'A.5.29', name: 'Sécurité lors perturbation' },
-    { code: 'A.5.30', name: 'Continuité TIC' },
-    { code: 'A.5.31', name: 'Exigences légales' },
-    { code: 'A.5.32', name: 'Propriété intellectuelle' },
-    { code: 'A.5.33', name: 'Protection enregistrements' },
-    { code: 'A.5.34', name: 'Protection PII (RGPD)' },
-    { code: 'A.5.35', name: 'Revue indépendante' },
-    { code: 'A.5.36', name: 'Conformité politiques' },
-    { code: 'A.5.37', name: 'Procédures d\'exploitation' },
-    { code: 'A.6.1', name: 'Screening candidats' },
-    { code: 'A.6.2', name: 'Termes d\'emploi' },
-    { code: 'A.6.3', name: 'Sensibilisation & formation' },
-    { code: 'A.6.4', name: 'Procédure disciplinaire' },
-    { code: 'A.6.5', name: 'Départ / Changement poste' },
-    { code: 'A.6.6', name: 'Accords confidentialité (NDA)' },
-    { code: 'A.6.7', name: 'Travail à distance' },
-    { code: 'A.6.8', name: 'Signalement événements' },
-    { code: 'A.7.1', name: 'Périmètres physiques' },
-    { code: 'A.7.2', name: 'Accès physique' },
-    { code: 'A.7.3', name: 'Sécurisation bureaux' },
-    { code: 'A.7.4', name: 'Surveillance physique' },
-    { code: 'A.7.5', name: 'Protection menaces physiques' },
-    { code: 'A.7.6', name: 'Zones sécurisées' },
-    { code: 'A.7.7', name: 'Bureau propre (Clear desk)' },
-    { code: 'A.7.8', name: 'Protection équipements' },
-    { code: 'A.7.9', name: 'Sécurité hors locaux' },
-    { code: 'A.7.10', name: 'Supports stockage' },
-    { code: 'A.7.11', name: 'Services publics (élec/eau)' },
-    { code: 'A.7.12', name: 'Câblage' },
-    { code: 'A.7.13', name: 'Maintenance équipements' },
-    { code: 'A.7.14', name: 'Rebut équipements' },
-    { code: 'A.8.1', name: 'Postes utilisateurs' },
-    { code: 'A.8.2', name: 'Accès privilégiés' },
-    { code: 'A.8.3', name: 'Restriction accès info' },
-    { code: 'A.8.4', name: 'Accès code source' },
-    { code: 'A.8.5', name: 'Auth sécurisée' },
-    { code: 'A.8.6', name: 'Gestion capacité' },
-    { code: 'A.8.7', name: 'Protection malware' },
-    { code: 'A.8.8', name: 'Gestion vulnérabilités' },
-    { code: 'A.8.9', name: 'Gestion configuration' },
-    { code: 'A.8.10', name: 'Suppression info' },
-    { code: 'A.8.11', name: 'Masquage données' },
-    { code: 'A.8.12', name: 'DLP' },
-    { code: 'A.8.13', name: 'Sauvegardes' },
-    { code: 'A.8.14', name: 'Redondance' },
-    { code: 'A.8.15', name: 'Journalisation' },
-    { code: 'A.8.16', name: 'Surveillance' },
-    { code: 'A.8.17', name: 'Synchro horloge' },
-    { code: 'A.8.18', name: 'Utilitaires privilèges' },
-    { code: 'A.8.19', name: 'Installation logiciels' },
-    { code: 'A.8.20', name: 'Sécurité réseaux' },
-    { code: 'A.8.21', name: 'Services réseau' },
-    { code: 'A.8.22', name: 'Ségrégation réseaux' },
-    { code: 'A.8.23', name: 'Filtrage Web' },
-    { code: 'A.8.24', name: 'Cryptographie' },
-    { code: 'A.8.25', name: 'Cycle dev sécurisé' },
-    { code: 'A.8.26', name: 'Sécurité applications' },
-    { code: 'A.8.27', name: 'Architecture sécurisée' },
-    { code: 'A.8.28', name: 'Codage sécurisé' },
-    { code: 'A.8.29', name: 'Tests sécurité' },
-    { code: 'A.8.30', name: 'Dev externalisé' },
-    { code: 'A.8.31', name: 'Séparation environnements' },
-    { code: 'A.8.32', name: 'Gestion changements' },
-    { code: 'A.8.33', name: 'Info de test' },
-    { code: 'A.8.34', name: 'Protection audit' }
-];
+import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS } from '../data/complianceData';
 
 export const Compliance: React.FC = () => {
     const [controls, setControls] = useState<Control[]>([]);
@@ -133,7 +32,8 @@ export const Compliance: React.FC = () => {
     const [filter, setFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState<string | null>(null);
     const [showMissingEvidence, setShowMissingEvidence] = useState(false);
-    const [expandedDomains, setExpandedDomains] = useState<string[]>(['A.5']); // Default open first
+    const [currentFramework, setCurrentFramework] = useState<'ISO27001' | 'NIS2'>('ISO27001');
+    const [expandedDomains, setExpandedDomains] = useState<string[]>([]); // Default empty, open first on load
 
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
@@ -171,18 +71,28 @@ export const Compliance: React.FC = () => {
             setRisks(riskData);
             setFindings(findingData);
 
-            if (ctrlData.length < ISO_SEED_CONTROLS.length) {
-                const existingCodes = ctrlData.map(d => d.code);
+            // Filter controls by current framework
+            // Legacy handling: if framework is undefined, assume ISO27001
+            const currentControls = ctrlData.filter(c =>
+                (c.framework === currentFramework) ||
+                (!c.framework && currentFramework === 'ISO27001')
+            );
+
+            const seedControls = currentFramework === 'ISO27001' ? ISO_SEED_CONTROLS : NIS2_SEED_CONTROLS;
+
+            if (currentControls.length < seedControls.length) {
+                const existingCodes = currentControls.map(d => d.code);
                 const batch = writeBatch(db);
                 let addedCount = 0;
 
-                ISO_SEED_CONTROLS.forEach(c => {
+                seedControls.forEach(c => {
                     if (!existingCodes.includes(c.code)) {
                         const docRef = doc(collection(db, 'controls'));
                         batch.set(docRef, {
                             organizationId: orgId,
                             code: c.code,
                             name: c.name,
+                            framework: currentFramework,
                             status: 'Non commencé',
                             lastUpdated: new Date().toISOString(),
                             evidenceIds: []
@@ -193,14 +103,27 @@ export const Compliance: React.FC = () => {
 
                 if (addedCount > 0) {
                     await batch.commit();
+                    // Refetch to get new IDs
                     const newSnap = await getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId)));
-                    setControls(sortControls(newSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Control))));
+                    const allControls = newSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Control));
+                    const filtered = allControls.filter(c =>
+                        (c.framework === currentFramework) ||
+                        (!c.framework && currentFramework === 'ISO27001')
+                    );
+                    setControls(sortControls(filtered));
                 } else {
-                    setControls(sortControls(ctrlData));
+                    setControls(sortControls(currentControls));
                 }
             } else {
-                setControls(sortControls(ctrlData));
+                setControls(sortControls(currentControls));
             }
+
+            // Open first domain by default
+            const domains = currentFramework === 'ISO27001' ? ISO_DOMAINS : NIS2_DOMAINS;
+            if (domains.length > 0) {
+                setExpandedDomains([domains[0].id]);
+            }
+
         } catch (_err) {
             addToast("Erreur chargement données conformité", "error");
         } finally {
@@ -217,7 +140,7 @@ export const Compliance: React.FC = () => {
         });
     }
 
-    useEffect(() => { fetchData(); }, [user?.organizationId]);
+    useEffect(() => { fetchData(); }, [user?.organizationId, currentFramework]);
 
     const toggleDomain = (domainId: string) => {
         setExpandedDomains(prev => prev.includes(domainId) ? prev.filter(d => d !== domainId) : [...prev, domainId]);
@@ -302,6 +225,9 @@ export const Compliance: React.FC = () => {
         doc.setFontSize(10);
         doc.setTextColor(148, 163, 184);
         doc.text(`ISO/IEC 27001:2022 | Généré le ${date} | ${user?.organizationName || 'Organisation'}`, 14, 30);
+        if (currentFramework === 'NIS2') {
+            doc.text(`NIS2 Compliance Report`, 14, 35);
+        }
 
         // Summary
         const implemented = controls.filter(c => c.status === 'Implémenté').length;
@@ -360,10 +286,34 @@ export const Compliance: React.FC = () => {
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div><h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Déclaration d'Applicabilité</h1><p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Pilotage de la conformité ISO 27001:2022.</p></div>
-                <div className="flex gap-3">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 font-display tracking-tight">
+                        {currentFramework === 'ISO27001' ? "Déclaration d'Applicabilité" : "Conformité NIS2"}
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                        {currentFramework === 'ISO27001' ? "Pilotage de la conformité ISO 27001:2022." : "Suivi de la directive NIS2."}
+                    </p>
+                </div>
+                <div className="flex gap-3 items-center">
+                    {/* Framework Switcher */}
+                    {/* Framework Switcher - Premium Segmented Control */}
+                    <div className="bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm p-1.5 rounded-2xl flex items-center border border-white/20 shadow-inner">
+                        <button
+                            onClick={() => setCurrentFramework('ISO27001')}
+                            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currentFramework === 'ISO27001' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-lg shadow-slate-200/50 dark:shadow-none ring-1 ring-black/5' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'}`}
+                        >
+                            ISO 27001
+                        </button>
+                        <button
+                            onClick={() => setCurrentFramework('NIS2')}
+                            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currentFramework === 'NIS2' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-lg shadow-slate-200/50 dark:shadow-none ring-1 ring-black/5' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'}`}
+                        >
+                            NIS 2 <span className="ml-2 px-1.5 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 text-[10px] rounded-md uppercase tracking-wider">New</span>
+                        </button>
+                    </div>
+
                     <button onClick={generateSoAReport} className="flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none">
-                        <Download className="h-4 w-4 mr-2" /> Télécharger SoA (PDF)
+                        <Download className="h-4 w-4 mr-2" /> Rapport (PDF)
                     </button>
                 </div>
             </div>
@@ -373,7 +323,7 @@ export const Compliance: React.FC = () => {
 
             {/* Filter Bar */}
             <div className="flex flex-col sm:flex-row gap-4">
-                <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1"><Search className="h-5 w-5 text-gray-400" /><input type="text" placeholder="Rechercher (ex: A.5.1, Accès)..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
+                <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1"><Search className="h-5 w-5 text-gray-400" /><input type="text" placeholder="Rechercher (ex: A.5.1, Accès)..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-slate-200 py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
 
                 {/* Status Filter Badge */}
                 {statusFilter && (
@@ -402,11 +352,11 @@ export const Compliance: React.FC = () => {
                 <EmptyState
                     icon={ShieldCheck}
                     title="Aucun contrôle trouvé"
-                    description={filter ? "Aucun contrôle ne correspond à votre recherche." : "Les contrôles ISO 27001 n'ont pas été chargés."}
+                    description={filter ? "Aucun contrôle ne correspond à votre recherche." : "Les contrôles n'ont pas été chargés."}
                 />
             ) : (
                 <div className="space-y-6">
-                    {ISO_DOMAINS.map(domain => {
+                    {(currentFramework === 'ISO27001' ? ISO_DOMAINS : NIS2_DOMAINS).map(domain => {
                         const domainControls = filteredControls.filter(c => c.code.startsWith(domain.id));
                         if (domainControls.length === 0) return null;
                         const stats = getDomainStats(domain.id);
@@ -423,7 +373,7 @@ export const Compliance: React.FC = () => {
                                             {domain.id.split('.')[1]}
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{domain.title}</h3>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{domain.title}</h3>
                                             <p className="text-xs text-slate-500 font-medium">{domain.description} • {stats.total} contrôles</p>
                                         </div>
                                     </div>
@@ -483,7 +433,7 @@ export const Compliance: React.FC = () => {
                         <div className="w-screen max-w-xl pointer-events-auto">
                             <div className="h-full flex flex-col bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
                                 <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
-                                    <div><div className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-black text-slate-500 dark:text-slate-400 mb-2">{selectedControl.code}</div><h2 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">{selectedControl.name}</h2></div>
+                                    <div><div className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-black text-slate-500 dark:text-slate-400 mb-2">{selectedControl.code}</div><h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight">{selectedControl.name}</h2></div>
                                     <button onClick={() => setSelectedControl(null)} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors bg-gray-50 dark:bg-white/5 rounded-full"><X className="h-5 w-5" /></button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8 bg-slate-50/30 dark:bg-transparent">
@@ -493,8 +443,81 @@ export const Compliance: React.FC = () => {
 
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                         <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Statut d'implémentation</h3>
-                                        {canEdit ? (<div className="grid grid-cols-2 gap-2">{['Non commencé', 'Partiel', 'Implémenté', 'Non applicable', 'Exclu'].map((s: any) => (<button key={s} onClick={() => toggleStatus(selectedControl, s)} className={`px-3 py-2.5 rounded-xl text-xs font-bold border transition-all ${selectedControl.status === s ? 'bg-brand-600 text-white border-brand-600 shadow-lg shadow-brand-500/20' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5'}`}>{s}</button>))}</div>) : (<span className={`px-4 py-2 rounded-xl text-sm font-bold border uppercase tracking-wide`}>{selectedControl.status}</span>)}
+                                        {canEdit ? (
+                                            <div className="grid grid-cols-3 gap-3">
+                                                {['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'].map((s: any) => (
+                                                    <button
+                                                        key={s}
+                                                        onClick={() => toggleStatus(selectedControl, s)}
+                                                        className={`px-3 py-3 rounded-xl text-xs font-bold border transition-all duration-200 flex items-center justify-center ${selectedControl.status === s
+                                                            ? 'bg-brand-600 text-white border-brand-600 shadow-lg shadow-brand-500/30 scale-[1.02]'
+                                                            : 'bg-slate-50 dark:bg-slate-800/50 border-transparent text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:border-gray-200 dark:hover:border-white/10 hover:shadow-sm hover:text-slate-700 dark:hover:text-slate-200'
+                                                            }`}
+                                                    >
+                                                        {s}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className={`px-4 py-2 rounded-xl text-sm font-bold border uppercase tracking-wide inline-block`}>{selectedControl.status}</span>
+                                        )}
                                     </div>
+
+                                    {/* Related Actions (Workflows) */}
+                                    {(selectedControl.code.startsWith('NIS2.4') || selectedControl.code.startsWith('NIS2.2') || selectedControl.code.startsWith('NIS2.3')) && (
+                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 p-6 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm relative overflow-hidden group/card">
+                                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover/card:opacity-10 transition-opacity">
+                                                <Link className="w-24 h-24 text-blue-600" />
+                                            </div>
+                                            <h3 className="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 mb-4 tracking-widest flex items-center relative z-10">
+                                                <Link className="h-3.5 w-3.5 mr-2" /> Actions Liées (Workflows)
+                                            </h3>
+                                            <div className="space-y-3 relative z-10">
+                                                {selectedControl.code.startsWith('NIS2.4') && (
+                                                    <a href="#/incidents" className="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-blue-100 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md hover:-translate-y-0.5 transition-all group duration-300">
+                                                        <div className="flex items-center">
+                                                            <div className="p-3 bg-red-100 dark:bg-red-900/20 text-red-600 rounded-xl mr-4 group-hover:scale-110 transition-transform"><ShieldAlert className="h-5 w-5" /></div>
+                                                            <div>
+                                                                <div className="font-bold text-slate-900 dark:text-white text-sm">Gestion des Incidents</div>
+                                                                <div className="text-xs text-slate-500 mt-0.5">Déclarer ou suivre un incident de sécurité</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                                            <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-white transition-colors" />
+                                                        </div>
+                                                    </a>
+                                                )}
+                                                {selectedControl.code.startsWith('NIS2.2') && (
+                                                    <a href="#/suppliers" className="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-blue-100 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md hover:-translate-y-0.5 transition-all group duration-300">
+                                                        <div className="flex items-center">
+                                                            <div className="p-3 bg-purple-100 dark:bg-purple-900/20 text-purple-600 rounded-xl mr-4 group-hover:scale-110 transition-transform"><FileText className="h-5 w-5" /></div>
+                                                            <div>
+                                                                <div className="font-bold text-slate-900 dark:text-white text-sm">Gestion des Fournisseurs</div>
+                                                                <div className="text-xs text-slate-500 mt-0.5">Évaluer la sécurité de la chaîne d'approvisionnement</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                                            <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-white transition-colors" />
+                                                        </div>
+                                                    </a>
+                                                )}
+                                                {selectedControl.code.startsWith('NIS2.3') && (
+                                                    <a href="#/assets" className="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-blue-100 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md hover:-translate-y-0.5 transition-all group duration-300">
+                                                        <div className="flex items-center">
+                                                            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 rounded-xl mr-4 group-hover:scale-110 transition-transform"><ShieldCheck className="h-5 w-5" /></div>
+                                                            <div>
+                                                                <div className="font-bold text-slate-900 dark:text-white text-sm">Inventaire des Actifs</div>
+                                                                <div className="text-xs text-slate-500 mt-0.5">Gérer les systèmes et réseaux</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                                            <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-white transition-colors" />
+                                                        </div>
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                     <div>
                                         <div className="flex justify-between items-end mb-3 px-2"><h3 className="text-xs font-bold uppercase text-slate-400 flex items-center tracking-widest"><FileText className="h-3.5 w-3.5 mr-2" /> Justification SoA</h3>{selectedControl.status === 'Exclu' && <span className="text-[10px] text-red-500 font-bold uppercase bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded">Obligatoire</span>}</div>
                                         {canEdit ? (<div className="relative group"><textarea className="w-full p-5 text-sm bg-white dark:bg-slate-800/80 border border-gray-200 dark:border-white/10 rounded-3xl text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm font-medium leading-relaxed" rows={6} placeholder="Décrivez comment ce contrôle est implémenté, ou justifiez son exclusion..." value={editJustification} onChange={e => setEditJustification(e.target.value)} /><button onClick={saveJustification} className="absolute bottom-4 right-4 p-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110" title="Sauvegarder"><Save className="h-4 w-4" /></button></div>) : (<div className="p-5 bg-white dark:bg-slate-800/80 rounded-3xl border border-gray-200 dark:border-white/10 shadow-sm"><p className="text-sm text-slate-600 dark:text-slate-300 italic font-medium leading-relaxed">{selectedControl.justification || "Aucune justification saisie."}</p></div>)}
@@ -559,7 +582,7 @@ const ComplianceAIAssistant: React.FC<{ control: Control, onApplyPolicy: (text: 
                 <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm text-indigo-600 dark:text-indigo-400">
                     <Bot className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-slate-900 dark:text-white">Assistant Conformité IA</h3>
+                <h3 className="font-bold text-slate-900 dark:text-slate-100">Assistant Conformité IA</h3>
                 <span className="px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-500/20 text-[10px] font-bold text-indigo-600 dark:text-indigo-300 uppercase tracking-wider">Gemini 3</span>
             </div>
 
