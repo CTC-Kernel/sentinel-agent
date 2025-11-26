@@ -15,6 +15,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     target: 'esnext',
-    sourcemap: false
+    sourcemap: false,
+    rollupOptions: {
+      external: ['capacitor.js']
+    }
   }
 });

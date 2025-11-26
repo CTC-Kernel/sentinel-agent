@@ -27,9 +27,7 @@ service cloud.firestore {
       return isAuthenticated() && getUserData().role == 'project_manager';
     }
 
-    function isDirection() {
-      return isAuthenticated() && getUserData().role == 'direction';
-    }
+
     
     function belongsToOrganization(orgId) {
       return isAuthenticated() && getUserData().organizationId == orgId;
