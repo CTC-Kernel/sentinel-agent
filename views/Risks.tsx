@@ -56,7 +56,7 @@ export const Risks: React.FC = () => {
     const [riskScoreHistory, setRiskScoreHistory] = useState<RiskHistory[]>([]);
     const [stats, setStats] = useState({ total: 0, critical: 0, mitigated: 0, reviewDue: 0 });
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-    const [newRisk, setNewRisk] = useState<Partial<Risk>>({ assetId: '', threat: '', vulnerability: '', probability: 3, impact: 3, residualProbability: 3, residualImpact: 3, strategy: 'Atténuer', status: 'Ouvert', owner: '', mitigationControlIds: [] });
+    const [newRisk, setNewRisk] = useState<Partial<Risk>>({ assetId: '', threat: '', vulnerability: '', probability: 3, impact: 3, residualProbability: 3, residualImpact: 3, strategy: 'Atténuer', status: 'Ouvert', owner: '', ownerId: '', mitigationControlIds: [] });
 
     const fetchData = async () => {
         if (!user?.organizationId) {
@@ -181,8 +181,18 @@ export const Risks: React.FC = () => {
 
     const openModal = (risk?: Risk) => {
         if (!canEdit && !risk) return;
-        if (risk) { setIsEditing(true); setCurrentRiskId(risk.id); setNewRisk({ ...risk, mitigationControlIds: risk.mitigationControlIds || [], residualProbability: risk.residualProbability || risk.probability, residualImpact: risk.residualImpact || risk.impact }); }
-        else { setIsEditing(false); setCurrentRiskId(null); setNewRisk({ assetId: '', threat: '', vulnerability: '', probability: 3, impact: 3, residualProbability: 3, residualImpact: 3, strategy: 'Atténuer', status: 'Ouvert', owner: '', mitigationControlIds: [] }); }
+        if (risk) {
+            setIsEditing(true);
+            setCurrentRiskId(risk.id);
+            // Resolve ownerId if missing (backward compatibility)
+            let resolvedOwnerId = risk.ownerId || '';
+            if (!resolvedOwnerId && risk.owner) {
+                const foundUser = usersList.find(u => u.displayName === risk.owner);
+                if (foundUser) resolvedOwnerId = foundUser.uid;
+            }
+            setNewRisk({ ...risk, ownerId: resolvedOwnerId, mitigationControlIds: risk.mitigationControlIds || [], residualProbability: risk.residualProbability || risk.probability, residualImpact: risk.residualImpact || risk.impact });
+        }
+        else { setIsEditing(false); setCurrentRiskId(null); setNewRisk({ assetId: '', threat: '', vulnerability: '', probability: 3, impact: 3, residualProbability: 3, residualImpact: 3, strategy: 'Atténuer', status: 'Ouvert', owner: '', ownerId: '', mitigationControlIds: [] }); }
         setShowModal(true);
     };
 
@@ -256,7 +266,9 @@ export const Risks: React.FC = () => {
             const batch = writeBatch(db);
             risksToImport.forEach(risk => {
                 const newRiskRef = doc(collection(db, 'risks'));
-                batch.set(newRiskRef, risk);
+                // Try to resolve ownerId
+                const ownerUser = usersList.find(u => u.displayName === owner || u.email === owner);
+                batch.set(newRiskRef, { ...risk, ownerId: ownerUser?.uid || '' });
             });
 
             await batch.commit();
@@ -788,9 +800,12 @@ export const Risks: React.FC = () => {
                                     <div className="grid grid-cols-2 gap-4">
                                         <FloatingLabelSelect
                                             label="Propriétaire"
-                                            value={newRisk.owner || ''}
-                                            onChange={e => setNewRisk({ ...newRisk, owner: e.target.value })}
-                                            options={usersList.map(u => ({ value: u.displayName || '', label: u.displayName || '' }))}
+                                            value={newRisk.ownerId || ''}
+                                            onChange={e => {
+                                                const selectedUser = usersList.find(u => u.uid === e.target.value);
+                                                setNewRisk({ ...newRisk, ownerId: e.target.value, owner: selectedUser?.displayName || '' });
+                                            }}
+                                            options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                                         />
                                         <FloatingLabelSelect
                                             label="Stratégie"
