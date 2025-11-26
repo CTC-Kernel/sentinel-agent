@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
@@ -43,16 +43,17 @@ const navGroups = [
 
 import { useStore } from '../../store';
 import { hasPermission } from '../../utils/permissions';
+import { ErrorLogger } from '../../services/errorLogger';
 
 export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean) => void }> = ({ mobileOpen, setMobileOpen }) => {
   const { user } = useStore();
 
   const filterItem = (item: { name: string }) => {
     if (!user) return false;
-    
+
     // ALWAYS SHOW Dashboard to avoid empty menu confusion
     if (item.name === 'Tableau de bord') return true;
-    
+
     // If user is admin or owner -> Show All
     if (user.role === 'admin' || user.role === 'rssi') return true;
 
@@ -79,7 +80,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
     try {
       await signOut(auth);
     } catch (error) {
-      console.error("Error logging out:", error);
+      ErrorLogger.error(error, 'Sidebar.handleLogout');
     }
   };
 

@@ -10,13 +10,14 @@ import { PlanType, UserProfile } from '../types';
 import { SubscriptionService } from '../services/subscriptionService';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast } = useStore();
     const { refreshSession } = useAuth();
     const navigate = useNavigate();
     const currentUser = auth.currentUser;
-    
+
     const [mode, setMode] = useState<'select' | 'create' | 'join'>('select');
     const [step, setStep] = useState(1);
     const [selectedPlan, setSelectedPlan] = useState<PlanType>('discovery');
@@ -65,7 +66,7 @@ export const Onboarding: React.FC = () => {
             const snap = await getDocs(q);
             setSearchResults(snap.docs.map(d => ({ id: d.id, ...d.data() })));
         } catch (e) {
-            console.error("Search error", e);
+            ErrorLogger.handleErrorWithToast(e, 'Onboarding.handleSearchOrg', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -87,8 +88,7 @@ export const Onboarding: React.FC = () => {
             setJoinRequestSent(true);
             addToast("Demande envoyée avec succès", "success");
         } catch (e) {
-            console.error("Join request error", e);
-            addToast("Erreur lors de l'envoi de la demande", "error");
+            ErrorLogger.handleErrorWithToast(e, 'Onboarding.handleJoinRequest', 'CREATE_FAILED');
         } finally {
             setLoading(false);
         }
@@ -108,11 +108,11 @@ export const Onboarding: React.FC = () => {
 
     const handleStep1 = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         const targetUser = currentUser || user;
-        
+
         if (!targetUser || !targetUser.uid) {
-            console.error("No valid user found", { currentUser, user });
+            ErrorLogger.handleErrorWithToast(new Error("No valid user found"), 'Onboarding.handleStep1', 'AUTH_FAILED');
             addToast("Erreur : Utilisateur non identifié. Veuillez vous reconnecter.", "error");
             return;
         }
@@ -156,10 +156,10 @@ export const Onboarding: React.FC = () => {
             // Important: merge is not directly available in batch.set, but we can use update if doc exists
             // However, since we want upsert behavior, we use set with merge option which IS supported in batch
             batch.set(userRef, userUpdates, { merge: true });
-            
+
             // 2. Create Organization Document (CRITICAL for SubscriptionService)
             const orgRef = doc(db, 'organizations', newOrgId);
-            
+
             // Generate slug from organization name safely
             const safeName = orgName || 'org';
             const slug = safeName
@@ -180,7 +180,7 @@ export const Onboarding: React.FC = () => {
                 updatedAt: new Date().toISOString(),
                 industry: industry || '',
                 subscription: {
-                    planId: 'discovery', 
+                    planId: 'discovery',
                     status: 'active',
                     startDate: new Date().toISOString(),
                     stripeCustomerId: null,
@@ -197,7 +197,7 @@ export const Onboarding: React.FC = () => {
             if (user) {
                 setUser({ ...user, ...userUpdates });
             } else {
-                setUser(userUpdates as any); 
+                setUser(userUpdates as any);
             }
 
             console.log("Organization Created & User Linked (Batch).");
@@ -215,16 +215,16 @@ export const Onboarding: React.FC = () => {
                     // Cast user to any or create minimal user object if needed for sendEmail
                     // sendEmail expects a UserProfile-like object.
                     const emailUserMock = { ...user, email, displayName } as UserProfile;
-                    
+
                     sendEmail(emailUserMock, {
                         to: email,
                         subject: '🎉 Bienvenue sur Sentinel GRC',
                         html: htmlContent,
                         type: 'WELCOME_EMAIL'
-                    }, false).catch(err => console.error("SendEmail failed async", err));
+                    }, false).catch(err => ErrorLogger.error(err, 'Onboarding.handleStep1.sendEmail'));
                 }
             } catch (emailError) {
-                console.error('Error preparing welcome email:', emailError);
+                ErrorLogger.error(emailError, 'Onboarding.handleStep1.prepareEmail');
             }
 
             // Move to Step 2 (Plan Selection)
@@ -232,9 +232,8 @@ export const Onboarding: React.FC = () => {
             addToast("Profil créé ! Choisissez votre offre.", "success");
 
         } catch (error: any) {
-            console.error("Error completing step 1", error);
+            ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleStep1', 'CREATE_FAILED');
             setError(error.message || "Une erreur est survenue.");
-            addToast("Erreur lors de la configuration.", "error");
         } finally {
             setLoading(false);
         }
@@ -242,8 +241,8 @@ export const Onboarding: React.FC = () => {
 
     const handleFinalize = async () => {
         if (!user?.organizationId) {
-             addToast("Erreur : Organisation manquante", "error");
-             return;
+            addToast("Erreur : Organisation manquante", "error");
+            return;
         }
         setLoading(true);
         try {
@@ -265,8 +264,7 @@ export const Onboarding: React.FC = () => {
                 await SubscriptionService.startSubscription(user.organizationId, selectedPlan, 'month'); // Default to monthly for onboarding
             }
         } catch (e) {
-            console.error("Finalize error", e);
-            addToast("Erreur lors de la finalisation. Veuillez réessayer.", "error");
+            ErrorLogger.handleErrorWithToast(e, 'Onboarding.handleFinalize', 'UPDATE_FAILED');
             setLoading(false);
         }
     };

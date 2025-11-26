@@ -14,6 +14,7 @@ import { logAction } from '../services/logger';
 import { SubscriptionService } from '../services/subscriptionService';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const Team: React.FC = () => {
     const navigate = useNavigate();
@@ -74,8 +75,7 @@ export const Team: React.FC = () => {
             setUsers([...activeUsers, ...pendingInvites]);
             setJoinRequests(requests);
         } catch (e) {
-            console.warn("Erreur fetch users", e);
-            addToast("Impossible de charger la liste des utilisateurs", "error");
+            ErrorLogger.handleErrorWithToast(e, 'Team.fetchUsers', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -192,7 +192,7 @@ export const Team: React.FC = () => {
             // Refresh
             fetchUsers();
         } catch (e) {
-            console.error("Approval error", e);
+            ErrorLogger.handleErrorWithToast(e, 'Team.handleApproveRequest');
             addToast("Erreur lors de l'approbation", "error");
         }
     };

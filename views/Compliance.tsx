@@ -14,6 +14,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { PageHeader } from '../components/ui/PageHeader';
+import { ErrorLogger } from '../services/errorLogger';
 
 import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS } from '../data/complianceData';
 
@@ -125,8 +126,8 @@ export const Compliance: React.FC = () => {
                 setExpandedDomains([domains[0].id]);
             }
 
-        } catch (_err) {
-            addToast("Erreur chargement données conformité", "error");
+        } catch (err) {
+            ErrorLogger.handleErrorWithToast(err, 'Compliance.fetchData', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }

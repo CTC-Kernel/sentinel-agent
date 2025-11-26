@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import Gantt from 'frappe-gantt';
 import { ProjectTask } from '../../types';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface GanttChartProps {
     tasks: ProjectTask[];
@@ -26,37 +27,37 @@ export const GanttChart: React.FC<GanttChartProps> = ({
     const ganttRef = useRef<HTMLDivElement>(null);
     const ganttInstance = useRef<any>(null);
 
+    const scheduledTasks = tasks.filter(task => !!task.dueDate);
+    const scheduledCount = scheduledTasks.length;
+    const unscheduledCount = tasks.length - scheduledCount;
+
     useEffect(() => {
-        if (!ganttRef.current || tasks.length === 0) return;
+        if (!ganttRef.current) return;
 
-        // Convert ProjectTasks to Gantt-compatible format
-        const ganttTasks: GanttTask[] = tasks.map((task, index) => {
-            // Use task due date if available, otherwise stagger tasks
-            const today = new Date();
-            let start: Date;
+        if (scheduledTasks.length === 0) {
+            ganttRef.current.innerHTML = '';
+            ganttInstance.current = null;
+            return;
+        }
+
+        const ganttTasks: GanttTask[] = scheduledTasks.reduce((acc: GanttTask[], task) => {
+            if (!task.dueDate) return acc;
+
             let end: Date;
-
-            if (task.dueDate) {
-                // Parse date - handle both DD/MM/YYYY and ISO formats
-                if (task.dueDate.includes('/')) {
-                    const parts = task.dueDate.split('/'); // DD/MM/YYYY
-                    end = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-                } else {
-                    end = new Date(task.dueDate); // ISO format
-                }
-
-                // Start 7 days before due date
-                start = new Date(end);
-                start.setDate(start.getDate() - 7);
+            if (task.dueDate.includes('/')) {
+                const parts = task.dueDate.split('/');
+                end = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
             } else {
-                // No due date: stagger tasks by index to show them separately
-                start = new Date(today);
-                start.setDate(start.getDate() + (index * 3)); // 3 days apart
-                end = new Date(start);
-                end.setDate(end.getDate() + 5); // 5 day duration
+                end = new Date(task.dueDate);
             }
 
-            // Color-code by status
+            if (Number.isNaN(end.getTime())) {
+                return acc;
+            }
+
+            const start = new Date(end);
+            start.setDate(start.getDate() - 7);
+
             let customClass = '';
             switch (task.status) {
                 case 'Terminé':
@@ -72,7 +73,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
                     customClass = 'bar-pending';
             }
 
-            return {
+            acc.push({
                 id: task.id || `task-${Math.random()}`,
                 name: task.title || task.description || 'Sans titre',
                 start: start.toISOString().split('T')[0],
@@ -80,8 +81,13 @@ export const GanttChart: React.FC<GanttChartProps> = ({
                 progress: task.progress ?? 0,
                 custom_class: customClass,
                 dependencies: task.dependencies?.join(',') || ''
-            };
-        });
+            });
+
+            return acc;
+        }, []);
+
+        // Reset container content before (re)creating Gantt instance
+        ganttRef.current.innerHTML = '';
 
         // Create Gantt instance
         try {
@@ -125,16 +131,17 @@ export const GanttChart: React.FC<GanttChartProps> = ({
                 }
             } as any);
         } catch (error) {
-            console.error('Error creating Gantt chart:', error);
+            ErrorLogger.error(error, 'GanttChart.createInstance');
         }
 
         return () => {
             // Cleanup
-            if (ganttInstance.current) {
-                ganttInstance.current = null;
+            if (ganttRef.current) {
+                ganttRef.current.innerHTML = '';
             }
+            ganttInstance.current = null;
         };
-    }, [tasks, viewMode, onTaskUpdate]);
+    }, [tasks, viewMode]);
 
     if (tasks.length === 0) {
         return (
@@ -157,8 +164,33 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         );
     }
 
+    if (scheduledCount === 0) {
+        return (
+            <div className="flex items-center justify-center h-96 text-slate-400 text-sm">
+                <div className="text-center max-w-md">
+                    <div className="text-6xl mb-4">📅</div>
+                    <p className="font-semibold text-lg text-slate-600 dark:text-slate-300 mb-2">Aucune tâche planifiée</p>
+                    <p className="text-xs mb-4">Aucune tâche de ce projet n'a de date d'échéance. Ajoutez des échéances dans l'onglet Tâches pour afficher le diagramme de Gantt.</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="gantt-container bg-white dark:bg-slate-900/50 rounded-2xl p-6 border border-gray-200 dark:border-white/10">
+            {unscheduledCount > 0 && (
+                <div className="flex items-center justify-between mb-4 text-[11px] text-slate-500 dark:text-slate-400">
+                    <div>
+                        <span className="font-semibold">{scheduledCount}</span> tâche(s) planifiée(s)
+                        {unscheduledCount > 0 && (
+                            <>
+                                {' '}•{' '}
+                                <span className="font-semibold">{unscheduledCount}</span> sans échéance
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
             <div ref={ganttRef} className="gantt-chart"></div>
 
             {/* Legend */}

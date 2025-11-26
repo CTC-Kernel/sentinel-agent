@@ -2,6 +2,7 @@ import { collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, T
 import { db } from '../firebase';
 import { Incident } from '../types';
 import { logAction } from './logger';
+import { ErrorLogger } from './errorLogger';
 
 export interface IncidentPlaybook {
   id: string;
@@ -119,7 +120,7 @@ export class IncidentPlaybookService {
 
       return docRef.id;
     } catch (error) {
-      console.error('Erreur création playbook:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.createPlaybook');
       throw error;
     }
   }
@@ -143,7 +144,7 @@ export class IncidentPlaybookService {
         ...doc.data()
       } as IncidentPlaybook));
     } catch (error) {
-      console.error('Erreur récupération playbooks:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.getPlaybooks');
       return [];
     }
   }
@@ -162,7 +163,7 @@ export class IncidentPlaybookService {
 
       return null;
     } catch (error) {
-      console.error('Erreur récupération playbook:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.getPlaybook');
       return null;
     }
   }
@@ -181,7 +182,7 @@ export class IncidentPlaybookService {
         organizationId: 'system'
       }, 'UPDATE', 'IncidentPlaybook', `Playbook mis à jour: ${id}`);
     } catch (error) {
-      console.error('Erreur mise à jour playbook:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.updatePlaybook');
       throw error;
     }
   }
@@ -196,7 +197,7 @@ export class IncidentPlaybookService {
         organizationId: 'system'
       }, 'DELETE', 'IncidentPlaybook', `Playbook supprimé: ${id}`);
     } catch (error) {
-      console.error('Erreur suppression playbook:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.deletePlaybook');
       throw error;
     }
   }
@@ -248,7 +249,7 @@ export class IncidentPlaybookService {
 
       return docRef.id;
     } catch (error) {
-      console.error('Erreur initiation response:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.initiateResponse');
       throw error;
     }
   }
@@ -271,7 +272,7 @@ export class IncidentPlaybookService {
 
       return null;
     } catch (error) {
-      console.error('Erreur récupération response:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.getResponse');
       return null;
     }
   }
@@ -333,7 +334,7 @@ export class IncidentPlaybookService {
       });
 
     } catch (error) {
-      console.error('Erreur mise à jour step:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.updateStepProgress');
       throw error;
     }
   }
@@ -369,7 +370,7 @@ export class IncidentPlaybookService {
       });
 
     } catch (error) {
-      console.error('Erreur escalation:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.escalateIncident');
       throw error;
     }
   }
@@ -405,7 +406,7 @@ export class IncidentPlaybookService {
       });
 
     } catch (error) {
-      console.error('Erreur completion response:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.completeResponse');
       throw error;
     }
   }
@@ -559,7 +560,7 @@ export class IncidentPlaybookService {
 
       return null;
     } catch (error) {
-      console.error('Erreur récupération response par ID:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.getResponseByDocId');
       return null;
     }
   }
@@ -599,7 +600,7 @@ export class IncidentPlaybookService {
         escalationRate: this.calculateEscalationRate(responses)
       };
     } catch (error) {
-      console.error('Erreur statistiques response:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookService.getResponseStats');
       return null;
     }
   }

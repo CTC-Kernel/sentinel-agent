@@ -3,13 +3,14 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Incident } from '../types';
 import { IncidentPlaybookService, IncidentPlaybook, IncidentResponse } from '../services/incidentPlaybookService';
+import { ErrorLogger } from '../services/errorLogger';
 import { useStore } from '../store';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { 
-  AlertTriangle, 
-  CheckCircle2, 
-  Users, 
-  MessageSquare, 
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Users,
+  MessageSquare,
   Activity,
   ChevronRight,
   XCircle,
@@ -36,7 +37,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   const [notes, setNotes] = useState('');
   const [evidence, setEvidence] = useState<Record<string, any>>({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<() => void>(() => {});
+  const [confirmAction, setConfirmAction] = useState<() => void>(() => { });
   const [confirmMessage, setConfirmMessage] = useState('');
   const { user, addToast } = useStore();
 
@@ -61,7 +62,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         setCurrentStep(existingResponse.currentStepIndex);
       }
     } catch (error) {
-      console.error('Erreur chargement response:', error);
+      ErrorLogger.error(error, 'IncidentPlaybookView.loadResponse');
     }
   }, [incident.id]);
 
@@ -80,7 +81,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         selectedPlaybook.id,
         [user.uid]
       );
-      
+
       await loadResponse();
       addToast('Response initiée avec succès', 'success');
     } catch (_error) {
@@ -101,7 +102,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         evidence,
         notes
       );
-      
+
       await loadResponse();
       setNotes('');
       setEvidence({});
@@ -224,11 +225,10 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                   {playbooks.map((playbook) => (
                     <div
                       key={playbook.id}
-                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                        selectedPlaybook?.id === playbook.id
+                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${selectedPlaybook?.id === playbook.id
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                        }`}
                       onClick={() => setSelectedPlaybook(playbook)}
                     >
                       <div className="flex items-center justify-between">
@@ -315,13 +315,12 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               {selectedPlaybook?.steps.map((step, index) => (
                 <div
                   key={step.id}
-                  className={`border rounded-lg p-4 mb-4 ${
-                    index === currentStep
+                  className={`border rounded-lg p-4 mb-4 ${index === currentStep
                       ? 'border-blue-500 bg-blue-50'
                       : index < currentStep
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 bg-gray-50'
-                  }`}
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 bg-gray-50'
+                    }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -336,7 +335,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                         )}
                       </div>
                       <p className="text-sm text-gray-600 mb-3">{step.description}</p>
-                      
+
                       <div className="flex items-center gap-4 text-sm text-gray-500">
                         <span className="flex items-center">
                           <Timer className="h-3 w-3 mr-1" />

@@ -4,6 +4,7 @@ import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'fire
 import { db } from '../../firebase';
 import { Laptop, Save, AlertTriangle, User, Server, Database } from '../ui/Icons';
 import { Project, UserProfile } from '../../types';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface IntakeFormProps {
     hardwareInfo: HardwareInfo;
@@ -46,7 +47,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                 ]);
                 setProjects(projSnap.docs.map(d => ({ id: d.id, ...d.data() } as Project)));
                 setUsers(userSnap.docs.map(d => ({ uid: d.id, ...d.data() } as UserProfile)));
-            } catch (e) { console.error("Error fetching options", e); }
+            } catch (e) { ErrorLogger.error(e, 'IntakeForm.fetchOptions'); }
         };
         fetchOptions();
 
@@ -89,7 +90,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
             });
             onSuccess();
         } catch (err) {
-            console.error("Error submitting asset:", err);
+            ErrorLogger.error(err, 'IntakeForm.handleSubmit');
             setError("Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.");
         } finally {
             setLoading(false);

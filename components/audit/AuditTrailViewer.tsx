@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import {
     History,
@@ -80,7 +81,7 @@ export const AuditTrailViewer: React.FC = () => {
 
                 setLogs(fetchedLogs);
             } catch (error) {
-                console.error('Error fetching audit logs:', error);
+                ErrorLogger.error(error, 'AuditTrailViewer.fetchLogs');
             } finally {
                 setLoading(false);
             }
@@ -290,8 +291,8 @@ export const AuditTrailViewer: React.FC = () => {
                                 key={log.id}
                                 onClick={() => setSelectedLog(log)}
                                 className={`w-full text-left p-4 rounded-xl border transition-all ${selectedLog?.id === log.id
-                                        ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
-                                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:border-brand-200 dark:hover:border-brand-800'
+                                    ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
+                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:border-brand-200 dark:hover:border-brand-800'
                                     }`}
                             >
                                 <div className="flex items-start justify-between mb-2">

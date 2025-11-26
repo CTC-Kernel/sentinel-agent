@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIInsight } from "../types";
+import { ErrorLogger } from "./errorLogger";
 
 // Initialize Gemini API
 // Note: In a real production app, this should be proxied through a backend to hide the key.
@@ -24,7 +25,7 @@ export const aiService = {
      */
     async analyzeGraph(data: GraphData): Promise<{ suggestions: AISuggestedLink[]; insights: AIInsight[] }> {
         if (!API_KEY) {
-            console.warn("Gemini API Key is missing. AI features disabled.");
+            ErrorLogger.warn("Gemini API Key is missing. AI features disabled.", 'aiService.analyzeGraph');
             throw new Error("L'analyse IA nécessite une clé API Gemini valide. Veuillez configurer VITE_GEMINI_API_KEY.");
         }
 
@@ -93,7 +94,7 @@ export const aiService = {
                     insights: parsed.insights.map((s: any, i: number) => ({ ...s, id: `ai-insight-${i}` })),
                 };
             } catch (modelError: any) {
-                console.error("Primary model failed, trying fallback...", modelError);
+                ErrorLogger.warn("Primary model failed, trying fallback...", 'aiService.analyzeGraph', { metadata: { error: modelError } });
                 // Fallback to gemini-1.5-flash if specific version fails
                 if (modelError.message?.includes('404') || modelError.message?.includes('not found')) {
                     model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
@@ -110,7 +111,7 @@ export const aiService = {
                 throw modelError;
             }
         } catch (error) {
-            console.error("AI Analysis failed:", error);
+            ErrorLogger.error(error, 'aiService.analyzeGraph');
             throw new Error("Failed to analyze graph with Gemini.");
         }
     },
@@ -143,7 +144,7 @@ export const aiService = {
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
         } catch (error) {
-            console.error("AI Import Analysis failed:", error);
+            ErrorLogger.error(error, 'aiService.analyzeImportData');
             return { mappings: {}, confidence: 0 };
         }
     },
@@ -165,7 +166,7 @@ export const aiService = {
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
         } catch (error) {
-            console.error("AI Suggestion failed:", error);
+            ErrorLogger.error(error, 'aiService.suggestField', { metadata: { fieldName } });
             return { value: '', reasoning: 'Error generating suggestion' };
         }
     },
@@ -183,7 +184,7 @@ export const aiService = {
         try {
             return await runChatSafe(systemPrompt, message);
         } catch (error) {
-            console.error("AI Chat failed:", error);
+            ErrorLogger.error(error, 'aiService.chatWithAI');
             return "Désolé, une erreur est survenue lors de la communication avec l'IA.";
         }
     },
@@ -213,7 +214,7 @@ export const aiService = {
 
             return await generateContentSafe(prompt);
         } catch (error) {
-            console.error("Policy generation failed:", error);
+            ErrorLogger.error(error, 'aiService.generatePolicy', { metadata: { type, topic } });
             throw new Error("Échec de la génération de politique.");
         }
     }
@@ -228,7 +229,7 @@ async function generateContentSafe(prompt: string): Promise<string> {
         return (await result.response).text();
     } catch (error: any) {
         if (error.message?.includes('404') || error.message?.includes('not found')) {
-            console.warn(`Model ${MODEL_NAME} not found, falling back to gemini-1.5-flash`);
+            ErrorLogger.warn(`Model ${MODEL_NAME} not found, falling back to gemini-1.5-flash`, 'aiService.generateContentSafe');
             const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
             const result = await fallbackModel.generateContent(prompt);
             return (await result.response).text();

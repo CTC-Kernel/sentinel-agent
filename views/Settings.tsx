@@ -13,6 +13,7 @@ import { hasPermission } from '../utils/permissions';
 import { SubscriptionService } from '../services/subscriptionService';
 import { AccountService } from '../services/accountService';
 import { Organization } from '../types';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const Settings: React.FC = () => {
     const { theme, toggleTheme, user, setUser, addToast } = useStore();
@@ -60,7 +61,7 @@ export const Settings: React.FC = () => {
             if (orgSnap.exists()) {
                 setCurrentOrg({ id: orgSnap.id, ...orgSnap.data() } as Organization);
             }
-        } catch (e) { console.error("Error fetching org", e); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.fetchOrgDetails', 'FETCH_FAILED'); }
     };
 
     const fetchUsers = async () => {
@@ -70,7 +71,7 @@ export const Settings: React.FC = () => {
             const snap = await getDocs(q);
             const users = snap.docs.map(d => ({ ...d.data(), uid: d.id } as UserProfile));
             setUsersList(users);
-        } catch (e) { console.error("Error fetching users", e); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.fetchUsers', 'FETCH_FAILED'); }
     };
 
     const handleUpdateUserRole = async (targetUserId: string, newRole: UserProfile['role']) => {
@@ -79,7 +80,7 @@ export const Settings: React.FC = () => {
             await updateDoc(doc(db, 'users', targetUserId), { role: newRole });
             setUsersList(prev => prev.map(u => u.uid === targetUserId ? { ...u, role: newRole } : u));
             addToast("Rôle mis à jour", "success");
-        } catch (_e) { addToast("Erreur mise à jour rôle", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.handleUpdateUserRole', 'UPDATE_FAILED'); }
     };
 
     const handleRemoveUser = async (targetUserId: string) => {
@@ -94,13 +95,13 @@ export const Settings: React.FC = () => {
             await updateDoc(doc(db, 'users', targetUserId), { organizationId: '', organizationName: '', role: '' });
             setUsersList(prev => prev.filter(u => u.uid !== targetUserId));
             addToast("Utilisateur retiré", "success");
-        } catch (_e) { addToast("Erreur suppression utilisateur", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.handleRemoveUser', 'DELETE_FAILED'); }
     };
 
     useEffect(() => {
         if (user) {
-            setProfile({ 
-                displayName: user.displayName || '', 
+            setProfile({
+                displayName: user.displayName || '',
                 department: user.department || '',
                 role: user.role || 'user'
             });
@@ -144,7 +145,7 @@ export const Settings: React.FC = () => {
             ]);
 
             setSysStats({ assets, docs, risks, logs });
-        } catch (e) { console.error("Stats error", e); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.fetchSystemStats', 'FETCH_FAILED'); }
     };
 
     const fetchLogs = async (reset = false) => {
@@ -192,7 +193,7 @@ export const Settings: React.FC = () => {
             } else {
                 setHasMoreLogs(false);
             }
-        } catch (e) { console.error(e); } finally { setLoadingLogs(false); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.fetchLogs', 'FETCH_FAILED'); } finally { setLoadingLogs(false); }
     };
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,8 +217,7 @@ export const Settings: React.FC = () => {
                 addToast("Photo de profil mise à jour", "success");
             }
         } catch (error) {
-            console.error("Upload failed", error);
-            addToast("Erreur lors de l'upload de l'image", "error");
+            ErrorLogger.handleErrorWithToast(error, 'Settings.handlePhotoUpload', 'FILE_UPLOAD_FAILED');
         } finally {
             setUploadingPhoto(false);
         }
@@ -232,9 +232,9 @@ export const Settings: React.FC = () => {
             const q = query(usersRef, where('email', '==', user.email));
             const querySnapshot = await getDocs(q);
 
-            const userData: UserProfile = { 
-                ...user, 
-                displayName: profile.displayName, 
+            const userData: UserProfile = {
+                ...user,
+                displayName: profile.displayName,
                 department: profile.department,
                 role: profile.role as UserProfile['role']
             };
@@ -250,8 +250,8 @@ export const Settings: React.FC = () => {
 
             setUser(userData);
             addToast("Profil mis à jour avec succès.", "success");
-        } catch (_err) {
-            addToast("Erreur lors de la mise à jour du profil.", "error");
+        } catch (err) {
+            ErrorLogger.handleErrorWithToast(err, 'Settings.handleUpdateProfile', 'UPDATE_FAILED');
         } finally {
             setSavingProfile(false);
         }
@@ -274,8 +274,8 @@ export const Settings: React.FC = () => {
 
             setUser({ ...user, organizationName: orgName });
             addToast("Nom de l'organisation mis à jour pour tous les membres", "success");
-        } catch (_e) {
-            addToast("Erreur mise à jour organisation", "error");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Settings.handleUpdateOrg', 'UPDATE_FAILED');
         } finally {
             setSavingOrg(false);
         }
@@ -303,7 +303,7 @@ export const Settings: React.FC = () => {
                 if (error.code === 'auth/requires-recent-login') {
                     addToast("Veuillez vous reconnecter pour changer le mot de passe", "error");
                 } else {
-                    addToast("Erreur lors du changement de mot de passe", "error");
+                    ErrorLogger.handleErrorWithToast(error, 'Settings.handleChangePassword', 'UPDATE_FAILED');
                 }
             }
         }
@@ -352,8 +352,8 @@ export const Settings: React.FC = () => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             addToast("Sauvegarde complète téléchargée", "success");
-        } catch (_error) {
-            addToast("L'export a échoué.", "error");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Settings.handleExport', 'FETCH_FAILED');
         } finally {
             setExporting(false);
         }
@@ -386,8 +386,8 @@ export const Settings: React.FC = () => {
             link.download = `audit_logs_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
             addToast("Logs d'audit exportés (CSV)", "success");
-        } catch (_e) {
-            addToast("Erreur lors de l'export des logs", "error");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Settings.handleExportLogsCSV', 'FETCH_FAILED');
         } finally {
             setExportingLogs(false);
         }
@@ -431,7 +431,7 @@ export const Settings: React.FC = () => {
                 fetchLogs(true);
                 fetchSystemStats();
             }
-        } catch (_e) { addToast("Erreur lors de la purge.", "error"); } finally { setMaintenanceLoading(false); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.handlePurgeLogs', 'DELETE_FAILED'); } finally { setMaintenanceLoading(false); }
     };
 
     const handleTestLog = async () => {
@@ -449,8 +449,7 @@ export const Settings: React.FC = () => {
             addToast("Log de test créé", "success");
             fetchLogs(true);
         } catch (e) {
-            console.error(e);
-            addToast("Erreur création log", "error");
+            ErrorLogger.handleErrorWithToast(e, 'Settings.handleTestLog', 'CREATE_FAILED');
         }
     };
 
@@ -476,14 +475,15 @@ export const Settings: React.FC = () => {
                 onboardingCompleted: false
             });
             // Local state update handled by onSnapshot in App.tsx, forcing redirect to Onboarding
+            // Local state update handled by onSnapshot in App.tsx, forcing redirect to Onboarding
             window.location.reload();
-        } catch (_e) {
-            addToast("Erreur lors de la sortie de l'organisation", "error");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Settings.handleLeaveOrg', 'UPDATE_FAILED');
         }
     };
 
     const handleLogout = async () => {
-        try { await signOut(auth); } catch (e) { console.error("Logout failed", e); }
+        try { await signOut(auth); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.handleLogout', 'AUTH_FAILED'); }
     };
 
     const handleManageSubscription = async () => {
@@ -499,9 +499,7 @@ export const Settings: React.FC = () => {
                 await SubscriptionService.manageSubscription(user.organizationId);
             }
         } catch (error: any) {
-            console.error("Error managing subscription:", error);
-            const errorMessage = error?.message || "Impossible d'accéder à la gestion de l'abonnement";
-            addToast(errorMessage, "error");
+            ErrorLogger.handleErrorWithToast(error, 'Settings.handleManageSubscription', 'UNKNOWN_ERROR');
         } finally {
             setSubLoading(false);
         }
@@ -519,11 +517,11 @@ export const Settings: React.FC = () => {
                     addToast("Compte supprimé avec succès", "success");
                     // Redirect handled by auth state change in App.tsx
                 } catch (e: any) {
-                    console.error(e);
+                    ErrorLogger.handleErrorWithToast(e, 'Settings.handleDeleteAccount', 'DELETE_FAILED');
                     if (e.code === 'auth/requires-recent-login') {
                         addToast("Veuillez vous reconnecter pour supprimer votre compte", "error");
                     } else {
-                        addToast("Erreur lors de la suppression du compte", "error");
+                        ErrorLogger.handleErrorWithToast(e, 'Settings.handleDeleteAccount', 'DELETE_FAILED');
                     }
                 }
             }
@@ -543,9 +541,9 @@ export const Settings: React.FC = () => {
                     await signOut(auth);
                     window.location.reload();
                 })
+
                 .catch((e) => {
-                    console.error(e);
-                    addToast("Erreur lors de la suppression de l'organisation", "error");
+                    ErrorLogger.handleErrorWithToast(e, 'Settings.handleDeleteOrganization', 'DELETE_FAILED');
                 })
                 .finally(() => setMaintenanceLoading(false));
         } else if (input !== null) {
@@ -639,13 +637,13 @@ export const Settings: React.FC = () => {
                             <input type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
                                 value={profile.department} onChange={e => setProfile({ ...profile, department: e.target.value })} />
                         </div>
-                        
+
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Rôle</label>
                             <div className="relative">
-                                <select 
+                                <select
                                     className={`w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium appearance-none ${!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                    value={profile.role} 
+                                    value={profile.role}
                                     onChange={e => setProfile({ ...profile, role: e.target.value })}
                                     disabled={!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid)}
                                 >
@@ -716,10 +714,10 @@ export const Settings: React.FC = () => {
                                     <WifiOff className="h-4 w-4 text-slate-400" />
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={async () => { try { await enableNetwork(db); addToast("Mode en ligne activé", "success"); } catch (e) { console.error(e); } }} className="flex-1 px-3 py-2 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-xs font-bold hover:bg-green-200 dark:hover:bg-green-900/30 transition-colors flex items-center justify-center gap-1">
+                                    <button onClick={async () => { try { await enableNetwork(db); addToast("Mode en ligne activé", "success"); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.enableNetwork', 'NETWORK_ERROR'); } }} className="flex-1 px-3 py-2 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-xs font-bold hover:bg-green-200 dark:hover:bg-green-900/30 transition-colors flex items-center justify-center gap-1">
                                         <CheckCircle2 className="h-3 w-3" /> En ligne
                                     </button>
-                                    <button onClick={async () => { try { await disableNetwork(db); addToast("Mode hors ligne activé", "info"); } catch (e) { console.error(e); } }} className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1">
+                                    <button onClick={async () => { try { await disableNetwork(db); addToast("Mode hors ligne activé", "info"); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.disableNetwork', 'NETWORK_ERROR'); } }} className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1">
                                         <WifiOff className="h-3 w-3" /> Hors ligne
                                     </button>
                                 </div>

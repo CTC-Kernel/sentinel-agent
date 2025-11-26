@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, setDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Risk, Incident, Control, Asset } from '../types';
+import { ErrorLogger } from './errorLogger';
 
 export interface DailyStats {
     date: string; // YYYY-MM-DD
@@ -77,7 +78,7 @@ export class StatsService {
             console.log('Daily stats snapshot created for', today);
 
         } catch (error) {
-            console.error('Error creating daily stats snapshot:', error);
+            ErrorLogger.error(error, 'StatsService.snapshotDailyStats');
         }
     }
 
@@ -102,7 +103,7 @@ export class StatsService {
                 .map(d => d.data() as DailyStats)
                 .reverse(); // Return chronological order (oldest to newest)
         } catch (error) {
-            console.error('Error fetching stats history:', error);
+            ErrorLogger.error(error, 'StatsService.getHistory');
             return [];
         }
     }

@@ -1,3 +1,5 @@
+import { useStore } from '../store';
+
 /**
  * Service centralisé de gestion des erreurs
  * Gère les logs en développement et envoie vers Sentry en production
@@ -102,6 +104,41 @@ class ErrorLoggerService {
     });
   }
 
+  handleErrorWithToast(error: Error | unknown, context: string, defaultMessageKey: ErrorMessageKey = 'UNKNOWN_ERROR'): ErrorMessageKey {
+    let messageKey: ErrorMessageKey = defaultMessageKey;
+    const anyError = error as any;
+    const code = typeof anyError?.code === 'string' ? anyError.code : undefined;
+
+    if (code === 'permission-denied' || code === 'failed-precondition') {
+      messageKey = 'PERMISSION_DENIED';
+    } else if (
+      code === 'unauthenticated' ||
+      code === 'auth/id-token-expired' ||
+      code === 'auth/user-disabled' ||
+      code === 'auth/user-not-found'
+    ) {
+      messageKey = 'AUTH_EXPIRED';
+    } else if (code === 'unavailable' || code === 'network-request-failed') {
+      messageKey = 'NETWORK_ERROR';
+    }
+
+    try {
+      const { addToast } = useStore.getState();
+      if (addToast) {
+        addToast(ERROR_MESSAGES[messageKey], 'error');
+      }
+    } catch (_e) {
+    }
+
+    this.error(error, context, {
+      metadata: {
+        firebaseCode: code
+      }
+    });
+
+    return messageKey;
+  }
+
   /**
    * Log une performance metric
    */
@@ -152,39 +189,42 @@ export const ERROR_MESSAGES = {
   UNKNOWN_ERROR: "Une erreur inattendue s'est produite",
   NETWORK_ERROR: "Erreur de connexion réseau",
   PERMISSION_DENIED: "Vous n'avez pas les permissions nécessaires",
-  
+
   // Authentification
   AUTH_FAILED: "Échec de l'authentification",
   AUTH_EXPIRED: "Session expirée, veuillez vous reconnecter",
   AUTH_INVALID_EMAIL: "Adresse email invalide",
   AUTH_INVALID_PASSWORD: "Mot de passe invalide",
-  
+
   // Données
   FETCH_FAILED: "Impossible de charger les données",
   CREATE_FAILED: "Erreur lors de la création",
   UPDATE_FAILED: "Erreur lors de la mise à jour",
   DELETE_FAILED: "Erreur lors de la suppression",
-  
+
   // Validation
   VALIDATION_FAILED: "Données invalides",
   REQUIRED_FIELD: "Ce champ est obligatoire",
   INVALID_FORMAT: "Format invalide",
-  
+
   // Fichiers
   FILE_UPLOAD_FAILED: "Échec du téléversement du fichier",
   FILE_TOO_LARGE: "Fichier trop volumineux",
   FILE_INVALID_TYPE: "Type de fichier non supporté",
-  
+
   // Limites
   QUOTA_EXCEEDED: "Quota dépassé",
   RATE_LIMIT_EXCEEDED: "Trop de requêtes, veuillez patienter",
-  
+
   // Métier
   ASSET_NOT_FOUND: "Actif introuvable",
   RISK_NOT_FOUND: "Risque introuvable",
   PROJECT_NOT_FOUND: "Projet introuvable",
   DOCUMENT_NOT_FOUND: "Document introuvable",
-  AUDIT_NOT_FOUND: "Audit introuvable"
+  AUDIT_NOT_FOUND: "Audit introuvable",
+
+  // IA
+  AI_ERROR: "Erreur lors de l'analyse IA"
 } as const;
 
 export type ErrorMessageKey = keyof typeof ERROR_MESSAGES;

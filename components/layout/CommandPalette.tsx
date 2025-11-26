@@ -6,6 +6,7 @@ import { Search, Command, LayoutDashboard, Siren, FolderKanban, Server, ShieldAl
 import { collection, getDocs, limit, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface CommandItem {
     id: string;
@@ -163,7 +164,7 @@ export const CommandPalette: React.FC = () => {
 
                     setDbItems(items);
                 } catch (error) {
-                    console.error("Error fetching search items", error);
+                    ErrorLogger.error(error, 'CommandPalette.fetchSearchableItems');
                 } finally {
                     setLoading(false);
                 }

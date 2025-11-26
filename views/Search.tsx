@@ -9,6 +9,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
+import { ErrorLogger } from '../services/errorLogger';
 
 interface SearchResult {
     id: string;
@@ -155,7 +156,7 @@ export const Search: React.FC = () => {
 
             setResults(searchResults);
         } catch (error) {
-            console.error("Search error:", error);
+            ErrorLogger.handleErrorWithToast(error, 'Search.performSearch', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }

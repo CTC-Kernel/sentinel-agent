@@ -25,6 +25,7 @@ import { SubscriptionService } from '../services/subscriptionService';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Drawer } from '../components/ui/Drawer';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const Assets: React.FC = () => {
     const navigate = useNavigate();
@@ -125,8 +126,8 @@ export const Assets: React.FC = () => {
                 totalValue: data.reduce((acc, a) => acc + (a.currentValue || 0), 0)
             });
 
-        } catch (_err) {
-            addToast("Erreur chargement actifs", "error");
+        } catch (err) {
+            ErrorLogger.handleErrorWithToast(err, 'Assets.fetchAssets', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -164,7 +165,7 @@ export const Assets: React.FC = () => {
                 const filtered = logs.filter(l => l.details?.includes(asset.name));
                 filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
                 setAssetHistory(filtered);
-            } catch (e) { console.error(e); }
+            } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.openInspector', 'FETCH_FAILED'); }
 
             const maintQ = query(collection(db, 'assets', asset.id, 'maintenance'), orderBy('date', 'desc'));
             const unsubMaint = onSnapshot(maintQ, (snap) => { setMaintenanceRecords(snap.docs.map(d => ({ id: d.id, ...d.data() } as MaintenanceRecord))); });
@@ -207,8 +208,9 @@ export const Assets: React.FC = () => {
                 addToast("Actif créé avec succès", "success");
             }
             setIsDirty(false);
+            setIsDirty(false);
             fetchAssets(); // Refresh stats
-        } catch (_e) { addToast("Erreur lors de l'enregistrement", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.handleSave', 'UPDATE_FAILED'); }
     };
 
     const handleDuplicate = async () => {
@@ -220,7 +222,7 @@ export const Assets: React.FC = () => {
             addToast("Actif dupliqué", "success");
             setAssets(prev => [...prev, { ...newAssetData, id: docRef.id } as Asset]);
             openInspector({ ...newAssetData, id: docRef.id } as Asset);
-        } catch (_e) { addToast("Erreur duplication", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.handleDuplicate', 'CREATE_FAILED'); }
     };
 
 
@@ -236,8 +238,8 @@ export const Assets: React.FC = () => {
                 setIsDirty(true);
                 addToast(`Suggestion: ${suggestion.value}`, "info");
             }
-        } catch (_e) {
-            addToast("Impossible de générer une suggestion", "error");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Assets.handleSuggestField', 'AI_ERROR');
         } finally {
             setSuggestingField(null);
         }
@@ -281,7 +283,7 @@ export const Assets: React.FC = () => {
                 addToast("Intervention enregistrée", "success");
             }
             setNewMaintenance({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
-        } catch (_e) { addToast("Erreur ajout maintenance", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.handleAddMaintenance', 'CREATE_FAILED'); }
     };
 
     const initiateDelete = async (id: string, name: string) => {
@@ -321,7 +323,7 @@ export const Assets: React.FC = () => {
             setSelectedAsset(null);
             addToast("Actif supprimé", "info");
             fetchAssets();
-        } catch (_error) { addToast("Erreur lors de la suppression", "error"); }
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Assets.handleDeleteAsset', 'DELETE_FAILED'); }
     };
 
     const handleExportCSV = () => {
@@ -341,7 +343,7 @@ export const Assets: React.FC = () => {
             doc.setFillColor(0, 0, 0); doc.rect(30, 20, 18, 5, 'F');
             doc.setTextColor(255, 255, 255); doc.setFontSize(6); doc.setFont("times", "bold"); doc.text(asset.confidentiality.toUpperCase(), 39, 23.5, { align: 'center' });
             doc.save(`Label_${asset.name}.pdf`);
-        } catch (_error) { addToast("Erreur génération étiquette", "error"); }
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Assets.generateLabel', 'UNKNOWN_ERROR'); }
     };
 
     const generateIntakeLink = () => {

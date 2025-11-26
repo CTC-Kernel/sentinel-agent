@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Activity, ArrowRight } from './Icons';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface Props {
   children?: ReactNode;
@@ -21,7 +22,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo);
+    ErrorLogger.error(error, 'ErrorBoundary.componentDidCatch', { metadata: { errorInfo } });
   }
 
   public render() {
