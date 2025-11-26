@@ -12,7 +12,8 @@ import { getIncidentAlertTemplate } from '../services/emailTemplates'; // Change
 
 import { AIAssistButton } from '../components/ai/AIAssistButton';
 import { PageHeader } from '../components/ui/PageHeader';
-import { Siren } from '../components/ui/Icons';
+import { Siren, CalendarDays, Plus } from '../components/ui/Icons';
+import { ErrorLogger } from '../services/errorLogger';
 
 const PLAYBOOKS: Record<string, string[]> = {
     'Ransomware': ['Déconnecter la machine', 'Ne PAS éteindre', 'Photo de la rançon', 'Vérifier backups', 'Identifier malware', 'Isoler partages', 'Déclarer CNIL', 'Restaurer'],
@@ -31,6 +32,7 @@ export const Incidents: React.FC = () => {
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showTimeline, setShowTimeline] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentIncidentId, setCurrentIncidentId] = useState<string | null>(null);
     const [newIncident, setNewIncident] = useState<Partial<Incident>>({});
@@ -72,8 +74,8 @@ export const Incidents: React.FC = () => {
 
             const userData = getDocsData<UserProfile>(results[3]);
             setUsersList(userData);
-        } catch (_err) {
-            addToast("Erreur chargement données", "error");
+        } catch (err) {
+            ErrorLogger.handleErrorWithToast(err, 'Incidents.fetchData', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -129,6 +131,8 @@ export const Incidents: React.FC = () => {
     const initiateDelete = (id: string) => { setConfirmData({ isOpen: true, title: "Supprimer l'incident ?", message: "Cette action est définitive.", onConfirm: () => handleDelete(id) }); };
     const handleDelete = async (id: string) => { try { await deleteDoc(doc(db, 'incidents', id)); setIncidents(prev => prev.filter(i => i.id !== id)); if (selectedIncident?.id === id) setSelectedIncident(null); addToast("Incident supprimé", "info"); fetchData(); } catch (error) { addToast("Erreur suppression", "error"); } };
 
+    const canEdit = user?.role === 'admin' || user?.role === 'auditor';
+
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
@@ -140,6 +144,26 @@ export const Incidents: React.FC = () => {
                     { label: 'Incidents' }
                 ]}
                 icon={<Siren className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                actions={
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowTimeline(!showTimeline)}
+                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:scale-105 transition-all shadow-sm border border-slate-200 dark:border-white/5 font-bold text-sm"
+                        >
+                            <CalendarDays className="h-4 w-4 mr-2" />
+                            {showTimeline ? 'Masquer' : 'Afficher'} Timeline
+                        </button>
+                        {canEdit && (
+                            <button
+                                onClick={() => openModal()}
+                                className="flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Déclarer un incident
+                            </button>
+                        )}
+                    </div>
+                }
             />
 
             <IncidentDashboard
@@ -148,6 +172,7 @@ export const Incidents: React.FC = () => {
                 onSelect={(inc: Incident) => setSelectedIncident(inc)}
                 loading={loading}
                 onDelete={initiateDelete}
+                showTimeline={showTimeline}
             />
 
             {/* Create/Edit Modal */}

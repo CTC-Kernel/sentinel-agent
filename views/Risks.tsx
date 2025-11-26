@@ -27,6 +27,7 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { AIAssistButton } from '../components/ai/AIAssistButton';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Drawer } from '../components/ui/Drawer';
+import { ErrorLogger } from '../services/errorLogger';
 
 const STANDARD_THREATS = ["Panne matérielle serveur", "Incendie", "Inondation", "Vol d'équipement", "Attaque par Ransomware", "Phishing / Ingénierie Sociale", "Erreur humaine / Configuration", "Divulgation non autorisée", "Interruption de service FAI", "Sabotage interne", "Obsolescence technologique", "Perte de personnel clé"];
 
@@ -102,8 +103,7 @@ export const Risks: React.FC = () => {
                 reviewDue: riskData.filter(r => !r.lastReviewDate || new Date(r.lastReviewDate) < oneYearAgo).length
             });
         } catch (err) {
-            console.error(err);
-            addToast("Erreur chargement données", "error");
+            ErrorLogger.handleErrorWithToast(err, 'Risks.fetchData', 'FETCH_FAILED');
         } finally { setLoading(false); }
     };
 
@@ -128,7 +128,7 @@ export const Risks: React.FC = () => {
 
             const projQ = query(collection(db, 'projects'), where('organizationId', '==', user?.organizationId), where('relatedRiskIds', 'array-contains', risk.id));
             getDocs(projQ).then(snap => { setLinkedProjects(snap.docs.map(d => ({ id: d.id, ...d.data() } as Project))); });
-        } catch (e) { console.error(e); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.openInspector', 'FETCH_FAILED'); }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -176,7 +176,9 @@ export const Risks: React.FC = () => {
             }
             setShowModal(false);
             fetchData();
-        } catch (_error) { addToast("Erreur lors de l'enregistrement", "error"); }
+            setShowModal(false);
+            fetchData();
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Risks.handleSubmit', 'UPDATE_FAILED'); }
     };
 
     const openModal = (risk?: Risk) => {
@@ -203,8 +205,9 @@ export const Risks: React.FC = () => {
             await addDoc(collection(db, 'risks'), { ...newRiskData, organizationId: user.organizationId });
             await logAction(user, 'CREATE', 'Risk', `Duplication Risque: ${newRiskData.threat}`);
             addToast("Risque dupliqué", "success");
+            addToast("Risque dupliqué", "success");
             fetchData();
-        } catch (e) { addToast("Erreur duplication", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleDuplicate', 'CREATE_FAILED'); }
     };
 
     const initiateDelete = async (id: string, threat: string) => {
@@ -220,7 +223,7 @@ export const Risks: React.FC = () => {
                 return;
             }
             setConfirmData({ isOpen: true, title: "Supprimer le risque ?", message: `Cette action est irréversible.`, onConfirm: () => handleDeleteRisk(id, threat) });
-        } catch (e) { addToast("Erreur vérification dépendances", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.initiateDelete', 'FETCH_FAILED'); }
     };
 
     const handleDeleteRisk = async (id: string, threat: string) => {
@@ -231,7 +234,7 @@ export const Risks: React.FC = () => {
             if (selectedRisk?.id === id) setSelectedRisk(null);
             addToast("Risque supprimé", "info");
             fetchData();
-        } catch (e) { addToast("Erreur suppression", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleDeleteRisk', 'DELETE_FAILED'); }
     };
 
     const handleStatusChange = async (risk: Risk, newStatus: Risk['status']) => {
@@ -242,7 +245,7 @@ export const Risks: React.FC = () => {
             setRisks(prev => prev.map(r => r.id === risk.id ? { ...r, status: newStatus } : r));
             if (selectedRisk?.id === risk.id) setSelectedRisk({ ...selectedRisk, status: newStatus });
             addToast(`Statut changé`, "success");
-        } catch (e) { console.error(e); addToast("Erreur changement statut", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleStatusChange', 'UPDATE_FAILED'); }
     };
 
     const handleReview = async () => {
@@ -255,7 +258,7 @@ export const Risks: React.FC = () => {
             setSelectedRisk({ ...selectedRisk, lastReviewDate: today });
             addToast("Revue du risque validée", "success");
             fetchData();
-        } catch (e) { addToast("Erreur validation revue", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleReview', 'UPDATE_FAILED'); }
     };
 
     const handleImportTemplate = async (template: RiskTemplate, owner: string) => {
@@ -276,9 +279,10 @@ export const Risks: React.FC = () => {
             addToast(`${risksToImport.length} risques importés avec succès`, "success");
             setShowTemplateModal(false);
             fetchData();
+            setShowTemplateModal(false);
+            fetchData();
         } catch (e) {
-            console.error(e);
-            addToast("Erreur lors de l'import des risques", "error");
+            ErrorLogger.handleErrorWithToast(e, 'Risks.handleImportTemplate', 'CREATE_FAILED');
         }
     };
 
@@ -346,7 +350,9 @@ export const Risks: React.FC = () => {
                 await logAction(user, 'IMPORT', 'Risk', `Import CSV de ${count} risques`);
                 addToast(`${count} risques importés`, "success");
                 fetchData();
-            } catch (_error) { addToast("Erreur import CSV", "error"); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+                addToast(`${count} risques importés`, "success");
+                fetchData();
+            } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Risks.handleFileUpload', 'FILE_UPLOAD_FAILED'); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
         };
         reader.readAsText(file);
     };

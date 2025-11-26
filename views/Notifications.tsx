@@ -7,11 +7,12 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { NotificationRecord } from '../types';
 import { NotificationService } from '../services/notificationService';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const Notifications: React.FC = () => {
     const [notifications, setNotifications] = useState<NotificationRecord[]>([]);
     const [loading, setLoading] = useState(true);
-    const { user, addToast } = useStore();
+    const { user } = useStore();
 
     const fetchNotifications = async () => {
         if (!user?.uid) return;
@@ -20,8 +21,7 @@ export const Notifications: React.FC = () => {
             const data = await NotificationService.getAll(user.uid, 100);
             setNotifications(data);
         } catch (e) {
-            console.error(e);
-            addToast("Erreur chargement notifications", "error");
+            ErrorLogger.handleErrorWithToast(e, 'Notifications.fetchNotifications', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -34,8 +34,7 @@ export const Notifications: React.FC = () => {
             await NotificationService.markAsRead(id);
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
         } catch (e) {
-            console.error(e);
-            addToast("Erreur lors de la mise à jour", "error");
+            ErrorLogger.handleErrorWithToast(e, 'Notifications.markAsRead', 'UPDATE_FAILED');
         }
     };
 
@@ -45,8 +44,7 @@ export const Notifications: React.FC = () => {
             await NotificationService.markAllAsRead(user.uid);
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
         } catch (e) {
-            console.error(e);
-            addToast("Impossible de marquer comme lu", "error");
+            ErrorLogger.handleErrorWithToast(e, 'Notifications.markAll', 'UPDATE_FAILED');
         }
     };
 
@@ -69,8 +67,8 @@ export const Notifications: React.FC = () => {
                 ]}
                 icon={<Bell className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={notifications.some(n => !n.read) && (
-                    <button 
-                        onClick={markAll} 
+                    <button
+                        onClick={markAll}
                         className="px-4 py-2.5 text-sm font-bold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-colors border border-brand-200 dark:border-brand-800"
                     >
                         Tout marquer comme lu

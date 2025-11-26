@@ -1,5 +1,6 @@
 import { uploadBytesResumable, getDownloadURL, ref, deleteObject, listAll } from 'firebase/storage';
 import { storage } from '../firebase';
+import { ErrorLogger } from './errorLogger';
 
 export interface UploadProgress {
     progress: number;
@@ -51,7 +52,7 @@ export const uploadFile = async (
                 if (onProgress) onProgress(progress);
             },
             (error) => {
-                console.error('Error uploading file:', error);
+                ErrorLogger.error(error, 'FileUploadService.uploadFile');
                 reject(new Error('Failed to upload file. Please try again.'));
             },
             async () => {
@@ -75,7 +76,7 @@ export const deleteFile = async (path: string): Promise<void> => {
         const storageRef = ref(storage, path);
         await deleteObject(storageRef);
     } catch (error) {
-        console.error('Error deleting file:', error);
+        ErrorLogger.error(error, 'FileUploadService.deleteFile');
         throw new Error('Failed to delete file.');
     }
 };
@@ -91,7 +92,7 @@ export const listFiles = async (path: string) => {
         const result = await listAll(storageRef);
         return result.items;
     } catch (error) {
-        console.error('Error listing files:', error);
+        ErrorLogger.error(error, 'FileUploadService.listFiles');
         throw new Error('Failed to list files.');
     }
 };

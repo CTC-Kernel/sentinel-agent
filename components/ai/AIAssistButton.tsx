@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Loader2 } from '../ui/Icons';
 import { aiService } from '../../services/aiService';
+import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 
 interface AIAssistButtonProps {
@@ -39,7 +40,7 @@ export const AIAssistButton: React.FC<AIAssistButtonProps> = ({ context, fieldNa
                 addToast("Je n'ai pas trouvé de suggestion pertinente.", "info");
             }
         } catch (error) {
-            console.error("AI Assist Error:", error);
+            ErrorLogger.error(error, 'AIAssistButton.handleSuggest');
             addToast("Erreur lors de la génération.", "error");
         } finally {
             setLoading(false);

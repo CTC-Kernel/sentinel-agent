@@ -5,6 +5,7 @@ import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Comment } from '../../types';
 import { Send, MessageSquare } from './Icons';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface CommentsProps {
   collectionName: string;
@@ -36,7 +37,7 @@ export const Comments: React.FC<CommentsProps> = ({ collectionName, documentId }
         createdAt: new Date().toISOString()
       });
       setNewComment('');
-    } catch (error) { console.error(error); }
+    } catch (error) { ErrorLogger.error(error, 'Comments.handleSubmit'); }
   };
 
   return (
@@ -44,7 +45,7 @@ export const Comments: React.FC<CommentsProps> = ({ collectionName, documentId }
       {comments.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-gray-400 opacity-60 py-8">
           <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center mb-3">
-             <MessageSquare className="h-6 w-6 text-gray-300" />
+            <MessageSquare className="h-6 w-6 text-gray-300" />
           </div>
           <p className="text-xs font-medium">Aucun commentaire. Lancez la discussion !</p>
         </div>
@@ -55,18 +56,17 @@ export const Comments: React.FC<CommentsProps> = ({ collectionName, documentId }
             return (
               <div key={comment.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-scale-in`}>
                 {!isMe && (
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-[9px] font-bold mr-2 mt-auto shadow-sm">
-                        {comment.userName.charAt(0).toUpperCase()}
-                    </div>
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-[9px] font-bold mr-2 mt-auto shadow-sm">
+                    {comment.userName.charAt(0).toUpperCase()}
+                  </div>
                 )}
-                <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm relative group ${
-                  isMe 
-                    ? 'bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-br-none' 
+                <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm relative group ${isMe
+                    ? 'bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-br-none'
                     : 'bg-white dark:bg-slate-800 border border-gray-100 dark:border-gray-700 text-slate-800 dark:text-slate-200 rounded-bl-none'
-                }`}>
+                  }`}>
                   <p className="whitespace-pre-wrap leading-relaxed">{comment.content}</p>
                   <span className={`text-[9px] font-medium block mt-1 text-right ${isMe ? 'text-brand-100' : 'text-gray-400'}`}>
-                      {new Date(comment.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               </div>
@@ -77,15 +77,15 @@ export const Comments: React.FC<CommentsProps> = ({ collectionName, documentId }
 
       <form onSubmit={handleSubmit} className="mt-4 flex gap-2 items-end pt-2">
         <div className="flex-1 relative">
-            <input
+          <input
             type="text"
             placeholder="Écrire un message..."
             className="w-full bg-gray-100 dark:bg-slate-800/50 border-none rounded-2xl pl-4 pr-10 py-3 text-sm focus:ring-2 focus:ring-brand-500/50 dark:text-white transition-all outline-none placeholder-gray-400"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            />
+          />
         </div>
-        <button 
+        <button
           type="submit"
           disabled={!newComment.trim()}
           className="p-3 bg-brand-600 text-white rounded-full hover:bg-brand-700 disabled:opacity-50 disabled:scale-95 transition-all shadow-lg shadow-brand-500/20 hover:scale-105 active:scale-95 flex items-center justify-center"

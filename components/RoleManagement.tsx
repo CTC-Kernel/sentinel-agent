@@ -17,6 +17,7 @@ import {
     AlertTriangle,
     Info
 } from './ui/Icons';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const RoleManagement: React.FC = () => {
     const { user } = useStore();
@@ -45,7 +46,7 @@ export const RoleManagement: React.FC = () => {
 
             setUsers(usersData);
         } catch (error) {
-            console.error('Error fetching users:', error);
+            ErrorLogger.error(error, 'RoleManagement.fetchUsers');
         } finally {
             setLoading(false);
         }
@@ -62,7 +63,7 @@ export const RoleManagement: React.FC = () => {
             );
             setEditingUser(null);
         } catch (error) {
-            console.error('Error updating role:', error);
+            ErrorLogger.error(error, 'RoleManagement.handleUpdateRole');
             alert('Erreur lors de la mise à jour du rôle');
         }
     };

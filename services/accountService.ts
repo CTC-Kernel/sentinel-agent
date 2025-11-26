@@ -3,6 +3,7 @@ import { deleteUser, User } from 'firebase/auth';
 import { db, storage } from '../firebase';
 import { ref, deleteObject, listAll } from 'firebase/storage';
 import { UserProfile } from '../types';
+import { ErrorLogger } from './errorLogger';
 
 export class AccountService {
   private static readonly COLLECTIONS_TO_CLEAN = [
@@ -42,7 +43,7 @@ export class AccountService {
           const photoRef = ref(storage, `avatars/${user.uid}`);
           await deleteObject(photoRef);
         } catch (e) {
-          console.warn("Could not delete avatar:", e);
+          ErrorLogger.error(e, 'AccountService.deleteAccount');
         }
       }
 
@@ -52,7 +53,7 @@ export class AccountService {
           const usersInOrg = await getDocs(
             query(collection(db, 'users'), where('organizationId', '==', user.organizationId))
           );
-          
+
           // If no other users in this org (we already deleted current user doc), delete the org
           if (usersInOrg.empty) {
             await deleteDoc(doc(db, 'organizations', user.organizationId));
@@ -66,7 +67,7 @@ export class AccountService {
       // 4. Delete Firebase Auth user
       await deleteUser(firebaseUser);
     } catch (error) {
-      console.error("Error deleting account:", error);
+      ErrorLogger.error(error, 'AccountService.deleteAccount');
       throw error;
     }
   }
@@ -97,7 +98,7 @@ export class AccountService {
       try {
         const orgStorageRef = ref(storage, `organizations/${organizationId}`);
         await this.deleteStorageFolder(orgStorageRef);
-        
+
         const backupStorageRef = ref(storage, `backups/${organizationId}`);
         await this.deleteStorageFolder(backupStorageRef);
       } catch (e) {
@@ -105,7 +106,7 @@ export class AccountService {
       }
 
     } catch (error) {
-      console.error("Error deleting organization:", error);
+      ErrorLogger.error(error, 'AccountService.deleteOrganization');
       throw error;
     }
   }
@@ -119,7 +120,7 @@ export class AccountService {
     // Batch delete (Firestore limits batches to 500 operations)
     const chunks = [];
     const docs = snapshot.docs;
-    
+
     for (let i = 0; i < docs.length; i += 500) {
       chunks.push(docs.slice(i, i + 500));
     }
@@ -136,10 +137,10 @@ export class AccountService {
   private static async deleteStorageFolder(folderRef: any) {
     try {
       const list = await listAll(folderRef);
-      
+
       // Delete files
       await Promise.all(list.items.map(item => deleteObject(item)));
-      
+
       // Recurse for subfolders
       await Promise.all(list.prefixes.map(prefix => this.deleteStorageFolder(prefix)));
     } catch (_error) {

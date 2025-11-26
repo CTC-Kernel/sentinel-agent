@@ -26,6 +26,7 @@ import { TaskFormModal } from '../components/projects/TaskFormModal';
 import '../components/projects/gantt.css';
 
 import { SubscriptionService } from '../services/subscriptionService';
+import { ErrorLogger } from '../services/errorLogger';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 
@@ -51,6 +52,7 @@ export const Projects: React.FC = () => {
     const [projectHistory, setProjectHistory] = useState<SystemLog[]>([]);
     const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
     const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+    const [ganttViewMode, setGanttViewMode] = useState<'Day' | 'Week' | 'Month'>('Week');
 
     const canEdit = canEditResource(user, 'Project');
 
@@ -101,8 +103,8 @@ export const Projects: React.FC = () => {
             const usersData = getDocsData<UserProfile>(results[4]);
             setUsersList(usersData);
 
-        } catch (_err) {
-            addToast("Erreur chargement projets", "error");
+        } catch (err) {
+            ErrorLogger.handleErrorWithToast(err, 'Projects.fetchData', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -113,6 +115,7 @@ export const Projects: React.FC = () => {
     const openInspector = async (project: Project) => {
         setSelectedProject(project);
         setInspectorTab('overview');
+        setGanttViewMode('Week');
         setIsEditing(false);
 
         // Fetch History
@@ -130,7 +133,9 @@ export const Projects: React.FC = () => {
             const filteredLogs = logs.filter(l => l.resource === 'Project' && l.details?.includes(project.name));
             filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setProjectHistory(filteredLogs);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Projects.openInspector.history', 'FETCH_FAILED');
+        }
 
         // Fetch Milestones
         try {
@@ -140,7 +145,9 @@ export const Projects: React.FC = () => {
             const milestones = snap.docs.map(d => ({ id: d.id, ...d.data() } as ProjectMilestone));
             milestones.sort((a, b) => new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime());
             setProjectMilestones(milestones);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Projects.openInspector.milestones', 'FETCH_FAILED');
+        }
     };
 
     const openCreateModal = async () => {
@@ -190,7 +197,9 @@ export const Projects: React.FC = () => {
             setShowModal(false);
             setIsEditing(false);
             fetchData();
-        } catch (_e) { addToast("Erreur sauvegarde projet", "error"); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Projects.handleProjectFormSubmit', 'UPDATE_FAILED');
+        }
     };
 
     const handleCreateFromTemplate = async (template: ProjectTemplate, projectName: string, startDate: Date, manager: string) => {
@@ -225,8 +234,7 @@ export const Projects: React.FC = () => {
             setShowTemplateModal(false);
             fetchData();
         } catch (e) {
-            console.error(e);
-            addToast("Erreur création depuis template", "error");
+            ErrorLogger.handleErrorWithToast(e, 'Projects.handleCreateFromTemplate', 'CREATE_FAILED');
         }
     };
 
@@ -258,7 +266,9 @@ export const Projects: React.FC = () => {
             await logAction(user, 'CREATE', 'Project', `Duplication Projet: ${newProjData.name}`);
             addToast("Projet dupliqué", "success");
             fetchData();
-        } catch (_e) { addToast("Erreur duplication", "error"); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Projects.handleDuplicate', 'CREATE_FAILED');
+        }
     };
 
     const initiateDelete = (id: string, name: string) => {
@@ -277,7 +287,9 @@ export const Projects: React.FC = () => {
             setProjects(prev => prev.filter(p => p.id !== id));
             setSelectedProject(null);
             addToast("Projet supprimé", "info");
-        } catch (_e) { addToast("Erreur suppression", "error"); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Projects.handleDeleteProject', 'DELETE_FAILED');
+        }
     };
 
     const toggleTaskStatus = async (taskId: string) => {
@@ -313,7 +325,9 @@ export const Projects: React.FC = () => {
             await updateDoc(doc(db, 'projects', selectedProject.id), { tasks, progress });
             setProjects(prev => prev.map(p => p.id === selectedProject.id ? { ...p, tasks, progress } : p));
             setSelectedProject({ ...selectedProject, tasks, progress });
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Projects.updateTasks', 'UPDATE_FAILED');
+        }
     };
 
     const generateReport = () => {
@@ -868,9 +882,41 @@ export const Projects: React.FC = () => {
                                     )}
 
                                     {inspectorTab === 'gantt' && (
-                                        <div className="space-y-6 h-full">
+                                        <div className="space-y-4 h-full">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                                <div>
+                                                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-1">
+                                                        Chronologie du projet
+                                                    </p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                        Faites glisser les barres pour ajuster les échéances et suivez l'avancement visuellement.
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800/80 p-0.5">
+                                                        {(['Day', 'Week', 'Month'] as const).map(mode => (
+                                                            <button
+                                                                key={mode}
+                                                                onClick={() => setGanttViewMode(mode)}
+                                                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+                                                                    ganttViewMode === mode
+                                                                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+                                                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                                                }`}
+                                                            >
+                                                                {mode === 'Day' ? 'Jour' : mode === 'Week' ? 'Semaine' : 'Mois'}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-400">
+                                                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                                                        <span>Aujourd'hui</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <GanttChart
                                                 tasks={selectedProject.tasks || []}
+                                                viewMode={ganttViewMode}
                                                 onTaskUpdate={async (task, _start, end) => {
                                                     if (!selectedProject.id) return;
                                                     try {
@@ -882,8 +928,8 @@ export const Projects: React.FC = () => {
                                                         });
                                                         addToast('Tâche mise à jour', 'success');
                                                         fetchData();
-                                                    } catch (_error) {
-                                                        addToast('Erreur de mise à jour', 'error');
+                                                    } catch (error) {
+                                                        ErrorLogger.handleErrorWithToast(error, 'Projects.gantt.onTaskUpdate', 'UPDATE_FAILED');
                                                     }
                                                 }}
                                             />

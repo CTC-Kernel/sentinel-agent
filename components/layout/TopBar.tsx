@@ -6,6 +6,7 @@ import { NotificationCenter } from '../ui/NotificationCenter';
 import { signOut } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface TopBarProps {
     setMobileOpen: (open: boolean) => void;
@@ -41,7 +42,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
         try {
             await signOut(auth);
         } catch (error) {
-            console.error("Error logging out:", error);
+            ErrorLogger.error(error, 'TopBar.handleLogout');
         }
     };
 
@@ -92,7 +93,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                 const newTheme = theme === 'light' ? 'dark' : 'light';
                                 await updateDoc(doc(db, 'users', user.uid), { theme: newTheme });
                             } catch (e) {
-                                console.error('Failed to save theme preference', e);
+                                ErrorLogger.error(e, 'TopBar.toggleTheme');
                             }
                         }
                     }}

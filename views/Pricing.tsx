@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import { Check, ChevronRight, Shield, Zap, Building2, HelpCircle, Info, ChevronDown } from 'lucide-react';
 import { SubscriptionService } from '../services/subscriptionService';
+import { ErrorLogger } from '../services/errorLogger';
 import { PLANS } from '../config/plans';
 import { PlanType } from '../types';
 import { Tooltip } from '../components/ui/Tooltip';
@@ -23,7 +24,7 @@ const Pricing = () => {
       setLoading(planId);
       await SubscriptionService.startSubscription(user.organizationId, planId, isAnnual ? 'year' : 'month');
     } catch (error) {
-      console.error('Subscription error:', error);
+      ErrorLogger.error(error, 'Pricing.handleSubscribe');
       addToast("Une erreur est survenue lors de la redirection vers le paiement.", "error");
     } finally {
       setLoading(null);
