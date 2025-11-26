@@ -31,32 +31,56 @@ export const GanttChart: React.FC<GanttChartProps> = ({
     const scheduledCount = scheduledTasks.length;
     const unscheduledCount = tasks.length - scheduledCount;
 
+    // Helper to parse dates safely
+    const parseDate = (dateStr: string): Date | null => {
+        if (!dateStr) return null;
+
+        let date: Date;
+        if (dateStr.includes('/')) {
+            // Handle dd/mm/yyyy
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+            } else {
+                return null;
+            }
+        } else {
+            // Handle ISO string
+            date = new Date(dateStr);
+        }
+
+        return Number.isNaN(date.getTime()) ? null : date;
+    };
+
     useEffect(() => {
         if (!ganttRef.current) return;
 
+        // Clear previous instance
+        ganttRef.current.innerHTML = '';
+        ganttInstance.current = null;
+
         if (scheduledTasks.length === 0) {
-            ganttRef.current.innerHTML = '';
-            ganttInstance.current = null;
             return;
         }
 
         const ganttTasks: GanttTask[] = scheduledTasks.reduce((acc: GanttTask[], task) => {
             if (!task.dueDate) return acc;
 
-            let end: Date;
-            if (task.dueDate.includes('/')) {
-                const parts = task.dueDate.split('/');
-                end = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-            } else {
-                end = new Date(task.dueDate);
+            // Determine dates
+            const endDate = parseDate(task.dueDate) || new Date();
+            let startDate = task.startDate ? parseDate(task.startDate) : null;
+
+            if (!startDate) {
+                // Fallback: end date - 7 days
+                startDate = new Date(endDate);
+                startDate.setDate(endDate.getDate() - 7);
             }
 
-            if (Number.isNaN(end.getTime())) {
-                return acc;
+            // Ensure start date is before end date
+            if (startDate > endDate) {
+                startDate = new Date(endDate);
+                startDate.setDate(endDate.getDate() - 1);
             }
-
-            const start = new Date(end);
-            start.setDate(start.getDate() - 7);
 
             let customClass = '';
             switch (task.status) {
@@ -73,24 +97,30 @@ export const GanttChart: React.FC<GanttChartProps> = ({
                     customClass = 'bar-pending';
             }
 
+            // Sanitize ID for DOM selector safety
+            // frappe-gantt uses IDs as selectors, so they must be valid CSS selectors
+            const safeId = `gantt-${task.id.replace(/[^a-zA-Z0-9-_]/g, '_')}`;
+
             acc.push({
-                id: task.id || `task-${Math.random()}`,
+                id: safeId,
                 name: task.title || task.description || 'Sans titre',
-                start: start.toISOString().split('T')[0],
-                end: end.toISOString().split('T')[0],
+                start: startDate.toISOString().split('T')[0],
+                end: endDate.toISOString().split('T')[0],
                 progress: task.progress ?? 0,
                 custom_class: customClass,
-                dependencies: task.dependencies?.join(',') || ''
+                dependencies: task.dependencies?.map(d => `gantt-${d.replace(/[^a-zA-Z0-9-_]/g, '_')}`).join(',') || ''
             });
 
             return acc;
         }, []);
 
-        // Reset container content before (re)creating Gantt instance
-        ganttRef.current.innerHTML = '';
+        if (ganttTasks.length === 0) return;
 
         // Create Gantt instance
         try {
+            // Ensure the container is empty before rendering
+            ganttRef.current.innerHTML = '';
+
             ganttInstance.current = new Gantt(ganttRef.current, ganttTasks, {
                 view_mode: viewMode,
                 bar_height: 30,
@@ -101,12 +131,16 @@ export const GanttChart: React.FC<GanttChartProps> = ({
                 date_format: 'YYYY-MM-DD',
                 language: 'fr',
                 custom_popup_html: (task: any) => {
-                    const originalTask = tasks.find(t => t.id === task.id);
+                    // Find original task by matching the sanitized ID
+                    const originalTask = tasks.find(t => `gantt-${t.id.replace(/[^a-zA-Z0-9-_]/g, '_')}` === task.id);
+
+                    if (!originalTask) return '';
+
                     return `
                         <div class="gantt-popup-wrapper">
                             <div class="gantt-popup-title">${task.name}</div>
                             <div class="gantt-popup-subtitle">
-                                ${originalTask?.assignee || 'Non assigné'} • ${task.progress}%
+                                ${originalTask.assignee || 'Non assigné'} • ${task.progress}%
                             </div>
                             <div class="gantt-popup-dates">
                                 ${task._start.toLocaleDateString('fr-FR')} → ${task._end.toLocaleDateString('fr-FR')}
@@ -117,10 +151,10 @@ export const GanttChart: React.FC<GanttChartProps> = ({
                 on_click: (task: any) => {
                     console.log('Task clicked:', task);
                 },
-                on_date_change: (task: any, start: Date, end: Date) => {
-                    const originalTask = tasks.find(t => t.id === task.id);
+                on_date_change: (task: any, startDate: Date, endDate: Date) => {
+                    const originalTask = tasks.find(t => `gantt-${t.id.replace(/[^a-zA-Z0-9-_]/g, '_')}` === task.id);
                     if (originalTask && onTaskUpdate) {
-                        onTaskUpdate(originalTask, start, end);
+                        onTaskUpdate(originalTask, startDate, endDate);
                     }
                 },
                 on_progress_change: (task: any, progress: number) => {
@@ -132,6 +166,10 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             } as any);
         } catch (error) {
             ErrorLogger.error(error, 'GanttChart.createInstance');
+            // Fallback UI or silent fail
+            if (ganttRef.current) {
+                ganttRef.current.innerHTML = '<div class="text-red-500 p-4">Erreur lors du chargement du diagramme de Gantt.</div>';
+            }
         }
 
         return () => {
@@ -215,3 +253,4 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         </div>
     );
 };
+

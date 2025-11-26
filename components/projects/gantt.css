@@ -4,16 +4,22 @@
     overflow-x: auto;
     overflow-y: visible;
     font-size: 13px;
-    min-height: 360px;
+    min-height: 400px;
+    /* Increased min-height */
+    width: 100%;
 }
 
 .gantt-chart {
     min-width: 100%;
+    overflow: visible;
+    /* Ensure SVG is visible */
 }
 
 .gantt-container svg {
     overflow: visible;
     display: block;
+    width: 100%;
+    /* Ensure SVG takes full width */
 }
 
 .gantt-container::-webkit-scrollbar {

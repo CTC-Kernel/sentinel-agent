@@ -15,6 +15,7 @@ import { ComplianceDashboard } from '../components/compliance/ComplianceDashboar
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS } from '../data/complianceData';
 
@@ -156,7 +157,8 @@ export const Compliance: React.FC = () => {
     const saveJustification = async () => {
         if (!selectedControl) return;
         try {
-            await updateDoc(doc(db, 'controls', selectedControl.id), { justification: editJustification, lastUpdated: new Date().toISOString() });
+            const updateData = sanitizeData({ justification: editJustification, lastUpdated: new Date().toISOString() });
+            await updateDoc(doc(db, 'controls', selectedControl.id), updateData);
             setControls(prev => prev.map(c => c.id === selectedControl.id ? { ...c, justification: editJustification } : c));
             setSelectedControl({ ...selectedControl, justification: editJustification });
             addToast("Justification enregistrée", "success");

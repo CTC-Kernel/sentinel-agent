@@ -26,6 +26,8 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Drawer } from '../components/ui/Drawer';
 import { ErrorLogger } from '../services/errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
 export const Assets: React.FC = () => {
     const navigate = useNavigate();
@@ -191,20 +193,22 @@ export const Assets: React.FC = () => {
         if (!editForm.name) return addToast("Le nom est requis", "error");
 
         try {
+            const cleanEditForm = sanitizeData(editForm);
+
             if (selectedAsset) {
-                await updateDoc(doc(db, 'assets', selectedAsset.id), editForm);
-                await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${editForm.name}`);
-                const updatedAsset = { ...selectedAsset, ...editForm, currentValue: calculateDepreciation(editForm.purchasePrice || 0, editForm.purchaseDate || '') } as Asset;
+                await updateDoc(doc(db, 'assets', selectedAsset.id), cleanEditForm);
+                await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${cleanEditForm.name}`);
+                const updatedAsset = { ...selectedAsset, ...cleanEditForm, currentValue: calculateDepreciation(cleanEditForm.purchasePrice || 0, cleanEditForm.purchaseDate || '') } as Asset;
                 setAssets(prev => prev.map(a => a.id === selectedAsset.id ? updatedAsset : a));
                 setSelectedAsset(updatedAsset);
                 addToast("Modifications enregistrées", "success");
             } else {
-                const newDoc = { ...editForm, organizationId: user.organizationId, createdAt: new Date().toISOString() };
+                const newDoc = { ...cleanEditForm, organizationId: user.organizationId, createdAt: new Date().toISOString() };
                 const docRef = await addDoc(collection(db, 'assets'), newDoc);
                 const newAsset = { id: docRef.id, ...newDoc, currentValue: calculateDepreciation(newDoc.purchasePrice || 0, newDoc.purchaseDate || '') } as Asset;
                 setAssets(prev => [...prev, newAsset]);
                 setSelectedAsset(newAsset);
-                await logAction(user, 'CREATE', 'Asset', `Création Actif: ${editForm.name}`);
+                await logAction(user, 'CREATE', 'Asset', `Création Actif: ${cleanEditForm.name}`);
                 addToast("Actif créé avec succès", "success");
             }
             setIsDirty(false);
@@ -501,7 +505,22 @@ export const Assets: React.FC = () => {
                     </>
                 }
             >
-                <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent">{[{ id: 'details', label: 'Général', icon: Tag }, { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock }, { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert }, { id: 'projects', label: 'Projets', icon: FolderKanban }, { id: 'audits', label: 'Audits', icon: CheckSquare }, { id: 'history', label: 'Audit Trail', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }, { id: 'graph', label: 'Graphe', icon: Network }].map(tab => (<button key={tab.id} onClick={() => setInspectorTab(tab.id as typeof inspectorTab)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}><tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />{tab.label}</button>))}</div>
+                <div className="px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
+                    <ScrollableTabs
+                        tabs={[
+                            { id: 'details', label: 'Général', icon: Tag },
+                            { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock },
+                            { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert },
+                            { id: 'projects', label: 'Projets', icon: FolderKanban },
+                            { id: 'audits', label: 'Audits', icon: CheckSquare },
+                            { id: 'history', label: 'Audit Trail', icon: History },
+                            { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                            { id: 'graph', label: 'Graphe', icon: Network }
+                        ].filter(tab => selectedAsset || ['details', 'lifecycle'].includes(tab.id))}
+                        activeTab={inspectorTab}
+                        onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
+                    />
+                </div>
 
                 <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-black/20 custom-scrollbar">
                     {inspectorTab === 'details' && (
