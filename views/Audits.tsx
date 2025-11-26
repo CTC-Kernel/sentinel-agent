@@ -7,6 +7,7 @@ import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Do
 import { canEditResource } from '../utils/permissions';
 import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck } from '../components/ui/Icons';
 import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
+import { AIAssistButton } from '../components/ai/AIAssistButton';
 import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
 import { SeveritySelector } from '../components/audits/SeveritySelector';
 import { useStore } from '../store';
@@ -607,13 +608,28 @@ export const Audits: React.FC = () => {
                                                 <form onSubmit={handleAddFinding} className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm mb-8">
                                                     <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest flex items-center"><Plus className="h-3.5 w-3.5 mr-2" /> Ajouter un constat</h3>
                                                     <div className="space-y-6">
-                                                        <FloatingLabelTextarea
-                                                            label="Description de l'écart"
-                                                            value={newFinding.description}
-                                                            onChange={e => setNewFinding({ ...newFinding, description: e.target.value })}
-                                                            required
-                                                            rows={2}
-                                                        />
+                                                        <div className="flex flex-col gap-1">
+                                                            <div className="flex justify-end">
+                                                                <AIAssistButton
+                                                                    context={{
+                                                                        auditName: selectedAudit.name,
+                                                                        auditType: selectedAudit.type,
+                                                                        findingType: newFinding.type,
+                                                                        control: newFinding.relatedControlId ? controls.find(c => c.id === newFinding.relatedControlId)?.code : 'Non spécifié'
+                                                                    }}
+                                                                    fieldName="description"
+                                                                    onSuggest={(val: string) => setNewFinding({ ...newFinding, description: val })}
+                                                                    prompt="Rédige un constat d'audit (écart) clair, factuel et professionnel. Précise le problème observé et l'impact potentiel."
+                                                                />
+                                                            </div>
+                                                            <FloatingLabelTextarea
+                                                                label="Description de l'écart"
+                                                                value={newFinding.description}
+                                                                onChange={e => setNewFinding({ ...newFinding, description: e.target.value })}
+                                                                required
+                                                                rows={2}
+                                                            />
+                                                        </div>
 
                                                         <SeveritySelector
                                                             value={newFinding.type || 'Mineure'}
