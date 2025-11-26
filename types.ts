@@ -62,8 +62,9 @@ export interface Control {
   organizationId: string;
   code: string;
   name: string;
+  framework?: 'ISO27001' | 'NIS2';
   description?: string;
-  status: 'Non commencé' | 'Implémenté' | 'Partiel' | 'Non applicable' | 'Exclu';
+  status: 'Non commencé' | 'Implémenté' | 'Partiel' | 'Non applicable' | 'Exclu' | 'En revue';
   justification?: string;
   evidenceIds?: string[];
   evidenceStrength?: 'Faible' | 'Forte';
