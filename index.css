@@ -1,9 +1,9 @@
+@import './styles/focus.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Focus Indicators & Accessibility */
-@import './styles/focus.css';
 
 /* Hide reCAPTCHA badge - improve UX while maintaining security */
 .grecaptcha-badge {
