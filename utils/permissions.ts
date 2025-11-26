@@ -61,13 +61,17 @@ const getAllowedActions = (role: Role, resource: ResourceType): ActionType[] => 
 
 export const hasPermission = (user: UserProfile | null, resource: ResourceType, action: ActionType): boolean => {
     if (!user) return false;
-    if (user.role === 'admin') return true;
+    
+    // Fallback role if missing
+    const userRole = user.role || 'user';
+    
+    if (userRole === 'admin') return true;
 
-    const allowed = getAllowedActions(user.role, resource);
+    const allowed = getAllowedActions(userRole, resource);
     if (allowed.includes(action)) return true;
 
     // RSSI acts as super-user when not already covered by matrix wildcard
-    if (user.role === 'rssi') return true;
+    if (userRole === 'rssi') return true;
 
     return false;
 };

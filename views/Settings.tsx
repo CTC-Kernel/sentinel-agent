@@ -28,7 +28,7 @@ export const Settings: React.FC = () => {
     const [networkLatency, setNetworkLatency] = useState<string>('...');
 
     // Profile state
-    const [profile, setProfile] = useState({ displayName: '', department: '' });
+    const [profile, setProfile] = useState({ displayName: '', department: '', role: '' });
     const [savingProfile, setSavingProfile] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -99,7 +99,11 @@ export const Settings: React.FC = () => {
 
     useEffect(() => {
         if (user) {
-            setProfile({ displayName: user.displayName || '', department: user.department || '' });
+            setProfile({ 
+                displayName: user.displayName || '', 
+                department: user.department || '',
+                role: user.role || 'user'
+            });
             setOrgName(user.organizationName || '');
             fetchOrgDetails();
         }
@@ -228,13 +232,19 @@ export const Settings: React.FC = () => {
             const q = query(usersRef, where('email', '==', user.email));
             const querySnapshot = await getDocs(q);
 
-            const userData: UserProfile = { ...user, displayName: profile.displayName, department: profile.department };
+            const userData: UserProfile = { 
+                ...user, 
+                displayName: profile.displayName, 
+                department: profile.department,
+                role: profile.role as UserProfile['role']
+            };
 
             if (!querySnapshot.empty) {
                 const docId = querySnapshot.docs[0].id;
                 await updateDoc(doc(db, 'users', docId), {
                     displayName: profile.displayName,
-                    department: profile.department
+                    department: profile.department,
+                    role: profile.role
                 });
             }
 
@@ -629,6 +639,34 @@ export const Settings: React.FC = () => {
                             <input type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
                                 value={profile.department} onChange={e => setProfile({ ...profile, department: e.target.value })} />
                         </div>
+                        
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Rôle</label>
+                            <div className="relative">
+                                <select 
+                                    className={`w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium appearance-none ${!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                    value={profile.role} 
+                                    onChange={e => setProfile({ ...profile, role: e.target.value })}
+                                    disabled={!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid)}
+                                >
+                                    <option value="admin">Administrateur</option>
+                                    <option value="rssi">RSSI / CISO</option>
+                                    <option value="direction">Direction / DPO</option>
+                                    <option value="project_manager">Chef de Projet</option>
+                                    <option value="auditor">Auditeur</option>
+                                    <option value="user">Utilisateur</option>
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+                                    <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                            {!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) && (
+                                <p className="text-[10px] text-slate-400 mt-1.5 ml-1">Contactez un administrateur pour changer de rôle.</p>
+                            )}
+                        </div>
+
                         <button type="submit" disabled={savingProfile} className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none disabled:opacity-70 flex justify-center items-center mt-4">
                             {savingProfile ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : 'Enregistrer'}
                         </button>
