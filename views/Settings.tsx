@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store';
-import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, RefreshCw, Key, Building, WifiOff, ArrowRight, FileSpreadsheet } from '../components/ui/Icons';
+import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, WifiOff, ArrowRight, FileSpreadsheet } from '../components/ui/Icons';
 import { collection, getDocs, query, orderBy, limit, where, addDoc, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, Timestamp, enableNetwork, disableNetwork, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage, auth, functions } from '../firebase';
-import { httpsCallable } from 'firebase/functions';
+import { db, storage, auth } from '../firebase';
 import { signOut, updatePassword } from 'firebase/auth';
 import { SystemLog, UserProfile } from '../types';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -14,7 +13,6 @@ import { hasPermission } from '../utils/permissions';
 import { SubscriptionService } from '../services/subscriptionService';
 import { AccountService } from '../services/accountService';
 import { Organization } from '../types';
-import { MigrationTool } from '../components/admin/MigrationTool';
 
 export const Settings: React.FC = () => {
     const { theme, toggleTheme, user, setUser, addToast } = useStore();
@@ -446,59 +444,6 @@ export const Settings: React.FC = () => {
         }
     };
 
-    const initiateIntegrityCheck = () => {
-        setConfirmData({
-            isOpen: true,
-            title: "Vérifier l'intégrité ?",
-            message: "Le système va scanner et réparer les liens orphelins.",
-            onConfirm: handleIntegrityCheck
-        });
-    };
-
-    const handleIntegrityCheck = async () => {
-        if (!user?.organizationId) return;
-        setMaintenanceLoading(true);
-        try {
-            const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)));
-            const assetsSnap = await getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId)));
-            const assetIds = new Set(assetsSnap.docs.map(d => d.id));
-            let fixedRisks = 0;
-            const batch = writeBatch(db);
-            risksSnap.docs.forEach(riskDoc => {
-                const riskData = riskDoc.data();
-                if (riskData.assetId && !assetIds.has(riskData.assetId)) {
-                    batch.update(riskDoc.ref, { assetId: '' });
-                    fixedRisks++;
-                }
-            });
-            if (fixedRisks > 0) {
-                await batch.commit();
-                addToast(`${fixedRisks} liens orphelins réparés.`, "success");
-            } else {
-                addToast("Intégrité des données validée.", "success");
-            }
-        } catch (_e) { addToast("Erreur lors de la vérification.", "error"); } finally { setMaintenanceLoading(false); }
-    };
-
-    const handleMigration = async () => {
-        if (!user?.organizationId) return;
-        setMaintenanceLoading(true);
-        try {
-            const fixAllUsers = httpsCallable(functions, 'fixAllUsers');
-            const result = await fixAllUsers();
-            const data = result.data as any;
-            if (data.success) {
-                addToast(`Migration terminée: ${data.results.fixed} corrigés, ${data.results.alreadyOk} déjà OK.`, "success");
-            } else {
-                addToast("Erreur lors de la migration.", "error");
-            }
-        } catch (e: any) {
-            console.error(e);
-            addToast(`Erreur: ${e.message}`, "error");
-        } finally {
-            setMaintenanceLoading(false);
-        }
-    };
 
     const initiateLeaveOrg = () => {
         setConfirmData({
@@ -771,36 +716,13 @@ export const Settings: React.FC = () => {
                             </form>
                         </div>
 
-                        <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-white/5">
-                            <div className="p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group card-hover" onClick={initiatePurgeLogs}>
-                                <div className="flex items-center justify-between mb-3">
-                                    <Trash2 className="h-6 w-6 text-orange-500 group-hover:scale-110 transition-transform" />
-                                    {maintenanceLoading && <div className="animate-spin h-4 w-4 border-2 border-orange-500 border-t-transparent rounded-full"></div>}
-                                </div>
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Purger les Logs</h4>
-                                <p className="text-xs text-slate-500 mt-1">Nettoyer l&apos;historique &gt; 90 jours.</p>
+                        <div className="p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group card-hover" onClick={initiatePurgeLogs}>
+                            <div className="flex items-center justify-between mb-3">
+                                <Trash2 className="h-6 w-6 text-orange-500 group-hover:scale-110 transition-transform" />
+                                {maintenanceLoading && <div className="animate-spin h-4 w-4 border-2 border-orange-500 border-t-transparent rounded-full"></div>}
                             </div>
-                            <div className="p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group card-hover" onClick={initiateIntegrityCheck}>
-                                <div className="flex items-center justify-between mb-3">
-                                    <RefreshCw className="h-6 w-6 text-blue-500 group-hover:rotate-180 transition-transform duration-700" />
-                                    {maintenanceLoading && <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>}
-                                </div>
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Vérifier l'Intégrité</h4>
-                                <p className="text-xs text-slate-500 mt-1">Réparer les liens cassés.</p>
-
-                            </div>
-                            <div className="p-6 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer group col-span-2 border-t border-gray-100 dark:border-white/5 card-hover" onClick={handleMigration}>
-                                <div className="flex items-center justify-between mb-3">
-                                    <Users className="h-6 w-6 text-purple-500 group-hover:scale-110 transition-transform" />
-                                    {maintenanceLoading && <div className="animate-spin h-4 w-4 border-2 border-purple-500 border-t-transparent rounded-full"></div>}
-                                </div>
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Migration Utilisateurs</h4>
-                                <p className="text-xs text-slate-500 mt-1">Corriger les comptes sans organisation.</p>
-                            </div>
-                        </div>
-
-                        <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-slate-50/30 dark:bg-white/5">
-                            <MigrationTool />
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Purger les Logs</h4>
+                            <p className="text-xs text-slate-500 mt-1">Nettoyer l&apos;historique &gt; 90 jours.</p>
                         </div>
 
                         <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-slate-50/30 dark:bg-black/20">

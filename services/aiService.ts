@@ -7,7 +7,7 @@ import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIIns
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const MODEL_NAME = "gemini-1.5-flash";
+const MODEL_NAME = "gemini-3.0-pro-latest";
 
 interface GraphData {
     assets: Asset[];
@@ -25,11 +25,12 @@ export const aiService = {
     async analyzeGraph(data: GraphData): Promise<{ suggestions: AISuggestedLink[]; insights: AIInsight[] }> {
         if (!API_KEY) {
             console.warn("Gemini API Key is missing. AI features disabled.");
-            return { suggestions: [], insights: [] };
+            throw new Error("L'analyse IA nécessite une clé API Gemini valide. Veuillez configurer VITE_GEMINI_API_KEY.");
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+            // Try with primary model
+            let model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
             // Prepare a summarized version of the data to avoid token limits if necessary
             // For now, we send the raw data assuming it fits within the context window of 1.5 Flash (1M tokens).
@@ -77,20 +78,37 @@ export const aiService = {
         }
       `;
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+            try {
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                const text = response.text();
 
-            // Clean up markdown code blocks if present
-            const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                // Clean up markdown code blocks if present
+                const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
-            const parsed = JSON.parse(jsonString);
+                const parsed = JSON.parse(cleanText);
 
-            return {
-                suggestions: parsed.suggestions.map((s: any, i: number) => ({ ...s, id: `ai-link-${i}` })),
-                insights: parsed.insights.map((s: any, i: number) => ({ ...s, id: `ai-insight-${i}` })),
-            };
-
+                return {
+                    suggestions: parsed.suggestions.map((s: any, i: number) => ({ ...s, id: `ai-link-${i}` })),
+                    insights: parsed.insights.map((s: any, i: number) => ({ ...s, id: `ai-insight-${i}` })),
+                };
+            } catch (modelError: any) {
+                console.error("Primary model failed, trying fallback...", modelError);
+                // Fallback to gemini-pro if specific version fails
+                if (modelError.message?.includes('404') || modelError.message?.includes('not found')) {
+                    model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    const text = response.text();
+                    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const parsed = JSON.parse(cleanText);
+                    return {
+                        suggestions: parsed.suggestions.map((s: any, i: number) => ({ ...s, id: `ai-link-${i}` })),
+                        insights: parsed.insights.map((s: any, i: number) => ({ ...s, id: `ai-insight-${i}` })),
+                    };
+                }
+                throw modelError;
+            }
         } catch (error) {
             console.error("AI Analysis failed:", error);
             throw new Error("Failed to analyze graph with Gemini.");

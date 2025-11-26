@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Screenshots - Sentinel GRC</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        h1 { color: #1d1d1f; margin: 0 0 10px 0; }
+        .subtitle { color: #86868b; margin: 0 0 30px 0; }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        select, button {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid #d2d2d7;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #0071e3, #0077ed);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+        
+        button:hover { opacity: 0.9; }
+        
+        .info {
+            background: #f5f5f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .info strong { color: #0071e3; }
+        
+        #preview {
+            border: 2px solid #d2d2d7;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 20px auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        iframe {
+            border: none;
+            display: block;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+        
+        .instructions h3 { margin-top: 0; color: #856404; }
+        .instructions ol { margin: 10px 0; padding-left: 20px; }
+        .instructions li { margin: 8px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Générateur de Screenshots App Store</h1>
+        <p class="subtitle">Capturez vos screenshots aux dimensions exactes requises</p>
+        
+        <div class="controls">
+            <select id="deviceSelect" onchange="changeDevice()">
+                <option value="iphone67">iPhone 6.7" (1290x2796) - iPhone 14/15 Pro Max</option>
+                <option value="iphone65">iPhone 6.5" (1242x2688) - iPhone 11 Pro Max</option>
+                <option value="ipad129">iPad Pro 12.9" (2048x2732)</option>
+            </select>
+            
+            <select id="pageSelect" onchange="changePage()">
+                <option value="/">1. Dashboard Principal</option>
+                <option value="/assets">2. Gestion des Actifs</option>
+                <option value="/risks">3. Évaluation des Risques</option>
+                <option value="/audits">4. Rapports d'Audit</option>
+                <option value="/compliance">5. Conformité ISO 27001</option>
+            </select>
+            
+            <button onclick="captureScreenshot()">📥 Capturer (Cmd+Shift+4)</button>
+        </div>
+        
+        <div class="info" id="deviceInfo"></div>
+        
+        <div id="preview"></div>
+        
+        <div class="instructions">
+            <h3>📋 Instructions de Capture</h3>
+            <ol>
+                <li><strong>Sélectionnez le device</strong> (iPhone 6.7", 6.5" ou iPad 12.9")</li>
+                <li><strong>Sélectionnez la page</strong> à capturer (5 pages au total)</li>
+                <li><strong>Attendez le chargement</strong> complet de la page</li>
+                <li><strong>Utilisez Cmd+Shift+4</strong> puis <strong>Espace</strong> pour capturer la fenêtre iframe</li>
+                <li><strong>Ou clic droit sur l'iframe</strong> > "Ouvrir dans un nouvel onglet" puis Cmd+Shift+3</li>
+                <li><strong>Répétez</strong> pour les 3 devices × 5 pages = 15 screenshots</li>
+                <li><strong>Nommez les fichiers</strong> :
+                    <ul>
+                        <li>iphone-6.7/1-dashboard.png</li>
+                        <li>iphone-6.7/2-assets.png</li>
+                        <li>etc...</li>
+                    </ul>
+                </li>
+            </ol>
+            
+            <p><strong>⚠️ Alternative Automatique :</strong> Si l'app web n'est pas démarrée, lancez d'abord :</p>
+            <code style="background: #f5f5f7; padding: 8px; display: block; border-radius: 4px; margin-top: 10px;">
+                npm run dev
+            </code>
+            <p style="margin-top: 10px;">Puis ouvrez cette page et l'iframe chargera automatiquement l'application.</p>
+        </div>
+    </div>
+
+    <script>
+        const devices = {
+            iphone67: { width: 430, height: 932, scale: 3, name: 'iPhone 6.7" (1290x2796)' },
+            iphone65: { width: 414, height: 896, scale: 3, name: 'iPhone 6.5" (1242x2688)' },
+            ipad129: { width: 1024, height: 1366, scale: 2, name: 'iPad Pro 12.9" (2048x2732)' }
+        };
+        
+        let currentDevice = 'iphone67';
+        let currentPage = '/';
+        let appUrl = 'http://localhost:8080'; // URL de l'app en dev
+        
+        function changeDevice() {
+            currentDevice = document.getElementById('deviceSelect').value;
+            updatePreview();
+        }
+        
+        function changePage() {
+            currentPage = document.getElementById('pageSelect').value;
+            updatePreview();
+        }
+        
+        function updatePreview() {
+            const device = devices[currentDevice];
+            const preview = document.getElementById('preview');
+            const info = document.getElementById('deviceInfo');
+            
+            const actualWidth = device.width * device.scale;
+            const actualHeight = device.height * device.scale;
+            
+            info.innerHTML = `
+                <strong>Device:</strong> ${device.name}<br>
+                <strong>Dimensions logiques:</strong> ${device.width}×${device.height}px<br>
+                <strong>Dimensions réelles (@${device.scale}x):</strong> ${actualWidth}×${actualHeight}px<br>
+                <strong>Page:</strong> ${currentPage}
+            `;
+            
+            preview.innerHTML = `
+                <iframe 
+                    src="${appUrl}${currentPage}" 
+                    width="${device.width}" 
+                    height="${device.height}"
+                    style="transform: scale(0.7); transform-origin: top left; width: ${device.width}px; height: ${device.height}px;"
+                ></iframe>
+            `;
+            
+            preview.style.width = (device.width * 0.7) + 'px';
+            preview.style.height = (device.height * 0.7) + 'px';
+        }
+        
+        function captureScreenshot() {
+            const device = devices[currentDevice];
+            const page = document.getElementById('pageSelect').selectedIndex + 1;
+            const pageName = document.getElementById('pageSelect').options[document.getElementById('pageSelect').selectedIndex].text.split('. ')[1].toLowerCase().replace(/ /g, '-');
+            
+            alert(`
+📸 Capture du screenshot
+
+Device: ${device.name}
+Page: ${currentPage}
+
+MÉTHODE 1 (Recommandée):
+1. Appuyez sur Cmd+Shift+4
+2. Appuyez sur Espace (le curseur devient une caméra)
+3. Cliquez sur la fenêtre de l'iframe
+4. Le screenshot sera sauvegardé sur votre Bureau
+
+MÉTHODE 2:
+1. Clic droit sur l'iframe ci-dessous
+2. "Ouvrir le cadre dans un nouvel onglet"
+3. Cmd+Shift+3 pour capturer tout l'écran
+4. Recadrez si nécessaire
+
+Nommez le fichier:
+${currentDevice.replace('iphone', 'iphone-').replace('ipad', 'ipad-')}/${page}-${pageName}.png
+
+Exemple: iphone-6.7/1-dashboard.png
+            `);
+        }
+        
+        // Initialiser
+        updatePreview();
+        
+        // Vérifier si l'app est accessible
+        fetch(appUrl)
+            .then(() => {
+                console.log('✅ Application accessible sur', appUrl);
+            })
+            .catch(() => {
+                const info = document.getElementById('deviceInfo');
+                info.style.background = '#fff3cd';
+                info.style.borderLeft = '4px solid #ffc107';
+                info.innerHTML = `
+                    <strong>⚠️ Application non accessible</strong><br>
+                    L'application n'est pas démarrée sur ${appUrl}<br>
+                    Lancez d'abord: <code>npm run dev</code>
+                `;
+            });
+    </script>
+</body>
+</html>

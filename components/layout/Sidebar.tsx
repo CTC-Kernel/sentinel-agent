@@ -9,7 +9,7 @@ const navGroups = [
     title: 'Pilotage',
     items: [
       { name: 'Tableau de bord', to: '/', icon: LayoutDashboard },
-      { name: 'Voxel Studio', to: '/voxel', icon: Settings3D },
+      { name: 'CTC Engine', to: '/voxel', icon: Settings3D },
       { name: 'Incidents', to: '/incidents', icon: Siren },
       { name: 'Projets SSI', to: '/projects', icon: FolderKanban },
     ]
