@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Calendar, User } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Project } from '../../types';
 import { AIAssistButton } from '../ai/AIAssistButton';
+import { CustomSelect } from '../ui/CustomSelect';
+import { CustomDatePicker } from '../ui/CustomDatePicker';
 
 interface ProjectFormModalProps {
     isOpen: boolean;
@@ -24,6 +26,7 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
         description: existingProject?.description || '',
         manager: existingProject?.manager || '',
         status: existingProject?.status || 'Planifié',
+        startDate: existingProject?.startDate || '',
         dueDate: existingProject?.dueDate || '',
         relatedRiskIds: existingProject?.relatedRiskIds || [],
         relatedControlIds: existingProject?.relatedControlIds || [],
@@ -104,60 +107,64 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
                             onChange={e => setFormData({ ...formData, description: e.target.value })}
                         />
                     </div>
-                    {/* Manager & Due Date */}
-                    <div className="grid grid-cols-2 gap-6">
+                    {/* Manager & Dates */}
+                    <div className="grid grid-cols-3 gap-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
-                                <User className="h-3.5 w-3.5" /> Manager *</label>
                             {availableUsers.length > 0 ? (
-                                <select
-                                    required
-                                    className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                                <CustomSelect
+                                    label="Manager"
                                     value={formData.manager}
-                                    onChange={e => setFormData({ ...formData, manager: e.target.value })}
-                                >
-                                    <option value="">Non assigné</option>
-                                    {availableUsers.map(u => (
-                                        <option key={u} value={u}>{u}</option>
-                                    ))}
-                                </select>
-                            ) : (
-                                <input
+                                    onChange={val => setFormData({ ...formData, manager: val })}
+                                    options={[
+                                        { value: '', label: 'Non assigné' },
+                                        ...availableUsers.map(u => ({ value: u, label: u }))
+                                    ]}
                                     required
-                                    className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                    value={formData.manager}
-                                    onChange={e => setFormData({ ...formData, manager: e.target.value })}
-                                    placeholder="Nom du manager"
+                                    error={errors.manager}
                                 />
+                            ) : (
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Manager *</label>
+                                    <input
+                                        required
+                                        className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                        value={formData.manager}
+                                        onChange={e => setFormData({ ...formData, manager: e.target.value })}
+                                        placeholder="Nom du manager"
+                                    />
+                                </div>
                             )}
-                            {errors.manager && <p className="text-red-500 text-xs mt-1">{errors.manager}</p>}
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
-                                <Calendar className="h-3.5 w-3.5" /> Échéance *</label>
-                            <input
-                                required
-                                type="date"
-                                className={`w-full px-4 py-3.5 rounded-2xl border ${errors.dueDate ? 'border-red-500' : 'border-gray-200 dark:border-white/10'} bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium`}
-                                value={formData.dueDate}
-                                onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
+                            <CustomDatePicker
+                                label="Date de début"
+                                value={formData.startDate || ''}
+                                onChange={date => setFormData({ ...formData, startDate: date })}
                             />
-                            {errors.dueDate && <p className="text-red-500 text-xs mt-1">{errors.dueDate}</p>}
+                        </div>
+                        <div>
+                            <CustomDatePicker
+                                label="Échéance"
+                                value={formData.dueDate}
+                                onChange={date => setFormData({ ...formData, dueDate: date })}
+                                required
+                                error={errors.dueDate}
+                            />
                         </div>
                     </div>
                     {/* Status */}
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label>
-                        <select
-                            className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                        <CustomSelect
+                            label="Statut"
                             value={formData.status}
-                            onChange={e => setFormData({ ...formData, status: e.target.value as any })}
-                        >
-                            <option value="Planifié">Planifié</option>
-                            <option value="En cours">En cours</option>
-                            <option value="Terminé">Terminé</option>
-                            <option value="Suspendu">Suspendu</option>
-                        </select>
+                            onChange={val => setFormData({ ...formData, status: val as any })}
+                            options={[
+                                { value: 'Planifié', label: 'Planifié' },
+                                { value: 'En cours', label: 'En cours' },
+                                { value: 'Terminé', label: 'Terminé' },
+                                { value: 'Suspendu', label: 'Suspendu' }
+                            ]}
+                        />
                     </div>
                     {/* Actions */}
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">

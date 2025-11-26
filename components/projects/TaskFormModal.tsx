@@ -25,6 +25,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         description: existingTask?.description || '',
         status: existingTask?.status || 'A faire',
         assignee: existingTask?.assignee || '',
+        startDate: existingTask?.startDate || '',
         dueDate: existingTask?.dueDate || '',
         priority: existingTask?.priority || 'medium',
         estimatedHours: existingTask?.estimatedHours || undefined,
@@ -154,8 +155,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Row 2: Assignee & Due Date */}
-                    <div className="grid grid-cols-2 gap-6">
+                    {/* Row 2: Assignee & Dates */}
+                    <div className="grid grid-cols-3 gap-6">
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
                                 <User className="h-3.5 w-3.5" />
@@ -181,6 +182,19 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                     placeholder="Nom de l'utilisateur"
                                 />
                             )}
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+                                <Calendar className="h-3.5 w-3.5" />
+                                Date de début
+                            </label>
+                            <input
+                                type="date"
+                                value={formData.startDate || ''}
+                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                            />
                         </div>
 
                         <div>
