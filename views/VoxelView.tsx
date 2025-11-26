@@ -281,10 +281,24 @@ export const VoxelView: React.FC = () => {
 
   const selectedNodeDetails = useMemo(() => {
     if (!selectedNode) return null;
+
+    // Helper to get the correct "person in charge" based on type
+    const getOwner = (node: { type: LayerType; data: any }) => {
+      switch (node.type) {
+        case 'project': return node.data.manager;
+        case 'audit': return node.data.auditor;
+        case 'incident': return node.data.responseOwner || node.data.reporter;
+        case 'supplier': return node.data.owner; // or contactName if preferred
+        case 'risk': return node.data.owner;
+        case 'asset': return node.data.owner;
+        default: return (node.data as any).owner || '';
+      }
+    };
+
     const base = {
       title: selectedNode.data.name || selectedNode.data.title || selectedNode.data.threat || 'Élément',
       type: selectedNode.type,
-      owner: (selectedNode.data as any).owner || (selectedNode.data as any).responsable || '',
+      owner: getOwner(selectedNode),
     };
 
     switch (selectedNode.type) {
@@ -325,7 +339,7 @@ export const VoxelView: React.FC = () => {
           gradient: 'from-purple-500/90 via-fuchsia-500/80 to-pink-500/70',
           stats: [
             { label: 'Progression', value: `${(selectedNode.data as Project).progress ?? 0}%` },
-            { label: 'Responsable', value: (selectedNode.data as any).owner || '—' },
+            { label: 'Responsable', value: (selectedNode.data as Project).manager || '—' },
             { label: 'Statut', value: (selectedNode.data as any).status || '—' },
           ],
           meta: [
@@ -1076,7 +1090,7 @@ export const VoxelView: React.FC = () => {
               <div className="grid grid-cols-2 gap-3 text-xs text-slate-300">
                 <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
                   <p className="uppercase tracking-wide text-[10px] text-slate-400">Référent</p>
-                  <p className="mt-1 text-sm font-semibold">{(selectedNode.data as any).owner || 'Non renseigné'}</p>
+                  <p className="mt-1 text-sm font-semibold">{selectedNodeDetails?.owner || 'Non renseigné'}</p>
                 </div>
                 <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
                   <p className="uppercase tracking-wide text-[10px] text-slate-400">Dernière mise à jour</p>

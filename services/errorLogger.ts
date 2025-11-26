@@ -108,6 +108,7 @@ class ErrorLoggerService {
     let messageKey: ErrorMessageKey = defaultMessageKey;
     const anyError = error as any;
     const code = typeof anyError?.code === 'string' ? anyError.code : undefined;
+    const errorMessage = error instanceof Error ? error.message : String(error);
 
     if (code === 'permission-denied' || code === 'failed-precondition') {
       messageKey = 'PERMISSION_DENIED';
@@ -120,6 +121,12 @@ class ErrorLoggerService {
       messageKey = 'AUTH_EXPIRED';
     } else if (code === 'unavailable' || code === 'network-request-failed') {
       messageKey = 'NETWORK_ERROR';
+    } else if (
+      errorMessage.includes('invalid data') ||
+      errorMessage.includes('Unsupported field value') ||
+      code === 'invalid-argument'
+    ) {
+      messageKey = 'VALIDATION_FAILED';
     }
 
     try {
