@@ -34,15 +34,21 @@ export const Onboarding: React.FC = () => {
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [joinRequestSent, setJoinRequestSent] = useState(false);
 
-    // Auto-detect step based on user state
+    // Auto-detect step based on user state or REDIRECT if finished
     React.useEffect(() => {
+        if (user?.onboardingCompleted) {
+            // If onboarding is already done, go to dashboard immediately
+            navigate('/', { replace: true });
+            return;
+        }
+
         if (user?.organizationId && !user.onboardingCompleted) {
             setMode('create');
             setStep(2);
             // Pre-fill fields if possible (optional)
             if (user.organizationName) setOrganizationName(user.organizationName);
         }
-    }, [user]);
+    }, [user, navigate]);
 
     const handleSearchOrg = async (e: React.FormEvent) => {
         e.preventDefault();
