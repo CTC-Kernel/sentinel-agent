@@ -52,6 +52,7 @@ export interface Risk {
   strategy: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
   status: 'Ouvert' | 'En cours' | 'Fermé';
   owner: string;
+  ownerId?: string;
   mitigationControlIds?: string[];
   lastReviewDate?: string;
   createdAt?: string;

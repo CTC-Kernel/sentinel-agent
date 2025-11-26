@@ -474,7 +474,7 @@ export const Dashboard: React.FC = () => {
                                                 fill: theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(15,23,42,0.7)',
                                                 fontSize: 10,
                                                 fontWeight: 700,
-                                                fontFamily: 'SF Pro Display, sans-serif'
+                                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
                                             }}
                                         />
                                         <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />

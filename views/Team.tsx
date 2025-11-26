@@ -198,6 +198,7 @@ export const Team: React.FC = () => {
     };
 
     const handleRejectRequest = async (req: any) => {
+        if (!user) return;
         if (!confirm(`Refuser la demande de ${req.displayName} ?`)) return;
         try {
             await updateDoc(doc(db, 'join_requests', req.id), {
@@ -218,7 +219,7 @@ export const Team: React.FC = () => {
         const assetsSnap = await getDocs(query(collection(db, 'assets'), where('ownerId', '==', uid)));
         if (!assetsSnap.empty) dependencies.push(`${assetsSnap.size} actif(s)`);
 
-        const risksSnap = await getDocs(query(collection(db, 'risks'), where('owner', '==', uid)));
+        const risksSnap = await getDocs(query(collection(db, 'risks'), where('ownerId', '==', uid)));
         if (!risksSnap.empty) dependencies.push(`${risksSnap.size} risque(s)`);
 
         const docsSnap = await getDocs(query(collection(db, 'documents'), where('ownerId', '==', uid)));
@@ -321,14 +322,14 @@ export const Team: React.FC = () => {
                 icon={<Users className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={canAdmin && (
                     <>
-                        <button 
-                            onClick={handleExportCSV} 
+                        <button
+                            onClick={handleExportCSV}
                             className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
                         >
                             <FileSpreadsheet className="h-4 w-4 mr-2" /> Export CSV
                         </button>
-                        <button 
-                            onClick={handleOpenInviteModal} 
+                        <button
+                            onClick={handleOpenInviteModal}
                             className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                         >
                             <Plus className="h-4 w-4 mr-2" />
