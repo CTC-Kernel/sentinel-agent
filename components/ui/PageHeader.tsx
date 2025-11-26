@@ -66,11 +66,11 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             </div>
           )}
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif' }}>
+            <h1 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 dark:text-white tracking-tight">
               {title}
             </h1>
             {subtitle && (
-              <p className="text-base font-medium text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed" style={{ fontFamily: 'SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif' }}>
+              <p className="text-base font-medium font-sans text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
                 {subtitle}
               </p>
             )}
