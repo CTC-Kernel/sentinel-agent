@@ -22,8 +22,11 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize App Check with ReCAPTCHA Enterprise
 if (typeof window !== 'undefined') {
-  // Enable debug token for localhost development
-  if (import.meta.env.DEV) {
+  // Enable debug token if explicitly set (e.g. for staging/preview) or in DEV mode
+  if (import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN) {
+    // @ts-ignore
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN;
+  } else if (import.meta.env.DEV) {
     // @ts-ignore
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
   }

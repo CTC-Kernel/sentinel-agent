@@ -10,7 +10,7 @@ service cloud.firestore {
     function getUserData() {
       return exists(/databases/$(database)/documents/users/$(request.auth.uid)) 
         ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data 
-        : {};
+        : {'role': 'none', 'organizationId': 'none'};
     }
     
     function isAdmin() {
