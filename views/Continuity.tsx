@@ -12,6 +12,7 @@ import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Comments } from '../components/ui/Comments';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const Continuity: React.FC = () => {
     const [processes, setProcesses] = useState<BusinessProcess[]>([]);
@@ -91,8 +92,7 @@ export const Continuity: React.FC = () => {
             setUsersList(usersData);
 
         } catch (err) {
-            console.error(err);
-            addToast("Erreur chargement données BCP", "error");
+            ErrorLogger.handleErrorWithToast(err, 'Continuity.fetchData', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -118,7 +118,7 @@ export const Continuity: React.FC = () => {
             relevantLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
             setProcessHistory(relevantLogs);
-        } catch (e) { console.error(e); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.openInspector', 'FETCH_FAILED'); }
     };
 
     const handleCreateProcess = async (e: React.FormEvent) => {
@@ -129,8 +129,9 @@ export const Continuity: React.FC = () => {
             await logAction(user, 'CREATE', 'BCP', `Nouveau Processus: ${newProcess.name}`);
             addToast("Processus créé", "success");
             setShowCreateModal(false);
+            setShowCreateModal(false);
             fetchData();
-        } catch (_e) { addToast("Erreur enregistrement", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleCreateProcess', 'CREATE_FAILED'); }
     };
 
     const handleUpdateProcess = async () => {
@@ -143,8 +144,9 @@ export const Continuity: React.FC = () => {
             setProcesses(prev => prev.map(p => p.id === selectedProcess.id ? { ...p, ...data } : p));
             setSelectedProcess({ ...selectedProcess, ...data });
             setIsEditing(false);
+            setIsEditing(false);
             addToast("Processus mis à jour", "success");
-        } catch (_e) { addToast("Erreur mise à jour", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleUpdateProcess', 'UPDATE_FAILED'); }
     };
 
     const initiateDelete = (id: string, name: string) => {
@@ -163,8 +165,9 @@ export const Continuity: React.FC = () => {
             setProcesses(prev => prev.filter(p => p.id !== id));
             setSelectedProcess(null);
             await logAction(user, 'DELETE', 'BCP', `Suppression: ${name}`);
+            await logAction(user, 'DELETE', 'BCP', `Suppression: ${name}`);
             addToast("Processus supprimé", "info");
-        } catch (_e) { addToast("Erreur suppression", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleDeleteProcess', 'DELETE_FAILED'); }
     };
 
     const openDrillModal = () => {
@@ -183,8 +186,9 @@ export const Continuity: React.FC = () => {
             await logAction(user, 'CREATE', 'BCP', `Nouvel exercice de crise`);
             addToast("Exercice enregistré", "success");
             setShowDrillModal(false);
+            setShowDrillModal(false);
             fetchData();
-        } catch (_e) { addToast("Erreur enregistrement exercice", "error"); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleSubmitDrill', 'CREATE_FAILED'); }
     };
 
     const handleExportCSV = () => {
@@ -240,24 +244,24 @@ export const Continuity: React.FC = () => {
                 ]}
                 icon={<HeartPulse className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
-                <div className="flex gap-3">
-                    <button onClick={handleExportCSV} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
-                        <FileSpreadsheet className="h-4 w-4 mr-2" /> Export BIA
-                    </button>
-                    {canEdit && (
-                        <>
-                            <button onClick={() => { openDrillModal(); }} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
-                                <Zap className="h-4 w-4 mr-2 text-amber-500" /> Nouvel Exercice
-                            </button>
-                            <button onClick={() => {
-                                setNewProcess({ name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne', supportingAssetIds: [], drpDocumentId: '' });
-                                setShowCreateModal(true);
-                            }} className="flex items-center px-5 py-2.5 bg-rose-600 text-white rounded-xl text-sm font-bold hover:bg-rose-700 shadow-lg shadow-rose-500/20 transition-transform hover:scale-105">
-                                <Plus className="h-4 w-4 mr-2" /> Nouveau Processus
-                            </button>
-                        </>
-                    )}
-                </div>
+                    <div className="flex gap-3">
+                        <button onClick={handleExportCSV} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                            <FileSpreadsheet className="h-4 w-4 mr-2" /> Export BIA
+                        </button>
+                        {canEdit && (
+                            <>
+                                <button onClick={() => { openDrillModal(); }} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                                    <Zap className="h-4 w-4 mr-2 text-amber-500" /> Nouvel Exercice
+                                </button>
+                                <button onClick={() => {
+                                    setNewProcess({ name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne', supportingAssetIds: [], drpDocumentId: '' });
+                                    setShowCreateModal(true);
+                                }} className="flex items-center px-5 py-2.5 bg-rose-600 text-white rounded-xl text-sm font-bold hover:bg-rose-700 shadow-lg shadow-rose-500/20 transition-transform hover:scale-105">
+                                    <Plus className="h-4 w-4 mr-2" /> Nouveau Processus
+                                </button>
+                            </>
+                        )}
+                    </div>
                 }
             />
 

@@ -2,6 +2,7 @@ import { collection, getDocs, query, where, updateDoc, doc, writeBatch, setDoc, 
 import { ref, getDownloadURL, deleteObject, uploadBytes } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import { logAction } from './logger';
+import { ErrorLogger } from './errorLogger';
 import { UserProfile } from '../types';
 
 export interface BackupConfig {
@@ -314,7 +315,7 @@ export class BackupService {
         });
       }
     } catch (error) {
-      console.error('Error checking scheduled backups:', error);
+      ErrorLogger.error(error, 'BackupService.checkScheduledBackups');
     }
   }
 

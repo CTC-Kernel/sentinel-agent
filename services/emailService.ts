@@ -2,6 +2,7 @@
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import { logAction } from './logger';
+import { ErrorLogger } from './errorLogger';
 
 // Types d'emails supportés
 type EmailType =
@@ -63,7 +64,7 @@ export const sendEmail = async (
 
     return true;
   } catch (error) {
-    console.error("Erreur lors de l'envoi de l'email", error);
+    ErrorLogger.error(error, 'emailService.sendEmail', { metadata: { to: payload.to, type: payload.type } });
     return false;
   }
 };
@@ -114,7 +115,7 @@ export const sendBulkEmail = async (
     await logAction(user, 'BULK_EMAIL_QUEUED', 'System', `${recipients.length} emails '${payload.type}' envoyés`);
     return true;
   } catch (error) {
-    console.error("Erreur lors de l'envoi groupé d'emails", error);
+    ErrorLogger.error(error, 'emailService.sendBulkEmail', { metadata: { count: recipients.length, type: payload.type } });
     return false;
   }
 };
@@ -146,7 +147,7 @@ export const scheduleEmail = async (
     await logAction(user, 'EMAIL_SCHEDULED', 'System', `Email '${payload.type}' programmé pour ${scheduledFor.toLocaleString()}`);
     return true;
   } catch (error) {
-    console.error("Erreur lors de la programmation de l'email", error);
+    ErrorLogger.error(error, 'emailService.scheduleEmail', { metadata: { to: payload.to, type: payload.type, scheduledFor } });
     return false;
   }
 };

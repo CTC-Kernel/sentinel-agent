@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Asset, Risk, Control } from '../types';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
+import { ErrorLogger } from '../services/errorLogger';
 import { ShieldAlert, Server, CheckCircle2 } from './ui/Icons';
 
 interface RelationshipGraphProps {
@@ -107,7 +108,7 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
                 setNodes(newNodes);
                 setLinks(newLinks);
             } catch (e) {
-                console.error("Graph error", e);
+                ErrorLogger.error(e, 'RelationshipGraph.fetchData');
             } finally {
                 setLoading(false);
             }

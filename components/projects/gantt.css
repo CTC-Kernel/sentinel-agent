@@ -1,14 +1,36 @@
 /* Gantt Chart Base Styles from frappe-gantt */
 .gantt-container {
     position: relative;
-    overflow: auto;
-    font-size: 12px;
-    min-height: 400px;
+    overflow-x: auto;
+    overflow-y: visible;
+    font-size: 13px;
+    min-height: 360px;
+}
+
+.gantt-chart {
+    min-width: 100%;
 }
 
 .gantt-container svg {
     overflow: visible;
     display: block;
+}
+
+.gantt-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.gantt-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.gantt-container::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.7);
+    border-radius: 9999px;
+}
+
+.gantt-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.9);
 }
 
 /* Grid */

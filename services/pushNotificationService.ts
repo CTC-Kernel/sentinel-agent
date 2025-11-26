@@ -1,6 +1,7 @@
 /**
  * Service de notifications push navigateur
  */
+import { ErrorLogger } from './errorLogger';
 
 export interface PushNotificationOptions {
     title: string;
@@ -30,7 +31,7 @@ export class PushNotificationService {
             const permission = await this.requestPermission();
             return permission === 'granted';
         } catch (error) {
-            console.error('Failed to initialize push notifications:', error);
+            ErrorLogger.error(error, 'PushNotificationService.initialize');
             return false;
         }
     }

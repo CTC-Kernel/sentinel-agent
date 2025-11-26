@@ -1,6 +1,7 @@
 
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
+import { ErrorLogger } from './errorLogger';
 
 export const logAction = async (
   user: { uid: string; email: string; organizationId?: string } | null,
@@ -10,7 +11,7 @@ export const logAction = async (
   explicitOrgId?: string // Allow explicit org ID for onboarding logs
 ) => {
   const orgId = explicitOrgId || user?.organizationId;
-  
+
   if (!user || !orgId) return;
 
   try {
@@ -24,6 +25,6 @@ export const logAction = async (
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error("Erreur lors de l'enregistrement du log", error);
+    ErrorLogger.error(error, 'logger.logAction', { metadata: { action, resource } });
   }
 };

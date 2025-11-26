@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { db } from '../../firebase';
 import { collection, getDocs, doc, writeBatch, getDoc } from 'firebase/firestore';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 import { Database, Loader2, Zap } from '../ui/Icons';
 import { Organization } from '../../types';
 
@@ -149,7 +150,7 @@ export const MigrationTool: React.FC = () => {
             addToast(`Migration terminée. ${totalFixed} documents et ${orgFixed} organisations corrigés.`, "success");
 
         } catch (error: any) {
-            console.error(error);
+            ErrorLogger.error(error, 'MigrationTool.runMigration');
             log(`❌ Erreur: ${error.message}`);
             addToast("Erreur lors de la migration", "error");
         } finally {

@@ -6,6 +6,7 @@ import 'vis-timeline/styles/vis-timeline-graph2d.css';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 import { Risk, Project, Audit, Document, Incident } from '../../types';
 import {
     Download,
@@ -155,7 +156,7 @@ export const InteractiveTimeline: React.FC = () => {
 
                 setEvents(allEvents);
             } catch (error) {
-                console.error('Error fetching timeline events:', error);
+                ErrorLogger.error(error, 'InteractiveTimeline.fetchEvents');
             } finally {
                 setLoading(false);
             }
@@ -278,7 +279,7 @@ export const InteractiveTimeline: React.FC = () => {
             link.download = `timeline-export-${new Date().toISOString().split('T')[0]}.png`;
             link.click();
         } catch (error) {
-            console.error('Error exporting timeline:', error);
+            ErrorLogger.error(error, 'InteractiveTimeline.handleExportPNG');
             alert('Erreur lors de l\'exportation de la timeline');
         }
     };

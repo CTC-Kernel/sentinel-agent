@@ -11,8 +11,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '../components/ui/PageHeader';
-import { LayoutDashboard } from '../components/ui/Icons';
+import { ErrorLogger } from '../services/errorLogger';
 
 const StatCard: React.FC<{ title: string; value: string | number | null; icon: any; trend?: string; colorClass: string; delay?: string; onClick?: () => void }> = ({ title, value, icon: Icon, trend, colorClass, delay, onClick }) => (
     <div onClick={onClick} className={`relative group glass - panel p - 6 rounded - [2rem] hover: shadow - apple transition - all duration - 500 hover: -translate - y - 1 overflow - hidden ${delay} border border - white / 60 dark: border - white / 5 cursor - pointer`}>
@@ -52,6 +51,7 @@ export const Dashboard: React.FC = () => {
     const [scoreGrade, setScoreGrade] = useState('?');
     const [organizationName, setOrganizationName] = useState<string>('');
     const [isEmpty, setIsEmpty] = useState(false);
+    const [teamSize, setTeamSize] = useState<number | null>(null);
 
     const { user, theme, addToast } = useStore();
     const navigate = useNavigate();
@@ -75,7 +75,7 @@ export const Dashboard: React.FC = () => {
                         setOrganizationName(orgData.name || '');
                     }
                 } catch (orgError) {
-                    console.error('Erreur lors de la récupération du nom de l\'organisation:', orgError);
+                    ErrorLogger.warn('Erreur récupération nom organisation', 'Dashboard.fetchData', { metadata: { error: orgError } });
                     // Fallback sur user.organizationName si disponible
                     if (user.organizationName) {
                         setOrganizationName(user.organizationName);
@@ -130,6 +130,7 @@ export const Dashboard: React.FC = () => {
                 const allAssets = getRawData<Asset>(results[4]);
                 const allSuppliers = getRawData<Supplier>(results[5]);
                 const userCount = getCount(results[6]);
+                setTeamSize(userCount);
 
                 const latestIncidents = getRawData<Incident>(results[7]);
                 const activeIncidentsCount = getCount(results[8]);
@@ -280,8 +281,9 @@ export const Dashboard: React.FC = () => {
                 }
                 setError(null);
             } catch (error: any) {
-                console.error(error);
-                setError("Erreur chargement données.");
+                ErrorLogger.handleErrorWithToast(error, 'Dashboard.fetchData', 'FETCH_FAILED');
+                if (error?.code === 'permission-denied') setError('permission-denied');
+                else setError("Erreur chargement données.");
             } finally { setLoading(false); }
         };
         fetchData();
@@ -302,7 +304,7 @@ export const Dashboard: React.FC = () => {
             projectsSnap.forEach(doc => { const d = doc.data(); const date = d.dueDate ? d.dueDate.replace(/-/g, '') : ''; if (date) icsContent += `BEGIN:VEVENT\nSUMMARY:Projet: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:Manager: ${d.manager}\nEND:VEVENT\n`; });
             icsContent += "END:VCALENDAR";
             const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })); link.download = 'sentinel_calendar.ics'; link.click(); addToast("Calendrier exporté (.ics)", "success");
-        } catch (_e) { addToast("Erreur export calendrier", "error"); }
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Dashboard.generateICal', 'UNKNOWN_ERROR'); }
     };
 
     const generateExecutiveReport = () => {
@@ -332,36 +334,12 @@ export const Dashboard: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in pb-10">
-            <PageHeader
-                title="Tableau de bord"
-                subtitle="Vue d'ensemble de la posture de sécurité."
-                breadcrumbs={[
-                    { label: 'Dashboard' }
-                ]}
-                icon={<LayoutDashboard className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                actions={
-                    <div className="flex gap-3">
-                        <button
-                            onClick={generateICal}
-                            className="group flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
-                        >
-                            <CalendarDays className="h-4 w-4 mr-2" /> Export iCal
-                        </button>
-                        <button
-                            onClick={generateExecutiveReport}
-                            className="group flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"
-                        >
-                            <Download className="h-4 w-4 mr-2" /> Rapport Exécutif
-                        </button>
-                    </div>
-                }
-            />
 
             <div className="relative overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-2xl ring-1 ring-slate-200/60 dark:ring-white/5 transition-all duration-500 group">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/5 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10 opacity-100"></div>
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
-                
-                <div className="relative z-10 p-10 md:p-14">
+
+                <div className="relative z-10 p-6 md:p-8">
                     {isEmpty && !loading ? (
                         /* État vide élégant */
                         <div className="flex flex-col items-center justify-center text-center py-8">
@@ -374,7 +352,7 @@ export const Dashboard: React.FC = () => {
                                 Bienvenue sur Sentinel GRC
                             </h2>
                             <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mb-10 leading-relaxed font-medium">
-                                La plateforme tout-en-un pour piloter votre conformité ISO 27001.<br/>
+                                La plateforme tout-en-un pour piloter votre conformité ISO 27001.<br />
                                 Commencez par initialiser votre référentiel de sécurité.
                             </p>
 
@@ -430,41 +408,74 @@ export const Dashboard: React.FC = () => {
                         </div>
                     ) : (
                         /* État normal avec données */
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
-                            <div className="flex-1 min-w-0">
-                                <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-900/5 dark:bg-white/10 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-6 backdrop-blur-md shadow-sm">
-                                    <span className="w-2 h-2 bg-emerald-500 dark:bg-emerald-400 rounded-full mr-2.5 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
-                                    {organizationName || user?.organizationName || 'Système Opérationnel'}
-                                </div>
-                                
-                                <div className="flex items-center gap-6 mb-6">
-                                    <h1 className="text-5xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter font-display">Sentinel GRC</h1>
-                                    <div className={`flex items-center justify-center w-16 h-16 rounded-2xl text-4xl font-black shadow-2xl border-4 rotate-3 transition-transform hover:rotate-0 duration-300 ${scoreGrade === 'A' ? 'bg-emerald-500 border-emerald-400/50 text-white shadow-emerald-500/30' : scoreGrade === 'B' ? 'bg-blue-500 border-blue-400/50 text-white shadow-blue-500/30' : scoreGrade === 'C' ? 'bg-orange-500 border-orange-400/50 text-white shadow-orange-500/30' : 'bg-red-500 border-red-400/50 text-white shadow-red-500/30'}`}>
+                        <div className="flex flex-col lg:flex-row justify-between items-center gap-8">
+                            <div className="flex-1 min-w-0 space-y-6">
+                                <div className="flex items-center gap-5">
+                                    <div className={`flex items-center justify-center w-16 h-16 shrink-0 rounded-2xl text-4xl font-black shadow-xl border-4 ${scoreGrade === 'A' ? 'bg-emerald-500 border-emerald-400/50 text-white shadow-emerald-500/20' : scoreGrade === 'B' ? 'bg-blue-500 border-blue-400/50 text-white shadow-blue-500/20' : scoreGrade === 'C' ? 'bg-orange-500 border-orange-400/50 text-white shadow-orange-500/20' : 'bg-red-500 border-red-400/50 text-white shadow-red-500/20'}`}>
                                         {scoreGrade}
                                     </div>
+                                    <div>
+                                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tighter font-display">Sentinel GRC</h1>
+                                        <div className="flex items-center gap-3 mt-2">
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-900/5 dark:bg-white/10 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-bold uppercase tracking-widest">
+                                                {organizationName || user?.organizationName || 'Système Opérationnel'}
+                                            </span>
+                                            <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                                                <strong className="text-slate-900 dark:text-white">{loading ? '...' : stats.compliance}%</strong> Conformité
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                                
-                                <p className="text-slate-600 dark:text-slate-400 text-xl font-medium max-w-xl leading-relaxed mb-8">
-                                    Votre score de sécurité reflète la maturité actuelle : <strong className="text-slate-900 dark:text-white font-bold">{loading ? '...' : stats.compliance}%</strong> de conformité aux normes.
-                                </p>
 
-                                <div className={`inline-flex items-center p-1.5 pr-4 rounded-2xl backdrop-blur-xl border transition-all duration-300 hover:scale-[1.01] cursor-default shadow-lg ${insight.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/20 border-red-200 dark:border-red-500/30 text-red-900 dark:text-red-100' : insight.type === 'warning' ? 'bg-orange-50/80 dark:bg-orange-900/20 border-orange-200 dark:border-orange-500/30 text-orange-900 dark:text-orange-100' : 'bg-emerald-50/80 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-100'}`}>
-                                    <div className={`p-2.5 rounded-xl shrink-0 mr-3 ${insight.type === 'danger' ? 'bg-red-200/50 dark:bg-red-500/30' : insight.type === 'warning' ? 'bg-orange-200/50 dark:bg-orange-500/30' : 'bg-emerald-200/50 dark:bg-emerald-500/30'}`}>
+                                <div className={`flex items-center p-4 rounded-xl backdrop-blur-md border transition-all duration-300 hover:scale-[1.01] shadow-sm ${insight.type === 'danger' ? 'bg-red-50/60 dark:bg-red-900/10 border-red-200/60 dark:border-red-500/20' : insight.type === 'warning' ? 'bg-orange-50/60 dark:bg-orange-900/10 border-orange-200/60 dark:border-orange-500/20' : 'bg-emerald-50/60 dark:bg-emerald-900/10 border-emerald-200/60 dark:border-emerald-500/20'}`}>
+                                    <div className={`p-2 rounded-lg shrink-0 mr-4 ${insight.type === 'danger' ? 'bg-red-200/50 dark:bg-red-500/20 text-red-600 dark:text-red-400' : insight.type === 'warning' ? 'bg-orange-200/50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400' : 'bg-emerald-200/50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'}`}>
                                         <Zap className="h-5 w-5" fill="currentColor" strokeWidth={0} />
                                     </div>
-                                    <div className="mr-6">
-                                        <p className="font-bold text-sm tracking-tight">{insight.text}</p>
-                                        {insight.details && <p className="text-xs opacity-80 mt-0.5 font-medium">{insight.details}</p>}
+                                    <div className="flex-1 min-w-0 mr-4">
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{insight.text}</p>
+                                        {insight.details && <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{insight.details}</p>}
                                     </div>
                                     {insight.link && (
-                                        <button onClick={() => navigate(insight.link!)} className="ml-auto px-3 py-1.5 bg-white/60 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-lg text-xs font-bold transition-all flex items-center border border-black/5 dark:border-white/10 shadow-sm">
-                                            {insight.action} <ArrowRight className="h-3 w-3 ml-1" />
+                                        <button onClick={() => navigate(insight.link!)} className="shrink-0 px-3 py-1.5 bg-white/60 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-lg text-xs font-bold transition-all flex items-center border border-black/5 dark:border-white/10 shadow-sm">
+                                            <span className="hidden sm:inline mr-1">{insight.action}</span> <ArrowRight className="h-3 w-3" />
                                         </button>
                                     )}
                                 </div>
+
+                                {teamSize !== null && (
+                                    <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                        <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-900/3 dark:bg-white/5 border border-slate-900/5 dark:border-white/10">
+                                            Équipe : {teamSize <= 1 ? "vous êtes seul pour le moment" : `${teamSize} membres`}
+                                        </span>
+                                        {teamSize <= 1 && (
+                                            <button
+                                                onClick={() => navigate('/team')}
+                                                className="inline-flex items-center px-3 py-1.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[11px] font-bold shadow-sm hover:scale-105 transition-all"
+                                            >
+                                                Inviter mon équipe
+                                                <ArrowRight className="h-3 w-3 ml-1" />
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="flex flex-wrap gap-3 mt-4">
+                                    <button
+                                        onClick={generateICal}
+                                        className="group flex items-center px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-xs font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
+                                    >
+                                        <CalendarDays className="h-3.5 w-3.5 mr-2" /> Export iCal
+                                    </button>
+                                    <button
+                                        onClick={generateExecutiveReport}
+                                        className="group flex items-center px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"
+                                    >
+                                        <Download className="h-3.5 w-3.5 mr-2" /> Rapport Exécutif
+                                    </button>
+                                </div>
                             </div>
-                            
-                            <div className="hidden xl:block w-80 h-80 cursor-pointer hover:scale-105 transition-transform duration-500 relative grayscale-[20%] hover:grayscale-0" onClick={() => navigate('/compliance')} title="Voir le détail par domaine">
+
+                            <div className="w-full max-w-[280px] h-[280px] shrink-0 cursor-pointer hover:scale-105 transition-transform duration-500 relative" onClick={() => navigate('/compliance')}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                                         <defs>
@@ -481,7 +492,7 @@ export const Dashboard: React.FC = () => {
                                             dataKey="subject"
                                             tick={{
                                                 fill: theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(15,23,42,0.7)',
-                                                fontSize: 11,
+                                                fontSize: 10,
                                                 fontWeight: 700,
                                                 fontFamily: 'var(--font-sans)'
                                             }}
@@ -501,6 +512,7 @@ export const Dashboard: React.FC = () => {
                                         />
                                     </RadarChart>
                                 </ResponsiveContainer>
+                                <div className="absolute bottom-0 w-full text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">Maturité ISO 27001</div>
                             </div>
                         </div>
                     )}

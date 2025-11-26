@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useEffect, createContext, useContext } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/fiber';
-import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment, Html } from '@react-three/drei';
+import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment, Html, Billboard } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
@@ -812,6 +812,50 @@ const ImpactWave: React.FC<{ position: [number, number, number] }> = ({ position
   );
 };
 
+const EmptyState3D: React.FC = () => (
+  <group>
+    <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
+      <Billboard
+        position={[0, 1.2, 0]}
+        follow
+        lockX={false}
+        lockY={false}
+        lockZ={false}
+      >
+        <Text
+          fontSize={1.2}
+          color="white"
+          anchorX="center"
+          anchorY="middle"
+          maxWidth={8}
+          textAlign="center"
+        >
+          Système Sécurisé
+        </Text>
+        <Text
+          fontSize={0.5}
+          color="#94a3b8"
+          anchorX="center"
+          anchorY="top"
+          position={[0, -0.9, 0]}
+          maxWidth={6}
+          textAlign="center"
+        >
+          Commencez par ajouter des actifs ou des risques pour visualiser votre écosystème 3D.
+        </Text>
+      </Billboard>
+    </Float>
+    <mesh position={[0, -2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <ringGeometry args={[3, 3.05, 64]} />
+      <meshBasicMaterial color="#3b82f6" transparent opacity={0.2} blending={AdditiveBlending} />
+    </mesh>
+    <mesh position={[0, -2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <ringGeometry args={[4.5, 4.52, 64]} />
+      <meshBasicMaterial color="#64748b" transparent opacity={0.1} blending={AdditiveBlending} />
+    </mesh>
+  </group>
+);
+
 export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   assets,
   risks,
@@ -1172,9 +1216,11 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
             ref={controlsRef as any}
           />
 
-          <Float floatIntensity={0.4} rotationIntensity={0.2} speed={1.2}>
-            <PulseCore />
-          </Float>
+          {voxelNodes.length > 0 && (
+            <Float floatIntensity={0.4} rotationIntensity={0.2} speed={1.2}>
+              <PulseCore />
+            </Float>
+          )}
           <StarField />
           <NeonGrid />
           <ScanRing radius={12} color="#0ea5e9" />
@@ -1232,27 +1278,31 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           })}
 
           {/* Render voxel nodes */}
-          {voxelNodes.map(node => {
-            const isRelated = relatedNodeIds.has(node.id);
-            const isDimmed = Boolean(selectedNode && node.id !== selectedNode.id && !isRelated);
-            const isHighlighted = Boolean(selectedNode && (node.id === selectedNode.id || isRelated));
+          {voxelNodes.length === 0 ? (
+            <EmptyState3D />
+          ) : (
+            voxelNodes.map(node => {
+              const isRelated = relatedNodeIds.has(node.id);
+              const isDimmed = Boolean(selectedNode && node.id !== selectedNode.id && !isRelated);
+              const isHighlighted = Boolean(selectedNode && (node.id === selectedNode.id || isRelated));
 
-            return (
-              <VoxelMesh
-                key={node.id}
-                node={node}
-                onClick={handleNodeClick}
-                isSelected={selectedNode?.id === node.id}
-                isDimmed={isDimmed}
-                isHighlighted={isHighlighted}
-                opacity={xRayMode ? 0.3 : 0.9}
-                highlightCritical={highlightCritical}
-                xRayMode={xRayMode}
-                overlayProps={overlayProps}
-                overlayOffset={overlayOffset}
-              />
-            );
-          })}
+              return (
+                <VoxelMesh
+                  key={node.id}
+                  node={node}
+                  onClick={handleNodeClick}
+                  isSelected={selectedNode?.id === node.id}
+                  isDimmed={isDimmed}
+                  isHighlighted={isHighlighted}
+                  opacity={xRayMode ? 0.3 : 0.9}
+                  highlightCritical={highlightCritical}
+                  xRayMode={xRayMode}
+                  overlayProps={overlayProps}
+                  overlayOffset={overlayOffset}
+                />
+              );
+            })
+          )}
           <FocusController target={branchPivotNode} controlsRef={controlsRef} setAutoRotate={setAutoRotate} userInteractingRef={isUserInteracting} shouldSnapRef={shouldSnapToTarget} />
 
           <EffectComposer>

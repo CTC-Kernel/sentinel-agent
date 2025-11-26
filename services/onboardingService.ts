@@ -1,5 +1,6 @@
 import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
+import { ErrorLogger } from './errorLogger';
 
 /**
  * Service pour gérer le tour guidé interactif
@@ -89,7 +90,7 @@ export class OnboardingService {
                         });
                     }
                 } catch (error) {
-                    console.error('Error syncing onboarding status:', error);
+                    ErrorLogger.error(error, 'OnboardingService.startMainTour.onDestroyStarted');
                 }
             }
         });

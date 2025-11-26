@@ -100,6 +100,7 @@ exports.onJoinRequestUpdated = onDocumentUpdated("join_requests/{requestId}", as
 });
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineString, defineInt } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
@@ -111,6 +112,9 @@ const smtpHost = defineString("SMTP_HOST", { default: "smtp.ethereal.email" });
 const smtpPort = defineInt("SMTP_PORT", { default: 587 });
 const smtpUser = defineString("SMTP_USER", { default: "placeholder_user" });
 const smtpPass = defineString("SMTP_PASS", { default: "placeholder_pass" });
+
+// Global transporter for connection pooling
+let transporter = null;
 
 // Set custom claims when user document is created/updated
 exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
@@ -474,11 +478,14 @@ exports.stripeWebhook = onRequest(async (req, res) => {
 const mailFrom = defineString("MAIL_FROM", { default: '"Sentinel GRC" <no-reply@sentinel-grc.com>' });
 const mailReplyTo = defineString("MAIL_REPLY_TO", { default: "" });
 
-exports.processMailQueue = onDocumentCreated("mail_queue/{docId}", async (event) => {
+exports.processMailQueue = onDocumentCreated({
+    document: "mail_queue/{docId}",
+    maxInstances: 1,      // CRITICAL: Force single instance to reuse connection pool
+    concurrency: 50,      // Allow this single instance to handle multiple requests
+    retry: false          // We handle retries manually with our scheduled function
+}, async (event) => {
     const snap = event.data;
-    if (!snap) {
-        return;
-    }
+    if (!snap) return;
 
     const data = snap.data();
 
@@ -487,31 +494,43 @@ exports.processMailQueue = onDocumentCreated("mail_queue/{docId}", async (event)
         return;
     }
 
+    await attemptSendEmail(snap.ref, data);
+});
+
+/**
+ * Helper function to attempt sending an email with retry logic.
+ */
+async function attemptSendEmail(docRef, data) {
     const host = smtpHost.value();
     const user = smtpUser.value();
     const pass = smtpPass.value();
 
     // Check for placeholder values
     if (host === "smtp.ethereal.email" && user === "placeholder_user") {
-        const msg = "WARNING: Using placeholder SMTP settings. Email will likely fail or be trapped by Ethereal. Configure SMTP_HOST, SMTP_USER, SMTP_PASS via Firebase secrets/params.";
+        const msg = "WARNING: Using placeholder SMTP settings. Configure SMTP_HOST, SMTP_USER, SMTP_PASS via Firebase secrets/params.";
         console.warn(msg);
-        return snap.ref.update({
+        return docRef.update({
             status: "CONFIG_ERROR",
             error: msg,
-            attempts: 0 // Do not retry
+            attempts: 0
         });
     }
 
-    // Create transporter inside the function to ensure params are loaded
-    const transporter = nodemailer.createTransport({
-        host: host,
-        port: smtpPort.value(),
-        secure: smtpPort.value() === 465,
-        auth: {
-            user: user,
-            pass: pass,
-        },
-    });
+    // Initialize transporter if not exists
+    if (!transporter) {
+        transporter = nodemailer.createTransport({
+            host: host,
+            port: smtpPort.value(),
+            secure: smtpPort.value() === 465,
+            pool: true, // Use pooled connections
+            maxConnections: 3, // Limit concurrent connections to avoid 454
+            rateLimit: 10, // Helper to pace sending
+            auth: {
+                user: user,
+                pass: pass,
+            },
+        });
+    }
 
     try {
         console.log(`Processing email for ${data.to}`);
@@ -532,7 +551,7 @@ exports.processMailQueue = onDocumentCreated("mail_queue/{docId}", async (event)
         console.log("Message sent: %s", info.messageId);
 
         // Update Firestore document status
-        return snap.ref.update({
+        return docRef.update({
             status: "SENT",
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
             messageId: info.messageId,
@@ -541,14 +560,65 @@ exports.processMailQueue = onDocumentCreated("mail_queue/{docId}", async (event)
     } catch (error) {
         console.error("Error sending email:", error);
 
-        // Update Firestore document with error
-        // Use FieldValue from the admin instance correctly or fallback
-        const increment = admin.firestore.FieldValue?.increment || ((n) => n);
+        // Determine if error is transient
+        // 4xx errors are typically transient (e.g., 454, 421)
+        const responseCode = error.responseCode || (error.message && parseInt(error.message.substring(0, 3)));
+        const isTransient = responseCode && responseCode >= 400 && responseCode < 500;
+        const currentAttempts = data.attempts || 0;
+        const MAX_ATTEMPTS = 5;
 
-        return snap.ref.update({
+        if (isTransient && currentAttempts < MAX_ATTEMPTS) {
+             // Exponential backoff: 2, 4, 8, 16, 32 mins
+             const retryDelayMinutes = Math.pow(2, currentAttempts + 1);
+             const retryDate = new Date();
+             retryDate.setMinutes(retryDate.getMinutes() + retryDelayMinutes);
+
+             console.log(`Transient error ${responseCode}. Scheduling retry #${currentAttempts + 1} in ${retryDelayMinutes} minutes.`);
+
+             return docRef.update({
+                status: "RETRY_PENDING",
+                retryAt: admin.firestore.Timestamp.fromDate(retryDate),
+                attempts: admin.firestore.FieldValue.increment(1),
+                lastError: error.message
+            });
+        }
+
+        return docRef.update({
             status: "ERROR",
             error: error.message,
-            attempts: increment(1),
+            attempts: admin.firestore.FieldValue.increment(1),
         });
     }
+}
+
+exports.retryFailedEmails = onSchedule("every 5 minutes", async (event) => {
+    const now = admin.firestore.Timestamp.now();
+    
+    // Query 1: Standard retries
+    const retryQuery = admin.firestore().collection('mail_queue')
+        .where('status', '==', 'RETRY_PENDING')
+        .where('retryAt', '<=', now)
+        .limit(20)
+        .get();
+
+    // Query 2: Recover previously failed emails (Auto-healing for 454 errors)
+    const errorQuery = admin.firestore().collection('mail_queue')
+        .where('status', '==', 'ERROR')
+        .limit(20)
+        .get();
+
+    const [retrySnap, errorSnap] = await Promise.all([retryQuery, errorQuery]);
+
+    const docsToProcess = [...retrySnap.docs, ...errorSnap.docs];
+
+    if (docsToProcess.length === 0) return;
+
+    console.log(`Retrying ${docsToProcess.length} emails (${retrySnap.size} pending, ${errorSnap.size} errors)...`);
+    
+    // Use a Map to deduplicate by ID just in case
+    const uniqueDocs = new Map();
+    docsToProcess.forEach(doc => uniqueDocs.set(doc.id, doc));
+
+    const promises = Array.from(uniqueDocs.values()).map(doc => attemptSendEmail(doc.ref, doc.data()));
+    await Promise.all(promises);
 });

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, ShieldAlert, CalendarDays, Download, Activity, AlertTriangle, Clock, Search, FileSpreadsheet, Siren, Trash2 } from '../ui/Icons';
+import { ShieldAlert, CalendarDays, Activity, AlertTriangle, Clock, Search, FileSpreadsheet, Siren, Trash2 } from '../ui/Icons';
 import { Incident, Criticality } from '../../types';
 import { useStore } from '../../store';
 import { IncidentPlaybookModal } from './IncidentPlaybookModal';
@@ -13,12 +13,12 @@ interface IncidentDashboardProps {
     onSelect: (incident: Incident) => void;
     loading?: boolean;
     onDelete?: (id: string) => void;
+    showTimeline: boolean;
 }
 
-export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete }) => {
+export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete, showTimeline }) => {
     const { user } = useStore();
     const canEdit = user?.role === 'admin' || user?.role === 'auditor';
-    const [showTimeline, setShowTimeline] = useState(false);
     const [showPlaybookModal, setShowPlaybookModal] = useState(false);
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
     const [filter, setFilter] = useState('');
@@ -89,32 +89,6 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
 
     return (
         <div className="space-y-8 animate-fade-in pb-10">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Incidents</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Gestion et réponse aux incidents de sécurité.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setShowTimeline(!showTimeline)}
-                        className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:scale-105 transition-all shadow-sm border border-slate-200 dark:border-white/5 font-bold text-sm"
-                    >
-                        <CalendarDays className="h-4 w-4 mr-2" />
-                        {showTimeline ? 'Masquer' : 'Afficher'} Timeline
-                    </button>
-                    {canEdit && (
-                        <button
-                            onClick={onCreate}
-                            className="flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Déclarer un incident
-                        </button>
-                    )}
-                </div>
-            </div>
-
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
