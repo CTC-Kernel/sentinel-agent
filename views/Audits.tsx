@@ -358,7 +358,7 @@ export const Audits: React.FC = () => {
         doc.text(`Audit: ${selectedAudit.name} | Date: ${new Date().toLocaleDateString()}`, 14, 33);
 
         const data = checklist.questions.map(q => [q.controlCode, q.response, q.comment || '']);
-        (doc as any).autoTable({
+        (doc as jsPDF & { autoTable: any }).autoTable({
             startY: 50,
             head: [['Contrôle', 'Statut', 'Justification']],
             body: data,
@@ -407,7 +407,7 @@ export const Audits: React.FC = () => {
             f.status
         ]);
 
-        (doc as any).autoTable({
+        (doc as jsPDF & { autoTable: any }).autoTable({
             startY: 85,
             head: [['Type', 'Description', 'Contrôle Lié', 'Statut']],
             body: rows,
@@ -417,7 +417,7 @@ export const Audits: React.FC = () => {
             styles: { fontSize: 9 }
         });
 
-        const pageCount = (doc as any).internal.getNumberOfPages();
+        const pageCount = (doc as jsPDF & { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(9);
@@ -444,7 +444,7 @@ export const Audits: React.FC = () => {
             doc.setFontSize(10); doc.setTextColor(220); doc.text(`Auditeur: ${selectedAudit.auditor} | Date: ${new Date(selectedAudit.dateScheduled).toLocaleDateString()}`, 14, 33);
 
             const rows = findings.map(f => [f.type, f.description, f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-', f.status]);
-            (doc as any).autoTable({ startY: 50, head: [['Type', 'Description', 'Contrôle', 'Statut']], body: rows, theme: 'striped', headStyles: { fillColor: [79, 70, 229] } });
+            (doc as jsPDF & { autoTable: any }).autoTable({ startY: 50, head: [['Type', 'Description', 'Contrôle', 'Statut']], body: rows, theme: 'striped', headStyles: { fillColor: [79, 70, 229] } });
 
             const pdfBlob = doc.output('blob');
             folder.file(`Rapport_Audit.pdf`, pdfBlob);
@@ -640,7 +640,7 @@ export const Audits: React.FC = () => {
 
                                                         <SeveritySelector
                                                             value={newFinding.type || 'Mineure'}
-                                                            onChange={val => setNewFinding({ ...newFinding, type: val as any })}
+                                                            onChange={val => setNewFinding({ ...newFinding, type: val as Finding['type'] })}
                                                         />
 
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -735,7 +735,7 @@ export const Audits: React.FC = () => {
                                                                 <select
                                                                     className={`text-xs font-bold px-2 py-1 rounded border-none outline-none cursor-pointer ${q.response === 'Conforme' ? 'text-green-600 bg-green-50' : q.response === 'Non-conforme' ? 'text-red-600 bg-red-50' : 'text-slate-500 bg-slate-100'}`}
                                                                     value={q.response}
-                                                                    onChange={(e) => handleChecklistAnswer(q.id, e.target.value as any)}
+                                                                    onChange={(e) => handleChecklistAnswer(q.id, e.target.value as AuditQuestion['response'])}
                                                                 >
                                                                     <option value="Non-applicable">N/A</option>
                                                                     <option value="Conforme">Conforme</option>
@@ -816,7 +816,7 @@ export const Audits: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none"
-                                        value={newAudit.type} onChange={e => setNewAudit({ ...newAudit, type: e.target.value as any })}>
+                                        value={newAudit.type} onChange={e => setNewAudit({ ...newAudit, type: e.target.value as Audit['type'] })}>
                                         {['Interne', 'Externe', 'Certification'].map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
                                 </div>
