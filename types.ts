@@ -439,6 +439,7 @@ export interface UserProfile {
   lastLogin?: string;
   theme?: 'light' | 'dark';
   isPending?: boolean;
+  createdAt?: string;
 }
 
 export interface Invitation {

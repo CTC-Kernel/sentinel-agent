@@ -6,13 +6,16 @@ export const logAction = async (
   user: { uid: string; email: string; organizationId?: string } | null,
   action: string,
   resource: string,
-  details?: string
+  details?: string,
+  explicitOrgId?: string // Allow explicit org ID for onboarding logs
 ) => {
-  if (!user || !user.organizationId) return;
+  const orgId = explicitOrgId || user?.organizationId;
+  
+  if (!user || !orgId) return;
 
   try {
     await addDoc(collection(db, 'system_logs'), {
-      organizationId: user.organizationId,
+      organizationId: orgId,
       userId: user.uid,
       userEmail: user.email,
       action,

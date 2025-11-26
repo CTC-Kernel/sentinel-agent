@@ -295,25 +295,24 @@ export const Compliance: React.FC = () => {
                 icon={<ShieldCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
                 <div className="flex gap-3 items-center">
-                    {/* Framework Switcher */}
-                    {/* Framework Switcher - Premium Segmented Control */}
-                    <div className="bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm p-1.5 rounded-2xl flex items-center border border-white/20 shadow-inner">
+                    {/* Framework Switcher - Clean Style */}
+                    <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10">
                         <button
                             onClick={() => setCurrentFramework('ISO27001')}
-                            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currentFramework === 'ISO27001' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-lg shadow-slate-200/50 dark:shadow-none ring-1 ring-black/5' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'}`}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${currentFramework === 'ISO27001' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                         >
                             ISO 27001
                         </button>
                         <button
                             onClick={() => setCurrentFramework('NIS2')}
-                            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${currentFramework === 'NIS2' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-lg shadow-slate-200/50 dark:shadow-none ring-1 ring-black/5' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'}`}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${currentFramework === 'NIS2' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                         >
-                            NIS 2 <span className="ml-2 px-1.5 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 text-[10px] rounded-md uppercase tracking-wider">New</span>
+                            NIS 2 <span className="ml-1.5 px-1.5 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 text-[10px] rounded uppercase tracking-wider">New</span>
                         </button>
                     </div>
 
-                    <button onClick={generateSoAReport} className="flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none">
-                        <Download className="h-4 w-4 mr-2" /> Rapport (PDF)
+                    <button onClick={generateSoAReport} className="flex items-center px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm">
+                        <Download className="h-4 w-4 mr-2" /> Rapport
                     </button>
                 </div>
                 }
@@ -322,29 +321,46 @@ export const Compliance: React.FC = () => {
             {/* Dashboard Integration */}
             <ComplianceDashboard controls={controls} onFilterChange={setStatusFilter} />
 
-            {/* Filter Bar */}
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1"><Search className="h-5 w-5 text-gray-400" /><input type="text" placeholder="Rechercher (ex: A.5.1, Accès)..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-slate-200 py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
+            {/* Filter Bar - Clean Style */}
+            <div className="flex flex-col sm:flex-row gap-4 p-1">
+                <div className="flex-1 relative group">
+                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                    <input 
+                        type="text" 
+                        placeholder="Rechercher un contrôle (ex: A.5.1, Accès)..." 
+                        className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm font-medium transition-all shadow-sm placeholder:text-slate-400" 
+                        value={filter} 
+                        onChange={e => setFilter(e.target.value)} 
+                    />
+                </div>
 
-                {/* Status Filter Badge */}
-                {statusFilter && (
-                    <button onClick={() => setStatusFilter(null)} className="flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-brand-50 text-brand-600 border border-brand-200 dark:bg-brand-900/20 dark:text-brand-400 animate-fade-in">
-                        Filtre: {statusFilter} <X className="h-4 w-4 ml-2" />
+                <div className="flex gap-3">
+                    {/* Status Filter Badge */}
+                    {statusFilter && (
+                        <button onClick={() => setStatusFilter(null)} className="flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-brand-50 text-brand-700 border border-brand-200 dark:bg-brand-900/20 dark:text-brand-300 dark:border-brand-800 animate-fade-in hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors">
+                            <span className="mr-2 opacity-70">Filtre:</span> {statusFilter} <X className="h-4 w-4 ml-2" />
+                        </button>
+                    )}
+
+                    <button 
+                        onClick={() => setShowMissingEvidence(!showMissingEvidence)} 
+                        className={`flex items-center px-5 py-3 rounded-xl text-sm font-bold border transition-all shadow-sm ${showMissingEvidence ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                    >
+                        <Filter className={`h-4 w-4 mr-2 ${showMissingEvidence ? 'fill-current' : ''}`} />
+                        Preuves manquantes
                     </button>
-                )}
-
-                <button onClick={() => setShowMissingEvidence(!showMissingEvidence)} className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold border transition-all ${showMissingEvidence ? 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-gray-200'}`}><Filter className="h-4 w-4 mr-2" />Preuves manquantes</button>
+                </div>
             </div>
 
-            {/* Accordion List */}
+            {/* Accordion List - Clean Card Style */}
             {loading ? (
-                <div className="space-y-6">
+                <div className="space-y-4">
                     {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="glass-panel rounded-[2.5rem] p-6 border border-white/50 dark:border-white/5 shadow-sm flex items-center gap-4">
-                            <Skeleton className="w-10 h-10 rounded-xl" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-6 w-48" />
-                                <Skeleton className="h-4 w-64" />
+                        <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-white/10 flex items-center gap-4">
+                            <Skeleton className="w-12 h-12 rounded-xl" />
+                            <div className="space-y-2 flex-1">
+                                <Skeleton className="h-5 w-48" />
+                                <Skeleton className="h-4 w-full max-w-md" />
                             </div>
                         </div>
                     ))}
@@ -356,7 +372,7 @@ export const Compliance: React.FC = () => {
                     description={filter ? "Aucun contrôle ne correspond à votre recherche." : "Les contrôles n'ont pas été chargés."}
                 />
             ) : (
-                <div className="space-y-6">
+                <div className="space-y-4">
                     {(currentFramework === 'ISO27001' ? ISO_DOMAINS : NIS2_DOMAINS).map(domain => {
                         const domainControls = filteredControls.filter(c => c.code.startsWith(domain.id));
                         if (domainControls.length === 0) return null;
@@ -364,36 +380,38 @@ export const Compliance: React.FC = () => {
                         const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
 
                         return (
-                            <div key={domain.id} className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm card-hover transition-all duration-300">
+                            <div key={domain.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
                                 <div
                                     onClick={() => toggleDomain(domain.id)}
-                                    className="p-6 flex items-center justify-between cursor-pointer bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                                    className={`p-6 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold shadow-lg shadow-brand-500/20">
+                                    <div className="flex items-center gap-5">
+                                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-white/10">
                                             {domain.id.split('.')[1]}
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{domain.title}</h3>
-                                            <p className="text-xs text-slate-500 font-medium">{domain.description} • {stats.total} contrôles</p>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{domain.title}</h3>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">{domain.description} • <span className="text-slate-700 dark:text-slate-300">{stats.total} contrôles</span></p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-6">
-                                        <div className="hidden md:block w-32">
-                                            <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                                    <div className="flex items-center gap-8">
+                                        <div className="hidden md:block w-40">
+                                            <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
                                                 <span>Progression</span>
-                                                <span>{stats.progress}%</span>
+                                                <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
                                             </div>
-                                            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
-                                                <div className="bg-brand-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${stats.progress}%` }}></div>
+                                            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                                                <div className={`h-full rounded-full transition-all duration-500 ${stats.progress === 100 ? 'bg-emerald-500' : 'bg-brand-500'}`} style={{ width: `${stats.progress}%` }}></div>
                                             </div>
                                         </div>
-                                        <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                                        <div className={`p-2 rounded-full transition-all duration-300 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-sm rotate-180 text-slate-900 dark:text-white' : 'text-slate-400'}`}>
+                                            <ChevronDown className="h-5 w-5" />
+                                        </div>
                                     </div>
                                 </div>
 
                                 {isExpanded && (
-                                    <div className="divide-y divide-gray-100 dark:divide-gray-800 border-t border-gray-200 dark:border-white/5">
+                                    <div className="border-t border-slate-200 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
                                         {domainControls.map(control => {
                                             const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
                                             const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;

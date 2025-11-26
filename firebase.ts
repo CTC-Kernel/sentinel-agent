@@ -8,7 +8,6 @@ import { getMessaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
-
 const firebaseConfig = {
   apiKey: "***REDACTED***",
   authDomain: "sentinel-grc-a8701.firebaseapp.com",
@@ -22,7 +21,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Initialize App Check with ReCAPTCHA Enterprise
-// This protects your Firebase resources from abuse
 if (typeof window !== 'undefined') {
   // Enable debug token for localhost development
   if (import.meta.env.DEV) {
@@ -31,18 +29,21 @@ if (typeof window !== 'undefined') {
   }
 
   try {
-    initializeAppCheck(app, {
-      provider: new ReCaptchaEnterpriseProvider('6Le2FxUsAAAAAOn9WU8omrp4NXSMJIHIRUBhYFSR'),
-      isTokenAutoRefreshEnabled: true // Automatically refresh tokens
-    });
+    if (typeof initializeAppCheck === 'function') {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider('6Le2FxUsAAAAAOn9WU8omrp4NXSMJIHIRUBhYFSR'),
+        isTokenAutoRefreshEnabled: true
+      });
+      console.log("App Check initialized.");
+    } else {
+      console.warn("initializeAppCheck is not a function.");
+    }
   } catch (error) {
     console.warn('App Check initialization failed:', error);
-    // App will continue to work, but without App Check protection
   }
 }
 
 export const auth = getAuth(app);
-
 
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
 export const db = initializeFirestore(app, {

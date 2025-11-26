@@ -51,7 +51,7 @@ service cloud.firestore {
     match /organizations/{orgId} {
       allow read: if belongsToOrganization(orgId) || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
-      allow update: if belongsToOrganization(orgId) && isAdmin();
+      allow update: if belongsToOrganization(orgId) && (isAdmin() || resource.data.ownerId == request.auth.uid);
       allow delete: if false;
     }
 
@@ -63,9 +63,21 @@ service cloud.firestore {
       );
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && (
-        (request.auth.uid == userId && 
-         request.resource.data.role == resource.data.role && 
-         request.resource.data.organizationId == resource.data.organizationId) || 
+        (
+          request.auth.uid == userId && (
+            // Case 1: Initial Setup (Onboarding) - OrgId is empty or being set for first time
+            (!('organizationId' in resource.data) || resource.data.organizationId == null) ||
+            
+            // Case 2: Standard Update - Prevent tampering with critical fields (role, organizationId)
+            (
+              request.resource.data.role == resource.data.role &&
+              request.resource.data.organizationId == resource.data.organizationId
+            ) ||
+            
+            // Case 3: Owner/Admin override - Can change anything within their scope if they own the org
+            request.auth.uid == get(/databases/$(database)/documents/organizations/$(resource.data.organizationId)).data.ownerId
+          )
+        ) || 
         (isAdmin() && belongsToOrganization(resource.data.organizationId))
       );
       allow delete: if isAdmin() && belongsToOrganization(resource.data.organizationId);
@@ -248,8 +260,10 @@ service cloud.firestore {
     // System Logs (Audit Trail)
     match /system_logs/{logId} {
       allow read: if canRead(resource.data.organizationId);
-      allow create: if isAuthenticated() && 
-        request.resource.data.organizationId == getUserData().organizationId;
+      allow create: if isAuthenticated() && (
+        request.resource.data.organizationId == getUserData().organizationId ||
+        request.auth.uid == get(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)).data.ownerId
+      );
       allow update: if false; // Logs are immutable
       allow delete: if false; // Logs cannot be deleted
     }
