@@ -23,6 +23,7 @@ import { getAuditReminderTemplate } from '../services/emailTemplates';
 import { generateICS, downloadICS } from '../utils/calendar';
 import { FileUploader } from '../components/ui/FileUploader';
 import JSZip from 'jszip';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const Audits: React.FC = () => {
     const [audits, setAudits] = useState<Audit[]>([]);
@@ -86,7 +87,7 @@ export const Audits: React.FC = () => {
             }));
             addToast("Preuve téléversée et liée", "success");
         } catch (e) {
-            console.error(e);
+            ErrorLogger.handleErrorWithToast(e, 'Audits.handleEvidenceUpload', 'FILE_UPLOAD_FAILED');
             addToast("Erreur création document preuve", "error");
         }
     };
@@ -135,8 +136,8 @@ export const Audits: React.FC = () => {
             riskData.sort((a, b) => b.score - a.score);
             setRisks(riskData);
 
-        } catch (_err) {
-            addToast("Erreur chargement données", "error");
+        } catch (err) {
+            ErrorLogger.handleErrorWithToast(err, 'Audits.fetchAudits', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -303,7 +304,7 @@ export const Audits: React.FC = () => {
         // Debounced save could be better, but direct update for now
         try {
             await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: updatedQuestions });
-        } catch (e) { console.error("Error saving checklist", e); }
+        } catch (e) { ErrorLogger.error(e, 'Audits.handleChecklistAnswer'); }
     };
 
     const markAllConform = async () => {
@@ -313,7 +314,7 @@ export const Audits: React.FC = () => {
         try {
             await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: updatedQuestions });
             addToast("Tout marqué comme conforme", "success");
-        } catch (e) { console.error(e); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Audits.markAllConform', 'UPDATE_FAILED'); }
     };
 
     const handleExportCSV = () => {
@@ -463,7 +464,7 @@ export const Audits: React.FC = () => {
                         const blob = await response.blob();
                         evidenceFolder?.file(`${d.title.replace(/[^a-z0-9]/gi, '_')}.pdf`, blob); // Assuming PDF or appending extension based on type if possible
                     } catch (e) {
-                        console.error(`Failed to fetch evidence ${d.title}`, e);
+                        ErrorLogger.error(e, 'Audits.handleExportPack.fetchEvidence', { metadata: { title: d.title } });
                     }
                 }));
             }
@@ -476,7 +477,7 @@ export const Audits: React.FC = () => {
             link.click();
             addToast("Pack d'audit téléchargé", "success");
         } catch (e) {
-            console.error(e);
+            ErrorLogger.handleErrorWithToast(e, 'Audits.handleExportPack', 'FETCH_FAILED');
             addToast("Erreur lors de l'export du pack", "error");
         }
     };
@@ -511,8 +512,8 @@ export const Audits: React.FC = () => {
                 ]}
                 icon={<ClipboardCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={canEdit && (
-                    <button 
-                        onClick={() => setShowModal(true)} 
+                    <button
+                        onClick={() => setShowModal(true)}
                         className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                     >
                         <Plus className="h-4 w-4 mr-2" /> Nouvel Audit

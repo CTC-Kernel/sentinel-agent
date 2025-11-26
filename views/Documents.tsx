@@ -17,6 +17,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { FileUploader } from '../components/ui/FileUploader';
 import { FilePreview } from '../components/ui/FilePreview';
 import { PageHeader } from '../components/ui/PageHeader';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const Documents: React.FC = () => {
     const [documents, setDocuments] = useState<Document[]>([]);
@@ -96,8 +97,7 @@ export const Documents: React.FC = () => {
             setAudits(auditData);
 
         } catch (err) {
-            console.error(err);
-            addToast("Erreur chargement documents", "error");
+            ErrorLogger.handleErrorWithToast(err, 'Documents.fetchData', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -122,7 +122,7 @@ export const Documents: React.FC = () => {
             relevantLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
             setDocHistory(relevantLogs);
-        } catch (e) { console.error(e); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Documents.handleSelectDocument'); }
     };
 
     const handleFileUploadComplete = (url: string, fileName: string) => {
@@ -191,7 +191,7 @@ export const Documents: React.FC = () => {
             });
             fetchData();
         } catch (e) {
-            console.error(e);
+            ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
             addToast("Erreur lors de la création", "error");
         }
     };
@@ -263,7 +263,7 @@ export const Documents: React.FC = () => {
                 onConfirm: () => handleDelete(id, title)
             });
         } catch (e) {
-            console.error("Error checking dependencies:", e);
+            ErrorLogger.handleErrorWithToast(e, 'Documents.initiateDelete');
             addToast("Erreur lors de la vérification des dépendances", "error");
         }
     };
@@ -347,7 +347,7 @@ export const Documents: React.FC = () => {
                 ]}
                 icon={<FileText className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={canCreate && (
-                    <button 
+                    <button
                         onClick={() => {
                             setNewDocData({
                                 title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
@@ -355,7 +355,7 @@ export const Documents: React.FC = () => {
                                 relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
                             });
                             setShowCreateModal(true);
-                        }} 
+                        }}
                         className="flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-blue-500/20"
                     >
                         <Plus className="h-4 w-4 mr-2" /> Nouveau Document

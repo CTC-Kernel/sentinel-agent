@@ -61,7 +61,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         {/* Title Section with Icon */}
         <div className="flex items-center gap-4">
           {icon && (
-            <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/25 ring-1 ring-black/5 dark:ring-white/10">
+            <div className="flex shrink-0 items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/25 ring-1 ring-black/5 dark:ring-white/10">
               {icon}
             </div>
           )}

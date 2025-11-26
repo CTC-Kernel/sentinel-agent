@@ -12,6 +12,7 @@ import { Comments } from '../components/ui/Comments';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const Privacy: React.FC = () => {
     const [activities, setActivities] = useState<ProcessingActivity[]>([]);
@@ -108,7 +109,7 @@ export const Privacy: React.FC = () => {
             const filteredLogs = logs.filter(l => l.resource === 'Privacy' && l.details?.includes(activity.name));
             filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setActivityHistory(filteredLogs);
-        } catch (e) { console.error(e); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Privacy.handleSelectActivity'); }
     };
 
     const handleCreate = async (e: React.FormEvent) => {

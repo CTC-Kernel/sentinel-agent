@@ -5,6 +5,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { StatsService } from '../../services/statsService';
 import { useStore } from '../../store';
 import { ChartTooltip } from '../ui/ChartTooltip';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface ComplianceDashboardProps {
     controls: Control[];
@@ -45,7 +46,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     setTrend(Math.round(current - previous));
                 }
             } catch (error) {
-                console.error('Failed to fetch compliance trend:', error);
+                ErrorLogger.error(error, 'ComplianceDashboard.fetchTrend');
             }
         };
         fetchTrend();

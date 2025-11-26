@@ -4,6 +4,7 @@ import { X, Send, Mail, User, MessageSquare, Loader2 } from 'lucide-react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface ContactModalProps {
     isOpen: boolean;
@@ -60,7 +61,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
             onClose();
             setFormData(prev => ({ ...prev, message: '', subject: '' }));
         } catch (error) {
-            console.error('Error sending message:', error);
+            ErrorLogger.error(error, 'ContactModal.handleSubmit');
             addToast("Erreur lors de l'envoi du message.", 'error');
         } finally {
             setLoading(false);

@@ -5,9 +5,10 @@ import { db } from '../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIInsight } from '../types';
 import { aiService } from '../services/aiService';
+import { ErrorLogger } from '../services/errorLogger';
 import { useStore } from '../store';
 import { Skeleton } from '../components/ui/Skeleton';
-import { ChevronLeft, Settings, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, Bell, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, Search, RotateCw, Minimize2, CheckCheck } from '../components/ui/Icons';
+import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, Search, RotateCw, Minimize2, CheckCheck } from '../components/ui/Icons';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Network } from '../components/ui/Icons';
@@ -178,12 +179,7 @@ export const VoxelView: React.FC = () => {
     ),
   };
 
-  const summary = useMemo(() => {
-    const avgRisk = risks.length ? (risks.reduce((acc, r) => acc + r.score, 0) / risks.length).toFixed(1) : '0.0';
-    const criticalIncidents = incidents.filter(i => i.severity === 'Critique').length;
-    const overdueProjects = projects.filter(p => (p as any).status === 'En retard').length;
-    return { avgRisk, criticalIncidents, overdueProjects };
-  }, [risks, incidents, projects]);
+
 
   const orderedNodes = useMemo(() => {
     const mapNode = (collection: any[], type: LayerType) =>
@@ -235,25 +231,9 @@ export const VoxelView: React.FC = () => {
     }
   };
 
-  const quickTargets = useMemo(() => {
-    const highestRisk = [...risks].sort((a, b) => b.score - a.score)[0];
-    const criticalIncident = incidents.find(i => i.severity === 'Critique');
-    const delayedProject = projects.find(p => (p as any).status === 'En retard');
-    return {
-      topRisk: highestRisk ? { id: highestRisk.id, type: 'risk' as LayerType, label: highestRisk.threat || 'Risque critique' } : null,
-      criticalIncident: criticalIncident ? { id: criticalIncident.id, type: 'incident' as LayerType, label: criticalIncident.title || 'Incident critique' } : null,
-      delayedProject: delayedProject ? { id: delayedProject.id, type: 'project' as LayerType, label: delayedProject.name || 'Projet en alerte' } : null,
-    };
-  }, [risks, incidents, projects]);
 
-  const handleQuickFocus = (key: keyof typeof quickTargets) => {
-    const target = quickTargets[key];
-    if (!target) {
-      addToast("Aucun élément correspondant pour l'instant", 'info');
-      return;
-    }
-    applyFocus(target.id, target.type);
-  };
+
+
 
   const scenarioPresets: { id: string; label: string; description: string; layers: LayerType[] }[] = [
     { id: 'threat', label: 'Flux Menaces', description: 'Actifs critiques + risques associés + incidents', layers: ['asset', 'risk', 'incident'] },
@@ -552,8 +532,7 @@ export const VoxelView: React.FC = () => {
         setSuppliers(suppliersSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Supplier[]);
 
       } catch (error) {
-        console.error('Error fetching voxel data:', error);
-        addToast('Erreur lors du chargement des données', 'error');
+        ErrorLogger.handleErrorWithToast(error, 'VoxelView.fetchData', 'FETCH_FAILED');
       } finally {
         setLoading(false);
       }
@@ -594,8 +573,7 @@ export const VoxelView: React.FC = () => {
       setShowInsights(true);
       addToast("Analyse terminée avec succès", "success");
     } catch (error) {
-      console.error(error);
-      addToast("Erreur lors de l'analyse IA", "error");
+      ErrorLogger.handleErrorWithToast(error, 'VoxelView.handleAIAnalysis', 'UNKNOWN_ERROR');
     } finally {
       setAnalyzing(false);
     }

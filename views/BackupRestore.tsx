@@ -20,6 +20,7 @@ import {
   X
 } from '../components/ui/Icons';
 import { OnboardingService } from '../services/onboardingService';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const BackupRestore: React.FC = () => {
   const [backups, setBackups] = useState<BackupMetadata[]>([]);
@@ -79,8 +80,8 @@ export const BackupRestore: React.FC = () => {
     try {
       const backupsList = await BackupService.listBackups(user.organizationId);
       setBackups(backupsList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    } catch (_error) {
-      addToast('Erreur chargement backups', 'error');
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'BackupRestore.loadBackups', 'FETCH_FAILED');
     } finally {
       setLoading(false);
     }
@@ -91,8 +92,8 @@ export const BackupRestore: React.FC = () => {
     try {
       const backupStats = await BackupService.getBackupStats(user.organizationId);
       setStats(backupStats);
-    } catch (_error) {
-      // Error handled by toast
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'BackupRestore.loadStats', 'FETCH_FAILED');
     }
   };
 

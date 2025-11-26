@@ -17,12 +17,20 @@ export default {
           '-apple-system',
           'BlinkMacSystemFont',
           '"SF Pro Text"',
-          'sans-serif'
+          '"Segoe UI"',
+          'Roboto',
+          'Helvetica',
+          'Arial',
+          'sans-serif',
+          '"Apple Color Emoji"',
+          '"Segoe UI Emoji"',
+          '"Segoe UI Symbol"'
         ],
         display: [
           '-apple-system',
           'BlinkMacSystemFont',
           '"SF Pro Display"',
+          '"SF Pro Text"',
           'sans-serif'
         ],
         mono: [
@@ -31,6 +39,9 @@ export default {
           'SFMono-Regular',
           'Menlo',
           'Monaco',
+          'Consolas',
+          '"Liberation Mono"',
+          '"Courier New"',
           'monospace'
         ],
       },

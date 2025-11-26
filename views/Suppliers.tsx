@@ -12,6 +12,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const Suppliers: React.FC = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -104,8 +105,7 @@ export const Suppliers: React.FC = () => {
             setStats({ total, critical, avgScore, expired, highRisk, activeIncidents });
 
         } catch (err) {
-            console.error(err);
-            addToast("Erreur chargement fournisseurs", "error");
+            ErrorLogger.handleErrorWithToast(err, 'Suppliers.fetchSuppliers', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -128,7 +128,7 @@ export const Suppliers: React.FC = () => {
             const relevantLogs = logs.filter(l => l.resource === 'Supplier' && l.details?.includes(supplier.name));
             relevantLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setSupplierHistory(relevantLogs);
-        } catch (e) { console.error(e); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Suppliers.handleSelectSupplier'); }
     };
 
     const openCreateModal = () => {
@@ -245,7 +245,7 @@ export const Suppliers: React.FC = () => {
             if (selectedSupplier?.id === id) setSelectedSupplier(null);
             fetchSuppliers(); // Refresh stats and clear related data
         } catch (error) {
-            console.error('Error deleting supplier:', error);
+            ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleDelete');
             addToast('Erreur lors de la suppression', 'error');
         }
     };
