@@ -158,6 +158,7 @@ export interface ProjectTask {
   description?: string;
   status: 'A faire' | 'En cours' | 'Terminé' | 'Bloqué';
   assignee?: string;
+  startDate?: string; // Added for Gantt chart
   dueDate?: string;
   priority?: 'low' | 'medium' | 'high';
   estimatedHours?: number;
@@ -195,6 +196,7 @@ export interface Project {
   description: string;
   manager: string;
   status: 'Planifié' | 'En cours' | 'Terminé' | 'Suspendu';
+  startDate?: string; // Added for Gantt chart
   dueDate: string;
   progress: number;
   tasks: ProjectTask[];

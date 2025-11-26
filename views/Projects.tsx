@@ -27,6 +27,8 @@ import '../components/projects/gantt.css';
 
 import { SubscriptionService } from '../services/subscriptionService';
 import { ErrorLogger } from '../services/errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 
@@ -456,20 +458,23 @@ export const Projects: React.FC = () => {
                     setEditingTask(undefined);
                 }}
                 onSubmit={(taskData) => {
+                    // Sanitize data: Firestore doesn't support 'undefined'
+                    const cleanTaskData = sanitizeData(taskData);
+
                     if (!selectedProject) return;
 
                     if (editingTask) {
                         // Update existing task
                         const updatedTasks = selectedProject.tasks?.map(t =>
-                            t.id === editingTask.id ? { ...t, ...taskData } : t
+                            t.id === editingTask.id ? { ...t, ...cleanTaskData } : t
                         ) || [];
-                        updateTasks(updatedTasks);
+                        updateTasks(updatedTasks as ProjectTask[]);
                     } else {
                         // Create new task
                         const newTask: ProjectTask = {
                             id: Date.now().toString(),
-                            ...taskData
-                        };
+                            ...cleanTaskData
+                        } as ProjectTask;
                         const updatedTasks = [...(selectedProject.tasks || []), newTask];
                         updateTasks(updatedTasks);
                     }
@@ -618,24 +623,19 @@ export const Projects: React.FC = () => {
                                 </div>
 
                                 {/* Tabs */}
-                                <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5 overflow-x-auto no-scrollbar">
-                                    {[
-                                        { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
-                                        { id: 'tasks', label: 'Tâches', icon: CheckSquare },
-                                        { id: 'gantt', label: 'Gantt', icon: CalendarDays },
-                                        { id: 'dashboard', label: 'Dashboard', icon: FolderKanban },
-                                        { id: 'history', label: 'Historique', icon: History },
-                                        { id: 'comments', label: 'Commentaires', icon: MessageSquare }
-                                    ].map(tab => (
-                                        <button
-                                            key={tab.id}
-                                            onClick={() => setInspectorTab(tab.id as any)}
-                                            className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-                                        >
-                                            <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
-                                            {tab.label}
-                                        </button>
-                                    ))}
+                                <div className="px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                                    <ScrollableTabs
+                                        tabs={[
+                                            { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
+                                            { id: 'tasks', label: 'Tâches', icon: CheckSquare },
+                                            { id: 'gantt', label: 'Gantt', icon: CalendarDays },
+                                            { id: 'dashboard', label: 'Dashboard', icon: FolderKanban },
+                                            { id: 'history', label: 'Historique', icon: History },
+                                            { id: 'comments', label: 'Commentaires', icon: MessageSquare }
+                                        ]}
+                                        activeTab={inspectorTab}
+                                        onTabChange={(id) => setInspectorTab(id as any)}
+                                    />
                                 </div>
 
                                 {/* Content */}
@@ -898,11 +898,10 @@ export const Projects: React.FC = () => {
                                                             <button
                                                                 key={mode}
                                                                 onClick={() => setGanttViewMode(mode)}
-                                                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
-                                                                    ganttViewMode === mode
-                                                                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                                                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                                                                }`}
+                                                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${ganttViewMode === mode
+                                                                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+                                                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                                                    }`}
                                                             >
                                                                 {mode === 'Day' ? 'Jour' : mode === 'Week' ? 'Semaine' : 'Mois'}
                                                             </button>

@@ -6,8 +6,8 @@ import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project } fr
 import { canEditResource } from '../utils/permissions';
 import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Edit, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw } from '../components/ui/Icons';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
-import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
 import { RiskMatrixSelector } from '../components/risks/RiskMatrixSelector';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
@@ -28,6 +28,8 @@ import { AIAssistButton } from '../components/ai/AIAssistButton';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Drawer } from '../components/ui/Drawer';
 import { ErrorLogger } from '../services/errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
 const STANDARD_THREATS = ["Panne matérielle serveur", "Incendie", "Inondation", "Vol d'équipement", "Attaque par Ransomware", "Phishing / Ingénierie Sociale", "Erreur humaine / Configuration", "Divulgation non autorisée", "Interruption de service FAI", "Sabotage interne", "Obsolescence technologique", "Perte de personnel clé"];
 
@@ -138,10 +140,13 @@ export const Risks: React.FC = () => {
         const residualScore = (newRisk.residualProbability || newRisk.probability || 1) * (newRisk.residualImpact || newRisk.impact || 1);
 
         try {
+            // Sanitize data before sending to Firestore
+            const cleanNewRisk = sanitizeData(newRisk);
+
             if (isEditing && currentRiskId) {
                 const oldRisk = risks.find(r => r.id === currentRiskId);
                 const previousScore = oldRisk ? oldRisk.score : undefined;
-                const { id: _id, ...dataToUpdate } = newRisk;
+                const { id: _id, ...dataToUpdate } = cleanNewRisk;
                 if (oldRisk && oldRisk.score !== score) {
                     await addDoc(collection(db, 'risk_history'), {
                         riskId: currentRiskId,
@@ -159,19 +164,19 @@ export const Risks: React.FC = () => {
                 }
 
                 await updateDoc(doc(db, 'risks', currentRiskId), { ...dataToUpdate, score, residualScore, previousScore });
-                await logAction(user, 'UPDATE', 'Risk', `Modification risque: ${newRisk.threat}`);
+                await logAction(user, 'UPDATE', 'Risk', `Modification risque: ${cleanNewRisk.threat}`);
                 addToast("Risque mis à jour", "success");
-                if (selectedRisk?.id === currentRiskId) setSelectedRisk({ ...selectedRisk, ...dataToUpdate, score, residualScore });
+                if (selectedRisk?.id === currentRiskId) setSelectedRisk({ ...selectedRisk, ...dataToUpdate, score, residualScore } as Risk);
             } else {
                 await addDoc(collection(db, 'risks'), {
-                    ...newRisk,
+                    ...cleanNewRisk,
                     organizationId: user.organizationId,
                     score,
                     residualScore,
                     previousScore: score,
                     createdAt: new Date().toISOString()
                 });
-                await logAction(user, 'CREATE', 'Risk', `Ajout risque: ${newRisk.threat}`);
+                await logAction(user, 'CREATE', 'Risk', `Ajout risque: ${cleanNewRisk.threat}`);
                 addToast("Risque ajouté", "success");
             }
             setShowModal(false);
@@ -581,13 +586,20 @@ export const Risks: React.FC = () => {
             >
                 {selectedRisk && (
                     <>
-                        <div className="px-8 border-b border-slate-200 dark:border-white/5 flex gap-8 overflow-x-auto no-scrollbar bg-white dark:bg-transparent sticky top-0 z-10 backdrop-blur-md bg-opacity-90">
-                            {[{ id: 'details', label: 'Détails', icon: ShieldAlert }, { id: 'treatment', label: 'Traitement', icon: CheckCircle2 }, { id: 'projects', label: 'Projets', icon: FolderKanban }, { id: 'history', label: 'Historique', icon: History }, { id: 'comments', label: 'Discussion', icon: MessageSquare }, { id: 'graph', label: 'Graphe', icon: Network }].map(tab => (
-                                <button key={tab.id} onClick={() => setInspectorTab(tab.id as typeof inspectorTab)} className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
-                                    <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
-                                    {tab.label}
-                                </button>
-                            ))}
+                        <div className="px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
+                            <ScrollableTabs
+                                tabs={[
+                                    { id: 'details', label: 'Détails', icon: ShieldAlert },
+                                    { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
+                                    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+                                    { id: 'projects', label: 'Projets', icon: FolderKanban },
+                                    { id: 'history', label: 'Historique', icon: History },
+                                    { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                                    { id: 'graph', label: 'Graphe', icon: Network }
+                                ]}
+                                activeTab={inspectorTab}
+                                onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
+                            />
                         </div>
 
                         <div className="p-8 space-y-8">
@@ -759,10 +771,10 @@ export const Risks: React.FC = () => {
                         <form onSubmit={handleSubmit} className="p-8 overflow-y-auto custom-scrollbar">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                 <div className="space-y-6">
-                                    <FloatingLabelSelect
+                                    <CustomSelect
                                         label="Actif concerné"
-                                        value={newRisk.assetId}
-                                        onChange={e => setNewRisk({ ...newRisk, assetId: e.target.value })}
+                                        value={newRisk.assetId || ''}
+                                        onChange={val => setNewRisk({ ...newRisk, assetId: val })}
                                         options={assets.map(a => ({ value: a.id, label: a.name }))}
                                         required
                                     />
@@ -804,19 +816,19 @@ export const Risks: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <FloatingLabelSelect
+                                        <CustomSelect
                                             label="Propriétaire"
                                             value={newRisk.ownerId || ''}
-                                            onChange={e => {
-                                                const selectedUser = usersList.find(u => u.uid === e.target.value);
-                                                setNewRisk({ ...newRisk, ownerId: e.target.value, owner: selectedUser?.displayName || '' });
+                                            onChange={val => {
+                                                const selectedUser = usersList.find(u => u.uid === val);
+                                                setNewRisk({ ...newRisk, ownerId: val, owner: selectedUser?.displayName || '' });
                                             }}
                                             options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                                         />
-                                        <FloatingLabelSelect
+                                        <CustomSelect
                                             label="Stratégie"
-                                            value={newRisk.strategy}
-                                            onChange={e => setNewRisk({ ...newRisk, strategy: e.target.value as Risk['strategy'] })}
+                                            value={newRisk.strategy || ''}
+                                            onChange={val => setNewRisk({ ...newRisk, strategy: val as Risk['strategy'] })}
                                             options={[
                                                 { value: 'Atténuer', label: 'Atténuer' },
                                                 { value: 'Accepter', label: 'Accepter' },

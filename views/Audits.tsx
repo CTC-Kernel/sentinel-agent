@@ -1,11 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck } from '../components/ui/Icons';
+import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target } from '../components/ui/Icons';
 import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
 import { AIAssistButton } from '../components/ai/AIAssistButton';
 import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
@@ -24,6 +23,7 @@ import { generateICS, downloadICS } from '../utils/calendar';
 import { FileUploader } from '../components/ui/FileUploader';
 import JSZip from 'jszip';
 import { ErrorLogger } from '../services/errorLogger';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
 export const Audits: React.FC = () => {
     const [audits, setAudits] = useState<Audit[]>([]);
@@ -67,7 +67,7 @@ export const Audits: React.FC = () => {
         try {
             // Auto-create Document
             const docRef = await addDoc(collection(db, 'documents'), {
-                title: `Preuve - ${fileName}`,
+                title: `Preuve - ${fileName} `,
                 type: 'Preuve',
                 version: '1.0',
                 status: 'Publié',
@@ -168,7 +168,7 @@ export const Audits: React.FC = () => {
         if (!canEdit || !user?.organizationId) return;
         try {
             await addDoc(collection(db, 'audits'), { ...newAudit, organizationId: user.organizationId, findingsCount: 0 });
-            await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${newAudit.name}`);
+            await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${newAudit.name} `);
 
             // Send notification
             if (newAudit.auditor) {
@@ -182,7 +182,7 @@ export const Audits: React.FC = () => {
                     );
                     await sendEmail(user, {
                         to: auditorUser.email,
-                        subject: `[Sentinel] Nouvel audit assigné : ${newAudit.name}`,
+                        subject: `[Sentinel] Nouvel audit assigné: ${newAudit.name} `,
                         html: emailContent,
                         type: 'AUDIT_REMINDER'
                     });
@@ -268,7 +268,7 @@ export const Audits: React.FC = () => {
                 setSelectedAudit(null);
                 setShowFindingsDrawer(false);
             }
-            await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name}`);
+            await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name} `);
             addToast("Audit et constats supprimés", "info");
         } catch (_e) { addToast("Erreur suppression", "error"); }
     };
@@ -279,7 +279,7 @@ export const Audits: React.FC = () => {
             const questions: AuditQuestion[] = controls.map(c => ({
                 id: Math.random().toString(36).substr(2, 9),
                 controlCode: c.code,
-                question: `Le contrôle ${c.code} (${c.name}) est-il implémenté et efficace ?`,
+                question: `Le contrôle ${c.code} (${c.name}) est - il implémenté et efficace ? `,
                 response: 'Non-applicable'
             }));
 
@@ -336,8 +336,8 @@ export const Audits: React.FC = () => {
 
     const handleExportCalendar = () => {
         const events = filteredAudits.map(audit => ({
-            title: `Audit: ${audit.name}`,
-            description: `Type: ${audit.type} | Auditeur: ${audit.auditor} | Statut: ${audit.status}`,
+            title: `Audit: ${audit.name} `,
+            description: `Type: ${audit.type} | Auditeur: ${audit.auditor} | Statut: ${audit.status} `,
             startDate: new Date(audit.dateScheduled),
             location: 'Sentinel GRC'
         }));
@@ -355,7 +355,7 @@ export const Audits: React.FC = () => {
         doc.setTextColor(255, 255, 255);
         doc.text("Statement of Applicability (SoA)", 14, 25);
         doc.setFontSize(10);
-        doc.text(`Audit: ${selectedAudit.name} | Date: ${new Date().toLocaleDateString()}`, 14, 33);
+        doc.text(`Audit: ${selectedAudit.name} | Date: ${new Date().toLocaleDateString()} `, 14, 33);
 
         const data = checklist.questions.map(q => [q.controlCode, q.response, q.comment || '']);
         (doc as jsPDF & { autoTable: any }).autoTable({
@@ -597,15 +597,23 @@ export const Audits: React.FC = () => {
                                         </p>
                                     </div>
                                     <div className="flex gap-2 items-center">
-                                        <div className="flex bg-slate-100 dark:bg-white/10 p-1 rounded-xl overflow-x-auto no-scrollbar max-w-[200px] sm:max-w-none">
-                                            <button onClick={() => setInspectorTab('findings')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${inspectorTab === 'findings' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Constats</button>
-                                            <button onClick={() => setInspectorTab('checklist')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${inspectorTab === 'checklist' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Checklist</button>
-                                            <button onClick={() => setInspectorTab('scope')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${inspectorTab === 'scope' ? 'bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>Périmètre</button>
-                                        </div>
                                         <button onClick={handleExportPack} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Exporter Pack (Zip)"><FolderKanban className="h-5 w-5" /></button>
                                         <button onClick={generateAuditReport} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Rapport PDF"><Download className="h-5 w-5" /></button>
                                         <button onClick={() => setShowFindingsDrawer(false)} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
                                     </div>
+                                </div>
+
+                                {/* Tabs */}
+                                <div className="px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                                    <ScrollableTabs
+                                        tabs={[
+                                            { id: 'findings', label: 'Constats', icon: AlertOctagon },
+                                            { id: 'checklist', label: 'Checklist', icon: CheckSquare },
+                                            { id: 'scope', label: 'Périmètre', icon: Target }
+                                        ]}
+                                        activeTab={inspectorTab}
+                                        onTabChange={(id) => setInspectorTab(id as any)}
+                                    />
                                 </div>
 
                                 <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar space-y-8">

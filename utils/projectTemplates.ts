@@ -491,13 +491,16 @@ export function createProjectFromTemplate(
         description: template.description,
         manager,
         status: 'Planifié' as const,
+        startDate: startDate.toISOString(),
         dueDate: new Date(startDate.getTime() + template.estimatedDuration * 24 * 60 * 60 * 1000).toISOString(),
         progress: 0,
         organizationId,
         createdAt: new Date().toISOString(),
         tasks: template.defaultTasks.map((task, index) => ({
             ...task,
-            id: `task-${Date.now()}-${index}`
+            id: `task-${Date.now()}-${index}`,
+            startDate: startDate.toISOString(), // Initialize tasks with project start date
+            dueDate: new Date(startDate.getTime() + (task.estimatedHours ? (task.estimatedHours / 8) : 1) * 24 * 60 * 60 * 1000).toISOString()
         })),
         relatedRiskIds: [],
         relatedControlIds: [],

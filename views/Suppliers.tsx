@@ -13,6 +13,7 @@ import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
 export const Suppliers: React.FC = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -199,7 +200,8 @@ export const Suppliers: React.FC = () => {
     const handleUpdate = async () => {
         if (!canEdit || !selectedSupplier) return;
         try {
-            const { id, ...data } = formData as any;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id, ...data } = formData;
             await updateDoc(doc(db, 'suppliers', selectedSupplier.id), {
                 ...data,
                 updatedAt: new Date().toISOString()
@@ -252,7 +254,8 @@ export const Suppliers: React.FC = () => {
 
     const toggleAssessment = (field: keyof NonNullable<Supplier['assessment']>) => {
         if (!formData.assessment) return;
-        const updated = { ...formData.assessment, [field]: !(formData.assessment as any)[field] };
+        const currentAssessment = formData.assessment || {} as SupplierAssessment['categories']['security'];
+        const updated = { ...currentAssessment, [field]: !currentAssessment[field] };
 
         // Recalculate score
         let score = 0;
@@ -307,8 +310,8 @@ export const Suppliers: React.FC = () => {
                         batch.set(newRef, {
                             organizationId: user.organizationId,
                             name: cols[0]?.trim() || 'Inconnu',
-                            category: (cols[1]?.trim() || 'Autre') as any,
-                            criticality: (cols[2]?.trim() || 'Moyenne') as any,
+                            category: (cols[1]?.trim() || 'Autre') as Supplier['category'],
+                            criticality: (cols[2]?.trim() || 'Moyenne') as Criticality,
                             contactName: cols[3]?.trim() || '',
                             contactEmail: cols[4]?.trim() || '',
                             status: 'Actif',
@@ -538,22 +541,17 @@ export const Suppliers: React.FC = () => {
                                 </div>
 
                                 {/* Tabs */}
-                                <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5">
-                                    {[
-                                        { id: 'profile', label: 'Profil', icon: Building },
-                                        { id: 'assessment', label: 'Évaluation Sécurité', icon: ClipboardList },
-                                        { id: 'history', label: 'Historique', icon: History },
-                                        { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                                    ].map(tab => (
-                                        <button
-                                            key={tab.id}
-                                            onClick={() => setInspectorTab(tab.id as any)}
-                                            className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-                                        >
-                                            <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
-                                            {tab.label}
-                                        </button>
-                                    ))}
+                                <div className="px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                                    <ScrollableTabs
+                                        tabs={[
+                                            { id: 'profile', label: 'Profil', icon: Building },
+                                            { id: 'assessment', label: 'Évaluation Sécurité', icon: ClipboardList },
+                                            { id: 'history', label: 'Historique', icon: History },
+                                            { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                                        ]}
+                                        activeTab={inspectorTab}
+                                        onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
+                                    />
                                 </div>
 
                                 {/* Content */}
@@ -565,7 +563,7 @@ export const Suppliers: React.FC = () => {
                                                     <div className="grid grid-cols-2 gap-6">
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Catégorie</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as any })}>
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as Supplier['category'] })}>
                                                                 {['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'].map(c => <option key={c} value={c}>{c}</option>)}
                                                             </select>
                                                         </div>
@@ -589,12 +587,12 @@ export const Suppliers: React.FC = () => {
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-6">
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Criticité</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.criticality} onChange={e => setFormData({ ...formData, criticality: e.target.value as any })}>
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.criticality} onChange={e => setFormData({ ...formData, criticality: e.target.value as Criticality })}>
                                                                 {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
                                                             </select>
                                                         </div>
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as any })}>
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as Supplier['status'] })}>
                                                                 <option value="Actif">Actif</option><option value="En cours">En cours</option><option value="Terminé">Terminé</option>
                                                             </select>
                                                         </div>
@@ -674,10 +672,10 @@ export const Suppliers: React.FC = () => {
                                                             { id: 'hasBcp', label: 'Plan de Continuité (PCA/PRA) (+15 pts)' },
                                                             { id: 'hasIncidentProcess', label: 'Processus de réponse aux incidents (+15 pts)' },
                                                         ].map(item => (
-                                                            <label key={item.id} className={`flex items-center p-4 rounded-2xl border cursor-pointer transition-all ${(formData.assessment as any)?.[item.id] ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 shadow-sm' : 'border-transparent hover:bg-slate-50 dark:hover:bg-white/5'}`}>
+                                                            <label key={item.id} className={`flex items-center p-4 rounded-2xl border cursor-pointer transition-all ${formData.assessment?.[item.id as keyof typeof formData.assessment] ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 shadow-sm' : 'border-transparent hover:bg-slate-50 dark:hover:bg-white/5'}`}>
                                                                 <input type="checkbox" className="h-5 w-5 rounded text-brand-600 focus:ring-brand-500 border-gray-300"
-                                                                    checked={(formData.assessment as any)?.[item.id]}
-                                                                    onChange={() => toggleAssessment(item.id as any)}
+                                                                    checked={!!formData.assessment?.[item.id as keyof typeof formData.assessment]}
+                                                                    onChange={() => toggleAssessment(item.id as keyof NonNullable<Supplier['assessment']>)}
                                                                 />
                                                                 <span className="ml-3 text-sm font-medium text-slate-700 dark:text-slate-200">{item.label}</span>
                                                             </label>
@@ -759,14 +757,14 @@ export const Suppliers: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Catégorie</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as any })}>
+                                        value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as Supplier['category'] })}>
                                         {['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'].map(c => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Criticité</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        value={formData.criticality} onChange={e => setFormData({ ...formData, criticality: e.target.value as any })}>
+                                        value={formData.criticality} onChange={e => setFormData({ ...formData, criticality: e.target.value as Criticality })}>
                                         {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                 </div>
