@@ -167,95 +167,107 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             </div>
 
             {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Status Distribution */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Distribution par Statut</h4>
-                    <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={statusData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                    stroke="none"
-                                >
-                                    {statusData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Pie>
-                                <Tooltip content={<ChartTooltip />} cursor={false} />
-                                <Legend
-                                    verticalAlign="bottom"
-                                    height={36}
-                                    iconType="circle"
-                                    formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
-                                />
-                            </PieChart>
-                        </ResponsiveContainer>
+            {totalControls > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Status Distribution */}
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Distribution par Statut</h4>
+                        <div className="h-[250px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={statusData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        stroke="none"
+                                    >
+                                        {statusData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<ChartTooltip />} cursor={false} />
+                                    <Legend
+                                        verticalAlign="bottom"
+                                        height={36}
+                                        iconType="circle"
+                                        formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
-                </div>
 
-                {/* Domain Progress */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Conformité par Domaine (Annexe A)</h4>
-                    <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={domainChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} opacity={0.5} />
-                                <XAxis
-                                    dataKey="domain"
-                                    stroke={chartTheme.text}
-                                    fontSize={11}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    dy={10}
-                                />
-                                <YAxis
-                                    stroke={chartTheme.text}
-                                    fontSize={11}
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(148, 163, 184, 0.1)' }} />
-                                <Bar dataKey="rate" name="Taux %" fill={chartTheme.colors.primary} radius={[4, 4, 0, 0]} barSize={30}>
-                                    {domainChartData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={parseInt(entry.rate) >= 80 ? chartTheme.colors.implemented : parseInt(entry.rate) >= 50 ? chartTheme.colors.partial : chartTheme.colors.primary} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                    {/* Domain Progress */}
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Conformité par Domaine (Annexe A)</h4>
+                        <div className="h-[250px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={domainChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} opacity={0.5} />
+                                    <XAxis
+                                        dataKey="domain"
+                                        stroke={chartTheme.text}
+                                        fontSize={11}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        stroke={chartTheme.text}
+                                        fontSize={11}
+                                        tickLine={false}
+                                        axisLine={false}
+                                    />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(148, 163, 184, 0.1)' }} />
+                                    <Bar dataKey="rate" name="Taux %" fill={chartTheme.colors.primary} radius={[4, 4, 0, 0]} barSize={30}>
+                                        {domainChartData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={parseInt(entry.rate) >= 80 ? chartTheme.colors.implemented : parseInt(entry.rate) >= 50 ? chartTheme.colors.partial : chartTheme.colors.primary} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
-                </div>
 
-                {/* Radar Chart */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 lg:col-span-2 shadow-sm">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Vue Radar - Maturité par Domaine</h4>
-                    <div className="h-[350px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                                <PolarGrid stroke={chartTheme.grid} strokeDasharray="3 3" />
-                                <PolarAngleAxis dataKey="domain" tick={{ fill: chartTheme.text, fontSize: 12, fontWeight: 500 }} />
-                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: chartTheme.text, fontSize: 10 }} axisLine={false} />
-                                <Radar
-                                    name="Conformité %"
-                                    dataKey="score"
-                                    stroke={chartTheme.colors.primary}
-                                    strokeWidth={3}
-                                    fill={chartTheme.colors.primary}
-                                    fillOpacity={0.2}
-                                />
-                                <Tooltip content={<ChartTooltip />} />
-                                <Legend formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>} />
-                            </RadarChart>
-                        </ResponsiveContainer>
+                    {/* Radar Chart */}
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 lg:col-span-2 shadow-sm">
+                        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Vue Radar - Maturité par Domaine</h4>
+                        <div className="h-[350px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                                    <PolarGrid stroke={chartTheme.grid} strokeDasharray="3 3" />
+                                    <PolarAngleAxis dataKey="domain" tick={{ fill: chartTheme.text, fontSize: 12, fontWeight: 500 }} />
+                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: chartTheme.text, fontSize: 10 }} axisLine={false} />
+                                    <Radar
+                                        name="Conformité %"
+                                        dataKey="score"
+                                        stroke={chartTheme.colors.primary}
+                                        strokeWidth={3}
+                                        fill={chartTheme.colors.primary}
+                                        fillOpacity={0.2}
+                                    />
+                                    <Tooltip content={<ChartTooltip />} />
+                                    <Legend formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>} />
+                                </RadarChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </div>
-            </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/5 border-dashed">
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-full mb-4">
+                        <TrendingUp className="h-8 w-8 text-slate-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">Aucune donnée de conformité</h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-center max-w-md">
+                        Commencez par importer ou créer des contrôles pour visualiser les graphiques de conformité.
+                    </p>
+                </div>
+            )}
 
             {/* Critical Controls Not Implemented */}
             {criticalControls.length > 0 && (

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
-import { auth, db } from '../firebase';
+import { auth } from '../firebase';
 import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2, Server } from '../components/ui/Icons';
 import { useStore } from '../store';
-import { doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
-import { Invitation } from '../types';
 
 // Google SVG optimized
 const GoogleIcon = () => (
@@ -29,45 +27,6 @@ export const Login: React.FC = () => {
     const [resetEmail, setResetEmail] = useState('');
     const [resetSent, setResetSent] = useState(false);
 
-    const createUserProfile = async (user: any) => {
-        try {
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
-
-            if (!userDoc.exists()) {
-                // Check for pending invitations
-                let orgId = '';
-                let orgName = '';
-                let role = 'user';
-                let department = '';
-
-                const q = query(collection(db, 'invitations'), where('email', '==', user.email));
-                const inviteSnap = await getDocs(q);
-
-                if (!inviteSnap.empty) {
-                    const invite = inviteSnap.docs[0].data() as Invitation;
-                    orgId = invite.organizationId;
-                    orgName = invite.organizationName;
-                    role = invite.role;
-                    department = invite.department;
-
-                    // Delete used invitation
-                    await deleteDoc(inviteSnap.docs[0].ref);
-                }
-
-                await setDoc(userDocRef, {
-                    uid: user.uid,
-                    email: user.email,
-                    role: role,
-                    displayName: user.displayName || user.email?.split('@')[0] || 'Utilisateur',
-                    department: department,
-                    organizationId: orgId,
-                    organizationName: orgName,
-                    onboardingCompleted: false // Still false to allow user to confirm/edit their profile
-                });
-            }
-        } catch (e) { console.error("Profile Error", e); }
-    };
 
     const handleEmailAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -78,8 +37,7 @@ export const Login: React.FC = () => {
                 await signInWithEmailAndPassword(auth, email, password);
                 addToast("Connexion réussie", "success");
             } else {
-                const userCred = await createUserWithEmailAndPassword(auth, email, password);
-                await createUserProfile(userCred.user);
+                await createUserWithEmailAndPassword(auth, email, password);
                 addToast("Compte créé avec succès", "success");
             }
         } catch (error: any) {
@@ -96,8 +54,7 @@ export const Login: React.FC = () => {
         setErrorMsg(null);
         try {
             const provider = new GoogleAuthProvider();
-            const result = await signInWithPopup(auth, provider);
-            await createUserProfile(result.user);
+            await signInWithPopup(auth, provider);
         } catch (error: any) {
             if (error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-allowed') {
                 setErrorMsg("Environnement restreint : Google Auth non disponible ici. Utilisez l'email.");
