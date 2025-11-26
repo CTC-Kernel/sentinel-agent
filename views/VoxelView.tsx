@@ -629,54 +629,51 @@ export const VoxelView: React.FC = () => {
             { label: 'Voxel 3D' }
           ]}
           icon={<Network className="h-6 w-6 text-white" strokeWidth={2.5} />}
-        />
-        <div className="flex items-center justify-between mt-4">
-          {/* Counters */}
-          <div className="flex items-center gap-6">
-            {/* <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Cyber Threat Consulting Engine</h1> */}
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
-                <span className="text-slate-600 dark:text-slate-300">{assets.length}</span>
+          actions={
+            <div className="flex items-center gap-3">
+              {/* Counters */}
+              <div className="flex items-center gap-4 text-sm mr-4 px-4 py-2 bg-slate-100/50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                  <span className="text-slate-600 dark:text-slate-300 font-semibold">{assets.length}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
+                  <span className="text-slate-600 dark:text-slate-300 font-semibold">{risks.length}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 bg-purple-500 rounded-full"></div>
+                  <span className="text-slate-600 dark:text-slate-300 font-semibold">{projects.length}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
-                <span className="text-slate-600 dark:text-slate-300">{risks.length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 bg-purple-500 rounded-full"></div>
-                <span className="text-slate-600 dark:text-slate-300">{projects.length}</span>
-              </div>
+
+              {/* Action Buttons */}
+              <button
+                onClick={handleRefresh}
+                className="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors shadow-sm"
+                title="Actualiser"
+              >
+                <RefreshCw className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+              </button>
+
+              <button
+                onClick={handleAIAnalysis}
+                disabled={analyzing}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${analyzing
+                  ? 'bg-indigo-100 text-indigo-400 dark:bg-indigo-900/30 dark:text-indigo-400 cursor-wait'
+                  : 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5'
+                  }`}
+              >
+                {analyzing ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                <span>{analyzing ? 'Analyse...' : 'Analyser IA'}</span>
+              </button>
             </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleAIAnalysis}
-              disabled={analyzing}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${analyzing
-                ? 'bg-indigo-100 text-indigo-400 dark:bg-indigo-900/30 dark:text-indigo-400 cursor-wait'
-                : 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5'
-                }`}
-            >
-              {analyzing ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4" />
-              )}
-              <span className="text-sm">{analyzing ? 'Analyse...' : 'Analyser'}</span>
-            </button>
-
-            <button
-              onClick={handleRefresh}
-              className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
-              title="Actualiser"
-            >
-              <RefreshCw className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-            </button>
-          </div>
-        </div>
+          }
+        />
       </div>
 
       {/* Main Voxel View */}

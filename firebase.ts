@@ -24,6 +24,12 @@ const app = initializeApp(firebaseConfig);
 // Initialize App Check with ReCAPTCHA Enterprise
 // This protects your Firebase resources from abuse
 if (typeof window !== 'undefined') {
+  // Enable debug token for localhost development
+  if (import.meta.env.DEV) {
+    // @ts-ignore
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  }
+
   try {
     initializeAppCheck(app, {
       provider: new ReCaptchaEnterpriseProvider('6Le2FxUsAAAAAOn9WU8omrp4NXSMJIHIRUBhYFSR'),

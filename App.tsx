@@ -2,7 +2,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, onSnapshot, doc, where, getDocs, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, where, getDocs, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { useStore } from './store';
 import { Sidebar } from './components/layout/Sidebar';
@@ -10,7 +10,7 @@ import { ToastContainer } from './components/ui/Toast';
 import { Login } from './views/Login';
 import { Onboarding } from './views/Onboarding';
 import { WifiOff, Lock, AlertTriangle } from './components/ui/Icons';
-import { UserProfile } from './types';
+import { UserProfile, Invitation } from './types';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { TopBar } from './components/layout/TopBar';
@@ -85,12 +85,12 @@ const NotFound = () => (
 const GlobalShortcutsWrapper: React.FC = () => {
     const navigate = useNavigate();
     useGlobalShortcuts();
-    
+
     // Raccourcis clavier globaux
     useHotkeys('ctrl+k', () => {
         navigate('/search');
     });
-    
+
     useHotkeys('ctrl+/', () => {
         navigate('/help');
     });
@@ -195,14 +195,48 @@ const AppContent: React.FC = () => {
                         if (!querySnapshot.empty) {
                             setUser(querySnapshot.docs[0].data() as UserProfile);
                         } else {
-                            const newProfile: UserProfile = {
-                                uid: u.uid, email: u.email || '', role: 'user',
-                                displayName: u.displayName || u.email?.split('@')[0] || 'User',
-                                ...(u.photoURL && { photoURL: u.photoURL }),
-                                onboardingCompleted: false
-                            };
-                            try { await setDoc(userDocRef, newProfile); setUser(newProfile); }
-                            catch { setUser(newProfile); }
+                            // CHECK FOR INVITATIONS
+                            const inviteQuery = query(collection(db, 'invitations'), where('email', '==', u.email));
+                            const inviteSnap = await getDocs(inviteQuery);
+
+                            if (!inviteSnap.empty) {
+                                // Invitation found -> Create User Profile linked to Organization
+                                const invite = inviteSnap.docs[0].data() as Invitation;
+                                const newProfile: UserProfile = {
+                                    uid: u.uid,
+                                    email: u.email || '',
+                                    role: invite.role || 'user',
+                                    displayName: u.displayName || u.email?.split('@')[0] || 'User',
+                                    department: invite.department || '',
+                                    organizationId: invite.organizationId,
+                                    organizationName: invite.organizationName,
+                                    onboardingCompleted: false, // User might need to confirm details
+                                    ...(u.photoURL && { photoURL: u.photoURL })
+                                };
+
+                                try {
+                                    await setDoc(userDocRef, newProfile);
+                                    // Delete used invitation
+                                    await deleteDoc(inviteSnap.docs[0].ref);
+                                    setUser(newProfile);
+                                } catch (e) {
+                                    console.error("Error creating profile from invitation", e);
+                                    setUser(newProfile);
+                                }
+                            } else {
+                                // No Invitation -> Redirect to Onboarding (DO NOT CREATE DOC)
+                                // We set a temporary local user object so the app knows we are authenticated
+                                // but 'onboardingCompleted: false' + no orgId will trigger the Onboarding view.
+                                const tempUser: UserProfile = {
+                                    uid: u.uid,
+                                    email: u.email || '',
+                                    role: 'user',
+                                    displayName: u.displayName || u.email?.split('@')[0] || 'User',
+                                    onboardingCompleted: false,
+                                    ...(u.photoURL && { photoURL: u.photoURL })
+                                };
+                                setUser(tempUser);
+                            }
                         }
                     }
                     setInitializing(false);
