@@ -4,7 +4,7 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, Trash2, Edit, Search, CheckCircle2, ShieldAlert, Filter, Server, ArrowRight, History, X, LayoutDashboard, FileSpreadsheet, Upload, MessageSquare, Flame, Clock, TrendingUp, TrendingDown, Copy, RefreshCw, Download, CalendarDays, FolderKanban, Network, Sparkles } from '../components/ui/Icons';
+import { Plus, Trash2, Edit, Search, CheckCircle2, ShieldAlert, Filter, Server, ArrowRight, History, X, LayoutDashboard, FileSpreadsheet, Upload, MessageSquare, Flame, Clock, TrendingUp, TrendingDown, Copy, RefreshCw, Download, CalendarDays, FolderKanban, Network } from '../components/ui/Icons';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
 import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
@@ -22,8 +22,9 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { RiskDashboard } from '../components/risks/RiskDashboard';
 import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
 import { RiskTemplate, createRisksFromTemplate } from '../utils/riskTemplates';
-import { getSuggestionsForAsset } from '../utils/riskKnowledgeBase';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+
+import { AIAssistButton } from '../components/ai/AIAssistButton';
 
 const STANDARD_THREATS = ["Panne matérielle serveur", "Incendie", "Inondation", "Vol d'équipement", "Attaque par Ransomware", "Phishing / Ingénierie Sociale", "Erreur humaine / Configuration", "Divulgation non autorisée", "Interruption de service FAI", "Sabotage interne", "Obsolescence technologique", "Perte de personnel clé"];
 
@@ -271,33 +272,6 @@ export const Risks: React.FC = () => {
         const currentIds = newRisk.mitigationControlIds || [];
         if (currentIds.includes(controlId)) { setNewRisk({ ...newRisk, mitigationControlIds: currentIds.filter(id => id !== controlId) }); }
         else { setNewRisk({ ...newRisk, mitigationControlIds: [...currentIds, controlId] }); }
-    };
-
-    const handleSuggest = () => {
-        if (!newRisk.assetId) {
-            addToast("Veuillez d'abord sélectionner un actif", "error");
-            return;
-        }
-        const asset = assets.find(a => a.id === newRisk.assetId);
-        if (!asset) return;
-
-        const suggestions = getSuggestionsForAsset(asset.type);
-        if (suggestions.length === 0) {
-            addToast("Aucune suggestion pour ce type d'actif", "info");
-            return;
-        }
-
-        // Pick a random suggestion for demo purposes, or could be a modal to choose
-        const suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
-        setNewRisk({
-            ...newRisk,
-            threat: suggestion.threat,
-            vulnerability: suggestion.vulnerability,
-            probability: suggestion.probability as any,
-            impact: suggestion.impact as any,
-            strategy: suggestion.strategy as any
-        });
-        addToast("Suggestion appliquée !", "success");
     };
 
     const handleExportCSV = () => {
@@ -637,26 +611,36 @@ export const Risks: React.FC = () => {
                                             list="threatsList"
                                             required
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={handleSuggest}
-                                            className="absolute right-2 top-2 p-2 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors z-10"
-                                            title="Suggérer avec l'IA"
-                                        >
-                                            <Sparkles className="h-5 w-5" />
-                                        </button>
+                                        <div className="absolute right-2 top-2 z-10">
+                                            <AIAssistButton
+                                                context={{ asset: assets.find(a => a.id === newRisk.assetId), existingThreats: STANDARD_THREATS }}
+                                                fieldName="Menace"
+                                                prompt="Suggère une menace de sécurité pertinente pour cet actif (Asset). Réponds uniquement par le titre de la menace, court et précis."
+                                                onSuggest={(val: string) => setNewRisk(prev => ({ ...prev, threat: val }))}
+                                            />
+                                        </div>
                                         <datalist id="threatsList">
                                             {STANDARD_THREATS.map(t => <option key={t} value={t} />)}
                                         </datalist>
                                     </div>
 
-                                    <FloatingLabelTextarea
-                                        label="Vulnérabilité"
-                                        value={newRisk.vulnerability}
-                                        onChange={e => setNewRisk({ ...newRisk, vulnerability: e.target.value })}
-                                        required
-                                        rows={3}
-                                    />
+                                    <div className="relative">
+                                        <FloatingLabelTextarea
+                                            label="Vulnérabilité"
+                                            value={newRisk.vulnerability}
+                                            onChange={e => setNewRisk({ ...newRisk, vulnerability: e.target.value })}
+                                            required
+                                            rows={3}
+                                        />
+                                        <div className="absolute right-2 top-2 z-10">
+                                            <AIAssistButton
+                                                context={{ asset: assets.find(a => a.id === newRisk.assetId), threat: newRisk.threat }}
+                                                fieldName="Vulnérabilité"
+                                                prompt="Décris une vulnérabilité technique ou organisationnelle qui pourrait permettre la réalisation de cette menace sur cet actif. Soyez concis."
+                                                onSuggest={(val: string) => setNewRisk(prev => ({ ...prev, vulnerability: val }))}
+                                            />
+                                        </div>
+                                    </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <FloatingLabelSelect

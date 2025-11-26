@@ -221,40 +221,81 @@ export const Onboarding: React.FC = () => {
                         </form>
                     ) : (
                         <div className="space-y-6">
-                            <div className="grid grid-cols-1 gap-4">
-                                {['discovery', 'professional', 'enterprise'].map((planId) => {
-                                    const plan = PLANS[planId as PlanType];
+                            <div className="grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                                {(['discovery', 'professional', 'enterprise'] as const).map((planId) => {
+                                    const plan = PLANS[planId];
                                     const isSelected = selectedPlan === planId;
                                     return (
                                         <div
                                             key={planId}
-                                            onClick={() => setSelectedPlan(planId as PlanType)}
-                                            className={`relative p-6 rounded-3xl border-2 cursor-pointer transition-all ${isSelected ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-900/20' : 'border-slate-200 dark:border-slate-700 hover:border-brand-200'}`}
+                                            onClick={() => setSelectedPlan(planId)}
+                                            className={`relative p-6 rounded-3xl border transition-all duration-300 cursor-pointer group ${isSelected
+                                                    ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-500 ring-1 ring-blue-500 shadow-lg shadow-blue-500/10'
+                                                    : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md'
+                                                }`}
                                         >
-                                            <div className="flex justify-between items-center mb-2">
-                                                <h3 className="font-bold text-lg text-slate-900 dark:text-white">{plan.name}</h3>
-                                                <span className="text-sm font-semibold text-slate-500">{plan.priceMonthly}€ / mois</span>
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div>
+                                                    <h3 className={`font-bold text-lg ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
+                                                        {plan.name}
+                                                    </h3>
+                                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
+                                                        {plan.description}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className={`block text-xl font-bold font-display tracking-tight ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
+                                                        {plan.priceMonthly === 0 ? 'Gratuit' : `${plan.priceMonthly}€`}
+                                                    </span>
+                                                    {plan.priceMonthly > 0 && <span className="text-xs text-slate-400 font-medium">/ mois</span>}
+                                                </div>
                                             </div>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{plan.description}</p>
+
+                                            <div className="h-px w-full bg-slate-100 dark:bg-white/5 my-4" />
+
                                             <ul className="space-y-2">
                                                 {plan.featuresList.slice(0, 3).map((f, i) => (
-                                                    <li key={i} className="flex items-center text-xs text-slate-600 dark:text-slate-300">
-                                                        <Check className="h-3 w-3 mr-2 text-green-500" /> {f}
+                                                    <li key={i} className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                        <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
+                                                            <Check className="h-2.5 w-2.5" strokeWidth={3} />
+                                                        </div>
+                                                        {f}
                                                     </li>
                                                 ))}
                                             </ul>
-                                            {isSelected && <div className="absolute top-4 right-4 bg-brand-500 text-white rounded-full p-1"><Check className="h-4 w-4" /></div>}
+
+                                            {isSelected && (
+                                                <div className="absolute top-4 right-4 animate-scale-in">
+                                                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                                                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )
                                 })}
                             </div>
 
                             <div className="pt-4 flex gap-3">
-                                <button onClick={() => setStep(1)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 transition-colors">
+                                <button
+                                    onClick={() => setStep(1)}
+                                    className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                >
                                     Retour
                                 </button>
-                                <button onClick={handleFinalize} disabled={loading} className="w-2/3 py-4 bg-[#000000] dark:bg-white text-white dark:text-black font-bold rounded-2xl shadow-lg card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
-                                    {loading ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <>{selectedPlan === 'discovery' ? 'Commencer Gratuitement' : 'Passer au Paiement'} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                <button
+                                    onClick={handleFinalize}
+                                    disabled={loading}
+                                    className="w-2/3 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                >
+                                    {loading ? (
+                                        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <>
+                                            {selectedPlan === 'discovery' ? 'Commencer Gratuitement' : 'Passer au Paiement'}
+                                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} />
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
