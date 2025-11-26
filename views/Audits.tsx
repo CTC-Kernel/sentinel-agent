@@ -17,6 +17,7 @@ import 'jspdf-autotable';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
+import { PageHeader } from '../components/ui/PageHeader';
 import { sendEmail } from '../services/emailService';
 import { getAuditReminderTemplate } from '../services/emailTemplates';
 import { generateICS, downloadICS } from '../utils/calendar';
@@ -502,17 +503,22 @@ export const Audits: React.FC = () => {
                 message={confirmData.message}
             />
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Audits & Contrôles</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Planification et suivi des audits de sécurité (ISO 27001 A.9.2).</p>
-                </div>
-                {canEdit && (
-                    <button onClick={() => setShowModal(true)} className="flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none">
+            <PageHeader
+                title="Audits & Contrôles"
+                subtitle="Planification et suivi des audits de sécurité (ISO 27001 A.9.2)."
+                breadcrumbs={[
+                    { label: 'Audits' }
+                ]}
+                icon={<ClipboardCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                actions={canEdit && (
+                    <button 
+                        onClick={() => setShowModal(true)} 
+                        className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                    >
                         <Plus className="h-4 w-4 mr-2" /> Nouvel Audit
                     </button>
                 )}
-            </div>
+            />
 
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
                 <Search className="h-5 w-5 text-gray-400" />

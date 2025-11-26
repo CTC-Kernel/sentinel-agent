@@ -110,7 +110,9 @@ import {
   Minimize2,
   CheckCheck,
   Layers,
-  Lightbulb
+  Lightbulb,
+  Home,
+  UserPlus
 } from 'lucide-react';
 
 export {
@@ -224,5 +226,7 @@ export {
   Minimize2,
   CheckCheck,
   Layers,
-  Lightbulb
+  Lightbulb,
+  Home,
+  UserPlus
 };

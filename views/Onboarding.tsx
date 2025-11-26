@@ -1,25 +1,76 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { ArrowRight, ShieldAlert, User, Building, Briefcase, Lock, AlertTriangle, Check } from '../components/ui/Icons';
+import { ArrowRight, User, Building, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus } from '../components/ui/Icons';
 import { sendEmail } from '../services/emailService';
 import { getWelcomeEmailTemplate } from '../services/emailTemplates';
 import { PLANS } from '../config/plans';
-import { PlanType } from '../types';
+import { PlanType, UserProfile } from '../types';
 import { SubscriptionService } from '../services/subscriptionService';
 
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast } = useStore();
+    const [mode, setMode] = useState<'select' | 'create' | 'join'>('select');
     const [step, setStep] = useState(1);
     const [selectedPlan, setSelectedPlan] = useState<PlanType>('discovery');
-    const [role, setRole] = useState<'admin' | 'user' | 'auditor'>('admin');
+    // Role is always admin for the creator
+    const role: UserProfile['role'] = 'admin';
     const [department, setDepartment] = useState('');
     const [industry, setIndustry] = useState('');
     const [displayName, setDisplayName] = useState(user?.displayName || '');
     const [organizationName, setOrganizationName] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Join Flow States
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [joinRequestSent, setJoinRequestSent] = useState(false);
+
+    const handleSearchOrg = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!searchQuery.trim()) return;
+        setLoading(true);
+        try {
+            // Simple case-insensitive search simulation (Firestore doesn't support native case-insensitive without plugins)
+            // Ideally use Algolia or a normalized 'slug' field. Here we search by exact slug or name prefix.
+            const q = query(
+                collection(db, 'organizations'),
+                where('name', '>=', searchQuery),
+                where('name', '<=', searchQuery + '\uf8ff')
+            );
+            const snap = await getDocs(q);
+            setSearchResults(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } catch (e) {
+            console.error("Search error", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleJoinRequest = async (orgId: string, orgName: string) => {
+        if (!user) return;
+        setLoading(true);
+        try {
+            await addDoc(collection(db, 'join_requests'), {
+                userId: user.uid,
+                userEmail: user.email,
+                displayName: displayName || user.displayName || user.email,
+                organizationId: orgId,
+                organizationName: orgName,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            });
+            setJoinRequestSent(true);
+            addToast("Demande envoyée avec succès", "success");
+        } catch (e) {
+            console.error("Join request error", e);
+            addToast("Erreur lors de l'envoi de la demande", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleStep1 = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -148,161 +199,271 @@ export const Onboarding: React.FC = () => {
                 <div className="glass-panel rounded-[2.5rem] p-10 md:p-12 shadow-2xl">
                     <div className="text-center mb-10">
                         <div className="w-16 h-16 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl mb-6 ring-1 ring-black/5 mx-auto">
-                            <Lock className="h-8 w-8" strokeWidth={2.5} />
+                            {mode === 'join' ? <Users className="h-8 w-8" /> : <Lock className="h-8 w-8" strokeWidth={2.5} />}
                         </div>
                         <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
-                            {step === 1 ? 'Configuration Initiale' : 'Choisissez votre Plan'}
+                            {mode === 'select' ? 'Bienvenue' :
+                                mode === 'join' ? 'Rejoindre une équipe' :
+                                    step === 1 ? 'Configuration Initiale' : 'Choisissez votre Plan'}
                         </h1>
                         <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">
-                            {step === 1 ? 'Créez votre espace organisationnel.' : 'Adaptez Sentinel GRC à vos besoins.'}
+                            {mode === 'select' ? 'Comment souhaitez-vous commencer ?' :
+                                mode === 'join' ? 'Recherchez votre organisation.' :
+                                    step === 1 ? 'Créez votre espace organisationnel.' : 'Adaptez Sentinel GRC à vos besoins.'}
                         </p>
                     </div>
 
-                    {step === 1 ? (
-                        <form onSubmit={handleStep1} className="space-y-6">
-                            {/* Step 1 Content (Keep existing form) */}
-                            {!user?.organizationId && (
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom de l'Organisation</label>
-                                    <div className="relative">
-                                        <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                        <input type="text" required className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Ex: Acme Corp" value={organizationName} onChange={e => setOrganizationName(e.target.value)} />
+                    {mode === 'select' && (
+                        <div className="grid grid-cols-1 gap-4">
+                            <button
+                                onClick={() => setMode('create')}
+                                className="group relative p-6 rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500 dark:hover:border-brand-400 hover:shadow-lg transition-all text-left"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <Plus className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Créer une nouvelle organisation</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Je suis responsable et je veux configurer un nouvel espace.</p>
                                     </div>
                                 </div>
-                            )}
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom complet</label>
-                                <div className="relative">
-                                    <User className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                    <input type="text" required className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Votre nom" value={displayName} onChange={e => setDisplayName(e.target.value)} />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-5">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Département</label>
-                                    <div className="relative">
-                                        <Briefcase className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                        <input type="text" required className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Ex: IT / Sécurité" value={department} onChange={e => setDepartment(e.target.value)} />
+                            </button>
+
+                            <button
+                                onClick={() => setMode('join')}
+                                className="group relative p-6 rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all text-left"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <Users className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Rejoindre une organisation existante</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Mon équipe utilise déjà Sentinel GRC.</p>
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Secteur</label>
-                                    <div className="relative">
-                                        <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                        <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer" value={industry} onChange={e => setIndustry(e.target.value)}>
-                                            <option value="">Sélectionner...</option>
-                                            <option value="tech">Technologie / SaaS</option>
-                                            <option value="finance">Finance / Banque</option>
-                                            <option value="health">Santé</option>
-                                            <option value="retail">Retail / E-commerce</option>
-                                            <option value="public">Secteur Public</option>
-                                            <option value="other">Autre</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Rôle</label>
-                                <div className="relative">
-                                    <ShieldAlert className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                    <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer" value={role} onChange={e => setRole(e.target.value as any)}>
-                                        <option value="admin">Admin (Responsable)</option>
-                                        <option value="auditor">Auditeur</option>
-                                        <option value="user">Utilisateur</option>
-                                    </select>
-                                </div>
-                            </div>
-                            {error && <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex items-start gap-3"><AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" /><div><p className="text-sm font-semibold text-red-900 dark:text-red-200">Erreur de configuration</p><p className="text-xs text-red-700 dark:text-red-300 mt-1">{error}</p></div></div>}
-                            <div className="pt-4">
-                                <button type="submit" disabled={loading || (!user?.organizationId && !organizationName)} className="w-full py-4 bg-[#000000] dark:bg-white text-white dark:text-black font-bold rounded-2xl shadow-lg card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
-                                    {loading ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <>Continuer <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
-                                </button>
-                            </div>
-                        </form>
-                    ) : (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                                {(['discovery', 'professional', 'enterprise'] as const).map((planId) => {
-                                    const plan = PLANS[planId];
-                                    const isSelected = selectedPlan === planId;
-                                    return (
-                                        <div
-                                            key={planId}
-                                            onClick={() => setSelectedPlan(planId)}
-                                            className={`relative p-6 rounded-3xl border transition-all duration-300 cursor-pointer group ${isSelected
-                                                    ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-500 ring-1 ring-blue-500 shadow-lg shadow-blue-500/10'
-                                                    : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md'
-                                                }`}
-                                        >
-                                            <div className="flex justify-between items-start mb-3">
-                                                <div>
-                                                    <h3 className={`font-bold text-lg ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
-                                                        {plan.name}
-                                                    </h3>
-                                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
-                                                        {plan.description}
-                                                    </p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <span className={`block text-xl font-bold font-display tracking-tight ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
-                                                        {plan.priceMonthly === 0 ? 'Gratuit' : `${plan.priceMonthly}€`}
-                                                    </span>
-                                                    {plan.priceMonthly > 0 && <span className="text-xs text-slate-400 font-medium">/ mois</span>}
-                                                </div>
-                                            </div>
-
-                                            <div className="h-px w-full bg-slate-100 dark:bg-white/5 my-4" />
-
-                                            <ul className="space-y-2">
-                                                {plan.featuresList.slice(0, 3).map((f, i) => (
-                                                    <li key={i} className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
-                                                        <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
-                                                            <Check className="h-2.5 w-2.5" strokeWidth={3} />
-                                                        </div>
-                                                        {f}
-                                                    </li>
-                                                ))}
-                                            </ul>
-
-                                            {isSelected && (
-                                                <div className="absolute top-4 right-4 animate-scale-in">
-                                                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                                                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )
-                                })}
-                            </div>
-
-                            <div className="pt-4 flex gap-3">
-                                <button
-                                    onClick={() => setStep(1)}
-                                    className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                                >
-                                    Retour
-                                </button>
-                                <button
-                                    onClick={handleFinalize}
-                                    disabled={loading}
-                                    className="w-2/3 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                                >
-                                    {loading ? (
-                                        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                                    ) : (
-                                        <>
-                                            {selectedPlan === 'discovery' ? 'Commencer Gratuitement' : 'Passer au Paiement'}
-                                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} />
-                                        </>
-                                    )}
-                                </button>
-                            </div>
+                            </button>
                         </div>
                     )}
 
+                    {mode === 'join' && (
+                        <div className="space-y-6">
+                            {!joinRequestSent ? (
+                                <>
+                                    <form onSubmit={handleSearchOrg} className="relative">
+                                        <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                        <input
+                                            type="text"
+                                            className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400"
+                                            placeholder="Rechercher par nom..."
+                                            value={searchQuery}
+                                            onChange={e => setSearchQuery(e.target.value)}
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={loading || !searchQuery}
+                                            className="absolute right-2 top-2 px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs shadow-lg disabled:opacity-50"
+                                        >
+                                            {loading ? '...' : 'Rechercher'}
+                                        </button>
+                                    </form>
+
+                                    <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                        {searchResults.map(org => (
+                                            <div key={org.id} className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                                                <div>
+                                                    <h4 className="font-bold text-slate-900 dark:text-white">{org.name}</h4>
+                                                    <p className="text-xs text-slate-500">{org.industry || 'Non spécifié'}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleJoinRequest(org.id, org.name)}
+                                                    className="px-4 py-2 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 rounded-xl text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                                >
+                                                    Rejoindre
+                                                </button>
+                                            </div>
+                                        ))}
+                                        {searchResults.length === 0 && searchQuery && !loading && (
+                                            <p className="text-center text-slate-500 text-sm py-4">Aucune organisation trouvée.</p>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="text-center py-8">
+                                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-scale-in">
+                                        <Check className="h-8 w-8" strokeWidth={3} />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Demande envoyée !</h3>
+                                    <p className="text-slate-500 dark:text-slate-400">
+                                        Un administrateur de l'organisation doit approuver votre demande. Vous recevrez un email dès que l'accès sera validé.
+                                    </p>
+                                    <button
+                                        onClick={() => window.location.reload()}
+                                        className="mt-8 px-6 py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
+                                    >
+                                        Retour à l'accueil
+                                    </button>
+                                </div>
+                            )}
+
+                            {!joinRequestSent && (
+                                <button
+                                    onClick={() => setMode('select')}
+                                    className="w-full py-4 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-bold transition-colors"
+                                >
+                                    Retour
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {mode === 'create' && (
+                        <>
+                            {step === 1 ? (
+                                <form onSubmit={handleStep1} className="space-y-6">
+                                    {!user?.organizationId && (
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom de l'Organisation</label>
+                                            <div className="relative">
+                                                <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                                <input type="text" required className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Ex: Acme Corp" value={organizationName} onChange={e => setOrganizationName(e.target.value)} />
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom complet</label>
+                                        <div className="relative">
+                                            <User className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                            <input type="text" required className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Votre nom" value={displayName} onChange={e => setDisplayName(e.target.value)} />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-5">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Département</label>
+                                            <div className="relative">
+                                                <Briefcase className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                                <input type="text" required className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Ex: IT / Sécurité" value={department} onChange={e => setDepartment(e.target.value)} />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Secteur</label>
+                                            <div className="relative">
+                                                <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                                <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer" value={industry} onChange={e => setIndustry(e.target.value)}>
+                                                    <option value="">Sélectionner...</option>
+                                                    <option value="tech">Technologie / SaaS</option>
+                                                    <option value="finance">Finance / Banque</option>
+                                                    <option value="health">Santé</option>
+                                                    <option value="retail">Retail / E-commerce</option>
+                                                    <option value="public">Secteur Public</option>
+                                                    <option value="other">Autre</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {error && <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex items-start gap-3"><AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" /><div><p className="text-sm font-semibold text-red-900 dark:text-red-200">Erreur de configuration</p><p className="text-xs text-red-700 dark:text-red-300 mt-1">{error}</p></div></div>}
+
+                                    <div className="pt-4 flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setMode('select')}
+                                            className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                        >
+                                            Retour
+                                        </button>
+                                        <button type="submit" disabled={loading || (!user?.organizationId && !organizationName)} className="w-2/3 py-4 bg-[#000000] dark:bg-white text-white dark:text-black font-bold rounded-2xl shadow-lg card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
+                                            {loading ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <>Continuer <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                        </button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                                        {(['discovery', 'professional', 'enterprise'] as const).map((planId) => {
+                                            const plan = PLANS[planId];
+                                            const isSelected = selectedPlan === planId;
+                                            return (
+                                                <div
+                                                    key={planId}
+                                                    onClick={() => setSelectedPlan(planId)}
+                                                    className={`relative p-6 rounded-3xl border transition-all duration-300 cursor-pointer group ${isSelected
+                                                        ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-500 ring-1 ring-blue-500 shadow-lg shadow-blue-500/10'
+                                                        : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md'
+                                                        }`}
+                                                >
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <div>
+                                                            <h3 className={`font-bold text-lg ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
+                                                                {plan.name}
+                                                            </h3>
+                                                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
+                                                                {plan.description}
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <span className={`block text-xl font-bold font-display tracking-tight ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
+                                                                {plan.priceMonthly === 0 ? 'Gratuit' : `${plan.priceMonthly}€`}
+                                                            </span>
+                                                            {plan.priceMonthly > 0 && <span className="text-xs text-slate-400 font-medium">/ mois</span>}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="h-px w-full bg-slate-100 dark:bg-white/5 my-4" />
+
+                                                    <ul className="space-y-2">
+                                                        {plan.featuresList.slice(0, 3).map((f, i) => (
+                                                            <li key={i} className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                                <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
+                                                                    <Check className="h-2.5 w-2.5" strokeWidth={3} />
+                                                                </div>
+                                                                {f}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+
+                                                    {isSelected && (
+                                                        <div className="absolute top-4 right-4 animate-scale-in">
+                                                            <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                                                                <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <div className="pt-4 flex gap-3">
+                                        <button
+                                            onClick={() => setStep(1)}
+                                            className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                        >
+                                            Retour
+                                        </button>
+                                        <button
+                                            onClick={handleFinalize}
+                                            disabled={loading}
+                                            className="w-2/3 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                        >
+                                            {loading ? (
+                                                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                            ) : (
+                                                <>
+                                                    {selectedPlan === 'discovery' ? 'Commencer Gratuitement' : 'Passer au Paiement'}
+                                                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} />
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
