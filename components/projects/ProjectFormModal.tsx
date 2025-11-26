@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Calendar, User } from 'lucide-react';
 import { Project } from '../../types';
+import { AIAssistButton } from '../ai/AIAssistButton';
 
 interface ProjectFormModalProps {
     isOpen: boolean;
@@ -82,7 +83,19 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
                     </div>
                     {/* Description */}
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description *</label>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Description *</label>
+                            <AIAssistButton
+                                context={{
+                                    projectName: formData.name,
+                                    manager: formData.manager,
+                                    dueDate: formData.dueDate
+                                }}
+                                fieldName="description"
+                                onSuggest={(val: string) => setFormData({ ...formData, description: val })}
+                                prompt="Génère une description professionnelle et concise pour ce projet de sécurité (SSI/GRC). Inclus les objectifs principaux basés sur le nom du projet."
+                            />
+                        </div>
                         <textarea
                             required
                             className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none"

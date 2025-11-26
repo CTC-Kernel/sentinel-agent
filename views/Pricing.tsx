@@ -1,241 +1,322 @@
 import { useState } from 'react';
 import { useStore } from '../store';
-import { Check, X, Shield, Zap, Building, ArrowRight, Star } from 'lucide-react';
+import { Check, ChevronRight, Shield, Zap, Building2, HelpCircle, Info, ChevronDown } from 'lucide-react';
 import { SubscriptionService } from '../services/subscriptionService';
 import { PLANS } from '../config/plans';
 import { PlanType } from '../types';
+import { Tooltip } from '../components/ui/Tooltip';
+import { ContactModal } from '../components/ui/ContactModal';
 
 const Pricing = () => {
-  const { user } = useStore();
+  const { user, addToast } = useStore();
   const [isAnnual, setIsAnnual] = useState(true);
   const [loading, setLoading] = useState<string | null>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [isContactOpen, setIsContactOpen] = useState(false);
 
   const handleSubscribe = async (planId: PlanType) => {
     if (!user?.organizationId) {
-        alert("Vous devez être rattaché à une organisation pour souscrire.");
-        return;
+      addToast("Vous devez être rattaché à une organisation pour souscrire.", "error");
+      return;
     }
-    
     try {
       setLoading(planId);
       await SubscriptionService.startSubscription(user.organizationId, planId, isAnnual ? 'year' : 'month');
     } catch (error) {
       console.error('Subscription error:', error);
-      alert('Une erreur est survenue lors de la redirection vers le paiement.');
+      addToast("Une erreur est survenue lors de la redirection vers le paiement.", "error");
     } finally {
       setLoading(null);
     }
   };
 
-  const PlanCard = ({ planId, icon: Icon }: { planId: PlanType, icon: any }) => {
-    const plan = PLANS[planId];
-    const price = isAnnual ? plan.priceYearly / 12 : plan.priceMonthly;
-    
-    return (
-      <div className={`relative flex flex-col p-8 bg-white dark:bg-slate-800 rounded-2xl border-2 ${plan.highlight ? 'border-blue-500 shadow-2xl scale-105 z-10' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 transition-all'}`}>
-        {plan.highlight && (
-          <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg flex items-center gap-1">
-            <Star className="w-3 h-3 fill-current" /> Recommandé
-          </div>
-        )}
-        
-        <div className="mb-6">
-          <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${plan.highlight ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'}`}>
-            <Icon className="w-6 h-6" />
-          </div>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">{plan.name}</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 min-h-[40px]">{plan.description}</p>
-        </div>
+  const faqs = [
+    { q: "Puis-je changer de plan ?", a: "Oui, à tout moment depuis vos paramètres. Le prorata est calculé automatiquement." },
+    { q: "Comment sont sécurisées mes données ?", a: "Chiffrement AES-256, hébergement en Europe, infrastructure certifiée ISO 27001." },
+    { q: "Qu'est-ce que la Marque Blanche ?", a: "Vos rapports PDF sans le logo Sentinel GRC. Disponible sur les plans Pro et Enterprise." },
+    { q: "Y a-t-il un engagement ?", a: "Aucun engagement sur les plans mensuels. L'engagement est d'un an sur les plans annuels avec une remise de 20%." },
+  ];
 
-        <div className="mb-6">
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-extrabold text-slate-900 dark:text-white">
-              {price === 0 ? 'Gratuit' : `${Math.round(price)}€`}
-            </span>
-            <span className="text-slate-500 dark:text-slate-400">/mois</span>
-          </div>
-          {isAnnual && price > 0 && (
-            <p className="text-xs text-green-600 dark:text-green-400 font-medium mt-1">
-              Facturé {plan.priceYearly}€ par an (2 mois offerts)
-            </p>
-          )}
-        </div>
+  const features = [
+    // Limites Générales
+    { name: 'Utilisateurs inclus', discovery: '3', professional: '10', enterprise: 'Illimité', tooltip: "Nombre de comptes utilisateurs pouvant accéder à la plateforme." },
+    { name: 'Actifs gérés', discovery: '50', professional: '250', enterprise: 'Illimité', tooltip: "Nombre total d'actifs (serveurs, applications, personnes, etc.) dans l'inventaire." },
+    { name: 'Projets simultanés', discovery: '1', professional: '10', enterprise: 'Illimité', tooltip: "Nombre de projets de conformité ou d'audit actifs en parallèle." },
+    { name: 'Stockage sécurisé', discovery: '1 Go', professional: '10 Go', enterprise: '100 Go', tooltip: "Espace de stockage pour vos politiques, procédures et preuves d'audit." },
 
-        <div className="flex-grow mb-8">
-          <ul className="space-y-3">
-            {plan.featuresList.map((feature: string, idx: number) => (
-              <li key={idx} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300">
-                <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                <span>{feature}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+    // Gestion des Risques & Conformité
+    { name: 'Méthode ISO 27005', discovery: true, professional: true, enterprise: true, tooltip: "Analyse de risques complète : Menaces, Vulnérabilités, Scénarios, Impact/Probabilité." },
+    { name: 'Bibliothèque de Menaces', discovery: true, professional: true, enterprise: true, tooltip: "Catalogue pré-rempli de menaces et vulnérabilités standards." },
+    { name: 'Calcul du Risque', discovery: true, professional: true, enterprise: true, tooltip: "Calcul automatique du risque brut et résiduel." },
+    { name: 'Plan de Traitement (RTP)', discovery: true, professional: true, enterprise: true, tooltip: "Suivi des plans d'action pour réduire les risques." },
+    { name: 'Conformité ISO 27001:2022', discovery: true, professional: true, enterprise: true, tooltip: "Suivi complet de l'Annexe A et génération du SoA." },
 
-        <button
-          onClick={() => handleSubscribe(planId)}
-          disabled={loading !== null}
-          className={`w-full py-3 px-6 rounded-lg font-semibold transition-all flex items-center justify-center gap-2
-            ${plan.highlight 
-              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/30' 
-              : 'bg-slate-100 hover:bg-slate-200 text-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white'
-            }
-            ${loading ? 'opacity-70 cursor-not-allowed' : ''}
-          `}
-        >
-          {loading === planId ? 'Redirection...' : (
-            <>
-              {plan.priceMonthly === 0 ? 'Commencer gratuitement' : 'Choisir ce plan'}
-              <ArrowRight className="w-4 h-4" />
-            </>
-          )}
-        </button>
-      </div>
-    );
-  };
+    // Fonctionnalités Avancées
+    { name: 'Assistant IA (Gemini)', discovery: true, professional: true, enterprise: true, tooltip: "Aide à la rédaction de politiques et suggestion de mesures de sécurité." },
+    { name: 'Gestion Documentaire', discovery: true, professional: true, enterprise: true, tooltip: "Cycle de vie des documents, versionning et approbation." },
+    { name: 'Rapports PDF Standards', discovery: true, professional: true, enterprise: true, tooltip: "Export des rapports d'audit et du SoA au format PDF." },
+    { name: 'Rapports Marque Blanche', discovery: false, professional: true, enterprise: true, tooltip: "Suppression du logo Sentinel GRC et personnalisation avec votre logo." },
+    { name: 'Modèles Personnalisables', discovery: false, professional: true, enterprise: true, tooltip: "Création de vos propres modèles de documents et de risques." },
+
+    // Enterprise & Support
+    { name: 'Support Email', discovery: 'Standard', professional: 'Prioritaire', enterprise: 'Dédié 24/7' },
+    { name: 'API REST', discovery: false, professional: false, enterprise: true, tooltip: "Accès complet à l'API pour l'automatisation et l'intégration." },
+    { name: 'SSO (SAML / OIDC)', discovery: false, professional: false, enterprise: true, tooltip: "Connexion unique avec votre fournisseur d'identité d'entreprise." },
+    { name: 'Logs d\'Audit Avancés', discovery: false, professional: false, enterprise: true, tooltip: "Traçabilité complète de toutes les actions utilisateurs pour la conformité." },
+    { name: 'Onboarding Assisté', discovery: false, professional: false, enterprise: true, tooltip: "Accompagnement personnalisé pour la configuration initiale." },
+  ];
+
+  const plans: { id: PlanType; name: string; icon: any; popular?: boolean }[] = [
+    { id: 'discovery', name: 'Discovery', icon: Shield },
+    { id: 'professional', name: 'Professional', icon: Zap, popular: true },
+    { id: 'enterprise', name: 'Enterprise', icon: Building2 },
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8 overflow-y-auto">
-      <div className="max-w-7xl mx-auto">
-        
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white sm:text-5xl sm:tracking-tight lg:text-6xl">
-            Une sécurité de niveau <span className="text-blue-600">Entreprise</span>,<br />
-            accessible à tous.
+    <div className="space-y-10 animate-fade-in pb-12">
+      {/* Header with Premium Typography */}
+      <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+        <div>
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-white font-display tracking-tight leading-tight">
+            Abonnement
           </h1>
-          <p className="mt-5 max-w-xl mx-auto text-xl text-slate-500 dark:text-slate-400">
-            Choisissez le plan adapté à votre maturité ISO 27001. Changez à tout moment.
-          </p>
-        
-          {/* Billing Toggle */}
-          <div className="mt-8 flex justify-center items-center gap-4">
-            <span className={`text-sm font-medium ${!isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-              Mensuel
-            </span>
-            <button
-              onClick={() => setIsAnnual(!isAnnual)}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isAnnual ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'}`}
-            >
-              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isAnnual ? 'translate-x-5' : 'translate-x-0'}`} />
-            </button>
-            <span className={`text-sm font-medium ${isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-              Annuel <span className="text-green-500 font-bold ml-1">-20%</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 max-w-7xl mx-auto mb-20">
-          <PlanCard planId="discovery" icon={Shield} />
-          <PlanCard planId="professional" icon={Zap} />
-          <PlanCard planId="enterprise" icon={Building} />
-        </div>
-
-        {/* Comparison Table */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="px-6 py-8 border-b border-slate-200 dark:border-slate-700">
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Comparaison détaillée</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr>
-                  <th className="p-6 bg-slate-50 dark:bg-slate-800/50 text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">Fonctionnalité</th>
-                  <th className="p-6 bg-slate-50 dark:bg-slate-800/50 text-center text-sm font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 w-1/4">Discovery</th>
-                  <th className="p-6 bg-slate-50 dark:bg-slate-800/50 text-center text-sm font-bold text-blue-600 dark:text-blue-400 border-b border-slate-200 dark:border-slate-700 w-1/4">Professional</th>
-                  <th className="p-6 bg-slate-50 dark:bg-slate-800/50 text-center text-sm font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 w-1/4">Enterprise</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                
-                {/* LIMITS */}
-                <tr>
-                  <td className="p-6 text-sm font-medium text-slate-900 dark:text-white">Utilisateurs</td>
-                  <td className="p-6 text-center text-slate-600 dark:text-slate-300">3</td>
-                  <td className="p-6 text-center font-bold text-slate-900 dark:text-white">10</td>
-                  <td className="p-6 text-center text-slate-600 dark:text-slate-300">Illimité</td>
-                </tr>
-                <tr>
-                  <td className="p-6 text-sm font-medium text-slate-900 dark:text-white">Actifs gérés</td>
-                  <td className="p-6 text-center text-slate-600 dark:text-slate-300">50</td>
-                  <td className="p-6 text-center font-bold text-slate-900 dark:text-white">250</td>
-                  <td className="p-6 text-center text-slate-600 dark:text-slate-300">Illimité</td>
-                </tr>
-                <tr>
-                  <td className="p-6 text-sm font-medium text-slate-900 dark:text-white">Stockage Documentaire</td>
-                  <td className="p-6 text-center text-slate-600 dark:text-slate-300">1 Go</td>
-                  <td className="p-6 text-center font-bold text-slate-900 dark:text-white">10 Go</td>
-                  <td className="p-6 text-center text-slate-600 dark:text-slate-300">100 Go</td>
-                </tr>
-
-                {/* FEATURES */}
-                <tr>
-                  <td className="p-6 text-sm font-medium text-slate-900 dark:text-white">Analyses de risques ISO 27005</td>
-                  <td className="p-6 text-center"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
-                  <td className="p-6 text-center"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
-                  <td className="p-6 text-center"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
-                </tr>
-                <tr>
-                  <td className="p-6 text-sm font-medium text-slate-900 dark:text-white">Rapports Marque Blanche</td>
-                  <td className="p-6 text-center"><X className="w-5 h-5 text-slate-300 mx-auto" /></td>
-                  <td className="p-6 text-center"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
-                  <td className="p-6 text-center"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
-                </tr>
-                <tr>
-                  <td className="p-6 text-sm font-medium text-slate-900 dark:text-white">API Access</td>
-                  <td className="p-6 text-center"><X className="w-5 h-5 text-slate-300 mx-auto" /></td>
-                  <td className="p-6 text-center"><X className="w-5 h-5 text-slate-300 mx-auto" /></td>
-                  <td className="p-6 text-center"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
-                </tr>
-                <tr>
-                  <td className="p-6 text-sm font-medium text-slate-900 dark:text-white">SSO (SAML / OIDC)</td>
-                  <td className="p-6 text-center"><X className="w-5 h-5 text-slate-300 mx-auto" /></td>
-                  <td className="p-6 text-center"><X className="w-5 h-5 text-slate-300 mx-auto" /></td>
-                  <td className="p-6 text-center"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* FAQ Section */}
-        <div className="mt-20 max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-12">Questions Fréquentes</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <h3 className="font-bold text-slate-900 dark:text-white mb-2">Puis-je changer de plan à tout moment ?</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Oui, vous pouvez upgrader ou downgrader votre abonnement instantanément depuis vos paramètres. Le prorata sera calculé automatiquement.</p>
-            </div>
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <h3 className="font-bold text-slate-900 dark:text-white mb-2">Mes données sont-elles sécurisées ?</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Absolument. Nous utilisons le chiffrement AES-256 au repos et TLS en transit. Nos serveurs sont hébergés en Europe et certifiés ISO 27001.</p>
-            </div>
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <h3 className="font-bold text-slate-900 dark:text-white mb-2">Qu'est-ce que le mode "Marque Blanche" ?</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Le mode Marque Blanche (Plan Pro & Enterprise) supprime le logo "Sentinel GRC" des rapports PDF exportés, vous permettant de les présenter à vos clients ou auditeurs comme vos propres documents.</p>
-            </div>
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <h3 className="font-bold text-slate-900 dark:text-white mb-2">Acceptez-vous les virements ?</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Pour le plan Enterprise annuel uniquement. Pour les autres plans, le paiement se fait par carte bancaire via notre partenaire sécurisé Stripe.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Trust & Contact */}
-        <div className="mt-20 text-center border-t border-slate-200 dark:border-slate-700 pt-12">
-          <div className="flex justify-center items-center gap-6 mb-8 opacity-70 grayscale hover:grayscale-0 transition-all">
-             {/* Placeholders for logos like Stripe, ISO, GDPR if you had assets */}
-             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Paiement sécurisé par Stripe</span>
-             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Conforme RGPD</span>
-             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Hébergé en UE</span>
-          </div>
-          <p className="text-slate-500 dark:text-slate-400">
-            Besoin d'aide ? <a href="mailto:support@sentinel-grc.com" className="text-blue-600 hover:underline">Contactez le support</a>.
+          <p className="text-lg text-slate-500 dark:text-slate-400 mt-2 font-medium max-w-xl leading-relaxed">
+            Des outils puissants pour votre conformité, adaptés à chaque étape de votre croissance.
           </p>
         </div>
 
+        {/* Apple-style Segmented Control */}
+        <div className="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl flex items-center relative shadow-inner border border-slate-200/50 dark:border-white/5">
+          <div
+            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-slate-700 rounded-lg shadow-sm transition-all duration-300 ease-out ${isAnnual ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'}`}
+          />
+          <button
+            onClick={() => setIsAnnual(false)}
+            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 ${!isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          >
+            Mensuel
+          </button>
+          <button
+            onClick={() => setIsAnnual(true)}
+            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 flex items-center gap-2 ${isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          >
+            Annuel
+            <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full shadow-sm shadow-emerald-500/20 tracking-wide">
+              -20%
+            </span>
+          </button>
+        </div>
       </div>
+
+      {/* Plans Grid - Refined Glassmorphism */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        {plans.map(({ id, name, icon: Icon, popular }) => {
+          const plan = PLANS[id];
+          const price = isAnnual ? Math.round(plan.priceYearly / 12) : plan.priceMonthly;
+
+          return (
+            <div
+              key={id}
+              className={`relative flex flex-col rounded-[2rem] overflow-hidden transition-all duration-500 group ${popular
+                ? 'bg-white/90 dark:bg-slate-800/90 shadow-2xl shadow-blue-900/10 ring-1 ring-blue-500/20 dark:ring-blue-400/20 scale-[1.02] z-10'
+                : 'bg-white/60 dark:bg-slate-900/60 shadow-xl shadow-slate-200/50 dark:shadow-black/20 ring-1 ring-slate-200/60 dark:ring-white/5 hover:bg-white/80 dark:hover:bg-slate-800/80 hover:shadow-2xl hover:-translate-y-1'
+                } backdrop-blur-xl`}
+            >
+              {popular && (
+                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 opacity-80" />
+              )}
+
+              <div className="p-8 flex-1 flex flex-col">
+                <div className="flex justify-between items-start mb-8">
+                  <div className={`p-3.5 rounded-2xl ${popular ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'}`}>
+                    <Icon className="w-6 h-6" strokeWidth={2} />
+                  </div>
+                  {popular && (
+                    <span className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold px-3 py-1 rounded-full border border-blue-100 dark:border-blue-500/20 uppercase tracking-widest">
+                      Populaire
+                    </span>
+                  )}
+                </div>
+
+                <div className="mb-2">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{name}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">{plan.description}</p>
+                </div>
+
+                <div className="my-8">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-bold text-slate-900 dark:text-white font-display tracking-tighter">
+                      {price === 0 ? 'Gratuit' : `${price}€`}
+                    </span>
+                    {price > 0 && <span className="text-slate-500 font-medium text-lg">/mois</span>}
+                  </div>
+                  {isAnnual && price > 0 && (
+                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-2">
+                      Facturé {plan.priceYearly}€ par an
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-4 mb-8 flex-1">
+                  {plan.featuresList.map((feature, i) => (
+                    <div key={i} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300 font-medium group/item">
+                      <div className={`mt-1.5 p-0.5 rounded-full ${popular ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
+                        <Check className="w-3 h-3" strokeWidth={3} />
+                      </div>
+                      <span className="leading-relaxed">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => handleSubscribe(id)}
+                  disabled={loading !== null}
+                  className={`w-full py-4 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${popular
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5'
+                    : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 hover:shadow-lg hover:-translate-y-0.5'
+                    } ${loading === id ? 'opacity-75 cursor-wait' : ''}`}
+                >
+                  {loading === id ? (
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      {price === 0 ? 'Commencer gratuitement' : 'Choisir ce plan'}
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Comparison Table - Minimalist */}
+      <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm">
+        <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Comparatif détaillé</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Analysez les fonctionnalités en détail.</p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-slate-100 dark:border-white/5">
+                <th className="text-left py-6 px-10 font-bold text-xs text-slate-400 uppercase tracking-widest w-1/3">Fonctionnalités</th>
+                <th className="py-6 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">Discovery</th>
+                <th className="py-6 px-6 text-center font-bold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-widest w-1/5 bg-blue-50/30 dark:bg-blue-500/5 border-x border-blue-100/50 dark:border-blue-500/10">Professional</th>
+                <th className="py-6 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">Enterprise</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+              {features.map((feature, i) => (
+                <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
+                  <td className="py-5 px-10 text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                    {feature.name}
+                    {feature.tooltip && (
+                      <Tooltip content={feature.tooltip}>
+                        <Info className="w-4 h-4 text-slate-400 hover:text-blue-500 transition-colors cursor-help" />
+                      </Tooltip>
+                    )}
+                  </td>
+                  <td className="py-5 px-6 text-center">
+                    {typeof feature.discovery === 'boolean' ? (
+                      feature.discovery ? (
+                        <div className="flex justify-center"><Check className="w-5 h-5 text-slate-900 dark:text-white" strokeWidth={2.5} /></div>
+                      ) : (
+                        <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
+                      )
+                    ) : (
+                      <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{feature.discovery}</span>
+                    )}
+                  </td>
+                  <td className="py-5 px-6 text-center bg-blue-50/10 dark:bg-blue-500/5 border-x border-blue-100/50 dark:border-blue-500/10">
+                    {typeof feature.professional === 'boolean' ? (
+                      feature.professional ? (
+                        <div className="flex justify-center"><Check className="w-5 h-5 text-blue-600 dark:text-blue-400" strokeWidth={2.5} /></div>
+                      ) : (
+                        <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
+                      )
+                    ) : (
+                      <span className="text-sm font-bold text-slate-900 dark:text-white">{feature.professional}</span>
+                    )}
+                  </td>
+                  <td className="py-5 px-6 text-center">
+                    {typeof feature.enterprise === 'boolean' ? (
+                      feature.enterprise ? (
+                        <div className="flex justify-center"><Check className="w-5 h-5 text-slate-900 dark:text-white" strokeWidth={2.5} /></div>
+                      ) : (
+                        <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
+                      )
+                    ) : (
+                      <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{feature.enterprise}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* FAQ - Clean Accordion */}
+      <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm">
+        <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Questions fréquentes</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Réponses aux interrogations courantes.</p>
+          </div>
+          <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <HelpCircle className="w-6 h-6 text-slate-400" />
+          </div>
+        </div>
+
+        <div className="divide-y divide-slate-100 dark:divide-white/5">
+          {faqs.map((faq, i) => (
+            <div key={i} className="group">
+              <button
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                className="w-full flex items-center justify-between p-8 text-left hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
+              >
+                <span className="font-bold text-slate-800 dark:text-slate-200 text-base group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{faq.q}</span>
+                <ChevronDown
+                  className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-blue-500' : 'group-hover:text-blue-500'}`}
+                />
+              </button>
+              <div
+                className={`grid transition-all duration-300 ease-in-out ${openFaq === i ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                  }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="px-8 pb-8 pt-0">
+                    <p className="text-base text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                      {faq.a}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="text-center pt-8 pb-4">
+        <p className="text-sm text-slate-400 font-medium">
+          Besoin d'un devis personnalisé ?
+          <button
+            onClick={() => setIsContactOpen(true)}
+            className="ml-1 text-slate-900 dark:text-white hover:underline font-bold focus:outline-none"
+          >
+            Contactez notre équipe commerciale
+          </button>
+        </p>
+      </div>
+
+      <ContactModal
+        isOpen={isContactOpen}
+        onClose={() => setIsContactOpen(false)}
+        subject="Demande de devis / Information"
+      />
     </div>
   );
 };
