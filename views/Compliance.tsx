@@ -13,6 +13,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { PageHeader } from '../components/ui/PageHeader';
 
 import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS } from '../data/complianceData';
 
@@ -285,15 +286,14 @@ export const Compliance: React.FC = () => {
         <div className="space-y-8 animate-fade-in pb-10 relative">
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 font-display tracking-tight">
-                        {currentFramework === 'ISO27001' ? "Déclaration d'Applicabilité" : "Conformité NIS2"}
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                        {currentFramework === 'ISO27001' ? "Pilotage de la conformité ISO 27001:2022." : "Suivi de la directive NIS2."}
-                    </p>
-                </div>
+            <PageHeader
+                title={currentFramework === 'ISO27001' ? "Déclaration d'Applicabilité" : "Conformité NIS2"}
+                subtitle={currentFramework === 'ISO27001' ? "Pilotage de la conformité ISO 27001:2022." : "Suivi de la directive NIS2."}
+                breadcrumbs={[
+                    { label: 'Conformité' }
+                ]}
+                icon={<ShieldCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                actions={
                 <div className="flex gap-3 items-center">
                     {/* Framework Switcher */}
                     {/* Framework Switcher - Premium Segmented Control */}
@@ -316,7 +316,8 @@ export const Compliance: React.FC = () => {
                         <Download className="h-4 w-4 mr-2" /> Rapport (PDF)
                     </button>
                 </div>
-            </div>
+                }
+            />
 
             {/* Dashboard Integration */}
             <ComplianceDashboard controls={controls} onFilterChange={setStatusFilter} />

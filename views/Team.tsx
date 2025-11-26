@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserProfile, Invitation } from '../types';
-import { Users, Mail, Plus, Building, User, Trash2, Edit, X, Clock, Timer, FileSpreadsheet } from '../components/ui/Icons';
+import { Users, Mail, Plus, Building, User, Trash2, Edit, X, Clock, Timer, FileSpreadsheet, Check, XCircle, UserPlus } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { sendEmail } from '../services/emailService';
 import { getInvitationTemplate } from '../services/emailTemplates';
@@ -13,10 +13,12 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { logAction } from '../services/logger';
 import { SubscriptionService } from '../services/subscriptionService';
 import { useNavigate } from 'react-router-dom';
+import { PageHeader } from '../components/ui/PageHeader';
 
 export const Team: React.FC = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState<UserProfile[]>([]);
+    const [joinRequests, setJoinRequests] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -41,7 +43,8 @@ export const Team: React.FC = () => {
         try {
             const results = await Promise.allSettled([
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'invitations'), where('organizationId', '==', user.organizationId)))
+                getDocs(query(collection(db, 'invitations'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'join_requests'), where('organizationId', '==', user.organizationId), where('status', '==', 'pending')))
             ]);
 
             const activeUsers = results[0].status === 'fulfilled'
@@ -64,7 +67,12 @@ export const Team: React.FC = () => {
                 })
                 : [];
 
+            const requests = results[2].status === 'fulfilled'
+                ? results[2].value.docs.map(d => ({ id: d.id, ...d.data() }))
+                : [];
+
             setUsers([...activeUsers, ...pendingInvites]);
+            setJoinRequests(requests);
         } catch (e) {
             console.warn("Erreur fetch users", e);
             addToast("Impossible de charger la liste des utilisateurs", "error");
@@ -77,17 +85,17 @@ export const Team: React.FC = () => {
 
     const handleOpenInviteModal = async () => {
         if (!user?.organizationId) return;
-        
+
         // Check plan limits
         const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', users.length);
-        
+
         if (!canAddUser) {
             if (confirm("Vous avez atteint la limite d'utilisateurs de votre plan actuel. Voulez-vous passer au plan supérieur ?")) {
                 navigate('/pricing');
             }
             return;
         }
-        
+
         setShowInviteModal(true);
     };
 
@@ -146,6 +154,61 @@ export const Team: React.FC = () => {
             addToast("Utilisateur mis à jour", "success");
         } catch (_e) {
             addToast("Erreur mise à jour", "error");
+        }
+    };
+
+    const handleApproveRequest = async (req: any) => {
+        if (!user?.organizationId) return;
+
+        // Check plan limits
+        const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', users.length);
+        if (!canAddUser) {
+            if (confirm("Limite d'utilisateurs atteinte. Passer au plan supérieur ?")) {
+                navigate('/pricing');
+            }
+            return;
+        }
+
+        try {
+            // 1. Update User Profile
+            await updateDoc(doc(db, 'users', req.userId), {
+                organizationId: user.organizationId,
+                organizationName: user.organizationName,
+                role: 'user', // Default role
+                onboardingCompleted: true
+            });
+
+            // 2. Update Request Status
+            await updateDoc(doc(db, 'join_requests', req.id), {
+                status: 'approved',
+                approvedBy: user.uid,
+                approvedAt: new Date().toISOString()
+            });
+
+            // 3. Notify (Optional - could be email)
+            // For now just toast
+            addToast(`Accès approuvé pour ${req.displayName}`, "success");
+
+            // Refresh
+            fetchUsers();
+        } catch (e) {
+            console.error("Approval error", e);
+            addToast("Erreur lors de l'approbation", "error");
+        }
+    };
+
+    const handleRejectRequest = async (req: any) => {
+        if (!confirm(`Refuser la demande de ${req.displayName} ?`)) return;
+        try {
+            await updateDoc(doc(db, 'join_requests', req.id), {
+                status: 'rejected',
+                rejectedBy: user.uid,
+                rejectedAt: new Date().toISOString()
+            });
+            addToast("Demande refusée", "info");
+            fetchUsers();
+        } catch (e) {
+            addToast("Erreur lors du refus", "error");
         }
     };
 
@@ -249,25 +312,73 @@ export const Team: React.FC = () => {
                 message={confirmData.message}
             />
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Équipe</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Gestion des membres de {user?.organizationName || 'l\'organisation'}.</p>
-                </div>
-                {canAdmin && (
-                    <div className="flex gap-3">
-                        <button onClick={handleExportCSV} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white">
+            <PageHeader
+                title="Équipe"
+                subtitle={`Gestion des membres de ${user?.organizationName || 'l\'organisation'}.`}
+                breadcrumbs={[
+                    { label: 'Équipe' }
+                ]}
+                icon={<Users className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                actions={canAdmin && (
+                    <>
+                        <button 
+                            onClick={handleExportCSV} 
+                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
+                        >
                             <FileSpreadsheet className="h-4 w-4 mr-2" /> Export CSV
                         </button>
-                        <button onClick={handleOpenInviteModal} className="flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none">
+                        <button 
+                            onClick={handleOpenInviteModal} 
+                            className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                        >
                             <Plus className="h-4 w-4 mr-2" />
                             Inviter un membre
                         </button>
-                    </div>
+                    </>
                 )}
-            </div>
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {/* Pending Join Requests Section */}
+                {joinRequests.length > 0 && (
+                    <div className="col-span-full mb-4">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center">
+                            <UserPlus className="h-5 w-5 mr-2 text-blue-500" />
+                            Demandes d'accès ({joinRequests.length})
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {joinRequests.map(req => (
+                                <div key={req.id} className="bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-900/30 p-5 rounded-2xl shadow-sm flex flex-col">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                                            {req.displayName.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-900 dark:text-white">{req.displayName}</p>
+                                            <p className="text-xs text-slate-500">{req.userEmail}</p>
+                                        </div>
+                                    </div>
+                                    <div className="mt-auto flex gap-2 pt-3">
+                                        <button
+                                            onClick={() => handleRejectRequest(req)}
+                                            className="flex-1 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl text-xs font-bold hover:bg-red-100 hover:text-red-600 transition-colors flex items-center justify-center gap-1"
+                                        >
+                                            <XCircle className="h-3.5 w-3.5" /> Refuser
+                                        </button>
+                                        <button
+                                            onClick={() => handleApproveRequest(req)}
+                                            className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+                                        >
+                                            <Check className="h-3.5 w-3.5" /> Approuver
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="h-px bg-slate-200 dark:bg-white/10 my-6" />
+                    </div>
+                )}
+
                 {loading ? (
                     <div className="col-span-full"><CardSkeleton count={3} /></div>
                 ) : users.length === 0 ? (

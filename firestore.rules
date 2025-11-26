@@ -52,9 +52,9 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && (
         request.auth.uid == userId || 
-        isAdmin()
+        (isAdmin() && belongsToOrganization(resource.data.organizationId))
       );
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() && belongsToOrganization(resource.data.organizationId);
     }
     
     // Invitations
@@ -63,9 +63,9 @@ service cloud.firestore {
         request.auth.token.email == resource.data.email ||
         belongsToOrganization(resource.data.organizationId)
       );
-      allow create: if isAuthenticated() && isAdmin();
+      allow create: if isAuthenticated() && isAdmin() && request.resource.data.organizationId == getUserData().organizationId;
       allow delete: if isAuthenticated() && (
-        isAdmin() ||
+        (isAdmin() && belongsToOrganization(resource.data.organizationId)) ||
         request.auth.token.email == resource.data.email
       );
     }

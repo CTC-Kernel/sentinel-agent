@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, onSnapshot, doc, where, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
@@ -22,6 +22,8 @@ import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { OnboardingTrigger } from './components/onboarding/OnboardingTrigger';
 import { GeminiAssistant } from './components/ai/GeminiAssistant';
 import { hasPermission } from './utils/permissions';
+import { SkipLink } from './components/ui/SkipLink';
+import { useHotkeys } from './hooks/useHotkeys';
 
 // Lazy Loading des Vues
 const Dashboard = React.lazy(() => import('./views/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -81,7 +83,17 @@ const NotFound = () => (
 
 // Wrapper to activate global shortcuts inside Router context
 const GlobalShortcutsWrapper: React.FC = () => {
+    const navigate = useNavigate();
     useGlobalShortcuts();
+    
+    // Raccourcis clavier globaux
+    useHotkeys('ctrl+k', () => {
+        navigate('/search');
+    });
+    
+    useHotkeys('ctrl+/', () => {
+        navigate('/help');
+    });
     return null;
 };
 
@@ -245,6 +257,7 @@ const AppContent: React.FC = () => {
 
     return (
         <Router>
+            <SkipLink />
             <GlobalShortcutsWrapper />
             <ErrorBoundary>
                 <div className="flex h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-900 text-[#1d1d1f] dark:text-[#f5f5f7] font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300">
@@ -273,7 +286,7 @@ const AppContent: React.FC = () => {
                     <div className="flex-1 flex flex-col overflow-hidden relative">
                         <TopBar setMobileOpen={setMobileOpen} />
 
-                        <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth no-scrollbar bg-[#fafafa] dark:bg-slate-900">
+                        <main id="main-content" className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth no-scrollbar bg-[#fafafa] dark:bg-slate-900">
                             <div className="max-w-[1600px] mx-auto animate-fade-in h-full pb-10">
                                 <Suspense fallback={<LoadingScreen />}>
                                     <Routes>

@@ -1,4 +1,104 @@
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+
+const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+
+const getJoinRequestEmailHtml = (requesterName, requesterEmail, orgName, link) => `
+<div style="font-family: sans-serif; padding: 20px;">
+  <h2>Nouvelle demande d'accès</h2>
+  <p><strong>${requesterName}</strong> (${requesterEmail}) souhaite rejoindre <strong>${orgName}</strong>.</p>
+  <a href="${link}" style="display: inline-block; padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px;">Gérer la demande</a>
+</div>
+`;
+
+const getApprovedEmailHtml = (userName, orgName, link) => `
+<div style="font-family: sans-serif; padding: 20px;">
+  <h2>Demande approuvée !</h2>
+  <p>Bonjour ${userName},</p>
+  <p>Votre demande pour rejoindre <strong>${orgName}</strong> a été acceptée.</p>
+  <a href="${link}" style="display: inline-block; padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px;">Accéder à mon espace</a>
+</div>
+`;
+
+const getRejectedEmailHtml = (userName, orgName) => `
+<div style="font-family: sans-serif; padding: 20px;">
+  <h2>Demande refusée</h2>
+  <p>Bonjour ${userName},</p>
+  <p>Votre demande pour rejoindre <strong>${orgName}</strong> a été refusée.</p>
+</div>
+`;
+
+exports.onJoinRequestCreated = onDocumentCreated("join_requests/{requestId}", async (event) => {
+    const snap = event.data;
+    if (!snap) return;
+    const request = snap.data();
+
+    // 1. Get Org Admins
+    const adminsSnap = await admin.firestore().collection('users')
+        .where('organizationId', '==', request.organizationId)
+        .where('role', '==', 'admin')
+        .get();
+
+    if (adminsSnap.empty) {
+        console.log(`No admins found for org ${request.organizationId}`);
+        return;
+    }
+
+    // 2. Queue Email for each admin
+    const batch = admin.firestore().batch();
+    const link = `https://sentinel-grc.web.app/team`; // Adjust base URL as needed
+
+    adminsSnap.forEach(adminDoc => {
+        const adminUser = adminDoc.data();
+        const mailRef = admin.firestore().collection('mail_queue').doc();
+        batch.set(mailRef, {
+            to: adminUser.email,
+            message: {
+                subject: `Nouvelle demande d'accès : ${request.displayName}`,
+                html: getJoinRequestEmailHtml(request.displayName, request.userEmail, request.organizationName, link)
+            },
+            type: 'JOIN_REQUEST',
+            status: 'PENDING',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    });
+
+    await batch.commit();
+    console.log(`Queued join request emails for ${adminsSnap.size} admins.`);
+});
+
+exports.onJoinRequestUpdated = onDocumentUpdated("join_requests/{requestId}", async (event) => {
+    const before = event.data.before.data();
+    const after = event.data.after.data();
+
+    // Only react to status changes
+    if (before.status === after.status) return;
+
+    const link = `https://sentinel-grc.web.app/dashboard`;
+
+    if (after.status === 'approved') {
+        await admin.firestore().collection('mail_queue').add({
+            to: after.userEmail,
+            message: {
+                subject: `Accès approuvé à ${after.organizationName}`,
+                html: getApprovedEmailHtml(after.displayName, after.organizationName, link)
+            },
+            type: 'JOIN_REQUEST_APPROVED',
+            status: 'PENDING',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    } else if (after.status === 'rejected') {
+        await admin.firestore().collection('mail_queue').add({
+            to: after.userEmail,
+            message: {
+                subject: `Demande d'accès refusée - ${after.organizationName}`,
+                html: getRejectedEmailHtml(after.displayName, after.organizationName)
+            },
+            type: 'JOIN_REQUEST_REJECTED',
+            status: 'PENDING',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    }
+});
+
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { defineString, defineInt } = require("firebase-functions/params");
 const admin = require("firebase-admin");
@@ -27,13 +127,33 @@ exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
     }
 
     try {
+        // Fetch organization to check ownership
+        const orgRef = admin.firestore().collection('organizations').doc(userData.organizationId);
+        const orgSnap = await orgRef.get();
+
+        let role = userData.role || 'user';
+
+        if (orgSnap.exists) {
+            const orgData = orgSnap.data();
+            // Enforce ADMIN role if user is the owner
+            if (orgData.ownerId === userId) {
+                console.log(`User ${userId} is owner of org ${userData.organizationId} - Enforcing ADMIN role`);
+                role = 'admin';
+
+                // Update Firestore if needed
+                if (userData.role !== 'admin') {
+                    await event.data.ref.update({ role: 'admin' });
+                }
+            }
+        }
+
         // Set custom claims with organizationId and role
         await admin.auth().setCustomUserClaims(userId, {
             organizationId: userData.organizationId,
-            role: userData.role || 'user'
+            role: role
         });
 
-        console.log(`Custom claims set for user ${userId}: org=${userData.organizationId}, role=${userData.role}`);
+        console.log(`Custom claims set for user ${userId}: org=${userData.organizationId}, role=${role}`);
     } catch (error) {
         console.error(`Error setting custom claims for user ${userId}:`, error);
     }
@@ -125,101 +245,11 @@ exports.healMe = onCall(async (request) => {
 });
 
 // ADMIN ONLY: Fix all existing users by adding organizationId and setting claims
-exports.fixAllUsers = onCall(async (request) => {
-    const uid = request.auth?.uid;
-    if (!uid) {
-        throw new HttpsError('unauthenticated', 'User not authenticated');
-    }
-
-    try {
-        // Check if caller is admin
-        const callerDoc = await admin.firestore().collection('users').doc(uid).get();
-        if (!callerDoc.exists || callerDoc.data().role !== 'admin') {
-            throw new HttpsError('permission-denied', 'Only admins can run this function');
-        }
-
-        console.log('Starting user migration...');
-
-        // 1. Create default organization if it doesn't exist
-        const defaultOrgId = 'default-organization';
-        const defaultOrgRef = admin.firestore().collection('organizations').doc(defaultOrgId);
-        const defaultOrgSnap = await defaultOrgRef.get();
-
-        if (!defaultOrgSnap.exists) {
-            console.log('Creating default organization...');
-            await defaultOrgRef.set({
-                id: defaultOrgId,
-                name: 'Organisation par Défaut',
-                slug: 'default-organization',
-                ownerId: 'system',
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-                subscription: {
-                    planId: 'discovery',
-                    status: 'active',
-                    startDate: new Date().toISOString(),
-                    stripeCustomerId: null,
-                    stripeSubscriptionId: null,
-                    currentPeriodEnd: null,
-                    cancelAtPeriodEnd: false
-                }
-            });
-            console.log('Default organization created');
-        }
-
-        // 2. Fix users
-        const usersSnapshot = await admin.firestore().collection('users').get();
-        const results = {
-            total: usersSnapshot.size,
-            fixed: 0,
-            alreadyOk: 0,
-            errors: []
-        };
-
-        for (const userDoc of usersSnapshot.docs) {
-            const userData = userDoc.data();
-            const userId = userDoc.id;
-
-            try {
-                // Check if organizationId is missing
-                if (!userData.organizationId) {
-                    console.log(`Fixing user ${userId} - adding default organizationId`);
-
-                    // Add organizationId to Firestore
-                    await userDoc.ref.update({
-                        organizationId: defaultOrgId,
-                        organizationName: 'Organisation par Défaut'
-                    });
-
-                    // Set custom claims
-                    await admin.auth().setCustomUserClaims(userId, {
-                        organizationId: defaultOrgId,
-                        role: userData.role || 'user'
-                    });
-
-                    results.fixed++;
-                } else {
-                    // Just ensure custom claims are set
-                    await admin.auth().setCustomUserClaims(userId, {
-                        organizationId: userData.organizationId,
-                        role: userData.role || 'user'
-                    });
-
-                    results.alreadyOk++;
-                }
-            } catch (error) {
-                console.error(`Error fixing user ${userId}:`, error);
-                results.errors.push({ userId, error: error.message });
-            }
-        }
-
-        console.log('Migration complete:', results);
-        return { success: true, results };
-    } catch (error) {
-        console.error('Error in fixAllUsers:', error);
-        throw new HttpsError('internal', 'Migration failed: ' + error.message);
-    }
-});
+// ADMIN ONLY: Fix all existing users by adding organizationId and setting claims
+// DISABLED FOR SECURITY: This function allows global user modification.
+// exports.fixAllUsers = onCall(async (request) => {
+//     throw new HttpsError('permission-denied', 'This function is disabled for security reasons.');
+// });
 
 // --- STRIPE SUBSCRIPTION LOGIC ---
 
@@ -266,8 +296,10 @@ exports.createCheckoutSession = onCall(async (request) => {
     }
     const orgData = orgSnap.data();
 
-    if (orgData.ownerId !== request.auth.uid && userData.role !== 'admin') {
-        throw new HttpsError("permission-denied", "Only admins or owners can manage billing.");
+    if (orgData.ownerId !== request.auth.uid) {
+        if (userData.role !== 'admin' || userData.organizationId !== organizationId) {
+            throw new HttpsError("permission-denied", "Only admins of this organization or owners can manage billing.");
+        }
     }
 
     // Resolve Price ID based on Plan and Interval
@@ -364,8 +396,10 @@ exports.createPortalSession = onCall(async (request) => {
     const userSnap = await userRef.get();
     const userData = userSnap.data();
 
-    if (orgData.ownerId !== request.auth.uid && userData?.role !== 'admin') {
-        throw new HttpsError("permission-denied", "Only admins or owners can access billing portal.");
+    if (orgData.ownerId !== request.auth.uid) {
+        if (userData?.role !== 'admin' || userData?.organizationId !== organizationId) {
+            throw new HttpsError("permission-denied", "Only admins of this organization or owners can access billing portal.");
+        }
     }
 
     const customerId = orgData.subscription?.stripeCustomerId;
@@ -459,7 +493,13 @@ exports.processMailQueue = onDocumentCreated("mail_queue/{docId}", async (event)
 
     // Check for placeholder values
     if (host === "smtp.ethereal.email" && user === "placeholder_user") {
-        console.warn("WARNING: Using placeholder SMTP settings. Email will likely fail or be trapped by Ethereal. Configure SMTP_HOST, SMTP_USER, SMTP_PASS via Firebase secrets/params.");
+        const msg = "WARNING: Using placeholder SMTP settings. Email will likely fail or be trapped by Ethereal. Configure SMTP_HOST, SMTP_USER, SMTP_PASS via Firebase secrets/params.";
+        console.warn(msg);
+        return snap.ref.update({
+            status: "CONFIG_ERROR",
+            error: msg,
+            attempts: 0 // Do not retry
+        });
     }
 
     // Create transporter inside the function to ensure params are loaded

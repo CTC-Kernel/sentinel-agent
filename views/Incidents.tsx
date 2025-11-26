@@ -11,6 +11,8 @@ import { sendEmail } from '../services/emailService';
 import { getIncidentAlertTemplate } from '../services/emailTemplates'; // Changed path
 
 import { AIAssistButton } from '../components/ai/AIAssistButton';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Siren } from '../components/ui/Icons';
 
 const PLAYBOOKS: Record<string, string[]> = {
     'Ransomware': ['Déconnecter la machine', 'Ne PAS éteindre', 'Photo de la rançon', 'Vérifier backups', 'Identifier malware', 'Isoler partages', 'Déclarer CNIL', 'Restaurer'],
@@ -121,6 +123,16 @@ export const Incidents: React.FC = () => {
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
+            
+            <PageHeader
+                title="Gestion des Incidents"
+                subtitle="Déclaration et traitement des incidents de sécurité (ISO 27001 A.6.8)."
+                breadcrumbs={[
+                    { label: 'Incidents' }
+                ]}
+                icon={<Siren className="h-6 w-6 text-white" strokeWidth={2.5} />}
+            />
+            
             <IncidentDashboard
                 incidents={incidents}
                 onCreate={() => openModal()}
