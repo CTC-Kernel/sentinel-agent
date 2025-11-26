@@ -120,9 +120,22 @@ const isResourceOwner = (user: UserProfile, ownerId?: string): boolean => {
     return ownerId === user.uid || ownerId === user.displayName || ownerId === user.email;
 };
 
+import { PLANS, PlanConfig } from '../config/plans';
+import { PlanType } from '../types';
+
+// ... existing imports ...
+
+export const hasFeatureAccess = (planId: PlanType, feature: keyof PlanConfig['limits']['features']): boolean => {
+    const plan = PLANS[planId] || PLANS['discovery'];
+    return plan.limits.features[feature] || false;
+};
+
 export const canEditResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string): boolean => {
     if (!user) return false;
     if (user.role === 'admin' || user.role === 'rssi') return true;
+
+    // Check plan limits for specific resources if needed
+    // For now, we focus on feature access via hasFeatureAccess
 
     if (resource === 'Document' && isResourceOwner(user, resourceOwnerId)) {
         return true;

@@ -10,6 +10,7 @@ import { logAction } from '../services/logger';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
+import { PageHeader } from '../components/ui/PageHeader';
 import { Comments } from '../components/ui/Comments';
 
 export const Continuity: React.FC = () => {
@@ -231,11 +232,14 @@ export const Continuity: React.FC = () => {
                 message={confirmData.message}
             />
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Continuité d'Activité</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Business Impact Analysis (BIA) et Exercices de crise (ISO 27001 A.5.29).</p>
-                </div>
+            <PageHeader
+                title="Continuité d'Activité"
+                subtitle="Business Impact Analysis (BIA) et Exercices de crise (ISO 27001 A.5.29)."
+                breadcrumbs={[
+                    { label: 'Continuité' }
+                ]}
+                icon={<HeartPulse className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                actions={
                 <div className="flex gap-3">
                     <button onClick={handleExportCSV} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
                         <FileSpreadsheet className="h-4 w-4 mr-2" /> Export BIA
@@ -254,7 +258,8 @@ export const Continuity: React.FC = () => {
                         </>
                     )}
                 </div>
-            </div>
+                }
+            />
 
             <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit border border-slate-200 dark:border-white/5">
                 <button onClick={() => setActiveTab('bia')} className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'bia' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>

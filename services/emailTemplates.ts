@@ -5,7 +5,7 @@
  */
 
 const BASE_STYLES = `
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   line-height: 1.6;
   color: #334155;
   max-width: 600px;
@@ -349,3 +349,59 @@ export const getSupplierReviewTemplate = (supplierName: string, criticality: str
   `;
 };
 
+
+export const getJoinRequestTemplate = (requesterName: string, requesterEmail: string, orgName: string, link: string) => {
+  return `
+    <div style="${BASE_STYLES}">
+      ${HEADER}
+      <div style="padding: 32px 0;">
+        <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">👤 Nouvelle demande d'accès</h2>
+        <p>Bonjour,</p>
+        <p><strong>${requesterName}</strong> (${requesterEmail}) souhaite rejoindre votre organisation <strong>${orgName}</strong>.</p>
+        
+        <div style="background-color: #f1f5f9; padding: 16px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0; color: #64748b; font-size: 14px;">Veuillez examiner cette demande dans votre tableau de bord.</p>
+        </div>
+
+        <div style="text-align: center;">
+          <a href="${link}" style="${BUTTON_STYLE}">Gérer la demande</a>
+        </div>
+      </div>
+      ${FOOTER}
+    </div>
+  `;
+};
+
+export const getJoinRequestApprovedTemplate = (userName: string, orgName: string, link: string) => {
+  return `
+    <div style="${BASE_STYLES}">
+      ${HEADER}
+      <div style="padding: 32px 0;">
+        <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">✅ Demande approuvée !</h2>
+        <p>Bonjour ${userName},</p>
+        <p>Votre demande pour rejoindre <strong>${orgName}</strong> a été acceptée.</p>
+        <p>Vous avez maintenant accès à l'espace de travail de l'organisation.</p>
+
+        <div style="text-align: center;">
+          <a href="${link}" style="${BUTTON_STYLE}">Accéder à mon espace</a>
+        </div>
+      </div>
+      ${FOOTER}
+    </div>
+  `;
+};
+
+export const getJoinRequestRejectedTemplate = (userName: string, orgName: string) => {
+  return `
+    <div style="${BASE_STYLES}">
+      ${HEADER}
+      <div style="padding: 32px 0;">
+        <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">❌ Demande refusée</h2>
+        <p>Bonjour ${userName},</p>
+        <p>Votre demande pour rejoindre <strong>${orgName}</strong> a été refusée par un administrateur.</p>
+        <p>Si vous pensez qu'il s'agit d'une erreur, veuillez contacter directement l'administrateur de l'organisation.</p>
+      </div>
+      ${FOOTER}
+    </div>
+  `;
+};

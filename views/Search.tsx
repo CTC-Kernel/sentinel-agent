@@ -6,6 +6,7 @@ import { useStore } from '../store';
 import { Search as SearchIcon, Filter, ArrowRight, ShieldCheck, AlertTriangle, FileText, FolderKanban } from '../components/ui/Icons';
 
 import { EmptyState } from '../components/ui/EmptyState';
+import { PageHeader } from '../components/ui/PageHeader';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 
@@ -201,10 +202,14 @@ export const Search: React.FC = () => {
                 />
             )}
 
-            <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Recherche Avancée</h1>
-                <p className="text-slate-500 dark:text-slate-400 font-medium">Recherchez dans tous vos actifs, risques, documents et projets.</p>
-            </div>
+            <PageHeader
+                title="Recherche Avancée"
+                subtitle="Recherchez dans tous vos actifs, risques, documents et projets."
+                breadcrumbs={[
+                    { label: 'Recherche' }
+                ]}
+                icon={<SearchIcon className="h-6 w-6 text-white" strokeWidth={2.5} />}
+            />
 
             <div className="glass-panel p-2 rounded-2xl flex items-center space-x-4 shadow-lg ring-1 ring-black/5 dark:ring-white/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sticky top-4 z-30">
                 <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl">

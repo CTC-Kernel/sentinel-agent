@@ -16,6 +16,7 @@ import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FileUploader } from '../components/ui/FileUploader';
 import { FilePreview } from '../components/ui/FilePreview';
+import { PageHeader } from '../components/ui/PageHeader';
 
 export const Documents: React.FC = () => {
     const [documents, setDocuments] = useState<Document[]>([]);
@@ -338,24 +339,29 @@ export const Documents: React.FC = () => {
                 message={confirmData.message}
             />
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Gestion Documentaire</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Politiques, procédures et preuves (ISO 27001 A.5.37).</p>
-                </div>
-                {canCreate && (
-                    <button onClick={() => {
-                        setNewDocData({
-                            title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
-                            owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
-                            relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
-                        });
-                        setShowCreateModal(true);
-                    }} className="flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-blue-500/20">
+            <PageHeader
+                title="Gestion Documentaire"
+                subtitle="Politiques, procédures et preuves (ISO 27001 A.5.37)."
+                breadcrumbs={[
+                    { label: 'Documents' }
+                ]}
+                icon={<FileText className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                actions={canCreate && (
+                    <button 
+                        onClick={() => {
+                            setNewDocData({
+                                title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
+                                owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
+                                relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+                            });
+                            setShowCreateModal(true);
+                        }} 
+                        className="flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-blue-500/20"
+                    >
                         <Plus className="h-4 w-4 mr-2" /> Nouveau Document
                     </button>
                 )}
-            </div>
+            />
 
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200 dark:border-white/5">
                 <Search className="h-5 w-5 text-gray-400" />

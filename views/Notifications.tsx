@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Bell, CheckCircle2, AlertTriangle, Info, X, ArrowRight } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { EmptyState } from '../components/ui/EmptyState';
+import { PageHeader } from '../components/ui/PageHeader';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { NotificationRecord } from '../types';
 import { NotificationService } from '../services/notificationService';
@@ -60,17 +61,22 @@ export const Notifications: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in max-w-4xl mx-auto pb-10">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Notifications</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Restez informé des activités importantes.</p>
-                </div>
-                {notifications.some(n => !n.read) && (
-                    <button onClick={markAll} className="text-sm font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
-                    Tout marquer comme lu
+            <PageHeader
+                title="Notifications"
+                subtitle="Restez informé des activités importantes."
+                breadcrumbs={[
+                    { label: 'Notifications' }
+                ]}
+                icon={<Bell className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                actions={notifications.some(n => !n.read) && (
+                    <button 
+                        onClick={markAll} 
+                        className="px-4 py-2.5 text-sm font-bold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-colors border border-brand-200 dark:border-brand-800"
+                    >
+                        Tout marquer comme lu
                     </button>
                 )}
-            </div>
+            />
 
             {loading ? (
                 <div className="space-y-4">
