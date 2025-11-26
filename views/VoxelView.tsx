@@ -9,6 +9,8 @@ import { useStore } from '../store';
 import { Skeleton } from '../components/ui/Skeleton';
 import { ChevronLeft, Settings, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, Bell, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, Search, RotateCw, Minimize2, CheckCheck } from '../components/ui/Icons';
 import { useNavigate } from 'react-router-dom';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Network } from '../components/ui/Icons';
 
 type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier';
 
@@ -620,10 +622,18 @@ export const VoxelView: React.FC = () => {
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900">
       {/* Header */}
       <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-900/80 backdrop-blur">
-        <div className="flex items-center justify-between">
-          {/* Title & Counters */}
+        <PageHeader
+          title="Vue 3D Intelligence"
+          subtitle="Visualisation interactive de votre écosystème de sécurité."
+          breadcrumbs={[
+            { label: 'Voxel 3D' }
+          ]}
+          icon={<Network className="h-6 w-6 text-white" strokeWidth={2.5} />}
+        />
+        <div className="flex items-center justify-between mt-4">
+          {/* Counters */}
           <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Cyber Threat Consulting Engine</h1>
+            {/* <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Cyber Threat Consulting Engine</h1> */}
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>

@@ -27,6 +27,7 @@ import '../components/projects/gantt.css';
 
 import { SubscriptionService } from '../services/subscriptionService';
 import { useNavigate } from 'react-router-dom';
+import { PageHeader } from '../components/ui/PageHeader';
 
 export const Projects: React.FC = () => {
     const navigate = useNavigate();
@@ -480,13 +481,15 @@ export const Projects: React.FC = () => {
                 message={confirmData.message}
             />
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Projets SSI</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Pilotage des plans d'actions et mise en conformité.</p>
-                </div>
-                {canEdit && (
-                    <div className="flex gap-2">
+            <PageHeader
+                title="Projets SSI"
+                subtitle="Pilotage des plans d'actions et mise en conformité."
+                breadcrumbs={[
+                    { label: 'Projets' }
+                ]}
+                icon={<FolderKanban className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                actions={canEdit && (
+                    <div className="flex gap-3">
                         <button
                             onClick={() => setShowTemplateModal(true)}
                             className="flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20"
@@ -503,7 +506,7 @@ export const Projects: React.FC = () => {
                         </button>
                     </div>
                 )}
-            </div>
+            />
 
             <div className="flex items-center space-x-4 bg-white dark:bg-slate-850 p-4 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
                 <Search className="h-5 w-5 text-gray-400" />

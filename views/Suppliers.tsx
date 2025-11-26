@@ -11,6 +11,7 @@ import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
+import { PageHeader } from '../components/ui/PageHeader';
 
 export const Suppliers: React.FC = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -343,23 +344,31 @@ export const Suppliers: React.FC = () => {
                 message={confirmData.message}
             />
 
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Fournisseurs</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Gestion des tiers et des contrats (ISO 27001 A.15).</p>
-                </div>
-                {canEdit && (
-                    <div className="flex gap-3">
+            <PageHeader
+                title="Fournisseurs"
+                subtitle="Gestion des tiers et des contrats (ISO 27001 A.15)."
+                breadcrumbs={[
+                    { label: 'Fournisseurs' }
+                ]}
+                icon={<Handshake className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                actions={canEdit && (
+                    <>
                         <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white">
+                        <button 
+                            onClick={() => fileInputRef.current?.click()} 
+                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
+                        >
                             <Upload className="h-4 w-4 mr-2" /> Importer
                         </button>
-                        <button onClick={openCreateModal} className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-brand-500/20 dark:shadow-none">
+                        <button 
+                            onClick={openCreateModal} 
+                            className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                        >
                             <Plus className="h-4 w-4 mr-2" /> Nouveau Fournisseur
                         </button>
-                    </div>
+                    </>
                 )}
-            </div>
+            />
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
