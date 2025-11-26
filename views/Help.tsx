@@ -1,202 +1,281 @@
+import React, { useState } from 'react';
+import {
+    BookOpen, HelpCircle, ChevronRight, Search, ShieldAlert,
+    LayoutDashboard, MessageSquare, Send, Database, CheckCircle2,
+    ChevronDown, ExternalLink
+} from '../components/ui/Icons';
+import { ContactModal } from '../components/ui/ContactModal';
 
-import React, { useState, useEffect } from 'react';
-import { BookOpen, HelpCircle, ChevronRight, Search, ShieldAlert, FileText, LayoutDashboard, MessageSquare, Send } from '../components/ui/Icons';
-import { useStore } from '../store';
-import { sendEmail } from '../services/emailService';
-import { SubscriptionService } from '../services/subscriptionService';
+const GUIDES = [
+    {
+        id: 'getting-started',
+        title: 'Démarrage Rapide',
+        icon: LayoutDashboard,
+        color: 'text-blue-500',
+        bg: 'bg-blue-50 dark:bg-blue-900/20',
+        steps: [
+            "Complétez votre profil et les informations de votre organisation dans les Paramètres.",
+            "Invitez vos collaborateurs depuis l'onglet 'Équipe'.",
+            "Commencez par recenser vos actifs primordiaux dans le module 'Actifs'.",
+            "Lancez votre première analyse de risques."
+        ]
+    },
+    {
+        id: 'risk-management',
+        title: 'Gestion des Risques',
+        icon: ShieldAlert,
+        color: 'text-orange-500',
+        bg: 'bg-orange-50 dark:bg-orange-900/20',
+        steps: [
+            "Identifiez un actif (serveur, processus, donnée) à protéger.",
+            "Associez-lui des menaces potentielles (ex: Vol, Incendie, Ransomware).",
+            "Évaluez la probabilité et l'impact pour obtenir le Risque Brut.",
+            "Sélectionnez des mesures de traitement (contrôles ISO) pour réduire le risque.",
+            "Validez le Risque Résiduel obtenu."
+        ]
+    },
+    {
+        id: 'compliance',
+        title: 'Conformité ISO 27001',
+        icon: CheckCircle2,
+        color: 'text-emerald-500',
+        bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+        steps: [
+            "Accédez au Tableau de Bord de Conformité pour voir votre progression.",
+            "Passez en revue chaque contrôle de l'Annexe A.",
+            "Définissez le statut (Applicable, Non Applicable, Implémenté).",
+            "Liez des preuves (documents, captures) pour justifier la conformité.",
+            "Générez votre Déclaration d'Applicabilité (SoA) en un clic."
+        ]
+    },
+    {
+        id: 'assets',
+        title: 'Inventaire des Actifs',
+        icon: Database,
+        color: 'text-purple-500',
+        bg: 'bg-purple-50 dark:bg-purple-900/20',
+        steps: [
+            "Utilisez le bouton 'Ajouter' ou l'import CSV pour peupler votre inventaire.",
+            "Qualifiez chaque actif selon les critères DIC (Disponibilité, Intégrité, Confidentialité).",
+            "Assignez un propriétaire à chaque actif.",
+            "Visualisez les dépendances entre actifs grâce à la cartographie."
+        ]
+    }
+];
 
 const FAQS = [
     {
-        question: "Comment créer un nouvel actif ?",
-        answer: "Allez dans le module 'Actifs', cliquez sur 'Ajouter un Actif' ou utilisez le bouton 'Importer CSV' pour ajouter plusieurs éléments à la fois. Assurez-vous de définir le niveau de criticité (DIC) correctement."
+        category: "Général",
+        items: [
+            { q: "Comment changer la langue de l'interface ?", a: "L'interface est actuellement disponible en Français et Anglais. Vous pouvez changer la langue depuis vos Paramètres Utilisateur." },
+            { q: "Puis-je exporter mes données ?", a: "Oui, la plupart des modules (Actifs, Risques, Audits) proposent un export CSV ou PDF via le bouton 'Exporter' en haut à droite." }
+        ]
     },
     {
-        question: "Quelle est la différence entre Risque Brut et Résiduel ?",
-        answer: "Le Risque Brut est le niveau de risque avant la mise en place de mesures de sécurité. Le Risque Résiduel est le niveau restant après l'application des contrôles d'atténuation. ISO 27001 exige de gérer le risque résiduel."
+        category: "Facturation & Abonnement",
+        items: [
+            { q: "Comment passer au plan supérieur ?", a: "Rendez-vous dans Paramètres > Abonnement et cliquez sur 'Changer de plan'. Le prorata sera calculé automatiquement." },
+            { q: "Où trouver mes factures ?", a: "Vos factures sont envoyées par email et disponibles dans l'historique de facturation de votre espace Stripe, accessible depuis l'onglet Abonnement." }
+        ]
     },
     {
-        question: "Comment lier une preuve à un contrôle ISO ?",
-        answer: "Dans le module 'Conformité DdA', cliquez sur l'icône de lien à côté d'un contrôle. Vous pourrez alors sélectionner un document existant (politique, capture d'écran) comme preuve."
-    },
-    {
-        question: "Que faire en cas d'incident de sécurité ?",
-        answer: "Déclarez-le immédiatement dans le module 'Incidents'. Qualifiez la sévérité et liez l'actif impacté. Le RSSI sera notifié et pourra suivre la résolution."
-    },
-    {
-        question: "À quoi sert le module Confidentialité (RGPD) ?",
-        answer: "Il sert à maintenir votre Registre des Activités de Traitement (Article 30 du RGPD). Vous devez y lister tout processus utilisant des données personnelles (Paie, Recrutement, CRM...)."
+        category: "Technique & Sécurité",
+        items: [
+            { q: "Mes données sont-elles chiffrées ?", a: "Oui, toutes les données sont chiffrées au repos (AES-256) et en transit (TLS 1.3). Nos serveurs sont situés en Europe (Francfort/Paris)." },
+            { q: "Supportez-vous le SSO ?", a: "Le Single Sign-On (SAML/OIDC) est disponible uniquement sur le plan Enterprise. Contactez le support pour l'activer." }
+        ]
     }
 ];
 
 export const Help: React.FC = () => {
-    const [openIndex, setOpenIndex] = useState<number | null>(0);
     const [search, setSearch] = useState('');
-    const [subject, setSubject] = useState('');
-    const [message, setMessage] = useState('');
-    const [sending, setSending] = useState(false);
-    const { user, addToast } = useStore();
+    const [openFaq, setOpenFaq] = useState<string | null>(null);
+    const [isContactOpen, setIsContactOpen] = useState(false);
 
-    useEffect(() => {
-        if (user?.organizationId) {
-            SubscriptionService.getLimits(user.organizationId).then(() => {
-                // We need to get the plan ID, subscription service returns limits.
-                // Let's fetch org details properly or assume from limits.
-                // Simplified: accessing directly via SubscriptionService if exposed or fetch org.
-                // For UI speed, we'll check a feature flag 'prioritySupport' if we had one.
-                // Let's just fetch the org doc simply or rely on limits.
-                // Actually, let's just imply it from context or leave as is.
-                // Ideally we should pass planId in user store or fetch it.
-            });
-        }
-    }, [user]);
+    const filteredGuides = GUIDES.filter(g =>
+        g.title.toLowerCase().includes(search.toLowerCase()) ||
+        g.steps.some(s => s.toLowerCase().includes(search.toLowerCase()))
+    );
 
-    const filteredFaqs = FAQS.filter(f => f.question.toLowerCase().includes(search.toLowerCase()) || f.answer.toLowerCase().includes(search.toLowerCase()));
-
-    const handleContactSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!subject.trim() || !message.trim()) return;
-        setSending(true);
-        try {
-            await sendEmail(user, {
-                to: 'contact@cyber-threat-consulting.com',
-                subject: `[Support] ${subject}`,
-                type: 'INVITATION', 
-                html: `<div style="font-family:sans-serif;color:#333;"><h2>Demande de Support</h2><p><strong>De:</strong> ${user?.displayName} (${user?.email})</p><p><strong>Sujet:</strong> ${subject}</p><hr/><p>${message.replace(/\n/g, '<br/>')}</p></div>`
-            });
-            addToast("Message envoyé à Cyber Threat Consulting", "success");
-            setSubject('');
-            setMessage('');
-        } catch (_e) {
-            addToast("Erreur lors de l'envoi", "error");
-        } finally {
-            setSending(false);
-        }
-    };
+    const filteredFaqs = FAQS.map(cat => ({
+        ...cat,
+        items: cat.items.filter(item =>
+            item.q.toLowerCase().includes(search.toLowerCase()) ||
+            item.a.toLowerCase().includes(search.toLowerCase())
+        )
+    })).filter(cat => cat.items.length > 0);
 
     return (
-        <div className="max-w-5xl mx-auto space-y-10 animate-fade-in pb-16 pt-6">
-            <div className="text-center space-y-4">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-[2rem] bg-gradient-to-br from-brand-500 to-indigo-600 text-white shadow-xl shadow-brand-500/30 mb-4 ring-4 ring-white dark:ring-slate-900">
-                    <HelpCircle className="h-10 w-10" />
-                </div>
-                <h1 className="text-4xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Centre d'Aide</h1>
-                <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-                    Documentation, guides et support par Cyber Threat Consulting.
-                </p>
-                <a href="#" className="inline-flex items-center px-6 py-3 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                    <BookOpen className="h-4 w-4 mr-2" /> Accéder à la documentation
-                </a>
-            </div>
+        <div className="max-w-7xl mx-auto space-y-12 animate-fade-in pb-20 pt-8 px-4 sm:px-6 lg:px-8">
 
-            <div className="relative max-w-xl mx-auto group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                <div className="relative flex items-center glass-panel rounded-2xl p-1">
-                    <Search className="ml-4 h-5 w-5 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Rechercher une réponse..."
-                        className="w-full pl-4 pr-4 py-3.5 bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder-slate-400 text-base font-medium"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                    />
-                </div>
-            </div>
+            {/* Header Section */}
+            <div className="text-center space-y-6 relative">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-                <div className="glass-panel p-8 rounded-[2.5rem] hover:-translate-y-1 hover:shadow-apple transition-all duration-300 cursor-pointer group">
-                    <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center mb-6 text-orange-500 group-hover:scale-110 transition-transform">
-                        <ShieldAlert className="h-6 w-6" />
+                <div className="relative z-10">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-[2rem] bg-gradient-to-br from-slate-900 to-slate-800 dark:from-white dark:to-slate-200 text-white dark:text-slate-900 shadow-2xl shadow-slate-900/20 mb-6 ring-4 ring-white dark:ring-slate-900">
+                        <HelpCircle className="h-10 w-10" />
                     </div>
-                    <h3 className="font-bold text-xl text-slate-900 dark:text-white mb-2">Gestion des Risques</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Méthodologie ISO 27005, évaluation EBIOS et traitement des menaces.</p>
+                    <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white font-display tracking-tight mb-4">
+                        Comment pouvons-nous vous aider ?
+                    </h1>
+                    <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                        Explorez nos guides, trouvez des réponses rapides ou contactez nos experts.
+                    </p>
                 </div>
-                <div className="glass-panel p-8 rounded-[2.5rem] hover:-translate-y-1 hover:shadow-apple transition-all duration-300 cursor-pointer group">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-6 text-blue-500 group-hover:scale-110 transition-transform">
-                        <FileText className="h-6 w-6" />
+
+                {/* Search Bar */}
+                <div className="max-w-2xl mx-auto mt-8 relative group z-20">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                    <div className="relative flex items-center glass-panel rounded-2xl p-2 shadow-xl">
+                        <Search className="ml-4 h-6 w-6 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Rechercher un guide, une question, une fonctionnalité..."
+                            className="w-full pl-4 pr-4 py-4 bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder-slate-400 text-lg font-medium outline-none"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
                     </div>
-                    <h3 className="font-bold text-xl text-slate-900 dark:text-white mb-2">Documents & Preuves</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Cycle de vie documentaire, versionning et liaison aux contrôles.</p>
-                </div>
-                <div className="glass-panel p-8 rounded-[2.5rem] hover:-translate-y-1 hover:shadow-apple transition-all duration-300 cursor-pointer group">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center mb-6 text-purple-500 group-hover:scale-110 transition-transform">
-                        <LayoutDashboard className="h-6 w-6" />
-                    </div>
-                    <h3 className="font-bold text-xl text-slate-900 dark:text-white mb-2">RGPD & Confidentialité</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Tenue du registre ROPA, durées de conservation et analyses d'impact.</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
-                <div className="space-y-4">
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white px-2 mb-6">Questions Fréquentes</h2>
+            {/* Quick Guides Grid */}
+            <div>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 flex items-center gap-3">
+                    <BookOpen className="w-6 h-6 text-blue-500" />
+                    Guides de Démarrage
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {filteredGuides.map((guide) => (
+                        <div key={guide.id} className="glass-panel p-6 rounded-[2rem] hover:-translate-y-1 hover:shadow-apple transition-all duration-300 group h-full flex flex-col">
+                            <div className={`w-14 h-14 rounded-2xl ${guide.bg} flex items-center justify-center mb-6 ${guide.color} group-hover:scale-110 transition-transform duration-300`}>
+                                <guide.icon className="h-7 w-7" />
+                            </div>
+                            <h3 className="font-bold text-xl text-slate-900 dark:text-white mb-4">{guide.title}</h3>
+                            <ul className="space-y-3 flex-1">
+                                {guide.steps.map((step, idx) => (
+                                    <li key={idx} className="flex items-start text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                                        <div className="min-w-[20px] h-5 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 mr-3 mt-0.5">
+                                            {idx + 1}
+                                        </div>
+                                        {step}
+                                    </li>
+                                ))}
+                            </ul>
+                            <button className="mt-6 w-full py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 group/btn">
+                                Lire le guide complet
+                                <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* FAQ & Support Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* FAQ Column */}
+                <div className="lg:col-span-2 space-y-8">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                        <HelpCircle className="w-6 h-6 text-purple-500" />
+                        Questions Fréquentes
+                    </h2>
+
                     {filteredFaqs.length === 0 ? (
                         <div className="text-center py-12 glass-panel rounded-[2.5rem]">
-                            <p className="text-slate-500">Aucun résultat pour cette recherche.</p>
+                            <p className="text-slate-500 font-medium">Aucun résultat trouvé pour "{search}"</p>
                         </div>
                     ) : (
-                        filteredFaqs.map((faq, i) => (
-                            <div key={i} className="glass-panel rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-white/50 dark:border-white/5">
-                                <button
-                                    onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                                    className="w-full flex items-center justify-between p-6 text-left"
-                                >
-                                    <span className="font-bold text-slate-800 dark:text-white text-lg pr-4">{faq.question}</span>
-                                    <div className={`flex-shrink-0 p-2 rounded-full bg-slate-100 dark:bg-slate-800 transition-transform duration-300 ${openIndex === i ? 'rotate-90 bg-brand-100 text-brand-600 dark:bg-brand-900 dark:text-brand-400' : 'text-slate-400'}`}>
-                                        <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
+                        <div className="space-y-8">
+                            {filteredFaqs.map((category, catIdx) => (
+                                <div key={catIdx} className="space-y-4">
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest px-2">{category.category}</h3>
+                                    <div className="space-y-3">
+                                        {category.items.map((item, itemIdx) => {
+                                            const key = `${catIdx}-${itemIdx}`;
+                                            const isOpen = openFaq === key;
+                                            return (
+                                                <div key={key} className="glass-panel rounded-2xl overflow-hidden transition-all duration-300 border border-white/60 dark:border-white/5 hover:shadow-md">
+                                                    <button
+                                                        onClick={() => setOpenFaq(isOpen ? null : key)}
+                                                        className="w-full flex items-center justify-between p-5 text-left"
+                                                    >
+                                                        <span className={`font-bold text-base transition-colors ${isOpen ? 'text-blue-600 dark:text-blue-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                                                            {item.q}
+                                                        </span>
+                                                        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-500' : ''}`} />
+                                                    </button>
+                                                    <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                                        <div className="overflow-hidden">
+                                                            <div className="px-5 pb-5 pt-0">
+                                                                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium border-t border-slate-100 dark:border-white/5 pt-4">
+                                                                    {item.a}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                </button>
-                                {openIndex === i && (
-                                    <div className="px-6 pb-6 pt-0">
-                                        <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                                            <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                                                {faq.answer}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </div>
 
-                <div className="glass-panel rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 h-fit sticky top-24">
-                    <div className="flex items-center mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center mr-4 shadow-lg">
-                            <MessageSquare className="h-5 w-5" />
+                {/* Contact Card */}
+                <div className="lg:col-span-1">
+                    <div className="glass-panel p-8 rounded-[2.5rem] sticky top-24 border border-blue-100/50 dark:border-blue-500/10 shadow-xl shadow-blue-900/5">
+                        <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center mb-6 shadow-lg shadow-blue-600/30">
+                            <MessageSquare className="h-6 w-6" />
                         </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Support Expert</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Cyber Threat Consulting</p>
-                        </div>
-                    </div>
-                    
-                    {/* Fallback plan check: Ideally check user.planId */}
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 mb-6">
-                        <p className="text-xs text-blue-700 dark:text-blue-300">
-                            <span className="font-bold">Info :</span> Les utilisateurs du plan <strong>Professional</strong> et <strong>Enterprise</strong> bénéficient d'un traitement prioritaire.
-                        </p>
-                    </div>
 
-                    <form onSubmit={handleContactSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Sujet</label>
-                            <input required type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
-                                value={subject} onChange={e => setSubject(e.target.value)} placeholder="Ex: Question sur un contrôle" />
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Besoin d'aide supplémentaire ?</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
+                            Nos experts en cybersécurité sont là pour vous accompagner dans votre démarche de conformité.
+                        </p>
+
+                        <div className="space-y-4">
+                            <button
+                                onClick={() => setIsContactOpen(true)}
+                                className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 group"
+                            >
+                                <Send className="w-4 h-4 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
+                                Contacter le Support
+                            </button>
+
+                            <a
+                                href="mailto:contact@cyber-threat-consulting.com"
+                                className="w-full py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                                Envoyer un email
+                            </a>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Message</label>
-                            <textarea required rows={4} className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none dark:text-white"
-                                value={message} onChange={e => setMessage(e.target.value)} placeholder="Détaillez votre demande..." />
+
+                        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-white/5">
+                            <div className="flex items-center gap-3">
+                                <div className="flex -space-x-2">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-slate-800" />
+                                    ))}
+                                </div>
+                                <div className="text-xs">
+                                    <p className="font-bold text-slate-900 dark:text-white">Support Premium</p>
+                                    <p className="text-slate-500">Réponse sous 24h ouvrées</p>
+                                </div>
+                            </div>
                         </div>
-                        <button type="submit" disabled={sending} className="w-full py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/20 hover:bg-brand-700 hover:scale-105 transition-all flex items-center justify-center disabled:opacity-70">
-                            {sending ? 'Envoi...' : <><Send className="h-4 w-4 mr-2" /> Contacter le support</>}
-                        </button>
-                        <div className="text-center mt-4">
-                            <p className="text-[10px] text-slate-400">contact@cyber-threat-consulting.com</p>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
+
+            <ContactModal
+                isOpen={isContactOpen}
+                onClose={() => setIsContactOpen(false)}
+                subject="Demande de support depuis le Centre d'Aide"
+            />
         </div>
     );
 };

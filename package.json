@@ -25,6 +25,7 @@
     "@capacitor/splash-screen": "^7.0.3",
     "@capacitor/status-bar": "^7.0.3",
     "@google/generative-ai": "^0.14.1",
+    "@headlessui/react": "^2.2.9",
     "@react-three/drei": "^9.88.17",
     "@react-three/fiber": "^8.17.10",
     "@react-three/postprocessing": "^2.16.3",
