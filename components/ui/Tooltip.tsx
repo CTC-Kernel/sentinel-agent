@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface TooltipProps {
     content: string;
@@ -16,49 +17,84 @@ export const Tooltip: React.FC<TooltipProps> = ({
     className = ''
 }) => {
     const [isVisible, setIsVisible] = useState(false);
-    const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+    const [coords, setCoords] = useState({ top: 0, left: 0 });
+    const triggerRef = useRef<HTMLDivElement>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const showTooltip = () => {
-        const id = setTimeout(() => setIsVisible(true), delay);
-        setTimeoutId(id);
-    };
+    const updatePosition = () => {
+        if (triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            const scrollX = window.scrollX;
+            const scrollY = window.scrollY;
 
-    const hideTooltip = () => {
-        if (timeoutId) clearTimeout(timeoutId);
-        setIsVisible(false);
-    };
+            let top = 0;
+            let left = 0;
 
-    const getPositionClasses = () => {
-        switch (position) {
-            case 'top':
-                return 'bottom-full left-1/2 -translate-x-1/2 mb-2';
-            case 'bottom':
-                return 'top-full left-1/2 -translate-x-1/2 mt-2';
-            case 'left':
-                return 'right-full top-1/2 -translate-y-1/2 mr-2';
-            case 'right':
-                return 'left-full top-1/2 -translate-y-1/2 ml-2';
-            default:
-                return 'bottom-full left-1/2 -translate-x-1/2 mb-2';
+            switch (position) {
+                case 'top':
+                    top = rect.top + scrollY - 10;
+                    left = rect.left + scrollX + rect.width / 2;
+                    break;
+                case 'bottom':
+                    top = rect.bottom + scrollY + 10;
+                    left = rect.left + scrollX + rect.width / 2;
+                    break;
+                case 'left':
+                    top = rect.top + scrollY + rect.height / 2;
+                    left = rect.left + scrollX - 10;
+                    break;
+                case 'right':
+                    top = rect.top + scrollY + rect.height / 2;
+                    left = rect.right + scrollX + 10;
+                    break;
+            }
+            setCoords({ top, left });
         }
     };
 
+    const showTooltip = () => {
+        updatePosition();
+        const id = setTimeout(() => setIsVisible(true), delay);
+        timeoutRef.current = id;
+    };
+
+    const hideTooltip = () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        setIsVisible(false);
+    };
+
+    useEffect(() => {
+        window.addEventListener('resize', updatePosition);
+        window.addEventListener('scroll', updatePosition);
+        return () => {
+            window.removeEventListener('resize', updatePosition);
+            window.removeEventListener('scroll', updatePosition);
+        };
+    }, []);
+
     return (
         <div
+            ref={triggerRef}
             className={`relative inline-block ${className}`}
             onMouseEnter={showTooltip}
             onMouseLeave={hideTooltip}
         >
             {children}
-            {isVisible && (
-                <div className={`absolute z-50 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-xl shadow-xl whitespace-nowrap animate-fade-in ${getPositionClasses()}`}>
+            {isVisible && createPortal(
+                <div
+                    className="fixed z-[9999] px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-xl shadow-xl whitespace-nowrap animate-fade-in pointer-events-none"
+                    style={{
+                        top: coords.top,
+                        left: coords.left,
+                        transform: position === 'top' ? 'translate(-50%, -100%)' :
+                            position === 'bottom' ? 'translate(-50%, 0)' :
+                                position === 'left' ? 'translate(-100%, -50%)' :
+                                    'translate(0, -50%)'
+                    }}
+                >
                     {content}
-                    <div className={`absolute w-2 h-2 bg-white/90 dark:bg-slate-900/90 border-r border-b border-white/20 dark:border-white/10 transform rotate-45 ${position === 'top' ? 'bottom-[-5px] left-1/2 -translate-x-1/2' :
-                        position === 'bottom' ? 'top-[-5px] left-1/2 -translate-x-1/2 rotate-180' :
-                            position === 'left' ? 'right-[-5px] top-1/2 -translate-y-1/2 -rotate-45' :
-                                'left-[-5px] top-1/2 -translate-y-1/2 rotate-135'
-                        }`}></div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

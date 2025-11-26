@@ -7,7 +7,7 @@ import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIIns
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const MODEL_NAME = "gemini-3.0-pro-latest";
+const MODEL_NAME = "gemini-3-pro-preview";
 
 interface GraphData {
     assets: Asset[];
@@ -94,9 +94,9 @@ export const aiService = {
                 };
             } catch (modelError: any) {
                 console.error("Primary model failed, trying fallback...", modelError);
-                // Fallback to gemini-pro if specific version fails
+                // Fallback to gemini-1.5-flash if specific version fails
                 if (modelError.message?.includes('404') || modelError.message?.includes('not found')) {
-                    model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+                    model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
                     const result = await model.generateContent(prompt);
                     const response = await result.response;
                     const text = response.text();
@@ -124,7 +124,6 @@ export const aiService = {
         if (!API_KEY) return { mappings: {}, confidence: 0 };
 
         try {
-            const model = genAI.getGenerativeModel({ model: MODEL_NAME });
             const prompt = `
                 You are a Data Import Assistant. Map the columns of this CSV preview to the following internal fields:
                 - name (Nom de l'actif)
@@ -140,8 +139,7 @@ export const aiService = {
                 Only map if confident.
             `;
 
-            const result = await model.generateContent(prompt);
-            const text = (await result.response).text();
+            const text = await generateContentSafe(prompt);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
         } catch (error) {
@@ -157,15 +155,13 @@ export const aiService = {
         if (!API_KEY) return { value: '', reasoning: 'AI Key missing' };
 
         try {
-            const model = genAI.getGenerativeModel({ model: MODEL_NAME });
             const prompt = `
                 Context: ${JSON.stringify(context)}
                 Suggest a value for the field "${fieldName}" (e.g., Type, Criticality, Description).
                 Return JSON: { "value": "suggested_value", "reasoning": "short explanation" }
             `;
 
-            const result = await model.generateContent(prompt);
-            const text = (await result.response).text();
+            const text = await generateContentSafe(prompt);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
         } catch (error) {
@@ -174,41 +170,18 @@ export const aiService = {
         }
     },
 
-
-
     /**
      * General chat with the AI assistant.
      */
     async chatWithAI(message: string, context?: any): Promise<string> {
         if (!API_KEY) return "Je ne peux pas répondre car la clé API Gemini est manquante.";
 
-        try {
-            const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-
-            let systemPrompt = `Tu es Sentinel AI, un assistant expert en cybersécurité et GRC (Gouvernance, Risque, Conformité).
+        const systemPrompt = `Tu es Sentinel AI, un assistant expert en cybersécurité et GRC (Gouvernance, Risque, Conformité).
             Ton rôle est d'aider les utilisateurs à gérer leur sécurité, comprendre les normes (ISO 27001, RGPD) et rédiger des documents.
-            Sois professionnel, concis et précis. Réponds toujours en Français.`;
+            Sois professionnel, concis et précis. Réponds toujours en Français.${context ? `\n\nContexte actuel de l'application :\n${JSON.stringify(context)}` : ''}`;
 
-            if (context) {
-                systemPrompt += `\n\nContexte actuel de l'application :\n${JSON.stringify(context)}`;
-            }
-
-            const chat = model.startChat({
-                history: [
-                    {
-                        role: "user",
-                        parts: [{ text: systemPrompt }],
-                    },
-                    {
-                        role: "model",
-                        parts: [{ text: "Bien reçu. Je suis Sentinel AI, prêt à vous assister sur tous les sujets GRC." }],
-                    },
-                ],
-            });
-
-            const result = await chat.sendMessage(message);
-            const response = await result.response;
-            return response.text();
+        try {
+            return await runChatSafe(systemPrompt, message);
         } catch (error) {
             console.error("AI Chat failed:", error);
             return "Désolé, une erreur est survenue lors de la communication avec l'IA.";
@@ -222,7 +195,6 @@ export const aiService = {
         if (!API_KEY) return "Clé API manquante.";
 
         try {
-            const model = genAI.getGenerativeModel({ model: MODEL_NAME });
             const prompt = `
                 Rédige un document de politique de sécurité (Format Markdown).
                 Type: ${type}
@@ -239,12 +211,52 @@ export const aiService = {
                 Le ton doit être formel et adapté à une entreprise certifiée ISO 27001.
             `;
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            return response.text();
+            return await generateContentSafe(prompt);
         } catch (error) {
             console.error("Policy generation failed:", error);
             throw new Error("Échec de la génération de politique.");
         }
     }
 };
+
+// --- Helpers ---
+
+async function generateContentSafe(prompt: string): Promise<string> {
+    try {
+        const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+        const result = await model.generateContent(prompt);
+        return (await result.response).text();
+    } catch (error: any) {
+        if (error.message?.includes('404') || error.message?.includes('not found')) {
+            console.warn(`Model ${MODEL_NAME} not found, falling back to gemini-1.5-flash`);
+            const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+            const result = await fallbackModel.generateContent(prompt);
+            return (await result.response).text();
+        }
+        throw error;
+    }
+}
+
+async function runChatSafe(systemPrompt: string, message: string): Promise<string> {
+    const runChat = async (modelName: string) => {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const chat = model.startChat({
+            history: [
+                { role: "user", parts: [{ text: systemPrompt }] },
+                { role: "model", parts: [{ text: "Bien reçu. Je suis Sentinel AI, prêt à vous assister sur tous les sujets GRC." }] },
+            ],
+        });
+        const result = await chat.sendMessage(message);
+        return (await result.response).text();
+    };
+
+    try {
+        return await runChat(MODEL_NAME);
+    } catch (error: any) {
+        if (error.message?.includes('404') || error.message?.includes('not found')) {
+            console.warn(`Model ${MODEL_NAME} not found for chat, falling back to gemini-1.5-flash`);
+            return await runChat('gemini-1.5-flash');
+        }
+        throw error;
+    }
+}

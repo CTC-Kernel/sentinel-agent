@@ -109,7 +109,8 @@ import {
   Loader2,
   Minimize2,
   CheckCheck,
-  Layers
+  Layers,
+  Lightbulb
 } from 'lucide-react';
 
 export {
@@ -222,5 +223,6 @@ export {
   Loader2,
   Minimize2,
   CheckCheck,
-  Layers
+  Layers,
+  Lightbulb
 };
