@@ -370,13 +370,15 @@ export interface ProcessingActivity {
   name: string;
   purpose: string;
   manager: string;
-  legalBasis: 'Consentement' | 'Contrat' | 'Obligation Légale' | 'Intérêt Légitime';
+  managerId?: string;
+  legalBasis: 'Consentement' | 'Contrat' | 'Obligation Légale' | 'Intérêt Légitime' | 'Sauvegarde Intérêts' | 'Mission Publique';
   dataCategories: string[];
   dataSubjects: string[];
   retentionPeriod: string;
   hasDPIA: boolean;
-  status: 'Actif' | 'Archivé' | 'En projet';
-  createdAt: string;
+  status: 'Actif' | 'En projet' | 'Archivé';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BusinessProcess {

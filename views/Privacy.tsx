@@ -39,7 +39,7 @@ export const Privacy: React.FC = () => {
     });
 
     const [newActivity, setNewActivity] = useState<Partial<ProcessingActivity>>({
-        name: '', purpose: '', manager: '', legalBasis: 'Intérêt Légitime', dataCategories: [],
+        name: '', purpose: '', manager: '', managerId: '', legalBasis: 'Intérêt Légitime', dataCategories: [],
         dataSubjects: [], retentionPeriod: '', hasDPIA: false, status: 'Actif'
     });
 
@@ -62,13 +62,21 @@ export const Privacy: React.FC = () => {
                 return [];
             };
 
-            const data = getDocsData<ProcessingActivity>(results[0]);
-            // Sort client-side
-            data.sort((a, b) => a.name.localeCompare(b.name));
-            setActivities(data);
-
             const userData = getDocsData<UserProfile>(results[1]);
             setUsersList(userData);
+
+            const data = getDocsData<ProcessingActivity>(results[0]);
+            // Resolve managerId
+            const resolvedData = data.map(a => {
+                if (!a.managerId && a.manager) {
+                    const managerUser = userData.find(u => u.displayName === a.manager);
+                    if (managerUser) return { ...a, managerId: managerUser.uid };
+                }
+                return a;
+            });
+            // Sort client-side
+            resolvedData.sort((a, b) => a.name.localeCompare(b.name));
+            setActivities(resolvedData);
 
             // Calculate Stats
             const total = data.length;
@@ -193,6 +201,7 @@ export const Privacy: React.FC = () => {
                             name: cols[0]?.trim() || 'Traitement importé',
                             purpose: cols[1]?.trim() || 'N/A',
                             manager: cols[2]?.trim() || 'N/A',
+                            managerId: user.uid, // Default to importer if unknown
                             legalBasis: 'Intérêt Légitime',
                             dataCategories: [],
                             dataSubjects: [],
@@ -253,17 +262,17 @@ export const Privacy: React.FC = () => {
                 actions={canEdit && (
                     <>
                         <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                        <button 
-                            onClick={() => fileInputRef.current?.click()} 
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
                             className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
                         >
                             <Upload className="h-4 w-4 mr-2" /> Importer
                         </button>
-                        <button 
+                        <button
                             onClick={() => {
                                 setNewActivity({ name: '', purpose: '', manager: user?.displayName || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
                                 setShowCreateModal(true);
-                            }} 
+                            }}
                             className="flex items-center px-5 py-2.5 bg-purple-600 text-white text-sm font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30"
                         >
                             <Plus className="h-4 w-4 mr-2" /> Nouveau Traitement
@@ -324,7 +333,7 @@ export const Privacy: React.FC = () => {
                             description={filter ? "Aucun traitement ne correspond à votre recherche." : "Commencez par ajouter vos activités de traitement au registre."}
                             actionLabel={filter ? undefined : "Nouveau Traitement"}
                             onAction={filter ? undefined : () => {
-                                setNewActivity({ name: '', purpose: '', manager: user?.displayName || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
+                                setNewActivity({ name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
                                 setShowCreateModal(true);
                             }}
                         />
@@ -432,8 +441,14 @@ export const Privacy: React.FC = () => {
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} /></div>
                                                         <div>
                                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" value={editForm.manager} onChange={e => setEditForm({ ...editForm, manager: e.target.value })}>
-                                                                {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
+                                                                value={editForm.managerId || ''}
+                                                                onChange={e => {
+                                                                    const selectedUser = usersList.find(u => u.uid === e.target.value);
+                                                                    setEditForm({ ...editForm, managerId: e.target.value, manager: selectedUser?.displayName || '' });
+                                                                }}>
+                                                                <option value="">Sélectionner...</option>
+                                                                {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                                             </select>
                                                         </div>
                                                     </div>
@@ -565,9 +580,13 @@ export const Privacy: React.FC = () => {
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
                                         <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
-                                            value={newActivity.manager} onChange={e => setNewActivity({ ...newActivity, manager: e.target.value })}>
+                                            value={newActivity.managerId || ''}
+                                            onChange={e => {
+                                                const selectedUser = usersList.find(u => u.uid === e.target.value);
+                                                setNewActivity({ ...newActivity, managerId: e.target.value, manager: selectedUser?.displayName || '' });
+                                            }}>
                                             <option value="">Sélectionner...</option>
-                                            {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
+                                            {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                         </select>
                                     </div>
                                 </div>
