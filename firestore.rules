@@ -19,6 +19,18 @@ service cloud.firestore {
       return isAuthenticated() && getUserData().role == 'auditor';
     }
     
+    function isRSSI() {
+      return isAuthenticated() && getUserData().role == 'rssi';
+    }
+
+    function isProjectManager() {
+      return isAuthenticated() && getUserData().role == 'project_manager';
+    }
+
+    function isDirection() {
+      return isAuthenticated() && getUserData().role == 'direction';
+    }
+    
     function belongsToOrganization(orgId) {
       return isAuthenticated() && getUserData().organizationId == orgId;
     }
@@ -28,18 +40,18 @@ service cloud.firestore {
     }
     
     function canWrite(orgId) {
-      return belongsToOrganization(orgId) && (isAdmin() || isAuditor());
+      return belongsToOrganization(orgId) && (isAdmin() || isAuditor() || isRSSI());
     }
     
     function canDelete(orgId) {
-      return belongsToOrganization(orgId) && isAdmin();
+      return belongsToOrganization(orgId) && (isAdmin() || isRSSI());
     }
     
     // Organizations
     match /organizations/{orgId} {
       allow read: if belongsToOrganization(orgId) || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
-      allow update: if canWrite(orgId);
+      allow update: if belongsToOrganization(orgId) && isAdmin();
       allow delete: if false;
     }
 
@@ -51,12 +63,25 @@ service cloud.firestore {
       );
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && (
-        request.auth.uid == userId || 
+        (request.auth.uid == userId && 
+         request.resource.data.role == resource.data.role && 
+         request.resource.data.organizationId == resource.data.organizationId) || 
         (isAdmin() && belongsToOrganization(resource.data.organizationId))
       );
       allow delete: if isAdmin() && belongsToOrganization(resource.data.organizationId);
     }
     
+    // Join Requests
+    match /join_requests/{requestId} {
+      allow read: if isAuthenticated() && (
+        request.auth.token.email == resource.data.userEmail ||
+        belongsToOrganization(resource.data.organizationId)
+      );
+      allow create: if isAuthenticated();
+      allow update: if belongsToOrganization(resource.data.organizationId) && isAdmin();
+      allow delete: if belongsToOrganization(resource.data.organizationId) && isAdmin();
+    }
+
     // Invitations
     match /invitations/{invitationId} {
       allow read: if isAuthenticated() && (
@@ -68,6 +93,16 @@ service cloud.firestore {
         (isAdmin() && belongsToOrganization(resource.data.organizationId)) ||
         request.auth.token.email == resource.data.email
       );
+    }
+    
+    // Risk History
+    match /risk_history/{historyId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if false; // History is immutable
+      allow delete: if canDelete(resource.data.organizationId);
     }
     
     // Assets
@@ -146,9 +181,9 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId);
-      allow update: if canWrite(resource.data.organizationId);
-      allow delete: if canDelete(resource.data.organizationId);
+        (canWrite(request.resource.data.organizationId) || isProjectManager());
+      allow update: if canWrite(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
+      allow delete: if canDelete(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
     }
     
     // Incidents
@@ -165,9 +200,9 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId);
-      allow update: if canWrite(resource.data.organizationId);
-      allow delete: if canDelete(resource.data.organizationId);
+        (canWrite(request.resource.data.organizationId) || isProjectManager());
+      allow update: if canWrite(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
+      allow delete: if canDelete(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
     }
     
     // Suppliers

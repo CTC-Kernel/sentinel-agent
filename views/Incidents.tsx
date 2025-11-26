@@ -109,7 +109,16 @@ export const Incidents: React.FC = () => {
 
                 const incidentLink = `${window.location.origin}/#/incidents`;
                 const htmlContent = getIncidentAlertTemplate(newIncident.title || 'Incident', newIncident.severity || 'Moyenne', user?.displayName || 'Utilisateur', incidentLink);
-                await sendEmail(user, { to: 'rssi@sentinel.local', subject: `[ALERTE SÉCURITÉ] ${newIncident.severity?.toUpperCase()} - ${newIncident.title}`, type: 'INCIDENT_ALERT', html: htmlContent });
+
+                // Find recipients (Admins & RSSI)
+                const recipients = usersList
+                    .filter(u => u.role === 'admin' || u.role === 'rssi')
+                    .map(u => u.email)
+                    .filter(email => email && email.includes('@')); // Basic validation
+
+                const to = recipients.length > 0 ? recipients.join(',') : user.email;
+
+                await sendEmail(user, { to, subject: `[ALERTE SÉCURITÉ] ${newIncident.severity?.toUpperCase()} - ${newIncident.title}`, type: 'INCIDENT_ALERT', html: htmlContent });
                 addToast("Incident déclaré (Alerte envoyée)", "success");
             }
             setShowModal(false);
@@ -123,7 +132,7 @@ export const Incidents: React.FC = () => {
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
-            
+
             <PageHeader
                 title="Gestion des Incidents"
                 subtitle="Déclaration et traitement des incidents de sécurité (ISO 27001 A.6.8)."
@@ -132,7 +141,7 @@ export const Incidents: React.FC = () => {
                 ]}
                 icon={<Siren className="h-6 w-6 text-white" strokeWidth={2.5} />}
             />
-            
+
             <IncidentDashboard
                 incidents={incidents}
                 onCreate={() => openModal()}
