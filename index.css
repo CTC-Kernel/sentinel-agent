@@ -296,13 +296,17 @@ body {
   box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Voxel View Fullscreen Mode - Hide Sidebar and Header to prevent z-index issues */
-body.voxel-fullscreen aside,
-body.voxel-fullscreen header {
-  display: none !important;
-}
-
+/* Voxel View Fullscreen Mode - Optimize layout */
 body.voxel-fullscreen main {
   padding: 0 !important;
   overflow: hidden !important;
+}
+
+/* Hide main app sidebar and header in Voxel fullscreen mode */
+body.voxel-fullscreen aside:not([class*="inset-y-0 right-0"]) {
+  display: none !important;
+}
+
+body.voxel-fullscreen header {
+  display: none !important;
 }
