@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartsRadar, ResponsiveContainer, Tooltip, AreaChart, Area, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { ShieldAlert, CheckCircle2, AlertTriangle, Download, Siren, TrendingUp, Stethoscope, History, Server, Flame, CalendarDays, User, Zap, ArrowRight, Euro, Settings as Settings3D, Sparkles, FileText, ClipboardCheck } from '../components/ui/Icons';
+import { ShieldAlert, CheckCircle2, AlertTriangle, Download, Siren, TrendingUp, Stethoscope, History, Server, Flame, CalendarDays, User, Zap, ArrowRight, Euro, Settings as Settings3D, FileText, ClipboardCheck } from '../components/ui/Icons';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ChartTooltip } from '../components/ui/ChartTooltip';
 import { db } from '../firebase';
@@ -106,10 +106,9 @@ export const Dashboard: React.FC = () => {
                 const results = await Promise.allSettled(fetches);
 
                 const rejected = results.find(r => r.status === 'rejected');
-                if (rejected && (rejected as PromiseRejectedResult).reason?.code === 'permission-denied') {
-                    setError('permission-denied');
-                    setLoading(false);
-                    return;
+                if (rejected) {
+                    console.warn("Certaines données n'ont pas pu être chargées:", (rejected as PromiseRejectedResult).reason);
+                    // On continue quand même pour afficher ce qu'on a
                 }
 
                 const getRawData = <T,>(result: PromiseSettledResult<any>): T[] => {
@@ -358,109 +357,119 @@ export const Dashboard: React.FC = () => {
                 }
             />
 
-            <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 shadow-2xl ring-1 ring-slate-200/50 dark:ring-white/5 transition-all hover:shadow-3xl duration-500 group">
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-overlay"></div>
-                <div className="relative z-10 p-10 md:p-12">
+            <div className="relative overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-2xl ring-1 ring-slate-200/60 dark:ring-white/5 transition-all duration-500 group">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/5 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10 opacity-100"></div>
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
+                
+                <div className="relative z-10 p-10 md:p-14">
                     {isEmpty && !loading ? (
                         /* État vide élégant */
-                        <div className="flex flex-col items-center justify-center text-center py-12">
-                            <div className="relative mb-8">
-                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
-                                <div className="relative bg-gradient-to-br from-blue-500 to-purple-600 p-6 rounded-3xl shadow-2xl">
-                                    <Sparkles className="h-12 w-12 text-white" strokeWidth={2} />
-                                </div>
-                            </div>
-
-                            <div className="inline-flex items-center px-3 py-1 rounded-full bg-slate-900/5 dark:bg-white/10 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest mb-4 backdrop-blur-md shadow-sm">
-                                <span className="w-1.5 h-1.5 bg-emerald-500 dark:bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
+                        <div className="flex flex-col items-center justify-center text-center py-8">
+                            <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-900/5 dark:bg-white/10 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-6 backdrop-blur-md shadow-sm">
+                                <span className="w-2 h-2 bg-emerald-500 dark:bg-emerald-400 rounded-full mr-2.5 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
                                 {organizationName || user?.organizationName || 'Système Opérationnel'}
                             </div>
 
-                            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter font-display mb-4">
+                            <h2 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 tracking-tight font-display mb-6">
                                 Bienvenue sur Sentinel GRC
                             </h2>
-                            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mb-8 leading-relaxed">
-                                Commencez votre parcours vers la conformité ISO 27001 en créant vos premiers éléments.
+                            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mb-10 leading-relaxed font-medium">
+                                La plateforme tout-en-un pour piloter votre conformité ISO 27001.<br/>
+                                Commencez par initialiser votre référentiel de sécurité.
                             </p>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl w-full mt-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl w-full mx-auto">
                                 <button
                                     onClick={() => navigate('/assets')}
-                                    className="group p-6 bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-white/80 dark:hover:bg-white/10 transition-all hover:scale-105 hover:shadow-xl"
+                                    className="group relative p-8 bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-3xl hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                                 >
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="p-3 bg-blue-500/10 rounded-xl">
-                                            <Server className="h-6 w-6 text-blue-500" />
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl"></div>
+                                    <div className="flex flex-col items-center gap-4 relative z-10">
+                                        <div className="p-4 bg-blue-50 dark:bg-blue-500/20 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                                            <Server className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                                         </div>
-                                        <h3 className="font-bold text-slate-900 dark:text-white">Créer un actif</h3>
-                                        <p className="text-xs text-slate-600 dark:text-slate-400">Recensez vos ressources critiques</p>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Créer un actif</h3>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Recensez vos ressources critiques</p>
+                                        </div>
                                     </div>
                                 </button>
 
                                 <button
                                     onClick={() => navigate('/compliance')}
-                                    className="group p-6 bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-white/80 dark:hover:bg-white/10 transition-all hover:scale-105 hover:shadow-xl"
+                                    className="group relative p-8 bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-3xl hover:border-emerald-400 dark:hover:border-emerald-500/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                                 >
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="p-3 bg-emerald-500/10 rounded-xl">
-                                            <ClipboardCheck className="h-6 w-6 text-emerald-500" />
+                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl"></div>
+                                    <div className="flex flex-col items-center gap-4 relative z-10">
+                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-500/20 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                                            <ClipboardCheck className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
                                         </div>
-                                        <h3 className="font-bold text-slate-900 dark:text-white">Configurer les contrôles</h3>
-                                        <p className="text-xs text-slate-600 dark:text-slate-400">Définissez votre périmètre ISO</p>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Configurer les contrôles</h3>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Définissez votre périmètre ISO</p>
+                                        </div>
                                     </div>
                                 </button>
 
                                 <button
                                     onClick={() => navigate('/documents')}
-                                    className="group p-6 bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-white/80 dark:hover:bg-white/10 transition-all hover:scale-105 hover:shadow-xl"
+                                    className="group relative p-8 bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-3xl hover:border-purple-400 dark:hover:border-purple-500/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                                 >
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="p-3 bg-purple-500/10 rounded-xl">
-                                            <FileText className="h-6 w-6 text-purple-500" />
+                                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl"></div>
+                                    <div className="flex flex-col items-center gap-4 relative z-10">
+                                        <div className="p-4 bg-purple-50 dark:bg-purple-500/20 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                                            <FileText className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                                         </div>
-                                        <h3 className="font-bold text-slate-900 dark:text-white">Ajouter des documents</h3>
-                                        <p className="text-xs text-slate-600 dark:text-slate-400">Centralisez vos politiques</p>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Ajouter des documents</h3>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Centralisez vos politiques</p>
+                                        </div>
                                     </div>
                                 </button>
                             </div>
                         </div>
                     ) : (
                         /* État normal avec données */
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                            <div>
-                                <div className="inline-flex items-center px-3 py-1 rounded-full bg-slate-900/5 dark:bg-white/10 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest mb-6 backdrop-blur-md shadow-sm">
-                                    <span className="w-1.5 h-1.5 bg-emerald-500 dark:bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
+                            <div className="flex-1 min-w-0">
+                                <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-900/5 dark:bg-white/10 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-6 backdrop-blur-md shadow-sm">
+                                    <span className="w-2 h-2 bg-emerald-500 dark:bg-emerald-400 rounded-full mr-2.5 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
                                     {organizationName || user?.organizationName || 'Système Opérationnel'}
                                 </div>
-                                <div className="flex items-center gap-5 mb-4">
-                                    <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tighter font-display">Sentinel GRC</h1>
-                                    <div className={`flex items-center justify-center w-14 h-14 rounded-2xl text-3xl font-black shadow-2xl border-4 ${scoreGrade === 'A' ? 'bg-emerald-500 border-emerald-400/50 text-white' : scoreGrade === 'B' ? 'bg-blue-500 border-blue-400/50 text-white' : scoreGrade === 'C' ? 'bg-orange-500 border-orange-400/50 text-white' : 'bg-red-500 border-red-400/50 text-white'}`}>
+                                
+                                <div className="flex items-center gap-6 mb-6">
+                                    <h1 className="text-5xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter font-display">Sentinel GRC</h1>
+                                    <div className={`flex items-center justify-center w-16 h-16 rounded-2xl text-4xl font-black shadow-2xl border-4 rotate-3 transition-transform hover:rotate-0 duration-300 ${scoreGrade === 'A' ? 'bg-emerald-500 border-emerald-400/50 text-white shadow-emerald-500/30' : scoreGrade === 'B' ? 'bg-blue-500 border-blue-400/50 text-white shadow-blue-500/30' : scoreGrade === 'C' ? 'bg-orange-500 border-orange-400/50 text-white shadow-orange-500/30' : 'bg-red-500 border-red-400/50 text-white shadow-red-500/30'}`}>
                                         {scoreGrade}
                                     </div>
                                 </div>
-                                <p className="text-slate-600 dark:text-slate-400 text-lg font-medium max-w-lg leading-relaxed">Votre score de sécurité reflète la maturité actuelle : <strong className="text-slate-900 dark:text-white font-bold">{loading ? '...' : stats.compliance}%</strong> de conformité.</p>
+                                
+                                <p className="text-slate-600 dark:text-slate-400 text-xl font-medium max-w-xl leading-relaxed mb-8">
+                                    Votre score de sécurité reflète la maturité actuelle : <strong className="text-slate-900 dark:text-white font-bold">{loading ? '...' : stats.compliance}%</strong> de conformité aux normes.
+                                </p>
 
-                                <div className={`mt-8 p-4 rounded-2xl backdrop-blur-md border flex items-start gap-4 transition-all duration-300 hover:scale-[1.02] cursor-default shadow-lg ${insight.type === 'danger' ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-500/20 text-red-800 dark:text-red-200' : insight.type === 'warning' ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-500/20 text-orange-800 dark:text-orange-200' : 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-200'}`}>
-                                    <div className={`p-2 rounded-xl shrink-0 ${insight.type === 'danger' ? 'bg-red-100 dark:bg-red-500/20' : insight.type === 'warning' ? 'bg-orange-100 dark:bg-orange-500/20' : 'bg-emerald-100 dark:bg-emerald-500/20'}`}>
-                                        <Zap className="h-5 w-5" fill="currentColor" />
+                                <div className={`inline-flex items-center p-1.5 pr-4 rounded-2xl backdrop-blur-xl border transition-all duration-300 hover:scale-[1.01] cursor-default shadow-lg ${insight.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/20 border-red-200 dark:border-red-500/30 text-red-900 dark:text-red-100' : insight.type === 'warning' ? 'bg-orange-50/80 dark:bg-orange-900/20 border-orange-200 dark:border-orange-500/30 text-orange-900 dark:text-orange-100' : 'bg-emerald-50/80 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-100'}`}>
+                                    <div className={`p-2.5 rounded-xl shrink-0 mr-3 ${insight.type === 'danger' ? 'bg-red-200/50 dark:bg-red-500/30' : insight.type === 'warning' ? 'bg-orange-200/50 dark:bg-orange-500/30' : 'bg-emerald-200/50 dark:bg-emerald-500/30'}`}>
+                                        <Zap className="h-5 w-5" fill="currentColor" strokeWidth={0} />
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="font-bold text-sm">{insight.text}</p>
-                                        {insight.details && <p className="text-xs opacity-80 mt-1 font-medium leading-snug">{insight.details}</p>}
+                                    <div className="mr-6">
+                                        <p className="font-bold text-sm tracking-tight">{insight.text}</p>
+                                        {insight.details && <p className="text-xs opacity-80 mt-0.5 font-medium">{insight.details}</p>}
                                     </div>
                                     {insight.link && (
-                                        <button onClick={() => navigate(insight.link!)} className="px-3 py-1.5 bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 rounded-lg text-xs font-bold transition-colors flex items-center border border-slate-200 dark:border-white/10">
+                                        <button onClick={() => navigate(insight.link!)} className="ml-auto px-3 py-1.5 bg-white/60 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-lg text-xs font-bold transition-all flex items-center border border-black/5 dark:border-white/10 shadow-sm">
                                             {insight.action} <ArrowRight className="h-3 w-3 ml-1" />
                                         </button>
                                     )}
                                 </div>
                             </div>
-                            <div className="hidden lg:block w-64 h-64 cursor-pointer hover:scale-105 transition-transform duration-500 relative" onClick={() => navigate('/compliance')} title="Voir le détail par domaine">
+                            
+                            <div className="hidden xl:block w-80 h-80 cursor-pointer hover:scale-105 transition-transform duration-500 relative grayscale-[20%] hover:grayscale-0" onClick={() => navigate('/compliance')} title="Voir le détail par domaine">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                                         <defs>
                                             <linearGradient id="radarFill" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={theme === 'dark' ? '#3b82f6' : '#0f172a'} stopOpacity={0.5} />
+                                                <stop offset="5%" stopColor={theme === 'dark' ? '#3b82f6' : '#0f172a'} stopOpacity={0.6} />
                                                 <stop offset="95%" stopColor={theme === 'dark' ? '#3b82f6' : '#0f172a'} stopOpacity={0.1} />
                                             </linearGradient>
                                         </defs>
@@ -472,9 +481,9 @@ export const Dashboard: React.FC = () => {
                                             dataKey="subject"
                                             tick={{
                                                 fill: theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(15,23,42,0.7)',
-                                                fontSize: 10,
+                                                fontSize: 11,
                                                 fontWeight: 700,
-                                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                                                fontFamily: 'var(--font-sans)'
                                             }}
                                         />
                                         <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
@@ -482,7 +491,7 @@ export const Dashboard: React.FC = () => {
                                             name="Maturité"
                                             dataKey="A"
                                             stroke={theme === 'dark' ? '#60a5fa' : '#0f172a'}
-                                            strokeWidth={2.5}
+                                            strokeWidth={3}
                                             fill="url(#radarFill)"
                                             fillOpacity={1}
                                         />
@@ -499,21 +508,36 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <button onClick={() => navigate('/voxel')} className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 border border-purple-100 dark:border-purple-900/30 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform group shadow-sm">
-                    <Settings3D className="h-5 w-5 text-purple-500 group-hover:animate-pulse" /> <span className="text-sm font-bold text-purple-700 dark:text-purple-400">Voxel 3D</span>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
+                <button onClick={() => navigate('/voxel')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-lg transition-all group shadow-sm hover:border-purple-300 dark:hover:border-purple-500/50">
+                    <div className="p-3 bg-purple-50 dark:bg-purple-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                        <Settings3D className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Voxel 3D</span>
                 </button>
-                <button onClick={() => navigate('/incidents')} className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform group shadow-sm">
-                    <Siren className="h-5 w-5 text-red-500 group-hover:animate-pulse" /> <span className="text-sm font-bold text-red-700 dark:text-red-400">Incident</span>
+                <button onClick={() => navigate('/incidents')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-lg transition-all group shadow-sm hover:border-red-300 dark:hover:border-red-500/50">
+                    <div className="p-3 bg-red-50 dark:bg-red-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                        <Siren className="h-6 w-6 text-red-600 dark:text-red-400" />
+                    </div>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Incidents</span>
                 </button>
-                <button onClick={() => navigate('/risks')} className="p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform group shadow-sm">
-                    <ShieldAlert className="h-5 w-5 text-orange-500" /> <span className="text-sm font-bold text-orange-700 dark:text-orange-400">Risque</span>
+                <button onClick={() => navigate('/risks')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-lg transition-all group shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50">
+                    <div className="p-3 bg-orange-50 dark:bg-orange-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                        <ShieldAlert className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Risques</span>
                 </button>
-                <button onClick={() => navigate('/assets')} className="p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform group shadow-sm">
-                    <Server className="h-5 w-5 text-blue-500" /> <span className="text-sm font-bold text-blue-700 dark:text-blue-400">Actif</span>
+                <button onClick={() => navigate('/assets')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-lg transition-all group shadow-sm hover:border-blue-300 dark:hover:border-blue-500/50">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                        <Server className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Actifs</span>
                 </button>
-                <button onClick={() => navigate('/team')} className="p-4 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-900/30 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform group shadow-sm">
-                    <User className="h-5 w-5 text-purple-500" /> <span className="text-sm font-bold text-purple-700 dark:text-purple-400">Utilisateur</span>
+                <button onClick={() => navigate('/team')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-lg transition-all group shadow-sm hover:border-emerald-300 dark:hover:border-emerald-500/50">
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                        <User className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Équipe</span>
                 </button>
             </div>
 
@@ -526,25 +550,30 @@ export const Dashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* My Workspace */}
-                <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm flex flex-col h-[400px]">
-                    <div className="px-8 pt-8 pb-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
-                        <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Mon Espace</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">À faire cette semaine</p></div><User className="w-6 h-6 text-brand-500" />
+                <div className="glass-panel p-0 rounded-[2rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm flex flex-col h-[450px] group hover:shadow-md transition-shadow">
+                    <div className="px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 flex justify-between items-center backdrop-blur-sm">
+                        <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Mon Espace</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">À faire cette semaine</p></div>
+                        <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm"><User className="w-5 h-5 text-slate-600 dark:text-slate-300" /></div>
                     </div>
-                    <div className="flex-1 p-0 overflow-y-auto custom-scrollbar">
+                    <div className="flex-1 p-0 overflow-y-auto custom-scrollbar bg-white/40 dark:bg-slate-900/20">
                         {loading ? <Skeleton className="h-full w-full m-4" /> : myActionItems.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full p-8 text-center"><CheckCircle2 className="h-10 w-10 text-emerald-500 mb-3 opacity-30" /><p className="text-sm font-bold text-slate-500">Rien à signaler.</p></div>
+                            <div className="flex flex-col items-center justify-center h-full p-8 text-center"><CheckCircle2 className="h-12 w-12 text-emerald-500/30 mb-4" /><p className="text-sm font-bold text-slate-500">Rien à signaler pour le moment.</p></div>
                         ) : (
                             <div className="divide-y divide-slate-100 dark:divide-white/5">
                                 {myActionItems.map(item => (
-                                    <div key={item.id} onClick={() => navigate(item.link)} className="p-5 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer group card-hover rounded-xl">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${item.type === 'audit' ? 'bg-blue-50 text-blue-600' : item.type === 'policy' ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'}`}>
-                                                {item.type === 'audit' ? 'Audit' : item.type === 'policy' ? 'À Signer' : item.type === 'document' ? 'Revue' : 'Projet'}
-                                            </span>
-                                            <span className="text-xs text-slate-400 font-medium">{new Date(item.date).toLocaleDateString()}</span>
+                                    <div key={item.id} onClick={() => navigate(item.link)} className="p-5 hover:bg-white dark:hover:bg-white/5 cursor-pointer group/item transition-all flex items-center gap-4">
+                                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${item.type === 'audit' ? 'bg-blue-500' : item.type === 'policy' ? 'bg-red-500' : 'bg-orange-500'}`}></div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md border ${item.type === 'audit' ? 'bg-blue-50 border-blue-100 text-blue-600 dark:bg-blue-900/20 dark:border-blue-900/30 dark:text-blue-400' : item.type === 'policy' ? 'bg-red-50 border-red-100 text-red-600 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400' : 'bg-orange-50 border-orange-100 text-orange-600 dark:bg-orange-900/20 dark:border-orange-900/30 dark:text-orange-400'}`}>
+                                                    {item.type === 'audit' ? 'Audit' : item.type === 'policy' ? 'Signature' : item.type === 'document' ? 'Revue' : 'Projet'}
+                                                </span>
+                                                <span className="text-xs text-slate-400 font-medium tabular-nums">{new Date(item.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                            </div>
+                                            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 transition-colors truncate">{item.title}</h4>
+                                            <p className="text-xs text-slate-500 mt-0.5 truncate">{item.status}</p>
                                         </div>
-                                        <h4 className="text-sm font-bold text-slate-800 dark:text-white group-hover:text-brand-600 transition-colors truncate">{item.title}</h4>
-                                        <p className="text-xs text-slate-500 mt-1">{item.status}</p>
+                                        <ArrowRight className="w-4 h-4 text-slate-300 group-hover/item:text-slate-500 -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100 transition-all" />
                                     </div>
                                 ))}
                             </div>
@@ -552,12 +581,12 @@ export const Dashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="glass-panel p-0 rounded-[2.5rem] lg:col-span-2 flex flex-col overflow-hidden border border-white/60 dark:border-white/5 shadow-sm h-[400px]">
-                    <div className="flex items-center justify-between px-8 pt-8 pb-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
+                <div className="glass-panel p-0 rounded-[2rem] lg:col-span-2 flex flex-col overflow-hidden border border-white/60 dark:border-white/5 shadow-sm h-[450px] group hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
                         <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Évolution Conformité</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">30 derniers jours</p></div>
                         <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20"><TrendingUp className="w-5 h-5 text-emerald-500" /></div>
                     </div>
-                    <div className="flex-1 w-full p-4 bg-white/40 dark:bg-transparent">
+                    <div className="flex-1 w-full p-6 bg-white/40 dark:bg-transparent">
                         {loading ? <Skeleton className="h-full w-full rounded-2xl" /> : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={historyData}>
@@ -567,10 +596,10 @@ export const Dashboard: React.FC = () => {
                                             <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#e2e8f0'} opacity={0.5} />
                                     <XAxis
                                         dataKey="date"
-                                        tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 500 }}
+                                        tick={{ fontSize: 11, fill: theme === 'dark' ? '#94a3b8' : '#64748b', fontWeight: 600 }}
                                         axisLine={false}
                                         tickLine={false}
                                         dy={10}
@@ -596,39 +625,43 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm flex flex-col">
-                    <div className="px-8 pt-8 pb-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+                <div className="glass-panel p-0 rounded-[2rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-shadow">
+                    <div className="px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 flex justify-between items-center backdrop-blur-sm">
                         <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Diagnostic Santé</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">Alertes Système</p></div>
                         <CustomTooltip content={healthIssues.length > 0 ? "Des actions sont requises" : "Système sain"} position="left">
-                            <Stethoscope className={`w-6 h-6 ${healthIssues.length > 0 ? 'text-orange-500' : 'text-emerald-500'}`} />
+                            <div className={`p-2 rounded-xl ${healthIssues.length > 0 ? 'bg-orange-500/10' : 'bg-emerald-500/10'}`}>
+                                <Stethoscope className={`w-5 h-5 ${healthIssues.length > 0 ? 'text-orange-500' : 'text-emerald-500'}`} />
+                            </div>
                         </CustomTooltip>
                     </div>
-                    <div className="p-6 flex-1 space-y-4 bg-white/40 dark:bg-transparent">
-                        {loading ? <Skeleton className="h-full w-full" /> : healthIssues.length === 0 ? (<div className="flex items-center p-4 bg-emerald-50/80 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30"><CheckCircle2 className="h-5 w-5 text-emerald-500 mr-3 flex-shrink-0" /><span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Aucune anomalie détectée.</span></div>) : (healthIssues.map(issue => (
+                    <div className="p-6 flex-1 space-y-3 bg-white/40 dark:bg-transparent">
+                        {loading ? <Skeleton className="h-full w-full" /> : healthIssues.length === 0 ? (<div className="flex items-center p-5 bg-emerald-50/80 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30"><CheckCircle2 className="h-6 w-6 text-emerald-500 mr-4 flex-shrink-0" /><div><span className="text-sm font-bold text-emerald-800 dark:text-emerald-300 block">Aucune anomalie</span><span className="text-xs text-emerald-600/80 dark:text-emerald-400">Tous les systèmes sont nominaux</span></div></div>) : (healthIssues.map(issue => (
                             <CustomTooltip key={issue.id} content="Cliquez pour résoudre" position="top" className="w-full">
-                                <div onClick={() => navigate(issue.link)} className={`flex items-start p-4 rounded-2xl border cursor-pointer card-hover w-full ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30'}`}><AlertTriangle className={`h-5 w-5 mr-3 mt-0.5 flex-shrink-0 ${issue.type === 'danger' ? 'text-red-500' : 'text-orange-500'}`} /><div><p className={`text-sm font-bold leading-tight ${issue.type === 'danger' ? 'text-red-800 dark:text-red-200' : 'text-orange-800 dark:text-orange-200'}`}>{issue.message}</p><span className={`text-xs font-medium mt-1 block ${issue.type === 'danger' ? 'text-red-600/70 dark:text-red-400' : 'text-orange-600/70 dark:text-orange-400'}`}>{issue.count} éléments concernés</span></div></div>
+                                <div onClick={() => navigate(issue.link)} className={`flex items-start p-4 rounded-2xl border cursor-pointer hover:scale-[1.02] transition-all w-full ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 hover:shadow-md hover:shadow-red-500/5' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30 hover:shadow-md hover:shadow-orange-500/5'}`}><AlertTriangle className={`h-5 w-5 mr-3 mt-0.5 flex-shrink-0 ${issue.type === 'danger' ? 'text-red-500' : 'text-orange-500'}`} /><div><p className={`text-sm font-bold leading-tight ${issue.type === 'danger' ? 'text-red-800 dark:text-red-200' : 'text-orange-800 dark:text-orange-200'}`}>{issue.message}</p><span className={`text-xs font-bold mt-1 block ${issue.type === 'danger' ? 'text-red-600/70 dark:text-red-400' : 'text-orange-600/70 dark:text-orange-400'}`}>{issue.count} éléments concernés</span></div></div>
                             </CustomTooltip>
                         )))}
                     </div>
                 </div>
 
-                <div className="glass-panel p-0 rounded-[2.5rem] lg:col-span-2 overflow-hidden border border-white/60 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center justify-between px-8 pt-8 pb-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Risques Prioritaires</h3><Flame className="w-5 h-5 text-red-500" />
+                <div className="glass-panel p-0 rounded-[2rem] lg:col-span-2 overflow-hidden border border-white/60 dark:border-white/5 shadow-sm group hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
+                        <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Risques Prioritaires</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">Top Criticité</p></div>
+                        <div className="p-2 bg-red-500/10 rounded-xl"><Flame className="w-5 h-5 text-red-500" /></div>
                     </div>
-                    <div className="p-8 space-y-3">
-                        {loading ? [1, 2].map(i => <Skeleton key={i} className="h-16 w-full rounded-2xl" />) : topRisks.slice(0, 3).map(risk => (<div key={risk.id} onClick={() => navigate('/risks')} className="p-4 rounded-2xl bg-white/60 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 transition-all group flex items-center justify-between shadow-sm card-hover cursor-pointer"><div className="flex items-center"><div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mr-4 text-red-600 font-black text-lg shadow-inner">{risk.score}</div><div><h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{risk.threat}</h4><p className="text-xs text-slate-500 font-medium mt-0.5">{risk.vulnerability}</p></div></div><span className="text-[10px] font-bold bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 text-slate-600 dark:text-slate-300">{risk.strategy}</span></div>))}
-                        {topRisks.length === 0 && !loading && <p className="text-sm text-slate-400 italic text-center">Aucun risque majeur identifié.</p>}
+                    <div className="p-8 space-y-3 bg-white/40 dark:bg-transparent">
+                        {loading ? [1, 2].map(i => <Skeleton key={i} className="h-16 w-full rounded-2xl" />) : topRisks.slice(0, 3).map(risk => (<div key={risk.id} onClick={() => navigate('/risks')} className="p-4 rounded-2xl bg-white/80 dark:bg-white/5 border border-slate-200/80 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 transition-all group flex items-center justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer"><div className="flex items-center"><div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-100 dark:border-red-500/20 flex items-center justify-center mr-4 text-red-600 dark:text-red-400 font-black text-lg shadow-inner">{risk.score}</div><div><h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{risk.threat}</h4><p className="text-xs text-slate-500 font-medium mt-1">{risk.vulnerability}</p></div></div><span className="text-[10px] font-bold bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">{risk.strategy}</span></div>))}
+                        {topRisks.length === 0 && !loading && <div className="flex flex-col items-center justify-center py-8 text-center"><ShieldAlert className="h-10 w-10 text-slate-300 mb-2" /><p className="text-sm text-slate-500 font-medium">Aucun risque critique identifié.</p></div>}
                     </div>
                 </div>
             </div>
 
-            <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm">
-                <div className="flex items-center justify-between px-8 pt-8 pb-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Flux d'activité récent</h3><History className="w-5 h-5 text-slate-400" />
+            <div className="glass-panel p-0 rounded-[2rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm group hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
+                    <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Flux d'activité récent</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">Temps Réel</p></div>
+                    <div className="p-2 bg-slate-100 dark:bg-white/10 rounded-xl"><History className="w-5 h-5 text-slate-500 dark:text-slate-300" /></div>
                 </div>
-                <div className="relative border-l border-slate-200 dark:border-slate-800 ml-8 space-y-8 py-8 pr-8 max-h-[300px] overflow-y-auto custom-scrollbar">
-                    {loading ? <Skeleton className="h-20 w-full" /> : recentActivity.map((log, i) => (<div key={i} className="ml-6 relative group"><span className="absolute -left-[31px] flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm group-hover:scale-110 transition-transform z-10">{getActivityIcon(log.resource)}</span><div className="flex justify-between items-center"><div><p className="text-xs font-bold text-slate-800 dark:text-slate-200">{log.action}</p><p className="text-[11px] text-slate-500 mt-0.5 truncate max-w-[400px] font-medium">{log.details}</p></div><span className="text-[9px] text-slate-400 font-bold uppercase tracking-wide">{new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}</span></div></div>))}
+                <div className="relative border-l border-slate-200 dark:border-slate-700/50 ml-10 space-y-8 py-8 pr-8 max-h-[300px] overflow-y-auto custom-scrollbar bg-white/40 dark:bg-transparent">
+                    {loading ? <Skeleton className="h-20 w-full" /> : recentActivity.map((log, i) => (<div key={i} className="ml-8 relative group"><span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 shadow-sm group-hover:scale-110 group-hover:border-blue-400 transition-all z-10">{getActivityIcon(log.resource)}</span><div className="flex justify-between items-start bg-white/50 dark:bg-white/5 p-3 rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-white/10 transition-colors"><div><p className="text-sm font-bold text-slate-800 dark:text-slate-200">{log.action}</p><p className="text-xs text-slate-500 mt-0.5 truncate max-w-[500px] font-medium leading-relaxed">{log.details}</p></div><span className="text-[10px] text-slate-400 font-bold uppercase tracking-wide bg-slate-100 dark:bg-black/20 px-2 py-1 rounded-md ml-4 whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div></div>))}
                 </div>
             </div>
         </div>
