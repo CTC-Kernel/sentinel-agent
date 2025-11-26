@@ -49,17 +49,29 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
 
   const filterItem = (item: { name: string }) => {
     if (!user) return false;
+    
+    // ALWAYS SHOW Dashboard to avoid empty menu confusion
     if (item.name === 'Tableau de bord') return true;
-    if (item.name === 'Équipe') return hasPermission(user, 'User', 'read');
+    
+    // If user is admin or owner -> Show All
+    if (user.role === 'admin' || user.role === 'rssi') return true;
 
+    // STRICT RBAC FILTERING
     switch (item.name) {
       case 'Incidents': return hasPermission(user, 'Risk', 'read');
       case 'Projets SSI': return hasPermission(user, 'Project', 'read');
-      case 'Actifs': return hasPermission(user, 'Asset', 'read');
       case 'Gestion des Risques': return hasPermission(user, 'Risk', 'read');
       case 'Audits': return hasPermission(user, 'Audit', 'read');
       case 'Documents': return hasPermission(user, 'Document', 'read');
-      default: return true;
+      case 'Actifs': return hasPermission(user, 'Asset', 'read');
+      case 'Équipe': return hasPermission(user, 'User', 'read');
+      case 'Sauvegarde': return hasPermission(user, 'Settings', 'manage');
+      case 'Continuité (PCA)': return hasPermission(user, 'Risk', 'read'); // PCA lié au risque
+      case 'Conformité DdA': return hasPermission(user, 'Audit', 'read'); // DdA lié audit/compliance
+      case 'Fournisseurs': return hasPermission(user, 'Asset', 'read'); // Fournisseurs = actifs externes
+      case 'Confidentialité (RGPD)': return hasPermission(user, 'Document', 'read');
+      case 'CTC Engine': return false; // Caché pour les non-admins par défaut sauf si permission explicite (future)
+      default: return true; // Pages neutres (Help, etc.)
     }
   };
 

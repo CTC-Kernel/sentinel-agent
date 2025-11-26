@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { doc, setDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { ArrowRight, User, Building, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus } from '../components/ui/Icons';
+import { doc, setDoc, collection, query, where, getDocs, addDoc, writeBatch } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+import { ArrowRight, User as UserIcon, Building, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus } from '../components/ui/Icons';
 import { sendEmail } from '../services/emailService';
 import { getWelcomeEmailTemplate } from '../services/emailTemplates';
 import { PLANS } from '../config/plans';
 import { PlanType, UserProfile } from '../types';
 import { SubscriptionService } from '../services/subscriptionService';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast } = useStore();
+    const { refreshSession } = useAuth();
+    const navigate = useNavigate();
+    const currentUser = auth.currentUser;
+    
     const [mode, setMode] = useState<'select' | 'create' | 'join'>('select');
     const [step, setStep] = useState(1);
     const [selectedPlan, setSelectedPlan] = useState<PlanType>('discovery');
-    // Role is always admin for the creator
-    const role: UserProfile['role'] = 'admin';
+    // Role selection state
+    const [selectedRole, setSelectedRole] = useState<UserProfile['role']>('admin');
     const [department, setDepartment] = useState('');
     const [industry, setIndustry] = useState('');
     const [displayName, setDisplayName] = useState(user?.displayName || '');
@@ -27,6 +33,16 @@ export const Onboarding: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [joinRequestSent, setJoinRequestSent] = useState(false);
+
+    // Auto-detect step based on user state
+    React.useEffect(() => {
+        if (user?.organizationId && !user.onboardingCompleted) {
+            setMode('create');
+            setStep(2);
+            // Pre-fill fields if possible (optional)
+            if (user.organizationName) setOrganizationName(user.organizationName);
+        }
+    }, [user]);
 
     const handleSearchOrg = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -72,57 +88,93 @@ export const Onboarding: React.FC = () => {
         }
     };
 
+    // Helper for UUID generation with fallback
+    const generateUUID = () => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+        // Fallback for older browsers or insecure contexts
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    };
+
     const handleStep1 = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user) return;
+        
+        const targetUser = currentUser || user;
+        
+        if (!targetUser || !targetUser.uid) {
+            console.error("No valid user found", { currentUser, user });
+            addToast("Erreur : Utilisateur non identifié. Veuillez vous reconnecter.", "error");
+            return;
+        }
+
         setLoading(true);
         setError('');
 
+        const uid = targetUser.uid;
+        const email = targetUser.email || '';
+        const photoURL = targetUser.photoURL || null;
+
+        console.log("Starting Step 1...", { uid, organizationName, displayName });
+
         try {
-            // Generate a NEW organization ID (always create fresh org on onboarding)
-            // Don't reuse old organizationId as the org might have been deleted
-            const newOrgId = crypto.randomUUID();
-            const orgName = organizationName || user.organizationName || 'Mon Organisation';
+            // Generate a NEW organization ID
+            const newOrgId = generateUUID();
+            const orgName = organizationName || (user as any)?.organizationName || 'Mon Organisation';
+
+            console.log("Generated Org ID:", newOrgId);
+            console.log("Org Name:", orgName);
+
+            // USE BATCH FOR ATOMICITY
+            const batch = writeBatch(db);
 
             // 1. Create/Update User Profile
+            const userRef = doc(db, 'users', uid);
             const userUpdates = {
-                uid: user.uid,
-                email: user.email,
-                role,
-                department,
-                industry,
-                displayName,
+                uid: uid,
+                email: email,
+                role: selectedRole,
+                department: department || '',
+                industry: industry || '',
+                displayName: displayName || '',
                 organizationName: orgName,
                 organizationId: newOrgId,
-                // onboardingCompleted will be set to true ONLY after plan selection
-                photoURL: user.photoURL || null,
+                photoURL: photoURL,
                 lastLogin: new Date().toISOString()
             };
 
-            await setDoc(doc(db, 'users', user.uid), userUpdates, { merge: true });
-            setUser({ ...user, ...userUpdates });
-
+            console.log("Updating User Profile:", userUpdates);
+            // Important: merge is not directly available in batch.set, but we can use update if doc exists
+            // However, since we want upsert behavior, we use set with merge option which IS supported in batch
+            batch.set(userRef, userUpdates, { merge: true });
+            
             // 2. Create Organization Document (CRITICAL for SubscriptionService)
             const orgRef = doc(db, 'organizations', newOrgId);
-
-            // Generate slug from organization name
-            const slug = orgName
+            
+            // Generate slug from organization name safely
+            const safeName = orgName || 'org';
+            const slug = safeName
                 .toLowerCase()
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '') // Remove accents
                 .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with dash
                 .replace(/^-+|-+$/g, ''); // Remove leading/trailing dashes
 
-            await setDoc(orgRef, {
+            console.log("Creating Organization:", { newOrgId, orgName, slug });
+
+            batch.set(orgRef, {
                 id: newOrgId,
                 name: orgName,
-                slug: slug,
-                ownerId: user.uid,
+                slug: slug || newOrgId, // Fallback to ID if slug fails
+                ownerId: uid, // Utilisation de la variable locale uid
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                industry,
+                industry: industry || '',
                 subscription: {
-                    planId: 'discovery', // Default to discovery, will be updated in step 2
+                    planId: 'discovery', 
                     status: 'active',
                     startDate: new Date().toISOString(),
                     stripeCustomerId: null,
@@ -130,22 +182,41 @@ export const Onboarding: React.FC = () => {
                     currentPeriodEnd: null,
                     cancelAtPeriodEnd: false
                 }
-            }, { merge: true });
+            });
+
+            // COMMIT BATCH
+            await batch.commit();
+
+            // Update local store IMMEDIATELY
+            if (user) {
+                setUser({ ...user, ...userUpdates });
+            } else {
+                setUser(userUpdates as any); 
+            }
+
+            console.log("Organization Created & User Linked (Batch).");
 
             // 3. Send welcome email (async, don't block)
             try {
                 const htmlContent = getWelcomeEmailTemplate(
-                    displayName || user.email,
+                    displayName || email || 'Utilisateur',
                     orgName,
-                    role,
+                    selectedRole,
                     `${window.location.origin}/`
                 );
-                sendEmail(user, {
-                    to: user.email,
-                    subject: '🎉 Bienvenue sur Sentinel GRC',
-                    html: htmlContent,
-                    type: 'WELCOME_EMAIL'
-                }, false).catch(console.error);
+
+                if (email) {
+                    // Cast user to any or create minimal user object if needed for sendEmail
+                    // sendEmail expects a UserProfile-like object.
+                    const emailUserMock = { ...user, email, displayName } as UserProfile;
+                    
+                    sendEmail(emailUserMock, {
+                        to: email,
+                        subject: '🎉 Bienvenue sur Sentinel GRC',
+                        html: htmlContent,
+                        type: 'WELCOME_EMAIL'
+                    }, false).catch(err => console.error("SendEmail failed async", err));
+                }
             } catch (emailError) {
                 console.error('Error preparing welcome email:', emailError);
             }
@@ -164,26 +235,32 @@ export const Onboarding: React.FC = () => {
     };
 
     const handleFinalize = async () => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId) {
+             addToast("Erreur : Organisation manquante", "error");
+             return;
+        }
         setLoading(true);
         try {
             // Update user onboarding status
+            console.log("Finalizing onboarding for user:", user.uid);
             await setDoc(doc(db, 'users', user.uid), { onboardingCompleted: true }, { merge: true });
 
+            // Force refresh session to ensure claims and context are up to date
+            await refreshSession();
+
             // Update local user state to unlock app access immediately for free plan
-            // For paid plans, Stripe redirection happens, so state update is less critical here but good practice
             setUser({ ...user, onboardingCompleted: true });
 
             if (selectedPlan === 'discovery') {
-                // Free plan: Direct access - use window.location to ensure clean state
-                window.location.href = '/';
+                // Free plan: Direct access
+                navigate('/');
             } else {
                 // Paid plan: Redirect to Stripe
                 await SubscriptionService.startSubscription(user.organizationId, selectedPlan, 'month'); // Default to monthly for onboarding
             }
         } catch (e) {
             console.error("Finalize error", e);
-            addToast("Erreur lors de la finalisation.", "error");
+            addToast("Erreur lors de la finalisation. Veuillez réessayer.", "error");
             setLoading(false);
         }
     };
@@ -334,7 +411,7 @@ export const Onboarding: React.FC = () => {
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom complet</label>
                                         <div className="relative">
-                                            <User className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                            <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
                                             <input type="text" required className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Votre nom" value={displayName} onChange={e => setDisplayName(e.target.value)} />
                                         </div>
                                     </div>
@@ -347,19 +424,32 @@ export const Onboarding: React.FC = () => {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Secteur</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Rôle Principal</label>
                                             <div className="relative">
-                                                <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                                <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer" value={industry} onChange={e => setIndustry(e.target.value)}>
-                                                    <option value="">Sélectionner...</option>
-                                                    <option value="tech">Technologie / SaaS</option>
-                                                    <option value="finance">Finance / Banque</option>
-                                                    <option value="health">Santé</option>
-                                                    <option value="retail">Retail / E-commerce</option>
-                                                    <option value="public">Secteur Public</option>
-                                                    <option value="other">Autre</option>
+                                                <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                                <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer" value={selectedRole} onChange={e => setSelectedRole(e.target.value as UserProfile['role'])}>
+                                                    <option value="admin">Administrateur</option>
+                                                    <option value="rssi">RSSI / CISO</option>
+                                                    <option value="direction">Direction / DPO</option>
+                                                    <option value="project_manager">Chef de Projet</option>
+                                                    <option value="auditor">Auditeur</option>
                                                 </select>
                                             </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Secteur</label>
+                                        <div className="relative">
+                                            <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                            <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer" value={industry} onChange={e => setIndustry(e.target.value)}>
+                                                <option value="">Sélectionner...</option>
+                                                <option value="tech">Technologie / SaaS</option>
+                                                <option value="finance">Finance / Banque</option>
+                                                <option value="health">Santé</option>
+                                                <option value="retail">Retail / E-commerce</option>
+                                                <option value="public">Secteur Public</option>
+                                                <option value="other">Autre</option>
+                                            </select>
                                         </div>
                                     </div>
 
