@@ -584,7 +584,7 @@ export const Risks: React.FC = () => {
                 , document.body)}
 
             {/* Create/Edit Modal */}
-            {showModal && canEdit && (
+            {showModal && canEdit && createPortal(
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                     <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-3xl border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-slate-900/50">
@@ -592,7 +592,6 @@ export const Risks: React.FC = () => {
                             <p className="text-sm text-slate-500 mt-1">Définissez la menace, la vulnérabilité et les impacts.</p>
                         </div>
                         <form onSubmit={handleSubmit} className="p-8 overflow-y-auto custom-scrollbar">
-                            {/* Inputs */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                 <div className="space-y-6">
                                     <FloatingLabelSelect
@@ -602,7 +601,6 @@ export const Risks: React.FC = () => {
                                         options={assets.map(a => ({ value: a.id, label: a.name }))}
                                         required
                                     />
-
                                     <div className="relative">
                                         <FloatingLabelInput
                                             label="Menace"
@@ -620,10 +618,9 @@ export const Risks: React.FC = () => {
                                             />
                                         </div>
                                         <datalist id="threatsList">
-                                            {STANDARD_THREATS.map(t => <option key={t} value={t} />)}
+                                            {STANDARD_THREATS.map((t, i) => <option key={i} value={t} />)}
                                         </datalist>
                                     </div>
-
                                     <div className="relative">
                                         <FloatingLabelTextarea
                                             label="Vulnérabilité"
@@ -641,7 +638,6 @@ export const Risks: React.FC = () => {
                                             />
                                         </div>
                                     </div>
-
                                     <div className="grid grid-cols-2 gap-4">
                                         <FloatingLabelSelect
                                             label="Propriétaire"
@@ -661,7 +657,6 @@ export const Risks: React.FC = () => {
                                             ]}
                                         />
                                     </div>
-
                                     <div className="grid grid-cols-2 gap-6">
                                         <RiskMatrixSelector
                                             label="Risque Brut"
@@ -669,7 +664,6 @@ export const Risks: React.FC = () => {
                                             impact={newRisk.impact || 1}
                                             onChange={(p, i) => setNewRisk({ ...newRisk, probability: p as any, impact: i as any })}
                                         />
-
                                         <RiskMatrixSelector
                                             label="Risque Résiduel"
                                             probability={newRisk.residualProbability || newRisk.probability || 1}
@@ -678,12 +672,34 @@ export const Risks: React.FC = () => {
                                         />
                                     </div>
                                 </div>
-
-                                <div className="bg-slate-50/80 dark:bg-slate-900/30 rounded-3xl p-6 border border-gray-100 dark:border-white/5 flex flex-col h-full"><label className="flex items-center text-xs font-bold uppercase tracking-widest text-brand-600 mb-4"><CheckCircle2 className="h-4 w-4 mr-2" /> Contrôles d'atténuation</label><div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar max-h-[400px]">{controls.map(ctrl => (<label key={ctrl.id} className={`flex items-start space-x-3 p-3.5 rounded-xl cursor-pointer transition-all border ${newRisk.mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 border-brand-200 dark:border-brand-800 shadow-md' : 'border-transparent hover:bg-white dark:hover:bg-slate-800'}`}><div className={`mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${newRisk.mitigationControlIds?.includes(ctrl.id) ? 'bg-brand-500 border-brand-500' : 'border-gray-300 bg-white dark:bg-black/20'}`}>{newRisk.mitigationControlIds?.includes(ctrl.id) && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}</div><input type="checkbox" className="hidden" checked={newRisk.mitigationControlIds?.includes(ctrl.id)} onChange={() => toggleControlSelection(ctrl.id)} /><div><span className="text-xs font-bold text-slate-900 dark:text-white block mb-0.5">{ctrl.code}</span><span className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug block">{ctrl.name}</span></div></label>))}</div></div>
+                                <div className="bg-slate-50/80 dark:bg-slate-900/30 rounded-3xl p-6 border border-gray-100 dark:border-white/5 flex flex-col h-full">
+                                    <label className="flex items-center text-xs font-bold uppercase tracking-widest text-brand-600 mb-4">
+                                        <CheckCircle2 className="h-4 w-4 mr-2" /> Contrôles d'atténuation
+                                    </label>
+                                    <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar max-h-[400px]">
+                                        {controls.map(ctrl => (
+                                            <label key={ctrl.id} className={`flex items-start space-x-3 p-3.5 rounded-xl cursor-pointer transition-all border ${newRisk.mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 border-brand-200 dark:border-brand-800 shadow-md' : 'border-transparent hover:bg-white dark:hover:bg-slate-800'}`}>
+                                                <div className={`mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${newRisk.mitigationControlIds?.includes(ctrl.id) ? 'bg-brand-500 border-brand-500' : 'border-gray-300 bg-white dark:bg-black/20'}`}>
+                                                    {newRisk.mitigationControlIds?.includes(ctrl.id) && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                                                </div>
+                                                <input type="checkbox" className="hidden" checked={newRisk.mitigationControlIds?.includes(ctrl.id)} onChange={() => toggleControlSelection(ctrl.id)} />
+                                                <div>
+                                                    <span className="text-xs font-bold text-slate-900 dark:text-white block mb-0.5">{ctrl.code}</span>
+                                                    <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug block">{ctrl.name}</span>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex justify-end space-x-4 pt-8 mt-4 border-t border-gray-100 dark:border-white/5"><button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button><button type="submit" className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none">{isEditing ? 'Enregistrer les modifications' : 'Créer le Risque'}</button></div></form>
+                            <div className="flex justify-end space-x-4 pt-8 mt-4 border-t border-gray-100 dark:border-white/5">
+                                <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                                <button type="submit" className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none">{isEditing ? 'Enregistrer les modifications' : 'Créer le Risque'}</button>
+                            </div>
+                        </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
