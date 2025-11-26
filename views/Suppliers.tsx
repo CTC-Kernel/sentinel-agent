@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Supplier, SupplierAssessment, SupplierIncident, Document, SystemLog, Criticality } from '../types';
+import { Supplier, SupplierAssessment, SupplierIncident, Document, SystemLog, Criticality, UserProfile } from '../types';
 import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, X, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, TrendingUp, Upload } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -15,6 +15,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 
 export const Suppliers: React.FC = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [documents, setDocuments] = useState<Document[]>([]);
     const [assessments, setAssessments] = useState<SupplierAssessment[]>([]);
     const [incidents, setIncidents] = useState<SupplierIncident[]>([]);
@@ -56,7 +57,8 @@ export const Suppliers: React.FC = () => {
                 getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'supplierAssessments'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'supplierIncidents'), where('organizationId', '==', user.organizationId)))
+                getDocs(query(collection(db, 'supplierIncidents'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
             ]);
 
             const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
@@ -66,9 +68,20 @@ export const Suppliers: React.FC = () => {
                 return [];
             };
 
+            const userData = getDocsData<UserProfile>(results[4]);
+            setUsersList(userData);
+
             const data = getDocsData<Supplier>(results[0]);
-            data.sort((a, b) => a.name.localeCompare(b.name));
-            setSuppliers(data);
+            // Resolve ownerId for legacy data
+            const resolvedData = data.map(s => {
+                if (!s.ownerId && s.owner) {
+                    const ownerUser = userData.find(u => u.displayName === s.owner);
+                    if (ownerUser) return { ...s, ownerId: ownerUser.uid };
+                }
+                return s;
+            });
+            resolvedData.sort((a, b) => a.name.localeCompare(b.name));
+            setSuppliers(resolvedData);
 
             const docData = getDocsData<Document>(results[1]);
             setDocuments(docData);
@@ -155,6 +168,7 @@ export const Suppliers: React.FC = () => {
             status: 'Active',
             riskLevel: 'Medium',
             owner: user?.displayName || '',
+            ownerId: user?.uid || '',
             reviewDates: {
                 contractReview: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
                 securityReview: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
@@ -303,6 +317,8 @@ export const Suppliers: React.FC = () => {
                                 hasIso27001: false, hasGdprPolicy: false, hasEncryption: false,
                                 hasBcp: false, hasIncidentProcess: false, lastAssessmentDate: new Date().toISOString()
                             },
+                            owner: user.displayName || 'Importé',
+                            ownerId: user.uid,
                             createdAt: new Date().toISOString()
                         });
                         count++;
@@ -354,14 +370,14 @@ export const Suppliers: React.FC = () => {
                 actions={canEdit && (
                     <>
                         <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                        <button 
-                            onClick={() => fileInputRef.current?.click()} 
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
                             className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
                         >
                             <Upload className="h-4 w-4 mr-2" /> Importer
                         </button>
-                        <button 
-                            onClick={openCreateModal} 
+                        <button
+                            onClick={openCreateModal}
                             className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                         >
                             <Plus className="h-4 w-4 mr-2" /> Nouveau Fournisseur
@@ -554,6 +570,18 @@ export const Suppliers: React.FC = () => {
                                                             </select>
                                                         </div>
                                                     </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
+                                                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                                                            value={formData.ownerId || ''}
+                                                            onChange={e => {
+                                                                const selectedUser = usersList.find(u => u.uid === e.target.value);
+                                                                setFormData({ ...formData, ownerId: e.target.value, owner: selectedUser?.displayName || '' });
+                                                            }}>
+                                                            <option value="">Sélectionner...</option>
+                                                            {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
+                                                        </select>
+                                                    </div>
                                                     <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={2} value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} /></div>
                                                     <div className="grid grid-cols-2 gap-6">
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contact Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={formData.contactName} onChange={e => setFormData({ ...formData, contactName: e.target.value })} /></div>
@@ -714,6 +742,18 @@ export const Suppliers: React.FC = () => {
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom de l'entreprise</label>
                                 <input required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                                     value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
+                                <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                                    value={formData.ownerId || ''}
+                                    onChange={e => {
+                                        const selectedUser = usersList.find(u => u.uid === e.target.value);
+                                        setFormData({ ...formData, ownerId: e.target.value, owner: selectedUser?.displayName || '' });
+                                    }}>
+                                    <option value="">Sélectionner...</option>
+                                    {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
+                                </select>
                             </div>
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
