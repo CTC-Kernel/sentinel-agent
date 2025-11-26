@@ -339,7 +339,7 @@ DONNÉES DE TEST :
 L'application ne collecte aucune donnée personnelle sans consentement explicite.
 Politique de confidentialité : https://sentinel-grc.com/privacy
 
-Pour toute question : support@sentinel-grc.com
+Pour toute question : contact@cyber-threat-consulting.com
 ```
 
 ### Notes (optionnel mais recommandé)

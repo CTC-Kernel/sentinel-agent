@@ -115,7 +115,7 @@ Nouvelle version complète de Sentinel GRC avec:
 **Prénom**: [Votre prénom]
 **Nom**: [Votre nom]
 **Téléphone**: [Votre téléphone]
-**Email**: support@sentinel-grc.com
+**Email**: contact@cyber-threat-consulting.com
 
 **Notes pour l'équipe de révision**:
 
