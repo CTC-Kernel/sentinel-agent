@@ -22,6 +22,7 @@ import { hasPermission } from './utils/permissions';
 import { SkipLink } from './components/ui/SkipLink';
 import { useHotkeys } from './hooks/useHotkeys';
 import { LoadingScreen } from './components/ui/LoadingScreen';
+import { CookieConsent } from './components/ui/CookieConsent';
 
 // Lazy Loading des Vues
 const Dashboard = React.lazy(() => import('./views/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -177,6 +178,7 @@ const AppLayout: React.FC = () => {
             </div>
 
             <NotificationPermissionBanner />
+            <CookieConsent />
             <OnboardingTrigger />
         </div>
     );
