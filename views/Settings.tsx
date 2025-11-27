@@ -1000,7 +1000,7 @@ export const Settings: React.FC = () => {
                 </button>
                 <div className="text-center">
                     <p className="text-[10px] text-slate-400 font-mono opacity-60">
-                        Sentinel GRC v2.0.0 • Build 20251127
+                        Sentinel GRC v2.0.0 • Build {__BUILD_DATE__}
                     </p>
                 </div>
             </div>
