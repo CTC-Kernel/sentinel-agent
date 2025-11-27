@@ -213,8 +213,6 @@ export const Dashboard: React.FC = () => {
                     newInsight = { text: `${activeIncidentsCount} incident(s) de sécurité actif(s).`, type: 'danger', details: "La réponse aux incidents est la priorité absolue.", action: "Gérer", link: "/incidents" };
                 } else if (financialExposure > 100000) {
                     newInsight = { text: "Exposition financière critique détectée.", type: 'danger', details: `${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(financialExposure)} d'actifs menacés par des risques élevés.`, action: "Voir Risques", link: "/risks" };
-                } else if (userCount === 1) {
-                    newInsight = { text: "Vous êtes seul dans l'organisation.", type: 'warning', details: "Invitez votre équipe pour collaborer sur la conformité.", action: "Inviter", link: "/team" };
                 } else if (allRisks.filter(r => r.score >= 15).length > 0) {
                     newInsight = { text: "Des risques critiques persistent.", type: 'warning', details: "Vérifiez les plans de traitement pour les risques > 15.", action: "Voir Risques", link: "/risks" };
                 } else if (complianceScore < 50 && actionable > 0) {
@@ -240,7 +238,12 @@ export const Dashboard: React.FC = () => {
                         });
                     } catch (_e) { /* Silent fail */ }
                 }
-                setHistoryData(historyStats.sort((a, b) => a.date.localeCompare(b.date)));
+
+                const safeHistoryData = historyStats
+                    .filter(d => typeof (d as any).compliance === 'number' && Number.isFinite((d as any).compliance))
+                    .sort((a, b) => a.date.localeCompare(b.date));
+
+                setHistoryData(safeHistoryData);
 
                 // allLogs already sorted and limited by query
                 // setRecentActivity(allLogs); // Already set above

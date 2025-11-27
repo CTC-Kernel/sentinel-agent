@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useEffect, createContext, useContext } from 'react';
+import React, { useRef, useState, useMemo, useEffect, createContext, useContext, useCallback } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment, Html, Billboard } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial } from 'three';
@@ -39,6 +39,7 @@ interface VoxelStudioProps {
   autoRotatePreference?: boolean | null;
   releaseToken?: number | null;
   suggestedLinks?: AISuggestedLink[];
+  presentationMode?: boolean;
   // Overlay props
   selectedNodeDetails?: any;
   isDetailMinimized?: boolean;
@@ -149,8 +150,8 @@ const StarField: React.FC = () => {
 };
 
 // Dynamic connector line that follows the overlay
-const DynamicConnectorLine: React.FC<{ 
-  startPos: [number, number, number]; 
+const DynamicConnectorLine: React.FC<{
+  startPos: [number, number, number];
   baseEndPos: [number, number, number];
   offset: { x: number; y: number };
 }> = ({ startPos, baseEndPos }) => {
@@ -195,7 +196,7 @@ const TargetReticle: React.FC<{ position: [number, number, number]; size: number
         <ringGeometry args={[scale * 0.9, scale * 0.95, 32]} />
         <meshBasicMaterial color={color} transparent opacity={0.4} side={DoubleSide} />
       </mesh>
-      
+
       {/* Outer bracket ring */}
       <mesh ref={ref2} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[scale * 1.1, scale * 1.15, 4, 1, 0, Math.PI / 2]} />
@@ -208,20 +209,20 @@ const TargetReticle: React.FC<{ position: [number, number, number]; size: number
 
       {/* Orbital atom-like rings */}
       <group ref={ref3}>
-         <mesh rotation={[0, 0, 0]}>
-            <torusGeometry args={[scale * 1.4, 0.02, 8, 32]} />
-            <meshBasicMaterial color={color} transparent opacity={0.2} />
-         </mesh>
-         <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[scale * 1.4, 0.02, 8, 32]} />
-            <meshBasicMaterial color={color} transparent opacity={0.2} />
-         </mesh>
+        <mesh rotation={[0, 0, 0]}>
+          <torusGeometry args={[scale * 1.4, 0.02, 8, 32]} />
+          <meshBasicMaterial color={color} transparent opacity={0.2} />
+        </mesh>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[scale * 1.4, 0.02, 8, 32]} />
+          <meshBasicMaterial color={color} transparent opacity={0.2} />
+        </mesh>
       </group>
     </group>
   );
 };
 
-const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.RefObject<OrbitControlsImpl | null>; setAutoRotate: (value: boolean) => void; userInteractingRef: React.MutableRefObject<boolean>; shouldSnapRef: React.MutableRefObject<boolean> }> = ({ target, controlsRef, setAutoRotate, userInteractingRef, shouldSnapRef }) => {
+const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.RefObject<OrbitControlsImpl | null>; setAutoRotate: (value: boolean) => void; userInteractingRef: React.MutableRefObject<boolean>; shouldSnapRef: React.MutableRefObject<boolean>; focusOnCardRef: React.MutableRefObject<boolean>; overlayOffset: { x: number; y: number }; }> = ({ target, controlsRef, setAutoRotate, userInteractingRef, shouldSnapRef, focusOnCardRef, overlayOffset }) => {
   const { camera } = useThree();
   const focusVec = useRef(new Vector3(0, 0, 0));
   const desiredPos = useRef(camera.position.clone());
@@ -241,14 +242,25 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
 
     if (target) {
       focusVec.current.set(...target.position);
-      const magnitude = Math.max(4, target.size * 5);
+      if (focusOnCardRef.current) {
+        const cardOffsetX = -5 + overlayOffset.x * 0.01;
+        const cardOffsetY = 1 - overlayOffset.y * 0.01;
+        focusVec.current.x += cardOffsetX;
+        focusVec.current.y += cardOffsetY;
+      }
+      let magnitude = Math.max(4, target.size * 5);
+      let verticalFactor = 0.6;
+      if (focusOnCardRef.current) {
+        magnitude = 8;
+        verticalFactor = 0.2;
+      }
       const horizontalDir = focusVec.current.clone().setY(0);
       if (horizontalDir.lengthSq() < 1e-3) {
         horizontalDir.set(0, 0, 1);
       }
       horizontalDir.normalize().multiplyScalar(-1);
       offsetVec.current.copy(horizontalDir.multiplyScalar(magnitude * 1.2));
-      offsetVec.current.y = magnitude * 0.6 + 2;
+      offsetVec.current.y = magnitude * verticalFactor + 2;
       desiredPos.current.copy(focusVec.current).add(offsetVec.current);
       if (!userInteractingRef.current && shouldSnapRef.current) {
         camera.position.lerp(desiredPos.current, 0.04);
@@ -424,6 +436,7 @@ const VoxelMesh: React.FC<{
   opacity?: number;
   overlayProps?: any;
   overlayOffset?: { x: number; y: number };
+  isImpacted?: boolean;
 }> = ({
   node,
   onClick,
@@ -434,359 +447,366 @@ const VoxelMesh: React.FC<{
   xRayMode,
   opacity,
   overlayProps,
-  overlayOffset = { x: 0, y: 0 }
+  overlayOffset = { x: 0, y: 0 },
+  isImpacted,
 }) => {
-  const modelLibrary = useModelLibrary();
-  const meshRef = useRef<Group>(null);
-  const [hovered, setHovered] = useState(false);
-  const [currentScale, setCurrentScale] = useState(1);
-  const [currentGlow, setCurrentGlow] = useState(0);
+    const modelLibrary = useModelLibrary();
+    const meshRef = useRef<Group>(null);
+    const [hovered, setHovered] = useState(false);
+    const [currentScale, setCurrentScale] = useState(1);
+    const [currentGlow, setCurrentGlow] = useState(0);
 
-  const isCritical = useMemo(() => {
-    if (node.type === 'risk') {
-      return (node.data as Risk).score >= 15;
-    }
-    if (node.type === 'incident') {
-      return (node.data as Incident).severity === 'Critique';
-    }
-    if (node.type === 'project') {
-      return ((node.data as Project).status || '').toLowerCase().includes('retard');
-    }
-    return false;
-  }, [node]);
-  const usesLibraryModel = Boolean(MODEL_LIBRARY_CONFIG[node.type]);
+    const isCritical = useMemo(() => {
+      if (node.type === 'risk') {
+        return (node.data as Risk).score >= 15;
+      }
+      if (node.type === 'incident') {
+        return (node.data as Incident).severity === 'Critique';
+      }
+      if (node.type === 'project') {
+        return ((node.data as Project).status || '').toLowerCase().includes('retard');
+      }
+      return false;
+    }, [node]);
+    const usesLibraryModel = Boolean(MODEL_LIBRARY_CONFIG[node.type]);
 
-  const labelVisible = hovered || isSelected || isHighlighted;
+    const labelVisible = hovered || isSelected || isHighlighted;
 
-  useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += 0.005;
-    }
-  });
-
-  // Animate scale and glow using useFrame
-  const targetScale = isSelected ? 1.3 : (hovered || isHighlighted) ? 1.15 : 1;
-  const targetGlow = (isCritical && highlightCritical) ? 0.8 : 0;
-
-  useFrame(() => {
-    if (meshRef.current) {
-      // Smooth interpolation for scale
-      setCurrentScale(prev => prev + (targetScale - prev) * 0.1);
-      meshRef.current.scale.setScalar(currentScale);
-
-      // Smooth interpolation for glow
-      setCurrentGlow(prev => prev + (targetGlow - prev) * 0.1);
-    }
-  });
-
-  const handleClick = (e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation();
-    onClick(node);
-  };
-
-  let baseColor = isSelected ? '#fde047' : hovered ? '#4ecdc4' : node.color;
-  let emissiveColor = isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : node.color;
-
-  if (node.type === 'risk' && usesLibraryModel) {
-    baseColor = isSelected ? '#fdba74' : hovered ? '#fb923c' : '#f97316';
-    emissiveColor = isSelected ? '#fb923c' : hovered ? '#f97316' : '#ea580c';
-  }
-  const baseOpacity = isDimmed ? 0.4 : highlightCritical && !isCritical ? 0.7 : 0.95;
-  const calculatedOpacity = usesLibraryModel ? Math.max(baseOpacity, 0.85) : baseOpacity;
-  const emissiveIntensity = 0.35 + currentGlow * 0.4;
-
-  const sharedMaterialProps = {
-    color: baseColor,
-    emissive: emissiveColor,
-    emissiveIntensity,
-    metalness: 0.35,
-    roughness: 0.25,
-    opacity: opacity !== undefined ? opacity : calculatedOpacity,
-    transparent: true,
-    wireframe: Boolean(xRayMode),
-    isHighlighted,
-    isDimmed
-  };
-
-  const libraryPrimitive = useMemo(() => {
-    const config = MODEL_LIBRARY_CONFIG[node.type];
-    if (!config) return null;
-    const source = modelLibrary[config.key];
-    if (!source) return null;
-    const clone = source.clone(true);
-    const uniformScale = node.size * config.scale;
-    clone.scale.setScalar(uniformScale);
-    const [px = 0, py = 0, pz = 0] = config.position ?? [0, 0, 0];
-    clone.position.set(px * node.size, py * node.size, pz * node.size);
-    const [rx = 0, ry = 0, rz = 0] = config.rotation ?? [0, 0, 0];
-    clone.rotation.set(rx, ry, rz);
-    clone.traverse(child => {
-      if ((child as Mesh).isMesh) {
-        child.frustumCulled = false;
-        (child as Mesh).material = new MeshPhysicalMaterial({
-          color: isDimmed ? '#1e293b' : baseColor,
-          emissive: isDimmed ? '#000000' : emissiveColor,
-          emissiveIntensity: isDimmed ? 0 : emissiveIntensity,
-          metalness: isDimmed ? 0.1 : 0.3,
-          roughness: isDimmed ? 0.9 : 0.2,
-          transmission: isDimmed ? 0 : 0.5,
-          thickness: isDimmed ? 0 : 1.2,
-          clearcoat: isDimmed ? 0 : 1,
-          transparent: true,
-          opacity: isDimmed ? 0.1 : Math.max(opacity ?? 1, 0.6),
-          wireframe: Boolean(xRayMode),
-          side: DoubleSide
-        });
+    useFrame(() => {
+      if (meshRef.current) {
+        meshRef.current.rotation.y += 0.005;
       }
     });
-    return clone;
-  }, [modelLibrary, node.type, node.size, baseColor, emissiveColor, emissiveIntensity, opacity, xRayMode, isDimmed]);
 
-  const renderCategoryModel = () => {
-    if (libraryPrimitive) {
-      return <primitive object={libraryPrimitive} />;
+    // Animate scale and glow using useFrame
+    const targetScale = isSelected ? 1.3 : (hovered || isHighlighted || isImpacted) ? 1.15 : 1;
+    const targetGlow = (isCritical && highlightCritical) || isImpacted ? 0.8 : 0;
+
+    useFrame(() => {
+      if (meshRef.current) {
+        // Smooth interpolation for scale
+        setCurrentScale(prev => prev + (targetScale - prev) * 0.1);
+        meshRef.current.scale.setScalar(currentScale);
+
+        // Smooth interpolation for glow
+        setCurrentGlow(prev => prev + (targetGlow - prev) * 0.1);
+      }
+    });
+
+    const handleClick = (e: ThreeEvent<MouseEvent>) => {
+      e.stopPropagation();
+      onClick(node);
+    };
+
+    let baseColor = isSelected ? '#fde047' : hovered ? '#4ecdc4' : node.color;
+    let emissiveColor = isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : node.color;
+
+    if (node.type === 'risk' && usesLibraryModel) {
+      baseColor = isSelected ? '#fdba74' : hovered ? '#fb923c' : '#f97316';
+      emissiveColor = isSelected ? '#fb923c' : hovered ? '#f97316' : '#ea580c';
     }
 
-    const EdgesWithColor = () => <Edges threshold={15} color={emissiveColor} opacity={0.5} transparent />;
+    if (isImpacted) {
+      baseColor = '#ef4444';
+      emissiveColor = '#dc2626';
+    }
 
-    switch (node.type) {
-      case 'asset':
-        return (
-          <>
-            <mesh position={[0, -node.size * 0.2, 0]}>
-              <boxGeometry args={[node.size * 0.9, node.size * 0.25, node.size * 0.6]} />
-              <GlassMaterial {...sharedMaterialProps} />
-              <EdgesWithColor />
-            </mesh>
-            <mesh position={[0, 0, 0]}>
-              <boxGeometry args={[node.size * 0.75, node.size * 0.2, node.size * 0.5]} />
-              <GlassMaterial {...sharedMaterialProps} />
-              <EdgesWithColor />
-            </mesh>
-            <mesh position={[0, node.size * 0.18, 0]}>
-              <boxGeometry args={[node.size * 0.55, node.size * 0.18, node.size * 0.4]} />
-              <GlassMaterial {...sharedMaterialProps} />
-              <EdgesWithColor />
-            </mesh>
-            {[-0.25, 0.25].map(offset => (
-              <mesh key={`asset-light-${node.id}-${offset}`} position={[offset * node.size, node.size * 0.28, node.size * 0.18]}>
-                <boxGeometry args={[node.size * 0.08, node.size * 0.06, node.size * 0.02]} />
-                <meshBasicMaterial color="#facc15" transparent opacity={0.8} />
+    const baseOpacity = isDimmed ? 0.4 : highlightCritical && !isCritical ? 0.7 : 0.95;
+    const calculatedOpacity = usesLibraryModel ? Math.max(baseOpacity, 0.85) : baseOpacity;
+    const emissiveIntensity = 0.35 + currentGlow * 0.4;
+
+    const sharedMaterialProps = {
+      color: baseColor,
+      emissive: emissiveColor,
+      emissiveIntensity,
+      metalness: 0.35,
+      roughness: 0.25,
+      opacity: opacity !== undefined ? opacity : calculatedOpacity,
+      transparent: true,
+      wireframe: Boolean(xRayMode),
+      isHighlighted,
+      isDimmed
+    };
+
+    const libraryPrimitive = useMemo(() => {
+      const config = MODEL_LIBRARY_CONFIG[node.type];
+      if (!config) return null;
+      const source = modelLibrary[config.key];
+      if (!source) return null;
+      const clone = source.clone(true);
+      const uniformScale = node.size * config.scale;
+      clone.scale.setScalar(uniformScale);
+      const [px = 0, py = 0, pz = 0] = config.position ?? [0, 0, 0];
+      clone.position.set(px * node.size, py * node.size, pz * node.size);
+      const [rx = 0, ry = 0, rz = 0] = config.rotation ?? [0, 0, 0];
+      clone.rotation.set(rx, ry, rz);
+      clone.traverse(child => {
+        if ((child as Mesh).isMesh) {
+          child.frustumCulled = false;
+          (child as Mesh).material = new MeshPhysicalMaterial({
+            color: isDimmed ? '#1e293b' : baseColor,
+            emissive: isDimmed ? '#000000' : emissiveColor,
+            emissiveIntensity: isDimmed ? 0 : emissiveIntensity,
+            metalness: isDimmed ? 0.1 : 0.3,
+            roughness: isDimmed ? 0.9 : 0.2,
+            transmission: isDimmed ? 0 : 0.5,
+            thickness: isDimmed ? 0 : 1.2,
+            clearcoat: isDimmed ? 0 : 1,
+            transparent: true,
+            opacity: isDimmed ? 0.1 : Math.max(opacity ?? 1, 0.6),
+            wireframe: Boolean(xRayMode),
+            side: DoubleSide
+          });
+        }
+      });
+      return clone;
+    }, [modelLibrary, node.type, node.size, baseColor, emissiveColor, emissiveIntensity, opacity, xRayMode, isDimmed]);
+
+    const renderCategoryModel = () => {
+      if (libraryPrimitive) {
+        return <primitive object={libraryPrimitive} />;
+      }
+
+      const EdgesWithColor = () => <Edges threshold={15} color={emissiveColor} opacity={0.5} transparent />;
+
+      switch (node.type) {
+        case 'asset':
+          return (
+            <>
+              <mesh position={[0, -node.size * 0.2, 0]}>
+                <boxGeometry args={[node.size * 0.9, node.size * 0.25, node.size * 0.6]} />
+                <GlassMaterial {...sharedMaterialProps} />
+                <EdgesWithColor />
               </mesh>
-            ))}
-          </>
-        );
-      case 'risk':
-        return (
-          <>
-            <mesh rotation={[0, 0, Math.PI / 4]}>
-              <octahedronGeometry args={[node.size * 0.6, 0]} />
-              <GlassMaterial {...sharedMaterialProps} metalness={0.2} roughness={0.35} />
-              <EdgesWithColor />
-            </mesh>
-            {[0, 1, 2, 3].map(index => {
-              const angle = (Math.PI / 2) * index;
-              return (
-                <mesh
-                  key={`risk-spike-${node.id}-${index}`}
-                  position={[Math.cos(angle) * node.size * 0.55, 0, Math.sin(angle) * node.size * 0.55]}
-                  rotation={[Math.PI / 2, angle, 0]}
-                >
-                  <coneGeometry args={[node.size * 0.15, node.size * 0.45, 8]} />
-                  <GlassMaterial
-                    color="#f97316"
-                    emissive="#fb923c"
-                    emissiveIntensity={0.8}
-                    opacity={opacity}
-                    transparent
-                    wireframe={Boolean(xRayMode)}
-                  />
-                  <EdgesWithColor />
+              <mesh position={[0, 0, 0]}>
+                <boxGeometry args={[node.size * 0.75, node.size * 0.2, node.size * 0.5]} />
+                <GlassMaterial {...sharedMaterialProps} />
+                <EdgesWithColor />
+              </mesh>
+              <mesh position={[0, node.size * 0.18, 0]}>
+                <boxGeometry args={[node.size * 0.55, node.size * 0.18, node.size * 0.4]} />
+                <GlassMaterial {...sharedMaterialProps} />
+                <EdgesWithColor />
+              </mesh>
+              {[-0.25, 0.25].map(offset => (
+                <mesh key={`asset-light-${node.id}-${offset}`} position={[offset * node.size, node.size * 0.28, node.size * 0.18]}>
+                  <boxGeometry args={[node.size * 0.08, node.size * 0.06, node.size * 0.02]} />
+                  <meshBasicMaterial color="#facc15" transparent opacity={0.8} />
                 </mesh>
-              );
-            })}
-            <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[node.size * 0.55, node.size * 0.05, 16, 32]} />
-              <GlassMaterial color="#f97316" emissive="#fb923c" emissiveIntensity={0.5} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
-            </mesh>
-          </>
-        );
-      case 'project':
-        return (
-          <>
-            <mesh position={[0, -node.size * 0.18, 0]}>
-              <cylinderGeometry args={[node.size * 0.7, node.size * 0.7, node.size * 0.18, 24]} />
-              <GlassMaterial {...sharedMaterialProps} />
-              <EdgesWithColor />
-            </mesh>
-            <mesh position={[0, node.size * 0.05, 0]}>
-              <cylinderGeometry args={[node.size * 0.5, node.size * 0.5, node.size * 0.35, 24]} />
-              <GlassMaterial {...sharedMaterialProps} />
-              <EdgesWithColor />
-            </mesh>
-            <mesh position={[0, node.size * 0.32, 0]}>
-              <cylinderGeometry args={[node.size * 0.18, node.size * 0.18, node.size * 0.7, 12]} />
-              <GlassMaterial color="#fcd34d" emissive="#fbbf24" emissiveIntensity={0.8} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
-              <EdgesWithColor />
-            </mesh>
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, node.size * 0.05, 0]}>
-              <ringGeometry args={[node.size * 0.55, node.size * 0.58, 32]} />
-              <meshBasicMaterial color="#c084fc" transparent opacity={0.6} side={DoubleSide} />
-            </mesh>
-          </>
-        );
-      case 'audit':
-        return (
-          <>
-            <mesh rotation={[-Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[node.size * 0.6, node.size * 0.1, 24, 48]} />
-              <GlassMaterial {...sharedMaterialProps} metalness={0.5} roughness={0.2} />
-              <EdgesWithColor />
-            </mesh>
-            <mesh position={[0, node.size * 0.18, 0]}>
-              <boxGeometry args={[node.size * 0.75, node.size * 0.04, node.size * 0.55]} />
-              <GlassMaterial {...sharedMaterialProps} />
-              <EdgesWithColor />
-            </mesh>
-            <mesh position={[0, node.size * 0.06, 0]}>
-              <boxGeometry args={[node.size * 0.22, node.size * 0.25, node.size * 0.06]} />
-              <GlassMaterial color="#67e8f9" emissive="#22d3ee" emissiveIntensity={0.7} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
-              <EdgesWithColor />
-            </mesh>
-            <mesh position={[node.size * 0.35, node.size * 0.05, node.size * 0.2]}>
-              <torusGeometry args={[node.size * 0.12, node.size * 0.03, 16, 32]} />
-              <meshBasicMaterial color="#f8fafc" transparent opacity={0.6} />
-            </mesh>
-          </>
-        );
-      case 'incident':
-        return (
-          <>
+              ))}
+            </>
+          );
+        case 'risk':
+          return (
+            <>
+              <mesh rotation={[0, 0, Math.PI / 4]}>
+                <octahedronGeometry args={[node.size * 0.6, 0]} />
+                <GlassMaterial {...sharedMaterialProps} metalness={0.2} roughness={0.35} />
+                <EdgesWithColor />
+              </mesh>
+              {[0, 1, 2, 3].map(index => {
+                const angle = (Math.PI / 2) * index;
+                return (
+                  <mesh
+                    key={`risk-spike-${node.id}-${index}`}
+                    position={[Math.cos(angle) * node.size * 0.55, 0, Math.sin(angle) * node.size * 0.55]}
+                    rotation={[Math.PI / 2, angle, 0]}
+                  >
+                    <coneGeometry args={[node.size * 0.15, node.size * 0.45, 8]} />
+                    <GlassMaterial
+                      color="#f97316"
+                      emissive="#fb923c"
+                      emissiveIntensity={0.8}
+                      opacity={opacity}
+                      transparent
+                      wireframe={Boolean(xRayMode)}
+                    />
+                    <EdgesWithColor />
+                  </mesh>
+                );
+              })}
+              <mesh rotation={[Math.PI / 2, 0, 0]}>
+                <torusGeometry args={[node.size * 0.55, node.size * 0.05, 16, 32]} />
+                <GlassMaterial color="#f97316" emissive="#fb923c" emissiveIntensity={0.5} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+              </mesh>
+            </>
+          );
+        case 'project':
+          return (
+            <>
+              <mesh position={[0, -node.size * 0.18, 0]}>
+                <cylinderGeometry args={[node.size * 0.7, node.size * 0.7, node.size * 0.18, 24]} />
+                <GlassMaterial {...sharedMaterialProps} />
+                <EdgesWithColor />
+              </mesh>
+              <mesh position={[0, node.size * 0.05, 0]}>
+                <cylinderGeometry args={[node.size * 0.5, node.size * 0.5, node.size * 0.35, 24]} />
+                <GlassMaterial {...sharedMaterialProps} />
+                <EdgesWithColor />
+              </mesh>
+              <mesh position={[0, node.size * 0.32, 0]}>
+                <cylinderGeometry args={[node.size * 0.18, node.size * 0.18, node.size * 0.7, 12]} />
+                <GlassMaterial color="#fcd34d" emissive="#fbbf24" emissiveIntensity={0.8} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+                <EdgesWithColor />
+              </mesh>
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, node.size * 0.05, 0]}>
+                <ringGeometry args={[node.size * 0.55, node.size * 0.58, 32]} />
+                <meshBasicMaterial color="#c084fc" transparent opacity={0.6} side={DoubleSide} />
+              </mesh>
+            </>
+          );
+        case 'audit':
+          return (
+            <>
+              <mesh rotation={[-Math.PI / 2, 0, 0]}>
+                <torusGeometry args={[node.size * 0.6, node.size * 0.1, 24, 48]} />
+                <GlassMaterial {...sharedMaterialProps} metalness={0.5} roughness={0.2} />
+                <EdgesWithColor />
+              </mesh>
+              <mesh position={[0, node.size * 0.18, 0]}>
+                <boxGeometry args={[node.size * 0.75, node.size * 0.04, node.size * 0.55]} />
+                <GlassMaterial {...sharedMaterialProps} />
+                <EdgesWithColor />
+              </mesh>
+              <mesh position={[0, node.size * 0.06, 0]}>
+                <boxGeometry args={[node.size * 0.22, node.size * 0.25, node.size * 0.06]} />
+                <GlassMaterial color="#67e8f9" emissive="#22d3ee" emissiveIntensity={0.7} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+                <EdgesWithColor />
+              </mesh>
+              <mesh position={[node.size * 0.35, node.size * 0.05, node.size * 0.2]}>
+                <torusGeometry args={[node.size * 0.12, node.size * 0.03, 16, 32]} />
+                <meshBasicMaterial color="#f8fafc" transparent opacity={0.6} />
+              </mesh>
+            </>
+          );
+        case 'incident':
+          return (
+            <>
+              <mesh>
+                <sphereGeometry args={[node.size * 0.55, 28, 28]} />
+                <GlassMaterial {...sharedMaterialProps} metalness={0.15} roughness={0.35} />
+                <EdgesWithColor />
+              </mesh>
+              <mesh rotation={[Math.PI / 2, 0, 0]}>
+                <torusGeometry args={[node.size * 0.75, node.size * 0.08, 24, 48]} />
+                <GlassMaterial color="#fb7185" emissive="#f43f5e" emissiveIntensity={0.8} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+              </mesh>
+              <mesh position={[0, node.size * 0.55, 0]}>
+                <coneGeometry args={[node.size * 0.2, node.size * 0.5, 12]} />
+                <GlassMaterial color="#f97316" emissive="#f97316" emissiveIntensity={0.9} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+                <EdgesWithColor />
+              </mesh>
+              <mesh position={[node.size * 0.45, 0, 0]} rotation={[0, 0, Math.PI / 6]}>
+                <boxGeometry args={[node.size * 0.2, node.size * 0.4, node.size * 0.04]} />
+                <GlassMaterial color="#fee2e2" emissive="#fecaca" emissiveIntensity={0.6} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+                <EdgesWithColor />
+              </mesh>
+            </>
+          );
+        case 'supplier':
+          return (
+            <>
+              <mesh position={[0, -node.size * 0.12, 0]}>
+                <cylinderGeometry args={[node.size * 0.45, node.size * 0.45, node.size * 0.35, 20]} />
+                <GlassMaterial {...sharedMaterialProps} />
+                <EdgesWithColor />
+              </mesh>
+              <mesh position={[0, node.size * 0.22, 0]}>
+                <coneGeometry args={[node.size * 0.55, node.size * 0.75, 20]} />
+                <GlassMaterial {...sharedMaterialProps} />
+                <EdgesWithColor />
+              </mesh>
+              {[...Array(6)].map((_, index) => {
+                const angle = (Math.PI * 2 * index) / 6;
+                return (
+                  <mesh key={`supplier-node-${node.id}-${index}`} position={[Math.cos(angle) * node.size * 0.8, node.size * 0.12, Math.sin(angle) * node.size * 0.8]}>
+                    <sphereGeometry args={[node.size * 0.12, 16, 16]} />
+                    <GlassMaterial color="#4ade80" emissive="#22c55e" emissiveIntensity={0.6} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+                  </mesh>
+                );
+              })}
+            </>
+          );
+        default:
+          return (
             <mesh>
-              <sphereGeometry args={[node.size * 0.55, 28, 28]} />
-              <GlassMaterial {...sharedMaterialProps} metalness={0.15} roughness={0.35} />
-              <EdgesWithColor />
-            </mesh>
-            <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[node.size * 0.75, node.size * 0.08, 24, 48]} />
-              <GlassMaterial color="#fb7185" emissive="#f43f5e" emissiveIntensity={0.8} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
-            </mesh>
-            <mesh position={[0, node.size * 0.55, 0]}>
-              <coneGeometry args={[node.size * 0.2, node.size * 0.5, 12]} />
-              <GlassMaterial color="#f97316" emissive="#f97316" emissiveIntensity={0.9} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
-              <EdgesWithColor />
-            </mesh>
-            <mesh position={[node.size * 0.45, 0, 0]} rotation={[0, 0, Math.PI / 6]}>
-              <boxGeometry args={[node.size * 0.2, node.size * 0.4, node.size * 0.04]} />
-              <GlassMaterial color="#fee2e2" emissive="#fecaca" emissiveIntensity={0.6} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
-              <EdgesWithColor />
-            </mesh>
-          </>
-        );
-      case 'supplier':
-        return (
-          <>
-            <mesh position={[0, -node.size * 0.12, 0]}>
-              <cylinderGeometry args={[node.size * 0.45, node.size * 0.45, node.size * 0.35, 20]} />
+              <boxGeometry args={[node.size, node.size, node.size]} />
               <GlassMaterial {...sharedMaterialProps} />
               <EdgesWithColor />
             </mesh>
-            <mesh position={[0, node.size * 0.22, 0]}>
-              <coneGeometry args={[node.size * 0.55, node.size * 0.75, 20]} />
-              <GlassMaterial {...sharedMaterialProps} />
-              <EdgesWithColor />
-            </mesh>
-            {[...Array(6)].map((_, index) => {
-              const angle = (Math.PI * 2 * index) / 6;
-              return (
-                <mesh key={`supplier-node-${node.id}-${index}`} position={[Math.cos(angle) * node.size * 0.8, node.size * 0.12, Math.sin(angle) * node.size * 0.8]}>
-                  <sphereGeometry args={[node.size * 0.12, 16, 16]} />
-                  <GlassMaterial color="#4ade80" emissive="#22c55e" emissiveIntensity={0.6} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
-                </mesh>
-              );
-            })}
-          </>
-        );
-      default:
-        return (
-          <mesh>
-            <boxGeometry args={[node.size, node.size, node.size]} />
-            <GlassMaterial {...sharedMaterialProps} />
-            <EdgesWithColor />
-          </mesh>
-        );
-    }
-  };
+          );
+      }
+    };
 
-  const rawLabel = (node.data as any).name || (node.data as any).title || (node.data as any).threat || (node.data as any).label || 'Élément';
-  const label = rawLabel.length > 24 ? `${rawLabel.slice(0, 21)}…` : rawLabel;
-  const safeLabel = safeRender(label);
+    const rawLabel = (node.data as any).name || (node.data as any).title || (node.data as any).threat || (node.data as any).label || 'Élément';
+    const label = rawLabel.length > 24 ? `${rawLabel.slice(0, 21)}…` : rawLabel;
+    const safeLabel = safeRender(label);
 
-  return (
-    <group position={node.position}>
-      <group
-        ref={meshRef}
-        onClick={handleClick}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-      >
-        {renderCategoryModel()}
-      </group>
-
-      {(hovered || isSelected || isHighlighted) && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -node.size / 2, 0]}>
-          <ringGeometry args={[node.size * 0.8, node.size * 1.6, 64]} />
-          <meshBasicMaterial
-            color={node.color}
-            transparent
-            opacity={isSelected ? 0.5 : 0.25}
-            blending={AdditiveBlending}
-          />
-        </mesh>
-      )}
-
-      {/* Label */}
-      {labelVisible && (
-        <Text
-          position={[0, node.size + 0.8, 0]}
-          fontSize={0.55}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-          outlineWidth={0.08}
-          outlineColor="black"
-          maxWidth={3.5}
-          lineHeight={1.1}
+    return (
+      <group position={node.position}>
+        <group
+          ref={meshRef}
+          onClick={handleClick}
+          onPointerOver={() => setHovered(true)}
+          onPointerOut={() => setHovered(false)}
         >
-          {safeLabel}
-        </Text>
-      )}
-      
-      {isSelected && overlayProps && (
-        <group>
-          <DynamicConnectorLine 
-            startPos={[0, 0, 0]}
-            baseEndPos={[-5 + overlayOffset.x * 0.01, 2 - overlayOffset.y * 0.01, 0]}
-            offset={overlayOffset}
-          />
-          <Html
-            position={[-5 + overlayOffset.x * 0.01, 2 - overlayOffset.y * 0.01, 0]}
-            zIndexRange={[100, 0]}
-            distanceFactor={10}
-            occlude={false}
-            transform
-            sprite
-            style={{ pointerEvents: 'none' }}
-          >
-             <div style={{ pointerEvents: 'auto', transform: 'translate3d(0, -50%, 0)' }}>
-               <VoxelDetailOverlay {...overlayProps} />
-             </div>
-          </Html>
+          {renderCategoryModel()}
         </group>
-      )}
-    </group>
-  );
-};
+
+        {(hovered || isSelected || isHighlighted) && (
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -node.size / 2, 0]}>
+            <ringGeometry args={[node.size * 0.8, node.size * 1.6, 64]} />
+            <meshBasicMaterial
+              color={node.color}
+              transparent
+              opacity={isSelected ? 0.5 : 0.25}
+              blending={AdditiveBlending}
+            />
+          </mesh>
+        )}
+
+        {/* Label */}
+        {labelVisible && (
+          <Text
+            position={[0, node.size + 0.8, 0]}
+            fontSize={0.55}
+            color="white"
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.08}
+            outlineColor="black"
+            maxWidth={3.5}
+            lineHeight={1.1}
+          >
+            {safeLabel}
+          </Text>
+        )}
+
+        {isSelected && overlayProps && (
+          <group>
+            <DynamicConnectorLine
+              startPos={[0, 0, 0]}
+              baseEndPos={[-5 + overlayOffset.x * 0.01, 1 - overlayOffset.y * 0.01, 0]}
+              offset={overlayOffset}
+            />
+            <Html
+              position={[-5 + overlayOffset.x * 0.01, 1 - overlayOffset.y * 0.01, 0]}
+              zIndexRange={[100, 0]}
+              distanceFactor={10}
+              occlude={false}
+              transform
+              sprite
+              style={{ pointerEvents: 'none' }}
+            >
+              <div style={{ pointerEvents: 'auto', transform: 'translate3d(0, 0, 0)' }}>
+                <VoxelDetailOverlay {...overlayProps} />
+              </div>
+            </Html>
+          </group>
+        )}
+      </group>
+    );
+  };
 
 
 
@@ -872,6 +892,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   releaseToken,
   suggestedLinks = [],
   xRayMode,
+  presentationMode,
   // Overlay props
   selectedNodeDetails,
   isDetailMinimized,
@@ -886,13 +907,27 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const selectionUpdateFromOutside = useRef(false);
   const isUserInteracting = useRef(false);
+  const focusOnCardRef = useRef(false);
   const shouldSnapToTarget = useRef(false);
   const [impactPosition, setImpactPosition] = useState<[number, number, number] | null>(null);
   const [impactKey, setImpactKey] = useState(0);
   const [overlayOffset, setOverlayOffset] = useState({ x: 0, y: 0 });
 
+  // Intelligent Features State
+  const [impactMode, setImpactMode] = useState(false);
+  const [impactedNodeIds, setImpactedNodeIds] = useState<Set<string>>(new Set());
+  const lastPresentationSwitch = useRef(0);
+  const [presentationIndex, setPresentationIndex] = useState(0);
+
   const handleOverlayPositionChange = (x: number, y: number) => {
     setOverlayOffset({ x, y });
+  };
+
+  const handleOverlayFocusRequest = () => {
+    if (selectedNode) {
+      focusOnCardRef.current = true;
+      shouldSnapToTarget.current = true;
+    }
   };
 
   const overlayProps = {
@@ -904,6 +939,9 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     applyFocus,
     handleOpenSelected,
     onPositionChange: handleOverlayPositionChange,
+    onRequestFocus: handleOverlayFocusRequest,
+    impactMode,
+    setImpactMode,
   };
 
 
@@ -1135,6 +1173,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
   const handleNodeClick = (node: VoxelNode) => {
     setSelectedNode(node);
+    focusOnCardRef.current = true;
     shouldSnapToTarget.current = true;
     setImpactPosition(node.position);
     setImpactKey(prev => prev + 1);
@@ -1152,11 +1191,13 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     if (focusNodeId === null) {
       setTimeout(() => setSelectedNode(null), 0);
       shouldSnapToTarget.current = false;
+      focusOnCardRef.current = false;
       return;
     }
     const node = voxelNodes.find(n => n.id === focusNodeId);
     if (node) {
       setTimeout(() => setSelectedNode(node), 0);
+      focusOnCardRef.current = true;
       shouldSnapToTarget.current = true;
     }
   }, [focusNodeId, voxelNodes]);
@@ -1186,6 +1227,94 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     }
     return set;
   }, [selectedNode, voxelNodes]);
+
+  // --- Intelligent Features Logic ---
+
+  // 1. Calculate Blast Radius (Impact Mode)
+  const calculateBlastRadius = useCallback((startNodeId: string) => {
+    const visited = new Set<string>();
+    const queue = [startNodeId];
+    visited.add(startNodeId);
+
+    // Create a map for fast lookup of reverse connections
+    const reverseConnections: Record<string, string[]> = {};
+    voxelNodes.forEach(n => {
+      n.connections.forEach(targetId => {
+        if (!reverseConnections[targetId]) reverseConnections[targetId] = [];
+        reverseConnections[targetId].push(n.id);
+      });
+    });
+
+    while (queue.length > 0) {
+      const currentId = queue.shift()!;
+      const node = voxelNodes.find(n => n.id === currentId);
+
+      if (node) {
+        // Forward connections
+        node.connections.forEach(connId => {
+          if (!visited.has(connId)) {
+            visited.add(connId);
+            queue.push(connId);
+          }
+        });
+      }
+
+      // Reverse connections
+      if (reverseConnections[currentId]) {
+        reverseConnections[currentId].forEach(sourceId => {
+          if (!visited.has(sourceId)) {
+            visited.add(sourceId);
+            queue.push(sourceId);
+          }
+        });
+      }
+    }
+    return visited;
+  }, [voxelNodes]);
+
+  useEffect(() => {
+    if (impactMode && selectedNode) {
+      const impacted = calculateBlastRadius(selectedNode.id);
+      setImpactedNodeIds(impacted);
+    } else {
+      setImpactedNodeIds(new Set());
+    }
+  }, [impactMode, selectedNode, calculateBlastRadius]);
+
+  // 2. Presentation Mode (Auto-Pilot)
+  const criticalNodes = useMemo(() => {
+    return voxelNodes.filter(node => {
+      if (node.type === 'risk') return (node.data as Risk).score >= 12;
+      if (node.type === 'incident') return (node.data as Incident).severity === 'Critique' || (node.data as Incident).severity === 'Élevée';
+      return false;
+    });
+  }, [voxelNodes]);
+
+  useFrame((state) => {
+    if (presentationMode && criticalNodes.length > 0) {
+      // Switch every 8 seconds
+      if (state.clock.elapsedTime - lastPresentationSwitch.current > 8) {
+        lastPresentationSwitch.current = state.clock.elapsedTime;
+        const nextIndex = (presentationIndex + 1) % criticalNodes.length;
+        setPresentationIndex(nextIndex);
+
+        // Auto-select the node
+        const nextNode = criticalNodes[nextIndex];
+        setSelectedNode(nextNode);
+        focusOnCardRef.current = true;
+        shouldSnapToTarget.current = true;
+        setImpactPosition(nextNode.position);
+        setImpactKey(prev => prev + 1);
+      }
+    }
+  });
+
+  // Reset presentation index when mode changes
+  useEffect(() => {
+    if (!presentationMode) {
+      setPresentationIndex(0);
+    }
+  }, [presentationMode]);
 
   return (
     <div className={`w-full h-full ${className}`}>
@@ -1283,7 +1412,14 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           ) : (
             voxelNodes.map(node => {
               const isRelated = relatedNodeIds.has(node.id);
-              const isDimmed = Boolean(selectedNode && node.id !== selectedNode.id && !isRelated);
+              const isImpacted = impactMode && impactedNodeIds.has(node.id);
+
+              // In impact mode, dim everything except impacted nodes
+              // In normal mode, dim everything except selected and related
+              const isDimmed = impactMode
+                ? !isImpacted
+                : Boolean(selectedNode && node.id !== selectedNode.id && !isRelated);
+
               const isHighlighted = Boolean(selectedNode && (node.id === selectedNode.id || isRelated));
 
               return (
@@ -1299,11 +1435,20 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                   xRayMode={xRayMode}
                   overlayProps={overlayProps}
                   overlayOffset={overlayOffset}
+                  isImpacted={isImpacted}
                 />
               );
             })
           )}
-          <FocusController target={branchPivotNode} controlsRef={controlsRef} setAutoRotate={setAutoRotate} userInteractingRef={isUserInteracting} shouldSnapRef={shouldSnapToTarget} />
+          <FocusController
+            target={branchPivotNode}
+            controlsRef={controlsRef}
+            setAutoRotate={setAutoRotate}
+            userInteractingRef={isUserInteracting}
+            shouldSnapRef={shouldSnapToTarget}
+            focusOnCardRef={focusOnCardRef}
+            overlayOffset={overlayOffset}
+          />
 
           <EffectComposer>
             <Bloom luminanceThreshold={1} mipmapBlur intensity={1.5} radius={0.6} />
