@@ -4,7 +4,7 @@ import { Criticality } from '../types';
 export const assetSchema = z.object({
     name: z.string().min(1, "Le nom est requis"),
     type: z.enum(['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'], {
-        errorMap: () => ({ message: "Le type est requis" })
+        error: "Le type est requis",
     }),
     owner: z.string().min(1, "Le propriétaire est requis"),
     confidentiality: z.nativeEnum(Criticality),

@@ -71,6 +71,24 @@
             ]
         },
         {
+            "collectionGroup": "incidents",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "__name__",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
             "collectionGroup": "risks",
             "queryScope": "COLLECTION",
             "fields": [
