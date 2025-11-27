@@ -48,8 +48,8 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap ${activeTab === tab.id
-                                    ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                 }`}
                         >
                             <tab.icon className={`h-4 w-4 mr-2.5 ${activeTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
@@ -66,25 +66,34 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                 <section>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Éditeur du Service</h3>
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                                        <p className="font-medium">Cyber Threat Consulting (CTC)</p>
-                                        <p className="text-sm text-slate-500 mt-1">SAS au capital de 10 000 €</p>
+                                        <p className="font-medium">Cyber Threat Consulting</p>
+                                        <p className="text-sm text-slate-500 mt-1">EURL au capital de 10 000 €</p>
                                         <p className="text-sm text-slate-500">RCS Paris B 123 456 789</p>
                                         <p className="text-sm text-slate-500">Siège social : 123 Avenue de la Cybersécurité, 75000 Paris</p>
+                                        <p className="text-sm text-slate-500 mt-2">Contact : <a href="mailto:***REMOVED***" className="text-brand-600 hover:underline">***REMOVED***</a></p>
+                                        <p className="text-sm text-slate-500">Site web : <a href="https://cyber-threat-consulting.com" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">cyber-threat-consulting.com</a></p>
                                     </div>
                                 </section>
 
                                 <section>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Hébergement</h3>
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                                        <p className="font-medium">Google Cloud Platform</p>
-                                        <p className="text-sm text-slate-500 mt-1">Google Ireland Limited</p>
-                                        <p className="text-sm text-slate-500">Gordon House, Barrow Street, Dublin 4, Irlande</p>
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4">
+                                        <div>
+                                            <p className="font-medium">Google Cloud Platform</p>
+                                            <p className="text-sm text-slate-500 mt-1">Google Ireland Limited</p>
+                                            <p className="text-sm text-slate-500">Gordon House, Barrow Street, Dublin 4, Irlande</p>
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">OVHcloud</p>
+                                            <p className="text-sm text-slate-500 mt-1">OVH SAS</p>
+                                            <p className="text-sm text-slate-500">2 rue Kellermann, 59100 Roubaix, France</p>
+                                        </div>
                                     </div>
                                 </section>
 
                                 <section>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Directeur de la Publication</h3>
-                                    <p className="text-slate-600 dark:text-slate-300">Monsieur le Président de Cyber Threat Consulting.</p>
+                                    <p className="text-slate-600 dark:text-slate-300">Monsieur le Gérant de Cyber Threat Consulting.</p>
                                 </section>
                             </div>
                         )}
@@ -114,7 +123,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                 <section>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">3. Vos Droits</h3>
                                     <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
-                                        Vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour exercer ce droit, contactez notre DPO à <a href="mailto:dpo@ctc-cyber.com" className="text-brand-600 hover:underline">dpo@ctc-cyber.com</a>.
+                                        Vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour exercer ce droit, contactez notre DPO à <a href="mailto:***REMOVED***" className="text-brand-600 hover:underline">***REMOVED***</a>.
                                     </p>
                                 </section>
                             </div>
