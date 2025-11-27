@@ -568,14 +568,14 @@ async function attemptSendEmail(docRef, data) {
         const MAX_ATTEMPTS = 5;
 
         if (isTransient && currentAttempts < MAX_ATTEMPTS) {
-             // Exponential backoff: 2, 4, 8, 16, 32 mins
-             const retryDelayMinutes = Math.pow(2, currentAttempts + 1);
-             const retryDate = new Date();
-             retryDate.setMinutes(retryDate.getMinutes() + retryDelayMinutes);
+            // Exponential backoff: 2, 4, 8, 16, 32 mins
+            const retryDelayMinutes = Math.pow(2, currentAttempts + 1);
+            const retryDate = new Date();
+            retryDate.setMinutes(retryDate.getMinutes() + retryDelayMinutes);
 
-             console.log(`Transient error ${responseCode}. Scheduling retry #${currentAttempts + 1} in ${retryDelayMinutes} minutes.`);
+            console.log(`Transient error ${responseCode}. Scheduling retry #${currentAttempts + 1} in ${retryDelayMinutes} minutes.`);
 
-             return docRef.update({
+            return docRef.update({
                 status: "RETRY_PENDING",
                 retryAt: admin.firestore.Timestamp.fromDate(retryDate),
                 attempts: admin.firestore.FieldValue.increment(1),
@@ -593,7 +593,7 @@ async function attemptSendEmail(docRef, data) {
 
 exports.retryFailedEmails = onSchedule("every 5 minutes", async (event) => {
     const now = admin.firestore.Timestamp.now();
-    
+
     // Query 1: Standard retries
     const retryQuery = admin.firestore().collection('mail_queue')
         .where('status', '==', 'RETRY_PENDING')
@@ -614,11 +614,81 @@ exports.retryFailedEmails = onSchedule("every 5 minutes", async (event) => {
     if (docsToProcess.length === 0) return;
 
     console.log(`Retrying ${docsToProcess.length} emails (${retrySnap.size} pending, ${errorSnap.size} errors)...`);
-    
+
     // Use a Map to deduplicate by ID just in case
     const uniqueDocs = new Map();
     docsToProcess.forEach(doc => uniqueDocs.set(doc.id, doc));
 
     const promises = Array.from(uniqueDocs.values()).map(doc => attemptSendEmail(doc.ref, doc.data()));
     await Promise.all(promises);
+});
+
+/**
+ * Send Push Notification when a new notification is created in Firestore
+ */
+exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId}", async (event) => {
+    const snap = event.data;
+    if (!snap) return;
+
+    const notification = snap.data();
+    const userId = notification.userId;
+
+    if (!userId) {
+        console.log("No userId in notification");
+        return;
+    }
+
+    try {
+        // Get user's FCM tokens
+        const userDoc = await admin.firestore().collection('users').doc(userId).get();
+
+        if (!userDoc.exists) {
+            console.log(`User ${userId} not found`);
+            return;
+        }
+
+        const userData = userDoc.data();
+        const tokens = userData.fcmTokens;
+
+        if (!tokens || tokens.length === 0) {
+            console.log(`No FCM tokens for user ${userId}`);
+            return;
+        }
+
+        // Prepare the message
+        const message = {
+            notification: {
+                title: notification.title,
+                body: notification.message,
+            },
+            data: {
+                url: notification.link || '/',
+                notificationId: event.params.notificationId
+            },
+            tokens: tokens
+        };
+
+        // Send multicast message
+        const response = await admin.messaging().sendMulticast(message);
+        console.log(`Sent ${response.successCount} notifications to user ${userId}`);
+
+        // Cleanup invalid tokens
+        if (response.failureCount > 0) {
+            const failedTokens = [];
+            response.responses.forEach((resp, idx) => {
+                if (!resp.success) {
+                    failedTokens.push(tokens[idx]);
+                }
+            });
+
+            if (failedTokens.length > 0) {
+                await admin.firestore().collection('users').doc(userId).update({
+                    fcmTokens: admin.firestore.FieldValue.arrayRemove(...failedTokens)
+                });
+                console.log(`Removed ${failedTokens.length} invalid tokens`);
+            }
+        }
+    } catch (error) {
+        console.error("Error sending push notification:", error);
+    }
 });

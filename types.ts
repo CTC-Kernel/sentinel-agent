@@ -70,6 +70,7 @@ export interface Control {
   evidenceIds?: string[];
   evidenceStrength?: 'Faible' | 'Forte';
   lastUpdated?: string;
+  assigneeId?: string;
 }
 
 export interface Document {

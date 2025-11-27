@@ -1,6 +1,9 @@
 /**
- * Service de notifications push navigateur
+ * Service de notifications push navigateur via Firebase Cloud Messaging
  */
+import { messaging, VAPID_KEY, db, auth } from '../firebase';
+import { getToken, onMessage } from 'firebase/messaging';
+import { doc, setDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { ErrorLogger } from './errorLogger';
 
 export interface PushNotificationOptions {
@@ -12,27 +15,73 @@ export interface PushNotificationOptions {
 }
 
 export class PushNotificationService {
-    private static registration: ServiceWorkerRegistration | null = null;
-
     /**
-     * Initialise le service worker et demande la permission
+     * Initialise le service et demande la permission
      */
     static async initialize(): Promise<boolean> {
-        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        if (!('serviceWorker' in navigator) || !messaging) {
             console.warn('Push notifications not supported');
             return false;
         }
 
         try {
-            // Enregistrer le service worker
-            this.registration = await navigator.serviceWorker.register('/sw.js');
-
             // Demander la permission
-            const permission = await this.requestPermission();
-            return permission === 'granted';
+            const permission = await Notification.requestPermission();
+
+            if (permission === 'granted') {
+                // Obtenir le token FCM
+                const token = await getToken(messaging, {
+                    vapidKey: VAPID_KEY
+                });
+
+                if (token) {
+                    await this.saveTokenToDatabase(token);
+                }
+
+                // Écouter les messages au premier plan
+                onMessage(messaging, (payload) => {
+                    console.log('Message received. ', payload);
+                    // On peut afficher un toast ou une notification locale ici si l'app est ouverte
+                    if (payload.notification) {
+                        new Notification(payload.notification.title || 'Notification', {
+                            body: payload.notification.body,
+                            icon: '/logo192.png'
+                        });
+                    }
+                });
+
+                return true;
+            }
+            return false;
         } catch (error) {
             ErrorLogger.error(error, 'PushNotificationService.initialize');
             return false;
+        }
+    }
+
+    /**
+     * Sauvegarde le token FCM dans Firestore pour l'utilisateur courant
+     */
+    private static async saveTokenToDatabase(token: string) {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const userRef = doc(db, 'users', user.uid);
+
+        try {
+            // Vérifier si le token existe déjà pour éviter les écritures inutiles
+            const docSnap = await getDoc(userRef);
+            const data = docSnap.data();
+
+            if (data && data.fcmTokens && data.fcmTokens.includes(token)) {
+                return;
+            }
+
+            await setDoc(userRef, {
+                fcmTokens: arrayUnion(token)
+            }, { merge: true });
+        } catch (error) {
+            console.error('Error saving FCM token:', error);
         }
     }
 
@@ -43,53 +92,27 @@ export class PushNotificationService {
         if (!('Notification' in window)) {
             return 'denied';
         }
-
-        if (Notification.permission === 'granted') {
-            return 'granted';
-        }
-
-        if (Notification.permission !== 'denied') {
-            return await Notification.requestPermission();
-        }
-
-        return Notification.permission;
+        return await Notification.requestPermission();
     }
 
     /**
-     * Envoie une notification push locale
+     * Envoie une notification push locale (fallback ou test)
      */
     static async sendNotification(options: PushNotificationOptions): Promise<void> {
-        const permission = await this.requestPermission();
-
-        if (permission !== 'granted') {
-            console.warn('Notification permission not granted');
-            return;
+        if (Notification.permission === 'granted') {
+            new Notification(options.title, {
+                body: options.body,
+                icon: options.icon || '/logo192.png',
+                data: { url: options.url }
+            });
         }
-
-        if (!this.registration) {
-            await this.initialize();
-        }
-
-        if (!this.registration) {
-            throw new Error('Service worker not registered');
-        }
-
-        await this.registration.showNotification(options.title, {
-            body: options.body,
-            icon: options.icon || '/logo192.png',
-            badge: '/logo192.png',
-            data: {
-                url: options.url || '/',
-                timestamp: Date.now()
-            }
-        } as any); // Type assertion needed for extended notification options
     }
 
     /**
      * Vérifie si les notifications sont supportées
      */
     static isSupported(): boolean {
-        return 'Notification' in window && 'serviceWorker' in navigator;
+        return 'Notification' in window && 'serviceWorker' in navigator && !!messaging;
     }
 
     /**
@@ -99,62 +122,15 @@ export class PushNotificationService {
         return Notification.permission === 'granted';
     }
 
-    /**
-     * Notifications prédéfinies pour différents événements
-     */
-    static async notifyIncidentCritique(incidentTitle: string, incidentId: string): Promise<void> {
-        await this.sendNotification({
-            title: '🚨 Incident Critique',
-            body: `Nouvel incident critique: ${incidentTitle}`,
-            url: `/incidents?id=${incidentId}`,
-            actions: [
-                { action: 'open', title: 'Voir l\'incident' },
-                { action: 'close', title: 'Plus tard' }
-            ]
-        });
+    // --- Helpers pour les notifications spécifiques ---
+
+    static async notifyIncidentCritique(incidentTitle: string, _incidentId: string): Promise<void> {
+        // Cette méthode est maintenant principalement gérée par le backend via Cloud Functions
+        // Mais on peut l'utiliser pour des feedbacks locaux immédiats
+        console.log('Incident critique notifié localement:', incidentTitle);
     }
 
-    static async notifyAuditImminent(auditName: string, daysRemaining: number): Promise<void> {
-        await this.sendNotification({
-            title: '📅 Audit Imminent',
-            body: `L'audit "${auditName}" commence dans ${daysRemaining} jour(s)`,
-            url: '/audits',
-            actions: [
-                { action: 'open', title: 'Préparer' },
-                { action: 'close', title: 'OK' }
-            ]
-        });
-    }
-
-    static async notifyRisqueNonTraite(riskThreat: string, riskId: string): Promise<void> {
-        await this.sendNotification({
-            title: '⚠️ Risque Non Traité',
-            body: `Le risque "${riskThreat}" nécessite votre attention`,
-            url: `/risks?id=${riskId}`,
-            actions: [
-                { action: 'open', title: 'Traiter' },
-                { action: 'close', title: 'Ignorer' }
-            ]
-        });
-    }
-
-    static async notifyDocumentRevision(documentTitle: string, documentId: string): Promise<void> {
-        await this.sendNotification({
-            title: '📄 Document à Réviser',
-            body: `Le document "${documentTitle}" doit être révisé`,
-            url: `/documents?id=${documentId}`,
-            actions: [
-                { action: 'open', title: 'Réviser' },
-                { action: 'close', title: 'Plus tard' }
-            ]
-        });
-    }
-
-    static async notifyConformiteAmelioration(percentage: number): Promise<void> {
-        await this.sendNotification({
-            title: '✅ Amélioration de Conformité',
-            body: `Votre taux de conformité est maintenant à ${percentage}%`,
-            url: '/compliance'
-        });
+    static async notifyAuditImminent(auditName: string, _daysRemaining: number): Promise<void> {
+        console.log('Audit imminent notifié localement:', auditName);
     }
 }
