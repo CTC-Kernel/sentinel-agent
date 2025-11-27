@@ -925,6 +925,7 @@ export const Projects: React.FC = () => {
                                                 </div>
                                             </div>
                                             <GanttChart
+                                                key={ganttViewMode}
                                                 tasks={selectedProject.tasks || []}
                                                 viewMode={ganttViewMode}
                                                 onTaskUpdate={async (task, _start, end) => {
