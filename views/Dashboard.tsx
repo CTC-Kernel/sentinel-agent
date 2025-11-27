@@ -44,6 +44,7 @@ export const Dashboard: React.FC = () => {
     const [teamSize, setTeamSize] = useState<number | null>(null);
     const [activeIncidentsCount, setActiveIncidentsCount] = useState(0);
     const [openAuditsCount, setOpenAuditsCount] = useState(0);
+    const [activityExpanded, setActivityExpanded] = useState(false);
 
     const { user, theme, addToast } = useStore();
     const navigate = useNavigate();
@@ -628,9 +629,14 @@ export const Dashboard: React.FC = () => {
             <div className="glass-panel p-0 rounded-[2rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm group hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
                     <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Flux d'activité récent</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">Temps Réel</p></div>
-                    <div className="p-2 bg-slate-100 dark:bg-white/10 rounded-xl"><History className="w-5 h-5 text-slate-500 dark:text-slate-300" /></div>
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 bg-slate-100 dark:bg-white/10 rounded-xl"><History className="w-5 h-5 text-slate-500 dark:text-slate-300" /></div>
+                        <button onClick={() => setActivityExpanded(prev => !prev)} className="px-3 py-1.5 bg-white/80 dark:bg-white/10 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 hover:bg-white dark:hover:bg-white/20 transition-colors">
+                            {activityExpanded ? 'Réduire' : 'Agrandir'}
+                        </button>
+                    </div>
                 </div>
-                <div className="relative ml-4 pr-8 pl-6 max-h-[300px] overflow-y-auto custom-scrollbar bg-white/40 dark:bg-transparent">
+                <div className={`relative ml-4 pr-8 pl-6 ${activityExpanded ? 'max-h-[520px]' : 'max-h-[300px]'} overflow-y-auto custom-scrollbar bg-white/40 dark:bg-transparent`}>
                     <div className="border-l border-slate-200 dark:border-slate-700/50 space-y-8 py-8">
                         {loading ? <Skeleton className="h-20 w-full" /> : recentActivity.map((log, i) => (<div key={i} className="ml-8 relative group"><span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 shadow-sm group-hover:scale-110 group-hover:border-blue-400 transition-all z-10">{getActivityIcon(log.resource)}</span><div className="flex justify-between items-start bg-white/50 dark:bg-white/5 p-3 rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-white/10 transition-colors"><div><p className="text-sm font-bold text-slate-800 dark:text-slate-200">{log.action}</p><p className="text-xs text-slate-500 mt-0.5 truncate max-w-[500px] font-medium leading-relaxed">{log.details}</p></div><span className="text-[10px] text-slate-400 font-bold uppercase tracking-wide bg-slate-100 dark:bg-black/20 px-2 py-1 rounded-md ml-4 whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div></div>))}
                     </div>
