@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { incidentSchema, IncidentFormData } from '../schemas/incidentSchema';
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, where, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase'; // Keep original db path
 import { useStore } from '../store';
 import { Incident, Asset, Risk, UserProfile, Criticality } from '../types';
@@ -29,14 +30,44 @@ const PLAYBOOKS: Record<string, string[]> = {
     'Autre': ['Documenter faits', 'Qualifier impact', 'Prévenir RSSI', 'Sauvegarder logs', 'Sécuriser preuves']
 };
 
+import { useFirestoreCollection } from '../hooks/useFirestore';
+
 export const Incidents: React.FC = () => {
     const { user, addToast } = useStore(); // addToast destructured from useStore
     const location = useLocation();
-    const [incidents, setIncidents] = useState<Incident[]>([]);
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [risks, setRisks] = useState<Risk[]>([]);
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
-    const [loading, setLoading] = useState(true);
+
+    // Data Fetching with Hooks
+    const { data: rawIncidents, loading: loadingIncidents } = useFirestoreCollection<Incident>(
+        'incidents',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
+        'assets',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>(
+        'risks',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
+        'users',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    // Derived State
+    const incidents = React.useMemo(() => [...rawIncidents].sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()), [rawIncidents]);
+    const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
+    const risks = React.useMemo(() => [...rawRisks].sort((a, b) => a.threat.localeCompare(b.threat)), [rawRisks]);
+
+    const loading = loadingIncidents || loadingAssets || loadingRisks || loadingUsers;
+
     const [showModal, setShowModal] = useState(false);
     const [showTimeline, setShowTimeline] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -60,50 +91,6 @@ export const Incidents: React.FC = () => {
     });
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-
-    const fetchData = async () => {
-        if (!user?.organizationId) {
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        try {
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'incidents'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
-            ]);
-
-            const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
-                if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
-                }
-                return [];
-            };
-
-            const data = getDocsData<Incident>(results[0]);
-            data.sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime());
-            setIncidents(data);
-
-            const assetData = getDocsData<Asset>(results[1]);
-            assetData.sort((a, b) => a.name.localeCompare(b.name));
-            setAssets(assetData);
-
-            const riskData = getDocsData<Risk>(results[2]);
-            riskData.sort((a, b) => a.threat.localeCompare(b.threat));
-            setRisks(riskData);
-
-            const userData = getDocsData<UserProfile>(results[3]);
-            setUsersList(userData);
-        } catch (err) {
-            ErrorLogger.handleErrorWithToast(err, 'Incidents.fetchData', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => { fetchData(); }, [user?.organizationId]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
@@ -167,15 +154,14 @@ export const Incidents: React.FC = () => {
 
             if (isEditing && currentIncidentId) {
                 await updateDoc(doc(db, 'incidents', currentIncidentId), incidentData);
-                await logAction(user, 'UPDATE', 'Incident', `MAJ Incident: ${incidentData.title}`);
+                await logAction(user, 'UPDATE', 'Incident', `MAJ Incident: ${incidentData.title} `);
                 addToast("Incident mis à jour", "success");
                 if (selectedIncident?.id === currentIncidentId) setSelectedIncident({ ...selectedIncident, ...incidentData, id: currentIncidentId } as Incident);
-                setIncidents(prev => prev.map(i => i.id === currentIncidentId ? { ...i, ...incidentData } : i));
             } else {
                 await addDoc(collection(db, 'incidents'), { ...incidentData, organizationId: user.organizationId, dateReported: new Date().toISOString() });
-                await logAction(user, 'CREATE', 'Incident', `Nouvel Incident: ${incidentData.title}`);
+                await logAction(user, 'CREATE', 'Incident', `Nouvel Incident: ${incidentData.title} `);
 
-                const incidentLink = `${window.location.origin}/#/incidents`;
+                const incidentLink = `${window.location.origin} /#/incidents`;
                 const htmlContent = getIncidentAlertTemplate(data.title || 'Incident', data.severity || 'Moyenne', user?.displayName || 'Utilisateur', incidentLink);
 
                 // Find recipients (Admins & RSSI)
@@ -186,18 +172,18 @@ export const Incidents: React.FC = () => {
 
                 const to = recipients.length > 0 ? recipients.join(',') : user.email;
 
-                await sendEmail(user, { to, subject: `[ALERTE SÉCURITÉ] ${data.severity?.toUpperCase()} - ${data.title}`, type: 'INCIDENT_ALERT', html: htmlContent });
+                await sendEmail(user, { to, subject: `[ALERTE SÉCURITÉ] ${data.severity?.toUpperCase()} - ${data.title} `, type: 'INCIDENT_ALERT', html: htmlContent });
                 addToast("Incident déclaré (Alerte envoyée)", "success");
             }
             setShowModal(false);
-            fetchData();
+            setShowModal(false);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.onSubmit', 'UPDATE_FAILED');
         }
     };
 
     const initiateDelete = (id: string) => { setConfirmData({ isOpen: true, title: "Supprimer l'incident ?", message: "Cette action est définitive.", onConfirm: () => handleDelete(id) }); };
-    const handleDelete = async (id: string) => { try { await deleteDoc(doc(db, 'incidents', id)); setIncidents(prev => prev.filter(i => i.id !== id)); if (selectedIncident?.id === id) setSelectedIncident(null); addToast("Incident supprimé", "info"); fetchData(); } catch (error) { addToast("Erreur suppression", "error"); } };
+    const handleDelete = async (id: string) => { try { await deleteDoc(doc(db, 'incidents', id)); if (selectedIncident?.id === id) setSelectedIncident(null); addToast("Incident supprimé", "info"); } catch (error) { addToast("Erreur suppression", "error"); } };
 
     const canEdit = user?.role === 'admin' || user?.role === 'auditor';
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot, limit, orderBy, addDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Control, Document, Risk, Finding, UserProfile, SystemLog } from '../types';
-import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, ArrowRight, User, Clock, MessageSquare, CheckCircle2 } from '../components/ui/Icons';
+import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
@@ -14,23 +14,17 @@ import { ComplianceDashboard } from '../components/compliance/ComplianceDashboar
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
-import { sanitizeData } from '../utils/dataSanitizer';
 import { Drawer } from '../components/ui/Drawer';
 import { Comments } from '../components/ui/Comments';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { NotificationService } from '../services/notificationService';
+import { useFirestoreCollection } from '../hooks/useFirestore';
 
 import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS } from '../data/complianceData';
 import { aiService } from '../services/aiService';
 import { Sparkles, Bot, Lightbulb, FileText as FileTextIcon, Loader2 as Loader } from '../components/ui/Icons';
 
 export const Compliance: React.FC = () => {
-    const [controls, setControls] = useState<Control[]>([]);
-    const [documents, setDocuments] = useState<Document[]>([]);
-    const [risks, setRisks] = useState<Risk[]>([]);
-    const [findings, setFindings] = useState<Finding[]>([]);
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
-    const [loading, setLoading] = useState(true);
     const { user, addToast } = useStore();
 
     const canEdit = user?.role === 'admin' || user?.role === 'auditor';
@@ -52,46 +46,47 @@ export const Compliance: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    const fetchData = async () => {
-        if (!user?.organizationId) {
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        const orgId = user.organizationId;
+    // Data Fetching with Hooks
+    const { data: rawControls, loading: controlsLoading, refresh: refreshControls } = useFirestoreCollection<Control>(
+        'controls',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
 
-        try {
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId))),
-                getDocs(query(collection(db, 'documents'), where('organizationId', '==', orgId))),
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId))),
-                getDocs(query(collection(db, 'findings'), where('organizationId', '==', orgId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', orgId)))
-            ]);
+    const { data: documents, loading: docsLoading } = useFirestoreCollection<Document>(
+        'documents',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
 
-            const getData = <T extends { id: string }>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
-                if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as T));
-                }
-                return [];
-            };
+    const { data: risks, loading: risksLoading } = useFirestoreCollection<Risk>(
+        'risks',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
 
-            const ctrlData = getData<Control>(results[0]);
-            const docData = getData<Document>(results[1]);
-            const riskData = getData<Risk>(results[2]);
-            const findingData = getData<Finding>(results[3]);
-            const userData = results[4].status === 'fulfilled'
-                ? results[4].value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ ...d.data(), uid: d.id } as unknown as UserProfile))
-                : [];
+    const { data: findings, loading: findingsLoading } = useFirestoreCollection<Finding>(
+        'findings',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
 
-            setDocuments(docData);
-            setRisks(riskData);
-            setFindings(findingData);
-            setUsersList(userData);
+    const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
+        'users',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
 
-            // Filter controls by current framework
-            // Legacy handling: if framework is undefined, assume ISO27001
-            const currentControls = ctrlData.filter(c =>
+    const loading = controlsLoading || docsLoading || risksLoading || findingsLoading || usersLoading;
+
+    // Derived State and Seeding Logic
+    const [controls, setControls] = useState<Control[]>([]);
+
+    useEffect(() => {
+        if (controlsLoading || !user?.organizationId) return;
+
+        const seedData = async () => {
+            const currentControls = rawControls.filter(c =>
                 (c.framework === currentFramework) ||
                 (!c.framework && currentFramework === 'ISO27001')
             );
@@ -107,7 +102,7 @@ export const Compliance: React.FC = () => {
                     if (!existingCodes.includes(c.code)) {
                         const docRef = doc(collection(db, 'controls'));
                         batch.set(docRef, {
-                            organizationId: orgId,
+                            organizationId: user.organizationId,
                             code: c.code,
                             name: c.name,
                             framework: currentFramework,
@@ -121,44 +116,33 @@ export const Compliance: React.FC = () => {
 
                 if (addedCount > 0) {
                     await batch.commit();
-                    // Refetch to get new IDs
-                    const newSnap = await getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId)));
-                    const allControls = newSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Control));
-                    const filtered = allControls.filter(c =>
-                        (c.framework === currentFramework) ||
-                        (!c.framework && currentFramework === 'ISO27001')
-                    );
-                    setControls(sortControls(filtered));
-                } else {
-                    setControls(sortControls(currentControls));
+                    refreshControls();
+                    return; // Will re-run effect after refresh
                 }
-            } else {
-                setControls(sortControls(currentControls));
             }
 
-            // Open first domain by default
-            const domains = currentFramework === 'ISO27001' ? ISO_DOMAINS : NIS2_DOMAINS;
-            if (domains.length > 0) {
-                setExpandedDomains([domains[0].id]);
-            }
+            setControls(sortControls(currentControls));
+        };
 
-        } catch (err) {
-            ErrorLogger.handleErrorWithToast(err, 'Compliance.fetchData', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
+        seedData();
+    }, [rawControls, currentFramework, user?.organizationId, controlsLoading]);
+
+    // Open first domain by default
+    useEffect(() => {
+        const domains = currentFramework === 'ISO27001' ? ISO_DOMAINS : NIS2_DOMAINS;
+        if (domains.length > 0 && expandedDomains.length === 0) {
+            setExpandedDomains([domains[0].id]);
         }
-    };
+    }, [currentFramework]);
 
     const sortControls = (data: Control[]) => {
-        return data.sort((a, b) => {
+        return [...data].sort((a, b) => {
             const partsA = a.code.split('.').map(Number);
             const partsB = b.code.split('.').map(Number);
             if (partsA[1] !== partsB[1]) return (partsA[1] || 0) - (partsB[1] || 0);
             return (partsA[2] || 0) - (partsB[2] || 0);
         });
     }
-
-    useEffect(() => { fetchData(); }, [user?.organizationId, currentFramework]);
 
     const toggleDomain = (domainId: string) => {
         setExpandedDomains(prev => prev.includes(domainId) ? prev.filter(d => d !== domainId) : [...prev, domainId]);
@@ -206,7 +190,7 @@ export const Compliance: React.FC = () => {
             // Update local state
             const updatedControl = { ...selectedControl, assigneeId };
             setSelectedControl(updatedControl);
-            setControls(prev => prev.map(c => c.id === selectedControl.id ? updatedControl : c));
+            refreshControls();
 
             addToast("Assignation mise à jour", "success");
         } catch (error) {
@@ -225,7 +209,7 @@ export const Compliance: React.FC = () => {
 
             const updatedControl = { ...control, status: newStatus, lastUpdated: new Date().toISOString() };
             if (selectedControl?.id === control.id) setSelectedControl(updatedControl);
-            setControls(prev => prev.map(c => c.id === control.id ? updatedControl : c));
+            refreshControls();
 
             addToast("Statut mis à jour", "success");
         } catch (error) {
@@ -244,7 +228,7 @@ export const Compliance: React.FC = () => {
 
             const updatedControl = { ...selectedControl, justification: editJustification, lastUpdated: new Date().toISOString() };
             setSelectedControl(updatedControl);
-            setControls(prev => prev.map(c => c.id === selectedControl.id ? updatedControl : c));
+            refreshControls();
 
             addToast("Justification enregistrée", "success");
         } catch (error) {
@@ -258,7 +242,7 @@ export const Compliance: React.FC = () => {
             if (selectedControl.evidenceIds?.includes(docId)) return;
             await updateDoc(doc(db, 'controls', selectedControl.id), { evidenceIds: arrayUnion(docId) });
             const newEvidence = [...(selectedControl.evidenceIds || []), docId];
-            setControls(prev => prev.map(c => c.id === selectedControl.id ? { ...c, evidenceIds: newEvidence } : c));
+            refreshControls();
             setSelectedControl({ ...selectedControl, evidenceIds: newEvidence });
             await logAction(user, 'LINK', 'Compliance', `Preuve liée au contrôle ${selectedControl.code}`);
             addToast("Preuve ajoutée", "success");
@@ -280,7 +264,7 @@ export const Compliance: React.FC = () => {
         try {
             const newEvidence = (selectedControl.evidenceIds || []).filter(id => id !== docId);
             await updateDoc(doc(db, 'controls', selectedControl.id), { evidenceIds: newEvidence });
-            setControls(prev => prev.map(c => c.id === selectedControl.id ? { ...c, evidenceIds: newEvidence } : c));
+            refreshControls();
             setSelectedControl({ ...selectedControl, evidenceIds: newEvidence });
             addToast("Preuve retirée", "info");
         } catch (_e) { addToast("Erreur suppression lien", "error"); }

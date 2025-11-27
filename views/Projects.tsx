@@ -32,20 +32,56 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 
+import { useFirestoreCollection } from '../hooks/useFirestore';
+
 export const Projects: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [risks, setRisks] = useState<Risk[]>([]);
-    const [controls, setControls] = useState<Control[]>([]);
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { user, addToast } = useStore();
+
+    // Data Fetching with Hooks
+    const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>(
+        'projects',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>(
+        'risks',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>(
+        'controls',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
+        'assets',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
+        'users',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    // Derived State
+    const projects = React.useMemo(() => [...rawProjects].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()), [rawProjects]);
+    const risks = React.useMemo(() => [...rawRisks].sort((a, b) => b.score - a.score), [rawRisks]);
+    const controls = React.useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
+    const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
+
+    const loading = loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers;
+
     const [showModal, setShowModal] = useState(false);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
-    const { user, addToast } = useStore();
     const [filter, setFilter] = useState('');
 
     // Inspector State
@@ -67,53 +103,6 @@ export const Projects: React.FC = () => {
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
-
-    const fetchData = async () => {
-        if (!user?.organizationId) return;
-        setLoading(true);
-        try {
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
-            ]);
-
-            const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
-                if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
-                }
-                return [];
-            };
-
-            const projData = getDocsData<Project>(results[0]);
-            projData.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-            setProjects(projData);
-
-            const riskData = getDocsData<Risk>(results[1]);
-            riskData.sort((a, b) => b.score - a.score);
-            setRisks(riskData);
-
-            const ctrlData = getDocsData<Control>(results[2]);
-            ctrlData.sort((a, b) => a.code.localeCompare(b.code));
-            setControls(ctrlData);
-
-            const assetData = getDocsData<Asset>(results[3]);
-            assetData.sort((a, b) => a.name.localeCompare(b.name));
-            setAssets(assetData);
-
-            const usersData = getDocsData<UserProfile>(results[4]);
-            setUsersList(usersData);
-
-        } catch (err) {
-            ErrorLogger.handleErrorWithToast(err, 'Projects.fetchData', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => { fetchData(); }, [user?.organizationId]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
@@ -191,10 +180,9 @@ export const Projects: React.FC = () => {
                 await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${projectData.name}`);
                 addToast("Projet mis à jour", "success");
 
-                // Update local state
+                // Update local state - No longer needed with useFirestoreCollection
                 const updatedProject = { ...selectedProject, ...projectData };
                 setSelectedProject(updatedProject);
-                setProjects(prev => prev.map(p => p.id === selectedProject.id ? updatedProject : p));
             } else {
                 // Create new project
                 await addDoc(collection(db, 'projects'), {
@@ -209,7 +197,6 @@ export const Projects: React.FC = () => {
             }
             setShowModal(false);
             setIsEditing(false);
-            fetchData();
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleProjectFormSubmit', 'UPDATE_FAILED');
         }
@@ -245,7 +232,6 @@ export const Projects: React.FC = () => {
             await logAction(user, 'CREATE', 'Project', `Projet créé depuis template ${template.name}: ${projectName}`);
             addToast(`Projet créé avec ${project.tasks.length} tâches et ${milestones.length} jalons`, "success");
             setShowTemplateModal(false);
-            fetchData();
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleCreateFromTemplate', 'CREATE_FAILED');
         }
@@ -278,7 +264,6 @@ export const Projects: React.FC = () => {
             await addDoc(collection(db, 'projects'), newProjData);
             await logAction(user, 'CREATE', 'Project', `Duplication Projet: ${newProjData.name}`);
             addToast("Projet dupliqué", "success");
-            fetchData();
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleDuplicate', 'CREATE_FAILED');
         }
@@ -297,7 +282,6 @@ export const Projects: React.FC = () => {
     const handleDeleteProject = async (id: string) => {
         try {
             await deleteDoc(doc(db, 'projects', id));
-            setProjects(prev => prev.filter(p => p.id !== id));
             setSelectedProject(null);
             addToast("Projet supprimé", "info");
         } catch (e) {
@@ -336,7 +320,6 @@ export const Projects: React.FC = () => {
 
         try {
             await updateDoc(doc(db, 'projects', selectedProject.id), { tasks, progress });
-            setProjects(prev => prev.map(p => p.id === selectedProject.id ? { ...p, tasks, progress } : p));
             setSelectedProject({ ...selectedProject, tasks, progress });
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.updateTasks', 'UPDATE_FAILED');

@@ -3,7 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { riskSchema, RiskFormData } from '../schemas/riskSchema';
 import { createPortal } from 'react-dom';
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project } from '../types';
 import { canEditResource } from '../utils/permissions';
@@ -15,6 +15,7 @@ import { RiskMatrixSelector } from '../components/risks/RiskMatrixSelector';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
+import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
 import { jsPDF } from 'jspdf';
@@ -38,11 +39,41 @@ import { useLocation } from 'react-router-dom';
 const STANDARD_THREATS = ["Panne matérielle serveur", "Incendie", "Inondation", "Vol d'équipement", "Attaque par Ransomware", "Phishing / Ingénierie Sociale", "Erreur humaine / Configuration", "Divulgation non autorisée", "Interruption de service FAI", "Sabotage interne", "Obsolescence technologique", "Perte de personnel clé"];
 
 export const Risks: React.FC = () => {
-    const [risks, setRisks] = useState<Risk[]>([]);
-    const [controls, setControls] = useState<Control[]>([]);
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { user, addToast } = useStore();
+    const location = useLocation();
+
+    // Data Fetching with Hooks
+    const { data: rawRisks, loading: risksLoading, refresh: refreshRisks } = useFirestoreCollection<Risk>(
+        'risks',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: rawControls, loading: controlsLoading } = useFirestoreCollection<Control>(
+        'controls',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: rawAssets, loading: assetsLoading } = useFirestoreCollection<Asset>(
+        'assets',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
+        'users',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    // Derived State (Sorting)
+    const risks = React.useMemo(() => [...rawRisks].sort((a, b) => b.score - a.score), [rawRisks]);
+    const controls = React.useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
+    const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
+
+
+
     const [showModal, setShowModal] = useState(false);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [filter, setFilter] = usePersistedState<string>('risks_filter', '');
@@ -51,7 +82,6 @@ export const Risks: React.FC = () => {
     // Matrix Filter State
     const [matrixFilter, setMatrixFilter] = usePersistedState<{ p: number, i: number } | null>('risks_matrix_filter', null);
 
-    const { user, addToast } = useStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const canEdit = canEditResource(user, 'Risk');
     const [isEditing, setIsEditing] = useState(false);
@@ -62,6 +92,8 @@ export const Risks: React.FC = () => {
     const [riskHistory, setRiskHistory] = useState<SystemLog[]>([]);
     const [riskScoreHistory, setRiskScoreHistory] = useState<RiskHistory[]>([]);
     const [stats, setStats] = useState({ total: 0, critical: 0, mitigated: 0, reviewDue: 0 });
+    const [importing, setImporting] = useState(false);
+    const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || importing;
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const { control, handleSubmit: handleFormSubmit, reset, formState: { errors }, setValue, watch, getValues } = useForm<RiskFormData>({
         resolver: zodResolver(riskSchema),
@@ -88,57 +120,16 @@ export const Risks: React.FC = () => {
     const mitigationControlIds = watch('mitigationControlIds');
     const strategy = watch('strategy');
     const status = watch('status');
-    const location = useLocation();
 
-    const fetchData = async () => {
-        if (!user?.organizationId) {
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        try {
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
-            ]);
-
-            const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
-                if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as T));
-                }
-                return [];
-            };
-
-            const riskData = getDocsData<Risk>(results[0]);
-            riskData.sort((a, b) => b.score - a.score);
-            setRisks(riskData);
-
-            const controlData = getDocsData<Control>(results[1]);
-            controlData.sort((a, b) => a.code.localeCompare(b.code));
-            setControls(controlData);
-
-            const assetData = getDocsData<Asset>(results[2]);
-            assetData.sort((a, b) => a.name.localeCompare(b.name));
-            setAssets(assetData);
-
-            const usersData = getDocsData<UserProfile>(results[3]);
-            setUsersList(usersData);
-
-            const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-            setStats({
-                total: riskData.length,
-                critical: riskData.filter(r => r.score >= 15).length,
-                mitigated: riskData.filter(r => (r.residualScore || r.score) < r.score).length,
-                reviewDue: riskData.filter(r => !r.lastReviewDate || new Date(r.lastReviewDate) < oneYearAgo).length
-            });
-        } catch (err) {
-            ErrorLogger.handleErrorWithToast(err, 'Risks.fetchData', 'FETCH_FAILED');
-        } finally { setLoading(false); }
-    };
-
-    useEffect(() => { fetchData(); }, [user?.organizationId]);
+    useEffect(() => {
+        const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        setStats({
+            total: risks.length,
+            critical: risks.filter(r => r.score >= 15).length,
+            mitigated: risks.filter(r => (r.residualScore || r.score) < r.score).length,
+            reviewDue: risks.filter(r => !r.lastReviewDate || new Date(r.lastReviewDate) < oneYearAgo).length
+        });
+    }, [risks]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
@@ -222,7 +213,7 @@ export const Risks: React.FC = () => {
                 addToast("Risque ajouté", "success");
             }
             setShowModal(false);
-            fetchData();
+            refreshRisks();
         } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Risks.handleSubmit', 'UPDATE_FAILED'); }
     };
 
@@ -279,8 +270,7 @@ export const Risks: React.FC = () => {
             await addDoc(collection(db, 'risks'), { ...newRiskData, organizationId: user.organizationId });
             await logAction(user, 'CREATE', 'Risk', `Duplication Risque: ${newRiskData.threat}`);
             addToast("Risque dupliqué", "success");
-            addToast("Risque dupliqué", "success");
-            fetchData();
+            refreshRisks();
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleDuplicate', 'CREATE_FAILED'); }
     };
 
@@ -304,10 +294,9 @@ export const Risks: React.FC = () => {
         try {
             await deleteDoc(doc(db, 'risks', id));
             await logAction(user, 'DELETE', 'Risk', `Suppression risque: ${threat}`);
-            setRisks(prev => prev.filter(r => r.id !== id));
             if (selectedRisk?.id === id) setSelectedRisk(null);
             addToast("Risque supprimé", "info");
-            fetchData();
+            refreshRisks();
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleDeleteRisk', 'DELETE_FAILED'); }
     };
 
@@ -316,7 +305,8 @@ export const Risks: React.FC = () => {
         try {
             await updateDoc(doc(db, 'risks', risk.id), { status: newStatus });
             await logAction(user, 'UPDATE', 'Risk', `Statut risque changé vers ${newStatus}`);
-            setRisks(prev => prev.map(r => r.id === risk.id ? { ...r, status: newStatus } : r));
+            // Optimistic update handled by hook refresh or local state if needed, but hook refresh is safer for consistency
+            refreshRisks();
             if (selectedRisk?.id === risk.id) setSelectedRisk({ ...selectedRisk, status: newStatus });
             addToast(`Statut changé`, "success");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleStatusChange', 'UPDATE_FAILED'); }
@@ -328,10 +318,10 @@ export const Risks: React.FC = () => {
         try {
             await updateDoc(doc(db, 'risks', selectedRisk.id), { lastReviewDate: today });
             await logAction(user, 'REVIEW', 'Risk', `Revue validée: ${selectedRisk.threat}`);
-            setRisks(prev => prev.map(r => r.id === selectedRisk.id ? { ...r, lastReviewDate: today } : r));
+            // setRisks(prev => prev.map(r => r.id === selectedRisk.id ? { ...r, lastReviewDate: today } : r)); // Removed manual state update, relying on refresh
             setSelectedRisk({ ...selectedRisk, lastReviewDate: today });
             addToast("Revue du risque validée", "success");
-            fetchData();
+            refreshRisks();
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleReview', 'UPDATE_FAILED'); }
     };
 
@@ -352,9 +342,7 @@ export const Risks: React.FC = () => {
             await logAction(user, 'CREATE', 'Risk', `Import de ${risksToImport.length} risques depuis template ${template.name}`);
             addToast(`${risksToImport.length} risques importés avec succès`, "success");
             setShowTemplateModal(false);
-            fetchData();
-            setShowTemplateModal(false);
-            fetchData();
+            refreshRisks();
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Risks.handleImportTemplate', 'CREATE_FAILED');
         }
@@ -396,7 +384,7 @@ export const Risks: React.FC = () => {
             if (!text) return;
             const lines = text.split('\n').slice(1).filter(line => line.trim() !== '');
             if (lines.length === 0) { addToast("Fichier CSV vide", "error"); return; }
-            setLoading(true);
+            setImporting(true);
             try {
                 const batch = writeBatch(db);
                 let count = 0;
@@ -426,10 +414,9 @@ export const Risks: React.FC = () => {
                 await batch.commit();
                 await logAction(user, 'IMPORT', 'Risk', `Import CSV de ${count} risques`);
                 addToast(`${count} risques importés`, "success");
-                fetchData();
-                addToast(`${count} risques importés`, "success");
-                fetchData();
-            } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Risks.handleFileUpload', 'FILE_UPLOAD_FAILED'); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+                refreshRisks();
+
+            } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Risks.handleFileUpload', 'FILE_UPLOAD_FAILED'); } finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
         };
         reader.readAsText(file);
     };

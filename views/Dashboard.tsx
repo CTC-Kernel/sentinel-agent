@@ -12,6 +12,7 @@ import 'jspdf-autotable';
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
 import { ErrorLogger } from '../services/errorLogger';
+import { useFirestoreCollection } from '../hooks/useFirestore';
 
 const StatCard: React.FC<{ title: string; value: string | number | null; icon: any; trend?: string; colorClass: string; delay?: string; onClick?: () => void }> = ({ title, value, icon: Icon, trend, colorClass, delay, onClick }) => (
     <div onClick={onClick} className={`relative group glass - panel p - 6 rounded - [2rem] hover: shadow - apple transition - all duration - 500 hover: -translate - y - 1 overflow - hidden ${delay} border border - white / 60 dark: border - white / 5 cursor - pointer`}>

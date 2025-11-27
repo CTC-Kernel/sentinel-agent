@@ -24,29 +24,79 @@ import { FileUploader } from '../components/ui/FileUploader';
 import JSZip from 'jszip';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { useFirestoreCollection } from '../hooks/useFirestore';
 import { useLocation } from 'react-router-dom';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { auditSchema, AuditFormData, findingSchema, FindingFormData } from '../schemas/auditSchema';
 
 export const Audits: React.FC = () => {
-    const [audits, setAudits] = useState<Audit[]>([]);
-    const [controls, setControls] = useState<Control[]>([]);
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [risks, setRisks] = useState<Risk[]>([]);
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { user, addToast } = useStore();
+    const canEdit = canEditResource(user, 'Audit');
+
+    // Data Fetching with Hooks
+    const { data: rawAudits, loading: auditsLoading, refresh: refreshAudits } = useFirestoreCollection<Audit>(
+        'audits',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: rawControls, loading: controlsLoading } = useFirestoreCollection<Control>(
+        'controls',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: rawAssets, loading: assetsLoading } = useFirestoreCollection<Asset>(
+        'assets',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: rawRisks, loading: risksLoading } = useFirestoreCollection<Risk>(
+        'risks',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
+        'users',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: documents, loading: docsLoading } = useFirestoreCollection<Document>(
+        'documents',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    // Derived State
+    const audits = React.useMemo(() => {
+        return [...rawAudits].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime());
+    }, [rawAudits]);
+
+    const controls = React.useMemo(() => {
+        return [...rawControls].sort((a, b) => a.code.localeCompare(b.code));
+    }, [rawControls]);
+
+    const assets = React.useMemo(() => {
+        return [...rawAssets].sort((a, b) => a.name.localeCompare(b.name));
+    }, [rawAssets]);
+
+    const risks = React.useMemo(() => {
+        return [...rawRisks].sort((a, b) => b.score - a.score);
+    }, [rawRisks]);
+
+    const loading = auditsLoading || controlsLoading || assetsLoading || risksLoading || usersLoading || docsLoading;
+
     const [showModal, setShowModal] = useState(false);
     const [filter, setFilter] = useState('');
-    const { user, addToast } = useStore();
-
-    const canEdit = canEditResource(user, 'Audit');
 
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
     const [findings, setFindings] = useState<Finding[]>([]);
     const [showFindingsDrawer, setShowFindingsDrawer] = useState(false);
     const [checklist, setChecklist] = useState<AuditChecklist | null>(null);
-    const [documents, setDocuments] = useState<Document[]>([]);
     const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist' | 'scope'>('findings');
 
     // Confirm Dialog
@@ -107,59 +157,6 @@ export const Audits: React.FC = () => {
         }
     };
 
-    const fetchAudits = async () => {
-        if (!user?.organizationId) return;
-        setLoading(true);
-        try {
-            // Robust fetch
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)))
-            ]);
-
-            const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
-                if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
-                }
-                return [];
-            };
-
-            const auditData = getDocsData<Audit>(results[0]);
-            // Client side sort
-            auditData.sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime());
-            setAudits(auditData);
-
-            const ctrlData = getDocsData<Control>(results[1]);
-            ctrlData.sort((a, b) => a.code.localeCompare(b.code));
-            setControls(ctrlData);
-
-            const userData = getDocsData<UserProfile>(results[2]);
-            setUsersList(userData);
-
-            const docData = getDocsData<Document>(results[3]);
-            setDocuments(docData);
-
-            const assetData = getDocsData<Asset>(results[4]);
-            assetData.sort((a, b) => a.name.localeCompare(b.name));
-            setAssets(assetData);
-
-            const riskData = getDocsData<Risk>(results[5]);
-            riskData.sort((a, b) => b.score - a.score);
-            setRisks(riskData);
-
-        } catch (err) {
-            ErrorLogger.handleErrorWithToast(err, 'Audits.fetchAudits', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => { fetchAudits(); }, [user?.organizationId]);
-
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;
@@ -217,7 +214,7 @@ export const Audits: React.FC = () => {
             addToast("Audit planifié et notifié", "success");
             setShowModal(false);
             auditForm.reset();
-            fetchAudits();
+            refreshAudits();
         } catch (_e) { addToast("Erreur création audit", "error"); }
     };
 
@@ -233,8 +230,7 @@ export const Audits: React.FC = () => {
 
             const newCount = findings.length + 1;
             await updateDoc(doc(db, 'audits', selectedAudit.id), { findingsCount: newCount });
-
-            setAudits(prev => prev.map(a => a.id === selectedAudit.id ? { ...a, findingsCount: newCount } : a));
+            refreshAudits();
 
             const q = query(collection(db, 'findings'), where('organizationId', '==', user.organizationId), where('auditId', '==', selectedAudit.id));
             const snap = await getDocs(q);
@@ -261,7 +257,7 @@ export const Audits: React.FC = () => {
             await deleteDoc(doc(db, 'findings', findingId));
             const newCount = Math.max(0, findings.length - 1);
             await updateDoc(doc(db, 'audits', selectedAudit.id), { findingsCount: newCount });
-            setAudits(prev => prev.map(a => a.id === selectedAudit.id ? { ...a, findingsCount: newCount } : a));
+            refreshAudits();
             setFindings(prev => prev.filter(f => f.id !== findingId));
             addToast("Constat supprimé", "info");
         } catch (_e) { addToast("Erreur suppression", "error"); }
@@ -288,7 +284,7 @@ export const Audits: React.FC = () => {
             await Promise.all(deletePromises);
 
             await deleteDoc(doc(db, 'audits', id));
-            setAudits(prev => prev.filter(a => a.id !== id));
+            refreshAudits();
             if (selectedAudit?.id === id) {
                 setSelectedAudit(null);
                 setShowFindingsDrawer(false);
