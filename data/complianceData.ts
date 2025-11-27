@@ -134,3 +134,150 @@ export const NIS2_SEED_CONTROLS = [
     { code: 'NIS2.4.3', name: 'Sauvegardes' },
     { code: 'NIS2.4.4', name: 'Signalement des incidents' }
 ];
+
+export const DORA_DOMAINS = [
+    { id: 'DORA.1', title: 'Gestion des Risques TIC', description: 'Gouvernance, Cadre de gestion, Stratégie...' },
+    { id: 'DORA.2', title: 'Gestion des Incidents', description: 'Classification, Notification, Réponse...' },
+    { id: 'DORA.3', title: 'Tests de Résilience', description: 'Tests de sécurité, TLPT, Vulnérabilités...' },
+    { id: 'DORA.4', title: 'Risques Tiers', description: 'Prestataires TIC, Contrats, Surveillance...' },
+    { id: 'DORA.5', title: 'Partage d\'Information', description: 'Menaces, Intelligence, Collaboration...' }
+];
+
+export const DORA_SEED_CONTROLS = [
+    { code: 'DORA.1.1', name: 'Gouvernance et organisation interne' },
+    { code: 'DORA.1.2', name: 'Cadre de gestion des risques TIC' },
+    { code: 'DORA.1.3', name: 'Systèmes, protocoles et outils TIC' },
+    { code: 'DORA.1.4', name: 'Identification des risques' },
+    { code: 'DORA.1.5', name: 'Protection et prévention' },
+    { code: 'DORA.1.6', name: 'Détection des activités anormales' },
+    { code: 'DORA.1.7', name: 'Continuité d\'activité' },
+    { code: 'DORA.1.8', name: 'Sauvegarde et restauration' },
+    { code: 'DORA.2.1', name: 'Processus de gestion des incidents' },
+    { code: 'DORA.2.2', name: 'Classification des incidents' },
+    { code: 'DORA.2.3', name: 'Notification des incidents majeurs' },
+    { code: 'DORA.3.1', name: 'Programme de tests de résilience' },
+    { code: 'DORA.3.2', name: 'Tests de pénétration (TLPT)' },
+    { code: 'DORA.4.1', name: 'Stratégie risques tiers' },
+    { code: 'DORA.4.2', name: 'Registre des accords contractuels' },
+    { code: 'DORA.4.3', name: 'Surveillance des prestataires' },
+    { code: 'DORA.5.1', name: 'Accords de partage d\'information' }
+];
+
+export const GDPR_DOMAINS = [
+    { id: 'GDPR.1', title: 'Gouvernance & Responsabilité', description: 'DPO, Registre, DPIA, Privacy by Design...' },
+    { id: 'GDPR.2', title: 'Droits des Personnes', description: 'Accès, Rectification, Oubli, Portabilité...' },
+    { id: 'GDPR.3', title: 'Sécurité des Données', description: 'Mesures techniques, Chiffrement, Violations...' },
+    { id: 'GDPR.4', title: 'Transferts & Sous-traitance', description: 'Hors UE, Contrats sous-traitants...' }
+];
+
+export const GDPR_SEED_CONTROLS = [
+    { code: 'GDPR.1.1', name: 'Désignation du DPO' },
+    { code: 'GDPR.1.2', name: 'Registre des traitements' },
+    { code: 'GDPR.1.3', name: 'Analyse d\'impact (DPIA)' },
+    { code: 'GDPR.1.4', name: 'Privacy by Design & Default' },
+    { code: 'GDPR.2.1', name: 'Information des personnes' },
+    { code: 'GDPR.2.2', name: 'Gestion des consentements' },
+    { code: 'GDPR.2.3', name: 'Exercice des droits (Accès/Oubli)' },
+    { code: 'GDPR.3.1', name: 'Mesures de sécurité techniques' },
+    { code: 'GDPR.3.2', name: 'Notification de violation de données' },
+    { code: 'GDPR.4.1', name: 'Encadrement des sous-traitants' },
+    { code: 'GDPR.4.2', name: 'Transferts hors UE' }
+];
+
+export const SOC2_DOMAINS = [
+    { id: 'SOC2.CC', title: 'Common Criteria (Security)', description: 'Sécurité (Obligatoire pour tous)' },
+    { id: 'SOC2.A', title: 'Availability', description: 'Disponibilité du système' },
+    { id: 'SOC2.C', title: 'Confidentiality', description: 'Confidentialité des informations' },
+    { id: 'SOC2.PI', title: 'Processing Integrity', description: 'Intégrité des traitements' },
+    { id: 'SOC2.P', title: 'Privacy', description: 'Protection des données personnelles' }
+];
+
+export const SOC2_SEED_CONTROLS = [
+    { code: 'CC1.1', name: 'Environnement de contrôle' },
+    { code: 'CC1.2', name: 'Communication et information' },
+    { code: 'CC2.1', name: 'Gestion des risques' },
+    { code: 'CC3.1', name: 'Surveillance des contrôles' },
+    { code: 'CC4.1', name: 'Contrôle logique et physique' },
+    { code: 'CC5.1', name: 'Opérations système' },
+    { code: 'CC6.1', name: 'Gestion du changement' },
+    { code: 'CC7.1', name: 'Gestion des incidents' },
+    { code: 'CC8.1', name: 'Continuité d\'activité' },
+    { code: 'A1.1', name: 'Capacité et performance' },
+    { code: 'A1.2', name: 'Sauvegarde et récupération' },
+    { code: 'C1.1', name: 'Identification des données confidentielles' },
+    { code: 'C1.2', name: 'Destruction des données' },
+    { code: 'PI1.1', name: 'Traitement des données' },
+    { code: 'P1.1', name: 'Notice de confidentialité' }
+];
+
+export const HDS_DOMAINS = [
+    { id: 'HDS.1', title: 'Gouvernance & Sécurité', description: 'Politique, Rôles, Analyse de risques...' },
+    { id: 'HDS.2', title: 'Protection des Données de Santé', description: 'Confidentialité, Droits des patients, Consentement...' },
+    { id: 'HDS.3', title: 'Sécurité Technique', description: 'Architecture, Chiffrement, Authentification forte...' },
+    { id: 'HDS.4', title: 'Disponibilité & Continuité', description: 'Sauvegardes, PCA/PRA, SLA...' }
+];
+
+export const HDS_SEED_CONTROLS = [
+    { code: 'HDS.1.1', name: 'Politique de sécurité des SI de santé' },
+    { code: 'HDS.1.2', name: 'Responsable de la sécurité (RSSI)' },
+    { code: 'HDS.1.3', name: 'Analyse de risques (EIVP)' },
+    { code: 'HDS.2.1', name: 'Information des patients' },
+    { code: 'HDS.2.2', name: 'Gestion des consentements' },
+    { code: 'HDS.2.3', name: 'Droit d\'accès et rectification' },
+    { code: 'HDS.3.1', name: 'Authentification forte (MFA)' },
+    { code: 'HDS.3.2', name: 'Chiffrement des données au repos' },
+    { code: 'HDS.3.3', name: 'Chiffrement des flux (TLS)' },
+    { code: 'HDS.3.4', name: 'Traçabilité des accès' },
+    { code: 'HDS.4.1', name: 'Sauvegardes externalisées' },
+    { code: 'HDS.4.2', name: 'Plan de continuité d\'activité' },
+    { code: 'HDS.4.3', name: 'Garanties de disponibilité (SLA)' }
+];
+
+export const PCI_DSS_DOMAINS = [
+    { id: 'PCI.1', title: 'Réseau & Systèmes Sécurisés', description: 'Pare-feu, Configuration, Pas de défauts...' },
+    { id: 'PCI.2', title: 'Protection des Données de Carte', description: 'Chiffrement stockage, Chiffrement transmission...' },
+    { id: 'PCI.3', title: 'Gestion des Vulnérabilités', description: 'Antivirus, Patchs, Développement sécurisé...' },
+    { id: 'PCI.4', title: 'Contrôle d\'Accès Fort', description: 'Besoin d\'en connaître, ID unique, Accès physique...' },
+    { id: 'PCI.5', title: 'Surveillance & Tests', description: 'Logs, Tests d\'intrusion, Scans...' },
+    { id: 'PCI.6', title: 'Politique de Sécurité', description: 'Politique, Sensibilisation, Risques...' }
+];
+
+export const PCI_DSS_SEED_CONTROLS = [
+    { code: 'PCI.1.1', name: 'Installation et maintenance de pare-feu' },
+    { code: 'PCI.1.2', name: 'Pas de mots de passe par défaut' },
+    { code: 'PCI.2.1', name: 'Protection des données stockées' },
+    { code: 'PCI.2.2', name: 'Chiffrement des transmissions' },
+    { code: 'PCI.3.1', name: 'Protection contre les malwares' },
+    { code: 'PCI.3.2', name: 'Systèmes et applications sécurisés' },
+    { code: 'PCI.4.1', name: 'Restriction d\'accès (Besoin d\'en connaître)' },
+    { code: 'PCI.4.2', name: 'Authentification et identification' },
+    { code: 'PCI.4.3', name: 'Sécurité physique' },
+    { code: 'PCI.5.1', name: 'Journalisation et surveillance' },
+    { code: 'PCI.5.2', name: 'Tests de sécurité réguliers' },
+    { code: 'PCI.6.1', name: 'Politique de sécurité de l\'information' }
+];
+
+export const NIST_CSF_DOMAINS = [
+    { id: 'NIST.GV', title: 'Gouverner (Govern)', description: 'Stratégie, Rôles, Politique, Risques...' },
+    { id: 'NIST.ID', title: 'Identifier (Identify)', description: 'Actifs, Environnement, Gouvernance...' },
+    { id: 'NIST.PR', title: 'Protéger (Protect)', description: 'Contrôle d\'accès, Sensibilisation, Sécurité des données...' },
+    { id: 'NIST.DE', title: 'Détecter (Detect)', description: 'Anomalies, Surveillance continue...' },
+    { id: 'NIST.RS', title: 'Répondre (Respond)', description: 'Planification, Communication, Analyse...' },
+    { id: 'NIST.RC', title: 'Rétablir (Recover)', description: 'Planification, Amélioration, Communication...' }
+];
+
+export const NIST_CSF_SEED_CONTROLS = [
+    { code: 'GV.OC-01', name: 'Mission et priorités organisationnelles' },
+    { code: 'GV.RM-01', name: 'Stratégie de gestion des risques' },
+    { code: 'ID.AM-01', name: 'Inventaire des actifs physiques' },
+    { code: 'ID.AM-02', name: 'Inventaire des logiciels' },
+    { code: 'ID.RA-01', name: 'Identification des vulnérabilités' },
+    { code: 'PR.AC-01', name: 'Gestion des identités et accès' },
+    { code: 'PR.DS-01', name: 'Protection des données au repos' },
+    { code: 'PR.DS-02', name: 'Protection des données en transit' },
+    { code: 'DE.AE-01', name: 'Détection des anomalies' },
+    { code: 'DE.CM-01', name: 'Surveillance du réseau' },
+    { code: 'RS.RP-01', name: 'Plan de réponse aux incidents' },
+    { code: 'RS.CO-01', name: 'Communication sur les incidents' },
+    { code: 'RC.RP-01', name: 'Plan de rétablissement' }
+];

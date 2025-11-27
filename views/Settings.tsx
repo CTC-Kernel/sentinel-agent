@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store';
 import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, WifiOff, ArrowRight, FileSpreadsheet } from '../components/ui/Icons';
-import { collection, getDocs, query, orderBy, limit, where, addDoc, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, Timestamp, enableNetwork, disableNetwork, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, where, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, Timestamp, enableNetwork, disableNetwork, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, auth } from '../firebase';
 import { signOut, updatePassword } from 'firebase/auth';
@@ -21,7 +21,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, ProfileFormData, passwordSchema, PasswordFormData, organizationSchema, OrganizationFormData } from '../schemas/settingsSchema';
 
 export const Settings: React.FC = () => {
-    const { theme, toggleTheme, user, setUser, addToast } = useStore();
+    const { theme, toggleTheme, user, setUser, addToast, demoMode, toggleDemoMode, language, setLanguage, t } = useStore();
     const [logs, setLogs] = useState<SystemLog[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
@@ -443,24 +443,7 @@ export const Settings: React.FC = () => {
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.handlePurgeLogs', 'DELETE_FAILED'); } finally { setMaintenanceLoading(false); }
     };
 
-    const handleTestLog = async () => {
-        if (!user) return;
-        try {
-            await addDoc(collection(db, 'system_logs'), {
-                organizationId: user.organizationId,
-                userId: user.uid,
-                userEmail: user.email,
-                action: 'Test Log',
-                resource: 'Settings',
-                details: 'Log de test créé manuellement',
-                timestamp: Timestamp.now()
-            });
-            addToast("Log de test créé", "success");
-            fetchLogs(true);
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Settings.handleTestLog', 'CREATE_FAILED');
-        }
-    };
+
 
 
     const initiateLeaveOrg = () => {
@@ -571,8 +554,8 @@ export const Settings: React.FC = () => {
             />
 
             <div className="mb-10 text-center">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">Paramètres</h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Compte, préférences et administration.</p>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">{t('settings.title')}</h1>
+                <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{t('settings.subtitle')}</p>
                 {user?.organizationId && (
                     <div className="mt-4 inline-flex items-center px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full text-[10px] font-mono text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10">
                         ID: {user.organizationId}
@@ -684,23 +667,23 @@ export const Settings: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm flex flex-col h-full">
                         <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><Key className="h-5 w-5 mr-3 text-indigo-500" />Sécurité</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><Key className="h-5 w-5 mr-3 text-indigo-500" />{t('settings.security')}</h3>
                         </div>
                         <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                             <div className="space-y-4">
                                 <div>
-                                    <input type="password" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm dark:text-white" placeholder="Nouveau mot de passe"
+                                    <input type="password" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm dark:text-white" placeholder={t('settings.newPassword')}
                                         {...passwordForm.register('newPassword')} />
                                     {passwordForm.formState.errors.newPassword && <p className="text-red-500 text-xs mt-1">{passwordForm.formState.errors.newPassword.message}</p>}
                                 </div>
                                 <div>
-                                    <input type="password" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm dark:text-white" placeholder="Confirmer"
+                                    <input type="password" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm dark:text-white" placeholder={t('settings.confirmPassword')}
                                         {...passwordForm.register('confirmPassword')} />
                                     {passwordForm.formState.errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{passwordForm.formState.errors.confirmPassword.message}</p>}
                                 </div>
                             </div>
                             <button type="submit" disabled={changingPassword} className="w-full px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50 text-sm mt-4">
-                                {changingPassword ? '...' : 'Changer mot de passe'}
+                                {changingPassword ? '...' : t('settings.changePassword')}
                             </button>
                         </form>
                     </div>
@@ -709,35 +692,67 @@ export const Settings: React.FC = () => {
                         <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                                 {theme === 'dark' ? <Moon className="h-5 w-5 mr-3 text-indigo-500" /> : <Sun className="h-5 w-5 mr-3 text-amber-500" />}
-                                Apparence
+                                {t('settings.appearance')}
                             </h3>
                         </div>
                         <div className="p-6 flex-1 flex flex-col justify-center space-y-6">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Thème Sombre</span>
+                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{t('settings.themeDark')}</span>
                                     {theme === 'dark' && <Moon className="h-4 w-4 text-indigo-400" />}
                                 </div>
                                 <button onClick={handleThemeToggle} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${theme === 'dark' ? 'bg-slate-700' : 'bg-gray-200'}`}>
                                     <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${theme === 'dark' ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
                             </div>
+
+                            <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/10">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">English</span>
+                                    <span className="text-xs text-slate-400">EN</span>
+                                </div>
+                                <button onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${language === 'en' ? 'bg-indigo-600' : 'bg-gray-200'}`}>
+                                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${language === 'en' ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+
                             <button onClick={handleExport} disabled={exporting} className="w-full flex items-center justify-center px-4 py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors">
-                                {exporting ? 'Export en cours...' : <><Download className="h-4 w-4 mr-2" /> Sauvegarde JSON</>}
+                                {exporting ? t('common.loading') : <><Download className="h-4 w-4 mr-2" /> {t('settings.exportJson')}</>}
                             </button>
                             <div className="pt-4 border-t border-slate-200 dark:border-white/10">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Mode Hors Ligne</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('settings.offlineMode')}</span>
                                     <WifiOff className="h-4 w-4 text-slate-400" />
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={async () => { try { await enableNetwork(db); addToast("Mode en ligne activé", "success"); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.enableNetwork', 'NETWORK_ERROR'); } }} className="flex-1 px-3 py-2 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-xs font-bold hover:bg-green-200 dark:hover:bg-green-900/30 transition-colors flex items-center justify-center gap-1">
-                                        <CheckCircle2 className="h-3 w-3" /> En ligne
+                                    <button onClick={async () => { try { await enableNetwork(db); addToast(t('settings.onlineActivated'), "success"); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.enableNetwork', 'NETWORK_ERROR'); } }} className="flex-1 px-3 py-2 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-xs font-bold hover:bg-green-200 dark:hover:bg-green-900/30 transition-colors flex items-center justify-center gap-1">
+                                        <CheckCircle2 className="h-3 w-3" /> {t('common.online')}
                                     </button>
-                                    <button onClick={async () => { try { await disableNetwork(db); addToast("Mode hors ligne activé", "info"); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.disableNetwork', 'NETWORK_ERROR'); } }} className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1">
-                                        <WifiOff className="h-3 w-3" /> Hors ligne
+                                    <button onClick={async () => { try { await disableNetwork(db); addToast(t('settings.offlineActivated'), "info"); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.disableNetwork', 'NETWORK_ERROR'); } }} className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1">
+                                        <WifiOff className="h-3 w-3" /> {t('common.offline')}
                                     </button>
                                 </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-slate-200 dark:border-white/10">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('settings.demoMode')}</span>
+                                    <Activity className="h-4 w-4 text-slate-400" />
+                                </div>
+                                <button
+                                    onClick={toggleDemoMode}
+                                    className={`w-full px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1 ${demoMode ? 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                                >
+                                    {demoMode ? (
+                                        <>
+                                            <CheckCircle2 className="h-3 w-3" /> {t('settings.demoModeActive')}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Activity className="h-3 w-3" /> {t('settings.demoModeActivate')}
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
                     </div>

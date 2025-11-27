@@ -68,7 +68,12 @@ export const Suppliers: React.FC = () => {
                 contractDocumentId: selectedSupplier.contractDocumentId,
                 contractEnd: selectedSupplier.contractEnd,
                 securityScore: selectedSupplier.securityScore,
-                assessment: selectedSupplier.assessment
+
+                assessment: selectedSupplier.assessment,
+                isICTProvider: selectedSupplier.isICTProvider,
+                supportsCriticalFunction: selectedSupplier.supportsCriticalFunction,
+                doraCriticality: selectedSupplier.doraCriticality,
+                serviceType: selectedSupplier.serviceType
             });
         }
     }, [selectedSupplier, editForm]);
@@ -159,7 +164,11 @@ export const Suppliers: React.FC = () => {
             contractDocumentId: supplier.contractDocumentId,
             contractEnd: supplier.contractEnd,
             securityScore: supplier.securityScore,
-            assessment: supplier.assessment
+            assessment: supplier.assessment,
+            isICTProvider: supplier.isICTProvider,
+            supportsCriticalFunction: supplier.supportsCriticalFunction,
+            doraCriticality: supplier.doraCriticality,
+            serviceType: supplier.serviceType
         });
         setIsEditing(false);
 
@@ -177,7 +186,8 @@ export const Suppliers: React.FC = () => {
         createForm.reset({
             name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
             owner: user?.displayName || '', ownerId: user?.uid || '',
-            assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false }
+            assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false },
+            isICTProvider: false, supportsCriticalFunction: false, doraCriticality: 'None', serviceType: 'SaaS'
         });
         setIsEditing(false);
         setShowCreateModal(true);
@@ -282,6 +292,24 @@ export const Suppliers: React.FC = () => {
         link.click();
     };
 
+    const handleExportDORARegister = () => {
+        const headers = ["Nom Fournisseur", "Type Service", "Prestataire TIC", "Fonction Critique", "Criticité DORA", "Localisation Données", "Date Contrat"];
+        const rows = filteredSuppliers.filter(s => s.isICTProvider).map(s => [
+            s.name,
+            s.serviceType || 'N/A',
+            s.isICTProvider ? 'OUI' : 'NON',
+            s.supportsCriticalFunction ? 'OUI' : 'NON',
+            s.doraCriticality || 'None',
+            'UE (Simulé)', // Placeholder as we don't have location field yet
+            s.contractEnd ? new Date(s.contractEnd).toLocaleDateString() : ''
+        ]);
+        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+        link.download = `dora_register_of_information_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+    };
+
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!canEdit || !user?.organizationId) return;
         const file = event.target.files?.[0];
@@ -317,6 +345,9 @@ export const Suppliers: React.FC = () => {
                                 hasIso27001: false, hasGdprPolicy: false, hasEncryption: false,
                                 hasBcp: false, hasIncidentProcess: false, lastAssessmentDate: new Date().toISOString()
                             },
+                            isICTProvider: false,
+                            supportsCriticalFunction: false,
+                            doraCriticality: 'None',
                             owner: user.displayName || 'Importé',
                             ownerId: user.uid,
                             createdAt: new Date().toISOString()
@@ -430,6 +461,9 @@ export const Suppliers: React.FC = () => {
                 <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
+                <button onClick={handleExportDORARegister} className="p-2.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors ml-2" title="Exporter Registre DORA">
+                    <ShieldAlert className="h-4 w-4" />
+                </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -464,6 +498,9 @@ export const Suppliers: React.FC = () => {
                                 <div className="flex flex-wrap gap-2 mb-6">
                                     <span className="px-2.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">{supplier.category}</span>
                                     <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-gray-600 border-gray-200'}`}>{supplier.status}</span>
+                                    {supplier.isICTProvider && (
+                                        <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
+                                    )}
                                 </div>
 
                                 <div className="mb-6 bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
@@ -599,6 +636,35 @@ export const Suppliers: React.FC = () => {
                                                             <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editForm.register('contractEnd')} />
                                                         </div>
                                                     </div>
+
+
+                                                    <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
+                                                        <h4 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-4 flex items-center">
+                                                            <ShieldAlert className="h-4 w-4 mr-2" /> Conformité DORA
+                                                        </h4>
+                                                        <div className="grid grid-cols-2 gap-6">
+                                                            <div className="flex items-center space-x-3">
+                                                                <input type="checkbox" className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...editForm.register('isICTProvider')} />
+                                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Prestataire TIC</label>
+                                                            </div>
+                                                            <div className="flex items-center space-x-3">
+                                                                <input type="checkbox" className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...editForm.register('supportsCriticalFunction')} />
+                                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Supporte Fonction Critique</label>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type de Service</label>
+                                                                <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('serviceType')}>
+                                                                    {['SaaS', 'Cloud', 'Software', 'Hardware', 'Consulting', 'Network', 'Security'].map(c => <option key={c} value={c}>{c}</option>)}
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Criticité DORA</label>
+                                                                <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('doraCriticality')}>
+                                                                    {['None', 'Important', 'Critical'].map(c => <option key={c} value={c}>{c}</option>)}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </>
                                             ) : (
                                                 <>
@@ -635,6 +701,30 @@ export const Suppliers: React.FC = () => {
                                                             </a>
                                                         ) : <span className="text-xs text-blue-400 font-medium italic text-center block">Aucun document lié</span>}
                                                     </div>
+
+                                                    {selectedSupplier.isICTProvider && (
+                                                        <div className="p-6 bg-indigo-50/80 dark:bg-indigo-900/10 rounded-3xl border border-indigo-100 dark:border-indigo-900/30 shadow-sm">
+                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-4 flex items-center">
+                                                                <ShieldAlert className="h-4 w-4 mr-2" /> DORA Status
+                                                            </h4>
+                                                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                                                <div>
+                                                                    <span className="block text-xs text-slate-500 mb-1">Type Service</span>
+                                                                    <span className="font-bold text-slate-900 dark:text-white">{selectedSupplier.serviceType || 'N/A'}</span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="block text-xs text-slate-500 mb-1">Fonction Critique</span>
+                                                                    <span className={`font-bold ${selectedSupplier.supportsCriticalFunction ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
+                                                                        {selectedSupplier.supportsCriticalFunction ? 'OUI' : 'NON'}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="block text-xs text-slate-500 mb-1">Criticité DORA</span>
+                                                                    <span className="font-bold text-slate-900 dark:text-white">{selectedSupplier.doraCriticality || 'None'}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </>
                                             )}
                                         </div>
@@ -713,82 +803,112 @@ export const Suppliers: React.FC = () => {
                     </div>
                 </div>,
                 document.body
-            )}
+            )
+            }
 
             {/* Create Modal */}
-            {showCreateModal && createPortal(
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-lg border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-slate-900/50">
-                            <h2 className="text-2xl font-bold dark:text-white tracking-tight">Nouveau Fournisseur</h2>
-                            <p className="text-sm text-slate-500 mt-1">Enregistrement d'un tiers.</p>
-                        </div>
-
-                        <form onSubmit={createForm.handleSubmit(handleCreate)} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom de l'entreprise</label>
-                                <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                    {...createForm.register('name')} />
-                                {createForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{createForm.formState.errors.name.message}</p>}
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
-                                <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                    {...createForm.register('ownerId')}
-                                    onChange={e => {
-                                        createForm.setValue('ownerId', e.target.value);
-                                        const selectedUser = usersRaw.find(u => u.uid === e.target.value);
-                                        createForm.setValue('owner', selectedUser?.displayName || '');
-                                    }}>
-                                    <option value="">Sélectionner...</option>
-                                    {usersRaw.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
-                                </select>
-                            </div>
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Catégorie</label>
-                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        {...createForm.register('category')}>
-                                        {['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'].map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Criticité</label>
-                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        {...createForm.register('criticality')}>
-                                        {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                </div>
+            {
+                showCreateModal && createPortal(
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+                        <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-lg border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
+                            <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-slate-900/50">
+                                <h2 className="text-2xl font-bold dark:text-white tracking-tight">Nouveau Fournisseur</h2>
+                                <p className="text-sm text-slate-500 mt-1">Enregistrement d'un tiers.</p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6">
+                            <form onSubmit={createForm.handleSubmit(handleCreate)} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contact (Nom)</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom de l'entreprise</label>
                                     <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                        {...createForm.register('contactName')} />
+                                        {...createForm.register('name')} />
+                                    {createForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{createForm.formState.errors.name.message}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email Contact</label>
-                                    <input type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                        {...createForm.register('contactEmail')} />
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
+                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                                        {...createForm.register('ownerId')}
+                                        onChange={e => {
+                                            createForm.setValue('ownerId', e.target.value);
+                                            const selectedUser = usersRaw.find(u => u.uid === e.target.value);
+                                            createForm.setValue('owner', selectedUser?.displayName || '');
+                                        }}>
+                                        <option value="">Sélectionner...</option>
+                                        {usersRaw.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
+                                    </select>
                                 </div>
-                            </div>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Catégorie</label>
+                                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                                            {...createForm.register('category')}>
+                                            {['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'].map(c => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Criticité</label>
+                                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                                            {...createForm.register('criticality')}>
+                                            {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
 
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Fin de Contrat</label>
-                                <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                    {...createForm.register('contractEnd')} />
-                            </div>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contact (Nom)</label>
+                                        <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                            {...createForm.register('contactName')} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email Contact</label>
+                                        <input type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                            {...createForm.register('contactEmail')} />
+                                    </div>
+                                </div>
 
-                            <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
-                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                                <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg">Créer</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>,
-                document.body
-            )}
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Fin de Contrat</label>
+                                    <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                        {...createForm.register('contractEnd')} />
+                                </div>
+
+                                <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
+                                    <h4 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-4 flex items-center">
+                                        <ShieldAlert className="h-4 w-4 mr-2" /> Conformité DORA
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="flex items-center space-x-3">
+                                            <input type="checkbox" className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...createForm.register('isICTProvider')} />
+                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Prestataire TIC</label>
+                                        </div>
+                                        <div className="flex items-center space-x-3">
+                                            <input type="checkbox" className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...createForm.register('supportsCriticalFunction')} />
+                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Supporte Fonction Critique</label>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type de Service</label>
+                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...createForm.register('serviceType')}>
+                                                {['SaaS', 'Cloud', 'Software', 'Hardware', 'Consulting', 'Network', 'Security'].map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Criticité DORA</label>
+                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...createForm.register('doraCriticality')}>
+                                                {['None', 'Important', 'Critical'].map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
+                                    <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                                    <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg">Créer</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>,
+                    document.body
+                )}
         </div>
     );
 };

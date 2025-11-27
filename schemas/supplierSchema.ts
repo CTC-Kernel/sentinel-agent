@@ -20,7 +20,12 @@ export const supplierSchema = z.object({
         hasBcp: z.boolean().optional(),
         hasIncidentProcess: z.boolean().optional(),
         lastAssessmentDate: z.string().optional()
-    }).optional()
+    }).optional(),
+    // DORA Fields
+    isICTProvider: z.boolean().optional(),
+    supportsCriticalFunction: z.boolean().optional(),
+    doraCriticality: z.enum(['Critical', 'Important', 'None']).optional(),
+    serviceType: z.enum(['SaaS', 'Cloud', 'Software', 'Hardware', 'Consulting', 'Network', 'Security']).optional()
 });
 
 export type SupplierFormData = z.infer<typeof supplierSchema>;

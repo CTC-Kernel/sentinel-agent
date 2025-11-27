@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { 
-    User, 
-    onIdTokenChanged, 
-    signOut as firebaseSignOut 
+import {
+    User,
+    onIdTokenChanged,
+    signOut as firebaseSignOut
 } from 'firebase/auth';
-import { 
-    doc, 
-    onSnapshot, 
+import {
+    doc,
+    onSnapshot,
     setDoc,
     serverTimestamp,
     enableNetwork,
@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
     const { setUser, setTheme } = useStore();
-    
+
     // Fonction pour rafraîchir le token et les claims
     const refreshSession = useCallback(async () => {
         if (!auth.currentUser) return;
@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Force le rafraîchissement du token
             await auth.currentUser.getIdToken(true);
             const tokenResult = await auth.currentUser.getIdTokenResult();
-            
+
             // Si l'organisationId manque dans les claims mais existe dans le profil, on tente de réparer
             if (!tokenResult.claims.organizationId) {
                 const functions = getFunctions();
@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Gestionnaire principal d'état d'authentification
     useEffect(() => {
         let unsubscribeProfile: (() => void) | undefined;
-        
+
         // Sécurité : Timeout pour éviter le chargement infini
         const safetyTimeout = setTimeout(() => {
             if (loading) {
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const handleUser = async (u: User | null) => {
             setFirebaseUser(u);
-            
+
             if (!u) {
                 setUser(null);
                 setLoading(false);
@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 // 1. Mettre à jour le dernier login (avec setDoc merge pour ne pas planter si doc inexistant)
                 const userRef = doc(db, 'users', u.uid);
                 try {
-                    await setDoc(userRef, { 
+                    await setDoc(userRef, {
                         lastLogin: new Date().toISOString(),
                         lastActive: serverTimestamp()
                     }, { merge: true });
@@ -126,7 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     clearTimeout(safetyTimeout); // Clear timeout on success
                     if (snapshot.exists()) {
                         const userData = snapshot.data() as UserProfile;
-                        
+
                         // SELF-HEALING: Vérifier la cohérence des données
                         // 1. Si le rôle est manquant, on le force à 'admin'
                         if (!userData.role) {
@@ -136,19 +136,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                         // 2. Si l'utilisateur a une organisation mais onboarding non validé -> Auto-fix
                         if (userData.organizationId && !userData.onboardingCompleted) {
-                             console.warn("User has organization but onboarding not marked complete. Auto-fixing.");
-                             userData.onboardingCompleted = true;
-                             // Corriger la source en arrière-plan
-                             setDoc(userRef, { onboardingCompleted: true }, { merge: true }).catch(e => console.error("Auto-fix failed", e));
+                            console.warn("User has organization but onboarding not marked complete. Auto-fixing.");
+                            userData.onboardingCompleted = true;
+                            // Corriger la source en arrière-plan
+                            setDoc(userRef, { onboardingCompleted: true }, { merge: true }).catch(e => console.error("Auto-fix failed", e));
                         }
 
                         if (!userData.organizationId && !userData.onboardingCompleted) {
-                           // Utilisateur sans orga = Nouveau ou Onboarding non fini
-                           console.log('User has no organizationId, ready for onboarding');
+                            // Utilisateur sans orga = Nouveau ou Onboarding non fini
+                            console.log('User has no organizationId, ready for onboarding');
                         }
 
                         setUser(userData);
-                        
+
                         if (userData.theme) {
                             setTheme(userData.theme);
                         }
@@ -156,7 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     } else {
                         // PROFIL INEXISTANT -> CRÉATION AUTOMATIQUE
                         console.log('No user profile found, creating default profile...');
-                        
+
                         try {
                             // Vérifier s'il y a une invitation en attente
                             let initialData: Partial<UserProfile> = {
@@ -183,7 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                     role: invite.role || 'user',
                                     // Onboarding considéré comme non terminé pour confirmer les infos, 
                                     // ou true si on veut skip. Laissons false pour qu'il vérifie ses infos.
-                                    onboardingCompleted: false 
+                                    onboardingCompleted: false
                                 };
                                 // Supprimer l'invitation utilisée
                                 await deleteDoc(inviteSnap.docs[0].ref);
@@ -192,7 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             // Création du document utilisateur
                             // Cela va déclencher le snapshot listener à nouveau avec exists=true
                             await setDoc(userRef, initialData, { merge: true });
-                            
+
                             // On ne met pas setLoading(false) ici, on attend que le snapshot repasse
                             // Cependant, par sécurité pour éviter un blocage si le snapshot ne trigger pas vite :
                             // On set un état temporaire
@@ -205,16 +205,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             setLoading(false); // Débloquer même en cas d'erreur pour afficher l'erreur
                         }
                     }
-                }, (err) => {
+                }, async (err) => {
                     console.error('Error listening to user profile:', err);
                     clearTimeout(safetyTimeout); // Clear timeout on error
-                    
+
                     // CRITICAL FIX: Do not use a permissive fallback for production.
                     // If Firestore fails, we should not grant admin access.
-                    setError(err as Error);
+
+                    // Detect stale session (User deleted in Auth but token still cached)
+                    if (err.code === 'permission-denied') {
+                        console.warn('Permission denied for user profile. Session might be invalid or user deleted. Logging out...');
+                        try {
+                            await logout();
+                        } catch (logoutErr) {
+                            console.error('Error during forced logout:', logoutErr);
+                            // Force local state cleanup even if firebase logout fails
+                            setUser(null);
+                            setFirebaseUser(null);
+                            localStorage.removeItem('last_org_id');
+                        }
+                    } else {
+                        setError(err as Error);
+                    }
+
                     setLoading(false);
-                    // Optional: force logout if truly unrecoverable?
-                    // logout(); 
                 });
 
             } catch (err) {
@@ -233,7 +247,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Gestion de la connectivité (Optionnel mais bonne pratique SaaS)
         const handleOnline = () => enableNetwork(db);
         const handleOffline = () => disableNetwork(db); // Ou laisser Firebase gérer le cache
-        
+
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
 
