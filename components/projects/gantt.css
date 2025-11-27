@@ -114,3 +114,14 @@
     transition-duration: 0.2s !important;
     transition-timing-function: ease-out !important;
 }
+
+/* Custom Task List Styling */
+.gantt-task-list-header {
+    background-color: transparent !important;
+    border-bottom: none !important;
+}
+
+.gantt-task-list-table {
+    background-color: transparent !important;
+    border-right: none !important;
+}
