@@ -1,331 +1,116 @@
-/* Gantt Chart Base Styles from frappe-gantt */
-.gantt-container {
-    position: relative;
-    overflow-x: auto;
-    overflow-y: visible;
-    font-size: 13px;
-    min-height: 400px;
-    /* Increased min-height */
-    width: 100%;
+/* Gantt Task React Overrides - Premium Apple Style */
+
+/* General Text Styling */
+.gantt-container text {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    fill: #64748b !important;
+    /* slate-500 */
+    font-weight: 500 !important;
+    letter-spacing: -0.01em !important;
 }
 
-.gantt-chart {
-    min-width: 100%;
-    overflow: visible;
-    /* Ensure SVG is visible */
-}
-
-.gantt-container svg {
-    overflow: visible;
-    display: block;
-    width: 100%;
-    /* Ensure SVG takes full width */
-}
-
-.gantt-container::-webkit-scrollbar {
-    height: 6px;
-}
-
-.gantt-container::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.gantt-container::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.7);
-    border-radius: 9999px;
-}
-
-.gantt-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 116, 139, 0.9);
-}
-
-/* Grid */
-.grid-background {
-    fill: none;
-}
-
-.grid-header {
-    fill: #ffffff;
-    stroke: #e0e0e0;
-    stroke-width: 1.4;
-}
-
-.dark .grid-header {
-    fill: #1e293b;
-    stroke: rgba(255, 255, 255, 0.1);
-}
-
-.grid-row {
-    fill: #ffffff;
-}
-
-.dark .grid-row {
-    fill: #0f172a;
-}
-
-.grid-row:nth-child(even) {
-    fill: #f5f5f5;
-}
-
-.dark .grid-row:nth-child(even) {
-    fill: rgba(255, 255, 255, 0.02);
-}
-
-.row-line {
-    stroke: #ebeff2;
-}
-
-.dark .row-line {
-    stroke: rgba(255, 255, 255, 0.05);
-}
-
-/* Dates */
-.upper-text,
-.lower-text {
-    font-size: 12px;
-    text-anchor: middle;
-    fill: #475569;
-    font-weight: 500;
-}
-
-.dark .upper-text,
-.dark .lower-text {
-    fill: #cbd5e1;
-}
-
-/* Bars */
-.bar-wrapper {
-    cursor: pointer;
-}
-
-.bar-wrapper:hover .bar {
-    opacity: 0.9;
-}
-
-.bar {
-    fill: #b8c2cc;
-    stroke: #8D99A6;
-    stroke-width: 0;
-    transition: all 0.3s ease;
-    rx: 6;
-    ry: 6;
-}
-
-.bar-progress {
-    fill: rgba(255, 255, 255, 0.4);
-}
-
-.bar-label {
-    fill: #fff;
-    dominant-baseline: central;
-    text-anchor: middle;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.bar-label.big {
-    fill: #555;
-    text-anchor: start;
-}
-
-.dark .bar-label.big {
-    fill: #cbd5e1;
-}
-
-/* Handle */
-.handle {
-    fill: #ddd;
-    cursor: ew-resize;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease;
-}
-
-.bar-wrapper:hover .handle {
-    visibility: visible;
-    opacity: 1;
-}
-
-.handle.left {
-    cursor: w-resize;
-}
-
-.handle.right {
-    cursor: e-resize;
-}
-
-/* Arrow */
-.arrow {
-    fill: none;
-    stroke: #94a3b8;
-    stroke-width: 1.5;
-}
-
-.dark .arrow {
-    stroke: #64748b;
-}
-
-/* Popup */
-.popup-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    background: white;
-    padding: 0;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    border-radius: 12px;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    border: 1px solid #e2e8f0;
-    z-index: 10001;
-    /* High z-index to show above modals */
-}
-
-.dark .popup-wrapper {
-    background: #1e293b;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-}
-
-.popup-wrapper .pointer {
-    position: absolute;
-    height: 10px;
-    width: 10px;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-right: 0;
-    border-bottom: 0;
-    transform: rotate(45deg);
-    margin-left: -5px;
-    margin-top: -5px;
-}
-
-.dark .popup-wrapper .pointer {
-    background: #1e293b;
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-.popup-wrapper.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* Today Highlight */
-.today-highlight {
-    fill: #fcf8e8;
-    opacity: 0.5;
-}
-
-.dark .today-highlight {
-    fill: rgba(59, 130, 246, 0.1);
-    opacity: 0.3;
-}
-
-/* Custom bar colors */
-.gantt-container .bar-completed {
-    fill: rgb(34, 197, 94) !important;
-    stroke: rgb(21, 128, 61);
-    stroke-width: 1;
-}
-
-.gantt-container .bar-in-progress {
-    fill: rgb(59, 130, 246) !important;
-    stroke: rgb(29, 78, 216);
-    stroke-width: 1;
-}
-
-.gantt-container .bar-blocked {
-    fill: rgb(239, 68, 68) !important;
-    stroke: rgb(185, 28, 28);
-    stroke-width: 1;
-}
-
-.gantt-container .bar-pending {
-    fill: rgb(156, 163, 175) !important;
-    stroke: rgb(107, 114, 128);
-    stroke-width: 1;
-}
-
-/* Popup styling */
-.gantt-popup-wrapper {
-    padding: 16px;
-    min-width: 220px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-.gantt-popup-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 6px;
-    letter-spacing: -0.01em;
-}
-
-.gantt-popup-subtitle {
-    font-size: 12px;
-    color: #64748b;
-    margin-bottom: 10px;
-    font-weight: 500;
-}
-
-.gantt-popup-dates {
-    font-size: 11px;
-    color: #94a3b8;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding-top: 8px;
-    border-top: 1px solid #f1f5f9;
-}
-
-/* Dark mode adjustments */
-.dark .gantt-container svg {
-    background: transparent;
-}
-
-.dark .gantt-popup-wrapper {
-    background: rgba(15, 23, 42, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-}
-
-.dark .gantt-popup-title {
-    color: #f8fafc;
-}
-
-.dark .gantt-popup-subtitle {
-    color: #94a3b8;
-}
-
-.dark .gantt-popup-dates {
-    color: #64748b;
-    border-top-color: rgba(255, 255, 255, 0.05);
-}
-
-/* Modern Bar Styles */
-.bar {
-    rx: 8;
-    ry: 8;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
-}
-
-.gantt-container .bar-completed {
-    fill: #10b981 !important;
-}
-
-.gantt-container .bar-in-progress {
-    fill: #3b82f6 !important;
-}
-
-.gantt-container .bar-blocked {
-    fill: #ef4444 !important;
-}
-
-.gantt-container .bar-pending {
+.dark .gantt-container text {
     fill: #94a3b8 !important;
+    /* slate-400 */
+}
+
+/* Grid Lines - Subtle & Clean */
+.gantt-container line {
+    stroke: #f1f5f9 !important;
+    /* slate-100 */
+}
+
+.dark .gantt-container line {
+    stroke: #1e293b !important;
+    /* slate-800 */
+}
+
+/* Row Backgrounds & Hover */
+.gantt-container .grid-row {
+    fill: #ffffff !important;
+    transition: fill 0.2s ease !important;
+}
+
+.gantt-container .grid-row:nth-child(even) {
+    fill: #fafafa !important;
+    /* Very subtle alternating background */
+}
+
+.dark .gantt-container .grid-row {
+    fill: transparent !important;
+}
+
+.dark .gantt-container .grid-row:nth-child(even) {
+    fill: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Today Line - Glowing Indicator */
+.gantt-container line[x1="today"] {
+    stroke: #3b82f6 !important;
+    stroke-width: 2px !important;
+    stroke-dasharray: 4, 4;
+    /* Dashed line for elegance */
+    opacity: 0.8;
+}
+
+/* Bar Styling - Modern & Rounded */
+.gantt-container rect[rx="6"] {
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.05));
+    transition: filter 0.2s ease, transform 0.2s ease !important;
+}
+
+.gantt-container rect[rx="6"]:hover {
+    filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.1));
+    cursor: grab;
+}
+
+/* Progress Bar - Subtle Contrast */
+.gantt-container rect[fill="#fff"] {
+    fill: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Header Styling */
+.gantt-container rect:first-child {
+    fill: #f8fafc !important;
+    /* Header background */
+}
+
+.dark .gantt-container rect:first-child {
+    fill: #0f172a !important;
+}
+
+/* Hide scrollbars but allow scrolling - Ultra Minimal */
+.gantt-target::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+
+.gantt-target::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.gantt-target::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+.gantt-target::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.6);
+}
+
+/* Tooltip Override - Ensure transparency for custom component */
+._3T42e {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+/* Remove global transition interference */
+.gantt-target * {
+    transition-property: fill, stroke, opacity, filter !important;
+    transition-duration: 0.2s !important;
+    transition-timing-function: ease-out !important;
 }
