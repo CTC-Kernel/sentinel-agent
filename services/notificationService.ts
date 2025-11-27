@@ -367,6 +367,45 @@ export class NotificationService {
     }
 
     /**
+     * Notify user about a new task assignment
+     */
+    static async notifyTaskAssigned(task: any, assigneeId: string): Promise<void> {
+        await this.create(
+            { uid: assigneeId, organizationId: task.organizationId } as UserProfile, // Mock user profile for create method
+            'info',
+            'Nouvelle tâche assignée',
+            `On vous a assigné la tâche : ${task.title}`,
+            '/projects'
+        );
+    }
+
+    /**
+     * Notify admins about a new incident
+     */
+    static async notifyNewIncident(incident: any): Promise<void> {
+        await this.createForOrganization(
+            incident.organizationId,
+            'danger',
+            'Nouvel Incident Signalé',
+            `${incident.title} (${incident.severity})`,
+            `/incidents?id=${incident.id}`
+        );
+    }
+
+    /**
+     * Notify user about a control assignment
+     */
+    static async notifyControlAssigned(control: any, assigneeId: string): Promise<void> {
+        await this.create(
+            { uid: assigneeId, organizationId: control.organizationId } as UserProfile,
+            'info',
+            'Contrôle assigné',
+            `On vous a assigné le contrôle : ${control.code} - ${control.name}`,
+            '/compliance'
+        );
+    }
+
+    /**
      * Run all automated checks
      */
     static async runAutomatedChecks(organizationId: string): Promise<void> {

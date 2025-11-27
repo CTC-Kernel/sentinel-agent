@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot, limit, orderBy, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Control, Document, Risk, Finding } from '../types';
-import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, ArrowRight } from '../components/ui/Icons';
+import { Control, Document, Risk, Finding, UserProfile, SystemLog } from '../types';
+import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, ArrowRight, User, Clock, MessageSquare, CheckCircle2 } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
@@ -16,14 +15,21 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { Drawer } from '../components/ui/Drawer';
+import { Comments } from '../components/ui/Comments';
+import { CustomSelect } from '../components/ui/CustomSelect';
+import { NotificationService } from '../services/notificationService';
 
 import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS } from '../data/complianceData';
+import { aiService } from '../services/aiService';
+import { Sparkles, Bot, Lightbulb, FileText as FileTextIcon, Loader2 as Loader } from '../components/ui/Icons';
 
 export const Compliance: React.FC = () => {
     const [controls, setControls] = useState<Control[]>([]);
     const [documents, setDocuments] = useState<Document[]>([]);
     const [risks, setRisks] = useState<Risk[]>([]);
     const [findings, setFindings] = useState<Finding[]>([]);
+    const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const { user, addToast } = useStore();
 
@@ -31,6 +37,10 @@ export const Compliance: React.FC = () => {
 
     // UI State
     const [selectedControl, setSelectedControl] = useState<Control | null>(null);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'evidence' | 'comments' | 'history'>('details');
+    const [controlHistory, setControlHistory] = useState<SystemLog[]>([]);
+
     const [editJustification, setEditJustification] = useState('');
     const [filter, setFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -55,7 +65,8 @@ export const Compliance: React.FC = () => {
                 getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId))),
                 getDocs(query(collection(db, 'documents'), where('organizationId', '==', orgId))),
                 getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId))),
-                getDocs(query(collection(db, 'findings'), where('organizationId', '==', orgId)))
+                getDocs(query(collection(db, 'findings'), where('organizationId', '==', orgId))),
+                getDocs(query(collection(db, 'users'), where('organizationId', '==', orgId)))
             ]);
 
             const getData = <T extends { id: string }>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
@@ -69,10 +80,14 @@ export const Compliance: React.FC = () => {
             const docData = getData<Document>(results[1]);
             const riskData = getData<Risk>(results[2]);
             const findingData = getData<Finding>(results[3]);
+            const userData = results[4].status === 'fulfilled'
+                ? results[4].value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ ...d.data(), uid: d.id } as unknown as UserProfile))
+                : [];
 
             setDocuments(docData);
             setRisks(riskData);
             setFindings(findingData);
+            setUsersList(userData);
 
             // Filter controls by current framework
             // Legacy handling: if framework is undefined, assume ISO27001
@@ -149,29 +164,92 @@ export const Compliance: React.FC = () => {
         setExpandedDomains(prev => prev.includes(domainId) ? prev.filter(d => d !== domainId) : [...prev, domainId]);
     };
 
-    const openInspector = (control: Control) => {
+    const openInspector = async (control: Control) => {
         setSelectedControl(control);
         setEditJustification(control.justification || '');
+        setIsDrawerOpen(true);
+        setInspectorTab('details');
+
+        // Fetch history
+        try {
+            const q = query(
+                collection(db, 'system_logs'),
+                where('organizationId', '==', user?.organizationId),
+                where('resource', '==', 'Control'),
+                limit(50)
+            );
+            const snap = await getDocs(q);
+            const logs = snap.docs.map(d => d.data() as SystemLog);
+            // Filter client-side for specific control code/name matches since we don't store controlId in logs yet
+            const relevantLogs = logs.filter(l => l.details?.includes(control.code));
+            relevantLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            setControlHistory(relevantLogs);
+        } catch (error) {
+            console.error("Error fetching history", error);
+        }
     };
 
-    const saveJustification = async () => {
-        if (!selectedControl) return;
+    const handleAssign = async (assigneeId: string) => {
+        if (!selectedControl || !user?.organizationId) return;
         try {
-            const updateData = sanitizeData({ justification: editJustification, lastUpdated: new Date().toISOString() });
-            await updateDoc(doc(db, 'controls', selectedControl.id), updateData);
-            setControls(prev => prev.map(c => c.id === selectedControl.id ? { ...c, justification: editJustification } : c));
-            setSelectedControl({ ...selectedControl, justification: editJustification });
+            await updateDoc(doc(db, 'controls', selectedControl.id), { assigneeId });
+
+            // Notify assignee
+            if (assigneeId) {
+                await NotificationService.notifyControlAssigned(selectedControl, assigneeId);
+            }
+
+            // Log action
+            const assignee = usersList.find(u => u.uid === assigneeId);
+            await logAction(user, 'UPDATE', 'Control', `Contrôle ${selectedControl.code} assigné à ${assignee?.displayName || assignee?.email}`);
+
+            // Update local state
+            const updatedControl = { ...selectedControl, assigneeId };
+            setSelectedControl(updatedControl);
+            setControls(prev => prev.map(c => c.id === selectedControl.id ? updatedControl : c));
+
+            addToast("Assignation mise à jour", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleAssign', 'UPDATE_FAILED');
+        }
+    };
+
+    const handleStatusChange = async (control: Control, newStatus: Control['status']) => {
+        if (!user?.organizationId) return;
+        try {
+            await updateDoc(doc(db, 'controls', control.id), {
+                status: newStatus,
+                lastUpdated: new Date().toISOString()
+            });
+            await logAction(user, 'UPDATE', 'Control', `Statut ${control.code} changé à ${newStatus}`);
+
+            const updatedControl = { ...control, status: newStatus, lastUpdated: new Date().toISOString() };
+            if (selectedControl?.id === control.id) setSelectedControl(updatedControl);
+            setControls(prev => prev.map(c => c.id === control.id ? updatedControl : c));
+
+            addToast("Statut mis à jour", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleStatusChange', 'UPDATE_FAILED');
+        }
+    };
+
+    const handleJustificationSave = async () => {
+        if (!selectedControl || !user?.organizationId) return;
+        try {
+            await updateDoc(doc(db, 'controls', selectedControl.id), {
+                justification: editJustification,
+                lastUpdated: new Date().toISOString()
+            });
+            await logAction(user, 'UPDATE', 'Control', `Justification mise à jour pour ${selectedControl.code}`);
+
+            const updatedControl = { ...selectedControl, justification: editJustification, lastUpdated: new Date().toISOString() };
+            setSelectedControl(updatedControl);
+            setControls(prev => prev.map(c => c.id === selectedControl.id ? updatedControl : c));
+
             addToast("Justification enregistrée", "success");
-        } catch (_e) { addToast("Erreur enregistrement", "error"); }
-    };
-
-    const toggleStatus = async (control: Control, newStatus: Control['status']) => {
-        try {
-            await updateDoc(doc(db, 'controls', control.id), { status: newStatus, lastUpdated: new Date().toISOString() });
-            setControls(prev => prev.map(c => c.id === control.id ? { ...c, status: newStatus } : c));
-            if (selectedControl?.id === control.id) setSelectedControl({ ...selectedControl, status: newStatus });
-            addToast(`Statut changé : ${newStatus}`, "success");
-        } catch (_e) { addToast("Erreur MAJ statut", "error"); }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleJustificationSave', 'UPDATE_FAILED');
+        }
     };
 
     const linkDocument = async (docId: string) => {
@@ -447,124 +525,179 @@ export const Compliance: React.FC = () => {
                 </div>
             )}
 
-            {/* Inspector (Keep existing implementation but styled) */}
-            {selectedControl && createPortal(
-                <div className="fixed inset-0 z-[9999] overflow-hidden">
-                    <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedControl(null)} />
-                    <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
-                        <div className="w-screen max-w-xl pointer-events-auto">
-                            <div className="h-full flex flex-col bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
-                                <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
-                                    <div><div className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-black text-slate-500 dark:text-slate-400 mb-2">{selectedControl.code}</div><h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight">{selectedControl.name}</h2></div>
-                                    <button onClick={() => setSelectedControl(null)} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors bg-gray-50 dark:bg-white/5 rounded-full"><X className="h-5 w-5" /></button>
-                                </div>
-                                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8 bg-slate-50/30 dark:bg-transparent">
+            {/* Drawer Inspector */}
+            <Drawer
+                isOpen={isDrawerOpen}
+                onClose={() => setIsDrawerOpen(false)}
+                title={selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : ''}
+                subtitle={selectedControl?.framework || currentFramework}
+                width="max-w-4xl"
+            >
+                {selectedControl && (
+                    <div className="h-full flex flex-col">
+                        {/* Tabs */}
+                        <div className="flex border-b border-gray-100 dark:border-white/5 px-6 bg-white/50 dark:bg-white/5 backdrop-blur-sm sticky top-0 z-10">
+                            <button onClick={() => setInspectorTab('details')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'details' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Détails</button>
+                            <button onClick={() => setInspectorTab('evidence')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'evidence' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Preuves ({selectedControl.evidenceIds?.length || 0})</button>
+                            <button onClick={() => setInspectorTab('comments')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'comments' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Discussion</button>
+                            <button onClick={() => setInspectorTab('history')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'history' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Historique</button>
+                        </div>
 
-                                    {/* AI Assistant Section */}
+                        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                            {inspectorTab === 'details' && (
+                                <div className="space-y-8 max-w-3xl mx-auto">
+                                    {/* AI Assistant */}
                                     <ComplianceAIAssistant control={selectedControl} onApplyPolicy={(policy) => setEditJustification(prev => prev ? prev + '\n\n' + policy : policy)} />
 
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Statut d'implémentation</h3>
-                                        {canEdit ? (
-                                            <div className="grid grid-cols-3 gap-3">
-                                                {(['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => (
-                                                    <button
-                                                        key={s}
-                                                        onClick={() => toggleStatus(selectedControl, s)}
-                                                        className={`px-3 py-3 rounded-xl text-xs font-bold border transition-all duration-200 flex items-center justify-center ${selectedControl.status === s
-                                                            ? 'bg-brand-600 text-white border-brand-600 shadow-lg shadow-brand-500/30 scale-[1.02]'
-                                                            : 'bg-slate-50 dark:bg-slate-800/50 border-transparent text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:border-gray-200 dark:hover:border-white/10 hover:shadow-sm hover:text-slate-700 dark:hover:text-slate-200'
-                                                            }`}
-                                                    >
-                                                        {s}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <span className={`px-4 py-2 rounded-xl text-sm font-bold border uppercase tracking-wide inline-block`}>{selectedControl.status}</span>
-                                        )}
+                                    {/* Status & Assignment */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Statut d'implémentation</h3>
+                                            {canEdit ? (
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {(['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => (
+                                                        <button
+                                                            key={s}
+                                                            onClick={() => handleStatusChange(selectedControl, s)}
+                                                            className={`px-2 py-2 rounded-lg text-[10px] font-bold border transition-all duration-200 flex items-center justify-center ${selectedControl.status === s
+                                                                ? 'bg-brand-600 text-white border-brand-600 shadow-md'
+                                                                : 'bg-slate-50 dark:bg-slate-800/50 border-transparent text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'
+                                                                }`}
+                                                        >
+                                                            {s}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <span className={`px-4 py-2 rounded-xl text-sm font-bold border uppercase tracking-wide inline-block`}>{selectedControl.status}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Responsable</h3>
+                                            {canEdit ? (
+                                                <CustomSelect
+                                                    label="Assigné à"
+                                                    value={selectedControl.assigneeId || ''}
+                                                    onChange={(val) => handleAssign(val)}
+                                                    options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
+                                                    placeholder="Sélectionner un responsable..."
+                                                />
+                                            ) : (
+                                                <div className="flex items-center p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
+                                                    <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 mr-3">
+                                                        <User className="h-4 w-4" />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                                        {usersList.find(u => u.uid === selectedControl.assigneeId)?.displayName || 'Non assigné'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    {/* Related Actions (Workflows) */}
-                                    {(selectedControl.code.startsWith('NIS2.4') || selectedControl.code.startsWith('NIS2.2') || selectedControl.code.startsWith('NIS2.3')) && (
-                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 p-6 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm relative overflow-hidden group/card">
-                                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover/card:opacity-10 transition-opacity">
-                                                <Link className="w-24 h-24 text-blue-600" />
-                                            </div>
-                                            <h3 className="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 mb-4 tracking-widest flex items-center relative z-10">
-                                                <Link className="h-3.5 w-3.5 mr-2" /> Actions Liées (Workflows)
-                                            </h3>
-                                            <div className="space-y-3 relative z-10">
-                                                {selectedControl.code.startsWith('NIS2.4') && (
-                                                    <a href="#/incidents" className="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-blue-100 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md hover:-translate-y-0.5 transition-all group duration-300">
-                                                        <div className="flex items-center">
-                                                            <div className="p-3 bg-red-100 dark:bg-red-900/20 text-red-600 rounded-xl mr-4 group-hover:scale-110 transition-transform"><ShieldAlert className="h-5 w-5" /></div>
-                                                            <div>
-                                                                <div className="font-bold text-slate-900 dark:text-white text-sm">Gestion des Incidents</div>
-                                                                <div className="text-xs text-slate-500 mt-0.5">Déclarer ou suivre un incident de sécurité</div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                                            <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-white transition-colors" />
-                                                        </div>
-                                                    </a>
-                                                )}
-                                                {selectedControl.code.startsWith('NIS2.2') && (
-                                                    <a href="#/suppliers" className="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-blue-100 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md hover:-translate-y-0.5 transition-all group duration-300">
-                                                        <div className="flex items-center">
-                                                            <div className="p-3 bg-purple-100 dark:bg-purple-900/20 text-purple-600 rounded-xl mr-4 group-hover:scale-110 transition-transform"><FileText className="h-5 w-5" /></div>
-                                                            <div>
-                                                                <div className="font-bold text-slate-900 dark:text-white text-sm">Gestion des Fournisseurs</div>
-                                                                <div className="text-xs text-slate-500 mt-0.5">Évaluer la sécurité de la chaîne d'approvisionnement</div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                                            <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-white transition-colors" />
-                                                        </div>
-                                                    </a>
-                                                )}
-                                                {selectedControl.code.startsWith('NIS2.3') && (
-                                                    <a href="#/assets" className="flex items-center justify-between p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-blue-100 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md hover:-translate-y-0.5 transition-all group duration-300">
-                                                        <div className="flex items-center">
-                                                            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 rounded-xl mr-4 group-hover:scale-110 transition-transform"><ShieldCheck className="h-5 w-5" /></div>
-                                                            <div>
-                                                                <div className="font-bold text-slate-900 dark:text-white text-sm">Inventaire des Actifs</div>
-                                                                <div className="text-xs text-slate-500 mt-0.5">Gérer les systèmes et réseaux</div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                                            <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-white transition-colors" />
-                                                        </div>
-                                                    </a>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
+                                    {/* Justification */}
                                     <div>
-                                        <div className="flex justify-between items-end mb-3 px-2"><h3 className="text-xs font-bold uppercase text-slate-400 flex items-center tracking-widest"><FileText className="h-3.5 w-3.5 mr-2" /> Justification SoA</h3>{selectedControl.status === 'Exclu' && <span className="text-[10px] text-red-500 font-bold uppercase bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded">Obligatoire</span>}</div>
-                                        {canEdit ? (<div className="relative group"><textarea className="w-full p-5 text-sm bg-white dark:bg-slate-800/80 border border-gray-200 dark:border-white/10 rounded-3xl text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm font-medium leading-relaxed" rows={6} placeholder="Décrivez comment ce contrôle est implémenté, ou justifiez son exclusion..." value={editJustification} onChange={e => setEditJustification(e.target.value)} /><button onClick={saveJustification} className="absolute bottom-4 right-4 p-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110" title="Sauvegarder"><Save className="h-4 w-4" /></button></div>) : (<div className="p-5 bg-white dark:bg-slate-800/80 rounded-3xl border border-gray-200 dark:border-white/10 shadow-sm"><p className="text-sm text-slate-600 dark:text-slate-300 italic font-medium leading-relaxed">{selectedControl.justification || "Aucune justification saisie."}</p></div>)}
+                                        <div className="flex justify-between items-end mb-3 px-2">
+                                            <h3 className="text-xs font-bold uppercase text-slate-400 flex items-center tracking-widest"><FileText className="h-3.5 w-3.5 mr-2" /> Justification SoA</h3>
+                                            {selectedControl.status === 'Exclu' && <span className="text-[10px] text-red-500 font-bold uppercase bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded">Obligatoire</span>}
+                                        </div>
+                                        {canEdit ? (
+                                            <div className="relative group">
+                                                <textarea
+                                                    className="w-full p-5 text-sm bg-white dark:bg-slate-800/80 border border-gray-200 dark:border-white/10 rounded-3xl text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm font-medium leading-relaxed"
+                                                    rows={6}
+                                                    placeholder="Décrivez comment ce contrôle est implémenté, ou justifiez son exclusion..."
+                                                    value={editJustification}
+                                                    onChange={e => setEditJustification(e.target.value)}
+                                                />
+                                                <button
+                                                    onClick={handleJustificationSave}
+                                                    className="absolute bottom-4 right-4 p-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+                                                    title="Sauvegarder"
+                                                >
+                                                    <Save className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="p-5 bg-white dark:bg-slate-800/80 rounded-3xl border border-gray-200 dark:border-white/10 shadow-sm">
+                                                <p className="text-sm text-slate-600 dark:text-slate-300 italic font-medium leading-relaxed">{selectedControl.justification || "Aucune justification saisie."}</p>
+                                            </div>
+                                        )}
                                     </div>
+                                </div>
+                            )}
+
+                            {inspectorTab === 'evidence' && (
+                                <div className="space-y-6 max-w-3xl mx-auto">
                                     <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 p-6 shadow-sm">
                                         <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 flex items-center tracking-widest"><Link className="h-3.5 w-3.5 mr-2" /> Preuves Documentaires</h3>
                                         <div className="space-y-2 mb-4">
-                                            {selectedControl.evidenceIds && selectedControl.evidenceIds.length > 0 ? selectedControl.evidenceIds.map(docId => { const docObj = documents.find(d => d.id === docId); return docObj ? (<div key={docId} className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm group transition-all hover:bg-white dark:hover:bg-white/5"><div className="flex items-center overflow-hidden"><div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg mr-3 text-blue-500"><File className="h-4 w-4" /></div><span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[200px]">{docObj.title}</span></div><div className="flex gap-2">{docObj.url && <a href={docObj.url} target="_blank" rel="noreferrer" className="p-2 text-slate-400 hover:text-brand-600 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm"><ExternalLink className="h-3.5 w-3.5" /></a>}{canEdit && <button onClick={() => initiateUnlinkDocument(docId)} className="p-2 text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm"><X className="h-3.5 w-3.5" /></button>}</div></div>) : null; }) : <p className="text-xs text-gray-400 italic text-center py-4 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl">Aucune preuve liée.</p>}
+                                            {selectedControl.evidenceIds && selectedControl.evidenceIds.length > 0 ? selectedControl.evidenceIds.map(docId => {
+                                                const docObj = documents.find(d => d.id === docId);
+                                                return docObj ? (
+                                                    <div key={docId} className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm group transition-all hover:bg-white dark:hover:bg-white/5">
+                                                        <div className="flex items-center overflow-hidden">
+                                                            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg mr-3 text-blue-500"><File className="h-4 w-4" /></div>
+                                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[200px]">{docObj.title}</span>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            {docObj.url && <a href={docObj.url} target="_blank" rel="noreferrer" className="p-2 text-slate-400 hover:text-brand-600 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm"><ExternalLink className="h-3.5 w-3.5" /></a>}
+                                                            {canEdit && <button onClick={() => initiateUnlinkDocument(docId)} className="p-2 text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm"><X className="h-3.5 w-3.5" /></button>}
+                                                        </div>
+                                                    </div>
+                                                ) : null;
+                                            }) : <p className="text-xs text-gray-400 italic text-center py-4 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl">Aucune preuve liée.</p>}
                                         </div>
-                                        {canEdit && (<div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/5"><label className="text-[10px] font-bold text-slate-400 mb-3 block uppercase tracking-wide">Ajouter une preuve existante</label><div className="max-h-40 overflow-y-auto custom-scrollbar space-y-1 bg-gray-50/50 dark:bg-black/20 p-2 rounded-2xl border border-gray-100 dark:border-white/5">{documents.filter(d => !selectedControl.evidenceIds?.includes(d.id)).map(d => (<button key={d.id} onClick={() => linkDocument(d.id)} className="w-full text-left text-xs p-2.5 hover:bg-white dark:hover:bg-white/10 rounded-xl flex items-center text-slate-600 dark:text-slate-300 transition-all font-medium"><Plus className="h-3 w-3 mr-2 text-brand-500" /> {d.title}</button>))}</div></div>)}
+                                        {canEdit && (
+                                            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/5">
+                                                <label className="text-[10px] font-bold text-slate-400 mb-3 block uppercase tracking-wide">Ajouter une preuve existante</label>
+                                                <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-1 bg-gray-50/50 dark:bg-black/20 p-2 rounded-2xl border border-gray-100 dark:border-white/5">
+                                                    {documents.filter(d => !selectedControl.evidenceIds?.includes(d.id)).map(d => (
+                                                        <button key={d.id} onClick={() => linkDocument(d.id)} className="w-full text-left text-xs p-2.5 hover:bg-white dark:hover:bg-white/10 rounded-xl flex items-center text-slate-600 dark:text-slate-300 transition-all font-medium">
+                                                            <Plus className="h-3 w-3 mr-2 text-brand-500" /> {d.title}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {inspectorTab === 'comments' && (
+                                <div className="h-full flex flex-col max-w-3xl mx-auto">
+                                    <Comments collectionName="controls" documentId={selectedControl.id} />
+                                </div>
+                            )}
+
+                            {inspectorTab === 'history' && (
+                                <div className="space-y-8 max-w-3xl mx-auto">
+                                    <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Journal d'Activité</h4>
+                                        {controlHistory.length === 0 ? <p className="text-sm text-gray-400 italic">Aucune activité enregistrée.</p> : controlHistory.map((log, i) => (
+                                            <div key={i} className="relative">
+                                                <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
+                                                    <div className="h-2 w-2 rounded-full bg-brand-500"></div>
+                                                </span>
+                                                <div>
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
+                                                    <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
-                </div>,
-                document.body
-            )}
+                )}
+            </Drawer>
         </div>
     );
 };
-
-// --- AI Assistant Component ---
-import { Sparkles, Bot, Lightbulb, FileText as FileTextIcon, Loader2 as Loader } from '../components/ui/Icons';
-import { aiService } from '../services/aiService';
 
 const ComplianceAIAssistant: React.FC<{ control: Control, onApplyPolicy: (text: string) => void }> = ({ control, onApplyPolicy }) => {
     const [loading, setLoading] = useState(false);
