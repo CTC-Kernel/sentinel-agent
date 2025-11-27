@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import Gantt from 'frappe-gantt';
 import { ProjectTask } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
+import './gantt.css';
 
 interface GanttChartProps {
     tasks: ProjectTask[];
