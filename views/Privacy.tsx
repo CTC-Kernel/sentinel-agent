@@ -1,5 +1,8 @@
 
 import React, { useEffect, useState, useRef } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { processingActivitySchema, ProcessingActivityFormData } from '../schemas/privacySchema';
 import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -28,7 +31,7 @@ export const Privacy: React.FC = () => {
     const [selectedActivity, setSelectedActivity] = useState<ProcessingActivity | null>(null);
     const [inspectorTab, setInspectorTab] = useState<'details' | 'data' | 'history' | 'comments'>('details');
     const [activityHistory, setActivityHistory] = useState<SystemLog[]>([]);
-    const [editForm, setEditForm] = useState<Partial<ProcessingActivity>>({});
+    // const [editForm, setEditForm] = useState<Partial<ProcessingActivity>>({}); // Removed
     const [isEditing, setIsEditing] = useState(false);
 
     // Stats State
@@ -39,9 +42,22 @@ export const Privacy: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    const [newActivity, setNewActivity] = useState<Partial<ProcessingActivity>>({
-        name: '', purpose: '', manager: '', managerId: '', legalBasis: 'Intérêt Légitime', dataCategories: [],
-        dataSubjects: [], retentionPeriod: '', hasDPIA: false, status: 'Actif'
+    const createActivityForm = useForm<ProcessingActivityFormData>({
+        resolver: zodResolver(processingActivitySchema),
+        defaultValues: {
+            name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '',
+            legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [],
+            retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif'
+        }
+    });
+
+    const editActivityForm = useForm<ProcessingActivityFormData>({
+        resolver: zodResolver(processingActivitySchema),
+        defaultValues: {
+            name: '', purpose: '', manager: '', managerId: '',
+            legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [],
+            retentionPeriod: '', hasDPIA: false, status: 'Actif'
+        }
     });
 
     const fetchActivities = async () => {
@@ -98,7 +114,18 @@ export const Privacy: React.FC = () => {
 
     const openInspector = async (activity: ProcessingActivity) => {
         setSelectedActivity(activity);
-        setEditForm(activity);
+        editActivityForm.reset({
+            name: activity.name,
+            purpose: activity.purpose,
+            manager: activity.manager,
+            managerId: activity.managerId,
+            legalBasis: activity.legalBasis,
+            dataCategories: activity.dataCategories,
+            dataSubjects: activity.dataSubjects,
+            retentionPeriod: activity.retentionPeriod,
+            hasDPIA: activity.hasDPIA,
+            status: activity.status
+        });
         setInspectorTab('details');
         setIsEditing(false);
 
@@ -112,24 +139,23 @@ export const Privacy: React.FC = () => {
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Privacy.handleSelectActivity'); }
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleCreate: SubmitHandler<ProcessingActivityFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
         try {
-            await addDoc(collection(db, 'processing_activities'), { ...newActivity, organizationId: user.organizationId, createdAt: new Date().toISOString() });
-            await logAction(user, 'CREATE', 'Privacy', `Nouveau Traitement: ${newActivity.name}`);
+            await addDoc(collection(db, 'processing_activities'), { ...data, organizationId: user.organizationId, createdAt: new Date().toISOString() });
+            await logAction(user, 'CREATE', 'Privacy', `Nouveau Traitement: ${data.name}`);
             addToast("Traitement ajouté au registre", "success");
             setShowCreateModal(false);
+            createActivityForm.reset();
             fetchActivities();
         } catch (e) { addToast("Erreur enregistrement", "error"); }
     };
 
-    const handleUpdate = async () => {
+    const handleUpdate: SubmitHandler<ProcessingActivityFormData> = async (data) => {
         if (!canEdit || !selectedActivity) return;
         try {
-            const { id, ...data } = editForm as any;
             await updateDoc(doc(db, 'processing_activities', selectedActivity.id), data);
-            await logAction(user, 'UPDATE', 'Privacy', `MAJ Traitement: ${editForm.name}`);
+            await logAction(user, 'UPDATE', 'Privacy', `MAJ Traitement: ${data.name}`);
             setActivities(prev => prev.map(a => a.id === selectedActivity.id ? { ...a, ...data } : a));
             setSelectedActivity({ ...selectedActivity, ...data });
             setIsEditing(false);
@@ -224,20 +250,20 @@ export const Privacy: React.FC = () => {
     };
 
     const handleMultiSelectChange = (field: 'dataCategories' | 'dataSubjects', value: string) => {
-        const current = editForm[field] || [];
+        const current = editActivityForm.getValues(field) || [];
         if (current.includes(value)) {
-            setEditForm({ ...editForm, [field]: current.filter(v => v !== value) });
+            editActivityForm.setValue(field, current.filter(v => v !== value));
         } else {
-            setEditForm({ ...editForm, [field]: [...current, value] });
+            editActivityForm.setValue(field, [...current, value]);
         }
     };
 
     const handleNewMultiSelectChange = (field: 'dataCategories' | 'dataSubjects', value: string) => {
-        const current = newActivity[field] || [];
+        const current = createActivityForm.getValues(field) || [];
         if (current.includes(value)) {
-            setNewActivity({ ...newActivity, [field]: current.filter(v => v !== value) });
+            createActivityForm.setValue(field, current.filter(v => v !== value));
         } else {
-            setNewActivity({ ...newActivity, [field]: [...current, value] });
+            createActivityForm.setValue(field, [...current, value]);
         }
     };
 
@@ -271,7 +297,7 @@ export const Privacy: React.FC = () => {
                         </button>
                         <button
                             onClick={() => {
-                                setNewActivity({ name: '', purpose: '', manager: user?.displayName || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
+                                createActivityForm.reset({ name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
                                 setShowCreateModal(true);
                             }}
                             className="flex items-center px-5 py-2.5 bg-purple-600 text-white text-sm font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30"
@@ -334,7 +360,7 @@ export const Privacy: React.FC = () => {
                             description={filter ? "Aucun traitement ne correspond à votre recherche." : "Commencez par ajouter vos activités de traitement au registre."}
                             actionLabel={filter ? undefined : "Nouveau Traitement"}
                             onAction={filter ? undefined : () => {
-                                setNewActivity({ name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
+                                createActivityForm.reset({ name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
                                 setShowCreateModal(true);
                             }}
                         />
@@ -406,7 +432,7 @@ export const Privacy: React.FC = () => {
                                             <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                         )}
                                         {canEdit && isEditing && (
-                                            <button onClick={handleUpdate} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+                                            <button onClick={editActivityForm.handleSubmit(handleUpdate)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
                                         )}
                                         {canEdit && (
                                             <button onClick={() => initiateDelete(selectedActivity.id, selectedActivity.name)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
@@ -439,24 +465,25 @@ export const Privacy: React.FC = () => {
                                             {isEditing ? (
                                                 <>
                                                     <div className="grid grid-cols-2 gap-6">
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('name')} /></div>
                                                         <div>
                                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
                                                             <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
-                                                                value={editForm.managerId || ''}
+                                                                {...editActivityForm.register('managerId')}
                                                                 onChange={e => {
                                                                     const selectedUser = usersList.find(u => u.uid === e.target.value);
-                                                                    setEditForm({ ...editForm, managerId: e.target.value, manager: selectedUser?.displayName || '' });
+                                                                    editActivityForm.setValue('managerId', e.target.value);
+                                                                    editActivityForm.setValue('manager', selectedUser?.displayName || '');
                                                                 }}>
                                                                 <option value="">Sélectionner...</option>
                                                                 {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Finalité</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none" rows={3} value={editForm.purpose} onChange={e => setEditForm({ ...editForm, purpose: e.target.value })} /></div>
+                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Finalité</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none" rows={3} {...editActivityForm.register('purpose')} /></div>
                                                     <div className="grid grid-cols-2 gap-6">
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Base Légale</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" value={editForm.legalBasis} onChange={e => setEditForm({ ...editForm, legalBasis: e.target.value as any })}>{['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })}> <option value="Actif">Actif</option><option value="En projet">En projet</option><option value="Archivé">Archivé</option></select></div>
+                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Base Légale</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('legalBasis')}>{['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('status')}> <option value="Actif">Actif</option><option value="En projet">En projet</option><option value="Archivé">Archivé</option></select></div>
                                                     </div>
                                                 </>
                                             ) : (
@@ -488,18 +515,18 @@ export const Privacy: React.FC = () => {
                                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Catégories de données</label>
                                                         <div className="grid grid-cols-2 gap-3">
                                                             {['État civil', 'Vie personnelle', 'Bancaire / Financier', 'Connexion / Trace', 'Santé (Sensible)', 'Biométrique', 'Judiciaire'].map(cat => (
-                                                                <label key={cat} className={`flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition-all ${editForm.dataCategories?.includes(cat) ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' : 'border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-                                                                    <input type="checkbox" className="rounded-md text-purple-600 focus:ring-purple-500 border-gray-300" checked={editForm.dataCategories?.includes(cat)} onChange={() => handleMultiSelectChange('dataCategories', cat)} />
+                                                                <label key={cat} className={`flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition-all ${editActivityForm.watch('dataCategories')?.includes(cat) ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' : 'border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                                                                    <input type="checkbox" className="rounded-md text-purple-600 focus:ring-purple-500 border-gray-300" checked={editActivityForm.watch('dataCategories')?.includes(cat)} onChange={() => handleMultiSelectChange('dataCategories', cat)} />
                                                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{cat}</span>
                                                                 </label>
                                                             ))}
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-6">
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Durée Conservation</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" value={editForm.retentionPeriod} onChange={e => setEditForm({ ...editForm, retentionPeriod: e.target.value })} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Durée Conservation</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('retentionPeriod')} /></div>
                                                         <div className="flex items-end pb-4">
                                                             <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 w-full transition-colors">
-                                                                <input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-gray-300" checked={editForm.hasDPIA} onChange={e => setEditForm({ ...editForm, hasDPIA: e.target.checked })} />
+                                                                <input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-gray-300" checked={editActivityForm.watch('hasDPIA')} onChange={e => editActivityForm.setValue('hasDPIA', e.target.checked)} />
                                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">DPIA Requis ?</span>
                                                             </label>
                                                         </div>
@@ -571,20 +598,22 @@ export const Privacy: React.FC = () => {
                             <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-purple-50/30 dark:bg-purple-900/10">
                                 <h2 className="text-2xl font-bold text-purple-900 dark:text-purple-100 tracking-tight">Nouveau Traitement</h2>
                             </div>
-                            <form onSubmit={handleCreate} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
+                            <form onSubmit={createActivityForm.handleSubmit(handleCreate)} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom du traitement</label>
-                                        <input required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium"
-                                            value={newActivity.name} onChange={e => setNewActivity({ ...newActivity, name: e.target.value })} placeholder="ex: Gestion Paie" />
+                                        <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium"
+                                            {...createActivityForm.register('name')} placeholder="ex: Gestion Paie" />
+                                        {createActivityForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{createActivityForm.formState.errors.name.message}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
                                         <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
-                                            value={newActivity.managerId || ''}
+                                            {...createActivityForm.register('managerId')}
                                             onChange={e => {
                                                 const selectedUser = usersList.find(u => u.uid === e.target.value);
-                                                setNewActivity({ ...newActivity, managerId: e.target.value, manager: selectedUser?.displayName || '' });
+                                                createActivityForm.setValue('managerId', e.target.value);
+                                                createActivityForm.setValue('manager', selectedUser?.displayName || '');
                                             }}>
                                             <option value="">Sélectionner...</option>
                                             {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
@@ -593,27 +622,27 @@ export const Privacy: React.FC = () => {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Finalité principale</label>
-                                    <textarea required rows={2} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none"
-                                        value={newActivity.purpose} onChange={e => setNewActivity({ ...newActivity, purpose: e.target.value })} placeholder="ex: Payer les salaires et déclarations sociales" />
+                                    <textarea rows={2} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none"
+                                        {...createActivityForm.register('purpose')} placeholder="ex: Payer les salaires et déclarations sociales" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-6">
-                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Base Légale</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" value={newActivity.legalBasis} onChange={e => setNewActivity({ ...newActivity, legalBasis: e.target.value as any })}>{['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" value={newActivity.status} onChange={e => setNewActivity({ ...newActivity, status: e.target.value as any })}> <option value="Actif">Actif</option><option value="En projet">En projet</option><option value="Archivé">Archivé</option></select></div>
+                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Base Légale</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...createActivityForm.register('legalBasis')}>{['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...createActivityForm.register('status')}> <option value="Actif">Actif</option><option value="En projet">En projet</option><option value="Archivé">Archivé</option></select></div>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Catégories de données</label>
                                     <div className="grid grid-cols-2 gap-3">
                                         {['État civil', 'Vie personnelle', 'Bancaire / Financier', 'Connexion / Trace', 'Santé (Sensible)', 'Biométrique', 'Judiciaire'].map(cat => (
-                                            <label key={cat} className={`flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition-all ${newActivity.dataCategories?.includes(cat) ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' : 'border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-                                                <input type="checkbox" className="rounded-md text-purple-600 focus:ring-purple-500 border-gray-300" checked={newActivity.dataCategories?.includes(cat)} onChange={() => handleNewMultiSelectChange('dataCategories', cat)} />
+                                            <label key={cat} className={`flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition-all ${createActivityForm.watch('dataCategories')?.includes(cat) ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' : 'border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                                                <input type="checkbox" className="rounded-md text-purple-600 focus:ring-purple-500 border-gray-300" checked={createActivityForm.watch('dataCategories')?.includes(cat)} onChange={() => handleNewMultiSelectChange('dataCategories', cat)} />
                                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{cat}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-6">
-                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Durée Conservation</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" value={newActivity.retentionPeriod} onChange={e => setNewActivity({ ...newActivity, retentionPeriod: e.target.value })} placeholder="ex: 5 ans après départ" /></div>
-                                    <div className="flex items-end pb-4"><label className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 w-full transition-colors"><input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-gray-300" checked={newActivity.hasDPIA} onChange={e => setNewActivity({ ...newActivity, hasDPIA: e.target.checked })} /><span className="text-sm font-bold text-slate-900 dark:text-white">DPIA Requis ?</span></label></div>
+                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Durée Conservation</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...createActivityForm.register('retentionPeriod')} placeholder="ex: 5 ans après départ" /></div>
+                                    <div className="flex items-end pb-4"><label className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 w-full transition-colors"><input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-gray-300" checked={createActivityForm.watch('hasDPIA')} onChange={e => createActivityForm.setValue('hasDPIA', e.target.checked)} /><span className="text-sm font-bold text-slate-900 dark:text-white">DPIA Requis ?</span></label></div>
                                 </div>
                                 <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                                     <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>

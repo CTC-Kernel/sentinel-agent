@@ -230,63 +230,32 @@ export interface Supplier {
   id: string;
   organizationId: string;
   name: string;
-  category: 'Software' | 'Hardware' | 'Services' | 'Cloud' | 'Consulting' | 'Other' | 'Matériel';
-  contact: {
-    email: string;
-    phone: string;
-    address: string;
-    website?: string;
-    contactName?: string;
-  };
-  contactName?: string; // Added for compatibility
-  contactEmail?: string; // Added for compatibility
-  contract: {
-    startDate: string;
-    endDate?: string;
-    value: number;
-    currency: string;
-    renewalTerms?: string;
-    contractDocumentId?: string;
-  };
-  contractEnd?: string; // Added for compatibility
-  contractDocumentId?: string; // Added for compatibility
-  compliance: {
-    iso27001: boolean;
-    gdpr: boolean;
-    soc2: boolean;
-    hipaa: boolean;
-    otherCertifications: string[];
-  };
-  riskAssessment: {
-    overallScore: 1 | 2 | 3 | 4 | 5;
-    dataAccess: 'Low' | 'Medium' | 'High' | 'Critical';
-    dependencyLevel: 'Low' | 'Medium' | 'High' | 'Critical';
-    geographicRisk: 'Low' | 'Medium' | 'High';
-    financialStability: 1 | 2 | 3 | 4 | 5;
-    securityMaturity: 1 | 2 | 3 | 4 | 5;
-    lastAssessment: string;
-    nextAssessment: string;
-  };
-  assessment?: { // Added for compatibility
-    hasIso27001: boolean;
-    hasGdprPolicy: boolean;
-    hasEncryption: boolean;
-    hasBcp: boolean;
-    hasIncidentProcess: boolean;
+  category: 'SaaS' | 'Hébergement' | 'Matériel' | 'Consulting' | 'Autre';
+  criticality: Criticality;
+  contactName?: string;
+  contactEmail?: string;
+  status: 'Actif' | 'En cours' | 'Terminé';
+  owner?: string;
+  ownerId?: string;
+  description?: string;
+  contractDocumentId?: string;
+  contractEnd?: string;
+  securityScore?: number;
+  assessment?: {
+    hasIso27001?: boolean;
+    hasGdprPolicy?: boolean;
+    hasEncryption?: boolean;
+    hasBcp?: boolean;
+    hasIncidentProcess?: boolean;
     lastAssessmentDate?: string;
   };
-  documents: {
-    contractUrl?: string;
-    complianceReportUrl?: string;
-    auditReportUrl?: string;
-    securityQuestionnaireUrl?: string;
+  riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
+  riskAssessment: {
+    overallScore: number;
   };
-  status: 'Active' | 'Under Review' | 'Suspended' | 'Terminated' | 'Actif' | 'En cours' | 'Terminé';
-  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
-  criticality?: Criticality; // Added for compatibility
-  securityScore?: number; // Added for compatibility
-  owner: string;
-  ownerId?: string;
+  contract: {
+    endDate?: string;
+  };
   createdAt: string;
   updatedAt: string;
   reviewDates: {
@@ -295,7 +264,6 @@ export interface Supplier {
     complianceReview: string;
     contractEnd?: string;
   };
-  description?: string;
 }
 
 export interface SupplierAssessment {
