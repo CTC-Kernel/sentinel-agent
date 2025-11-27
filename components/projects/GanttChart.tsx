@@ -70,6 +70,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             return;
         }
 
+        const validTaskIds = new Set(scheduledTasks.map(t => t.id));
+
         const ganttTasks: GanttTask[] = scheduledTasks.reduce((acc: GanttTask[], task) => {
             if (!task.dueDate) return acc;
 
@@ -112,14 +114,20 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             // Sanitize ID for DOM selector safety
             const safeId = `gantt-${task.id.replace(/[^a-zA-Z0-9-_]/g, '_')}`;
 
+            // Filter dependencies to only include those that are in the current view AND are not self-referencing
+            const validDependencies = task.dependencies
+                ?.filter(depId => validTaskIds.has(depId) && depId !== task.id)
+                .map(d => `gantt-${d.replace(/[^a-zA-Z0-9-_]/g, '_')}`)
+                .join(',') || '';
+
             acc.push({
                 id: safeId,
                 name: task.title || task.description || 'Sans titre',
-                start: startDate.toISOString().split('T')[0],
-                end: endDate.toISOString().split('T')[0],
+                start: startDate.toISOString().slice(0, 16).replace('T', ' '), // YYYY-MM-DD HH:mm
+                end: endDate.toISOString().slice(0, 16).replace('T', ' '), // YYYY-MM-DD HH:mm
                 progress: task.progress ?? 0,
                 custom_class: customClass,
-                dependencies: task.dependencies?.map(d => `gantt-${d.replace(/[^a-zA-Z0-9-_]/g, '_')}`).join(',') || ''
+                dependencies: validDependencies
             });
 
             return acc;
@@ -147,8 +155,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({
                     bar_corner_radius: 6,
                     arrow_curve: 5,
                     padding: 18,
-                    view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month'],
-                    date_format: 'YYYY-MM-DD',
+                    view_modes: ['Day', 'Week', 'Month'],
+                    date_format: 'YYYY-MM-DD HH:mm',
                     language: 'fr',
                     custom_popup_html: (task: any) => {
                         const originalTask = tasks.find(t => `gantt-${t.id.replace(/[^a-zA-Z0-9-_]/g, '_')}` === task.id);
