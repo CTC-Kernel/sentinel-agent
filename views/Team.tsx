@@ -15,6 +15,9 @@ import { SubscriptionService } from '../services/subscriptionService';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { userSchema, UserFormData } from '../schemas/userSchema';
 
 export const Team: React.FC = () => {
     const navigate = useNavigate();
@@ -26,10 +29,27 @@ export const Team: React.FC = () => {
     const { user, addToast } = useStore();
 
     // State for creating user
-    const [newUser, setNewUser] = useState({ displayName: '', email: '', role: 'user', department: '' });
-
-    // State for editing user
     const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+
+    const inviteForm = useForm<UserFormData>({
+        resolver: zodResolver(userSchema),
+        defaultValues: {
+            displayName: '',
+            email: '',
+            role: 'user',
+            department: ''
+        }
+    });
+
+    const editForm = useForm<UserFormData>({
+        resolver: zodResolver(userSchema),
+        defaultValues: {
+            displayName: '',
+            email: '',
+            role: 'user',
+            department: ''
+        }
+    });
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -99,14 +119,13 @@ export const Team: React.FC = () => {
         setShowInviteModal(true);
     };
 
-    const handleAddUser = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleAddUser: SubmitHandler<UserFormData> = async (data) => {
         if (!user?.organizationId) return;
 
         try {
             // Create an invitation in 'invitations' collection
             await addDoc(collection(db, 'invitations'), {
-                ...newUser,
+                ...data,
                 organizationId: user.organizationId,
                 organizationName: user.organizationName,
                 invitedBy: user.uid,
@@ -114,17 +133,17 @@ export const Team: React.FC = () => {
             });
 
             const inviteLink = `${window.location.origin}/#/login`;
-            const htmlContent = getInvitationTemplate(user?.displayName || 'Un administrateur', newUser.role, inviteLink);
+            const htmlContent = getInvitationTemplate(user?.displayName || 'Un administrateur', data.role, inviteLink);
 
             await sendEmail(user, {
-                to: newUser.email,
+                to: data.email,
                 subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
                 type: 'INVITATION',
                 html: htmlContent
             });
 
             setShowInviteModal(false);
-            setNewUser({ displayName: '', email: '', role: 'user', department: '' });
+            inviteForm.reset();
             addToast("Invitation envoyée par email", "success");
             fetchUsers();
         } catch (_e) {
@@ -134,22 +153,27 @@ export const Team: React.FC = () => {
 
     const openEditModal = (u: UserProfile) => {
         setSelectedUser(u);
+        editForm.reset({
+            displayName: u.displayName || '',
+            email: u.email,
+            role: u.role as any,
+            department: u.department || ''
+        });
         setShowEditModal(true);
     };
 
-    const handleUpdateUser = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleUpdateUser: SubmitHandler<UserFormData> = async (data) => {
         if (!selectedUser) return;
         if (selectedUser.isPending) return; // Cannot edit invites this way yet
 
         try {
             await updateDoc(doc(db, 'users', selectedUser.uid), {
-                role: selectedUser.role,
-                department: selectedUser.department,
-                displayName: selectedUser.displayName
+                role: data.role,
+                department: data.department,
+                displayName: data.displayName
             });
             await logAction(user, 'UPDATE', 'User', `Modification utilisateur: ${selectedUser.email}`);
-            setUsers(prev => prev.map(u => u.uid === selectedUser.uid ? selectedUser : u));
+            setUsers(prev => prev.map(u => u.uid === selectedUser.uid ? { ...u, ...data } : u));
             setShowEditModal(false);
             addToast("Utilisateur mis à jour", "success");
         } catch (_e) {
@@ -466,22 +490,23 @@ export const Team: React.FC = () => {
                             <p className="text-sm text-slate-500 mt-1">Ils rejoindront {user?.organizationName}.</p>
                         </div>
 
-                        <form onSubmit={handleAddUser} className="space-y-5">
+                        <form onSubmit={inviteForm.handleSubmit(handleAddUser)} className="space-y-5">
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom complet (Optionnel)</label>
                                 <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                    value={newUser.displayName} onChange={e => setNewUser({ ...newUser, displayName: e.target.value })} placeholder="Jean Dupont" />
+                                    {...inviteForm.register('displayName')} placeholder="Jean Dupont" />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email professionnel</label>
-                                <input type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" required
-                                    value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} placeholder="jean@entreprise.com" />
+                                <input type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                    {...inviteForm.register('email')} placeholder="jean@entreprise.com" />
+                                {inviteForm.formState.errors.email && <p className="text-red-500 text-xs mt-1">{inviteForm.formState.errors.email.message}</p>}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })}>
+                                        {...inviteForm.register('role')}>
                                         <option value="user">Utilisateur</option>
                                         <option value="rssi">RSSI</option>
                                         <option value="auditor">Auditeur</option>
@@ -493,7 +518,7 @@ export const Team: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>
                                     <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                        value={newUser.department} onChange={e => setNewUser({ ...newUser, department: e.target.value })} placeholder="IT" />
+                                        {...inviteForm.register('department')} placeholder="IT" />
                                 </div>
                             </div>
                             <div className="flex justify-end gap-3 mt-8 pt-4">
@@ -514,7 +539,7 @@ export const Team: React.FC = () => {
                             <button onClick={() => setShowEditModal(false)} className="p-2 text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors"><X className="h-5 w-5" /></button>
                         </div>
 
-                        <form onSubmit={handleUpdateUser} className="space-y-5">
+                        <form onSubmit={editForm.handleSubmit(handleUpdateUser)} className="space-y-5">
                             <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl mb-4">
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Compte</p>
                                 <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedUser.email}</p>
@@ -523,14 +548,14 @@ export const Team: React.FC = () => {
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom d'affichage</label>
                                 <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                    value={selectedUser.displayName} onChange={e => setSelectedUser({ ...selectedUser, displayName: e.target.value })} />
+                                    {...editForm.register('displayName')} />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        value={selectedUser.role} onChange={e => setSelectedUser({ ...selectedUser, role: e.target.value as any })}>
+                                        {...editForm.register('role')}>
                                         <option value="user">Utilisateur</option>
                                         <option value="rssi">RSSI</option>
                                         <option value="auditor">Auditeur</option>
@@ -542,7 +567,7 @@ export const Team: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>
                                     <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                        value={selectedUser.department} onChange={e => setSelectedUser({ ...selectedUser, department: e.target.value })} />
+                                        {...editForm.register('department')} />
                                 </div>
                             </div>
 

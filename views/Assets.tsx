@@ -28,6 +28,9 @@ import { Drawer } from '../components/ui/Drawer';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { assetSchema, AssetFormData } from '../schemas/assetSchema';
 
 export const Assets: React.FC = () => {
     const navigate = useNavigate();
@@ -52,9 +55,22 @@ export const Assets: React.FC = () => {
     const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
     const [newMaintenance, setNewMaintenance] = useState<Partial<MaintenanceRecord>>({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
     const [stats, setStats] = useState({ total: 0, critical: 0, maintenanceDue: 0, totalValue: 0 });
-    const [editForm, setEditForm] = useState<Partial<Asset>>({});
-    const [isDirty, setIsDirty] = useState(false);
+    const [showInspector, setShowInspector] = useState(false);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isDirty } } = useForm<AssetFormData>({
+        resolver: zodResolver(assetSchema) as any,
+        defaultValues: {
+            name: '',
+            type: 'Matériel',
+            owner: '',
+            confidentiality: Criticality.LOW,
+            integrity: Criticality.LOW,
+            availability: Criticality.LOW,
+            location: '',
+            lifecycleStatus: 'Neuf'
+        }
+    });
 
 
 
@@ -161,15 +177,24 @@ export const Assets: React.FC = () => {
                 }
             }
 
-            const newAssetStub: Partial<Asset> = { name: 'Nouvel Actif', type: 'Matériel', owner: '', confidentiality: Criticality.LOW, integrity: Criticality.LOW, availability: Criticality.LOW, location: '', lifecycleStatus: 'Neuf' };
-            setEditForm(newAssetStub);
+            reset({
+                name: 'Nouvel Actif',
+                type: 'Matériel',
+                owner: '',
+                confidentiality: Criticality.LOW,
+                integrity: Criticality.LOW,
+                availability: Criticality.LOW,
+                location: '',
+                lifecycleStatus: 'Neuf'
+            });
             setSelectedAsset(null);
             setInspectorTab('details');
+            setShowInspector(true);
         } else {
             setSelectedAsset(asset);
-            setEditForm(asset);
+            reset(asset);
             setInspectorTab('details');
-            setIsDirty(false);
+            setShowInspector(true);
 
             try {
                 const q = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), where('resource', '==', 'Asset'), limit(20));
@@ -199,33 +224,31 @@ export const Assets: React.FC = () => {
         }
     };
 
-    const handleSave = async () => {
+    const onFormSubmit: SubmitHandler<AssetFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
-        if (!editForm.name) return addToast("Le nom est requis", "error");
 
         try {
-            const cleanEditForm = sanitizeData(editForm);
+            const cleanData = sanitizeData(data);
 
             if (selectedAsset) {
-                await updateDoc(doc(db, 'assets', selectedAsset.id), cleanEditForm);
-                await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${cleanEditForm.name}`);
-                const updatedAsset = { ...selectedAsset, ...cleanEditForm, currentValue: calculateDepreciation(cleanEditForm.purchasePrice || 0, cleanEditForm.purchaseDate || '') } as Asset;
+                await updateDoc(doc(db, 'assets', selectedAsset.id), cleanData);
+                await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${cleanData.name}`);
+                const updatedAsset = { ...selectedAsset, ...cleanData, currentValue: calculateDepreciation(cleanData.purchasePrice || 0, cleanData.purchaseDate || '') } as Asset;
                 setAssets(prev => prev.map(a => a.id === selectedAsset.id ? updatedAsset : a));
                 setSelectedAsset(updatedAsset);
                 addToast("Modifications enregistrées", "success");
             } else {
-                const newDoc = { ...cleanEditForm, organizationId: user.organizationId, createdAt: new Date().toISOString() };
+                const newDoc = { ...cleanData, organizationId: user.organizationId, createdAt: new Date().toISOString() };
                 const docRef = await addDoc(collection(db, 'assets'), newDoc);
                 const newAsset = { id: docRef.id, ...newDoc, currentValue: calculateDepreciation(newDoc.purchasePrice || 0, newDoc.purchaseDate || '') } as Asset;
                 setAssets(prev => [...prev, newAsset]);
                 setSelectedAsset(newAsset);
-                await logAction(user, 'CREATE', 'Asset', `Création Actif: ${cleanEditForm.name}`);
+                await logAction(user, 'CREATE', 'Asset', `Création Actif: ${cleanData.name}`);
                 addToast("Actif créé avec succès", "success");
             }
-            setIsDirty(false);
-            setIsDirty(false);
+            reset(data); // Reset form state to clean
             fetchAssets(); // Refresh stats
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.handleSave', 'UPDATE_FAILED'); }
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.onFormSubmit', 'UPDATE_FAILED'); }
     };
 
     const handleDuplicate = async () => {
@@ -244,13 +267,13 @@ export const Assets: React.FC = () => {
 
 
 
-    const handleSuggestField = async (field: string) => {
+    const handleSuggestField = async (field: keyof AssetFormData) => {
         setSuggestingField(field);
         try {
-            const suggestion = await aiService.suggestField(editForm, field);
+            const currentValues = watch();
+            const suggestion = await aiService.suggestField(currentValues, field);
             if (suggestion.value) {
-                setEditForm(prev => ({ ...prev, [field]: suggestion.value }));
-                setIsDirty(true);
+                setValue(field, suggestion.value, { shouldDirty: true });
                 addToast(`Suggestion: ${suggestion.value}`, "info");
             }
         } catch (e) {
@@ -292,7 +315,7 @@ export const Assets: React.FC = () => {
                 nextDate.setFullYear(nextDate.getFullYear() + 1);
                 const nextStr = nextDate.toISOString().split('T')[0];
                 await updateDoc(doc(db, 'assets', selectedAsset.id), { nextMaintenance: nextStr });
-                setEditForm(prev => ({ ...prev, nextMaintenance: nextStr }));
+                setValue('nextMaintenance', nextStr, { shouldDirty: true });
                 addToast("Maintenance ajoutée et prochaine échéance planifiée (+1 an)", "success");
             } else {
                 addToast("Intervention enregistrée", "success");
@@ -491,12 +514,12 @@ export const Assets: React.FC = () => {
             {/* Inspector Drawer */}
             {/* Inspector Drawer */}
             <Drawer
-                isOpen={!!(selectedAsset || (!selectedAsset && Object.keys(editForm).length > 0 && !loading && inspectorTab === 'details'))}
-                onClose={() => { setSelectedAsset(null); setEditForm({}); }}
+                isOpen={showInspector}
+                onClose={() => { setShowInspector(false); setSelectedAsset(null); reset({}); }}
                 title={selectedAsset ? selectedAsset.name : 'Nouvel Actif'}
                 subtitle={
                     <div className="flex items-center gap-2">
-                        {selectedAsset?.type || editForm.type}
+                        {watch('type')}
                         <span className="w-1 h-1 rounded-full bg-slate-300"></span>
                         {selectedAsset?.id || 'Brouillon'}
                     </div>
@@ -509,7 +532,7 @@ export const Assets: React.FC = () => {
                             </button>
                         )}
                         {canEdit && isDirty && (
-                            <button onClick={handleSave} className="flex items-center px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl shadow-lg hover:scale-105 transition-all" aria-label="Enregistrer les modifications">
+                            <button onClick={handleSubmit(onFormSubmit as any)} className="flex items-center px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl shadow-lg hover:scale-105 transition-all" aria-label="Enregistrer les modifications">
                                 <Save className="h-4 w-4 mr-2" /> Enregistrer
                             </button>
                         )}
@@ -542,27 +565,30 @@ export const Assets: React.FC = () => {
                                     <div className="col-span-2">
                                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Nom de l'actif</label>
                                         <div className="relative">
-                                            <input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium pr-10" value={editForm.name || ''} onChange={e => { setEditForm({ ...editForm, name: e.target.value }); setIsDirty(true); }} />
+                                            <input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium pr-10" {...register('name')} />
+                                            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                                             {canEdit && <button onClick={() => handleSuggestField('name')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-500 transition-colors" title="Suggérer un nom"><Sparkles className={`h-4 w-4 ${suggestingField === 'name' ? 'animate-spin' : ''}`} /></button>}
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Type</label>
                                         <div className="relative">
-                                            <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" value={editForm.type} onChange={e => { setEditForm({ ...editForm, type: e.target.value as Asset['type'] }); setIsDirty(true); }}>{['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].map(t => <option key={t} value={t}>{t}</option>)}</select>
+                                            <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" {...register('type')}>{['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].map(t => <option key={t} value={t}>{t}</option>)}</select>
+                                            {errors.type && <p className="text-red-500 text-xs mt-1">{errors.type.message}</p>}
                                             {canEdit && <button onClick={() => handleSuggestField('type')} className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-500 transition-colors" title="Suggérer le type"><Sparkles className={`h-4 w-4 ${suggestingField === 'type' ? 'animate-spin' : ''}`} /></button>}
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Propriétaire</label>
                                         <div className="relative">
-                                            <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" value={editForm.owner || ''} onChange={e => { setEditForm({ ...editForm, owner: e.target.value }); setIsDirty(true); }}>
+                                            <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" {...register('owner')}>
                                                 <option value="">Sélectionner...</option>
                                                 {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
                                             </select>
+                                            {errors.owner && <p className="text-red-500 text-xs mt-1">{errors.owner.message}</p>}
                                         </div>
                                     </div>
-                                    <div className="col-span-2"><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Localisation</label><input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium" value={editForm.location || ''} onChange={e => { setEditForm({ ...editForm, location: e.target.value }); setIsDirty(true); }} /></div>
+                                    <div className="col-span-2"><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Localisation</label><input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium" {...register('location')} /></div>
                                 </div>
                             </div>
                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
@@ -570,7 +596,16 @@ export const Assets: React.FC = () => {
                                     <div className="flex items-center"><AlertTriangle className="h-4 w-4 mr-2" /> Classification DIC</div>
                                     {canEdit && <button onClick={() => handleSuggestField('confidentiality')} className="text-xs normal-case font-medium text-brand-500 hover:text-brand-600 flex items-center bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg transition-colors"><Sparkles className="h-3 w-3 mr-1.5" /> Suggérer Classification</button>}
                                 </h3>
-                                <div className="grid grid-cols-3 gap-4">{['confidentiality', 'integrity', 'availability'].map((field) => (<div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5"><label className="block text-[10px] font-bold uppercase text-slate-400 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label><select disabled={!canEdit} className="w-full bg-transparent border-none p-0 font-bold text-slate-900 dark:text-white focus:ring-0 cursor-pointer text-sm" value={editForm[field as keyof Asset] as string} onChange={e => { setEditForm({ ...editForm, [field]: e.target.value }); setIsDirty(true); }}>{Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}</select></div>))}</div>
+                                <div className="grid grid-cols-3 gap-4">
+                                    {['confidentiality', 'integrity', 'availability'].map((field) => (
+                                        <div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5">
+                                            <label className="block text-[10px] font-bold uppercase text-slate-400 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
+                                            <select disabled={!canEdit} className="w-full bg-transparent border-none p-0 font-bold text-slate-900 dark:text-white focus:ring-0 cursor-pointer text-sm" {...register(field as keyof AssetFormData)}>
+                                                {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -580,24 +615,26 @@ export const Assets: React.FC = () => {
                                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-8">Timeline du cycle de vie</h3>
                                 <div className="min-w-[600px] px-4">
                                     <LifecycleTimeline
-                                        status={editForm.lifecycleStatus || 'Neuf'}
-                                        purchaseDate={editForm.purchaseDate}
-                                        warrantyEnd={editForm.warrantyEnd}
-                                        nextMaintenance={editForm.nextMaintenance}
+                                        status={watch('lifecycleStatus') || 'Neuf'}
+                                        purchaseDate={watch('purchaseDate')}
+                                        warrantyEnd={watch('warrantyEnd')}
+                                        nextMaintenance={watch('nextMaintenance')}
                                     />
                                 </div>
                             </div>
                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600/80 flex items-center"><Archive className="h-4 w-4 mr-2" /> État du cycle de vie</h3>
-                                    <div className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 text-xs font-bold">{editForm.lifecycleStatus || 'Neuf'}</div>
+                                    <div className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 text-xs font-bold">{watch('lifecycleStatus') || 'Neuf'}</div>
                                 </div>
                                 <div className="space-y-4">
-                                    <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" value={editForm.lifecycleStatus || 'Neuf'} onChange={e => { setEditForm({ ...editForm, lifecycleStatus: e.target.value as Asset['lifecycleStatus'] }); setIsDirty(true); }}>{['Neuf', 'En service', 'En réparation', 'Fin de vie', 'Rebut'].map(s => <option key={s} value={s}>{s}</option>)}</select>
+                                    <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" {...register('lifecycleStatus')}>
+                                        {['Neuf', 'En service', 'En réparation', 'Fin de vie', 'Rebut'].map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
                                     <div className="grid grid-cols-2 gap-6 pt-2">
-                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Date d'achat</label><input type="date" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" value={editForm.purchaseDate || ''} onChange={e => { setEditForm({ ...editForm, purchaseDate: e.target.value }); setIsDirty(true); }} /></div>
-                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Fin de garantie</label><input type="date" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" value={editForm.warrantyEnd || ''} onChange={e => { setEditForm({ ...editForm, warrantyEnd: e.target.value }); setIsDirty(true); }} /></div>
-                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Prix d'achat (€)</label><input type="number" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" value={editForm.purchasePrice || ''} onChange={e => { setEditForm({ ...editForm, purchasePrice: parseFloat(e.target.value) }); setIsDirty(true); }} /></div>
+                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Date d'achat</label><input type="date" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" {...register('purchaseDate')} /></div>
+                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Fin de garantie</label><input type="date" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" {...register('warrantyEnd')} /></div>
+                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Prix d'achat (€)</label><input type="number" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" {...register('purchasePrice', { valueAsNumber: true })} /></div>
                                         <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Coût Maintenance (€)</label><div className="px-4 py-3 rounded-2xl bg-gray-50 dark:bg-white/5 text-sm font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(maintenanceRecords.reduce((acc, m) => acc + (m.cost || 0), 0))}</div></div>
                                     </div>
 
