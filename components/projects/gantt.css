@@ -54,19 +54,19 @@
 }
 
 /* Bar Styling - Modern & Rounded */
-.gantt-container rect[rx="6"] {
+.gantt-container rect[rx="12"] {
     filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.05));
     transition: filter 0.2s ease, transform 0.2s ease !important;
 }
 
-.gantt-container rect[rx="6"]:hover {
+.gantt-container rect[rx="12"]:hover {
     filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.1));
     cursor: grab;
 }
 
 /* Progress Bar - Subtle Contrast */
-.gantt-container rect[fill="#fff"] {
-    fill: rgba(255, 255, 255, 0.3) !important;
+.gantt-container rect[fill="rgba(255,255,255,0.4)"] {
+    fill: rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Header Styling */
