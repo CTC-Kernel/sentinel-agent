@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../firebase';
 import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2, Server } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { LegalModal } from '../components/ui/LegalModal';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, registerSchema, resetPasswordSchema, LoginFormData, RegisterFormData, ResetPasswordFormData } from '../schemas/authSchema';
 
 // Google SVG optimized
 const GoogleIcon = () => (
@@ -17,32 +20,42 @@ const GoogleIcon = () => (
 
 export const Login: React.FC = () => {
     const [isLogin, setIsLogin] = useState(true);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const { addToast } = useStore();
 
-    // Reset Password State
+    // Main Auth Form
+    const { register, handleSubmit, formState: { errors }, setValue, clearErrors } = useForm<LoginFormData | RegisterFormData>({
+        resolver: zodResolver(isLogin ? loginSchema : registerSchema),
+        mode: 'onSubmit'
+    });
+
+    // Reset Password Form
     const [showResetModal, setShowResetModal] = useState(false);
-    const [resetEmail, setResetEmail] = useState('');
     const [resetSent, setResetSent] = useState(false);
+
+    const resetForm = useForm<ResetPasswordFormData>({
+        resolver: zodResolver(resetPasswordSchema)
+    });
 
     // Legal Modal State
     const [showLegalModal, setShowLegalModal] = useState(false);
     const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms'>('mentions');
 
+    // Clear errors when switching modes
+    useEffect(() => {
+        clearErrors();
+    }, [isLogin, clearErrors]);
 
-    const handleEmailAuth = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleEmailAuth: SubmitHandler<LoginFormData | RegisterFormData> = async (data) => {
         setLoading(true);
         setErrorMsg(null);
         try {
             if (isLogin) {
-                await signInWithEmailAndPassword(auth, email, password);
+                await signInWithEmailAndPassword(auth, data.email, data.password);
                 addToast("Connexion réussie", "success");
             } else {
-                await createUserWithEmailAndPassword(auth, email, password);
+                await createUserWithEmailAndPassword(auth, data.email, data.password);
                 addToast("Compte créé avec succès", "success");
             }
         } catch (error: any) {
@@ -69,12 +82,10 @@ export const Login: React.FC = () => {
         } finally { setLoading(false); }
     };
 
-    const handlePasswordReset = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!resetEmail) return;
+    const handlePasswordReset: SubmitHandler<ResetPasswordFormData> = async (data) => {
         setLoading(true);
         try {
-            await sendPasswordResetEmail(auth, resetEmail);
+            await sendPasswordResetEmail(auth, data.email);
             setResetSent(true);
         } catch (error: any) {
             addToast("Erreur envoi email de réinitialisation", "error");
@@ -83,7 +94,11 @@ export const Login: React.FC = () => {
         }
     };
 
-    const fillDemo = () => { setEmail('demo@sentinel.local'); setPassword('demo1234'); setErrorMsg(null); };
+    const fillDemo = () => {
+        setValue('email', 'demo@sentinel.local');
+        setValue('password', 'demo1234');
+        setErrorMsg(null);
+    };
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#E5E7EB] dark:bg-[#000000] relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
@@ -131,20 +146,19 @@ export const Login: React.FC = () => {
                             <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-400">Ou via email</span></div>
                         </div>
 
-                        <form onSubmit={handleEmailAuth} className="space-y-5">
+                        <form onSubmit={handleSubmit(handleEmailAuth)} className="space-y-5">
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-500 ml-1 uppercase tracking-widest">Email</label>
                                 <div className="relative group">
                                     <Mail className="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                                     <input
                                         type="email"
-                                        required
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-inner"
+                                        className={`w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-inner ${errors.email ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
                                         placeholder="nom@entreprise.com"
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
+                                        {...register('email')}
                                     />
                                 </div>
+                                {errors.email && <p className="text-red-500 text-xs ml-1 font-bold">{errors.email.message}</p>}
                             </div>
 
                             <div className="space-y-1.5">
@@ -160,13 +174,12 @@ export const Login: React.FC = () => {
                                     <Lock className="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                                     <input
                                         type="password"
-                                        required
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-inner"
+                                        className={`w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-inner ${errors.password ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
                                         placeholder="••••••••"
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
+                                        {...register('password')}
                                     />
                                 </div>
+                                {errors.password && <p className="text-red-500 text-xs ml-1 font-bold">{errors.password.message}</p>}
                             </div>
 
                             <button
@@ -194,7 +207,7 @@ export const Login: React.FC = () => {
 
             <div className="py-6 text-center relative z-10 space-y-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Développé par Cyber Threat Consulting</p>
-                <p className="text-[9px] text-slate-400">
+                <p className="text-sm text-slate-400">
                     Ce site est protégé par reCAPTCHA.
                     <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-slate-600 ml-1">
                         Politique de confidentialité
@@ -224,14 +237,16 @@ export const Login: React.FC = () => {
                         </div>
 
                         {!resetSent ? (
-                            <form onSubmit={handlePasswordReset} className="space-y-6">
+                            <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-6">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Email</label>
                                     <input
-                                        type="email" required
-                                        className="w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
-                                        value={resetEmail} onChange={e => setResetEmail(e.target.value)} placeholder="nom@entreprise.com"
+                                        type="email"
+                                        className={`w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white ${resetForm.formState.errors.email ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
+                                        placeholder="nom@entreprise.com"
+                                        {...resetForm.register('email')}
                                     />
+                                    {resetForm.formState.errors.email && <p className="text-red-500 text-xs ml-1 font-bold mt-1">{resetForm.formState.errors.email.message}</p>}
                                 </div>
                                 <button type="submit" disabled={loading} className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] transition-transform shadow-lg">
                                     {loading ? 'Envoi...' : 'Envoyer le lien'}

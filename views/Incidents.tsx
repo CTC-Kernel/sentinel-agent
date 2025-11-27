@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { incidentSchema, IncidentFormData } from '../schemas/incidentSchema';
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase'; // Keep original db path
 import { useStore } from '../store';
@@ -38,7 +41,23 @@ export const Incidents: React.FC = () => {
     const [showTimeline, setShowTimeline] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentIncidentId, setCurrentIncidentId] = useState<string | null>(null);
-    const [newIncident, setNewIncident] = useState<Partial<Incident>>({});
+    // const [newIncident, setNewIncident] = useState<Partial<Incident>>({}); // Removed in favor of react-hook-form
+
+    const form = useForm<IncidentFormData>({
+        resolver: zodResolver(incidentSchema),
+        defaultValues: {
+            title: '',
+            description: '',
+            severity: Criticality.MEDIUM,
+            status: 'Nouveau',
+            category: 'Autre',
+            playbookStepsCompleted: [],
+            affectedAssetId: '',
+            relatedRiskId: '',
+            reporter: user?.displayName || user?.email || '',
+            financialImpact: 0
+        }
+    });
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
@@ -97,16 +116,49 @@ export const Incidents: React.FC = () => {
     }, [location.state, loading, incidents]);
 
     const openModal = (incident?: Incident) => {
-        if (incident) { setNewIncident(incident); setCurrentIncidentId(incident.id); setIsEditing(true); }
-        else { setNewIncident({ title: '', description: '', severity: Criticality.MEDIUM, status: 'Nouveau', category: 'Autre', playbookStepsCompleted: [], affectedAssetId: '', relatedRiskId: '', reporter: user?.displayName || user?.email || '', financialImpact: 0 }); setCurrentIncidentId(null); setIsEditing(false); }
+        if (incident) {
+            setCurrentIncidentId(incident.id);
+            setIsEditing(true);
+            form.reset({
+                title: incident.title,
+                description: incident.description,
+                severity: incident.severity,
+                status: incident.status,
+                category: incident.category,
+                playbookStepsCompleted: incident.playbookStepsCompleted || [],
+                affectedAssetId: incident.affectedAssetId || '',
+                relatedRiskId: incident.relatedRiskId || '',
+                financialImpact: incident.financialImpact || 0,
+                reporter: incident.reporter,
+                dateReported: incident.dateReported,
+                dateAnalysis: incident.dateAnalysis,
+                dateContained: incident.dateContained,
+                dateResolved: incident.dateResolved,
+                lessonsLearned: incident.lessonsLearned
+            });
+        } else {
+            setCurrentIncidentId(null);
+            setIsEditing(false);
+            form.reset({
+                title: '',
+                description: '',
+                severity: Criticality.MEDIUM,
+                status: 'Nouveau',
+                category: 'Autre',
+                playbookStepsCompleted: [],
+                affectedAssetId: '',
+                relatedRiskId: '',
+                reporter: user?.displayName || user?.email || '',
+                financialImpact: 0
+            });
+        }
         setShowModal(true);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit: SubmitHandler<IncidentFormData> = async (data) => {
         if (!user?.organizationId) return;
         try {
-            const incidentData = sanitizeData({ ...newIncident });
+            const incidentData = sanitizeData({ ...data });
             const now = new Date().toISOString();
 
             if (incidentData.status === 'Analyse' && !incidentData.dateAnalysis) incidentData.dateAnalysis = now;
@@ -117,13 +169,14 @@ export const Incidents: React.FC = () => {
                 await updateDoc(doc(db, 'incidents', currentIncidentId), incidentData);
                 await logAction(user, 'UPDATE', 'Incident', `MAJ Incident: ${incidentData.title}`);
                 addToast("Incident mis à jour", "success");
-                if (selectedIncident?.id === currentIncidentId) setSelectedIncident({ ...selectedIncident, ...incidentData } as Incident);
+                if (selectedIncident?.id === currentIncidentId) setSelectedIncident({ ...selectedIncident, ...incidentData, id: currentIncidentId } as Incident);
+                setIncidents(prev => prev.map(i => i.id === currentIncidentId ? { ...i, ...incidentData } : i));
             } else {
                 await addDoc(collection(db, 'incidents'), { ...incidentData, organizationId: user.organizationId, dateReported: new Date().toISOString() });
                 await logAction(user, 'CREATE', 'Incident', `Nouvel Incident: ${incidentData.title}`);
 
                 const incidentLink = `${window.location.origin}/#/incidents`;
-                const htmlContent = getIncidentAlertTemplate(newIncident.title || 'Incident', newIncident.severity || 'Moyenne', user?.displayName || 'Utilisateur', incidentLink);
+                const htmlContent = getIncidentAlertTemplate(data.title || 'Incident', data.severity || 'Moyenne', user?.displayName || 'Utilisateur', incidentLink);
 
                 // Find recipients (Admins & RSSI)
                 const recipients = usersList
@@ -133,12 +186,14 @@ export const Incidents: React.FC = () => {
 
                 const to = recipients.length > 0 ? recipients.join(',') : user.email;
 
-                await sendEmail(user, { to, subject: `[ALERTE SÉCURITÉ] ${newIncident.severity?.toUpperCase()} - ${newIncident.title}`, type: 'INCIDENT_ALERT', html: htmlContent });
+                await sendEmail(user, { to, subject: `[ALERTE SÉCURITÉ] ${data.severity?.toUpperCase()} - ${data.title}`, type: 'INCIDENT_ALERT', html: htmlContent });
                 addToast("Incident déclaré (Alerte envoyée)", "success");
             }
             setShowModal(false);
             fetchData();
-        } catch (error) { addToast("Erreur enregistrement", "error"); }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Incidents.onSubmit', 'UPDATE_FAILED');
+        }
     };
 
     const initiateDelete = (id: string) => { setConfirmData({ isOpen: true, title: "Supprimer l'incident ?", message: "Cette action est définitive.", onConfirm: () => handleDelete(id) }); };
@@ -194,28 +249,89 @@ export const Incidents: React.FC = () => {
                 onClose={() => setShowModal(false)}
                 title={isEditing ? "Modifier l'incident" : "Déclarer un incident"}
             >
-                <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="p-8 space-y-6">
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Titre de l'incident</label>
-                        <input required type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium" value={newIncident.title} onChange={e => setNewIncident({ ...newIncident, title: e.target.value })} placeholder="Ex: Attaque Ransomware sur Serveur RH" />
+                        <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium"
+                            {...form.register('title')} placeholder="Ex: Attaque Ransomware sur Serveur RH" />
+                        {form.formState.errors.title && <p className="text-red-500 text-xs mt-1">{form.formState.errors.title.message}</p>}
                     </div>
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Description détaillée</label>
                             <AIAssistButton
                                 context={{
-                                    title: newIncident.title,
-                                    category: newIncident.category,
-                                    severity: newIncident.severity,
-                                    affectedAsset: assets.find(a => a.id === newIncident.affectedAssetId)?.name
+                                    title: form.watch('title'),
+                                    category: form.watch('category'),
+                                    severity: form.watch('severity'),
+                                    affectedAsset: assets.find(a => a.id === form.watch('affectedAssetId'))?.name
                                 }}
                                 fieldName="description"
-                                onSuggest={(val: string) => setNewIncident({ ...newIncident, description: val })}
+                                onSuggest={(val: string) => form.setValue('description', val)}
                                 prompt="Rédige une description détaillée et professionnelle pour cet incident de sécurité. Inclus les éléments factuels probables basés sur le titre et la catégorie."
                             />
                         </div>
-                        <textarea required rows={4} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium resize-none" value={newIncident.description} onChange={e => setNewIncident({ ...newIncident, description: e.target.value })} placeholder="Décrivez les faits, l'heure de découverte, les symptômes..." />
-                    </div><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Catégorie (Playbook)</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none" value={newIncident.category} onChange={e => setNewIncident({ ...newIncident, category: e.target.value as Incident['category'] })}>{Object.keys(PLAYBOOKS).map(c => <option key={c} value={c}>{c}</option>)}</select></div><div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Sévérité</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none" value={newIncident.severity} onChange={e => setNewIncident({ ...newIncident, severity: e.target.value as Criticality })}>{Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}</select></div></div><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none" value={newIncident.status} onChange={e => setNewIncident({ ...newIncident, status: e.target.value as Incident['status'] })}>{['Nouveau', 'Analyse', 'Contenu', 'Résolu', 'Fermé'].map(s => <option key={s} value={s}>{s}</option>)}</select></div><div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Actif Impacté</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none" value={newIncident.affectedAssetId} onChange={e => setNewIncident({ ...newIncident, affectedAssetId: e.target.value })}><option value="">Aucun / Inconnu</option>{assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div></div><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Lier à un Risque Identifié</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none" value={newIncident.relatedRiskId} onChange={e => setNewIncident({ ...newIncident, relatedRiskId: e.target.value })}><option value="">Non lié</option>{risks.map(r => <option key={r.id} value={r.id}>{r.threat} (Score: {r.score})</option>)}</select></div><div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Déclaré par</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none" value={newIncident.reporter} onChange={e => setNewIncident({ ...newIncident, reporter: e.target.value })}><option value="">Sélectionner...</option>{usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}</select></div><div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Coût estimé (€)</label><input type="number" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium" value={newIncident.financialImpact || ''} onChange={e => setNewIncident({ ...newIncident, financialImpact: parseFloat(e.target.value) })} placeholder="0.00" /></div></div><div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
+                        <textarea rows={4} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium resize-none"
+                            {...form.register('description')} placeholder="Décrivez les faits, l'heure de découverte, les symptômes..." />
+                        {form.formState.errors.description && <p className="text-red-500 text-xs mt-1">{form.formState.errors.description.message}</p>}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Catégorie (Playbook)</label>
+                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
+                                {...form.register('category')}>
+                                {Object.keys(PLAYBOOKS).map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Sévérité</label>
+                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
+                                {...form.register('severity')}>
+                                {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label>
+                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
+                                {...form.register('status')}>
+                                {['Nouveau', 'Analyse', 'Contenu', 'Résolu', 'Fermé'].map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Actif Impacté</label>
+                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
+                                {...form.register('affectedAssetId')}>
+                                <option value="">Aucun / Inconnu</option>
+                                {assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Lier à un Risque Identifié</label>
+                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
+                                {...form.register('relatedRiskId')}>
+                                <option value="">Non lié</option>
+                                {risks.map(r => <option key={r.id} value={r.id}>{r.threat} (Score: {r.score})</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Déclaré par</label>
+                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
+                                {...form.register('reporter')}>
+                                <option value="">Sélectionner...</option>
+                                {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Coût estimé (€)</label>
+                            <input type="number" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium"
+                                {...form.register('financialImpact', { valueAsNumber: true })} placeholder="0.00" />
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                         <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
                         <button type="submit" className="px-8 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold text-sm shadow-lg shadow-red-500/20 hover:scale-105 transition-all">Enregistrer</button>
                     </div>

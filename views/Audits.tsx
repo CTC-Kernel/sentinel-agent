@@ -25,6 +25,9 @@ import JSZip from 'jszip';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useLocation } from 'react-router-dom';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { auditSchema, AuditFormData, findingSchema, FindingFormData } from '../schemas/auditSchema';
 
 export const Audits: React.FC = () => {
     const [audits, setAudits] = useState<Audit[]>([]);
@@ -42,7 +45,6 @@ export const Audits: React.FC = () => {
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
     const [findings, setFindings] = useState<Finding[]>([]);
     const [showFindingsDrawer, setShowFindingsDrawer] = useState(false);
-    const [newFinding, setNewFinding] = useState<Partial<Finding>>({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
     const [checklist, setChecklist] = useState<AuditChecklist | null>(null);
     const [documents, setDocuments] = useState<Document[]>([]);
     const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist' | 'scope'>('findings');
@@ -52,15 +54,28 @@ export const Audits: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    const [newAudit, setNewAudit] = useState<Partial<Audit>>({
-        name: '',
-        type: 'Interne',
-        auditor: user?.displayName || '',
-        dateScheduled: new Date().toISOString().split('T')[0],
-        status: 'Planifié',
-        findingsCount: 0,
-        relatedAssetIds: [],
-        relatedRiskIds: []
+    const auditForm = useForm<AuditFormData>({
+        resolver: zodResolver(auditSchema) as any,
+        defaultValues: {
+            name: '',
+            type: 'Interne',
+            auditor: user?.displayName || '',
+            dateScheduled: new Date().toISOString().split('T')[0],
+            status: 'Planifié',
+            relatedAssetIds: [],
+            relatedRiskIds: []
+        }
+    });
+
+    const findingForm = useForm<FindingFormData>({
+        resolver: zodResolver(findingSchema) as any,
+        defaultValues: {
+            description: '',
+            type: 'Mineure',
+            status: 'Ouvert',
+            relatedControlId: '',
+            evidenceIds: []
+        }
     });
     const location = useLocation();
 
@@ -83,10 +98,8 @@ export const Audits: React.FC = () => {
             });
 
             // Link to new finding
-            setNewFinding(prev => ({
-                ...prev,
-                evidenceIds: [...(prev.evidenceIds || []), docRef.id]
-            }));
+            const currentIds = findingForm.getValues('evidenceIds') || [];
+            findingForm.setValue('evidenceIds', [...currentIds, docRef.id]);
             addToast("Preuve téléversée et liée", "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Audits.handleEvidenceUpload', 'FILE_UPLOAD_FAILED');
@@ -160,6 +173,7 @@ export const Audits: React.FC = () => {
     const handleOpenAudit = async (audit: Audit) => {
         setSelectedAudit(audit);
         setShowFindingsDrawer(true);
+        findingForm.reset({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
         try {
             const q = query(collection(db, 'findings'), where('organizationId', '==', user?.organizationId), where('auditId', '==', audit.id));
             const snap = await getDocs(q);
@@ -175,26 +189,25 @@ export const Audits: React.FC = () => {
         }
     };
 
-    const handleCreateAudit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleCreateAudit: SubmitHandler<AuditFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
         try {
-            await addDoc(collection(db, 'audits'), { ...newAudit, organizationId: user.organizationId, findingsCount: 0 });
-            await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${newAudit.name} `);
+            await addDoc(collection(db, 'audits'), { ...data, organizationId: user.organizationId, findingsCount: 0 });
+            await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${data.name} `);
 
             // Send notification
-            if (newAudit.auditor) {
-                const auditorUser = usersList.find(u => u.displayName === newAudit.auditor);
+            if (data.auditor) {
+                const auditorUser = usersList.find(u => u.displayName === data.auditor);
                 if (auditorUser) {
                     const emailContent = getAuditReminderTemplate(
-                        newAudit.name || 'Audit',
+                        data.name || 'Audit',
                         auditorUser.displayName || 'Auditeur',
-                        newAudit.dateScheduled || '',
+                        data.dateScheduled || '',
                         'https://sentinel-grc.web.app/audits'
                     );
                     await sendEmail(user, {
                         to: auditorUser.email,
-                        subject: `[Sentinel] Nouvel audit assigné: ${newAudit.name} `,
+                        subject: `[Sentinel] Nouvel audit assigné: ${data.name} `,
                         html: emailContent,
                         type: 'AUDIT_REMINDER'
                     });
@@ -203,16 +216,16 @@ export const Audits: React.FC = () => {
 
             addToast("Audit planifié et notifié", "success");
             setShowModal(false);
+            auditForm.reset();
             fetchAudits();
         } catch (_e) { addToast("Erreur création audit", "error"); }
     };
 
-    const handleAddFinding = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleAddFinding: SubmitHandler<FindingFormData> = async (data) => {
         if (!canEdit || !selectedAudit || !user?.organizationId) return;
         try {
             await addDoc(collection(db, 'findings'), {
-                ...newFinding,
+                ...data,
                 organizationId: user.organizationId,
                 auditId: selectedAudit.id,
                 createdAt: new Date().toISOString()
@@ -227,7 +240,7 @@ export const Audits: React.FC = () => {
             const snap = await getDocs(q);
             setFindings(snap.docs.map(d => ({ id: d.id, ...d.data() } as Finding)));
 
-            setNewFinding({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
+            findingForm.reset({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
             addToast("Constat ajouté", "success");
         } catch (_e) { addToast("Erreur ajout constat", "error"); }
     };
@@ -632,7 +645,7 @@ export const Audits: React.FC = () => {
                                     {inspectorTab === 'findings' ? (
                                         <>
                                             {canEdit && (
-                                                <form onSubmit={handleAddFinding} className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm mb-8">
+                                                <form onSubmit={findingForm.handleSubmit(handleAddFinding)} className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm mb-8">
                                                     <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest flex items-center"><Plus className="h-3.5 w-3.5 mr-2" /> Ajouter un constat</h3>
                                                     <div className="space-y-6">
                                                         <div className="flex flex-col gap-1">
@@ -641,40 +654,57 @@ export const Audits: React.FC = () => {
                                                                     context={{
                                                                         auditName: selectedAudit.name,
                                                                         auditType: selectedAudit.type,
-                                                                        findingType: newFinding.type,
-                                                                        control: newFinding.relatedControlId ? controls.find(c => c.id === newFinding.relatedControlId)?.code : 'Non spécifié'
+                                                                        findingType: findingForm.watch('type'),
+                                                                        control: findingForm.watch('relatedControlId') ? controls.find(c => c.id === findingForm.watch('relatedControlId'))?.code : 'Non spécifié'
                                                                     }}
                                                                     fieldName="description"
-                                                                    onSuggest={(val: string) => setNewFinding({ ...newFinding, description: val })}
+                                                                    onSuggest={(val: string) => findingForm.setValue('description', val)}
                                                                     prompt="Rédige un constat d'audit (écart) clair, factuel et professionnel. Précise le problème observé et l'impact potentiel."
                                                                 />
                                                             </div>
                                                             <FloatingLabelTextarea
                                                                 label="Description de l'écart"
-                                                                value={newFinding.description}
-                                                                onChange={e => setNewFinding({ ...newFinding, description: e.target.value })}
+                                                                {...findingForm.register('description')}
                                                                 required
                                                                 rows={2}
                                                             />
                                                         </div>
 
-                                                        <SeveritySelector
-                                                            value={newFinding.type || 'Mineure'}
-                                                            onChange={val => setNewFinding({ ...newFinding, type: val as Finding['type'] })}
+                                                        <Controller
+                                                            control={findingForm.control}
+                                                            name="type"
+                                                            render={({ field }) => (
+                                                                <SeveritySelector
+                                                                    value={field.value}
+                                                                    onChange={field.onChange}
+                                                                />
+                                                            )}
                                                         />
 
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                            <FloatingLabelSelect
-                                                                label="Contrôle Lié (Optionnel)"
-                                                                value={newFinding.relatedControlId || ''}
-                                                                onChange={e => setNewFinding({ ...newFinding, relatedControlId: e.target.value })}
-                                                                options={controls.map(c => ({ value: c.id, label: `${c.code} ${c.name.substring(0, 30)}...` }))}
+                                                            <Controller
+                                                                control={findingForm.control}
+                                                                name="relatedControlId"
+                                                                render={({ field }) => (
+                                                                    <FloatingLabelSelect
+                                                                        label="Contrôle Lié (Optionnel)"
+                                                                        value={field.value || ''}
+                                                                        onChange={field.onChange}
+                                                                        options={controls.map(c => ({ value: c.id, label: `${c.code} ${c.name.substring(0, 30)}...` }))}
+                                                                    />
+                                                                )}
                                                             />
-                                                            <FloatingLabelSelect
-                                                                label="Lier une preuve existante"
-                                                                value={newFinding.evidenceIds?.[0] || ''}
-                                                                onChange={e => setNewFinding({ ...newFinding, evidenceIds: e.target.value ? [e.target.value] : [] })}
-                                                                options={documents.map(d => ({ value: d.id, label: `${d.title} (v${d.version})` }))}
+                                                            <Controller
+                                                                control={findingForm.control}
+                                                                name="evidenceIds"
+                                                                render={({ field }) => (
+                                                                    <FloatingLabelSelect
+                                                                        label="Lier une preuve existante"
+                                                                        value={field.value?.[0] || ''}
+                                                                        onChange={e => field.onChange(e.target.value ? [e.target.value] : [])}
+                                                                        options={documents.map(d => ({ value: d.id, label: `${d.title} (v${d.version})` }))}
+                                                                    />
+                                                                )}
                                                             />
                                                         </div>
 
@@ -826,24 +856,24 @@ export const Audits: React.FC = () => {
                         <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-indigo-50/30 dark:bg-indigo-900/10">
                             <h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 tracking-tight">Planifier un Audit</h2>
                         </div>
-                        <form onSubmit={handleCreateAudit} className="p-8 space-y-6">
+                        <form onSubmit={auditForm.handleSubmit(handleCreateAudit)} className="p-8 space-y-6">
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom de l'audit</label>
                                 <input required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-                                    value={newAudit.name} onChange={e => setNewAudit({ ...newAudit, name: e.target.value })} placeholder="Ex: Audit Interne ISO 27001 - Q1" />
+                                    {...auditForm.register('name')} placeholder="Ex: Audit Interne ISO 27001 - Q1" />
                             </div>
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none"
-                                        value={newAudit.type} onChange={e => setNewAudit({ ...newAudit, type: e.target.value as Audit['type'] })}>
+                                        {...auditForm.register('type')}>
                                         {['Interne', 'Externe', 'Certification'].map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Date Prévue</label>
                                     <input type="date" required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-                                        value={newAudit.dateScheduled} onChange={e => setNewAudit({ ...newAudit, dateScheduled: e.target.value })} />
+                                        {...auditForm.register('dateScheduled')} />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-6">
@@ -852,10 +882,10 @@ export const Audits: React.FC = () => {
                                     <div className="h-32 overflow-y-auto custom-scrollbar border border-gray-200 dark:border-white/10 rounded-2xl p-3 bg-gray-50/50 dark:bg-black/20">
                                         {assets.map(a => (
                                             <label key={a.id} className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-white/5 rounded-lg cursor-pointer">
-                                                <input type="checkbox" checked={newAudit.relatedAssetIds?.includes(a.id)} onChange={() => {
-                                                    const current = newAudit.relatedAssetIds || [];
+                                                <input type="checkbox" checked={auditForm.watch('relatedAssetIds')?.includes(a.id)} onChange={() => {
+                                                    const current = auditForm.getValues('relatedAssetIds') || [];
                                                     const updated = current.includes(a.id) ? current.filter(id => id !== a.id) : [...current, a.id];
-                                                    setNewAudit({ ...newAudit, relatedAssetIds: updated });
+                                                    auditForm.setValue('relatedAssetIds', updated);
                                                 }} className="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" />
                                                 <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{a.name}</span>
                                             </label>
@@ -867,10 +897,10 @@ export const Audits: React.FC = () => {
                                     <div className="h-32 overflow-y-auto custom-scrollbar border border-gray-200 dark:border-white/10 rounded-2xl p-3 bg-gray-50/50 dark:bg-black/20">
                                         {risks.map(r => (
                                             <label key={r.id} className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-white/5 rounded-lg cursor-pointer">
-                                                <input type="checkbox" checked={newAudit.relatedRiskIds?.includes(r.id)} onChange={() => {
-                                                    const current = newAudit.relatedRiskIds || [];
+                                                <input type="checkbox" checked={auditForm.watch('relatedRiskIds')?.includes(r.id)} onChange={() => {
+                                                    const current = auditForm.getValues('relatedRiskIds') || [];
                                                     const updated = current.includes(r.id) ? current.filter(id => id !== r.id) : [...current, r.id];
-                                                    setNewAudit({ ...newAudit, relatedRiskIds: updated });
+                                                    auditForm.setValue('relatedRiskIds', updated);
                                                 }} className="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" />
                                                 <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{r.threat}</span>
                                             </label>
@@ -882,8 +912,7 @@ export const Audits: React.FC = () => {
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Auditeur</label>
                                 <select
                                     className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none"
-                                    value={newAudit.auditor}
-                                    onChange={e => setNewAudit({ ...newAudit, auditor: e.target.value })}
+                                    {...auditForm.register('auditor')}
                                 >
                                     <option value="">Sélectionner...</option>
                                     {usersList.map(u => (

@@ -1,0 +1,21 @@
+import { z } from 'zod';
+
+export const documentSchema = z.object({
+    title: z.string().min(1, "Le titre est requis"),
+    type: z.enum(['Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre']),
+    version: z.string().min(1, "La version est requise"),
+    status: z.enum(['Brouillon', 'En revue', 'Approuvé', 'Rejeté', 'Publié', 'Obsolète']),
+    workflowStatus: z.enum(['Draft', 'Review', 'Approved', 'Rejected']).optional(),
+    owner: z.string().optional(),
+    ownerId: z.string().optional(),
+    nextReviewDate: z.string().optional(),
+    readBy: z.array(z.string()).optional(),
+    reviewers: z.array(z.string()).optional(),
+    approvers: z.array(z.string()).optional(),
+    relatedControlIds: z.array(z.string()).optional(),
+    relatedAssetIds: z.array(z.string()).optional(),
+    relatedAuditIds: z.array(z.string()).optional(),
+    url: z.string().optional()
+});
+
+export type DocumentFormData = z.infer<typeof documentSchema>;

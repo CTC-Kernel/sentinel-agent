@@ -1,7 +1,7 @@
 {
     "indexes": [
         {
-            "collectionGroup": "risks",
+            "collectionGroup": "system_logs",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -9,13 +9,13 @@
                     "order": "ASCENDING"
                 },
                 {
-                    "fieldPath": "score",
+                    "fieldPath": "timestamp",
                     "order": "DESCENDING"
                 }
             ]
         },
         {
-            "collectionGroup": "risks",
+            "collectionGroup": "system_logs",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -23,151 +23,7 @@
                     "order": "ASCENDING"
                 },
                 {
-                    "fieldPath": "status",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "score",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "risks",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "assetId",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "assets",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "name",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "assets",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "type",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "assets",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "nextMaintenance",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "controls",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "code",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "controls",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "status",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "audits",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "dateScheduled",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "audits",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "status",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "projects",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "status",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "projects",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "dueDate",
+                    "fieldPath": "resource",
                     "order": "ASCENDING"
                 }
             ]
@@ -183,20 +39,6 @@
                 {
                     "fieldPath": "dateReported",
                     "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "incidents",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "status",
-                    "order": "ASCENDING"
                 }
             ]
         },
@@ -229,6 +71,112 @@
             ]
         },
         {
+            "collectionGroup": "risks",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "assetId",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "projects",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "relatedAssetIds",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "projects",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "relatedRiskIds",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "projects",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "manager",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "audits",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "relatedAssetIds",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "audits",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "auditor",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "business_processes",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "supportingAssetIds",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
             "collectionGroup": "documents",
             "queryScope": "COLLECTION",
             "fields": [
@@ -237,7 +185,7 @@
                     "order": "ASCENDING"
                 },
                 {
-                    "fieldPath": "type",
+                    "fieldPath": "owner",
                     "order": "ASCENDING"
                 }
             ]
@@ -257,94 +205,6 @@
             ]
         },
         {
-            "collectionGroup": "documents",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "nextReviewDate",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "suppliers",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "criticality",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "suppliers",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "contractEnd",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "system_logs",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "timestamp",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "system_logs",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "resource",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "timestamp",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "stats_history",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "date",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
             "collectionGroup": "notifications",
             "queryScope": "COLLECTION",
             "fields": [
@@ -359,7 +219,7 @@
             ]
         },
         {
-            "collectionGroup": "notifications",
+            "collectionGroup": "findings",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -367,90 +227,22 @@
                     "order": "ASCENDING"
                 },
                 {
-                    "fieldPath": "createdAt",
-                    "order": "DESCENDING"
+                    "fieldPath": "auditId",
+                    "order": "ASCENDING"
                 }
             ]
         },
         {
-            "collectionGroup": "notifications",
+            "collectionGroup": "project_milestones",
             "queryScope": "COLLECTION",
             "fields": [
                 {
-                    "fieldPath": "userId",
+                    "fieldPath": "projectId",
                     "order": "ASCENDING"
                 },
-                {
-                    "fieldPath": "read",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "createdAt",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "users",
-            "queryScope": "COLLECTION",
-            "fields": [
                 {
                     "fieldPath": "organizationId",
                     "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "role",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "stats",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "date",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "system_logs",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "resource",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "resourceId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "timestamp",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "stats_history",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "date",
-                    "order": "DESCENDING"
                 }
             ]
         }

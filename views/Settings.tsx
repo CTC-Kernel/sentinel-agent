@@ -16,6 +16,9 @@ import { Organization } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
 import { LegalModal } from '../components/ui/LegalModal';
 import { Scale } from 'lucide-react';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { profileSchema, ProfileFormData, passwordSchema, PasswordFormData, organizationSchema, OrganizationFormData } from '../schemas/settingsSchema';
 
 export const Settings: React.FC = () => {
     const { theme, toggleTheme, user, setUser, addToast } = useStore();
@@ -31,19 +34,30 @@ export const Settings: React.FC = () => {
     const [networkLatency, setNetworkLatency] = useState<string>('...');
 
     // Profile state
-    const [profile, setProfile] = useState({ displayName: '', department: '', role: '' });
     const [savingProfile, setSavingProfile] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Org State
-    const [orgName, setOrgName] = useState('');
     const [savingOrg, setSavingOrg] = useState(false);
 
     // Password State
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [changingPassword, setChangingPassword] = useState(false);
+
+    const profileForm = useForm<ProfileFormData>({
+        resolver: zodResolver(profileSchema),
+        defaultValues: { displayName: '', department: '', role: 'user' }
+    });
+
+    const passwordForm = useForm<PasswordFormData>({
+        resolver: zodResolver(passwordSchema),
+        defaultValues: { newPassword: '', confirmPassword: '' }
+    });
+
+    const orgForm = useForm<OrganizationFormData>({
+        resolver: zodResolver(organizationSchema),
+        defaultValues: { orgName: '' }
+    });
 
     // Maintenance State
     const [maintenanceLoading, setMaintenanceLoading] = useState(false);
@@ -106,12 +120,12 @@ export const Settings: React.FC = () => {
 
     useEffect(() => {
         if (user) {
-            setProfile({
+            profileForm.reset({
                 displayName: user.displayName || '',
                 department: user.department || '',
-                role: user.role || 'user'
+                role: (user.role as any) || 'user'
             });
-            setOrgName(user.organizationName || '');
+            orgForm.reset({ orgName: user.organizationName || '' });
             fetchOrgDetails();
         }
         if (hasPermission(user, 'Settings', 'manage') && user?.organizationId) {
@@ -229,8 +243,7 @@ export const Settings: React.FC = () => {
         }
     };
 
-    const handleUpdateProfile = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleUpdateProfile: SubmitHandler<ProfileFormData> = async (data) => {
         if (!user) return;
         setSavingProfile(true);
         try {
@@ -240,17 +253,17 @@ export const Settings: React.FC = () => {
 
             const userData: UserProfile = {
                 ...user,
-                displayName: profile.displayName,
-                department: profile.department,
-                role: profile.role as UserProfile['role']
+                displayName: data.displayName,
+                department: data.department || '',
+                role: data.role
             };
 
             if (!querySnapshot.empty) {
                 const docId = querySnapshot.docs[0].id;
                 await updateDoc(doc(db, 'users', docId), {
-                    displayName: profile.displayName,
-                    department: profile.department,
-                    role: profile.role
+                    displayName: data.displayName,
+                    department: data.department || '',
+                    role: data.role
                 });
             }
 
@@ -263,8 +276,7 @@ export const Settings: React.FC = () => {
         }
     };
 
-    const handleUpdateOrg = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleUpdateOrg: SubmitHandler<OrganizationFormData> = async (data) => {
         if (!hasPermission(user, 'Settings', 'manage') || !user?.organizationId) return;
         setSavingOrg(true);
         try {
@@ -274,11 +286,11 @@ export const Settings: React.FC = () => {
 
             const batch = writeBatch(db);
             snap.docs.forEach(d => {
-                batch.update(d.ref, { organizationName: orgName });
+                batch.update(d.ref, { organizationName: data.orgName });
             });
             await batch.commit();
 
-            setUser({ ...user, organizationName: orgName });
+            setUser({ ...user, organizationName: data.orgName });
             addToast("Nom de l'organisation mis à jour pour tous les membres", "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Settings.handleUpdateOrg', 'UPDATE_FAILED');
@@ -287,24 +299,14 @@ export const Settings: React.FC = () => {
         }
     };
 
-    const handleChangePassword = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (newPassword !== confirmPassword) {
-            addToast("Les mots de passe ne correspondent pas", "error");
-            return;
-        }
-        if (newPassword.length < 6) {
-            addToast("Le mot de passe doit faire au moins 6 caractères", "error");
-            return;
-        }
+    const handleChangePassword: SubmitHandler<PasswordFormData> = async (data) => {
         setChangingPassword(true);
         const currentUser = auth.currentUser;
         if (currentUser) {
             try {
-                await updatePassword(currentUser, newPassword);
+                await updatePassword(currentUser, data.newPassword);
                 addToast("Mot de passe modifié avec succès", "success");
-                setNewPassword('');
-                setConfirmPassword('');
+                passwordForm.reset();
             } catch (error: any) {
                 if (error.code === 'auth/requires-recent-login') {
                     addToast("Veuillez vous reconnecter pour changer le mot de passe", "error");
@@ -632,16 +634,17 @@ export const Settings: React.FC = () => {
                         </span>
                     </div>
 
-                    <form onSubmit={handleUpdateProfile} className="space-y-5 max-w-sm mx-auto">
+                    <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="space-y-5 max-w-sm mx-auto">
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom d'affichage</label>
-                            <input type="text" required className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
-                                value={profile.displayName} onChange={e => setProfile({ ...profile, displayName: e.target.value })} />
+                            <input type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
+                                {...profileForm.register('displayName')} />
+                            {profileForm.formState.errors.displayName && <p className="text-red-500 text-xs mt-1">{profileForm.formState.errors.displayName.message}</p>}
                         </div>
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Département</label>
                             <input type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
-                                value={profile.department} onChange={e => setProfile({ ...profile, department: e.target.value })} />
+                                {...profileForm.register('department')} />
                         </div>
 
                         <div>
@@ -649,8 +652,7 @@ export const Settings: React.FC = () => {
                             <div className="relative">
                                 <select
                                     className={`w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium appearance-none ${!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                    value={profile.role}
-                                    onChange={e => setProfile({ ...profile, role: e.target.value })}
+                                    {...profileForm.register('role')}
                                     disabled={!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid)}
                                 >
                                     <option value="admin">Administrateur</option>
@@ -683,12 +685,20 @@ export const Settings: React.FC = () => {
                         <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><Key className="h-5 w-5 mr-3 text-indigo-500" />Sécurité</h3>
                         </div>
-                        <form onSubmit={handleChangePassword} className="p-6 space-y-4 flex-1 flex flex-col justify-between">
+                        <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                             <div className="space-y-4">
-                                <input type="password" required className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm dark:text-white" placeholder="Nouveau mot de passe" value={newPassword} onChange={e => setNewPassword(e.target.value)} minLength={6} />
-                                <input type="password" required className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm dark:text-white" placeholder="Confirmer" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} minLength={6} />
+                                <div>
+                                    <input type="password" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm dark:text-white" placeholder="Nouveau mot de passe"
+                                        {...passwordForm.register('newPassword')} />
+                                    {passwordForm.formState.errors.newPassword && <p className="text-red-500 text-xs mt-1">{passwordForm.formState.errors.newPassword.message}</p>}
+                                </div>
+                                <div>
+                                    <input type="password" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm dark:text-white" placeholder="Confirmer"
+                                        {...passwordForm.register('confirmPassword')} />
+                                    {passwordForm.formState.errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{passwordForm.formState.errors.confirmPassword.message}</p>}
+                                </div>
                             </div>
-                            <button type="submit" disabled={changingPassword || !newPassword} className="w-full px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50 text-sm mt-4">
+                            <button type="submit" disabled={changingPassword} className="w-full px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50 text-sm mt-4">
                                 {changingPassword ? '...' : 'Changer mot de passe'}
                             </button>
                         </form>
@@ -741,18 +751,19 @@ export const Settings: React.FC = () => {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Administration</h3>
-                                <p className="text-xs text-slate-500 font-medium">Gestion de l'organisation {orgName}</p>
+                                <p className="text-xs text-slate-500 font-medium">Gestion de l'organisation {orgForm.watch('orgName')}</p>
                             </div>
                         </div>
 
                         <div className="p-8 border-b border-gray-100 dark:border-white/5">
-                            <form onSubmit={handleUpdateOrg} className="flex gap-4 items-end">
+                            <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="flex gap-4 items-end">
                                 <div className="flex-1">
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom de l'organisation</label>
-                                    <input type="text" required className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
-                                        value={orgName} onChange={e => setOrgName(e.target.value)} />
+                                    <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
+                                        {...orgForm.register('orgName')} />
+                                    {orgForm.formState.errors.orgName && <p className="text-red-500 text-xs mt-1">{orgForm.formState.errors.orgName.message}</p>}
                                 </div>
-                                <button type="submit" disabled={savingOrg || !orgName} className="px-6 py-3 bg-brand-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50 mb-[1px]">
+                                <button type="submit" disabled={savingOrg} className="px-6 py-3 bg-brand-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50 mb-[1px]">
                                     {savingOrg ? '...' : 'Renommer'}
                                 </button>
                             </form>
@@ -787,7 +798,7 @@ export const Settings: React.FC = () => {
                                     <Building className="h-4 w-4 text-blue-500" />
                                     <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Organisation</span>
                                 </div>
-                                <span className="text-xs font-mono text-slate-900 dark:text-white">{orgName}</span>
+                                <span className="text-xs font-mono text-slate-900 dark:text-white">{orgForm.watch('orgName')}</span>
                             </div>
                         </div>
                     </div>

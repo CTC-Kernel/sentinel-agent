@@ -114,7 +114,9 @@ import {
   Home,
   UserPlus,
   Move,
-  MonitorPlay
+  MonitorPlay,
+  HardDrive,
+  RotateCcw
 } from 'lucide-react';
 
 export {
@@ -232,5 +234,7 @@ export {
   Home,
   UserPlus,
   Move,
-  MonitorPlay
+  MonitorPlay,
+  HardDrive,
+  RotateCcw
 };
