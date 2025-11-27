@@ -22,7 +22,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination, usePagination } from '../components/ui/Pagination';
 import { LifecycleTimeline } from '../components/assets/LifecycleTimeline';
 import { SubscriptionService } from '../services/subscriptionService';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Drawer } from '../components/ui/Drawer';
 import { ErrorLogger } from '../services/errorLogger';
@@ -31,6 +31,7 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
 export const Assets: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [assets, setAssets] = useState<Asset[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
@@ -136,6 +137,16 @@ export const Assets: React.FC = () => {
     };
 
     useEffect(() => { fetchAssets(); }, [user?.organizationId]);
+
+    useEffect(() => {
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loading || assets.length === 0) return;
+        const asset = assets.find(a => a.id === state.voxelSelectedId);
+        if (asset) {
+            openInspector(asset);
+        }
+    }, [location.state, loading, assets]);
 
     const openInspector = async (asset?: Asset) => {
         if (!asset) {
