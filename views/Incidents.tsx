@@ -15,6 +15,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Siren, CalendarDays, Plus } from '../components/ui/Icons';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { useLocation } from 'react-router-dom';
 
 const PLAYBOOKS: Record<string, string[]> = {
     'Ransomware': ['Déconnecter la machine', 'Ne PAS éteindre', 'Photo de la rançon', 'Vérifier backups', 'Identifier malware', 'Isoler partages', 'Déclarer CNIL', 'Restaurer'],
@@ -27,6 +28,7 @@ const PLAYBOOKS: Record<string, string[]> = {
 
 export const Incidents: React.FC = () => {
     const { user, addToast } = useStore(); // addToast destructured from useStore
+    const location = useLocation();
     const [incidents, setIncidents] = useState<Incident[]>([]);
     const [assets, setAssets] = useState<Asset[]>([]);
     const [risks, setRisks] = useState<Risk[]>([]);
@@ -83,6 +85,16 @@ export const Incidents: React.FC = () => {
     };
 
     useEffect(() => { fetchData(); }, [user?.organizationId]);
+
+    useEffect(() => {
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loading || incidents.length === 0) return;
+        const incident = incidents.find(i => i.id === state.voxelSelectedId);
+        if (incident) {
+            setSelectedIncident(incident);
+        }
+    }, [location.state, loading, incidents]);
 
     const openModal = (incident?: Incident) => {
         if (incident) { setNewIncident(incident); setCurrentIncidentId(incident.id); setIsEditing(true); }

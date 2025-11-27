@@ -177,7 +177,8 @@
     pointer-events: none;
     transition: opacity 0.3s ease;
     border: 1px solid #e2e8f0;
-    z-index: 50;
+    z-index: 10001;
+    /* High z-index to show above modals */
 }
 
 .dark .popup-wrapper {

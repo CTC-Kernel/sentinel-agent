@@ -112,7 +112,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Overall Health */}
                     <CustomTooltip content="Score calculé sur l'avancement, les délais et les risques" position="top" className="w-full">
-                        <div className={`p-4 rounded-xl ${getHealthColor(projectHealth.status)}`}>
+                        <div className={`p-4 rounded-xl ${getHealthColor(projectHealth.status)} hover:shadow-md transition-shadow cursor-default`}>
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm font-bold uppercase tracking-wider">Score Global</span>
                                 {projectHealth.status === 'good' ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
@@ -126,7 +126,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
 
                     {/* Progress */}
                     <CustomTooltip content={`Progression attendue: ${Math.round(projectHealth.expectedProgress)}%`} position="top" className="w-full">
-                        <div className="p-4 rounded-xl bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400">
+                        <div className="p-4 rounded-xl bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:shadow-md transition-shadow cursor-default">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm font-bold uppercase tracking-wider">Progression</span>
                                 {projectHealth.onSchedule ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
@@ -140,7 +140,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
 
                     {/* Milestones */}
                     <CustomTooltip content={`${milestones.filter(m => m.status === 'achieved').length} jalons atteints sur ${milestones.length}`} position="top" className="w-full">
-                        <div className="p-4 rounded-xl bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400">
+                        <div className="p-4 rounded-xl bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 hover:shadow-md transition-shadow cursor-default">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm font-bold uppercase tracking-wider">Jalons</span>
                                 <Target className="h-5 w-5" />
@@ -154,7 +154,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
 
                     {/* Risks */}
                     <CustomTooltip content={`${relatedRisks.filter(r => r.score >= 15).length} risques critiques identifiés`} position="top" className="w-full">
-                        <div className="p-4 rounded-xl bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400">
+                        <div className="p-4 rounded-xl bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 hover:shadow-md transition-shadow cursor-default">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm font-bold uppercase tracking-wider">Risques</span>
                                 <AlertTriangle className="h-5 w-5" />
@@ -195,6 +195,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                     verticalAlign="bottom"
                                     height={36}
                                     iconType="circle"
+                                    wrapperStyle={{ paddingTop: '20px' }}
                                     formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
                                 />
                             </PieChart>

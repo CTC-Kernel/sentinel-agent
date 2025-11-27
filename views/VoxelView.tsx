@@ -409,7 +409,13 @@ export const VoxelView: React.FC = () => {
     const route = detailRoutes[selectedNode.type];
     if (route) {
       addToast(`Navigation vers ${selectedNodeDetails?.title}`, 'info');
-      navigate(route);
+      navigate(route, {
+        state: {
+          fromVoxel: true,
+          voxelSelectedId: selectedNode.id,
+          voxelSelectedType: selectedNode.type,
+        },
+      });
     }
   };
 

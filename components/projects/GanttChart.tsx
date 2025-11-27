@@ -36,6 +36,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         if (!dateStr) return null;
 
         let date: Date;
+        // Handle various formats
         if (dateStr.includes('/')) {
             // Handle dd/mm/yyyy
             const parts = dateStr.split('/');
@@ -45,11 +46,16 @@ export const GanttChart: React.FC<GanttChartProps> = ({
                 return null;
             }
         } else {
-            // Handle ISO string
+            // Handle ISO string or other formats
             date = new Date(dateStr);
         }
 
-        return Number.isNaN(date.getTime()) ? null : date;
+        // Check validity
+        if (Number.isNaN(date.getTime())) {
+            console.warn(`Invalid date encountered: ${dateStr}`);
+            return null;
+        }
+        return date;
     };
 
     useEffect(() => {
@@ -178,6 +184,10 @@ export const GanttChart: React.FC<GanttChartProps> = ({
                 ganttRef.current.innerHTML = '';
             }
             ganttInstance.current = null;
+
+            // Remove any lingering popups that might be attached to body
+            const popups = document.querySelectorAll('.gantt-popup-wrapper');
+            popups.forEach(p => p.remove());
         };
     }, [tasks, viewMode]);
 
