@@ -36,9 +36,9 @@ class ErrorLoggerService {
     // En production : envoyer à Sentry (si configuré)
     if (this.isProduction && typeof window !== 'undefined') {
       try {
-        // @ts-ignore - Sentry sera ajouté plus tard
+        // @ts-expect-error - Sentry will be added later
         if (window.Sentry) {
-          // @ts-ignore
+          // @ts-expect-error - Sentry type not defined on window
           window.Sentry.captureException(error, {
             tags: {
               context,
@@ -106,7 +106,7 @@ class ErrorLoggerService {
 
   handleErrorWithToast(error: Error | unknown, context: string, defaultMessageKey: ErrorMessageKey = 'UNKNOWN_ERROR'): ErrorMessageKey {
     let messageKey: ErrorMessageKey = defaultMessageKey;
-    const anyError = error as any;
+    const anyError = error as { code?: unknown };
     const code = typeof anyError?.code === 'string' ? anyError.code : undefined;
     const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -135,6 +135,7 @@ class ErrorLoggerService {
         addToast(ERROR_MESSAGES[messageKey], 'error');
       }
     } catch (_e) {
+      // Ignore toast errors if store is not ready
     }
 
     this.error(error, context, {

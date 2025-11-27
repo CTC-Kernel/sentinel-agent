@@ -26,10 +26,10 @@ if (typeof window !== 'undefined') {
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
   if (import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN && isLocal) {
-    // @ts-ignore
+    // @ts-expect-error - FIREBASE_APPCHECK_DEBUG_TOKEN is not defined on self
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN;
   } else if (import.meta.env.DEV) {
-    // @ts-ignore
+    // @ts-expect-error - FIREBASE_APPCHECK_DEBUG_TOKEN is not defined on self
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
   }
 
