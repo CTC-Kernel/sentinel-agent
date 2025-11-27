@@ -1,284 +1,155 @@
-import React, { useEffect, useRef } from 'react';
-import Gantt from 'frappe-gantt';
+import React, { useMemo } from 'react';
+import { Gantt, Task, ViewMode } from 'gantt-task-react';
+import "gantt-task-react/dist/index.css";
 import { ProjectTask } from '../../types';
-import { ErrorLogger } from '../../services/errorLogger';
-import './gantt.css';
 
 interface GanttChartProps {
     tasks: ProjectTask[];
-    onTaskUpdate?: (task: ProjectTask, startDate: Date, endDate: Date) => void;
-    viewMode?: 'Quarter Day' | 'Half Day' | 'Day' | 'Week' | 'Month';
+    viewMode: 'Day' | 'Week' | 'Month';
+    onTaskUpdate?: (task: ProjectTask, start: Date, end: Date) => void;
+    onTaskClick?: (task: ProjectTask) => void;
 }
 
-interface GanttTask {
-    id: string;
-    name: string;
-    start: string;
-    end: string;
-    progress: number;
-    dependencies?: string;
-    custom_class?: string;
-}
+export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onTaskUpdate, onTaskClick }) => {
+    // Map internal view mode to library ViewMode
+    const libraryViewMode = useMemo(() => {
+        switch (viewMode) {
+            case 'Day': return ViewMode.Day;
+            case 'Week': return ViewMode.Week;
+            case 'Month': return ViewMode.Month;
+            default: return ViewMode.Day;
+        }
+    }, [viewMode]);
 
-export const GanttChart: React.FC<GanttChartProps> = ({
-    tasks,
-    onTaskUpdate,
-    viewMode = 'Day'
-}) => {
-    const ganttRef = useRef<HTMLDivElement>(null);
-    const ganttInstance = useRef<any>(null);
+    const ganttTasks: Task[] = useMemo(() => {
+        return tasks
+            .filter(t => t.dueDate) // Ensure task has a date
+            .map(task => {
+                const endDate = new Date(task.dueDate!);
+                let startDate = task.startDate ? new Date(task.startDate) : new Date(endDate);
 
-    const scheduledTasks = tasks.filter(task => !!task.dueDate);
-    const scheduledCount = scheduledTasks.length;
-    const unscheduledCount = tasks.length - scheduledCount;
+                // Default start date logic if missing
+                if (!task.startDate) {
+                    startDate.setDate(endDate.getDate() - 7);
+                }
 
-    // Helper to parse dates safely
-    const parseDate = (dateStr: string): Date | null => {
-        if (!dateStr) return null;
+                // Ensure start < end
+                if (startDate >= endDate) {
+                    startDate = new Date(endDate);
+                    startDate.setDate(endDate.getDate() - 1);
+                }
 
-        let date: Date;
-        // Handle various formats
-        if (dateStr.includes('/')) {
-            // Handle dd/mm/yyyy
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-                date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-            } else {
-                return null;
+                return {
+                    start: startDate,
+                    end: endDate,
+                    name: task.title || 'Sans titre',
+                    id: task.id,
+                    type: 'task',
+                    progress: Math.max(0, Math.min(100, task.progress || 0)),
+                    isDisabled: false,
+                    styles: {
+                        progressColor: task.status === 'Terminé' ? '#10b981' : '#3b82f6',
+                        progressSelectedColor: task.status === 'Terminé' ? '#059669' : '#2563eb',
+                    },
+                };
+            });
+    }, [tasks]);
+
+    const handleTaskChange = (task: Task) => {
+        if (onTaskUpdate) {
+            const originalTask = tasks.find(t => t.id === task.id);
+            if (originalTask) {
+                onTaskUpdate(originalTask, task.start, task.end);
             }
-        } else {
-            // Handle ISO string or other formats
-            date = new Date(dateStr);
         }
-
-        // Check validity
-        if (Number.isNaN(date.getTime())) {
-            console.warn(`Invalid date encountered: ${dateStr}`);
-            return null;
-        }
-        return date;
     };
 
-    useEffect(() => {
-        if (!ganttRef.current) return;
-
-        // Clear previous instance
-        ganttRef.current.innerHTML = '';
-        ganttInstance.current = null;
-
-        if (scheduledTasks.length === 0) {
-            return;
+    const handleTaskClick = (task: Task) => {
+        const originalTask = tasks.find(t => t.id === task.id);
+        if (originalTask && onTaskClick) {
+            onTaskClick(originalTask);
         }
+    };
 
-        const validTaskIds = new Set(scheduledTasks.map(t => t.id));
-
-        const ganttTasks: GanttTask[] = scheduledTasks.reduce((acc: GanttTask[], task) => {
-            if (!task.dueDate) return acc;
-
-            // Determine dates
-            const endDate = parseDate(task.dueDate) || new Date();
-            let startDate = task.startDate ? parseDate(task.startDate) : null;
-
-            if (!startDate) {
-                // Fallback: end date - 7 days
-                startDate = new Date(endDate);
-                startDate.setDate(endDate.getDate() - 7);
-            }
-
-            // Ensure start date is before end date
-            if (startDate >= endDate) {
-                startDate = new Date(endDate);
-                startDate.setDate(endDate.getDate() - 1);
-            }
-
-            // Double check to ensure we don't have same day start/end which might cause 0 width bars
-            if (startDate.getTime() === endDate.getTime()) {
-                startDate.setDate(startDate.getDate() - 1);
-            }
-
-            let customClass = '';
-            switch (task.status) {
-                case 'Terminé':
-                    customClass = 'bar-completed';
-                    break;
-                case 'En cours':
-                    customClass = 'bar-in-progress';
-                    break;
-                case 'Bloqué':
-                    customClass = 'bar-blocked';
-                    break;
-                default:
-                    customClass = 'bar-pending';
-            }
-
-            // Sanitize ID for DOM selector safety
-            const safeId = `gantt-${task.id.replace(/[^a-zA-Z0-9-_]/g, '_')}`;
-
-            // Filter dependencies to only include those that are in the current view AND are not self-referencing
-            const validDependencies = task.dependencies
-                ?.filter(depId => validTaskIds.has(depId) && depId !== task.id)
-                .map(d => `gantt-${d.replace(/[^a-zA-Z0-9-_]/g, '_')}`)
-                .join(',') || '';
-
-            acc.push({
-                id: safeId,
-                name: task.title || task.description || 'Sans titre',
-                start: startDate.toISOString().split('T')[0],
-                end: endDate.toISOString().split('T')[0],
-                progress: task.progress ?? 0,
-                custom_class: customClass,
-                dependencies: validDependencies
-            });
-
-            return acc;
-        }, []);
-
-        if (ganttTasks.length === 0) return;
-
-        // Create Gantt instance with a slight delay to ensure DOM is ready
-        const timer = setTimeout(() => {
-            if (!ganttRef.current) return;
-
-            // Check if container has dimensions
-            if (ganttRef.current.clientWidth === 0) {
-                console.warn('Gantt container has 0 width, skipping render');
-                return;
-            }
-
-            try {
-                // Ensure the container is empty before rendering
-                ganttRef.current.innerHTML = '';
-
-                ganttInstance.current = new Gantt(ganttRef.current, ganttTasks, {
-                    view_mode: viewMode,
-                    bar_height: 30,
-                    bar_corner_radius: 6,
-                    arrow_curve: 5,
-                    padding: 18,
-                    view_modes: ['Day', 'Week', 'Month'],
-                    date_format: 'YYYY-MM-DD',
-                    language: 'fr',
-                    custom_popup_html: (task: any) => {
-                        const originalTask = tasks.find(t => `gantt-${t.id.replace(/[^a-zA-Z0-9-_]/g, '_')}` === task.id);
-                        if (!originalTask) return '';
-
-                        return `
-                            <div class="gantt-popup-wrapper">
-                                <div class="gantt-popup-title">${task.name}</div>
-                                <div class="gantt-popup-subtitle">
-                                    ${originalTask.assignee || 'Non assigné'} • ${task.progress}%
-                                </div>
-                                <div class="gantt-popup-dates">
-                                    ${task._start.toLocaleDateString('fr-FR')} → ${task._end.toLocaleDateString('fr-FR')}
-                                </div>
-                            </div>
-                        `;
-                    },
-                    on_click: (task: any) => {
-                        console.log('Task clicked:', task);
-                    },
-                    on_date_change: (task: any, startDate: Date, endDate: Date) => {
-                        const originalTask = tasks.find(t => `gantt-${t.id.replace(/[^a-zA-Z0-9-_]/g, '_')}` === task.id);
-                        if (originalTask && onTaskUpdate) {
-                            onTaskUpdate(originalTask, startDate, endDate);
-                        }
-                    },
-                    on_progress_change: (task: any, progress: number) => {
-                        console.log('Progress changed:', task.name, progress);
-                    },
-                    on_view_change: (_mode: any) => {
-                        console.log('View mode changed:', _mode);
-                    }
-                } as any);
-            } catch (error) {
-                ErrorLogger.error(error, 'GanttChart.createInstance');
-                if (ganttRef.current) {
-                    ganttRef.current.innerHTML = '<div class="text-red-500 p-4 text-sm">Erreur d\'affichage du diagramme. Veuillez rafraîchir la page.</div>';
-                }
-            }
-        }, 100);
-
-        return () => {
-            clearTimeout(timer);
-            if (ganttRef.current) {
-                ganttRef.current.innerHTML = '';
-            }
-            ganttInstance.current = null;
-            const popups = document.querySelectorAll('.gantt-popup-wrapper');
-            popups.forEach(p => p.remove());
-        };
-    }, [tasks, viewMode]);
-
-    if (tasks.length === 0) {
+    if (ganttTasks.length === 0) {
         return (
-            <div className="flex items-center justify-center h-96 text-slate-400 text-sm">
-                <div className="text-center max-w-md">
-                    <div className="text-6xl mb-4">📊</div>
-                    <p className="font-semibold text-lg text-slate-600 dark:text-slate-300 mb-2">Aucune tâche dans ce projet</p>
-                    <p className="text-xs mb-4">Le diagramme de Gantt s'affichera une fois que vous aurez ajouté des tâches au projet.</p>
-                    <div className="text-left bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-xs">
-                        <p className="font-semibold mb-2">💡 Pour ajouter des tâches :</p>
-                        <ol className="space-y-1 list-decimal list-inside text-slate-500 dark:text-slate-400">
-                            <li>Cliquez sur l'onglet "Tâches"</li>
-                            <li>Utilisez le bouton "+" pour créer des tâches</li>
-                            <li>Définissez une date d'échéance pour chaque tâche</li>
-                            <li>Revenez sur l'onglet "Gantt" pour voir la timeline</li>
-                        </ol>
+            <div className="flex flex-col items-center justify-center h-[500px] bg-slate-50/50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-400">
+                <div className="w-16 h-16 mb-4 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center">
+                    <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <p className="font-medium text-slate-600 dark:text-slate-300">Aucune tâche planifiée</p>
+                <p className="text-sm text-slate-500 mt-1">Ajoutez des tâches avec des dates pour voir le diagramme</p>
+            </div>
+        );
+    }
+
+    const CustomTooltip = ({ task }: { task: Task }) => {
+        const startDate = task.start;
+        const endDate = task.end;
+
+        return (
+            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-4 min-w-[260px] transform transition-all duration-200">
+                <div className="flex items-center justify-between mb-2">
+                    <div className="font-bold text-slate-800 dark:text-slate-100 text-sm truncate pr-4">
+                        {task.name}
+                    </div>
+                    <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${task.progress === 100
+                        ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
+                        : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
+                        }`}>
+                        {task.progress}%
+                    </div>
+                </div>
+
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mb-4 overflow-hidden">
+                    <div
+                        className={`h-full rounded-full transition-all duration-500 ${task.progress === 100 ? 'bg-green-500' : 'bg-blue-500'
+                            }`}
+                        style={{ width: `${task.progress}%` }}
+                    />
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-slate-800/50">
+                    <div className="flex flex-col">
+                        <span className="text-[9px] uppercase tracking-wider text-slate-400 mb-0.5">Début</span>
+                        <span>{startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                    </div>
+                    <div className="text-slate-300 dark:text-slate-700">→</div>
+                    <div className="flex flex-col items-end">
+                        <span className="text-[9px] uppercase tracking-wider text-slate-400 mb-0.5">Fin</span>
+                        <span>{endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                     </div>
                 </div>
             </div>
         );
-    }
-
-    if (scheduledCount === 0) {
-        return (
-            <div className="flex items-center justify-center h-96 text-slate-400 text-sm">
-                <div className="text-center max-w-md">
-                    <div className="text-6xl mb-4">📅</div>
-                    <p className="font-semibold text-lg text-slate-600 dark:text-slate-300 mb-2">Aucune tâche planifiée</p>
-                    <p className="text-xs mb-4">Aucune tâche de ce projet n'a de date d'échéance. Ajoutez des échéances dans l'onglet Tâches pour afficher le diagramme de Gantt.</p>
-                </div>
-            </div>
-        );
-    }
+    };
 
     return (
-        <div className="gantt-container bg-white dark:bg-slate-900/50 rounded-2xl p-6 border border-gray-200 dark:border-white/10">
-            {unscheduledCount > 0 && (
-                <div className="flex items-center justify-between mb-4 text-[11px] text-slate-500 dark:text-slate-400">
-                    <div>
-                        <span className="font-semibold">{scheduledCount}</span> tâche(s) planifiée(s)
-                        {unscheduledCount > 0 && (
-                            <>
-                                {' '}•{' '}
-                                <span className="font-semibold">{unscheduledCount}</span> sans échéance
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
-            <div ref={ganttRef} className="gantt-chart"></div>
-
-            {/* Legend */}
-            <div className="flex gap-4 mt-4 text-xs font-medium">
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded bg-green-500"></div>
-                    <span className="text-slate-600 dark:text-slate-400">Terminé</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded bg-blue-500"></div>
-                    <span className="text-slate-600 dark:text-slate-400">En cours</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded bg-red-500"></div>
-                    <span className="text-slate-600 dark:text-slate-400">Bloqué</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded bg-gray-400"></div>
-                    <span className="text-slate-600 dark:text-slate-400">À faire</span>
-                </div>
-            </div>
+        <div className="w-full h-[600px] overflow-hidden bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm ring-1 ring-slate-900/5">
+            <Gantt
+                tasks={ganttTasks}
+                viewMode={libraryViewMode}
+                onDateChange={handleTaskChange}
+                onProgressChange={handleTaskChange}
+                onDoubleClick={handleTaskClick}
+                listCellWidth="160px"
+                columnWidth={65}
+                rowHeight={50}
+                barFill={70}
+                barCornerRadius={6}
+                barProgressColor="rgba(255,255,255,0.3)"
+                barProgressSelectedColor="rgba(255,255,255,0.5)"
+                ganttHeight={600}
+                locale="fr"
+                TooltipContent={CustomTooltip}
+                fontFamily="inherit"
+                fontSize="12px"
+                arrowColor="#cbd5e1"
+                arrowIndent={20}
+                todayColor="rgba(59, 130, 246, 0.1)"
+            />
         </div>
     );
 };
-
