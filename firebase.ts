@@ -9,13 +9,13 @@ import { getFunctions } from 'firebase/functions';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
 const firebaseConfig = {
-  apiKey: "***REDACTED***",
-  authDomain: "sentinel-grc-a8701.firebaseapp.com",
-  projectId: "sentinel-grc-a8701",
-  storageBucket: "sentinel-grc-a8701.firebasestorage.app",
-  messagingSenderId: "728667422032",
-  appId: "1:728667422032:web:f7bb344574e49320a1c055",
-  measurementId: "G-2MLLGDZ6GP"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
@@ -52,7 +52,6 @@ export const auth = getAuth(app);
 
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
 export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true, // Force long polling to bypass WebChannel/proxy issues
   localCache: persistentLocalCache({
     tabManager: persistentSingleTabManager({
       forceOwnership: false

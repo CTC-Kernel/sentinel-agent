@@ -1,11 +1,12 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile } from '../types';
 import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, X, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload } from '../components/ui/Icons';
 import { useStore } from '../store';
+import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -20,10 +21,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { supplierSchema, SupplierFormData } from '../schemas/supplierSchema';
 
 export const Suppliers: React.FC = () => {
-    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
-    const [documents, setDocuments] = useState<Document[]>([]);
-    const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('');
     const { user, addToast } = useStore();
     const location = useLocation();
@@ -46,7 +43,6 @@ export const Suppliers: React.FC = () => {
     // Inspector State
     const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'incidents' | 'history' | 'comments'>('profile');
     const [supplierHistory, setSupplierHistory] = useState<SystemLog[]>([]);
-    const [stats, setStats] = useState({ total: 0, critical: 0, avgScore: 0, expired: 0, highRisk: 0, activeIncidents: 0 });
 
     const editForm = useForm<SupplierFormData>({
         resolver: zodResolver(supplierSchema),
@@ -77,21 +73,53 @@ export const Suppliers: React.FC = () => {
         }
     }, [selectedSupplier, editForm]);
 
-    const fetchData = async () => {
-        if (!user?.organizationId) return;
-        try {
-            const q = query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId));
-            const querySnapshot = await getDocs(q);
-            const suppliersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Supplier));
-            setSuppliers(suppliersData);
-        } catch (error) {
-            console.error("Error fetching suppliers: ", error);
-        }
-    };
+    const { data: suppliersRaw, loading: loadingSuppliers } = useFirestoreCollection<Supplier>(
+        'suppliers',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
 
-    useEffect(() => {
-        fetchData();
-    }, [user?.organizationId]);
+    const { data: usersRaw } = useFirestoreCollection<UserProfile>(
+        'users',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: documentsRaw } = useFirestoreCollection<Document>(
+        'documents',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: incidentsRaw } = useFirestoreCollection<SupplierIncident>(
+        'supplierIncidents',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    // Derived State
+    const suppliers = React.useMemo(() => {
+        const resolved = suppliersRaw.map(s => {
+            if (!s.ownerId && s.owner) {
+                const ownerUser = usersRaw.find(u => u.displayName === s.owner);
+                if (ownerUser) return { ...s, ownerId: ownerUser.uid };
+            }
+            return s;
+        });
+        return resolved.sort((a, b) => a.name.localeCompare(b.name));
+    }, [suppliersRaw, usersRaw]);
+
+    const stats = React.useMemo(() => {
+        const total = suppliers.length;
+        const critical = suppliers.filter(s => s.criticality === Criticality.CRITICAL || s.criticality === Criticality.HIGH).length;
+        const avgScore = total > 0 ? Math.round(suppliers.reduce((acc, s) => acc + (s.securityScore || 0), 0) / total) : 0;
+        const today = new Date();
+        const expired = suppliers.filter(s => s.contractEnd && new Date(s.contractEnd) < today).length;
+        const highRisk = suppliers.filter(s => s.criticality === Criticality.HIGH || s.criticality === Criticality.CRITICAL).length;
+        const activeIncidents = incidentsRaw.filter(i => i.status === 'Open' || i.status === 'Investigating').length;
+
+        return { total, critical, avgScore, expired, highRisk, activeIncidents };
+    }, [suppliers, incidentsRaw]);
 
     // Import
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,80 +129,17 @@ export const Suppliers: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    const fetchSuppliers = async () => {
-        if (!user?.organizationId) {
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        try {
-            // Use Promise.allSettled for robustness
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'supplierAssessments'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'supplierIncidents'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
-            ]);
-
-            const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
-                if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() })) as unknown as T[];
-                }
-                return [];
-            };
-
-            const userData = getDocsData<UserProfile>(results[4]);
-            setUsersList(userData);
-
-            const data = getDocsData<Supplier>(results[0]);
-            // Resolve ownerId for legacy data
-            const resolvedData = data.map(s => {
-                if (!s.ownerId && s.owner) {
-                    const ownerUser = userData.find(u => u.displayName === s.owner);
-                    if (ownerUser) return { ...s, ownerId: ownerUser.uid };
-                }
-                return s;
-            });
-            resolvedData.sort((a, b) => a.name.localeCompare(b.name));
-            setSuppliers(resolvedData);
-
-            const docData = getDocsData<Document>(results[1]);
-            setDocuments(docData);
-
-            const incidentData = getDocsData<SupplierIncident>(results[3]);
-
-            // Calculate Stats
-            // Calculate Stats
-            const total = data.length;
-            const critical = data.filter(s => s.criticality === Criticality.CRITICAL || s.criticality === Criticality.HIGH).length;
-            const avgScore = total > 0 ? Math.round(data.reduce((acc, s) => acc + (s.securityScore || 0), 0) / total) : 0;
-            const today = new Date();
-            const expired = data.filter(s => s.contractEnd && new Date(s.contractEnd) < today).length;
-            const highRisk = data.filter(s => s.criticality === Criticality.HIGH || s.criticality === Criticality.CRITICAL).length;
-            const activeIncidents = incidentData.filter(i => i.status === 'Open' || i.status === 'Investigating').length;
-
-            setStats({ total, critical, avgScore, expired, highRisk, activeIncidents });
-
-        } catch (err) {
-            ErrorLogger.handleErrorWithToast(err, 'Suppliers.fetchSuppliers', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => { fetchSuppliers(); }, [user?.organizationId]);
-
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;
-        if (loading || suppliers.length === 0) return;
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loadingSuppliers || suppliers.length === 0) return;
         const supplier = suppliers.find(s => s.id === state.voxelSelectedId);
         if (supplier) {
             setSelectedSupplier(supplier);
             setInspectorTab('profile');
         }
-    }, [location.state, loading, suppliers]);
+    }, [location.state, loadingSuppliers, suppliers]);
 
     // ... (Rest of the file logic unchanged)
 
@@ -230,7 +195,6 @@ export const Suppliers: React.FC = () => {
             await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${data.name}`);
             addToast("Fournisseur ajouté", "success");
             setShowCreateModal(false);
-            fetchSuppliers();
         } catch (e) { addToast("Erreur enregistrement", "error"); }
     };
 
@@ -242,11 +206,9 @@ export const Suppliers: React.FC = () => {
                 updatedAt: new Date().toISOString()
             });
             await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${data.name}`);
-            setSuppliers(prev => prev.map(s => s.id === selectedSupplier.id ? { ...s, ...data, criticality: data.criticality as Criticality } : s));
             setSelectedSupplier({ ...selectedSupplier, ...data, criticality: data.criticality as Criticality });
             setIsEditing(false);
             addToast("Fournisseur mis à jour", "success");
-            fetchSuppliers(); // Refresh stats
         } catch (_e) { addToast("Erreur mise à jour", "error"); }
     };
 
@@ -277,10 +239,8 @@ export const Suppliers: React.FC = () => {
             // 3. Delete the supplier itself
             await Promise.all([...deleteAssessments, ...deleteIncidents, deleteDoc(doc(db, 'suppliers', id))]);
 
-            setSuppliers(prev => prev.filter(s => s.id !== id));
             addToast('Fournisseur et données associées supprimés', 'success');
             if (selectedSupplier?.id === id) setSelectedSupplier(null);
-            fetchSuppliers(); // Refresh stats and clear related data
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleDelete');
             addToast('Erreur lors de la suppression', 'error');
@@ -334,7 +294,9 @@ export const Suppliers: React.FC = () => {
             const lines = text.split('\n').slice(1).filter(line => line.trim() !== '');
             if (lines.length === 0) { addToast("Fichier vide", "error"); return; }
 
-            setLoading(true);
+            if (lines.length === 0) { addToast("Fichier vide", "error"); return; }
+
+            addToast("Import en cours...", "info");
             try {
                 const batch = writeBatch(db);
                 let count = 0;
@@ -365,8 +327,9 @@ export const Suppliers: React.FC = () => {
                 await batch.commit();
                 await logAction(user, 'IMPORT', 'Supplier', `Import CSV de ${count} fournisseurs`);
                 addToast(`${count} fournisseurs importés`, "success");
-                fetchSuppliers();
-            } catch (_error) { addToast("Erreur import CSV", "error"); } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+                await logAction(user, 'IMPORT', 'Supplier', `Import CSV de ${count} fournisseurs`);
+                addToast(`${count} fournisseurs importés`, "success");
+            } catch (_error) { addToast("Erreur import CSV", "error"); } finally { if (fileInputRef.current) fileInputRef.current.value = ''; }
         };
         reader.readAsText(file);
     };
@@ -470,7 +433,7 @@ export const Suppliers: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {loading ? (
+                {loadingSuppliers ? (
                     <div className="col-span-full"><CardSkeleton count={3} /></div>
                 ) : filteredSuppliers.length === 0 ? (
                     <div className="col-span-full">
@@ -484,7 +447,7 @@ export const Suppliers: React.FC = () => {
                     </div>
                 ) : (
                     filteredSuppliers.map(supplier => {
-                        const linkedDoc = documents.find(d => d.id === supplier.contractDocumentId);
+                        const linkedDoc = documentsRaw.find(d => d.id === supplier.contractDocumentId);
                         const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
 
                         return (
@@ -599,11 +562,11 @@ export const Suppliers: React.FC = () => {
                                                             {...editForm.register('ownerId')}
                                                             onChange={e => {
                                                                 editForm.setValue('ownerId', e.target.value);
-                                                                const selectedUser = usersList.find(u => u.uid === e.target.value);
+                                                                const selectedUser = usersRaw.find(u => u.uid === e.target.value);
                                                                 editForm.setValue('owner', selectedUser?.displayName || '');
                                                             }}>
                                                             <option value="">Sélectionner...</option>
-                                                            {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
+                                                            {usersRaw.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                                         </select>
                                                     </div>
                                                     <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={2} {...editForm.register('description')} /></div>
@@ -628,7 +591,7 @@ export const Suppliers: React.FC = () => {
                                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contrat (Document)</label>
                                                             <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('contractDocumentId')}>
                                                                 <option value="">Sélectionner...</option>
-                                                                {documents.map(d => <option key={d.id} value={d.id}>{d.title}</option>)}
+                                                                {documentsRaw.map(d => <option key={d.id} value={d.id}>{d.title}</option>)}
                                                             </select>
                                                         </div>
                                                         <div>
@@ -666,8 +629,8 @@ export const Suppliers: React.FC = () => {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        {documents.find(d => d.id === selectedSupplier.contractDocumentId) ? (
-                                                            <a href={documents.find(d => d.id === selectedSupplier.contractDocumentId)?.url} target="_blank" rel="noreferrer" className="text-xs font-bold bg-white dark:bg-slate-800 px-4 py-3 rounded-xl shadow-sm hover:text-brand-600 flex items-center justify-center transition-all w-full border border-blue-200 dark:border-blue-900/30">
+                                                        {documentsRaw.find(d => d.id === selectedSupplier.contractDocumentId) ? (
+                                                            <a href={documentsRaw.find(d => d.id === selectedSupplier.contractDocumentId)?.url} target="_blank" rel="noreferrer" className="text-xs font-bold bg-white dark:bg-slate-800 px-4 py-3 rounded-xl shadow-sm hover:text-brand-600 flex items-center justify-center transition-all w-full border border-blue-200 dark:border-blue-900/30">
                                                                 <Link className="h-3 w-3 mr-2" /> Ouvrir le contrat
                                                             </a>
                                                         ) : <span className="text-xs text-blue-400 font-medium italic text-center block">Aucun document lié</span>}
@@ -774,11 +737,11 @@ export const Suppliers: React.FC = () => {
                                     {...createForm.register('ownerId')}
                                     onChange={e => {
                                         createForm.setValue('ownerId', e.target.value);
-                                        const selectedUser = usersList.find(u => u.uid === e.target.value);
+                                        const selectedUser = usersRaw.find(u => u.uid === e.target.value);
                                         createForm.setValue('owner', selectedUser?.displayName || '');
                                     }}>
                                     <option value="">Sélectionner...</option>
-                                    {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
+                                    {usersRaw.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                 </select>
                             </div>
                             <div className="grid grid-cols-2 gap-6">

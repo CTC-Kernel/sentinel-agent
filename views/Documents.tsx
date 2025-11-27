@@ -3,7 +3,7 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { documentSchema, DocumentFormData } from '../schemas/documentSchema';
 import { createPortal } from 'react-dom';
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Document, UserProfile, SystemLog, Control, Asset, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
@@ -22,17 +22,53 @@ import { FilePreview } from '../components/ui/FilePreview';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 
+import { useFirestoreCollection } from '../hooks/useFirestore';
+
 export const Documents: React.FC = () => {
-    const [documents, setDocuments] = useState<Document[]>([]);
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
-    const [controls, setControls] = useState<Control[]>([]);
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [audits, setAudits] = useState<Audit[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [filter, setFilter] = useState('');
     const { user, addToast } = useStore();
     const canCreate = canEditResource(user, 'Document');
+
+    // Data Fetching with Hooks
+    const { data: rawDocuments, loading: loadingDocuments } = useFirestoreCollection<Document>(
+        'documents',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
+        'users',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>(
+        'controls',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
+        'assets',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: rawAudits, loading: loadingAudits } = useFirestoreCollection<Audit>(
+        'audits',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    // Derived State
+    const documents = React.useMemo(() => [...rawDocuments].sort((a, b) => a.title.localeCompare(b.title)), [rawDocuments]);
+    const controls = React.useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
+    const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
+    const audits = React.useMemo(() => [...rawAudits].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime()), [rawAudits]);
+
+    const loading = loadingDocuments || loadingUsers || loadingControls || loadingAssets || loadingAudits;
+
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [filter, setFilter] = useState('');
 
     const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
     const [inspectorTab, setInspectorTab] = useState<'details' | 'history' | 'comments'>('details');
@@ -77,60 +113,6 @@ export const Documents: React.FC = () => {
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
-
-    const fetchData = async () => {
-        if (!user?.organizationId) {
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        try {
-            // Robust fetching
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId)))
-            ]);
-
-            const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
-                if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() })) as unknown as T[];
-                }
-                return [];
-            };
-
-            const docsData = getDocsData<Document>(results[0]);
-            docsData.sort((a, b) => a.title.localeCompare(b.title));
-            setDocuments(docsData);
-
-            // If users load fails, list is empty, but docs still show
-            const usersData = getDocsData<UserProfile>(results[1]);
-            // Fix for users collection sometimes having uid as id or field
-            const formattedUsers = usersData.map(u => ({ ...u, uid: u.uid || (u as { id?: string }).id || '' }));
-            setUsersList(formattedUsers);
-
-            const ctrlData = getDocsData<Control>(results[2]);
-            ctrlData.sort((a, b) => a.code.localeCompare(b.code));
-            setControls(ctrlData);
-
-            const assetData = getDocsData<Asset>(results[3]);
-            assetData.sort((a, b) => a.name.localeCompare(b.name));
-            setAssets(assetData);
-
-            const auditData = getDocsData<Audit>(results[4]);
-            auditData.sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime());
-            setAudits(auditData);
-
-        } catch (err) {
-            ErrorLogger.handleErrorWithToast(err, 'Documents.fetchData', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => { fetchData(); }, [user?.organizationId]);
 
     const openInspector = async (docItem: Document) => {
         setSelectedDocument(docItem);
@@ -202,7 +184,7 @@ export const Documents: React.FC = () => {
             await updateDoc(doc(db, 'documents', selectedDocument.id), { ...updates, updatedAt: new Date().toISOString() });
             await logAction(user, 'WORKFLOW', 'Document', `${logMsg}: ${selectedDocument.title}`);
 
-            setDocuments(prev => prev.map(d => d.id === selectedDocument.id ? { ...d, ...updates } : d));
+            await logAction(user, 'WORKFLOW', 'Document', `${logMsg}: ${selectedDocument.title}`);
             setSelectedDocument({ ...selectedDocument, ...updates });
             addToast(logMsg, "success");
         } catch (_e) {
@@ -231,7 +213,11 @@ export const Documents: React.FC = () => {
                 owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
                 relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
             });
-            fetchData();
+            createForm.reset({
+                title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
+                owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
+                relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+            });
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
             addToast("Erreur lors de la création", "error");
@@ -248,7 +234,7 @@ export const Documents: React.FC = () => {
 
             await logAction(user, 'UPDATE', 'Document', `MAJ document: ${data.title}`);
 
-            setDocuments(prev => prev.map(d => d.id === selectedDocument.id ? { ...d, ...data, updatedAt: new Date().toISOString() } : d));
+            await logAction(user, 'UPDATE', 'Document', `MAJ document: ${data.title}`);
             setSelectedDocument({ ...selectedDocument, ...data, updatedAt: new Date().toISOString() });
             setIsEditing(false);
             addToast("Document mis à jour", "success");
@@ -311,7 +297,6 @@ export const Documents: React.FC = () => {
     const handleDelete = async (id: string, title: string) => {
         try {
             await deleteDoc(doc(db, 'documents', id));
-            setDocuments(prev => prev.filter(d => d.id !== id));
             setSelectedDocument(null);
             await logAction(user, 'DELETE', 'Document', `Suppression: ${title}`);
             addToast("Document supprimé", "info");
