@@ -38,260 +38,214 @@ interface HealthIssue { id: string; type: 'warning' | 'danger'; message: string;
 interface ActionItem { id: string; type: 'audit' | 'document' | 'project' | 'policy'; title: string; date: string; status: string; link: string; }
 
 export const Dashboard: React.FC = () => {
-    const [loading, setLoading] = useState(true);
+    const [manualLoading, setManualLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [stats, setStats] = useState({ risks: 0, assets: 0, compliance: 0, highRisks: 0, auditsOpen: 0, activeIncidents: 0, assetValue: 0, financialRisk: 0 });
-    const [recentActivity, setRecentActivity] = useState<SystemLog[]>([]);
-    const [historyData, setHistoryData] = useState<DailyStat[]>([]);
-    const [healthIssues, setHealthIssues] = useState<HealthIssue[]>([]);
-    const [topRisks, setTopRisks] = useState<Risk[]>([]);
-    const [radarData, setRadarData] = useState<{ subject: string; A: number; fullMark: number }[]>([]);
-    const [latestIncidents, setLatestIncidents] = useState<Incident[]>([]);
-    const [myActionItems, setMyActionItems] = useState<ActionItem[]>([]);
-    const [insight, setInsight] = useState<{ text: string, type: 'success' | 'warning' | 'danger', details?: string, action?: string, link?: string }>({ text: "Analyse en cours...", type: 'success' });
-    const [scoreGrade, setScoreGrade] = useState('?');
     const [organizationName, setOrganizationName] = useState<string>('');
-    const [isEmpty, setIsEmpty] = useState(false);
     const [teamSize, setTeamSize] = useState<number | null>(null);
+    const [activeIncidentsCount, setActiveIncidentsCount] = useState(0);
+    const [openAuditsCount, setOpenAuditsCount] = useState(0);
 
     const { user, theme, addToast } = useStore();
     const navigate = useNavigate();
 
+    // Hooks
+    const { data: controls, loading: controlsLoading } = useFirestoreCollection<Control>('controls', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true });
+    const { data: recentActivity, loading: logsLoading } = useFirestoreCollection<SystemLog>('system_logs', [where('organizationId', '==', user?.organizationId || 'ignore'), orderBy('timestamp', 'desc'), limit(10)], { logError: true });
+    const { data: historyStats, loading: historyLoading } = useFirestoreCollection<DailyStat>('stats_history', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(60)], { logError: true });
+    const { data: allRisks, loading: risksLoading } = useFirestoreCollection<Risk>('risks', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true });
+    const { data: allAssets, loading: assetsLoading } = useFirestoreCollection<Asset>('assets', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true });
+    const { data: allSuppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>('suppliers', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true });
+    const { data: latestIncidents, loading: incidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore'), orderBy('dateReported', 'desc'), limit(5)], { logError: true });
+    const { data: myProjects, loading: projectsLoading } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId || 'ignore'), where('manager', '==', user?.displayName || 'ignore'), where('status', '==', 'En cours')], { logError: true });
+    const { data: myAudits, loading: auditsLoading } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId || 'ignore'), where('auditor', '==', user?.displayName || 'ignore'), where('status', 'in', ['Planifié', 'En cours'])], { logError: true });
+    const { data: myDocs, loading: myDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('owner', '==', user?.email || 'ignore')], { logError: true });
+    const { data: publishedDocs, loading: publishedDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '==', 'Publié')], { logError: true });
+
+    const loading = manualLoading || controlsLoading || logsLoading || historyLoading || risksLoading || assetsLoading || suppliersLoading || incidentsLoading || projectsLoading || auditsLoading || myDocsLoading || publishedDocsLoading;
+
+    // Fetch Counts & Org Name
     useEffect(() => {
         if (!user?.organizationId) {
-            setLoading(false);
+            setManualLoading(false);
             return;
         }
 
-        const fetchData = async () => {
+        const fetchCounts = async () => {
+            setManualLoading(true);
             try {
                 const orgId = user.organizationId!;
-
-                // Récupérer le nom de l'organisation depuis la collection organizations
+                // Organization Name
                 try {
-                    const orgDocRef = doc(db, 'organizations', orgId);
-                    const orgSnap = await getDoc(orgDocRef);
-                    if (orgSnap.exists()) {
-                        const orgData = orgSnap.data();
-                        setOrganizationName(orgData.name || '');
-                    }
-                } catch (orgError) {
-                    ErrorLogger.warn('Erreur récupération nom organisation', 'Dashboard.fetchData', { metadata: { error: orgError } });
-                    // Fallback sur user.organizationName si disponible
-                    if (user.organizationName) {
-                        setOrganizationName(user.organizationName);
-                    }
-                }
+                    const orgSnap = await getDoc(doc(db, 'organizations', orgId));
+                    if (orgSnap.exists()) setOrganizationName(orgSnap.data().name || '');
+                    else if (user.organizationName) setOrganizationName(user.organizationName);
+                } catch (e) { if (user.organizationName) setOrganizationName(user.organizationName); }
 
-                const fetches = [
-                    getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId))),
-                    getDocs(query(collection(db, 'system_logs'), where('organizationId', '==', orgId), orderBy('timestamp', 'desc'), limit(10))),
-                    getDocs(query(collection(db, 'stats_history'), where('organizationId', '==', orgId), limit(60))),
-                    getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId))),
-                    getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId))),
-                    getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', orgId))),
+                // Counts
+                const [userCount, incCount, auditCount] = await Promise.all([
                     getCountFromServer(query(collection(db, 'users'), where('organizationId', '==', orgId))),
-                    // Optimized Incidents
-                    getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId), orderBy('dateReported', 'desc'), limit(5))),
                     getCountFromServer(query(collection(db, 'incidents'), where('organizationId', '==', orgId), where('status', '!=', 'Fermé'))),
-                    // Optimized Audits
-                    getDocs(query(collection(db, 'audits'), where('organizationId', '==', orgId), where('auditor', '==', user.displayName), where('status', 'in', ['Planifié', 'En cours']))),
-                    getCountFromServer(query(collection(db, 'audits'), where('organizationId', '==', orgId), where('status', 'in', ['Planifié', 'En cours']))),
-                    // Optimized Projects
-                    getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId), where('manager', '==', user.displayName), where('status', '==', 'En cours'))),
-                    // Optimized Documents
-                    getDocs(query(collection(db, 'documents'), where('organizationId', '==', orgId), where('owner', '==', user.email))),
-                    getDocs(query(collection(db, 'documents'), where('organizationId', '==', orgId), where('status', '==', 'Publié'))) // For "To Read"
-                ];
+                    getCountFromServer(query(collection(db, 'audits'), where('organizationId', '==', orgId), where('status', 'in', ['Planifié', 'En cours'])))
+                ]);
 
-                const results = await Promise.allSettled(fetches);
-
-                const rejected = results.find(r => r.status === 'rejected');
-                if (rejected) {
-                    console.warn("Certaines données n'ont pas pu être chargées:", (rejected as PromiseRejectedResult).reason);
-                    // On continue quand même pour afficher ce qu'on a
-                }
-
-                const getRawData = <T,>(result: PromiseSettledResult<any>): T[] => {
-                    if (result.status === 'fulfilled' && result.value.docs) {
-                        return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
-                    }
-                    return [];
-                }
-
-                const getCount = (result: PromiseSettledResult<any>): number => {
-                    if (result.status === 'fulfilled') return result.value.data().count;
-                    return 0;
-                }
-
-                const controls = getRawData<Control>(results[0]);
-                const allLogs = getRawData<SystemLog>(results[1]);
-                const historyStats = getRawData<DailyStat>(results[2]);
-                const allRisks = getRawData<Risk>(results[3]);
-                const allAssets = getRawData<Asset>(results[4]);
-                const allSuppliers = getRawData<Supplier>(results[5]);
-                const userCount = getCount(results[6]);
-                setTeamSize(userCount);
-
-                const latestIncidents = getRawData<Incident>(results[7]);
-                const activeIncidentsCount = getCount(results[8]);
-
-                const myAudits = getRawData<Audit>(results[9]);
-                const openAuditsCount = getCount(results[10]);
-
-                const myProjects = getRawData<Project>(results[11]);
-                const myDocs = getRawData<Document>(results[12]);
-                const publishedDocs = getRawData<Document>(results[13]);
-
-                setLatestIncidents(latestIncidents);
-                setRecentActivity(allLogs);
-
-                allRisks.sort((a, b) => b.score - a.score);
-                setTopRisks(allRisks.slice(0, 5));
-
-                const implemented = controls.filter(c => c.status === 'Implémenté').length;
-                const actionable = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
-                const complianceScore = actionable > 0 ? Math.round((implemented / actionable) * 100) : 0;
-
-                const domains = { 'Org.': { total: 0, implemented: 0, prefix: 'A.5' }, 'Humain': { total: 0, implemented: 0, prefix: 'A.6' }, 'Physique': { total: 0, implemented: 0, prefix: 'A.7' }, 'Techno': { total: 0, implemented: 0, prefix: 'A.8' } };
-                controls.forEach(c => {
-                    if (c.status === 'Exclu' || c.status === 'Non applicable') return;
-                    const key = Object.keys(domains).find(k => c.code.startsWith(domains[k as keyof typeof domains].prefix));
-                    if (key) { domains[key as keyof typeof domains].total++; if (c.status === 'Implémenté') domains[key as keyof typeof domains].implemented++; }
-                });
-                setRadarData(Object.entries(domains).map(([subject, data]) => ({ subject, A: data.total > 0 ? Math.round((data.implemented / data.total) * 100) : 0, fullMark: 100 })));
-
-                const calculateDepreciation = (price: number, purchaseDate: string) => {
-                    if (!price || !purchaseDate) return price;
-                    const start = new Date(purchaseDate);
-                    const now = new Date();
-                    const ageInYears = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-                    const value = price * (1 - (ageInYears / 5));
-                    return Math.max(0, Math.round(value));
-                };
-
-                const totalAssetValue = allAssets.reduce((acc, a) => acc + calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || ''), 0);
-
-                let financialExposure = 0;
-                allRisks.forEach(risk => {
-                    if (risk.score >= 12 && risk.assetId) {
-                        const asset = allAssets.find(a => a.id === risk.assetId);
-                        if (asset) {
-                            financialExposure += calculateDepreciation(asset.purchasePrice || 0, asset.purchaseDate || '');
-                        }
-                    }
-                });
-
-                setStats({
-                    risks: allRisks.length,
-                    assets: allAssets.length,
-                    compliance: complianceScore,
-                    highRisks: allRisks.filter(r => r.score >= 15).length,
-                    auditsOpen: openAuditsCount,
-                    activeIncidents: activeIncidentsCount,
-                    assetValue: totalAssetValue,
-                    financialRisk: financialExposure
-                });
-
-                // Détecter si le système est vide (aucune donnée significative)
-                const hasData = allRisks.length > 0 || allAssets.length > 0 || myProjects.length > 0;
-                setIsEmpty(!hasData);
-
-                let grade = 'A';
-                if (activeIncidentsCount > 0) grade = 'D';
-                else if (complianceScore < 50 || allRisks.filter(r => r.score >= 20).length > 0) grade = 'C';
-                else if (complianceScore < 80 || allRisks.filter(r => r.score >= 15).length > 0) grade = 'B';
-                setScoreGrade(grade);
-
-                let newInsight = { text: "Système stable. Continuez les revues régulières.", type: 'success' as any, details: "", action: "", link: "" };
-
-                const expiredDocs = myDocs.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < new Date()).length; // Approximation using myDocs
-                const overdueAudits = myAudits.filter(a => new Date(a.dateScheduled) < new Date() && a.status !== 'Terminé' && a.status !== 'Validé').length; // Approximation using myAudits
-                const criticalSuppliersNoScore = allSuppliers.filter(s => (s.criticality === 'Critique' || s.criticality === 'Élevée') && (!s.securityScore || s.securityScore < 50)).length;
-                const expiredContracts = allSuppliers.filter(s => s.contractEnd && new Date(s.contractEnd) < new Date()).length;
-
-                if (activeIncidentsCount > 0) {
-                    newInsight = { text: `${activeIncidentsCount} incident(s) de sécurité actif(s).`, type: 'danger', details: "La réponse aux incidents est la priorité absolue.", action: "Gérer", link: "/incidents" };
-                } else if (financialExposure > 100000) {
-                    newInsight = { text: "Exposition financière critique détectée.", type: 'danger', details: `${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(financialExposure)} d'actifs menacés par des risques élevés.`, action: "Voir Risques", link: "/risks" };
-                } else if (allRisks.filter(r => r.score >= 15).length > 0) {
-                    newInsight = { text: "Des risques critiques persistent.", type: 'warning', details: "Vérifiez les plans de traitement pour les risques > 15.", action: "Voir Risques", link: "/risks" };
-                } else if (complianceScore < 50 && actionable > 0) {
-                    newInsight = { text: "La conformité ISO 27001 est faible.", type: 'warning', details: "Accélérez l'implémentation des contrôles.", action: "Planifier", link: "/compliance" };
-                } else if (expiredDocs > 0) {
-                    newInsight = { text: `${expiredDocs} document(s) à réviser.`, type: 'warning', details: "Des politiques sont obsolètes.", action: "Réviser", link: "/documents" };
-                } else if (expiredContracts > 0) {
-                    newInsight = { text: `${expiredContracts} contrat(s) fournisseur expiré(s).`, type: 'warning', details: "Renouvelez ou archivez les contrats.", action: "Fournisseurs", link: "/suppliers" };
-                } else if (criticalSuppliersNoScore > 0) {
-                    newInsight = { text: `${criticalSuppliersNoScore} fournisseurs critiques à évaluer.`, type: 'warning', details: "Score de sécurité faible ou manquant.", action: "Évaluer", link: "/suppliers" };
-                } else if (overdueAudits > 0) {
-                    newInsight = { text: `${overdueAudits} audit(s) en retard.`, type: 'warning', details: "Le planning n'est pas respecté.", action: "Audits", link: "/audits" };
-                }
-                setInsight(newInsight);
-
-                const todayStr = new Date().toISOString().split('T')[0];
-                if (!historyStats.some(d => d.date === todayStr) && !loading) {
-                    try {
-                        const statId = `${todayStr}_${orgId}`;
-                        await setDoc(doc(db, 'stats_history', statId), {
-                            organizationId: orgId, date: todayStr, risks: allRisks.length,
-                            compliance: complianceScore, incidents: activeIncidentsCount, timestamp: new Date().toISOString()
-                        });
-                    } catch (_e) { /* Silent fail */ }
-                }
-
-                const safeHistoryData = historyStats
-                    .filter(d => typeof (d as any).compliance === 'number' && Number.isFinite((d as any).compliance))
-                    .sort((a, b) => a.date.localeCompare(b.date));
-
-                setHistoryData(safeHistoryData);
-
-                // allLogs already sorted and limited by query
-                // setRecentActivity(allLogs); // Already set above
-
-                const issues: HealthIssue[] = [];
-                const unmitigatedRisks = allRisks.filter(r => r.score >= 15 && !r.mitigationControlIds?.length).length;
-                if (unmitigatedRisks > 0) issues.push({ id: '1', type: 'danger', message: 'Risques critiques sans contrôle', count: unmitigatedRisks, link: '/risks' });
-                const unprovenControls = controls.filter(c => c.status === 'Implémenté' && (!c.evidenceIds || c.evidenceIds.length === 0)).length;
-                if (unprovenControls > 0) issues.push({ id: '2', type: 'warning', message: 'Contrôles sans preuve', count: unprovenControls, link: '/compliance' });
-
-                const twoDaysAgo = new Date(); twoDaysAgo.setHours(twoDaysAgo.getHours() - 48);
-                // Note: Stale incidents check removed for performance or needs specific query. 
-                // Using latestIncidents as proxy or skipping.
-                // const staleIncidents = allIncidents.filter(i => (i.severity === 'Critique' || i.severity === 'Élevée') && i.status !== 'Fermé' && new Date(i.dateReported) < twoDaysAgo).length;
-                // if (staleIncidents > 0) issues.push({ id: '5', type: 'danger', message: 'SLA Incident dépassé (>48h)', count: staleIncidents, link: '/incidents' });
-
-                if (overdueAudits > 0) issues.push({ id: '6', type: 'warning', message: 'Audits en retard', count: overdueAudits, link: '/audits' });
-
-                setHealthIssues(issues);
-
-                if (user) {
-                    const myItems: ActionItem[] = [];
-                    myAudits.forEach(a => {
-                        myItems.push({ id: a.id, type: 'audit', title: a.name, date: a.dateScheduled, status: a.status, link: '/audits' });
-                    });
-                    const next30Days = new Date(); next30Days.setDate(next30Days.getDate() + 30);
-                    myDocs.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < next30Days).forEach(d => {
-                        myItems.push({ id: d.id, type: 'document', title: d.title, date: d.nextReviewDate!, status: 'Révision', link: '/documents' });
-                    });
-                    publishedDocs.filter(d => !d.readBy?.includes(user.uid)).forEach(d => {
-                        myItems.push({ id: d.id, type: 'policy', title: d.title, date: new Date().toISOString(), status: 'À lire', link: '/documents' });
-                    });
-                    myProjects.forEach(p => {
-                        myItems.push({ id: p.id, type: 'project', title: p.name, date: p.dueDate, status: `${p.progress}%`, link: '/projects' });
-                    });
-                    myItems.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-                    setMyActionItems(myItems);
-                }
+                setTeamSize(userCount.data().count);
+                setActiveIncidentsCount(incCount.data().count);
+                setOpenAuditsCount(auditCount.data().count);
                 setError(null);
             } catch (error: any) {
-                ErrorLogger.handleErrorWithToast(error, 'Dashboard.fetchData', 'FETCH_FAILED');
+                ErrorLogger.handleErrorWithToast(error, 'Dashboard.fetchCounts', 'FETCH_FAILED');
                 if (error?.code === 'permission-denied') setError('permission-denied');
-                else setError("Erreur chargement données.");
-            } finally { setLoading(false); }
+            } finally {
+                setManualLoading(false);
+            }
         };
-        fetchData();
-    }, [user?.organizationId]);
+        fetchCounts();
+    }, [user?.organizationId, user?.organizationName]);
+
+    // Derived Data
+    const topRisks = React.useMemo(() => [...allRisks].sort((a, b) => b.score - a.score).slice(0, 5), [allRisks]);
+
+    const historyData = React.useMemo(() => {
+        return historyStats
+            .filter(d => typeof (d as any).compliance === 'number' && Number.isFinite((d as any).compliance))
+            .sort((a, b) => a.date.localeCompare(b.date));
+    }, [historyStats]);
+
+    const { stats, radarData, complianceScore } = React.useMemo(() => {
+        const implemented = controls.filter(c => c.status === 'Implémenté').length;
+        const actionable = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
+        const compScore = actionable > 0 ? Math.round((implemented / actionable) * 100) : 0;
+
+        const domains = { 'Org.': { total: 0, implemented: 0, prefix: 'A.5' }, 'Humain': { total: 0, implemented: 0, prefix: 'A.6' }, 'Physique': { total: 0, implemented: 0, prefix: 'A.7' }, 'Techno': { total: 0, implemented: 0, prefix: 'A.8' } };
+        controls.forEach(c => {
+            if (c.status === 'Exclu' || c.status === 'Non applicable') return;
+            const key = Object.keys(domains).find(k => c.code.startsWith(domains[k as keyof typeof domains].prefix));
+            if (key) { domains[key as keyof typeof domains].total++; if (c.status === 'Implémenté') domains[key as keyof typeof domains].implemented++; }
+        });
+        const rData = Object.entries(domains).map(([subject, data]) => ({ subject, A: data.total > 0 ? Math.round((data.implemented / data.total) * 100) : 0, fullMark: 100 }));
+
+        const calculateDepreciation = (price: number, purchaseDate: string) => {
+            if (!price || !purchaseDate) return price;
+            const start = new Date(purchaseDate);
+            const now = new Date();
+            const ageInYears = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+            const value = price * (1 - (ageInYears / 5));
+            return Math.max(0, Math.round(value));
+        };
+
+        const totalAssetValue = allAssets.reduce((acc, a) => acc + calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || ''), 0);
+
+        let financialExposure = 0;
+        allRisks.forEach(risk => {
+            if (risk.score >= 12 && risk.assetId) {
+                const asset = allAssets.find(a => a.id === risk.assetId);
+                if (asset) {
+                    financialExposure += calculateDepreciation(asset.purchasePrice || 0, asset.purchaseDate || '');
+                }
+            }
+        });
+
+        return {
+            stats: {
+                risks: allRisks.length,
+                assets: allAssets.length,
+                compliance: compScore,
+                highRisks: allRisks.filter(r => r.score >= 15).length,
+                auditsOpen: openAuditsCount,
+                activeIncidents: activeIncidentsCount,
+                assetValue: totalAssetValue,
+                financialRisk: financialExposure
+            },
+            radarData: rData,
+            complianceScore: compScore
+        };
+    }, [controls, allAssets, allRisks, openAuditsCount, activeIncidentsCount]);
+
+    const isEmpty = React.useMemo(() => !loading && allRisks.length === 0 && allAssets.length === 0 && myProjects.length === 0, [loading, allRisks, allAssets, myProjects]);
+
+    const scoreGrade = React.useMemo(() => {
+        if (activeIncidentsCount > 0) return 'D';
+        if (complianceScore < 50 || allRisks.filter(r => r.score >= 20).length > 0) return 'C';
+        if (complianceScore < 80 || allRisks.filter(r => r.score >= 15).length > 0) return 'B';
+        return 'A';
+    }, [activeIncidentsCount, complianceScore, allRisks]);
+
+    const insight = React.useMemo(() => {
+        const expiredDocs = myDocs.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < new Date()).length;
+        const overdueAudits = myAudits.filter(a => new Date(a.dateScheduled) < new Date() && a.status !== 'Terminé' && a.status !== 'Validé').length;
+        const criticalSuppliersNoScore = allSuppliers.filter(s => (s.criticality === 'Critique' || s.criticality === 'Élevée') && (!s.securityScore || s.securityScore < 50)).length;
+        const expiredContracts = allSuppliers.filter(s => s.contractEnd && new Date(s.contractEnd) < new Date()).length;
+        const actionable = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
+
+        if (activeIncidentsCount > 0) {
+            return { text: `${activeIncidentsCount} incident(s) de sécurité actif(s).`, type: 'danger' as const, details: "La réponse aux incidents est la priorité absolue.", action: "Gérer", link: "/incidents" };
+        } else if (stats.financialRisk > 100000) {
+            return { text: "Exposition financière critique détectée.", type: 'danger' as const, details: `${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)} d'actifs menacés par des risques élevés.`, action: "Voir Risques", link: "/risks" };
+        } else if (allRisks.filter(r => r.score >= 15).length > 0) {
+            return { text: "Des risques critiques persistent.", type: 'warning' as const, details: "Vérifiez les plans de traitement pour les risques > 15.", action: "Voir Risques", link: "/risks" };
+        } else if (complianceScore < 50 && actionable > 0) {
+            return { text: "La conformité ISO 27001 est faible.", type: 'warning' as const, details: "Accélérez l'implémentation des contrôles.", action: "Planifier", link: "/compliance" };
+        } else if (expiredDocs > 0) {
+            return { text: `${expiredDocs} document(s) à réviser.`, type: 'warning' as const, details: "Des politiques sont obsolètes.", action: "Réviser", link: "/documents" };
+        } else if (expiredContracts > 0) {
+            return { text: `${expiredContracts} contrat(s) fournisseur expiré(s).`, type: 'warning' as const, details: "Renouvelez ou archivez les contrats.", action: "Fournisseurs", link: "/suppliers" };
+        } else if (criticalSuppliersNoScore > 0) {
+            return { text: `${criticalSuppliersNoScore} fournisseurs critiques à évaluer.`, type: 'warning' as const, details: "Score de sécurité faible ou manquant.", action: "Évaluer", link: "/suppliers" };
+        } else if (overdueAudits > 0) {
+            return { text: `${overdueAudits} audit(s) en retard.`, type: 'warning' as const, details: "Le planning n'est pas respecté.", action: "Audits", link: "/audits" };
+        }
+        return { text: "Système stable. Continuez les revues régulières.", type: 'success' as const, details: "", action: "", link: "" };
+    }, [activeIncidentsCount, stats.financialRisk, allRisks, complianceScore, controls, myDocs, myAudits, allSuppliers]);
+
+    const healthIssues = React.useMemo(() => {
+        const issues: HealthIssue[] = [];
+        const unmitigatedRisks = allRisks.filter(r => r.score >= 15 && !r.mitigationControlIds?.length).length;
+        if (unmitigatedRisks > 0) issues.push({ id: '1', type: 'danger', message: 'Risques critiques sans contrôle', count: unmitigatedRisks, link: '/risks' });
+        const unprovenControls = controls.filter(c => c.status === 'Implémenté' && (!c.evidenceIds || c.evidenceIds.length === 0)).length;
+        if (unprovenControls > 0) issues.push({ id: '2', type: 'warning', message: 'Contrôles sans preuve', count: unprovenControls, link: '/compliance' });
+
+        const overdueAudits = myAudits.filter(a => new Date(a.dateScheduled) < new Date() && a.status !== 'Terminé' && a.status !== 'Validé').length;
+        if (overdueAudits > 0) issues.push({ id: '6', type: 'warning', message: 'Audits en retard', count: overdueAudits, link: '/audits' });
+        return issues;
+    }, [allRisks, controls, myAudits]);
+
+    const myActionItems = React.useMemo(() => {
+        if (!user) return [];
+        const myItems: ActionItem[] = [];
+        myAudits.forEach(a => {
+            myItems.push({ id: a.id, type: 'audit', title: a.name, date: a.dateScheduled, status: a.status, link: '/audits' });
+        });
+        const next30Days = new Date(); next30Days.setDate(next30Days.getDate() + 30);
+        myDocs.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < next30Days).forEach(d => {
+            myItems.push({ id: d.id, type: 'document', title: d.title, date: d.nextReviewDate!, status: 'Révision', link: '/documents' });
+        });
+        publishedDocs.filter(d => !d.readBy?.includes(user.uid)).forEach(d => {
+            myItems.push({ id: d.id, type: 'policy', title: d.title, date: new Date().toISOString(), status: 'À lire', link: '/documents' });
+        });
+        myProjects.forEach(p => {
+            myItems.push({ id: p.id, type: 'project', title: p.name, date: p.dueDate, status: `${p.progress}%`, link: '/projects' });
+        });
+        myItems.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        return myItems;
+    }, [user, myAudits, myDocs, publishedDocs, myProjects]);
+
+    // Stats History Generation
+    useEffect(() => {
+        if (loading || !user?.organizationId) return;
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (!historyStats.some(d => d.date === todayStr)) {
+            const saveStats = async () => {
+                try {
+                    const statId = `${todayStr}_${user.organizationId}`;
+                    await setDoc(doc(db, 'stats_history', statId), {
+                        organizationId: user.organizationId, date: todayStr, risks: allRisks.length,
+                        compliance: complianceScore, incidents: activeIncidentsCount, timestamp: new Date().toISOString()
+                    });
+                } catch (_e) { /* Silent fail */ }
+            };
+            saveStats();
+        }
+    }, [loading, historyStats, user?.organizationId, allRisks.length, complianceScore, activeIncidentsCount]);
 
     const copyRules = () => { navigator.clipboard.writeText(`rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}`); addToast("Règles copiées !", "success"); };
     const getActivityIcon = (resource: string) => { switch (resource) { case 'Risk': return <ShieldAlert className="h-3.5 w-3.5 text-orange-500" />; case 'Incident': return <Siren className="h-3.5 w-3.5 text-red-500" />; case 'Asset': return <Server className="h-3.5 w-3.5 text-blue-500" />; default: return <CheckCircle2 className="h-3.5 w-3.5 text-gray-500" />; } };
