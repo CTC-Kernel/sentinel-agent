@@ -894,27 +894,32 @@ export const Projects: React.FC = () => {
 
                                     {inspectorTab === 'gantt' && (
                                         <div className="space-y-4 h-full min-h-[500px]">
-                                            <GanttChart
-                                                key={ganttViewMode}
-                                                tasks={selectedProject.tasks || []}
-                                                viewMode={ganttViewMode}
-                                                onViewModeChange={setGanttViewMode}
-                                                onTaskUpdate={async (task, _start, end) => {
-                                                    if (!selectedProject.id) return;
-                                                    try {
-                                                        const updatedTasks = selectedProject.tasks?.map(t =>
-                                                            t.id === task.id ? { ...t, dueDate: end.toISOString() } : t
-                                                        ) || [];
-                                                        await updateDoc(doc(db, 'projects', selectedProject.id), {
-                                                            tasks: updatedTasks
+                                            <div className="h-[600px] w-full">
+                                                <GanttChart
+                                                    tasks={selectedProject.tasks || []}
+                                                    viewMode={ganttViewMode}
+                                                    onViewModeChange={setGanttViewMode}
+                                                    users={usersList}
+                                                    onTaskClick={(task) => {
+                                                        setEditingTask(task);
+                                                        setShowTaskModal(true);
+                                                    }}
+                                                    onTaskUpdate={(task, start, end) => {
+                                                        if (!canEdit) return;
+                                                        const updatedTasks = selectedProject.tasks.map(t => {
+                                                            if (t.id === task.id) {
+                                                                return {
+                                                                    ...t,
+                                                                    startDate: start.toISOString(),
+                                                                    dueDate: end.toISOString()
+                                                                };
+                                                            }
+                                                            return t;
                                                         });
-                                                        addToast('Tâche mise à jour', 'success');
-                                                        fetchData();
-                                                    } catch (error) {
-                                                        ErrorLogger.handleErrorWithToast(error, 'Projects.gantt.onTaskUpdate', 'UPDATE_FAILED');
-                                                    }
-                                                }}
-                                            />
+                                                        updateTasks(updatedTasks);
+                                                    }}
+                                                />
+                                            </div>
                                         </div>
                                     )}
                                 </div>

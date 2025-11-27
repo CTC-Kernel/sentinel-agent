@@ -52,6 +52,7 @@ export const auth = getAuth(app);
 
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
 export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true, // Force long polling to bypass WebChannel/proxy issues
   localCache: persistentLocalCache({
     tabManager: persistentSingleTabManager({
       forceOwnership: false

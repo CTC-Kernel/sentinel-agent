@@ -216,6 +216,10 @@ export const Login: React.FC = () => {
                     <button onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
                         Conditions d'utilisation
                     </button>
+                    {' '}et{' '}
+                    <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
+                        Mentions Légales
+                    </button>
                     {' '}s'appliquent.
                 </p>
             </div>
