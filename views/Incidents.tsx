@@ -16,7 +16,7 @@ import { getIncidentAlertTemplate } from '../services/emailTemplates'; // Change
 
 import { AIAssistButton } from '../components/ai/AIAssistButton';
 import { PageHeader } from '../components/ui/PageHeader';
-import { Siren, CalendarDays, Plus } from '../components/ui/Icons';
+import { Siren, CalendarDays, Plus, ShieldAlert } from '../components/ui/Icons';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { useLocation } from 'react-router-dom';
@@ -86,9 +86,15 @@ export const Incidents: React.FC = () => {
             affectedAssetId: '',
             relatedRiskId: '',
             reporter: user?.displayName || user?.email || '',
-            financialImpact: 0
+            financialImpact: 0,
+            dateResolved: '',
+            lessonsLearned: '',
+            isSignificant: false,
+            notificationStatus: 'Not Required',
+            relevantAuthorities: []
         }
     });
+
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
@@ -120,8 +126,11 @@ export const Incidents: React.FC = () => {
                 dateReported: incident.dateReported,
                 dateAnalysis: incident.dateAnalysis,
                 dateContained: incident.dateContained,
-                dateResolved: incident.dateResolved,
-                lessonsLearned: incident.lessonsLearned
+                dateResolved: incident.dateResolved || '',
+                lessonsLearned: incident.lessonsLearned || '',
+                isSignificant: incident.isSignificant || false,
+                notificationStatus: incident.notificationStatus || 'Not Required',
+                relevantAuthorities: incident.relevantAuthorities || []
             });
         } else {
             setCurrentIncidentId(null);
@@ -136,7 +145,12 @@ export const Incidents: React.FC = () => {
                 affectedAssetId: '',
                 relatedRiskId: '',
                 reporter: user?.displayName || user?.email || '',
-                financialImpact: 0
+                financialImpact: 0,
+                dateResolved: '',
+                lessonsLearned: '',
+                isSignificant: false,
+                notificationStatus: 'Not Required',
+                relevantAuthorities: []
             });
         }
         setShowModal(true);
@@ -243,6 +257,39 @@ export const Incidents: React.FC = () => {
                         {form.formState.errors.title && <p className="text-red-500 text-xs mt-1">{form.formState.errors.title.message}</p>}
                     </div>
                     <div>
+                        {/* NIS 2 Section */}
+                        <div className="bg-red-50/50 dark:bg-red-900/10 p-6 rounded-3xl border border-red-100 dark:border-red-900/30 space-y-4">
+                            <div className="flex items-center space-x-3">
+                                <input type="checkbox" className="h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300" {...form.register('isSignificant')} />
+                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center">
+                                    <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />
+                                    Incident Significatif (NIS 2)
+                                </label>
+                            </div>
+
+                            {form.watch('isSignificant') && (
+                                <div className="animate-fade-in pl-8">
+                                    <div className="p-4 bg-white dark:bg-slate-900/50 rounded-2xl border border-red-100 dark:border-red-900/30 mb-4">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 mb-2">Délais de Notification</h4>
+                                        <ul className="text-xs space-y-1 text-slate-600 dark:text-slate-400">
+                                            <li className="flex justify-between"><span>Pré-notification (Early Warning)</span> <span className="font-bold">24h</span></li>
+                                            <li className="flex justify-between"><span>Notification Initiale</span> <span className="font-bold">72h</span></li>
+                                            <li className="flex justify-between"><span>Rapport Final</span> <span className="font-bold">1 mois</span></li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut Notification</label>
+                                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
+                                            {...form.register('notificationStatus')}>
+                                            <option value="Not Required">Non Requis</option>
+                                            <option value="Pending">En attente</option>
+                                            <option value="Reported">Signalé</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="flex justify-between items-center mb-2">
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Description détaillée</label>
                             <AIAssistButton

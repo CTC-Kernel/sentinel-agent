@@ -20,7 +20,7 @@ import { CustomSelect } from '../components/ui/CustomSelect';
 import { NotificationService } from '../services/notificationService';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 
-import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS } from '../data/complianceData';
+import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS, DORA_DOMAINS, DORA_SEED_CONTROLS, GDPR_DOMAINS, GDPR_SEED_CONTROLS, SOC2_DOMAINS, SOC2_SEED_CONTROLS, HDS_DOMAINS, HDS_SEED_CONTROLS, PCI_DSS_DOMAINS, PCI_DSS_SEED_CONTROLS, NIST_CSF_DOMAINS, NIST_CSF_SEED_CONTROLS } from '../data/complianceData';
 import { aiService } from '../services/aiService';
 import { Sparkles, Bot, Lightbulb, FileText as FileTextIcon, Loader2 as Loader } from '../components/ui/Icons';
 
@@ -39,7 +39,7 @@ export const Compliance: React.FC = () => {
     const [filter, setFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState<string | null>(null);
     const [showMissingEvidence, setShowMissingEvidence] = useState(false);
-    const [currentFramework, setCurrentFramework] = useState<'ISO27001' | 'NIS2'>('ISO27001');
+    const [currentFramework, setCurrentFramework] = useState<'ISO27001' | 'NIS2' | 'DORA' | 'GDPR' | 'SOC2' | 'HDS' | 'PCI_DSS' | 'NIST_CSF'>('ISO27001');
     const [expandedDomains, setExpandedDomains] = useState<string[]>([]); // Default empty, open first on load
 
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -91,7 +91,17 @@ export const Compliance: React.FC = () => {
                 (!c.framework && currentFramework === 'ISO27001')
             );
 
-            const seedControls = currentFramework === 'ISO27001' ? ISO_SEED_CONTROLS : NIS2_SEED_CONTROLS;
+            let seedControls: { code: string; name: string }[] = [];
+            switch (currentFramework) {
+                case 'ISO27001': seedControls = ISO_SEED_CONTROLS; break;
+                case 'NIS2': seedControls = NIS2_SEED_CONTROLS; break;
+                case 'DORA': seedControls = DORA_SEED_CONTROLS; break;
+                case 'GDPR': seedControls = GDPR_SEED_CONTROLS; break;
+                case 'SOC2': seedControls = SOC2_SEED_CONTROLS; break;
+                case 'HDS': seedControls = HDS_SEED_CONTROLS; break;
+                case 'PCI_DSS': seedControls = PCI_DSS_SEED_CONTROLS; break;
+                case 'NIST_CSF': seedControls = NIST_CSF_SEED_CONTROLS; break;
+            }
 
             if (currentControls.length < seedControls.length) {
                 const existingCodes = currentControls.map(d => d.code);
@@ -129,7 +139,18 @@ export const Compliance: React.FC = () => {
 
     // Open first domain by default
     useEffect(() => {
-        const domains = currentFramework === 'ISO27001' ? ISO_DOMAINS : NIS2_DOMAINS;
+        let domains: { id: string }[] = [];
+        switch (currentFramework) {
+            case 'ISO27001': domains = ISO_DOMAINS; break;
+            case 'NIS2': domains = NIS2_DOMAINS; break;
+            case 'DORA': domains = DORA_DOMAINS; break;
+            case 'GDPR': domains = GDPR_DOMAINS; break;
+            case 'SOC2': domains = SOC2_DOMAINS; break;
+            case 'HDS': domains = HDS_DOMAINS; break;
+            case 'PCI_DSS': domains = PCI_DSS_DOMAINS; break;
+            case 'NIST_CSF': domains = NIST_CSF_DOMAINS; break;
+        }
+
         if (domains.length > 0 && expandedDomains.length === 0) {
             setExpandedDomains([domains[0].id]);
         }
@@ -352,31 +373,46 @@ export const Compliance: React.FC = () => {
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
             <PageHeader
-                title={currentFramework === 'ISO27001' ? "Déclaration d'Applicabilité" : "Conformité NIS2"}
-                subtitle={currentFramework === 'ISO27001' ? "Pilotage de la conformité ISO 27001:2022." : "Suivi de la directive NIS2."}
+                title={
+                    currentFramework === 'ISO27001' ? "Déclaration d'Applicabilité" :
+                        currentFramework === 'NIS2' ? "Conformité NIS2" :
+                            currentFramework === 'DORA' ? "Conformité DORA" :
+                                currentFramework === 'GDPR' ? "Conformité RGPD" :
+                                    currentFramework === 'SOC2' ? "Conformité SOC 2" :
+                                        currentFramework === 'HDS' ? "Conformité HDS" :
+                                            currentFramework === 'PCI_DSS' ? "Conformité PCI DSS" :
+                                                "Conformité NIST CSF"
+                }
+                subtitle={
+                    currentFramework === 'ISO27001' ? "Pilotage de la conformité ISO 27001:2022." :
+                        currentFramework === 'NIS2' ? "Suivi de la directive NIS2." :
+                            currentFramework === 'DORA' ? "Règlement sur la résilience opérationnelle numérique." :
+                                currentFramework === 'GDPR' ? "Règlement Général sur la Protection des Données." :
+                                    currentFramework === 'SOC2' ? "Service Organization Control 2." :
+                                        currentFramework === 'HDS' ? "Hébergement de Données de Santé." :
+                                            currentFramework === 'PCI_DSS' ? "Payment Card Industry Data Security Standard." :
+                                                "NIST Cybersecurity Framework 2.0."
+                }
                 breadcrumbs={[
                     { label: 'Conformité' }
                 ]}
                 icon={<ShieldCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
                     <div className="flex gap-3 items-center">
-                        {/* Framework Switcher - Clean Style */}
-                        <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10">
-                            <button
-                                onClick={() => setCurrentFramework('ISO27001')}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${currentFramework === 'ISO27001' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                            >
-                                ISO 27001
-                            </button>
-                            <button
-                                onClick={() => setCurrentFramework('NIS2')}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${currentFramework === 'NIS2' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                            >
-                                NIS 2 <span className="ml-1.5 px-1.5 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 text-[10px] rounded uppercase tracking-wider">New</span>
-                            </button>
+                        {/* Framework Switcher - Tabs Style */}
+                        <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10 overflow-x-auto max-w-[600px] custom-scrollbar">
+                            {(['ISO27001', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF'] as const).map(fw => (
+                                <button
+                                    key={fw}
+                                    onClick={() => setCurrentFramework(fw)}
+                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap ${currentFramework === fw ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                >
+                                    {fw === 'ISO27001' ? 'ISO 27001' : fw === 'NIS2' ? 'NIS 2' : fw === 'DORA' ? 'DORA' : fw === 'GDPR' ? 'RGPD' : fw === 'SOC2' ? 'SOC 2' : fw === 'HDS' ? 'HDS' : fw === 'PCI_DSS' ? 'PCI DSS' : 'NIST CSF'}
+                                </button>
+                            ))}
                         </div>
 
-                        <button onClick={generateSoAReport} className="flex items-center px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm">
+                        <button onClick={generateSoAReport} className="flex items-center px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm whitespace-nowrap">
                             <Download className="h-4 w-4 mr-2" /> Rapport
                         </button>
                     </div>
@@ -438,74 +474,87 @@ export const Compliance: React.FC = () => {
                 />
             ) : (
                 <div className="space-y-4">
-                    {(currentFramework === 'ISO27001' ? ISO_DOMAINS : NIS2_DOMAINS).map(domain => {
-                        const domainControls = filteredControls.filter(c => c.code.startsWith(domain.id));
-                        if (domainControls.length === 0) return null;
-                        const stats = getDomainStats(domain.id);
-                        const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
+                    {(() => {
+                        let domains: { id: string, title: string, description: string }[] = [];
+                        switch (currentFramework) {
+                            case 'ISO27001': domains = ISO_DOMAINS; break;
+                            case 'NIS2': domains = NIS2_DOMAINS; break;
+                            case 'DORA': domains = DORA_DOMAINS; break;
+                            case 'GDPR': domains = GDPR_DOMAINS; break;
+                            case 'SOC2': domains = SOC2_DOMAINS; break;
+                            case 'HDS': domains = HDS_DOMAINS; break;
+                            case 'PCI_DSS': domains = PCI_DSS_DOMAINS; break;
+                            case 'NIST_CSF': domains = NIST_CSF_DOMAINS; break;
+                        }
+                        return domains.map(domain => {
+                            const domainControls = filteredControls.filter(c => c.code.startsWith(domain.id));
+                            if (domainControls.length === 0) return null;
+                            const stats = getDomainStats(domain.id);
+                            const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
 
-                        return (
-                            <div key={domain.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
-                                <div
-                                    onClick={() => toggleDomain(domain.id)}
-                                    className={`p-6 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
-                                >
-                                    <div className="flex items-center gap-5">
-                                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-white/10">
-                                            {domain.id.split('.')[1]}
+                            return (
+                                <div key={domain.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
+                                    <div
+                                        onClick={() => toggleDomain(domain.id)}
+                                        className={`p-6 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                    >
+                                        <div className="flex items-center gap-5">
+                                            <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-white/10">
+                                                {domain.id.split('.')[1]}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{domain.title}</h3>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">{domain.description} • <span className="text-slate-700 dark:text-slate-300">{stats.total} contrôles</span></p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{domain.title}</h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">{domain.description} • <span className="text-slate-700 dark:text-slate-300">{stats.total} contrôles</span></p>
+                                        <div className="flex items-center gap-8">
+                                            <div className="hidden md:block w-40">
+                                                <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+                                                    <span>Progression</span>
+                                                    <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
+                                                </div>
+                                                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                                                    <div className={`h-full rounded-full transition-all duration-500 ${stats.progress === 100 ? 'bg-emerald-500' : 'bg-brand-500'}`} style={{ width: `${stats.progress}%` }}></div>
+                                                </div>
+                                            </div>
+                                            <div className={`p-2 rounded-full transition-all duration-300 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-sm rotate-180 text-slate-900 dark:text-white' : 'text-slate-400'}`}>
+                                                <ChevronDown className="h-5 w-5" />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-8">
-                                        <div className="hidden md:block w-40">
-                                            <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
-                                                <span>Progression</span>
-                                                <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
-                                            </div>
-                                            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                                                <div className={`h-full rounded-full transition-all duration-500 ${stats.progress === 100 ? 'bg-emerald-500' : 'bg-brand-500'}`} style={{ width: `${stats.progress}%` }}></div>
-                                            </div>
-                                        </div>
-                                        <div className={`p-2 rounded-full transition-all duration-300 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-sm rotate-180 text-slate-900 dark:text-white' : 'text-slate-400'}`}>
-                                            <ChevronDown className="h-5 w-5" />
-                                        </div>
-                                    </div>
-                                </div>
 
-                                {isExpanded && (
-                                    <div className="border-t border-slate-200 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
-                                        {domainControls.map(control => {
-                                            const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
-                                            const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
-                                            return (
-                                                <CustomTooltip key={control.id} content={`Cliquez pour voir les détails de ${control.code}`} position="top" className="w-full">
-                                                    <div onClick={() => openInspector(control)} className="p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex items-center justify-between pl-8 active:scale-[0.99] duration-200">
-                                                        <div className="flex items-center space-x-5 flex-1 min-w-0">
-                                                            <div className="min-w-[50px]"><span className="text-xs font-black text-slate-400 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
-                                                            <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
-                                                                <div className="flex items-center mt-1 gap-3 text-xs">
-                                                                    {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded"><Paperclip className="h-3 w-3 mr-1" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium"><AlertTriangle className="h-3 w-3 mr-1" /> Preuve manquante</span>) : null}
-                                                                    {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded"><ShieldAlert className="h-3 w-3 mr-1" /> {riskCount} risques</span>)}
-                                                                    {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded"><AlertOctagon className="h-3 w-3 mr-1" /> {findingsCount} écarts</span>)}
+                                    {isExpanded && (
+                                        <div className="border-t border-slate-200 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
+                                            {domainControls.map(control => {
+                                                const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
+                                                const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
+                                                return (
+                                                    <CustomTooltip key={control.id} content={`Cliquez pour voir les détails de ${control.code}`} position="top" className="w-full">
+                                                        <div onClick={() => openInspector(control)} className="p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex items-center justify-between pl-8 active:scale-[0.99] duration-200">
+                                                            <div className="flex items-center space-x-5 flex-1 min-w-0">
+                                                                <div className="min-w-[50px]"><span className="text-xs font-black text-slate-400 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
+                                                                <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
+                                                                    <div className="flex items-center mt-1 gap-3 text-xs">
+                                                                        {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded"><Paperclip className="h-3 w-3 mr-1" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium"><AlertTriangle className="h-3 w-3 mr-1" /> Preuve manquante</span>) : null}
+                                                                        {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded"><ShieldAlert className="h-3 w-3 mr-1" /> {riskCount} risques</span>)}
+                                                                        {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded"><AlertOctagon className="h-3 w-3 mr-1" /> {findingsCount} écarts</span>)}
+                                                                    </div>
                                                                 </div>
                                                             </div>
+                                                            <div className="flex items-center gap-4">
+                                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-500 bg-slate-100 border-slate-200'}`}>{control.status}</span>
+                                                                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center gap-4">
-                                                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-500 bg-slate-100 border-slate-200'}`}>{control.status}</span>
-                                                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
-                                                        </div>
-                                                    </div>
-                                                </CustomTooltip>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                                                    </CustomTooltip>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        });
+                    })()}
                 </div>
             )}
 

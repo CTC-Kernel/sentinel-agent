@@ -17,6 +17,10 @@ export const incidentSchema = z.object({
     dateContained: z.string().optional(),
     dateResolved: z.string().optional(),
     lessonsLearned: z.string().optional(),
+    // NIS 2 Fields
+    isSignificant: z.boolean().optional(),
+    notificationStatus: z.enum(['Not Required', 'Pending', 'Reported']).optional(),
+    relevantAuthorities: z.array(z.string()).optional()
 });
 
 export type IncidentFormData = z.infer<typeof incidentSchema>;
