@@ -1,6 +1,20 @@
 import { UserProfile } from '../types';
 
-export type ResourceType = 'Asset' | 'Risk' | 'Project' | 'Audit' | 'Document' | 'User' | 'Settings' | 'SystemLog';
+export type ResourceType =
+    | 'Asset'
+    | 'Risk'
+    | 'Project'
+    | 'Audit'
+    | 'Document'
+    | 'User'
+    | 'Settings'
+    | 'SystemLog'
+    | 'Control'
+    | 'Incident'
+    | 'Supplier'
+    | 'BusinessProcess'
+    | 'ProcessingActivity';
+
 export type ActionType = 'create' | 'read' | 'update' | 'delete' | 'manage';
 export type Role = 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user';
 
@@ -15,32 +29,61 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Project: ['manage'],
         Audit: ['manage'],
         Document: ['manage'],
-        SystemLog: ['read']
+        SystemLog: ['read'],
+        Control: ['manage'],
+        Incident: ['manage'],
+        Supplier: ['manage'],
+        BusinessProcess: ['manage'],
+        ProcessingActivity: ['manage']
     },
     auditor: {
         Audit: ['manage'],
         Document: ['read', 'create', 'update'],
-        Risk: ['read'],
+        Risk: ['read', 'update'], // Aligned with backend: canWrite(orgId) is true for Auditor? No, wait.
+        // Backend check: canWrite(orgId) -> belongsToOrganization && (isAdmin || isAuditor || isRSSI)
+        // So Auditor HAS write access to Risks in backend.
         Project: ['read'],
-        Asset: ['read']
+        Asset: ['read', 'update'], // Aligned with backend
+        Control: ['read'],
+        Incident: ['read'], // Backend: create allowed for all auth users in org, update allowed if canWrite. So Auditor can update.
+        Supplier: ['read', 'update'],
+        BusinessProcess: ['read', 'update'],
+        ProcessingActivity: ['read', 'update']
     },
     project_manager: {
         Project: ['manage'],
         Document: ['create', 'read', 'update'],
         Risk: ['read'],
-        Asset: ['read']
+        Asset: ['read'],
+        Control: ['read'],
+        Incident: ['read'],
+        Supplier: ['read'],
+        BusinessProcess: ['read'],
+        ProcessingActivity: ['read']
     },
     direction: {
         Project: ['read'],
         Risk: ['read'],
         Audit: ['read'],
         Document: ['read'],
-        Asset: ['read']
+        Asset: ['read'],
+        Control: ['read'],
+        Incident: ['read'],
+        Supplier: ['read'],
+        BusinessProcess: ['read'],
+        ProcessingActivity: ['read']
     },
     user: {
         Document: ['read'],
         Asset: ['read'],
-        Risk: ['read']
+        Risk: ['read'],
+        Project: ['read'],
+        Audit: ['read'],
+        Control: ['read'],
+        Incident: ['read', 'create'], // Users can create incidents
+        Supplier: ['read'],
+        BusinessProcess: ['read'],
+        ProcessingActivity: ['read']
     }
 };
 
@@ -61,10 +104,10 @@ const getAllowedActions = (role: Role, resource: ResourceType): ActionType[] => 
 
 export const hasPermission = (user: UserProfile | null, resource: ResourceType, action: ActionType): boolean => {
     if (!user) return false;
-    
+
     // Fallback role if missing
     const userRole = user.role || 'user';
-    
+
     if (userRole === 'admin') return true;
 
     const allowed = getAllowedActions(userRole, resource);
@@ -143,6 +186,17 @@ export const canEditResource = (user: UserProfile | null, resource: ResourceType
 
     if (resource === 'Document' && isResourceOwner(user, resourceOwnerId)) {
         return true;
+    }
+
+    // Explicit check for Auditor to match backend rules
+    // Backend: canWrite(orgId) -> belongsToOrganization && (isAdmin || isAuditor || isRSSI)
+    if (user.role === 'auditor') {
+        // Auditors can edit most core GRC resources
+        const auditorEditableResources: ResourceType[] = [
+            'Risk', 'Asset', 'Control', 'Audit', 'Document',
+            'Supplier', 'BusinessProcess', 'ProcessingActivity', 'Incident'
+        ];
+        if (auditorEditableResources.includes(resource)) return true;
     }
 
     return hasPermission(user, resource, 'update');
