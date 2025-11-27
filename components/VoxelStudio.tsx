@@ -784,11 +784,13 @@ const VoxelMesh: React.FC<{
 
         {isSelected && overlayProps && (
           <group>
-            <DynamicConnectorLine
-              startPos={[0, 0, 0]}
-              baseEndPos={[-5 + overlayOffset.x * 0.01, 1 - overlayOffset.y * 0.01, 0]}
-              offset={overlayOffset}
-            />
+            {(overlayOffset.x === 0 && overlayOffset.y === 0) && (
+              <DynamicConnectorLine
+                startPos={[0, 0, 0]}
+                baseEndPos={[-5 + overlayOffset.x * 0.01, 1 - overlayOffset.y * 0.01, 0]}
+                offset={overlayOffset}
+              />
+            )}
             <Html
               position={[-5 + overlayOffset.x * 0.01, 1 - overlayOffset.y * 0.01, 0]}
               zIndexRange={[100, 0]}
@@ -916,8 +918,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   // Intelligent Features State
   const [impactMode, setImpactMode] = useState(false);
   const [impactedNodeIds, setImpactedNodeIds] = useState<Set<string>>(new Set());
-  const lastPresentationSwitch = useRef(0);
-  const [presentationIndex, setPresentationIndex] = useState(0);
+
 
   const handleOverlayPositionChange = (x: number, y: number) => {
     setOverlayOffset({ x, y });
@@ -1281,40 +1282,47 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     }
   }, [impactMode, selectedNode, calculateBlastRadius]);
 
-  // 2. Presentation Mode (Auto-Pilot)
-  const criticalNodes = useMemo(() => {
-    return voxelNodes.filter(node => {
-      if (node.type === 'risk') return (node.data as Risk).score >= 12;
-      if (node.type === 'incident') return (node.data as Incident).severity === 'Critique' || (node.data as Incident).severity === 'Élevée';
-      return false;
-    });
-  }, [voxelNodes]);
+  // Presentation Manager Component
+  const PresentationManager: React.FC<{
+    presentationMode: boolean | undefined;
+    voxelNodes: VoxelNode[];
+    onNodeSelect: (node: VoxelNode) => void;
+  }> = ({ presentationMode, voxelNodes, onNodeSelect }) => {
+    const lastPresentationSwitch = useRef(0);
+    const [presentationIndex, setPresentationIndex] = useState(0);
 
-  useFrame((state) => {
-    if (presentationMode && criticalNodes.length > 0) {
-      // Switch every 8 seconds
-      if (state.clock.elapsedTime - lastPresentationSwitch.current > 8) {
-        lastPresentationSwitch.current = state.clock.elapsedTime;
-        const nextIndex = (presentationIndex + 1) % criticalNodes.length;
-        setPresentationIndex(nextIndex);
+    const criticalNodes = useMemo(() => {
+      return voxelNodes.filter(node => {
+        if (node.type === 'risk') return (node.data as Risk).score >= 12;
+        if (node.type === 'incident') return (node.data as Incident).severity === 'Critique' || (node.data as Incident).severity === 'Élevée';
+        return false;
+      });
+    }, [voxelNodes]);
 
-        // Auto-select the node
-        const nextNode = criticalNodes[nextIndex];
-        setSelectedNode(nextNode);
-        focusOnCardRef.current = true;
-        shouldSnapToTarget.current = true;
-        setImpactPosition(nextNode.position);
-        setImpactKey(prev => prev + 1);
+    // Reset index when mode disabled
+    useEffect(() => {
+      if (!presentationMode) {
+        setPresentationIndex(0);
       }
-    }
-  });
+    }, [presentationMode]);
 
-  // Reset presentation index when mode changes
-  useEffect(() => {
-    if (!presentationMode) {
-      setPresentationIndex(0);
-    }
-  }, [presentationMode]);
+    useFrame((state) => {
+      if (presentationMode && criticalNodes.length > 0) {
+        // Switch every 8 seconds
+        if (state.clock.elapsedTime - lastPresentationSwitch.current > 8) {
+          lastPresentationSwitch.current = state.clock.elapsedTime;
+          const nextIndex = (presentationIndex + 1) % criticalNodes.length;
+          setPresentationIndex(nextIndex);
+
+          // Auto-select the node
+          const nextNode = criticalNodes[nextIndex];
+          onNodeSelect(nextNode);
+        }
+      }
+    });
+
+    return null;
+  };
 
   return (
     <div className={`w-full h-full ${className}`}>
@@ -1448,6 +1456,18 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
             shouldSnapRef={shouldSnapToTarget}
             focusOnCardRef={focusOnCardRef}
             overlayOffset={overlayOffset}
+          />
+
+          <PresentationManager
+            presentationMode={presentationMode}
+            voxelNodes={voxelNodes}
+            onNodeSelect={(node) => {
+              setSelectedNode(node);
+              focusOnCardRef.current = true;
+              shouldSnapToTarget.current = true;
+              setImpactPosition(node.position);
+              setImpactKey(prev => prev + 1);
+            }}
           />
 
           <EffectComposer>

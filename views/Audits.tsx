@@ -24,6 +24,7 @@ import { FileUploader } from '../components/ui/FileUploader';
 import JSZip from 'jszip';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { useLocation } from 'react-router-dom';
 
 export const Audits: React.FC = () => {
     const [audits, setAudits] = useState<Audit[]>([]);
@@ -61,6 +62,7 @@ export const Audits: React.FC = () => {
         relatedAssetIds: [],
         relatedRiskIds: []
     });
+    const location = useLocation();
 
     const handleEvidenceUpload = async (url: string, fileName: string) => {
         if (!user?.organizationId || !selectedAudit) return;
@@ -144,6 +146,16 @@ export const Audits: React.FC = () => {
     };
 
     useEffect(() => { fetchAudits(); }, [user?.organizationId]);
+
+    useEffect(() => {
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loading || audits.length === 0) return;
+        const audit = audits.find(a => a.id === state.voxelSelectedId);
+        if (audit) {
+            handleOpenAudit(audit);
+        }
+    }, [location.state, loading, audits]);
 
     const handleOpenAudit = async (audit: Audit) => {
         setSelectedAudit(audit);

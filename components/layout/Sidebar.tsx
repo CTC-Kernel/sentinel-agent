@@ -141,12 +141,12 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                          group relative flex items-center gap-3 rounded-2xl px-4 py-2.5 text-[14px] font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
                          ${isActive
                           ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/15 dark:bg-white dark:text-slate-900'
-                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}
+                          : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}
                        `}
                     >
                       {({ isActive }) => (
                         <>
-                          <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-200 ${isActive ? 'bg-white/10 text-white dark:bg-slate-900/10 dark:text-slate-900' : 'bg-slate-100/70 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
+                          <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-200 ${isActive ? 'bg-white/10 text-white dark:bg-slate-900/10 dark:text-slate-900' : 'bg-slate-100/70 text-slate-600 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
                             <item.icon className="h-4 w-4" strokeWidth={2.1} />
                           </span>
                           <span className="flex-1 truncate">{item.name}</span>
@@ -170,7 +170,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                 group relative flex items-center gap-3 rounded-2xl px-4 py-2.5 text-[14px] font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
                 ${isActive
                 ? 'bg-slate-100 text-slate-900 shadow-inner shadow-white/60 dark:bg-white/10 dark:text-white'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
+                : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
               `}
           >
             {({ isActive }) => (
@@ -190,7 +190,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             to="/settings"
             className={({ isActive }) => `
                 group flex items-center gap-3 px-4 py-3 text-[14px] font-semibold rounded-2xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
-                ${isActive ? 'bg-slate-100 text-slate-900 dark:bg-white/10 dark:text-white shadow-inner shadow-white/50' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
+                ${isActive ? 'bg-slate-100 text-slate-900 dark:bg-white/10 dark:text-white shadow-inner shadow-white/50' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
               `}
           >
             {({ isActive }) => (

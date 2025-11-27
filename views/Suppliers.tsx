@@ -14,6 +14,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { useLocation } from 'react-router-dom';
 
 export const Suppliers: React.FC = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -25,6 +26,7 @@ export const Suppliers: React.FC = () => {
     const [showModal, setShowModal] = useState(false);
     const [filter, setFilter] = useState('');
     const { user, addToast } = useStore();
+    const location = useLocation();
     const canEdit = user?.role === 'admin';
 
     // Inspector State
@@ -113,6 +115,18 @@ export const Suppliers: React.FC = () => {
     };
 
     useEffect(() => { fetchSuppliers(); }, [user?.organizationId]);
+
+    useEffect(() => {
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loading || suppliers.length === 0) return;
+        const supplier = suppliers.find(s => s.id === state.voxelSelectedId);
+        if (supplier) {
+            setSelectedSupplier(supplier);
+            setInspectorTab('profile');
+            setFormData(supplier);
+        }
+    }, [location.state, loading, suppliers]);
 
     // ... (Rest of the file logic unchanged)
 
