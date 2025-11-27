@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Calendar, User, Clock, Target, AlertCircle } from 'lucide-react';
 import { ProjectTask } from '../../types';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { projectTaskSchema, ProjectTaskFormData } from '../../schemas/projectSchema';
 
 interface TaskFormModalProps {
     isOpen: boolean;
@@ -20,52 +23,54 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
     availableTasks = [],
     availableUsers = []
 }) => {
-    const [formData, setFormData] = useState<Omit<ProjectTask, 'id'>>({
-        title: existingTask?.title || '',
-        description: existingTask?.description || '',
-        status: existingTask?.status || 'A faire',
-        assignee: existingTask?.assignee || '',
-        startDate: existingTask?.startDate || '',
-        dueDate: existingTask?.dueDate || '',
-        priority: existingTask?.priority || 'medium',
-        estimatedHours: existingTask?.estimatedHours || undefined,
-        actualHours: existingTask?.actualHours || undefined,
-        dependencies: existingTask?.dependencies || [],
-        progress: existingTask?.progress || 0
+    const {
+        register,
+        handleSubmit,
+        reset,
+        watch,
+        setValue,
+        formState: { errors }
+    } = useForm<ProjectTaskFormData>({
+        resolver: zodResolver(projectTaskSchema) as any,
+        defaultValues: {
+            title: '',
+            description: '',
+            status: 'A faire',
+            assignee: '',
+            startDate: '',
+            dueDate: '',
+            priority: 'medium',
+            estimatedHours: undefined,
+            actualHours: undefined,
+            dependencies: [],
+            progress: 0
+        }
     });
 
-    const [errors, setErrors] = useState<Record<string, string>>({});
-
-    const validate = () => {
-        const newErrors: Record<string, string> = {};
-
-        if (!formData.title?.trim()) {
-            newErrors.title = 'Le titre est requis';
+    useEffect(() => {
+        if (isOpen) {
+            reset({
+                title: existingTask?.title || '',
+                description: existingTask?.description || '',
+                status: existingTask?.status || 'A faire',
+                assignee: existingTask?.assignee || '',
+                startDate: existingTask?.startDate || '',
+                dueDate: existingTask?.dueDate || '',
+                priority: existingTask?.priority || 'medium',
+                estimatedHours: existingTask?.estimatedHours,
+                actualHours: existingTask?.actualHours,
+                dependencies: existingTask?.dependencies || [],
+                progress: existingTask?.progress || 0
+            });
         }
+    }, [isOpen, existingTask, reset]);
 
-        if (formData.estimatedHours && formData.estimatedHours < 0) {
-            newErrors.estimatedHours = 'Les heures doivent être positives';
-        }
-
-        if (formData.actualHours && formData.actualHours < 0) {
-            newErrors.actualHours = 'Les heures doivent être positives';
-        }
-
-        if (formData.progress !== undefined && (formData.progress < 0 || formData.progress > 100)) {
-            newErrors.progress = 'La progression doit être entre 0 et 100';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+    const onFormSubmit = (data: ProjectTaskFormData) => {
+        onSubmit(data);
+        onClose();
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (validate()) {
-            onSubmit(formData);
-            onClose();
-        }
-    };
+    const watchedDependencies = watch('dependencies') || [];
 
     if (!isOpen) return null;
 
@@ -91,7 +96,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                <form onSubmit={handleSubmit(onFormSubmit)} className="p-8 space-y-6">
                     {/* Title */}
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
@@ -99,12 +104,11 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         </label>
                         <input
                             type="text"
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                            {...register('title')}
                             className={`w-full px-4 py-3.5 rounded-2xl border ${errors.title ? 'border-red-500' : 'border-gray-200 dark:border-white/10'} bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all`}
                             placeholder="Ex: Développer la fonctionnalité..."
                         />
-                        {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
+                        {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
                     </div>
 
                     {/* Description */}
@@ -113,8 +117,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             Description
                         </label>
                         <textarea
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            {...register('description')}
                             rows={3}
                             className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none"
                             placeholder="Détails de la tâche..."
@@ -128,8 +131,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                 Statut
                             </label>
                             <select
-                                value={formData.status}
-                                onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                                {...register('status')}
                                 className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
                             >
                                 <option value="A faire">À faire</option>
@@ -144,8 +146,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                 Priorité
                             </label>
                             <select
-                                value={formData.priority}
-                                onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                                {...register('priority')}
                                 className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
                             >
                                 <option value="low">Basse</option>
@@ -164,8 +165,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             </label>
                             {availableUsers.length > 0 ? (
                                 <select
-                                    value={formData.assignee}
-                                    onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
+                                    {...register('assignee')}
                                     className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
                                 >
                                     <option value="">Non assigné</option>
@@ -176,8 +176,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             ) : (
                                 <input
                                     type="text"
-                                    value={formData.assignee}
-                                    onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
+                                    {...register('assignee')}
                                     className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                                     placeholder="Nom de l'utilisateur"
                                 />
@@ -191,8 +190,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             </label>
                             <input
                                 type="date"
-                                value={formData.startDate || ''}
-                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                {...register('startDate')}
                                 className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                             />
                         </div>
@@ -204,8 +202,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             </label>
                             <input
                                 type="date"
-                                value={formData.dueDate}
-                                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                                {...register('dueDate')}
                                 className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                             />
                         </div>
@@ -222,12 +219,11 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                 type="number"
                                 min="0"
                                 step="0.5"
-                                value={formData.estimatedHours || ''}
-                                onChange={(e) => setFormData({ ...formData, estimatedHours: e.target.value ? parseFloat(e.target.value) : undefined })}
+                                {...register('estimatedHours', { valueAsNumber: true })}
                                 className={`w-full px-4 py-3.5 rounded-2xl border ${errors.estimatedHours ? 'border-red-500' : 'border-gray-200 dark:border-white/10'} bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium`}
                                 placeholder="0.0"
                             />
-                            {errors.estimatedHours && <p className="text-red-500 text-xs mt-1">{errors.estimatedHours}</p>}
+                            {errors.estimatedHours && <p className="text-red-500 text-xs mt-1">{errors.estimatedHours.message}</p>}
                         </div>
 
                         <div>
@@ -239,12 +235,11 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                 type="number"
                                 min="0"
                                 step="0.5"
-                                value={formData.actualHours || ''}
-                                onChange={(e) => setFormData({ ...formData, actualHours: e.target.value ? parseFloat(e.target.value) : undefined })}
+                                {...register('actualHours', { valueAsNumber: true })}
                                 className={`w-full px-4 py-3.5 rounded-2xl border ${errors.actualHours ? 'border-red-500' : 'border-gray-200 dark:border-white/10'} bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium`}
                                 placeholder="0.0"
                             />
-                            {errors.actualHours && <p className="text-red-500 text-xs mt-1">{errors.actualHours}</p>}
+                            {errors.actualHours && <p className="text-red-500 text-xs mt-1">{errors.actualHours.message}</p>}
                         </div>
                     </div>
 
@@ -252,17 +247,16 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
                             <Target className="h-3.5 w-3.5" />
-                            Progression ({formData.progress}%)
+                            Progression ({watch('progress')}%)
                         </label>
                         <input
                             type="range"
                             min="0"
                             max="100"
-                            value={formData.progress}
-                            onChange={(e) => setFormData({ ...formData, progress: parseInt(e.target.value) })}
+                            {...register('progress', { valueAsNumber: true })}
                             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                         />
-                        {errors.progress && <p className="text-red-500 text-xs mt-1">{errors.progress}</p>}
+                        {errors.progress && <p className="text-red-500 text-xs mt-1">{errors.progress.message}</p>}
                     </div>
 
                     {/* Dependencies */}
@@ -277,13 +271,13 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                     <label key={task.id} className="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="checkbox"
-                                            checked={formData.dependencies?.includes(task.id) || false}
+                                            checked={watchedDependencies.includes(task.id)}
                                             onChange={(e) => {
-                                                const deps = formData.dependencies || [];
+                                                const deps = watchedDependencies;
                                                 if (e.target.checked) {
-                                                    setFormData({ ...formData, dependencies: [...deps, task.id] });
+                                                    setValue('dependencies', [...deps, task.id], { shouldDirty: true });
                                                 } else {
-                                                    setFormData({ ...formData, dependencies: deps.filter(d => d !== task.id) });
+                                                    setValue('dependencies', deps.filter(d => d !== task.id), { shouldDirty: true });
                                                 }
                                             }}
                                             className="rounded border-gray-300"
@@ -317,3 +311,4 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         document.body
     );
 };
+

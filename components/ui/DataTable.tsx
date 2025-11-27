@@ -1,18 +1,21 @@
-import React, { useState, useMemo } from 'react';
-import { ChevronUp, ChevronDown, Download, Search } from './Icons';
+import { useState } from 'react';
+import {
+    useReactTable,
+    getCoreRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    getFilteredRowModel,
+    flexRender,
+    ColumnDef,
+    SortingState,
+} from '@tanstack/react-table';
+import { ChevronUp, ChevronDown, Download, Search, ChevronLeft, ChevronRight } from './Icons';
+import { cn } from '../../lib/utils';
 
-export interface Column<T> {
-    key: keyof T | string;
-    label: string;
-    sortable?: boolean;
-    render?: (value: any, row: T) => React.ReactNode;
-    width?: string;
-}
-
-interface DataTableProps<T> {
-    data: T[];
-    columns: Column<T>[];
-    onRowClick?: (row: T) => void;
+interface DataTableProps<TData, TValue> {
+    columns: ColumnDef<TData, TValue>[];
+    data: TData[];
+    onRowClick?: (row: TData) => void;
     exportable?: boolean;
     exportFilename?: string;
     searchable?: boolean;
@@ -20,69 +23,44 @@ interface DataTableProps<T> {
     className?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
-    data,
+export function DataTable<TData, TValue>({
     columns,
+    data,
     onRowClick,
     exportable = false,
     exportFilename = 'export',
     searchable = false,
     pageSize = 10,
-    className = ''
-}: DataTableProps<T>) {
-    const [sortColumn, setSortColumn] = useState<string | null>(null);
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
+    className,
+}: DataTableProps<TData, TValue>) {
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [globalFilter, setGlobalFilter] = useState('');
 
-    // Filter data based on search
-    const filteredData = useMemo(() => {
-        if (!searchQuery) return data;
-
-        return data.filter(row =>
-            Object.values(row).some(value =>
-                String(value).toLowerCase().includes(searchQuery.toLowerCase())
-            )
-        );
-    }, [data, searchQuery]);
-
-    // Sort data
-    const sortedData = useMemo(() => {
-        if (!sortColumn) return filteredData;
-
-        return [...filteredData].sort((a, b) => {
-            const aVal = a[sortColumn];
-            const bVal = b[sortColumn];
-
-            if (aVal === bVal) return 0;
-
-            const comparison = aVal > bVal ? 1 : -1;
-            return sortDirection === 'asc' ? comparison : -comparison;
-        });
-    }, [filteredData, sortColumn, sortDirection]);
-
-    // Paginate data
-    const paginatedData = useMemo(() => {
-        const start = (currentPage - 1) * pageSize;
-        return sortedData.slice(start, start + pageSize);
-    }, [sortedData, currentPage, pageSize]);
-
-    const totalPages = Math.ceil(sortedData.length / pageSize);
-
-    const handleSort = (columnKey: string) => {
-        if (sortColumn === columnKey) {
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortColumn(columnKey);
-            setSortDirection('asc');
-        }
-    };
+    const table = useReactTable({
+        data,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        onSortingChange: setSorting,
+        onGlobalFilterChange: setGlobalFilter,
+        state: {
+            sorting,
+            globalFilter,
+        },
+        initialState: {
+            pagination: {
+                pageSize,
+            },
+        },
+    });
 
     const handleExport = () => {
-        const headers = columns.map(col => col.label).join(',');
-        const rows = sortedData.map(row =>
-            columns.map(col => {
-                const value = row[col.key as keyof T];
+        const headers = columns.map((col) => (col.header as string) || '').join(',');
+        const rows = table.getCoreRowModel().rows.map((row) =>
+            row.getVisibleCells().map((cell) => {
+                const value = cell.getValue();
                 return `"${String(value).replace(/"/g, '""')}"`;
             }).join(',')
         );
@@ -97,7 +75,7 @@ export function DataTable<T extends Record<string, any>>({
     };
 
     return (
-        <div className={`space-y-4 ${className}`}>
+        <div className={cn("space-y-4", className)}>
             {/* Toolbar */}
             {(searchable || exportable) && (
                 <div className="flex items-center justify-between gap-4">
@@ -107,11 +85,8 @@ export function DataTable<T extends Record<string, any>>({
                             <input
                                 type="text"
                                 placeholder="Rechercher..."
-                                value={searchQuery}
-                                onChange={(e) => {
-                                    setSearchQuery(e.target.value);
-                                    setCurrentPage(1);
-                                }}
+                                value={globalFilter ?? ''}
+                                onChange={(e) => setGlobalFilter(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
                             />
                         </div>
@@ -133,71 +108,83 @@ export function DataTable<T extends Record<string, any>>({
             <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900">
                 <table className="w-full">
                     <thead>
-                        <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50">
-                            {columns.map((column) => (
-                                <th
-                                    key={String(column.key)}
-                                    onClick={() => column.sortable !== false && handleSort(String(column.key))}
-                                    className={`px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ${column.sortable !== false ? 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800' : ''
-                                        }`}
-                                    style={{ width: column.width }}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        {column.label}
-                                        {column.sortable !== false && sortColumn === column.key && (
-                                            sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                                        )}
-                                    </div>
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-white/10">
-                        {paginatedData.map((row, idx) => (
-                            <tr
-                                key={idx}
-                                onClick={() => onRowClick?.(row)}
-                                className={`transition-colors ${onRowClick ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50' : ''
-                                    }`}
-                            >
-                                {columns.map((column) => (
-                                    <td key={String(column.key)} className="px-6 py-4 text-sm text-slate-900 dark:text-white">
-                                        {column.render
-                                            ? column.render(row[column.key as keyof T], row)
-                                            : String(row[column.key as keyof T] ?? '-')}
-                                    </td>
-                                ))}
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <tr key={headerGroup.id} className="border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50">
+                                {headerGroup.headers.map((header) => {
+                                    return (
+                                        <th
+                                            key={header.id}
+                                            onClick={header.column.getToggleSortingHandler()}
+                                            className={cn(
+                                                "px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400",
+                                                header.column.getCanSort() && "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                            )}
+                                            style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                                {{
+                                                    asc: <ChevronUp className="h-4 w-4" />,
+                                                    desc: <ChevronDown className="h-4 w-4" />,
+                                                }[header.column.getIsSorted() as string] ?? null}
+                                            </div>
+                                        </th>
+                                    );
+                                })}
                             </tr>
                         ))}
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-white/10">
+                        {table.getRowModel().rows.length > 0 ? (
+                            table.getRowModel().rows.map((row) => (
+                                <tr
+                                    key={row.id}
+                                    onClick={() => onRowClick?.(row.original)}
+                                    className={cn(
+                                        "transition-colors",
+                                        onRowClick && "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                    )}
+                                >
+                                    {row.getVisibleCells().map((cell) => (
+                                        <td key={cell.id} className="px-6 py-4 text-sm text-slate-900 dark:text-white">
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={columns.length} className="text-center py-12 text-slate-500 dark:text-slate-400">
+                                    Aucune donnée à afficher
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
-
-                {paginatedData.length === 0 && (
-                    <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                        Aucune donnée à afficher
-                    </div>
-                )}
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {table.getPageCount() > 1 && (
                 <div className="flex items-center justify-between">
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Affichage {(currentPage - 1) * pageSize + 1} à {Math.min(currentPage * pageSize, sortedData.length)} sur {sortedData.length} résultats
+                        Affichage {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} à {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, data.length)} sur {data.length} résultats
                     </p>
 
                     <div className="flex gap-2">
                         <button
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            disabled={currentPage === 1}
-                            className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                            onClick={() => table.previousPage()}
+                            disabled={!table.getCanPreviousPage()}
+                            className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                         >
-                            Précédent
+                            <ChevronLeft className="h-4 w-4" />
                         </button>
 
                         <div className="flex items-center gap-1">
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            {Array.from({ length: Math.min(5, table.getPageCount()) }, (_, i) => {
+                                const currentPage = table.getState().pagination.pageIndex + 1;
+                                const totalPages = table.getPageCount();
                                 let pageNum;
+
                                 if (totalPages <= 5) {
                                     pageNum = i + 1;
                                 } else if (currentPage <= 3) {
@@ -211,11 +198,13 @@ export function DataTable<T extends Record<string, any>>({
                                 return (
                                     <button
                                         key={pageNum}
-                                        onClick={() => setCurrentPage(pageNum)}
-                                        className={`w-10 h-10 rounded-xl text-sm font-bold transition-colors ${currentPage === pageNum
-                                                ? 'bg-brand-600 text-white'
-                                                : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700'
-                                            }`}
+                                        onClick={() => table.setPageIndex(pageNum - 1)}
+                                        className={cn(
+                                            "w-10 h-10 rounded-xl text-sm font-bold transition-colors",
+                                            currentPage === pageNum
+                                                ? "bg-brand-600 text-white"
+                                                : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700"
+                                        )}
                                     >
                                         {pageNum}
                                     </button>
@@ -224,11 +213,11 @@ export function DataTable<T extends Record<string, any>>({
                         </div>
 
                         <button
-                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                            disabled={currentPage === totalPages}
-                            className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                            onClick={() => table.nextPage()}
+                            disabled={!table.getCanNextPage()}
+                            className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                         >
-                            Suivant
+                            <ChevronRight className="h-4 w-4" />
                         </button>
                     </div>
                 </div>

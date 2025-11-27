@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { PROJECT_TEMPLATES } from '../../utils/projectTemplates';
 import { ProjectTemplate } from '../../types';
 import { X, Zap, Calendar } from '../ui/Icons';
+import { templateFormSchema, TemplateFormData } from '../../schemas/projectSchema';
+import { CustomSelect } from '../ui/CustomSelect';
 
 interface TemplateModalProps {
     isOpen: boolean;
@@ -13,20 +17,37 @@ interface TemplateModalProps {
 
 export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, onSelectTemplate, managers }) => {
     const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null);
-    const [projectName, setProjectName] = useState('');
-    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-    const [manager, setManager] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (selectedTemplate && projectName && manager) {
-            onSelectTemplate(selectedTemplate, projectName, new Date(startDate), manager);
-            onClose();
-            // Reset
+    const {
+        register,
+        handleSubmit,
+        control,
+        reset,
+        formState: { errors }
+    } = useForm<TemplateFormData>({
+        resolver: zodResolver(templateFormSchema) as any,
+        defaultValues: {
+            projectName: '',
+            startDate: new Date().toISOString().split('T')[0],
+            manager: ''
+        }
+    });
+
+    useEffect(() => {
+        if (isOpen) {
+            reset({
+                projectName: '',
+                startDate: new Date().toISOString().split('T')[0],
+                manager: ''
+            });
             setSelectedTemplate(null);
-            setProjectName('');
-            setStartDate(new Date().toISOString().split('T')[0]);
-            setManager('');
+        }
+    }, [isOpen, reset]);
+
+    const onFormSubmit = (data: TemplateFormData) => {
+        if (selectedTemplate) {
+            onSelectTemplate(selectedTemplate, data.projectName, new Date(data.startDate), data.manager);
+            onClose();
         }
     };
 
@@ -96,7 +117,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                         </div>
                     ) : (
                         /* Template Configuration */
-                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                        <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 space-y-6">
                             <div className="bg-brand-50 dark:bg-brand-900/10 p-4 rounded-xl border border-brand-200 dark:border-brand-800">
                                 <div className="flex items-center gap-3">
                                     <span className="text-3xl">{selectedTemplate.icon}</span>
@@ -124,12 +145,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                 </label>
                                 <input
                                     type="text"
-                                    value={projectName}
-                                    onChange={(e) => setProjectName(e.target.value)}
+                                    {...register('projectName')}
                                     placeholder="Ex: Certification ISO 27001 2025"
                                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                                    required
                                 />
+                                {errors.projectName && <p className="text-red-500 text-xs mt-1">{errors.projectName.message}</p>}
                             </div>
 
                             <div>
@@ -138,28 +158,30 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                 </label>
                                 <input
                                     type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
+                                    {...register('startDate')}
                                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                                    required
                                 />
+                                {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate.message}</p>}
                             </div>
 
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                     Chef de Projet *
                                 </label>
-                                <select
-                                    value={manager}
-                                    onChange={(e) => setManager(e.target.value)}
-                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                                    required
-                                >
-                                    <option value="">Sélectionner...</option>
-                                    {managers.map(m => (
-                                        <option key={m} value={m}>{m}</option>
-                                    ))}
-                                </select>
+                                <Controller
+                                    name="manager"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            options={managers.map(m => ({ value: m, label: m }))}
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            placeholder="Sélectionner..."
+                                            label="Chef de Projet"
+                                        />
+                                    )}
+                                />
+                                {errors.manager && <p className="text-red-500 text-xs mt-1">{errors.manager.message}</p>}
                             </div>
 
                             <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
@@ -169,7 +191,8 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                 <ul className="space-y-1 text-sm text-slate-600 dark:text-slate-400">
                                     <li>✓ {selectedTemplate.defaultTasks.length} tâches pré-configurées</li>
                                     <li>✓ {selectedTemplate.defaultMilestones.length} jalons avec dates calculées</li>
-                                    <li>✓ Date de fin estimée: {new Date(new Date(startDate).getTime() + selectedTemplate.estimatedDuration * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR')}</li>
+                                    {/* Note: startDate is watched or we can just use a generic message since it's dynamic */}
+                                    <li>✓ Durée estimée: {selectedTemplate.estimatedDuration} jours</li>
                                 </ul>
                             </div>
 
