@@ -1,4 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { documentSchema, DocumentFormData } from '../schemas/documentSchema';
 import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -36,15 +40,39 @@ export const Documents: React.FC = () => {
     const [docHistory, setDocHistory] = useState<SystemLog[]>([]);
 
     const [isEditing, setIsEditing] = useState(false);
-    const [editForm, setEditForm] = useState<Partial<Document>>({});
 
-    const [newDocData, setNewDocData] = useState<Partial<Document>>({
-        title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
-        owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
-        relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+    const createForm = useForm<DocumentFormData>({
+        resolver: zodResolver(documentSchema),
+        defaultValues: {
+            title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
+            owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
+            relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+        }
+    });
+
+    const editForm = useForm<DocumentFormData>({
+        resolver: zodResolver(documentSchema),
+        defaultValues: {
+            title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
+            owner: '', ownerId: '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
+            relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+        }
     });
     const [uploadedFileUrl, setUploadedFileUrl] = useState<string>('');
     const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null);
+
+    // Watch ownerId to update owner name
+    const createOwnerId = createForm.watch('ownerId');
+    useEffect(() => {
+        const u = usersList.find(u => u.uid === createOwnerId);
+        if (u) createForm.setValue('owner', u.displayName);
+    }, [createOwnerId, usersList, createForm]);
+
+    const editOwnerId = editForm.watch('ownerId');
+    useEffect(() => {
+        const u = usersList.find(u => u.uid === editOwnerId);
+        if (u) editForm.setValue('owner', u.displayName);
+    }, [editOwnerId, usersList, editForm]);
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -108,7 +136,23 @@ export const Documents: React.FC = () => {
     const openInspector = async (docItem: Document) => {
         setSelectedDocument(docItem);
         setInspectorTab('details');
-        setEditForm(docItem);
+        editForm.reset({
+            title: docItem.title,
+            type: docItem.type,
+            version: docItem.version,
+            status: docItem.status,
+            workflowStatus: docItem.workflowStatus,
+            owner: docItem.owner,
+            ownerId: docItem.ownerId,
+            nextReviewDate: docItem.nextReviewDate,
+            readBy: docItem.readBy || [],
+            reviewers: docItem.reviewers || [],
+            approvers: docItem.approvers || [],
+            relatedControlIds: docItem.relatedControlIds || [],
+            relatedAssetIds: docItem.relatedAssetIds || [],
+            relatedAuditIds: docItem.relatedAuditIds || [],
+            url: docItem.url
+        });
         setIsEditing(false);
 
         try {
@@ -167,24 +211,23 @@ export const Documents: React.FC = () => {
         }
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleCreate: SubmitHandler<DocumentFormData> = async (data) => {
         if (!user?.organizationId) return;
 
         try {
             await addDoc(collection(db, 'documents'), {
-                ...newDocData,
+                ...data,
                 url: uploadedFileUrl || '',
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             });
 
-            await logAction(user, 'CREATE', 'Document', `Nouveau document: ${newDocData.title}`);
+            await logAction(user, 'CREATE', 'Document', `Nouveau document: ${data.title}`);
             addToast("Document ajouté", "success");
             setShowCreateModal(false);
             setUploadedFileUrl('');
-            setNewDocData({
+            createForm.reset({
                 title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
                 owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
                 relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
@@ -196,17 +239,15 @@ export const Documents: React.FC = () => {
         }
     };
 
-    const handleUpdate = async () => {
+    const handleUpdate: SubmitHandler<DocumentFormData> = async (data) => {
         if (!canEditResource(user, 'Document', selectedDocument?.ownerId || selectedDocument?.owner) || !selectedDocument) return;
         try {
-            const { id, ...data } = editForm as any;
-
             await updateDoc(doc(db, 'documents', selectedDocument.id), {
                 ...data,
                 updatedAt: new Date().toISOString()
             });
 
-            await logAction(user, 'UPDATE', 'Document', `MAJ document: ${editForm.title}`);
+            await logAction(user, 'UPDATE', 'Document', `MAJ document: ${data.title}`);
 
             setDocuments(prev => prev.map(d => d.id === selectedDocument.id ? { ...d, ...data, updatedAt: new Date().toISOString() } : d));
             setSelectedDocument({ ...selectedDocument, ...data, updatedAt: new Date().toISOString() });
@@ -349,7 +390,7 @@ export const Documents: React.FC = () => {
                 actions={canCreate && (
                     <button
                         onClick={() => {
-                            setNewDocData({
+                            createForm.reset({
                                 title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
                                 owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
                                 relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
@@ -383,7 +424,7 @@ export const Documents: React.FC = () => {
                             description={filter ? "Aucun document ne correspond à votre recherche." : "Centralisez vos politiques et procédures de sécurité."}
                             actionLabel={filter ? undefined : "Nouveau Document"}
                             onAction={filter ? undefined : () => {
-                                setNewDocData({
+                                createForm.reset({
                                     title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
                                     owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
                                     relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
@@ -439,7 +480,7 @@ export const Documents: React.FC = () => {
                                             <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                         )}
                                         {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && isEditing && (
-                                            <button onClick={handleUpdate} className="p-2.5 text-blue-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+                                            <button onClick={editForm.handleSubmit(handleUpdate)} className="p-2.5 text-blue-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
                                         )}
                                         {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
                                             <button onClick={() => initiateDelete(selectedDocument.id, selectedDocument.title)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
@@ -470,32 +511,29 @@ export const Documents: React.FC = () => {
                                         <div className="space-y-8">
                                             {isEditing ? (
                                                 <div className="space-y-6">
-                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Titre</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium" value={editForm.title} onChange={e => setEditForm({ ...editForm, title: e.target.value })} /></div>
+                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Titre</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium" {...editForm.register('title')} /></div>
                                                     <div className="grid grid-cols-2 gap-6">
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Version</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium" value={editForm.version} onChange={e => setEditForm({ ...editForm, version: e.target.value })} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Version</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium" {...editForm.register('version')} /></div>
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" value={editForm.type} onChange={e => setEditForm({ ...editForm, type: e.target.value as any })}>
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" {...editForm.register('type')}>
                                                                 {['Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(t => <option key={t} value={t}>{t}</option>)}
                                                             </select>
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-6">
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })}>
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" {...editForm.register('status')}>
                                                                 {['Brouillon', 'En revue', 'Approuvé', 'Rejeté', 'Publié', 'Obsolète'].map(s => <option key={s} value={s}>{s}</option>)}
                                                             </select>
                                                         </div>
                                                         <div>
                                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Propriétaire</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" value={editForm.ownerId || ''} onChange={e => {
-                                                                const u = usersList.find(u => u.uid === e.target.value);
-                                                                setEditForm({ ...editForm, owner: u?.displayName || '', ownerId: e.target.value });
-                                                            }}>
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" {...editForm.register('ownerId')}>
                                                                 {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Prochaine révision</label><input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium" value={editForm.nextReviewDate || ''} onChange={e => setEditForm({ ...editForm, nextReviewDate: e.target.value })} /></div>
+                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Prochaine révision</label><input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium" {...editForm.register('nextReviewDate')} /></div>
                                                 </div>
                                             ) : (
                                                 <>
@@ -682,33 +720,31 @@ export const Documents: React.FC = () => {
                         <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-blue-50/30 dark:bg-blue-900/10">
                             <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-100 tracking-tight">Nouveau Document</h2>
                         </div>
-                        <form onSubmit={handleCreate} className="p-8 space-y-5 overflow-y-auto custom-scrollbar">
+                        <form onSubmit={createForm.handleSubmit(handleCreate)} className="p-8 space-y-5 overflow-y-auto custom-scrollbar">
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Titre</label>
-                                <input required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                                    value={newDocData.title} onChange={e => setNewDocData({ ...newDocData, title: e.target.value })} placeholder="Ex: PSSI" />
+                                <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                                    {...createForm.register('title')} placeholder="Ex: PSSI" />
+                                {createForm.formState.errors.title && <p className="text-red-500 text-xs mt-1">{createForm.formState.errors.title.message}</p>}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none"
-                                        value={newDocData.type} onChange={e => setNewDocData({ ...newDocData, type: e.target.value as Document['type'] })}>
+                                        {...createForm.register('type')}>
                                         {['Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Version</label>
                                     <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                                        value={newDocData.version} onChange={e => setNewDocData({ ...newDocData, version: e.target.value })} />
+                                        {...createForm.register('version')} />
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Propriétaire</label>
                                 <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none"
-                                    value={newDocData.ownerId || ''} onChange={e => {
-                                        const u = usersList.find(u => u.uid === e.target.value);
-                                        setNewDocData({ ...newDocData, owner: u?.displayName || '', ownerId: e.target.value });
-                                    }}>
+                                    {...createForm.register('ownerId')}>
                                     <option value="">Sélectionner...</option>
                                     {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                 </select>
@@ -717,14 +753,14 @@ export const Documents: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Reviewers</label>
                                     <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
-                                        value={newDocData.reviewers || []} onChange={e => setNewDocData({ ...newDocData, reviewers: Array.from(e.target.selectedOptions, option => option.value) })}>
+                                        {...createForm.register('reviewers')}>
                                         {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Approbateurs</label>
                                     <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
-                                        value={newDocData.approvers || []} onChange={e => setNewDocData({ ...newDocData, approvers: Array.from(e.target.selectedOptions, option => option.value) })}>
+                                        {...createForm.register('approvers')}>
                                         {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                     </select>
                                 </div>
@@ -732,28 +768,28 @@ export const Documents: React.FC = () => {
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Prochaine révision</label>
                                 <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                                    value={newDocData.nextReviewDate} onChange={e => setNewDocData({ ...newDocData, nextReviewDate: e.target.value })} />
+                                    {...createForm.register('nextReviewDate')} />
                             </div>
 
                             <div className="grid grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contrôles</label>
                                     <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
-                                        value={newDocData.relatedControlIds || []} onChange={e => setNewDocData({ ...newDocData, relatedControlIds: Array.from(e.target.selectedOptions, option => option.value) })}>
+                                        {...createForm.register('relatedControlIds')}>
                                         {controls.map(c => <option key={c.id} value={c.id}>{c.code} {c.name.substring(0, 20)}...</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Actifs</label>
                                     <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
-                                        value={newDocData.relatedAssetIds || []} onChange={e => setNewDocData({ ...newDocData, relatedAssetIds: Array.from(e.target.selectedOptions, option => option.value) })}>
+                                        {...createForm.register('relatedAssetIds')}>
                                         {assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Audits</label>
                                     <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
-                                        value={newDocData.relatedAuditIds || []} onChange={e => setNewDocData({ ...newDocData, relatedAuditIds: Array.from(e.target.selectedOptions, option => option.value) })}>
+                                        {...createForm.register('relatedAuditIds')}>
                                         {audits.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                                     </select>
                                 </div>
@@ -767,18 +803,16 @@ export const Documents: React.FC = () => {
                                     maxSizeMB={10}
                                     allowedTypes={['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/*']}
                                 />
-                                {uploadedFileUrl && (
-                                    <div className="mt-2 flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                        <span className="text-sm text-green-600 dark:text-green-400">✓ Fichier téléversé</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setPreviewFile({ url: uploadedFileUrl, name: newDocData.title || 'Document', type: 'application/pdf' })}
-                                            className="text-sm text-blue-600 hover:underline"
-                                        >
-                                            Prévisualiser
-                                        </button>
-                                    </div>
-                                )}
+                                <div className="mt-2 flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                    <span className="text-sm text-green-600 dark:text-green-400">✓ Fichier téléversé</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPreviewFile({ url: uploadedFileUrl, name: createForm.getValues('title') || 'Document', type: 'application/pdf' })}
+                                        className="text-sm text-blue-600 hover:underline"
+                                    >
+                                        Prévisualiser
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">

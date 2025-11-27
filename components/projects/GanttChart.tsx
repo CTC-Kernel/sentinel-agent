@@ -141,6 +141,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
         );
     };
 
+    const [showList, setShowList] = React.useState(true);
+
     return (
         <div className="flex flex-col space-y-4">
             {/* Toolbar */}
@@ -156,6 +158,15 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setShowList(!showList)}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 ${showList ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                    >
+                        {showList ? 'Masquer Liste' : 'Afficher Liste'}
+                    </button>
+
+                    <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+
                     <button
                         onClick={scrollToToday}
                         className="px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-1.5"
@@ -191,7 +202,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                     onDateChange={handleTaskChange}
                     onProgressChange={handleTaskChange}
                     onDoubleClick={handleTaskClick}
-                    listCellWidth="160px"
+                    listCellWidth={showList ? "160px" : ""}
                     columnWidth={viewMode === 'Month' ? 300 : viewMode === 'Week' ? 250 : 65}
                     rowHeight={50}
                     barFill={70}

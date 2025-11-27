@@ -11,6 +11,9 @@ import { SubscriptionService } from '../services/subscriptionService';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ErrorLogger } from '../services/errorLogger';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { onboardingSchema, OnboardingFormData } from '../schemas/onboardingSchema';
 
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast } = useStore();
@@ -21,12 +24,18 @@ export const Onboarding: React.FC = () => {
     const [mode, setMode] = useState<'select' | 'create' | 'join'>('select');
     const [step, setStep] = useState(1);
     const [selectedPlan, setSelectedPlan] = useState<PlanType>('discovery');
-    // Role selection state
-    const [selectedRole, setSelectedRole] = useState<UserProfile['role']>('admin');
-    const [department, setDepartment] = useState('');
-    const [industry, setIndustry] = useState('');
-    const [displayName, setDisplayName] = useState(user?.displayName || '');
-    const [organizationName, setOrganizationName] = useState('');
+
+    const form = useForm<OnboardingFormData>({
+        resolver: zodResolver(onboardingSchema),
+        defaultValues: {
+            organizationName: user?.organizationName || '',
+            displayName: user?.displayName || '',
+            department: '',
+            role: 'admin',
+            industry: ''
+        }
+    });
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -47,9 +56,11 @@ export const Onboarding: React.FC = () => {
             setMode('create');
             setStep(2);
             // Pre-fill fields if possible (optional)
-            if (user.organizationName) setOrganizationName(user.organizationName);
+            if (user.organizationName) {
+                form.setValue('organizationName', user.organizationName);
+            }
         }
-    }, [user, navigate]);
+    }, [user, navigate, form]);
 
     const handleSearchOrg = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,7 +90,7 @@ export const Onboarding: React.FC = () => {
             await addDoc(collection(db, 'join_requests'), {
                 userId: user.uid,
                 userEmail: user.email,
-                displayName: displayName || user.displayName || user.email,
+                displayName: form.getValues('displayName') || user.displayName || user.email,
                 organizationId: orgId,
                 organizationName: orgName,
                 status: 'pending',
@@ -106,8 +117,7 @@ export const Onboarding: React.FC = () => {
         });
     };
 
-    const handleStep1 = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleStep1: SubmitHandler<OnboardingFormData> = async (data) => {
 
         const targetUser = currentUser || user;
 
@@ -124,12 +134,12 @@ export const Onboarding: React.FC = () => {
         const email = targetUser.email || '';
         const photoURL = targetUser.photoURL || null;
 
-        console.log("Starting Step 1...", { uid, organizationName, displayName });
+        console.log("Starting Step 1...", { uid, organizationName: data.organizationName, displayName: data.displayName });
 
         try {
             // Generate a NEW organization ID
             const newOrgId = generateUUID();
-            const orgName = organizationName || (user as any)?.organizationName || 'Mon Organisation';
+            const orgName = data.organizationName || (user as any)?.organizationName || 'Mon Organisation';
 
             console.log("Generated Org ID:", newOrgId);
             console.log("Org Name:", orgName);
@@ -142,10 +152,10 @@ export const Onboarding: React.FC = () => {
             const userUpdates = {
                 uid: uid,
                 email: email,
-                role: selectedRole,
-                department: department || '',
-                industry: industry || '',
-                displayName: displayName || '',
+                role: data.role,
+                department: data.department || '',
+                industry: data.industry || '',
+                displayName: data.displayName || '',
                 organizationName: orgName,
                 organizationId: newOrgId,
                 photoURL: photoURL,
@@ -178,7 +188,7 @@ export const Onboarding: React.FC = () => {
                 ownerId: uid, // Utilisation de la variable locale uid
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                industry: industry || '',
+                industry: data.industry || '',
                 subscription: {
                     planId: 'discovery',
                     status: 'active',
@@ -205,16 +215,16 @@ export const Onboarding: React.FC = () => {
             // 3. Send welcome email (async, don't block)
             try {
                 const htmlContent = getWelcomeEmailTemplate(
-                    displayName || email || 'Utilisateur',
+                    data.displayName || email || 'Utilisateur',
                     orgName,
-                    selectedRole,
+                    data.role,
                     `${window.location.origin}/`
                 );
 
                 if (email) {
                     // Cast user to any or create minimal user object if needed for sendEmail
                     // sendEmail expects a UserProfile-like object.
-                    const emailUserMock = { ...user, email, displayName } as UserProfile;
+                    const emailUserMock = { ...user, email, displayName: data.displayName } as UserProfile;
 
                     sendEmail(emailUserMock, {
                         to: email,
@@ -402,13 +412,15 @@ export const Onboarding: React.FC = () => {
                     {mode === 'create' && (
                         <>
                             {step === 1 ? (
-                                <form onSubmit={handleStep1} className="space-y-6">
+                                <form onSubmit={form.handleSubmit(handleStep1)} className="space-y-6">
                                     {!user?.organizationId && (
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom de l'Organisation</label>
                                             <div className="relative">
                                                 <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                                <input type="text" required className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Ex: Acme Corp" value={organizationName} onChange={e => setOrganizationName(e.target.value)} />
+                                                <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Ex: Acme Corp"
+                                                    {...form.register('organizationName')} />
+                                                {form.formState.errors.organizationName && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.organizationName.message}</p>}
                                             </div>
                                         </div>
                                     )}
@@ -416,7 +428,9 @@ export const Onboarding: React.FC = () => {
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom complet</label>
                                         <div className="relative">
                                             <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                            <input type="text" required className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Votre nom" value={displayName} onChange={e => setDisplayName(e.target.value)} />
+                                            <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Votre nom"
+                                                {...form.register('displayName')} />
+                                            {form.formState.errors.displayName && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.displayName.message}</p>}
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-5">
@@ -424,14 +438,17 @@ export const Onboarding: React.FC = () => {
                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Département</label>
                                             <div className="relative">
                                                 <Briefcase className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                                <input type="text" required className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Ex: IT / Sécurité" value={department} onChange={e => setDepartment(e.target.value)} />
+                                                <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Ex: IT / Sécurité"
+                                                    {...form.register('department')} />
+                                                {form.formState.errors.department && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.department.message}</p>}
                                             </div>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Rôle Principal</label>
                                             <div className="relative">
                                                 <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                                <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer" value={selectedRole} onChange={e => setSelectedRole(e.target.value as UserProfile['role'])}>
+                                                <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
+                                                    {...form.register('role')}>
                                                     <option value="admin">Administrateur</option>
                                                     <option value="rssi">RSSI / CISO</option>
                                                     <option value="direction">Direction / DPO</option>
@@ -445,7 +462,8 @@ export const Onboarding: React.FC = () => {
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Secteur</label>
                                         <div className="relative">
                                             <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                            <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer" value={industry} onChange={e => setIndustry(e.target.value)}>
+                                            <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
+                                                {...form.register('industry')}>
                                                 <option value="">Sélectionner...</option>
                                                 <option value="tech">Technologie / SaaS</option>
                                                 <option value="finance">Finance / Banque</option>
@@ -454,6 +472,7 @@ export const Onboarding: React.FC = () => {
                                                 <option value="public">Secteur Public</option>
                                                 <option value="other">Autre</option>
                                             </select>
+                                            {form.formState.errors.industry && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.industry.message}</p>}
                                         </div>
                                     </div>
 
@@ -467,7 +486,7 @@ export const Onboarding: React.FC = () => {
                                         >
                                             Retour
                                         </button>
-                                        <button type="submit" disabled={loading || (!user?.organizationId && !organizationName)} className="w-2/3 py-4 bg-[#000000] dark:bg-white text-white dark:text-black font-bold rounded-2xl shadow-lg card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <button type="submit" disabled={loading || (!user?.organizationId && !form.watch('organizationName'))} className="w-2/3 py-4 bg-[#000000] dark:bg-white text-white dark:text-black font-bold rounded-2xl shadow-lg card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
                                             {loading ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <>Continuer <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>

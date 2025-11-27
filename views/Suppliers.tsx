@@ -3,8 +3,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Supplier, SupplierAssessment, SupplierIncident, Document, SystemLog, Criticality, UserProfile } from '../types';
-import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, X, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, TrendingUp, Upload } from '../components/ui/Icons';
+import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile } from '../types';
+import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, X, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
@@ -15,31 +15,83 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useLocation } from 'react-router-dom';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { supplierSchema, SupplierFormData } from '../schemas/supplierSchema';
 
 export const Suppliers: React.FC = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [documents, setDocuments] = useState<Document[]>([]);
-    const [assessments, setAssessments] = useState<SupplierAssessment[]>([]);
-    const [incidents, setIncidents] = useState<SupplierIncident[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
     const [filter, setFilter] = useState('');
     const { user, addToast } = useStore();
     const location = useLocation();
     const canEdit = user?.role === 'admin';
 
-    // Inspector State
+    const [showCreateModal, setShowCreateModal] = useState(false); // Keep this one as it is used in render
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    // Removed duplicate/unused states
+
+    const createForm = useForm<SupplierFormData>({
+        resolver: zodResolver(supplierSchema),
+        defaultValues: {
+            name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
+            owner: user?.displayName || '', ownerId: user?.uid || '',
+            assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false }
+        }
+    });
+
+    // Inspector State
     const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'incidents' | 'history' | 'comments'>('profile');
     const [supplierHistory, setSupplierHistory] = useState<SystemLog[]>([]);
-
-    // Stats State
     const [stats, setStats] = useState({ total: 0, critical: 0, avgScore: 0, expired: 0, highRisk: 0, activeIncidents: 0 });
 
-    // Edit Form State
-    const [isEditing, setIsEditing] = useState(false);
-    const [formData, setFormData] = useState<Partial<Supplier>>({});
+    const editForm = useForm<SupplierFormData>({
+        resolver: zodResolver(supplierSchema),
+        defaultValues: {
+            name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
+            owner: '', ownerId: '',
+            assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false }
+        }
+    });
+
+    useEffect(() => {
+        if (selectedSupplier) {
+            editForm.reset({
+                name: selectedSupplier.name,
+                category: selectedSupplier.category,
+                criticality: selectedSupplier.criticality,
+                status: selectedSupplier.status,
+                contactName: selectedSupplier.contactName,
+                contactEmail: selectedSupplier.contactEmail || '',
+                owner: selectedSupplier.owner,
+                ownerId: selectedSupplier.ownerId,
+                description: selectedSupplier.description,
+                contractDocumentId: selectedSupplier.contractDocumentId,
+                contractEnd: selectedSupplier.contractEnd,
+                securityScore: selectedSupplier.securityScore,
+                assessment: selectedSupplier.assessment
+            });
+        }
+    }, [selectedSupplier, editForm]);
+
+    const fetchData = async () => {
+        if (!user?.organizationId) return;
+        try {
+            const q = query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId));
+            const querySnapshot = await getDocs(q);
+            const suppliersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Supplier));
+            setSuppliers(suppliersData);
+        } catch (error) {
+            console.error("Error fetching suppliers: ", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [user?.organizationId]);
 
     // Import
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -90,19 +142,16 @@ export const Suppliers: React.FC = () => {
             const docData = getDocsData<Document>(results[1]);
             setDocuments(docData);
 
-            const assessmentData = getDocsData<SupplierAssessment>(results[2]);
-            setAssessments(assessmentData);
-
             const incidentData = getDocsData<SupplierIncident>(results[3]);
-            setIncidents(incidentData);
 
             // Calculate Stats
+            // Calculate Stats
             const total = data.length;
-            const critical = data.filter(s => s.riskLevel === 'Critical' || s.riskLevel === 'High').length;
-            const avgScore = total > 0 ? Math.round(data.reduce((acc, s) => acc + s.riskAssessment.overallScore, 0) / total) : 0;
+            const critical = data.filter(s => s.criticality === Criticality.CRITICAL || s.criticality === Criticality.HIGH).length;
+            const avgScore = total > 0 ? Math.round(data.reduce((acc, s) => acc + (s.securityScore || 0), 0) / total) : 0;
             const today = new Date();
-            const expired = data.filter(s => s.contract.endDate && new Date(s.contract.endDate) < today).length;
-            const highRisk = data.filter(s => s.riskLevel === 'High' || s.riskLevel === 'Critical').length;
+            const expired = data.filter(s => s.contractEnd && new Date(s.contractEnd) < today).length;
+            const highRisk = data.filter(s => s.criticality === Criticality.HIGH || s.criticality === Criticality.CRITICAL).length;
             const activeIncidents = incidentData.filter(i => i.status === 'Open' || i.status === 'Investigating').length;
 
             setStats({ total, critical, avgScore, expired, highRisk, activeIncidents });
@@ -124,7 +173,6 @@ export const Suppliers: React.FC = () => {
         if (supplier) {
             setSelectedSupplier(supplier);
             setInspectorTab('profile');
-            setFormData(supplier);
         }
     }, [location.state, loading, suppliers]);
 
@@ -133,7 +181,21 @@ export const Suppliers: React.FC = () => {
     const openInspector = async (supplier: Supplier) => {
         setSelectedSupplier(supplier);
         setInspectorTab('profile');
-        setFormData(supplier);
+        editForm.reset({
+            name: supplier.name,
+            category: supplier.category,
+            criticality: supplier.criticality,
+            contactName: supplier.contactName,
+            contactEmail: supplier.contactEmail,
+            status: supplier.status,
+            owner: supplier.owner,
+            ownerId: supplier.ownerId,
+            description: supplier.description,
+            contractDocumentId: supplier.contractDocumentId,
+            contractEnd: supplier.contractEnd,
+            securityScore: supplier.securityScore,
+            assessment: supplier.assessment
+        });
         setIsEditing(false);
 
         try {
@@ -147,82 +209,41 @@ export const Suppliers: React.FC = () => {
     };
 
     const openCreateModal = () => {
-        setFormData({
-            name: '',
-            category: 'Software',
-            contact: {
-                email: '',
-                phone: '',
-                address: '',
-                website: '',
-                contactName: ''
-            },
-            contract: {
-                startDate: new Date().toISOString(),
-                value: 0,
-                currency: 'EUR'
-            },
-            compliance: {
-                iso27001: false,
-                gdpr: false,
-                soc2: false,
-                hipaa: false,
-                otherCertifications: []
-            },
-            riskAssessment: {
-                overallScore: 3,
-                dataAccess: 'Medium',
-                dependencyLevel: 'Medium',
-                geographicRisk: 'Low',
-                financialStability: 3,
-                securityMaturity: 3,
-                lastAssessment: new Date().toISOString(),
-                nextAssessment: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            documents: {},
-            status: 'Active',
-            riskLevel: 'Medium',
-            owner: user?.displayName || '',
-            ownerId: user?.uid || '',
-            reviewDates: {
-                contractReview: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-                securityReview: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
-                complianceReview: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-            }
+        createForm.reset({
+            name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
+            owner: user?.displayName || '', ownerId: user?.uid || '',
+            assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false }
         });
         setIsEditing(false);
-        setShowModal(true);
+        setShowCreateModal(true);
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleCreate: SubmitHandler<SupplierFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
         try {
             await addDoc(collection(db, 'suppliers'), {
-                ...formData,
+                ...data,
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             });
-            await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${formData.name}`);
+            await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${data.name}`);
             addToast("Fournisseur ajouté", "success");
-            setShowModal(false);
+            setShowCreateModal(false);
             fetchSuppliers();
         } catch (e) { addToast("Erreur enregistrement", "error"); }
     };
 
-    const handleUpdate = async () => {
+    const handleUpdate: SubmitHandler<SupplierFormData> = async (data) => {
         if (!canEdit || !selectedSupplier) return;
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { id, ...data } = formData;
             await updateDoc(doc(db, 'suppliers', selectedSupplier.id), {
                 ...data,
                 updatedAt: new Date().toISOString()
             });
-            await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${formData.name}`);
-            setSuppliers(prev => prev.map(s => s.id === selectedSupplier.id ? { ...s, ...data } : s));
-            setSelectedSupplier({ ...selectedSupplier, ...data });
+            await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${data.name}`);
+            setSuppliers(prev => prev.map(s => s.id === selectedSupplier.id ? { ...s, ...data, criticality: data.criticality as Criticality } : s));
+            setSelectedSupplier({ ...selectedSupplier, ...data, criticality: data.criticality as Criticality });
             setIsEditing(false);
             addToast("Fournisseur mis à jour", "success");
             fetchSuppliers(); // Refresh stats
@@ -267,8 +288,7 @@ export const Suppliers: React.FC = () => {
     };
 
     const toggleAssessment = (field: keyof NonNullable<Supplier['assessment']>) => {
-        if (!formData.assessment) return;
-        const currentAssessment = formData.assessment || {} as SupplierAssessment['categories']['security'];
+        const currentAssessment = editForm.getValues('assessment') || {};
         const updated = { ...currentAssessment, [field]: !currentAssessment[field] };
 
         // Recalculate score
@@ -279,7 +299,8 @@ export const Suppliers: React.FC = () => {
         if (updated.hasBcp) score += 15;
         if (updated.hasIncidentProcess) score += 15;
 
-        setFormData(prev => ({ ...prev, assessment: updated, securityScore: score }));
+        editForm.setValue('assessment', updated);
+        editForm.setValue('securityScore', score);
         setIsEditing(true); // Flag as edited so we can save
     };
 
@@ -394,7 +415,7 @@ export const Suppliers: React.FC = () => {
                             <Upload className="h-4 w-4 mr-2" /> Importer
                         </button>
                         <button
-                            onClick={openCreateModal}
+                            onClick={() => setShowCreateModal(true)}
                             className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                         >
                             <Plus className="h-4 w-4 mr-2" /> Nouveau Fournisseur
@@ -404,48 +425,38 @@ export const Suppliers: React.FC = () => {
             />
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Fournisseurs</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white dark:bg-[#1A1D24] p-6 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="p-2.5 bg-blue-500/10 rounded-xl"><Building className="h-5 w-5 text-blue-500" /></div>
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-green-500/10 text-green-500">+12%</span>
                     </div>
-                    <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600"><Building className="h-6 w-6" /></div>
+                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{stats.total}</div>
+                    <div className="text-sm text-slate-500">Fournisseurs Actifs</div>
                 </div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">Critiques / Élevés</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.critical}</p>
+                <div className="bg-white dark:bg-[#1A1D24] p-6 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="p-2.5 bg-orange-500/10 rounded-xl"><ShieldAlert className="h-5 w-5 text-orange-500" /></div>
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-500">High Risk</span>
                     </div>
-                    <div className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600"><ShieldAlert className="h-6 w-6" /></div>
+                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{stats.critical}</div>
+                    <div className="text-sm text-slate-500">Critiques / Élevés</div>
                 </div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Score Moyen</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.avgScore}/100</p>
+                <div className="bg-white dark:bg-[#1A1D24] p-6 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="p-2.5 bg-purple-500/10 rounded-xl"><Handshake className="h-5 w-5 text-purple-500" /></div>
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-500">Avg</span>
                     </div>
-                    <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600"><TrendingUp className="h-6 w-6" /></div>
+                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{stats.avgScore}/100</div>
+                    <div className="text-sm text-slate-500">Score Moyen</div>
                 </div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Contrats Expirés</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.expired}</p>
+                <div className="bg-white dark:bg-[#1A1D24] p-6 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="p-2.5 bg-red-500/10 rounded-xl"><FileText className="h-5 w-5 text-red-500" /></div>
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-red-500/10 text-red-500">Action Req</span>
                     </div>
-                    <div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><CalendarDays className="h-6 w-6" /></div>
-                </div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-purple-600 mb-1">Évaluations</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{assessments.length}</p>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-600"><ClipboardList className="h-6 w-6" /></div>
-                </div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">Incidents</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{incidents.length}</p>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 text-amber-600"><ShieldAlert className="h-6 w-6" /></div>
+                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{stats.expired}</div>
+                    <div className="text-sm text-slate-500">Contrats Expirés</div>
                 </div>
             </div>
 
@@ -545,7 +556,7 @@ export const Suppliers: React.FC = () => {
                                             <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                         )}
                                         {canEdit && isEditing && (
-                                            <button onClick={handleUpdate} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+                                            <button onClick={editForm.handleSubmit(handleUpdate)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
                                         )}
                                         {canEdit && (
                                             <button onClick={() => initiateDelete(selectedSupplier.id, selectedSupplier.name)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
@@ -575,9 +586,9 @@ export const Suppliers: React.FC = () => {
                                             {isEditing ? (
                                                 <>
                                                     <div className="grid grid-cols-2 gap-6">
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editForm.register('name')} /></div>
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Catégorie</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as Supplier['category'] })}>
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('category')}>
                                                                 {['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'].map(c => <option key={c} value={c}>{c}</option>)}
                                                             </select>
                                                         </div>
@@ -585,28 +596,29 @@ export const Suppliers: React.FC = () => {
                                                     <div>
                                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
                                                         <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                                            value={formData.ownerId || ''}
+                                                            {...editForm.register('ownerId')}
                                                             onChange={e => {
+                                                                editForm.setValue('ownerId', e.target.value);
                                                                 const selectedUser = usersList.find(u => u.uid === e.target.value);
-                                                                setFormData({ ...formData, ownerId: e.target.value, owner: selectedUser?.displayName || '' });
+                                                                editForm.setValue('owner', selectedUser?.displayName || '');
                                                             }}>
                                                             <option value="">Sélectionner...</option>
                                                             {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                                         </select>
                                                     </div>
-                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={2} value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} /></div>
+                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={2} {...editForm.register('description')} /></div>
                                                     <div className="grid grid-cols-2 gap-6">
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contact Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={formData.contactName} onChange={e => setFormData({ ...formData, contactName: e.target.value })} /></div>
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={formData.contactEmail} onChange={e => setFormData({ ...formData, contactEmail: e.target.value })} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contact Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editForm.register('contactName')} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editForm.register('contactEmail')} /></div>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-6">
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Criticité</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.criticality} onChange={e => setFormData({ ...formData, criticality: e.target.value as Criticality })}>
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('criticality')}>
                                                                 {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
                                                             </select>
                                                         </div>
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as Supplier['status'] })}>
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('status')}>
                                                                 <option value="Actif">Actif</option><option value="En cours">En cours</option><option value="Terminé">Terminé</option>
                                                             </select>
                                                         </div>
@@ -614,14 +626,14 @@ export const Suppliers: React.FC = () => {
                                                     <div className="grid grid-cols-2 gap-6">
                                                         <div>
                                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contrat (Document)</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={formData.contractDocumentId} onChange={e => setFormData({ ...formData, contractDocumentId: e.target.value })}>
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('contractDocumentId')}>
                                                                 <option value="">Sélectionner...</option>
                                                                 {documents.map(d => <option key={d.id} value={d.id}>{d.title}</option>)}
                                                             </select>
                                                         </div>
                                                         <div>
                                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Fin de Contrat</label>
-                                                            <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={formData.contractEnd || ''} onChange={e => setFormData({ ...formData, contractEnd: e.target.value })} />
+                                                            <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editForm.register('contractEnd')} />
                                                         </div>
                                                     </div>
                                                 </>
@@ -672,8 +684,8 @@ export const Suppliers: React.FC = () => {
                                                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center uppercase tracking-wide">
                                                         <ShieldAlert className="h-4 w-4 mr-2 text-brand-500" /> Questionnaire de Sécurité
                                                     </h3>
-                                                    <div className={`text-2xl font-black ${formData.securityScore! >= 80 ? 'text-emerald-500' : formData.securityScore! >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
-                                                        {formData.securityScore}/100
+                                                    <div className={`text-2xl font-black ${editForm.watch('securityScore')! >= 80 ? 'text-emerald-500' : editForm.watch('securityScore')! >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
+                                                        {editForm.watch('securityScore')}/100
                                                     </div>
                                                 </div>
 
@@ -686,9 +698,9 @@ export const Suppliers: React.FC = () => {
                                                             { id: 'hasBcp', label: 'Plan de Continuité (PCA/PRA) (+15 pts)' },
                                                             { id: 'hasIncidentProcess', label: 'Processus de réponse aux incidents (+15 pts)' },
                                                         ].map(item => (
-                                                            <label key={item.id} className={`flex items-center p-4 rounded-2xl border cursor-pointer transition-all ${formData.assessment?.[item.id as keyof typeof formData.assessment] ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 shadow-sm' : 'border-transparent hover:bg-slate-50 dark:hover:bg-white/5'}`}>
+                                                            <label key={item.id} className={`flex items-center p-4 rounded-2xl border cursor-pointer transition-all ${editForm.watch(`assessment.${item.id as keyof NonNullable<Supplier['assessment']>}`) ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 shadow-sm' : 'border-transparent hover:bg-slate-50 dark:hover:bg-white/5'}`}>
                                                                 <input type="checkbox" className="h-5 w-5 rounded text-brand-600 focus:ring-brand-500 border-gray-300"
-                                                                    checked={!!formData.assessment?.[item.id as keyof typeof formData.assessment]}
+                                                                    checked={!!editForm.watch(`assessment.${item.id as keyof NonNullable<Supplier['assessment']>}`)}
                                                                     onChange={() => toggleAssessment(item.id as keyof NonNullable<Supplier['assessment']>)}
                                                                 />
                                                                 <span className="ml-3 text-sm font-medium text-slate-700 dark:text-slate-200">{item.label}</span>
@@ -701,7 +713,7 @@ export const Suppliers: React.FC = () => {
 
                                                 {isEditing && (
                                                     <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/5 flex justify-end">
-                                                        <button onClick={handleUpdate} className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform shadow-lg">Enregistrer le score</button>
+                                                        <button onClick={editForm.handleSubmit(handleUpdate)} className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform shadow-lg">Enregistrer le score</button>
                                                     </div>
                                                 )}
                                             </div>
@@ -741,7 +753,7 @@ export const Suppliers: React.FC = () => {
             )}
 
             {/* Create Modal */}
-            {showModal && createPortal(
+            {showCreateModal && createPortal(
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                     <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-lg border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-slate-900/50">
@@ -749,19 +761,21 @@ export const Suppliers: React.FC = () => {
                             <p className="text-sm text-slate-500 mt-1">Enregistrement d'un tiers.</p>
                         </div>
 
-                        <form onSubmit={handleCreate} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
+                        <form onSubmit={createForm.handleSubmit(handleCreate)} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom de l'entreprise</label>
-                                <input required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                    value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                    {...createForm.register('name')} />
+                                {createForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{createForm.formState.errors.name.message}</p>}
                             </div>
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
                                 <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                    value={formData.ownerId || ''}
+                                    {...createForm.register('ownerId')}
                                     onChange={e => {
+                                        createForm.setValue('ownerId', e.target.value);
                                         const selectedUser = usersList.find(u => u.uid === e.target.value);
-                                        setFormData({ ...formData, ownerId: e.target.value, owner: selectedUser?.displayName || '' });
+                                        createForm.setValue('owner', selectedUser?.displayName || '');
                                     }}>
                                     <option value="">Sélectionner...</option>
                                     {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
@@ -771,14 +785,14 @@ export const Suppliers: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Catégorie</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as Supplier['category'] })}>
+                                        {...createForm.register('category')}>
                                         {['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'].map(c => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Criticité</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        value={formData.criticality} onChange={e => setFormData({ ...formData, criticality: e.target.value as Criticality })}>
+                                        {...createForm.register('criticality')}>
                                         {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                 </div>
@@ -788,23 +802,23 @@ export const Suppliers: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contact (Nom)</label>
                                     <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                        value={formData.contactName} onChange={e => setFormData({ ...formData, contactName: e.target.value })} />
+                                        {...createForm.register('contactName')} />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email Contact</label>
                                     <input type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                        value={formData.contactEmail} onChange={e => setFormData({ ...formData, contactEmail: e.target.value })} />
+                                        {...createForm.register('contactEmail')} />
                                 </div>
                             </div>
 
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Fin de Contrat</label>
                                 <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                    value={formData.contractEnd || ''} onChange={e => setFormData({ ...formData, contractEnd: e.target.value })} />
+                                    {...createForm.register('contractEnd')} />
                             </div>
 
                             <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
-                                <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
                                 <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg">Créer</button>
                             </div>
                         </form>

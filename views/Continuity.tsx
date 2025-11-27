@@ -1,5 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { businessProcessSchema, BusinessProcessFormData, bcpDrillSchema, BcpDrillFormData } from '../schemas/continuitySchema';
 import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -32,7 +35,7 @@ export const Continuity: React.FC = () => {
     const [selectedProcess, setSelectedProcess] = useState<BusinessProcess | null>(null);
     const [inspectorTab, setInspectorTab] = useState<'details' | 'drills' | 'history' | 'comments'>('details');
     const [processHistory, setProcessHistory] = useState<SystemLog[]>([]);
-    const [editForm, setEditForm] = useState<Partial<BusinessProcess>>({});
+    // const [editForm, setEditForm] = useState<Partial<BusinessProcess>>({}); // Removed
     const [isEditing, setIsEditing] = useState(false);
 
     // Confirm Dialog
@@ -40,13 +43,27 @@ export const Continuity: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    const [newProcess, setNewProcess] = useState<Partial<BusinessProcess>>({
-        name: '', description: '', owner: '', rto: '4h', rpo: '1h', priority: 'Moyenne',
-        supportingAssetIds: [], drpDocumentId: ''
+    const createProcessForm = useForm<BusinessProcessFormData>({
+        resolver: zodResolver(businessProcessSchema),
+        defaultValues: {
+            name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne',
+            supportingAssetIds: [], drpDocumentId: ''
+        }
     });
 
-    const [newDrill, setNewDrill] = useState<Partial<BcpDrill>>({
-        processId: '', date: '', type: 'Tabletop', result: 'Succès', notes: ''
+    const editProcessForm = useForm<BusinessProcessFormData>({
+        resolver: zodResolver(businessProcessSchema),
+        defaultValues: {
+            name: '', description: '', owner: '', rto: '', rpo: '', priority: 'Moyenne',
+            supportingAssetIds: [], drpDocumentId: ''
+        }
+    });
+
+    const drillForm = useForm<BcpDrillFormData>({
+        resolver: zodResolver(bcpDrillSchema),
+        defaultValues: {
+            processId: '', date: new Date().toISOString().split('T')[0], type: 'Tabletop', result: 'Succès', notes: ''
+        }
     });
 
     const fetchData = async () => {
@@ -105,7 +122,17 @@ export const Continuity: React.FC = () => {
 
     const openInspector = async (proc: BusinessProcess) => {
         setSelectedProcess(proc);
-        setEditForm(proc);
+        editProcessForm.reset({
+            name: proc.name,
+            description: proc.description,
+            owner: proc.owner,
+            rto: proc.rto,
+            rpo: proc.rpo,
+            priority: proc.priority,
+            supportingAssetIds: proc.supportingAssetIds || [],
+            drpDocumentId: proc.drpDocumentId || '',
+            lastTestDate: proc.lastTestDate
+        });
         setInspectorTab('details');
         setIsEditing(false);
 
@@ -121,29 +148,26 @@ export const Continuity: React.FC = () => {
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.openInspector', 'FETCH_FAILED'); }
     };
 
-    const handleCreateProcess = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleCreateProcess: SubmitHandler<BusinessProcessFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
         try {
-            await addDoc(collection(db, 'business_processes'), { ...newProcess, organizationId: user.organizationId });
-            await logAction(user, 'CREATE', 'BCP', `Nouveau Processus: ${newProcess.name}`);
+            await addDoc(collection(db, 'business_processes'), { ...data, organizationId: user.organizationId });
+            await logAction(user, 'CREATE', 'BCP', `Nouveau Processus: ${data.name}`);
             addToast("Processus créé", "success");
             setShowCreateModal(false);
-            setShowCreateModal(false);
+            createProcessForm.reset();
             fetchData();
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleCreateProcess', 'CREATE_FAILED'); }
     };
 
-    const handleUpdateProcess = async () => {
+    const handleUpdateProcess: SubmitHandler<BusinessProcessFormData> = async (data) => {
         if (!canEdit || !selectedProcess) return;
         try {
-            const { id, ...data } = editForm as any;
             await updateDoc(doc(db, 'business_processes', selectedProcess.id), data);
-            await logAction(user, 'UPDATE', 'BCP', `MAJ Processus: ${editForm.name}`);
+            await logAction(user, 'UPDATE', 'BCP', `MAJ Processus: ${data.name}`);
 
             setProcesses(prev => prev.map(p => p.id === selectedProcess.id ? { ...p, ...data } : p));
             setSelectedProcess({ ...selectedProcess, ...data });
-            setIsEditing(false);
             setIsEditing(false);
             addToast("Processus mis à jour", "success");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleUpdateProcess', 'UPDATE_FAILED'); }
@@ -171,21 +195,25 @@ export const Continuity: React.FC = () => {
     };
 
     const openDrillModal = () => {
-        setNewDrill({ processId: selectedProcess?.id || processes[0]?.id || '', date: new Date().toISOString().split('T')[0], type: 'Tabletop', result: 'Succès', notes: '' });
+        drillForm.reset({
+            processId: selectedProcess?.id || processes[0]?.id || '',
+            date: new Date().toISOString().split('T')[0],
+            type: 'Tabletop',
+            result: 'Succès',
+            notes: ''
+        });
         setShowDrillModal(true);
     };
 
-    const handleSubmitDrill = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmitDrill: SubmitHandler<BcpDrillFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
         try {
-            await addDoc(collection(db, 'bcp_drills'), { ...newDrill, organizationId: user.organizationId, createdAt: new Date().toISOString() });
-            if (newDrill.processId) {
-                await updateDoc(doc(db, 'business_processes', newDrill.processId), { lastTestDate: newDrill.date });
+            await addDoc(collection(db, 'bcp_drills'), { ...data, organizationId: user.organizationId, createdAt: new Date().toISOString() });
+            if (data.processId) {
+                await updateDoc(doc(db, 'business_processes', data.processId), { lastTestDate: data.date });
             }
             await logAction(user, 'CREATE', 'BCP', `Nouvel exercice de crise`);
             addToast("Exercice enregistré", "success");
-            setShowDrillModal(false);
             setShowDrillModal(false);
             fetchData();
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleSubmitDrill', 'CREATE_FAILED'); }
@@ -209,11 +237,11 @@ export const Continuity: React.FC = () => {
     };
 
     const toggleAssetSelection = (assetId: string) => {
-        const current = editForm.supportingAssetIds || [];
+        const current = editProcessForm.getValues('supportingAssetIds') || [];
         if (current.includes(assetId)) {
-            setEditForm({ ...editForm, supportingAssetIds: current.filter(id => id !== assetId) });
+            editProcessForm.setValue('supportingAssetIds', current.filter(id => id !== assetId));
         } else {
-            setEditForm({ ...editForm, supportingAssetIds: [...current, assetId] });
+            editProcessForm.setValue('supportingAssetIds', [...current, assetId]);
         }
     };
 
@@ -254,7 +282,7 @@ export const Continuity: React.FC = () => {
                                     <Zap className="h-4 w-4 mr-2 text-amber-500" /> Nouvel Exercice
                                 </button>
                                 <button onClick={() => {
-                                    setNewProcess({ name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne', supportingAssetIds: [], drpDocumentId: '' });
+                                    createProcessForm.reset({ name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne', supportingAssetIds: [], drpDocumentId: '' });
                                     setShowCreateModal(true);
                                 }} className="flex items-center px-5 py-2.5 bg-rose-600 text-white rounded-xl text-sm font-bold hover:bg-rose-700 shadow-lg shadow-rose-500/20 transition-transform hover:scale-105">
                                     <Plus className="h-4 w-4 mr-2" /> Nouveau Processus
@@ -286,7 +314,7 @@ export const Continuity: React.FC = () => {
                                 description="Commencez par définir vos processus critiques pour l'analyse d'impact (BIA)."
                                 actionLabel="Nouveau Processus"
                                 onAction={() => {
-                                    setNewProcess({ name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne', supportingAssetIds: [], drpDocumentId: '' });
+                                    createProcessForm.reset({ name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne', supportingAssetIds: [], drpDocumentId: '' });
                                     setShowCreateModal(true);
                                 }}
                             />
@@ -421,7 +449,7 @@ export const Continuity: React.FC = () => {
                                             <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                         )}
                                         {canEdit && isEditing && (
-                                            <button onClick={handleUpdateProcess} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+                                            <button onClick={editProcessForm.handleSubmit(handleUpdateProcess)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
                                         )}
                                         {canEdit && (
                                             <button onClick={() => initiateDelete(selectedProcess.id, selectedProcess.name)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
@@ -454,24 +482,24 @@ export const Continuity: React.FC = () => {
                                             {isEditing ? (
                                                 <div className="space-y-6">
                                                     <div className="grid grid-cols-2 gap-6">
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('name')} /></div>
                                                         <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Priorité</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" value={editForm.priority} onChange={e => setEditForm({ ...editForm, priority: e.target.value as any })}>
-                                                                {['Critique', 'Elevée', 'Moyenne', 'Faible'].map(p => <option key={p} value={p}>{p}</option>)}
+                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editProcessForm.register('priority')}>
+                                                                {['Critique', 'Élevée', 'Moyenne', 'Faible'].map(p => <option key={p} value={p}>{p}</option>)}
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={3} value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} /></div>
+                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={3} {...editProcessForm.register('description')} /></div>
                                                     <div className="grid grid-cols-2 gap-6">
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RTO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={editForm.rto} onChange={e => setEditForm({ ...editForm, rto: e.target.value })} /></div>
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RPO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" value={editForm.rpo} onChange={e => setEditForm({ ...editForm, rpo: e.target.value })} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RTO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('rto')} /></div>
+                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RPO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('rpo')} /></div>
                                                     </div>
                                                     <div>
                                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Actifs supports</label>
                                                         <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-white/10 rounded-2xl p-2 space-y-1 custom-scrollbar bg-white dark:bg-black/20">
                                                             {assets.map(asset => (
                                                                 <label key={asset.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl cursor-pointer transition-colors">
-                                                                    <input type="checkbox" checked={editForm.supportingAssetIds?.includes(asset.id)}
+                                                                    <input type="checkbox" checked={editProcessForm.watch('supportingAssetIds')?.includes(asset.id)}
                                                                         onChange={() => toggleAssetSelection(asset.id)} className="rounded text-rose-600 focus:ring-rose-500 border-gray-300" />
                                                                     <span className="text-sm font-medium dark:text-white">{asset.name} <span className="text-xs text-gray-400 ml-1">({asset.type})</span></span>
                                                                 </label>
@@ -576,29 +604,30 @@ export const Continuity: React.FC = () => {
                             <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-rose-50/30 dark:bg-rose-900/10">
                                 <h2 className="text-2xl font-bold text-rose-900 dark:text-rose-100 tracking-tight">Nouveau Processus Critique</h2>
                             </div>
-                            <form onSubmit={handleCreateProcess} className="p-8 space-y-6">
+                            <form onSubmit={createProcessForm.handleSubmit(handleCreateProcess)} className="p-8 space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom du processus</label>
-                                        <input required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium"
-                                            value={newProcess.name} onChange={e => setNewProcess({ ...newProcess, name: e.target.value })} placeholder="ex: Gestion des Commandes" />
+                                        <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium"
+                                            {...createProcessForm.register('name')} placeholder="ex: Gestion des Commandes" />
+                                        {createProcessForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{createProcessForm.formState.errors.name.message}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
                                         <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium appearance-none"
-                                            value={newProcess.owner} onChange={e => setNewProcess({ ...newProcess, owner: e.target.value })}>
+                                            {...createProcessForm.register('owner')}>
                                             <option value="">Sélectionner...</option>
                                             {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
                                         </select>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-6">
-                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RTO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium" value={newProcess.rto} onChange={e => setNewProcess({ ...newProcess, rto: e.target.value })} placeholder="4h" /></div>
-                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RPO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium" value={newProcess.rpo} onChange={e => setNewProcess({ ...newProcess, rpo: e.target.value })} placeholder="1h" /></div>
+                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RTO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium" {...createProcessForm.register('rto')} placeholder="4h" /></div>
+                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RPO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium" {...createProcessForm.register('rpo')} placeholder="1h" /></div>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
-                                    <textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium resize-none" rows={2} value={newProcess.description} onChange={e => setNewProcess({ ...newProcess, description: e.target.value })} />
+                                    <textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium resize-none" rows={2} {...createProcessForm.register('description')} />
                                 </div>
                                 <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                                     <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
@@ -619,24 +648,24 @@ export const Continuity: React.FC = () => {
                             <div className="p-8 border-b border-gray-100 dark:border-white/5">
                                 <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Enregistrer un exercice</h2>
                             </div>
-                            <form onSubmit={handleSubmitDrill} className="p-8 space-y-5">
+                            <form onSubmit={drillForm.handleSubmit(handleSubmitDrill)} className="p-8 space-y-5">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Processus Testé</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        value={newDrill.processId} onChange={e => setNewDrill({ ...newDrill, processId: e.target.value })}>
+                                        {...drillForm.register('processId')}>
                                         {processes.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Date</label>
-                                        <input type="date" required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                            value={newDrill.date} onChange={e => setNewDrill({ ...newDrill, date: e.target.value })} />
+                                        <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                            {...drillForm.register('date')} />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
                                         <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                            value={newDrill.type} onChange={e => setNewDrill({ ...newDrill, type: e.target.value as any })}>
+                                            {...drillForm.register('type')}>
                                             {['Tabletop', 'Simulation', 'Bascule réelle'].map(t => <option key={t} value={t}>{t}</option>)}
                                         </select>
                                     </div>
@@ -644,14 +673,14 @@ export const Continuity: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Résultat</label>
                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        value={newDrill.result} onChange={e => setNewDrill({ ...newDrill, result: e.target.value as any })}>
+                                        {...drillForm.register('result')}>
                                         {['Succès', 'Succès partiel', 'Échec'].map(r => <option key={r} value={r}>{r}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Notes / Observations</label>
                                     <textarea rows={3} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none"
-                                        value={newDrill.notes} onChange={e => setNewDrill({ ...newDrill, notes: e.target.value })} placeholder="Le RTO a-t-il été respecté ?" />
+                                        {...drillForm.register('notes')} placeholder="Le RTO a-t-il été respecté ?" />
                                 </div>
                                 <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                                     <button type="button" onClick={() => setShowDrillModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
