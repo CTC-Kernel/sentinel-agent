@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from 'react';
 import { Gantt, Task, ViewMode } from 'gantt-task-react';
 import "gantt-task-react/dist/index.css";
 import { ProjectTask } from '../../types';
-import { CalendarDays } from 'lucide-react'; // Assuming lucide-react or similar icons are available, otherwise use existing icons
+import { CalendarDays } from 'lucide-react';
 
 interface GanttChartProps {
     tasks: ProjectTask[];
@@ -54,6 +54,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                     styles: {
                         progressColor: task.status === 'Terminé' ? '#10b981' : '#3b82f6',
                         progressSelectedColor: task.status === 'Terminé' ? '#059669' : '#2563eb',
+                        backgroundColor: task.status === 'Terminé' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
                     },
                 };
             });
@@ -76,10 +77,6 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
     };
 
     const scrollToToday = () => {
-        // This is a best-effort scroll since the library doesn't expose a direct method
-        // We rely on re-centering or just letting the user find it.
-        // However, switching view mode often re-centers.
-        // A real implementation might try to find the "today" line in DOM.
         const todayLine = document.querySelector('.gantt-container line[x1="today"]');
         if (todayLine) {
             todayLine.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
@@ -90,9 +87,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
         return (
             <div className="flex flex-col items-center justify-center h-[500px] bg-slate-50/50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-400">
                 <div className="w-16 h-16 mb-4 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center">
-                    <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
+                    <CalendarDays className="w-8 h-8 text-blue-500" />
                 </div>
                 <p className="font-medium text-slate-600 dark:text-slate-300">Aucune tâche planifiée</p>
                 <p className="text-sm text-slate-500 mt-1">Ajoutez des tâches avec des dates pour voir le diagramme</p>
@@ -137,6 +132,41 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                         <span>{endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                     </div>
                 </div>
+            </div>
+        );
+    };
+
+    const TaskListHeader = ({ headerHeight }: { headerHeight: number }) => {
+        return (
+            <div
+                style={{ height: headerHeight }}
+                className="flex items-center px-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm"
+            >
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Tâches
+                </div>
+            </div>
+        );
+    };
+
+    const TaskListTable = ({ rowHeight, tasks }: any) => {
+        return (
+            <div className="border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30 h-full">
+                {tasks.map((t: Task) => (
+                    <div
+                        key={t.id}
+                        style={{ height: rowHeight }}
+                        className="flex items-center px-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                        onClick={() => handleTaskClick(t)}
+                    >
+                        <div className="flex items-center gap-3 w-full overflow-hidden">
+                            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${t.progress === 100 ? 'bg-green-500' : 'bg-blue-500'}`} />
+                            <div className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                {t.name}
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
         );
     };
@@ -202,7 +232,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                     onDateChange={handleTaskChange}
                     onProgressChange={handleTaskChange}
                     onDoubleClick={handleTaskClick}
-                    listCellWidth={showList ? "160px" : ""}
+                    listCellWidth={showList ? "200px" : ""}
                     columnWidth={viewMode === 'Month' ? 300 : viewMode === 'Week' ? 250 : 65}
                     rowHeight={50}
                     barFill={70}
@@ -212,6 +242,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                     ganttHeight={600}
                     locale="fr"
                     TooltipContent={CustomTooltip}
+                    TaskListHeader={TaskListHeader}
+                    TaskListTable={TaskListTable}
                     fontFamily="inherit"
                     fontSize="12px"
                     arrowColor="#cbd5e1"
