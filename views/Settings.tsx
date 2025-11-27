@@ -26,6 +26,7 @@ export const Settings: React.FC = () => {
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
     const [hasMoreLogs, setHasMoreLogs] = useState(true);
+    const [logsExpanded, setLogsExpanded] = useState(false);
     const [exporting, setExporting] = useState(false);
     const [exportingLogs, setExportingLogs] = useState(false);
 
@@ -868,22 +869,20 @@ export const Settings: React.FC = () => {
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                {hasPermission(user, 'Settings', 'manage') && (
-                                    <button onClick={handleTestLog} className="flex items-center px-3 py-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg text-xs font-bold text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors">
-                                        + Test
-                                    </button>
-                                )}
                                 {hasMoreLogs && (
                                     <button onClick={() => fetchLogs(false)} disabled={loadingLogs} className="flex items-center px-3 py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
                                         {loadingLogs ? '...' : <><ArrowRight className="h-3.5 w-3.5 mr-1" /> Plus</>}
                                     </button>
                                 )}
+                                <button onClick={() => setLogsExpanded(prev => !prev)} className="px-3 py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+                                    {logsExpanded ? 'Réduire' : 'Agrandir'}
+                                </button>
                                 <button onClick={handleExportLogsCSV} disabled={exportingLogs} className="flex items-center px-3 py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
                                     <FileSpreadsheet className="h-3.5 w-3.5 mr-1.5" /> {exportingLogs ? 'Export...' : 'CSV'}
                                 </button>
                             </div>
                         </div>
-                        <div className="relative border-l border-slate-200 dark:border-white/10 ml-4 space-y-8 pl-8">
+                        <div className={`relative border-l border-slate-200 dark:border-white/10 ml-4 space-y-8 pl-8 ${logsExpanded ? 'max-h-[640px]' : 'max-h-[320px]'} overflow-y-auto custom-scrollbar`}>
                             {logs.map(log => (
                                 <div key={log.id} className="relative group">
                                     <span className="absolute -left-[37px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-black group-hover:bg-brand-500 group-hover:scale-110 transition-all"></span>
@@ -909,9 +908,11 @@ export const Settings: React.FC = () => {
                                 <p className="text-sm text-slate-400 italic">Aucun log disponible.</p>
                             )}
                         </div>
-                        <button onClick={() => fetchLogs(false)} disabled={loadingLogs} className="w-full mt-8 py-3 text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors border border-dashed border-slate-200 dark:border-white/10">
-                            {loadingLogs ? 'Chargement...' : 'Charger plus'}
-                        </button>
+                        {hasMoreLogs && (
+                            <button onClick={() => fetchLogs(false)} disabled={loadingLogs} className="w-full mt-8 py-3 text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors border border-dashed border-slate-200 dark:border-white/10">
+                                {loadingLogs ? 'Chargement...' : 'Charger plus'}
+                            </button>
+                        )}
                     </div>
                 )}
 
