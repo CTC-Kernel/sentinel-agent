@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
@@ -28,18 +28,48 @@ import { Drawer } from '../components/ui/Drawer';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { useFirestoreCollection } from '../hooks/useFirestore';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { assetSchema, AssetFormData } from '../schemas/assetSchema';
 
 export const Assets: React.FC = () => {
+    const { user, addToast } = useStore();
     const navigate = useNavigate();
     const location = useLocation();
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
-    const [loading, setLoading] = useState(true);
-    const { user, addToast } = useStore();
 
+    const calculateDepreciation = (price: number, purchaseDate: string) => {
+        if (!price || !purchaseDate) return price;
+        const start = new Date(purchaseDate);
+        const now = new Date();
+        const ageInYears = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+        // Amortissement linéaire sur 5 ans
+        const value = price * (1 - (ageInYears / 5));
+        return Math.max(0, Math.round(value));
+    };
+
+    // Data Fetching with Hooks
+    const { data: rawAssets, loading: assetsLoading, refresh: refreshAssets } = useFirestoreCollection<Asset>(
+        'assets',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
+        'users',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    // Derived State
+    const assets = React.useMemo(() => {
+        return rawAssets.map(a => ({
+            ...a,
+            currentValue: calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || '')
+        })).sort((a, b) => a.name.localeCompare(b.name));
+    }, [rawAssets]);
+
+    const loading = assetsLoading || usersLoading;
 
     const canEdit = canEditResource(user, 'Asset');
 
@@ -72,20 +102,8 @@ export const Assets: React.FC = () => {
         }
     });
 
-
-
     // AI Helper State
     const [suggestingField, setSuggestingField] = useState<string | null>(null);
-
-    const calculateDepreciation = (price: number, purchaseDate: string) => {
-        if (!price || !purchaseDate) return price;
-        const start = new Date(purchaseDate);
-        const now = new Date();
-        const ageInYears = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-        // Amortissement linéaire sur 5 ans
-        const value = price * (1 - (ageInYears / 5));
-        return Math.max(0, Math.round(value));
-    };
 
     const calculateTCO = () => {
         const purchase = selectedAsset?.purchasePrice || 0;
@@ -106,53 +124,17 @@ export const Assets: React.FC = () => {
         return data;
     };
 
-    const fetchAssets = async () => {
-        if (!user?.organizationId) {
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        try {
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
-            ]);
+    useEffect(() => {
+        const nextMonth = new Date();
+        nextMonth.setDate(nextMonth.getDate() + 30);
 
-            const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
-                if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as T));
-                }
-                return [];
-            };
-
-            const data = getDocsData<Asset>(results[0]).map(a => ({
-                ...a,
-                currentValue: calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || '')
-            }));
-            data.sort((a, b) => a.name.localeCompare(b.name));
-            setAssets(data);
-
-            const userData = getDocsData<UserProfile>(results[1]);
-            setUsersList(userData);
-
-            const nextMonth = new Date();
-            nextMonth.setDate(nextMonth.getDate() + 30);
-
-            setStats({
-                total: data.length,
-                critical: data.filter(a => a.confidentiality === Criticality.CRITICAL || a.integrity === Criticality.CRITICAL || a.availability === Criticality.CRITICAL).length,
-                maintenanceDue: data.filter(a => a.nextMaintenance && new Date(a.nextMaintenance) < nextMonth).length,
-                totalValue: data.reduce((acc, a) => acc + (a.currentValue || 0), 0)
-            });
-
-        } catch (err) {
-            ErrorLogger.handleErrorWithToast(err, 'Assets.fetchAssets', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => { fetchAssets(); }, [user?.organizationId]);
+        setStats({
+            total: assets.length,
+            critical: assets.filter(a => a.confidentiality === Criticality.CRITICAL || a.integrity === Criticality.CRITICAL || a.availability === Criticality.CRITICAL).length,
+            maintenanceDue: assets.filter(a => a.nextMaintenance && new Date(a.nextMaintenance) < nextMonth).length,
+            totalValue: assets.reduce((acc, a) => acc + (a.currentValue || 0), 0)
+        });
+    }, [assets]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
@@ -234,20 +216,20 @@ export const Assets: React.FC = () => {
                 await updateDoc(doc(db, 'assets', selectedAsset.id), cleanData);
                 await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${cleanData.name}`);
                 const updatedAsset = { ...selectedAsset, ...cleanData, currentValue: calculateDepreciation(cleanData.purchasePrice || 0, cleanData.purchaseDate || '') } as Asset;
-                setAssets(prev => prev.map(a => a.id === selectedAsset.id ? updatedAsset : a));
+                refreshAssets();
                 setSelectedAsset(updatedAsset);
                 addToast("Modifications enregistrées", "success");
             } else {
                 const newDoc = { ...cleanData, organizationId: user.organizationId, createdAt: new Date().toISOString() };
                 const docRef = await addDoc(collection(db, 'assets'), newDoc);
                 const newAsset = { id: docRef.id, ...newDoc, currentValue: calculateDepreciation(newDoc.purchasePrice || 0, newDoc.purchaseDate || '') } as Asset;
-                setAssets(prev => [...prev, newAsset]);
+                refreshAssets();
                 setSelectedAsset(newAsset);
                 await logAction(user, 'CREATE', 'Asset', `Création Actif: ${cleanData.name}`);
                 addToast("Actif créé avec succès", "success");
             }
             reset(data); // Reset form state to clean
-            fetchAssets(); // Refresh stats
+            refreshAssets(); // Refresh stats
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.onFormSubmit', 'UPDATE_FAILED'); }
     };
 
@@ -258,7 +240,7 @@ export const Assets: React.FC = () => {
             const docRef = await addDoc(collection(db, 'assets'), newAssetData);
             await logAction(user, 'CREATE', 'Asset', `Duplication Actif: ${newAssetData.name}`);
             addToast("Actif dupliqué", "success");
-            setAssets(prev => [...prev, { ...newAssetData, id: docRef.id } as Asset]);
+            refreshAssets();
             openInspector({ ...newAssetData, id: docRef.id } as Asset);
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.handleDuplicate', 'CREATE_FAILED'); }
     };
@@ -357,10 +339,9 @@ export const Assets: React.FC = () => {
         try {
             await deleteDoc(doc(db, 'assets', id));
             await logAction(user, 'DELETE', 'Asset', `Suppression actif: ${name}`);
-            setAssets(prev => prev.filter(a => a.id !== id));
+            refreshAssets();
             setSelectedAsset(null);
             addToast("Actif supprimé", "info");
-            fetchAssets();
         } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Assets.handleDeleteAsset', 'DELETE_FAILED'); }
     };
 
