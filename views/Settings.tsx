@@ -994,10 +994,15 @@ export const Settings: React.FC = () => {
                 onClose={() => setShowLegalModal(false)}
                 initialTab={legalTab}
             />
-            <div className="flex justify-center pb-6">
+            <div className="flex justify-center pb-6 flex-col items-center gap-4">
                 <button onClick={handleLogout} className="flex items-center text-red-500 hover:text-red-600 text-sm font-bold px-6 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
                     <LogOut className="h-4 w-4 mr-2" /> Déconnexion
                 </button>
+                <div className="text-center">
+                    <p className="text-[10px] text-slate-400 font-mono opacity-60">
+                        Sentinel GRC v2.0.0 • Build 20251127
+                    </p>
+                </div>
             </div>
         </div>
     );
