@@ -84,9 +84,14 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             }
 
             // Ensure start date is before end date
-            if (startDate > endDate) {
+            if (startDate >= endDate) {
                 startDate = new Date(endDate);
                 startDate.setDate(endDate.getDate() - 1);
+            }
+
+            // Double check to ensure we don't have same day start/end which might cause 0 width bars
+            if (startDate.getTime() === endDate.getTime()) {
+                startDate.setDate(startDate.getDate() - 1);
             }
 
             let customClass = '';
@@ -105,7 +110,6 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             }
 
             // Sanitize ID for DOM selector safety
-            // frappe-gantt uses IDs as selectors, so they must be valid CSS selectors
             const safeId = `gantt-${task.id.replace(/[^a-zA-Z0-9-_]/g, '_')}`;
 
             acc.push({
@@ -123,70 +127,75 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 
         if (ganttTasks.length === 0) return;
 
-        // Create Gantt instance
-        try {
-            // Ensure the container is empty before rendering
-            ganttRef.current.innerHTML = '';
+        // Create Gantt instance with a slight delay to ensure DOM is ready
+        const timer = setTimeout(() => {
+            if (!ganttRef.current) return;
 
-            ganttInstance.current = new Gantt(ganttRef.current, ganttTasks, {
-                view_mode: viewMode,
-                bar_height: 30,
-                bar_corner_radius: 6,
-                arrow_curve: 5,
-                padding: 18,
-                view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month'],
-                date_format: 'YYYY-MM-DD',
-                language: 'fr',
-                custom_popup_html: (task: any) => {
-                    // Find original task by matching the sanitized ID
-                    const originalTask = tasks.find(t => `gantt-${t.id.replace(/[^a-zA-Z0-9-_]/g, '_')}` === task.id);
-
-                    if (!originalTask) return '';
-
-                    return `
-                        <div class="gantt-popup-wrapper">
-                            <div class="gantt-popup-title">${task.name}</div>
-                            <div class="gantt-popup-subtitle">
-                                ${originalTask.assignee || 'Non assigné'} • ${task.progress}%
-                            </div>
-                            <div class="gantt-popup-dates">
-                                ${task._start.toLocaleDateString('fr-FR')} → ${task._end.toLocaleDateString('fr-FR')}
-                            </div>
-                        </div>
-                    `;
-                },
-                on_click: (task: any) => {
-                    console.log('Task clicked:', task);
-                },
-                on_date_change: (task: any, startDate: Date, endDate: Date) => {
-                    const originalTask = tasks.find(t => `gantt-${t.id.replace(/[^a-zA-Z0-9-_]/g, '_')}` === task.id);
-                    if (originalTask && onTaskUpdate) {
-                        onTaskUpdate(originalTask, startDate, endDate);
-                    }
-                },
-                on_progress_change: (task: any, progress: number) => {
-                    console.log('Progress changed:', task.name, progress);
-                },
-                on_view_change: (_mode: any) => {
-                    console.log('View mode changed:', _mode);
-                }
-            } as any);
-        } catch (error) {
-            ErrorLogger.error(error, 'GanttChart.createInstance');
-            // Fallback UI or silent fail
-            if (ganttRef.current) {
-                ganttRef.current.innerHTML = '<div class="text-red-500 p-4">Erreur lors du chargement du diagramme de Gantt.</div>';
+            // Check if container has dimensions
+            if (ganttRef.current.clientWidth === 0) {
+                console.warn('Gantt container has 0 width, skipping render');
+                return;
             }
-        }
+
+            try {
+                // Ensure the container is empty before rendering
+                ganttRef.current.innerHTML = '';
+
+                ganttInstance.current = new Gantt(ganttRef.current, ganttTasks, {
+                    view_mode: viewMode,
+                    bar_height: 30,
+                    bar_corner_radius: 6,
+                    arrow_curve: 5,
+                    padding: 18,
+                    view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month'],
+                    date_format: 'YYYY-MM-DD',
+                    language: 'fr',
+                    custom_popup_html: (task: any) => {
+                        const originalTask = tasks.find(t => `gantt-${t.id.replace(/[^a-zA-Z0-9-_]/g, '_')}` === task.id);
+                        if (!originalTask) return '';
+
+                        return `
+                            <div class="gantt-popup-wrapper">
+                                <div class="gantt-popup-title">${task.name}</div>
+                                <div class="gantt-popup-subtitle">
+                                    ${originalTask.assignee || 'Non assigné'} • ${task.progress}%
+                                </div>
+                                <div class="gantt-popup-dates">
+                                    ${task._start.toLocaleDateString('fr-FR')} → ${task._end.toLocaleDateString('fr-FR')}
+                                </div>
+                            </div>
+                        `;
+                    },
+                    on_click: (task: any) => {
+                        console.log('Task clicked:', task);
+                    },
+                    on_date_change: (task: any, startDate: Date, endDate: Date) => {
+                        const originalTask = tasks.find(t => `gantt-${t.id.replace(/[^a-zA-Z0-9-_]/g, '_')}` === task.id);
+                        if (originalTask && onTaskUpdate) {
+                            onTaskUpdate(originalTask, startDate, endDate);
+                        }
+                    },
+                    on_progress_change: (task: any, progress: number) => {
+                        console.log('Progress changed:', task.name, progress);
+                    },
+                    on_view_change: (_mode: any) => {
+                        console.log('View mode changed:', _mode);
+                    }
+                } as any);
+            } catch (error) {
+                ErrorLogger.error(error, 'GanttChart.createInstance');
+                if (ganttRef.current) {
+                    ganttRef.current.innerHTML = '<div class="text-red-500 p-4 text-sm">Erreur d\'affichage du diagramme. Veuillez rafraîchir la page.</div>';
+                }
+            }
+        }, 100);
 
         return () => {
-            // Cleanup
+            clearTimeout(timer);
             if (ganttRef.current) {
                 ganttRef.current.innerHTML = '';
             }
             ganttInstance.current = null;
-
-            // Remove any lingering popups that might be attached to body
             const popups = document.querySelectorAll('.gantt-popup-wrapper');
             popups.forEach(p => p.remove());
         };
