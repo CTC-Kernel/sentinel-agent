@@ -226,13 +226,17 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
   const { camera } = useThree();
   const focusVec = useRef(new Vector3(0, 0, 0));
   const desiredPos = useRef(camera.position.clone());
-  const defaultPos = useRef(camera.position.clone());
+  const defaultPos = useRef(new Vector3(22, 12, 22)); // Global view position
   const defaultTarget = useRef(new Vector3(0, 0, 0));
   const offsetVec = useRef(new Vector3(6, 4, 6));
+  const isResetting = useRef(false);
 
   useEffect(() => {
     if (target) {
       setAutoRotate(false);
+      isResetting.current = false;
+    } else {
+      isResetting.current = true;
     }
   }, [target, setAutoRotate]);
 
@@ -269,10 +273,21 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
         }
       }
       controls.target.lerp(focusVec.current, 0.08);
-    } else {
-      camera.position.lerp(defaultPos.current, 0.02);
-      controls.target.lerp(defaultTarget.current, 0.05);
+    } else if (isResetting.current) {
+      // Fly back to global view
+      if (userInteractingRef.current) {
+        isResetting.current = false; // User took control
+      } else {
+        camera.position.lerp(defaultPos.current, 0.03);
+        controls.target.lerp(defaultTarget.current, 0.05);
+
+        // Stop resetting when close enough
+        if (camera.position.distanceTo(defaultPos.current) < 0.5) {
+          isResetting.current = false;
+        }
+      }
     }
+    // Else: Free mode (do nothing, let OrbitControls handle it)
 
     controls.update();
   });
