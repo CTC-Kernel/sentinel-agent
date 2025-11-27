@@ -123,8 +123,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             acc.push({
                 id: safeId,
                 name: task.title || task.description || 'Sans titre',
-                start: startDate.toISOString().slice(0, 16).replace('T', ' '), // YYYY-MM-DD HH:mm
-                end: endDate.toISOString().slice(0, 16).replace('T', ' '), // YYYY-MM-DD HH:mm
+                start: startDate.toISOString().split('T')[0],
+                end: endDate.toISOString().split('T')[0],
                 progress: task.progress ?? 0,
                 custom_class: customClass,
                 dependencies: validDependencies
@@ -156,7 +156,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
                     arrow_curve: 5,
                     padding: 18,
                     view_modes: ['Day', 'Week', 'Month'],
-                    date_format: 'YYYY-MM-DD HH:mm',
+                    date_format: 'YYYY-MM-DD',
                     language: 'fr',
                     custom_popup_html: (task: any) => {
                         const originalTask = tasks.find(t => `gantt-${t.id.replace(/[^a-zA-Z0-9-_]/g, '_')}` === task.id);
