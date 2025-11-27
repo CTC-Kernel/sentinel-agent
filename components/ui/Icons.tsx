@@ -112,7 +112,9 @@ import {
   Layers,
   Lightbulb,
   Home,
-  UserPlus
+  UserPlus,
+  Move,
+  MonitorPlay
 } from 'lucide-react';
 
 export {
@@ -228,5 +230,7 @@ export {
   Layers,
   Lightbulb,
   Home,
-  UserPlus
+  UserPlus,
+  Move,
+  MonitorPlay
 };
