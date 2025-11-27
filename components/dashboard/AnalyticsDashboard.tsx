@@ -27,7 +27,8 @@ import { db } from '../../firebase';
 import { Risk, Asset, Incident, Control, Project } from '../../types';
 import { StatCard } from '../ui/StatCard';
 import { ProgressRing } from '../ui/ProgressRing';
-import { DataTable, Column } from '../ui/DataTable';
+import { DataTable } from '../ui/DataTable';
+import { ColumnDef } from '@tanstack/react-table';
 import { StatsService } from '../../services/statsService';
 import { OnboardingService } from '../../services/onboardingService';
 
@@ -155,7 +156,7 @@ export const AnalyticsDashboard: React.FC = () => {
             if (mappedData.length === 0) {
                 setTrendData([{
                     date: new Date().toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }),
-                    risks: metrics.criticalRisks, 
+                    risks: metrics.criticalRisks,
                     incidents: metrics.openIncidents,
                     compliance: metrics.complianceRate,
                     assets: assets.length
@@ -187,33 +188,36 @@ export const AnalyticsDashboard: React.FC = () => {
     }, [risks]);
 
     // Top risks table columns
-    const topRisksColumns: Column<Risk>[] = [
+    const topRisksColumns: ColumnDef<Risk>[] = [
         {
-            key: 'threat',
-            label: 'Menace',
-            render: (value) => <span className="font-medium">{value}</span>
+            accessorKey: 'threat',
+            header: 'Menace',
+            cell: ({ getValue }) => <span className="font-medium">{getValue() as string}</span>
         },
         {
-            key: 'score',
-            label: 'Score',
-            render: (value) => (
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${value >= 15 ? 'bg-red-100 text-red-700' :
-                    value >= 10 ? 'bg-orange-100 text-orange-700' :
-                        'bg-green-100 text-green-700'
-                    }`}>
-                    {value}
-                </span>
-            )
+            accessorKey: 'score',
+            header: 'Score',
+            cell: ({ getValue }) => {
+                const value = getValue() as number;
+                return (
+                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${value >= 15 ? 'bg-red-100 text-red-700' :
+                        value >= 10 ? 'bg-orange-100 text-orange-700' :
+                            'bg-green-100 text-green-700'
+                        }`}>
+                        {value}
+                    </span>
+                );
+            }
         },
         {
-            key: 'status',
-            label: 'Statut',
-            render: (value) => value || 'Ouvert'
+            accessorKey: 'status',
+            header: 'Statut',
+            cell: ({ getValue }) => (getValue() as string) || 'Ouvert'
         },
         {
-            key: 'responsable',
-            label: 'Responsable',
-            render: (value) => value || '-'
+            accessorKey: 'responsable',
+            header: 'Responsable',
+            cell: ({ getValue }) => (getValue() as string) || '-'
         }
     ];
 
