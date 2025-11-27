@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { UserProfile } from './types';
+import { toast } from 'sonner';
 
 export interface ToastMessage {
   id: string;
@@ -47,11 +48,14 @@ export const useStore = create<AppState>((set) => ({
   }),
   setLoading: (loading) => set({ isLoading: loading }),
   addToast: (message, type = 'info') => {
-    const id = Math.random().toString(36).substring(2, 9);
-    set((state) => ({ toasts: [...state.toasts, { id, message, type }] }));
-    setTimeout(() => {
-      set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
-    }, 5000);
+    if (type === 'success') {
+      toast.success(message);
+    } else if (type === 'error') {
+      toast.error(message);
+    } else {
+      toast.info(message);
+    }
+    // Legacy state update removed
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 }));

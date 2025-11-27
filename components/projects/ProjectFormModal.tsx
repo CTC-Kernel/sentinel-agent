@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { Project } from '../../types';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { CustomSelect } from '../ui/CustomSelect';
 import { CustomDatePicker } from '../ui/CustomDatePicker';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { projectSchema, ProjectFormData } from '../../schemas/projectSchema';
 
 interface ProjectFormModalProps {
     isOpen: boolean;
@@ -21,36 +24,54 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
     existingProject,
     availableUsers = [],
 }) => {
-    const [formData, setFormData] = useState<Omit<Project, 'id' | 'organizationId' | 'tasks' | 'progress' | 'createdAt'>>({
-        name: existingProject?.name || '',
-        description: existingProject?.description || '',
-        manager: existingProject?.manager || '',
-        status: existingProject?.status || 'Planifié',
-        startDate: existingProject?.startDate || '',
-        dueDate: existingProject?.dueDate || '',
-        relatedRiskIds: existingProject?.relatedRiskIds || [],
-        relatedControlIds: existingProject?.relatedControlIds || [],
-        relatedAssetIds: existingProject?.relatedAssetIds || [],
+    const {
+        register,
+        handleSubmit,
+        control,
+        reset,
+        setValue,
+        watch,
+        formState: { errors }
+    } = useForm<ProjectFormData>({
+        resolver: zodResolver(projectSchema) as any,
+        defaultValues: {
+            name: '',
+            description: '',
+            manager: '',
+            status: 'Planifié',
+            startDate: '',
+            dueDate: '',
+            relatedRiskIds: [],
+            relatedControlIds: [],
+            relatedAssetIds: [],
+        }
     });
 
-    const [errors, setErrors] = useState<Record<string, string>>({});
-
-    const validate = () => {
-        const newErrors: Record<string, string> = {};
-        if (!formData.name?.trim()) newErrors.name = 'Le nom du projet est requis';
-        if (!formData.manager?.trim()) newErrors.manager = 'Le manager est requis';
-        if (!formData.dueDate) newErrors.dueDate = "La date d'échéance est requise";
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (validate()) {
-            onSubmit(formData);
-            onClose();
+    useEffect(() => {
+        if (isOpen) {
+            reset({
+                name: existingProject?.name || '',
+                description: existingProject?.description || '',
+                manager: existingProject?.manager || '',
+                status: existingProject?.status || 'Planifié',
+                startDate: existingProject?.startDate || '',
+                dueDate: existingProject?.dueDate || '',
+                relatedRiskIds: existingProject?.relatedRiskIds || [],
+                relatedControlIds: existingProject?.relatedControlIds || [],
+                relatedAssetIds: existingProject?.relatedAssetIds || [],
+            });
         }
+    }, [isOpen, existingProject, reset]);
+
+    const onFormSubmit = (data: ProjectFormData) => {
+        onSubmit(data);
+        onClose();
     };
+
+    // Watch values for AI context
+    const watchedName = watch('name');
+    const watchedManager = watch('manager');
+    const watchedDueDate = watch('dueDate');
 
     if (!isOpen) return null;
 
@@ -72,17 +93,15 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
                     </button>
                 </div>
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                <form onSubmit={handleSubmit(onFormSubmit)} className="p-8 space-y-6">
                     {/* Name */}
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom *</label>
                         <input
-                            required
+                            {...register('name')}
                             className={`w-full px-4 py-3.5 rounded-2xl border ${errors.name ? 'border-red-500' : 'border-gray-200 dark:border-white/10'} bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium`}
-                            value={formData.name}
-                            onChange={e => setFormData({ ...formData, name: e.target.value })}
                         />
-                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                     </div>
                     {/* Description */}
                     <div>
@@ -90,80 +109,102 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Description *</label>
                             <AIAssistButton
                                 context={{
-                                    projectName: formData.name,
-                                    manager: formData.manager,
-                                    dueDate: formData.dueDate
+                                    projectName: watchedName,
+                                    manager: watchedManager,
+                                    dueDate: watchedDueDate
                                 }}
                                 fieldName="description"
-                                onSuggest={(val: string) => setFormData({ ...formData, description: val })}
+                                onSuggest={(val: string) => setValue('description', val, { shouldDirty: true, shouldValidate: true })}
                                 prompt="Génère une description professionnelle et concise pour ce projet de sécurité (SSI/GRC). Inclus les objectifs principaux basés sur le nom du projet."
                             />
                         </div>
                         <textarea
-                            required
-                            className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none"
+                            {...register('description')}
+                            className={`w-full px-4 py-3.5 rounded-2xl border ${errors.description ? 'border-red-500' : 'border-gray-200 dark:border-white/10'} bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none`}
                             rows={3}
-                            value={formData.description}
-                            onChange={e => setFormData({ ...formData, description: e.target.value })}
                         />
+                        {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
                     </div>
                     {/* Manager & Dates */}
                     <div className="grid grid-cols-3 gap-6">
                         <div>
                             {availableUsers.length > 0 ? (
-                                <CustomSelect
-                                    label="Manager"
-                                    value={formData.manager}
-                                    onChange={val => setFormData({ ...formData, manager: val })}
-                                    options={[
-                                        { value: '', label: 'Non assigné' },
-                                        ...availableUsers.map(u => ({ value: u, label: u }))
-                                    ]}
-                                    required
-                                    error={errors.manager}
+                                <Controller
+                                    name="manager"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            label="Manager"
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            options={[
+                                                { value: '', label: 'Non assigné' },
+                                                ...availableUsers.map(u => ({ value: u, label: u }))
+                                            ]}
+                                            required
+                                            error={errors.manager?.message}
+                                        />
+                                    )}
                                 />
                             ) : (
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Manager *</label>
                                     <input
-                                        required
-                                        className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                        value={formData.manager}
-                                        onChange={e => setFormData({ ...formData, manager: e.target.value })}
+                                        {...register('manager')}
+                                        className={`w-full px-4 py-3.5 rounded-2xl border ${errors.manager ? 'border-red-500' : 'border-gray-200 dark:border-white/10'} bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium`}
                                         placeholder="Nom du manager"
                                     />
+                                    {errors.manager && <p className="text-red-500 text-xs mt-1">{errors.manager.message}</p>}
                                 </div>
                             )}
                         </div>
                         <div>
-                            <CustomDatePicker
-                                label="Date de début"
-                                value={formData.startDate || ''}
-                                onChange={date => setFormData({ ...formData, startDate: date })}
+                            <Controller
+                                name="startDate"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomDatePicker
+                                        label="Date de début"
+                                        value={field.value || ''}
+                                        onChange={field.onChange}
+                                    />
+                                )}
                             />
                         </div>
                         <div>
-                            <CustomDatePicker
-                                label="Échéance"
-                                value={formData.dueDate}
-                                onChange={date => setFormData({ ...formData, dueDate: date })}
-                                required
-                                error={errors.dueDate}
+                            <Controller
+                                name="dueDate"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomDatePicker
+                                        label="Échéance"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        required
+                                        error={errors.dueDate?.message}
+                                    />
+                                )}
                             />
                         </div>
                     </div>
                     {/* Status */}
                     <div>
-                        <CustomSelect
-                            label="Statut"
-                            value={formData.status}
-                            onChange={val => setFormData({ ...formData, status: val as any })}
-                            options={[
-                                { value: 'Planifié', label: 'Planifié' },
-                                { value: 'En cours', label: 'En cours' },
-                                { value: 'Terminé', label: 'Terminé' },
-                                { value: 'Suspendu', label: 'Suspendu' }
-                            ]}
+                        <Controller
+                            name="status"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Statut"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    options={[
+                                        { value: 'Planifié', label: 'Planifié' },
+                                        { value: 'En cours', label: 'En cours' },
+                                        { value: 'Terminé', label: 'Terminé' },
+                                        { value: 'Suspendu', label: 'Suspendu' }
+                                    ]}
+                                />
+                            )}
                         />
                     </div>
                     {/* Actions */}
@@ -181,3 +222,4 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
         document.body
     );
 };
+

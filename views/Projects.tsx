@@ -894,40 +894,11 @@ export const Projects: React.FC = () => {
 
                                     {inspectorTab === 'gantt' && (
                                         <div className="space-y-4 h-full min-h-[500px]">
-                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                                <div>
-                                                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-1">
-                                                        Chronologie du projet
-                                                    </p>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                                        Faites glisser les barres pour ajuster les échéances et suivez l'avancement visuellement.
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800/80 p-0.5">
-                                                        {(['Day', 'Week', 'Month'] as const).map(mode => (
-                                                            <button
-                                                                key={mode}
-                                                                onClick={() => setGanttViewMode(mode)}
-                                                                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${ganttViewMode === mode
-                                                                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                                                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                                                                    }`}
-                                                            >
-                                                                {mode === 'Day' ? 'Jour' : mode === 'Week' ? 'Semaine' : 'Mois'}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                    <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-400">
-                                                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                                                        <span>Aujourd'hui</span>
-                                                    </div>
-                                                </div>
-                                            </div>
                                             <GanttChart
                                                 key={ganttViewMode}
                                                 tasks={selectedProject.tasks || []}
                                                 viewMode={ganttViewMode}
+                                                onViewModeChange={setGanttViewMode}
                                                 onTaskUpdate={async (task, _start, end) => {
                                                     if (!selectedProject.id) return;
                                                     try {

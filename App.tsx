@@ -5,7 +5,7 @@ import { AuthGuard } from './components/auth/AuthGuard';
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute';
 import { useStore } from './store';
 import { Sidebar } from './components/layout/Sidebar';
-import { ToastContainer } from './components/ui/Toast';
+import { Toaster } from 'sonner';
 import { Login } from './views/Login';
 import { Onboarding } from './views/Onboarding';
 import { WifiOff, AlertTriangle } from './components/ui/Icons'; // Lock supprimé car dans LoadingScreen
@@ -128,7 +128,7 @@ const AppLayout: React.FC = () => {
                 <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
             </div>
 
-            <ToastContainer />
+            <Toaster richColors position="bottom-right" theme={theme === 'dark' ? 'dark' : 'light'} />
             <CommandPalette />
             <GeminiAssistant />
 
