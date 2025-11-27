@@ -40,6 +40,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                 startDate: new Date().toISOString().split('T')[0],
                 manager: ''
             });
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedTemplate(null);
         }
     }, [isOpen, reset]);

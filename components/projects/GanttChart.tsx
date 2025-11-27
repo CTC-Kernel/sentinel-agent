@@ -14,6 +14,7 @@ interface GanttChartProps {
 
 export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewModeChange, onTaskUpdate, onTaskClick }) => {
     const ganttRef = useRef<HTMLDivElement>(null);
+    const [showList, setShowList] = React.useState(true);
 
     // Map internal view mode to library ViewMode
     const libraryViewMode = useMemo(() => {
@@ -171,7 +172,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
         );
     };
 
-    const [showList, setShowList] = React.useState(true);
+
 
     return (
         <div className="flex flex-col space-y-4">

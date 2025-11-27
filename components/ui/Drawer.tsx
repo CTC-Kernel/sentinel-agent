@@ -31,18 +31,24 @@ export const Drawer: React.FC<DrawerProps> = ({
         };
 
         if (isOpen) {
-            setIsVisible(true);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            if (!isVisible) setIsVisible(true);
             document.body.style.overflow = 'hidden';
             window.addEventListener('keydown', handleEscape);
-        } else {
-            const timer = setTimeout(() => setIsVisible(false), 300); // Wait for animation
-            document.body.style.overflow = 'unset';
-            return () => {
-                clearTimeout(timer);
-                window.removeEventListener('keydown', handleEscape);
-            };
         }
-        return () => window.removeEventListener('keydown', handleEscape);
+
+        let timer: NodeJS.Timeout;
+        if (!isOpen) {
+            timer = setTimeout(() => setIsVisible(false), 300);
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            if (timer) clearTimeout(timer);
+            window.removeEventListener('keydown', handleEscape);
+            // Ensure we reset overflow if unmounting while open
+            if (isOpen) document.body.style.overflow = 'unset';
+        };
     }, [isOpen, onClose]);
 
     if (!isVisible && !isOpen) return null;
