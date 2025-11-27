@@ -25,6 +25,7 @@ export interface Asset {
   lifecycleStatus?: 'Neuf' | 'En service' | 'En réparation' | 'Fin de vie' | 'Rebut';
   ownerId?: string;
   relatedProjectIds?: string[];
+  scope?: ('NIS2' | 'DORA' | 'PCI_DSS' | 'HDS' | 'ISO27001' | 'SOC2')[];
 }
 
 export interface MaintenanceRecord {
@@ -63,7 +64,7 @@ export interface Control {
   organizationId: string;
   code: string;
   name: string;
-  framework?: 'ISO27001' | 'NIS2';
+  framework?: 'ISO27001' | 'NIS2' | 'DORA' | 'GDPR' | 'SOC2' | 'HDS' | 'PCI_DSS' | 'NIST_CSF';
   description?: string;
   status: 'Non commencé' | 'Implémenté' | 'Partiel' | 'Non applicable' | 'Exclu' | 'En revue';
   justification?: string;
@@ -225,6 +226,10 @@ export interface Incident {
   dateContained?: string;
   dateResolved?: string;
   lessonsLearned?: string;
+  // NIS 2 Specific Fields
+  isSignificant?: boolean;
+  notificationStatus?: 'Not Required' | 'Pending' | 'Reported';
+  relevantAuthorities?: string[];
 }
 
 export interface Supplier {
@@ -250,6 +255,12 @@ export interface Supplier {
     hasIncidentProcess?: boolean;
     lastAssessmentDate?: string;
   };
+  // DORA Specific Fields
+  isICTProvider?: boolean;
+  supportsCriticalFunction?: boolean;
+  doraCriticality?: 'Critical' | 'Important' | 'None';
+  serviceType?: 'SaaS' | 'Cloud' | 'Software' | 'Hardware' | 'Consulting' | 'Network' | 'Security';
+
   riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
   riskAssessment: {
     overallScore: number;

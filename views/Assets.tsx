@@ -6,7 +6,7 @@ import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Clock, Copy, Euro, FolderKanban, CheckSquare, Link, Network } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Clock, Copy, Euro, FolderKanban, CheckSquare, Link, Network, ShieldCheck } from '../components/ui/Icons';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -466,7 +466,7 @@ export const Assets: React.FC = () => {
                                     const maintenanceOverdue = asset.nextMaintenance && new Date(asset.nextMaintenance) < new Date();
                                     return (
                                         <tr key={asset.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]" onClick={() => openInspector(asset)}>
-                                            <td className="px-8 py-5"><div className="flex items-center"><div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300"><Server className="h-5 w-5" strokeWidth={1.5} /></div><div><div className="font-bold text-slate-900 dark:text-white text-[15px]">{asset.name}</div><div className="flex items-center gap-2 mt-0.5"><span className="text-xs text-slate-500 font-medium">{asset.owner}</span>{warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}{maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-900 px-1.5 py-0.5 rounded font-bold flex items-center"><Clock className="h-2.5 w-2.5 mr-1" />Maint.</span>}</div></div></div></td>
+                                            <td className="px-8 py-5"><div className="flex items-center"><div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300"><Server className="h-5 w-5" strokeWidth={1.5} /></div><div><div className="font-bold text-slate-900 dark:text-white text-[15px]">{asset.name}</div><div className="flex items-center gap-2 mt-0.5 flex-wrap"><span className="text-xs text-slate-500 font-medium">{asset.owner}</span>{warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}{maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-900 px-1.5 py-0.5 rounded font-bold flex items-center"><Clock className="h-2.5 w-2.5 mr-1" />Maint.</span>}{asset.scope && asset.scope.map(s => <span key={s} className="text-[9px] bg-indigo-50 text-indigo-600 border border-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-900 px-1.5 py-0.5 rounded font-bold">{s}</span>)}</div></div></div></td>
                                             <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">{asset.type}</td>
                                             <td className="px-6 py-5"><span className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wide border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span></td>
                                             <td className="px-6 py-5"><span className={`flex items-center w-fit px-2.5 py-1 rounded-full text-[11px] font-bold border ${asset.lifecycleStatus === 'En service' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}><span className={`w-1.5 h-1.5 rounded-full mr-2 ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>{asset.lifecycleStatus || 'Neuf'}</span></td>
@@ -585,6 +585,36 @@ export const Assets: React.FC = () => {
                                                 {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
                                             </select>
                                         </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center">
+                                    <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
+                                </h3>
+                                <div className="flex flex-wrap gap-3">
+                                    {['NIS2', 'DORA', 'PCI_DSS', 'HDS', 'ISO27001', 'SOC2'].map((scope) => (
+                                        <label key={scope} className={`cursor-pointer px-4 py-2 rounded-xl border transition-all ${(watch('scope') || []).includes(scope as any)
+                                            ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-bold'
+                                            : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
+                                            }`}>
+                                            <input
+                                                type="checkbox"
+                                                className="hidden"
+                                                value={scope}
+                                                disabled={!canEdit}
+                                                checked={(watch('scope') || []).includes(scope as any)}
+                                                onChange={(e) => {
+                                                    const current = watch('scope') || [];
+                                                    if (e.target.checked) {
+                                                        setValue('scope', [...current, scope as any], { shouldDirty: true });
+                                                    } else {
+                                                        setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
+                                                    }
+                                                }}
+                                            />
+                                            {scope.replace('_', ' ')}
+                                        </label>
                                     ))}
                                 </div>
                             </div>

@@ -17,6 +17,7 @@ export const assetSchema = z.object({
     nextMaintenance: z.string().optional(),
     lifecycleStatus: z.enum(['Neuf', 'En service', 'En réparation', 'Fin de vie', 'Rebut']).optional(),
     ownerId: z.string().optional(),
+    scope: z.array(z.enum(['NIS2', 'DORA', 'PCI_DSS', 'HDS', 'ISO27001', 'SOC2'])).optional(),
 });
 
 export type AssetFormData = z.infer<typeof assetSchema>;

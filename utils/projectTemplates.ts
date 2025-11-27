@@ -473,6 +473,117 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
                 estimatedHours: 20
             }
         ]
+    },
+    {
+        id: 'iso27001-maintenance',
+        name: 'ISO 27001 : Cycle Annuel (Maintenance)',
+        description: 'Activités récurrentes pour le maintien de la certification ISO 27001',
+        category: 'ISO27001',
+        icon: '🔄',
+        estimatedDuration: 365,
+        defaultMilestones: [
+            { title: 'Revue de direction effectuée', description: 'Comité de direction annuel tenu', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' },
+            { title: 'Audit interne réalisé', description: 'Programme d\'audit annuel complété', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' },
+            { title: 'Audit de surveillance réussi', description: 'Audit externe passé avec succès', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' }
+        ],
+        defaultTasks: [
+            { title: 'Revue des politiques de sécurité', description: 'Vérifier la pertinence des politiques', status: 'A faire', priority: 'medium', estimatedHours: 16 },
+            { title: 'Mise à jour de l\'analyse de risques', description: 'Réévaluer les risques (ISO 27005)', status: 'A faire', priority: 'high', estimatedHours: 40 },
+            { title: 'Campagne de sensibilisation annuelle', description: 'Relancer les formations', status: 'A faire', priority: 'medium', estimatedHours: 20 },
+            { title: 'Revue des accès utilisateurs', description: 'Contrôle des droits d\'accès', status: 'A faire', priority: 'high', estimatedHours: 24 },
+            { title: 'Test du plan de continuité (PCA)', description: 'Exercice de crise annuel', status: 'A faire', priority: 'high', estimatedHours: 16 },
+            { title: 'Audit interne : Planification', description: 'Définir le périmètre et le planning', status: 'A faire', priority: 'medium', estimatedHours: 8 },
+            { title: 'Audit interne : Exécution', description: 'Réaliser les entretiens et tests', status: 'A faire', priority: 'high', estimatedHours: 40 },
+            { title: 'Revue de direction (Préparation)', description: 'Collecter les indicateurs et KPIs', status: 'A faire', priority: 'medium', estimatedHours: 16 },
+            { title: 'Revue de direction (Réunion)', description: 'Tenir la réunion et rédiger le CR', status: 'A faire', priority: 'high', estimatedHours: 4 }
+        ]
+    },
+    {
+        id: 'iso27005-risk-campaign',
+        name: 'ISO 27005 : Campagne de Risques',
+        description: 'Cycle complet d\'appréciation et de traitement des risques',
+        category: 'ISO27001',
+        icon: '⚖️',
+        estimatedDuration: 60,
+        defaultMilestones: [
+            { title: 'Contexte établi', description: 'Critères de risque validés', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' },
+            { title: 'Appréciation terminée', description: 'Risques identifiés et évalués', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' },
+            { title: 'Plan de traitement validé', description: 'RTP approuvé par la direction', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' }
+        ],
+        defaultTasks: [
+            { title: 'Établissement du contexte', description: 'Définir les critères d\'impact et d\'acceptation', status: 'A faire', priority: 'high', estimatedHours: 8 },
+            { title: 'Identification des actifs (Mise à jour)', description: 'Revoir l\'inventaire des actifs', status: 'A faire', priority: 'medium', estimatedHours: 16 },
+            { title: 'Identification des menaces', description: 'Lister les menaces potentielles', status: 'A faire', priority: 'high', estimatedHours: 12 },
+            { title: 'Évaluation des risques', description: 'Estimer vraisemblance et impact', status: 'A faire', priority: 'high', estimatedHours: 24 },
+            { title: 'Identification des contrôles existants', description: 'Évaluer l\'efficacité des mesures en place', status: 'A faire', priority: 'medium', estimatedHours: 16 },
+            { title: 'Appréciation du risque résiduel', description: 'Calculer le niveau de risque net', status: 'A faire', priority: 'high', estimatedHours: 8 },
+            { title: 'Définition du plan de traitement (RTP)', description: 'Choisir les options de traitement', status: 'A faire', priority: 'high', estimatedHours: 20 },
+            { title: 'Acceptation des risques résiduels', description: 'Signature formelle par la direction', status: 'A faire', priority: 'high', estimatedHours: 4 }
+        ]
+    },
+    {
+        id: 'nis2-compliance',
+        name: 'Mise en conformité NIS 2',
+        description: 'Projet de mise à niveau pour la directive NIS 2',
+        category: 'Deployment',
+        icon: '🇪🇺',
+        estimatedDuration: 120,
+        defaultMilestones: [
+            { title: 'Entité enregistrée', description: 'Signalement auprès de l\'ANSSI', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' },
+            { title: 'Mesures socles en place', description: 'Hygiène informatique de base assurée', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' },
+            { title: 'Conformité auditée', description: 'Audit de conformité NIS 2 réalisé', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' }
+        ],
+        defaultTasks: [
+            { title: 'Identification des services essentiels', description: 'Cartographier les activités critiques', status: 'A faire', priority: 'high', estimatedHours: 16 },
+            { title: 'Déclaration auprès de l\'autorité', description: 'S\'enregistrer auprès de l\'ANSSI', status: 'A faire', priority: 'high', estimatedHours: 4 },
+            { title: 'Gouvernance de la sécurité', description: 'Validation des politiques par la direction', status: 'A faire', priority: 'high', estimatedHours: 12 },
+            { title: 'Sécurité de la chaîne d\'approvisionnement', description: 'Auditer les fournisseurs critiques', status: 'A faire', priority: 'high', estimatedHours: 40 },
+            { title: 'Gestion des incidents', description: 'Mettre en place la procédure de signalement', status: 'A faire', priority: 'high', estimatedHours: 24 },
+            { title: 'Hygiène informatique', description: 'MFA, Patch management, Sauvegardes', status: 'A faire', priority: 'high', estimatedHours: 32 },
+            { title: 'Gestion de crise', description: 'Définir et tester le plan de crise', status: 'A faire', priority: 'medium', estimatedHours: 20 }
+        ]
+    },
+    {
+        id: 'dora-compliance',
+        name: 'Mise en conformité DORA',
+        description: 'Résilience opérationnelle numérique pour le secteur financier',
+        category: 'Deployment',
+        icon: '🏦',
+        estimatedDuration: 150,
+        defaultMilestones: [
+            { title: 'Cadre de gestion validé', description: 'Politiques DORA approuvées', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' },
+            { title: 'Registre des tiers complet', description: 'Inventaire des prestataires TIC', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' },
+            { title: 'Tests de résilience effectués', description: 'Campagne de tests validée', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' }
+        ],
+        defaultTasks: [
+            { title: 'Analyse d\'écart DORA', description: 'Gap analysis par rapport au règlement', status: 'A faire', priority: 'high', estimatedHours: 40 },
+            { title: 'Gouvernance des risques TIC', description: 'Définir le cadre de gestion des risques', status: 'A faire', priority: 'high', estimatedHours: 24 },
+            { title: 'Classification des incidents', description: 'Mettre à jour la procédure d\'incident', status: 'A faire', priority: 'high', estimatedHours: 16 },
+            { title: 'Tests de résilience opérationnelle', description: 'Planifier les tests (vulnérabilité, intrusion)', status: 'A faire', priority: 'medium', estimatedHours: 32 },
+            { title: 'Gestion des risques tiers', description: 'Recenser et évaluer les prestataires TIC', status: 'A faire', priority: 'high', estimatedHours: 48 },
+            { title: 'Partage d\'information', description: 'Adhérer à des dispositifs de partage (CSIRT)', status: 'A faire', priority: 'low', estimatedHours: 8 }
+        ]
+    },
+    {
+        id: 'gdpr-compliance',
+        name: 'Mise en conformité RGPD',
+        description: 'Projet de protection des données personnelles',
+        category: 'Deployment',
+        icon: '⚖️',
+        estimatedDuration: 90,
+        defaultMilestones: [
+            { title: 'Registre validé', description: 'Registre des traitements complet', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' },
+            { title: 'Site web conforme', description: 'Cookies, Mentions légales, Formulaires', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' },
+            { title: 'Processus DSR opérationnel', description: 'Gestion des demandes droits des personnes', targetDate: '', status: 'pending', linkedTaskIds: [], createdAt: '' }
+        ],
+        defaultTasks: [
+            { title: 'Cartographie des données', description: 'Identifier les données personnelles traitées', status: 'A faire', priority: 'high', estimatedHours: 24 },
+            { title: 'Registre des traitements', description: 'Rédiger les fiches de registre', status: 'A faire', priority: 'high', estimatedHours: 32 },
+            { title: 'Information des personnes', description: 'Mettre à jour les politiques de confidentialité', status: 'A faire', priority: 'medium', estimatedHours: 12 },
+            { title: 'Gestion des sous-traitants', description: 'Vérifier les clauses RGPD des contrats', status: 'A faire', priority: 'medium', estimatedHours: 20 },
+            { title: 'Sécurité des données', description: 'Vérifier les mesures techniques (chiffrement...)', status: 'A faire', priority: 'high', estimatedHours: 16 },
+            { title: 'Procédure de violation', description: 'Définir le processus de notification CNIL', status: 'A faire', priority: 'high', estimatedHours: 8 }
+        ]
     }
 ];
 

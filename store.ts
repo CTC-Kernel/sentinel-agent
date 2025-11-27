@@ -19,13 +19,22 @@ interface AppState {
   setLoading: (loading: boolean) => void;
   addToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
+  demoMode: boolean;
+  toggleDemoMode: () => void;
+  language: 'fr' | 'en';
+  setLanguage: (lang: 'fr' | 'en') => void;
+  t: (key: string) => string;
 }
 
-export const useStore = create<AppState>((set) => ({
+import { translations } from './i18n/translations';
+
+export const useStore = create<AppState>((set, get) => ({
   user: null,
   theme: (localStorage.getItem('theme') as 'light' | 'dark') || 'light',
   isLoading: true,
   toasts: [],
+  demoMode: localStorage.getItem('demoMode') === 'true',
+  language: (localStorage.getItem('language') as 'fr' | 'en') || 'fr',
   setUser: (user) => set({ user }),
   setTheme: (theme) => set(() => {
     localStorage.setItem('theme', theme);
@@ -36,6 +45,23 @@ export const useStore = create<AppState>((set) => ({
     }
     return { theme };
   }),
+  setLanguage: (lang) => set(() => {
+    localStorage.setItem('language', lang);
+    return { language: lang };
+  }),
+  t: (path: string) => {
+    const lang = get().language;
+    const keys = path.split('.');
+    let value: any = translations[lang];
+    for (const key of keys) {
+      if (value && value[key]) {
+        value = value[key];
+      } else {
+        return path;
+      }
+    }
+    return value as string;
+  },
   toggleTheme: () => set((state) => {
     const newTheme = state.theme === 'light' ? 'dark' : 'light';
     localStorage.setItem('theme', newTheme);
@@ -58,4 +84,16 @@ export const useStore = create<AppState>((set) => ({
     // Legacy state update removed
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+  toggleDemoMode: () => set((state) => {
+    const newMode = !state.demoMode;
+    localStorage.setItem('demoMode', String(newMode));
+    if (newMode) {
+      toast.info(state.language === 'fr' ? "Mode Démo activé" : "Demo Mode activated");
+    } else {
+      toast.info(state.language === 'fr' ? "Mode Démo désactivé" : "Demo Mode deactivated");
+    }
+    // Force reload to refresh all data hooks with new mode
+    setTimeout(() => window.location.reload(), 500);
+    return { demoMode: newMode };
+  }),
 }));
