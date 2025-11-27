@@ -30,6 +30,7 @@ import { Drawer } from '../components/ui/Drawer';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { useLocation } from 'react-router-dom';
 
 const STANDARD_THREATS = ["Panne matérielle serveur", "Incendie", "Inondation", "Vol d'équipement", "Attaque par Ransomware", "Phishing / Ingénierie Sociale", "Erreur humaine / Configuration", "Divulgation non autorisée", "Interruption de service FAI", "Sabotage interne", "Obsolescence technologique", "Perte de personnel clé"];
 
@@ -60,6 +61,7 @@ export const Risks: React.FC = () => {
     const [stats, setStats] = useState({ total: 0, critical: 0, mitigated: 0, reviewDue: 0 });
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [newRisk, setNewRisk] = useState<Partial<Risk>>({ assetId: '', threat: '', vulnerability: '', probability: 3, impact: 3, residualProbability: 3, residualImpact: 3, strategy: 'Atténuer', status: 'Ouvert', owner: '', ownerId: '', mitigationControlIds: [] });
+    const location = useLocation();
 
     const fetchData = async () => {
         if (!user?.organizationId) {
@@ -110,6 +112,16 @@ export const Risks: React.FC = () => {
     };
 
     useEffect(() => { fetchData(); }, [user?.organizationId]);
+
+    useEffect(() => {
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loading || risks.length === 0) return;
+        const risk = risks.find(r => r.id === state.voxelSelectedId);
+        if (risk) {
+            openInspector(risk);
+        }
+    }, [location.state, loading, risks]);
 
     const openInspector = async (risk: Risk) => {
         setSelectedRisk(risk);

@@ -29,11 +29,12 @@ import { SubscriptionService } from '../services/subscriptionService';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 
 export const Projects: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [projects, setProjects] = useState<Project[]>([]);
     const [risks, setRisks] = useState<Risk[]>([]);
     const [controls, setControls] = useState<Control[]>([]);
@@ -113,6 +114,16 @@ export const Projects: React.FC = () => {
     };
 
     useEffect(() => { fetchData(); }, [user?.organizationId]);
+
+    useEffect(() => {
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loading || projects.length === 0) return;
+        const project = projects.find(p => p.id === state.voxelSelectedId);
+        if (project) {
+            openInspector(project);
+        }
+    }, [location.state, loading, projects]);
 
     const openInspector = async (project: Project) => {
         setSelectedProject(project);
@@ -882,7 +893,7 @@ export const Projects: React.FC = () => {
                                     )}
 
                                     {inspectorTab === 'gantt' && (
-                                        <div className="space-y-4 h-full">
+                                        <div className="space-y-4 h-full min-h-[500px]">
                                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                                 <div>
                                                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-1">
