@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
@@ -41,12 +41,15 @@ const navGroups = [
   }
 ];
 
-import { useStore } from '../../store';
+import { LegalModal } from '../ui/LegalModal';
+import { Scale } from 'lucide-react';
 import { hasPermission } from '../../utils/permissions';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useStore } from '../../store';
 
 export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean) => void }> = ({ mobileOpen, setMobileOpen }) => {
   const { user } = useStore();
+  const [showLegalModal, setShowLegalModal] = useState(false);
 
   const filterItem = (item: { name: string }) => {
     if (!user) return false;
@@ -209,8 +212,22 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             </span>
             <span className="flex-1 text-left">Déconnexion</span>
           </button>
+
+          <button
+            onClick={() => setShowLegalModal(true)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 mt-2 text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+          >
+            <Scale className="h-3 w-3" />
+            <span>Mentions Légales</span>
+          </button>
         </div>
       </aside>
+
+      <LegalModal
+        isOpen={showLegalModal}
+        onClose={() => setShowLegalModal(false)}
+        initialTab="mentions"
+      />
     </>
   );
 };

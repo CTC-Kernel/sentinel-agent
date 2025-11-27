@@ -14,6 +14,8 @@ import { SubscriptionService } from '../services/subscriptionService';
 import { AccountService } from '../services/accountService';
 import { Organization } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
+import { LegalModal } from '../components/ui/LegalModal';
+import { Scale } from 'lucide-react';
 
 export const Settings: React.FC = () => {
     const { theme, toggleTheme, user, setUser, addToast } = useStore();
@@ -52,6 +54,10 @@ export const Settings: React.FC = () => {
     // Subscription State
     const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
     const [subLoading, setSubLoading] = useState(false);
+
+    // Legal Modal State
+    const [showLegalModal, setShowLegalModal] = useState(false);
+    const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms'>('mentions');
 
     const fetchOrgDetails = async () => {
         if (!user?.organizationId) return;
@@ -787,46 +793,6 @@ export const Settings: React.FC = () => {
                     </div>
                 )}
 
-                {/* Danger Zone - For everyone */}
-                <div className="glass-panel rounded-[2.5rem] p-6 border border-red-100 dark:border-red-900/30 shadow-sm">
-                    <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-4 flex items-center"><AlertTriangle className="h-5 w-5 mr-2" /> Zone de Danger</h3>
-                    <div className="space-y-4">
-                        {!hasPermission(user, 'Settings', 'manage') && (
-                            <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
-                                <div>
-                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Quitter l'organisation</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Vous perdrez l'accès à toutes les données partagées.</p>
-                                </div>
-                                <button onClick={initiateLeaveOrg} className="px-4 py-2 bg-white dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl text-xs hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30 shadow-sm">
-                                    Quitter
-                                </button>
-                            </div>
-                        )}
-
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
-                            <div>
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Supprimer mon compte</h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Cette action est irréversible et supprimera vos données personnelles.</p>
-                            </div>
-                            <button onClick={handleDeleteAccount} className="px-4 py-2 bg-white dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl text-xs hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30 shadow-sm">
-                                Supprimer mon compte
-                            </button>
-                        </div>
-
-                        {hasPermission(user, 'Settings', 'manage') && (
-                            <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40">
-                                <div>
-                                    <h4 className="text-sm font-bold text-red-700 dark:text-red-300">Supprimer l'organisation</h4>
-                                    <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1">ATTENTION : Supprime définitivement l'organisation et TOUTES ses données.</p>
-                                </div>
-                                <button onClick={handleDeleteOrganization} className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20">
-                                    {maintenanceLoading ? '...' : 'Supprimer tout'}
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
                 {/* User Management (Admin) */}
                 {user && hasPermission(user, 'User', 'manage') && (
                     <div className="glass-panel rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 shadow-sm">
@@ -938,11 +904,89 @@ export const Settings: React.FC = () => {
                     </div>
                 )}
 
-                <div className="flex justify-center pb-6">
-                    <button onClick={handleLogout} className="flex items-center text-red-500 hover:text-red-600 text-sm font-bold px-6 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
-                        <LogOut className="h-4 w-4 mr-2" /> Déconnexion
-                    </button>
+                {/* Legal Information */}
+                <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm">
+                    <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                            <Scale className="h-5 w-5 mr-3 text-slate-500" />
+                            Informations Légales
+                        </h3>
+                    </div>
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button
+                            onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }}
+                            className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left border border-slate-100 dark:border-white/5"
+                        >
+                            <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">Mentions Légales</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">Éditeur et hébergement</span>
+                        </button>
+                        <button
+                            onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }}
+                            className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left border border-slate-100 dark:border-white/5"
+                        >
+                            <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">Confidentialité</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">Protection des données</span>
+                        </button>
+                        <button
+                            onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }}
+                            className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left border border-slate-100 dark:border-white/5"
+                        >
+                            <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">CGU</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">Conditions d'utilisation</span>
+                        </button>
+                    </div>
                 </div>
+
+                {/* Danger Zone - For everyone */}
+                <div className="glass-panel rounded-[2.5rem] p-6 border border-red-100 dark:border-red-900/30 shadow-sm">
+                    <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-4 flex items-center"><AlertTriangle className="h-5 w-5 mr-2" /> Zone de Danger</h3>
+                    <div className="space-y-4">
+                        {!hasPermission(user, 'Settings', 'manage') && (
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
+                                <div>
+                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Quitter l'organisation</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Vous perdrez l'accès à toutes les données partagées.</p>
+                                </div>
+                                <button onClick={initiateLeaveOrg} className="px-4 py-2 bg-white dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl text-xs hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30 shadow-sm">
+                                    Quitter
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Supprimer mon compte</h4>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Action irréversible.</p>
+                            </div>
+                            <button onClick={handleDeleteAccount} className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
+                                Supprimer
+                            </button>
+                        </div>
+
+                        {hasPermission(user, 'Settings', 'manage') && (
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
+                                <div>
+                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Supprimer l'organisation</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Supprime définitivement toutes les données.</p>
+                                </div>
+                                <button onClick={handleDeleteOrganization} className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
+                                    Détruire
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <LegalModal
+                isOpen={showLegalModal}
+                onClose={() => setShowLegalModal(false)}
+                initialTab={legalTab}
+            />
+            <div className="flex justify-center pb-6">
+                <button onClick={handleLogout} className="flex items-center text-red-500 hover:text-red-600 text-sm font-bold px-6 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
+                    <LogOut className="h-4 w-4 mr-2" /> Déconnexion
+                </button>
             </div>
         </div>
     );

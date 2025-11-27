@@ -3,6 +3,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithP
 import { auth } from '../firebase';
 import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2, Server } from '../components/ui/Icons';
 import { useStore } from '../store';
+import { LegalModal } from '../components/ui/LegalModal';
 
 // Google SVG optimized
 const GoogleIcon = () => (
@@ -26,6 +27,10 @@ export const Login: React.FC = () => {
     const [showResetModal, setShowResetModal] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
     const [resetSent, setResetSent] = useState(false);
+
+    // Legal Modal State
+    const [showLegalModal, setShowLegalModal] = useState(false);
+    const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms'>('mentions');
 
 
     const handleEmailAuth = async (e: React.FormEvent) => {
@@ -190,15 +195,15 @@ export const Login: React.FC = () => {
             <div className="py-6 text-center relative z-10 space-y-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Développé par Cyber Threat Consulting</p>
                 <p className="text-[9px] text-slate-400">
-                    Ce site est protégé par reCAPTCHA et les{' '}
-                    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">
-                        Règles de confidentialité
-                    </a>
+                    Ce site est protégé par reCAPTCHA.
+                    <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-slate-600 ml-1">
+                        Politique de confidentialité
+                    </button>
                     {' '}et{' '}
-                    <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">
+                    <button onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
                         Conditions d'utilisation
-                    </a>
-                    {' '}de Google s'appliquent.
+                    </button>
+                    {' '}s'appliquent.
                 </p>
             </div>
 
@@ -244,6 +249,12 @@ export const Login: React.FC = () => {
                     </div>
                 </div>
             )}
+            {/* Legal Modal */}
+            <LegalModal
+                isOpen={showLegalModal}
+                onClose={() => setShowLegalModal(false)}
+                initialTab={legalTab}
+            />
         </div>
     );
 };
