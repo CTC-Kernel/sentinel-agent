@@ -14,7 +14,7 @@ export type AuditFormData = z.infer<typeof auditSchema>;
 
 export const findingSchema = z.object({
     description: z.string().min(1, "La description est requise"),
-    type: z.enum(['Majeure', 'Mineure', 'Observation']),
+    type: z.enum(['Majeure', 'Mineure', 'Observation', 'Opportunité']),
     status: z.enum(['Ouvert', 'Fermé']).default('Ouvert'),
     relatedControlId: z.string().optional(),
     evidenceIds: z.array(z.string()).optional()

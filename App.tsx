@@ -14,6 +14,7 @@ import { CommandPalette } from './components/layout/CommandPalette';
 import { TopBar } from './components/layout/TopBar';
 import { NotificationService } from './services/notificationService';
 import { BackupService } from './services/backupService';
+import { ErrorLogger } from './services/errorLogger';
 import { NotificationPermissionBanner } from './components/ui/NotificationPermissionBanner';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { OnboardingTrigger } from './components/onboarding/OnboardingTrigger';
@@ -108,7 +109,7 @@ const AppLayout: React.FC = () => {
                     await BackupService.checkScheduledBackups(user);
                 }
             } catch (e) {
-                console.error('Automation checks failed', e);
+                ErrorLogger.error(e, 'Automation checks failed');
             }
         };
 

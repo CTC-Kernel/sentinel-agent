@@ -10,8 +10,10 @@ export const riskSchema = z.object({
     residualImpact: z.number().min(1).max(5).optional(),
     strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter']),
     status: z.enum(['Ouvert', 'En cours', 'Fermé']),
+    owner: z.string().optional(),
     ownerId: z.string().optional(),
     mitigationControlIds: z.array(z.string()).optional(),
+    affectedProcessIds: z.array(z.string()).optional(),
 });
 
 export type RiskFormData = z.infer<typeof riskSchema>;

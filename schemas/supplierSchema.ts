@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { Criticality } from '../types';
 
 export const supplierSchema = z.object({
     name: z.string().min(1, "Le nom est requis"),
     category: z.enum(['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre']),
-    criticality: z.enum(['Faible', 'Moyenne', 'Élevée', 'Critique']),
+    criticality: z.nativeEnum(Criticality),
     contactName: z.string().optional(),
     contactEmail: z.string().email("Email invalide").optional().or(z.literal('')),
     status: z.enum(['Actif', 'En cours', 'Terminé']),
@@ -25,7 +26,8 @@ export const supplierSchema = z.object({
     isICTProvider: z.boolean().optional(),
     supportsCriticalFunction: z.boolean().optional(),
     doraCriticality: z.enum(['Critical', 'Important', 'None']).optional(),
-    serviceType: z.enum(['SaaS', 'Cloud', 'Software', 'Hardware', 'Consulting', 'Network', 'Security']).optional()
+    serviceType: z.enum(['SaaS', 'Cloud', 'Software', 'Hardware', 'Consulting', 'Network', 'Security']).optional(),
+    supportedProcessIds: z.array(z.string()).optional(),
 });
 
 export type SupplierFormData = z.infer<typeof supplierSchema>;

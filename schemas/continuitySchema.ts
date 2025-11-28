@@ -10,6 +10,16 @@ export const businessProcessSchema = z.object({
     supportingAssetIds: z.array(z.string()).optional(),
     drpDocumentId: z.string().optional(),
     lastTestDate: z.string().optional(),
+    relatedRiskIds: z.array(z.string()).optional(),
+    supplierIds: z.array(z.string()).optional(),
+    recoveryTasks: z.array(z.object({
+        id: z.string(),
+        title: z.string().min(1, "Le titre est requis"),
+        description: z.string().optional(),
+        owner: z.string().min(1, "Le responsable est requis"),
+        duration: z.string().min(1, "La durée est requise"),
+        order: z.number()
+    })).optional()
 });
 
 export type BusinessProcessFormData = z.infer<typeof businessProcessSchema>;

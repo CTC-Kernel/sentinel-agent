@@ -6,8 +6,8 @@ import { businessProcessSchema, BusinessProcessFormData, bcpDrillSchema, BcpDril
 import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import { BusinessProcess, Asset, BcpDrill, SystemLog, UserProfile } from '../types';
-import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, X, History, MessageSquare, Save, LayoutDashboard, FileSpreadsheet } from '../components/ui/Icons';
+import { BusinessProcess, Asset, BcpDrill, SystemLog, UserProfile, Risk, Supplier } from '../types';
+import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, X, History, MessageSquare, Save, LayoutDashboard, FileSpreadsheet, ShieldAlert, Truck } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -16,11 +16,15 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Comments } from '../components/ui/Comments';
 import { ErrorLogger } from '../services/errorLogger';
+import { CustomSelect } from '../components/ui/CustomSelect';
+import { Controller } from 'react-hook-form';
 
 export const Continuity: React.FC = () => {
     const [processes, setProcesses] = useState<BusinessProcess[]>([]);
     const [drills, setDrills] = useState<BcpDrill[]>([]);
     const [assets, setAssets] = useState<Asset[]>([]);
+    const [risks, setRisks] = useState<Risk[]>([]);
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,7 +37,7 @@ export const Continuity: React.FC = () => {
 
     // Inspector State
     const [selectedProcess, setSelectedProcess] = useState<BusinessProcess | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'drills' | 'history' | 'comments'>('details');
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'recovery' | 'scenarios' | 'drills' | 'history' | 'comments'>('details');
     const [processHistory, setProcessHistory] = useState<SystemLog[]>([]);
     // const [editForm, setEditForm] = useState<Partial<BusinessProcess>>({}); // Removed
     const [isEditing, setIsEditing] = useState(false);
@@ -47,7 +51,7 @@ export const Continuity: React.FC = () => {
         resolver: zodResolver(businessProcessSchema),
         defaultValues: {
             name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne',
-            supportingAssetIds: [], drpDocumentId: ''
+            supportingAssetIds: [], drpDocumentId: '', relatedRiskIds: [], supplierIds: [], recoveryTasks: []
         }
     });
 
@@ -55,7 +59,7 @@ export const Continuity: React.FC = () => {
         resolver: zodResolver(businessProcessSchema),
         defaultValues: {
             name: '', description: '', owner: '', rto: '', rpo: '', priority: 'Moyenne',
-            supportingAssetIds: [], drpDocumentId: ''
+            supportingAssetIds: [], drpDocumentId: '', relatedRiskIds: [], supplierIds: [], recoveryTasks: []
         }
     });
 
@@ -79,7 +83,8 @@ export const Continuity: React.FC = () => {
                 getDocs(query(collection(db, 'business_processes'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'bcp_drills'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-
+                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
             ]);
 
@@ -103,9 +108,13 @@ export const Continuity: React.FC = () => {
             assetData.sort((a, b) => a.name.localeCompare(b.name));
             setAssets(assetData);
 
+            const riskData = getDocsData<Risk>(results[3]);
+            setRisks(riskData);
 
+            const supplierData = getDocsData<Supplier>(results[4]);
+            setSuppliers(supplierData);
 
-            const usersData = getDocsData<UserProfile>(results[3]);
+            const usersData = getDocsData<UserProfile>(results[5]);
             setUsersList(usersData);
 
         } catch (err) {
@@ -131,7 +140,10 @@ export const Continuity: React.FC = () => {
             priority: proc.priority,
             supportingAssetIds: proc.supportingAssetIds || [],
             drpDocumentId: proc.drpDocumentId || '',
-            lastTestDate: proc.lastTestDate
+            lastTestDate: proc.lastTestDate,
+            relatedRiskIds: proc.relatedRiskIds || [],
+            supplierIds: proc.supplierIds || [],
+            recoveryTasks: proc.recoveryTasks || []
         });
         setInspectorTab('details');
         setIsEditing(false);
@@ -461,7 +473,9 @@ export const Continuity: React.FC = () => {
                                 <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5">
                                     {[
                                         { id: 'details', label: 'Détails', icon: LayoutDashboard },
-                                        { id: 'drills', label: 'Historique Exercices', icon: Zap },
+                                        { id: 'recovery', label: 'Plan de Reprise', icon: ClipboardCheck },
+                                        { id: 'scenarios', label: 'Scénarios (Risques)', icon: ShieldAlert },
+                                        { id: 'drills', label: 'Exercices', icon: Zap },
                                         { id: 'history', label: 'Historique', icon: History },
                                         { id: 'comments', label: 'Discussion', icon: MessageSquare },
                                     ].map(tab => (
@@ -506,6 +520,22 @@ export const Continuity: React.FC = () => {
                                                             ))}
                                                         </div>
                                                     </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Fournisseurs Critiques</label>
+                                                        <Controller
+                                                            name="supplierIds"
+                                                            control={editProcessForm.control}
+                                                            render={({ field }) => (
+                                                                <CustomSelect
+                                                                    options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
+                                                                    value={field.value || []}
+                                                                    onChange={field.onChange}
+                                                                    placeholder="Sélectionner les fournisseurs..."
+                                                                    multiple
+                                                                />
+                                                            )}
+                                                        />
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <>
@@ -523,23 +553,179 @@ export const Continuity: React.FC = () => {
                                                         <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Description</h4>
                                                         <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{selectedProcess.description}</p>
                                                     </div>
-                                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Dépendances Techniques</h4>
-                                                        {selectedProcess.supportingAssetIds && selectedProcess.supportingAssetIds.length > 0 ? (
-                                                            <div className="space-y-2">
-                                                                {selectedProcess.supportingAssetIds.map(assetId => {
-                                                                    const a = assets.find(as => as.id === assetId);
-                                                                    return a ? (
-                                                                        <div key={assetId} className="flex items-center p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                            <Server className="h-4 w-4 mr-3 text-slate-400" />
-                                                                            <span className="text-sm font-medium text-slate-700 dark:text-white">{a.name}</span>
-                                                                        </div>
-                                                                    ) : null;
-                                                                })}
-                                                            </div>
-                                                        ) : <p className="text-sm text-gray-400 italic">Aucune dépendance déclarée.</p>}
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Dépendances Techniques</h4>
+                                                            {selectedProcess.supportingAssetIds && selectedProcess.supportingAssetIds.length > 0 ? (
+                                                                <div className="space-y-2">
+                                                                    {selectedProcess.supportingAssetIds.map(assetId => {
+                                                                        const a = assets.find(as => as.id === assetId);
+                                                                        return a ? (
+                                                                            <div key={assetId} className="flex items-center p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                                <Server className="h-4 w-4 mr-3 text-slate-400" />
+                                                                                <span className="text-sm font-medium text-slate-700 dark:text-white">{a.name}</span>
+                                                                            </div>
+                                                                        ) : null;
+                                                                    })}
+                                                                </div>
+                                                            ) : <p className="text-sm text-gray-400 italic">Aucune dépendance déclarée.</p>}
+                                                        </div>
+                                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Fournisseurs Critiques</h4>
+                                                            {selectedProcess.supplierIds && selectedProcess.supplierIds.length > 0 ? (
+                                                                <div className="space-y-2">
+                                                                    {selectedProcess.supplierIds.map(sid => {
+                                                                        const s = suppliers.find(sup => sup.id === sid);
+                                                                        return s ? (
+                                                                            <div key={sid} className="flex items-center p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                                <Truck className="h-4 w-4 mr-3 text-slate-400" />
+                                                                                <span className="text-sm font-medium text-slate-700 dark:text-white">{s.name}</span>
+                                                                            </div>
+                                                                        ) : null;
+                                                                    })}
+                                                                </div>
+                                                            ) : <p className="text-sm text-gray-400 italic">Aucun fournisseur lié.</p>}
+                                                        </div>
                                                     </div>
                                                 </>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {inspectorTab === 'recovery' && (
+                                        <div className="space-y-6">
+                                            <div className="flex justify-between items-center">
+                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Plan de Reprise (DRP)</h3>
+                                                {isEditing && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const currentTasks = editProcessForm.getValues('recoveryTasks') || [];
+                                                            editProcessForm.setValue('recoveryTasks', [
+                                                                ...currentTasks,
+                                                                { id: crypto.randomUUID(), title: '', owner: '', duration: '', order: currentTasks.length + 1 }
+                                                            ]);
+                                                        }}
+                                                        className="text-xs font-bold text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors"
+                                                    >
+                                                        + Ajouter une étape
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {isEditing ? (
+                                                <div className="space-y-4">
+                                                    {editProcessForm.watch('recoveryTasks')?.map((task, index) => (
+                                                        <div key={task.id} className="flex gap-4 items-start bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10">
+                                                            <div className="mt-3 text-xs font-bold text-slate-400 w-6">{index + 1}.</div>
+                                                            <div className="flex-1 space-y-3">
+                                                                <input
+                                                                    placeholder="Action à effectuer"
+                                                                    className="w-full px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm font-medium"
+                                                                    {...editProcessForm.register(`recoveryTasks.${index}.title` as any)}
+                                                                />
+                                                                <div className="flex gap-3">
+                                                                    <input
+                                                                        placeholder="Responsable"
+                                                                        className="flex-1 px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-xs"
+                                                                        {...editProcessForm.register(`recoveryTasks.${index}.owner` as any)}
+                                                                    />
+                                                                    <input
+                                                                        placeholder="Durée (ex: 30m)"
+                                                                        className="w-24 px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-xs"
+                                                                        {...editProcessForm.register(`recoveryTasks.${index}.duration` as any)}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const tasks = editProcessForm.getValues('recoveryTasks') || [];
+                                                                    editProcessForm.setValue('recoveryTasks', tasks.filter((_, i) => i !== index));
+                                                                }}
+                                                                className="text-slate-400 hover:text-red-500 p-1"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    {selectedProcess.recoveryTasks && selectedProcess.recoveryTasks.length > 0 ? (
+                                                        selectedProcess.recoveryTasks.sort((a, b) => a.order - b.order).map((task, index) => (
+                                                            <div key={task.id} className="flex items-start gap-4 p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/20 text-brand-600 flex items-center justify-center font-bold text-sm">
+                                                                    {index + 1}
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">{task.title}</h4>
+                                                                    <div className="flex gap-4 mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                                                        <span className="flex items-center"><Server className="h-3 w-3 mr-1" /> {task.owner}</span>
+                                                                        <span className="flex items-center"><History className="h-3 w-3 mr-1" /> {task.duration}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <EmptyState
+                                                            icon={ClipboardCheck}
+                                                            title="Aucun plan de reprise"
+                                                            description="Définissez les étapes de reprise pour ce processus."
+                                                        />
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {inspectorTab === 'scenarios' && (
+                                        <div className="space-y-6">
+                                            <div className="flex justify-between items-center">
+                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Scénarios de Risque</h3>
+                                            </div>
+                                            {isEditing ? (
+                                                <div>
+                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Lier des Risques</label>
+                                                    <Controller
+                                                        name="relatedRiskIds"
+                                                        control={editProcessForm.control}
+                                                        render={({ field }) => (
+                                                            <CustomSelect
+                                                                options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
+                                                                value={field.value || []}
+                                                                onChange={field.onChange}
+                                                                placeholder="Sélectionner les risques..."
+                                                                multiple
+                                                            />
+                                                        )}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    {selectedProcess.relatedRiskIds && selectedProcess.relatedRiskIds.length > 0 ? (
+                                                        selectedProcess.relatedRiskIds.map(rid => {
+                                                            const risk = risks.find(r => r.id === rid);
+                                                            return risk ? (
+                                                                <div key={rid} className="p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex justify-between items-center">
+                                                                    <div>
+                                                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</h4>
+                                                                        <p className="text-xs text-slate-500">{risk.vulnerability}</p>
+                                                                    </div>
+                                                                    <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.score >= 15 ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
+                                                                        Score: {risk.score}
+                                                                    </div>
+                                                                </div>
+                                                            ) : null;
+                                                        })
+                                                    ) : (
+                                                        <EmptyState
+                                                            icon={ShieldAlert}
+                                                            title="Aucun scénario lié"
+                                                            description="Liez des risques existants à ce processus pour analyser les impacts."
+                                                        />
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                     )}

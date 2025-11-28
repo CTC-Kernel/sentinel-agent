@@ -13,7 +13,9 @@ export type ResourceType =
     | 'Incident'
     | 'Supplier'
     | 'BusinessProcess'
-    | 'ProcessingActivity';
+    | 'ProcessingActivity'
+    | 'SupplierAssessment'
+    | 'SupplierIncident';
 
 export type ActionType = 'create' | 'read' | 'update' | 'delete' | 'manage';
 export type Role = 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user';
@@ -34,21 +36,23 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Incident: ['manage'],
         Supplier: ['manage'],
         BusinessProcess: ['manage'],
-        ProcessingActivity: ['manage']
+        ProcessingActivity: ['manage'],
+        SupplierAssessment: ['manage'],
+        SupplierIncident: ['manage']
     },
     auditor: {
         Audit: ['manage'],
         Document: ['read', 'create', 'update'],
-        Risk: ['read', 'update'], // Aligned with backend: canWrite(orgId) is true for Auditor? No, wait.
-        // Backend check: canWrite(orgId) -> belongsToOrganization && (isAdmin || isAuditor || isRSSI)
-        // So Auditor HAS write access to Risks in backend.
+        Risk: ['read', 'update'],
         Project: ['read'],
-        Asset: ['read', 'update'], // Aligned with backend
+        Asset: ['read', 'update'],
         Control: ['read'],
-        Incident: ['read'], // Backend: create allowed for all auth users in org, update allowed if canWrite. So Auditor can update.
+        Incident: ['read'],
         Supplier: ['read', 'update'],
         BusinessProcess: ['read', 'update'],
-        ProcessingActivity: ['read', 'update']
+        ProcessingActivity: ['read', 'update'],
+        SupplierAssessment: ['read', 'update'],
+        SupplierIncident: ['read']
     },
     project_manager: {
         Project: ['manage'],
@@ -59,7 +63,9 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Incident: ['read'],
         Supplier: ['read'],
         BusinessProcess: ['read'],
-        ProcessingActivity: ['read']
+        ProcessingActivity: ['read'],
+        SupplierAssessment: ['read'],
+        SupplierIncident: ['read']
     },
     direction: {
         Project: ['read'],
@@ -71,7 +77,9 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Incident: ['read'],
         Supplier: ['read'],
         BusinessProcess: ['read'],
-        ProcessingActivity: ['read']
+        ProcessingActivity: ['read'],
+        SupplierAssessment: ['read'],
+        SupplierIncident: ['read']
     },
     user: {
         Document: ['read'],
@@ -80,10 +88,12 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Project: ['read'],
         Audit: ['read'],
         Control: ['read'],
-        Incident: ['read', 'create'], // Users can create incidents
+        Incident: ['read', 'create'],
         Supplier: ['read'],
         BusinessProcess: ['read'],
-        ProcessingActivity: ['read']
+        ProcessingActivity: ['read'],
+        SupplierAssessment: ['read'],
+        SupplierIncident: ['read']
     }
 };
 
@@ -194,7 +204,8 @@ export const canEditResource = (user: UserProfile | null, resource: ResourceType
         // Auditors can edit most core GRC resources
         const auditorEditableResources: ResourceType[] = [
             'Risk', 'Asset', 'Control', 'Audit', 'Document',
-            'Supplier', 'BusinessProcess', 'ProcessingActivity', 'Incident'
+            'Supplier', 'BusinessProcess', 'ProcessingActivity', 'Incident',
+            'SupplierAssessment', 'SupplierIncident'
         ];
         if (auditorEditableResources.includes(resource)) return true;
     }

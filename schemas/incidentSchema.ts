@@ -20,7 +20,8 @@ export const incidentSchema = z.object({
     // NIS 2 Fields
     isSignificant: z.boolean().optional(),
     notificationStatus: z.enum(['Not Required', 'Pending', 'Reported']).optional(),
-    relevantAuthorities: z.array(z.string()).optional()
+    relevantAuthorities: z.array(z.string()).optional(),
+    affectedProcessId: z.string().optional(),
 });
 
 export type IncidentFormData = z.infer<typeof incidentSchema>;
