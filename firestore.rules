@@ -206,6 +206,16 @@ service cloud.firestore {
       allow delete: if canDelete(resource.data.organizationId);
     }
 
+    // Documents
+    match /documents/{documentId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
     // Audit Checklists
     match /audit_checklists/{checklistId} {
       allow read: if canRead(resource.data.organizationId);

@@ -20,7 +20,7 @@ import { useStore } from '../store';
 import {
     demoAssets, demoRisks, demoControls, demoProjects, demoAudits,
     demoIncidents, demoSuppliers, demoProcessingActivities,
-    demoBusinessProcesses, demoBcpDrills, demoDocuments, demoUsers, demoLogs,
+    demoBusinessProcesses, demoNotifications, demoComments, demoBcpDrills, demoDocuments, demoUsers, demoLogs,
     demoSupplierAssessments, demoSupplierIncidents, demoFindings
 } from '../data/demoData';
 
@@ -42,6 +42,11 @@ interface UseFirestoreReturn<T> {
 
 // Helper to get demo data by collection name
 const getDemoDataForCollection = (collectionName: string): any[] => {
+    // Handle subcollections like 'risks/risk-1/comments'
+    if (collectionName.endsWith('/comments')) {
+        return demoComments;
+    }
+
     switch (collectionName) {
         case 'assets': return demoAssets;
         case 'risks': return demoRisks;
