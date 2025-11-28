@@ -46,7 +46,7 @@ export const Dashboard: React.FC = () => {
     const [openAuditsCount, setOpenAuditsCount] = useState(0);
     const [activityExpanded, setActivityExpanded] = useState(false);
 
-    const { user, theme, addToast } = useStore();
+    const { user, theme, addToast, demoMode } = useStore();
     const navigate = useNavigate();
 
     // Hooks
@@ -66,6 +66,15 @@ export const Dashboard: React.FC = () => {
 
     // Fetch Counts & Org Name
     useEffect(() => {
+        if (demoMode) {
+            setOrganizationName('Cyber Threat Consulting (Demo)');
+            setTeamSize(12);
+            setActiveIncidentsCount(3);
+            setOpenAuditsCount(2);
+            setManualLoading(false);
+            return;
+        }
+
         if (!user?.organizationId) {
             setManualLoading(false);
             return;
@@ -101,7 +110,7 @@ export const Dashboard: React.FC = () => {
             }
         };
         fetchCounts();
-    }, [user?.organizationId, user?.organizationName]);
+    }, [user?.organizationId, user?.organizationName, demoMode]);
 
     // Derived Data
     const topRisks = React.useMemo(() => [...allRisks].sort((a, b) => b.score - a.score).slice(0, 5), [allRisks]);
