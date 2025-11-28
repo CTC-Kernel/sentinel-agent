@@ -60,6 +60,7 @@ export interface Risk {
   createdAt?: string;
   affectedProcessIds?: string[];
   relatedSupplierIds?: string[];
+  history?: RiskHistory[];
 }
 
 export interface Control {
@@ -113,6 +114,7 @@ export interface Audit {
   findingsCount: number;
   relatedAssetIds?: string[];
   relatedRiskIds?: string[];
+  relatedProjectIds?: string[];
   relatedControlIds?: string[];
 }
 
@@ -129,16 +131,16 @@ export interface Finding {
 }
 
 export interface RiskHistory {
-  id: string;
-  riskId: string;
-  organizationId: string;
+  id?: string;
+  riskId?: string;
+  organizationId?: string;
   date: string;
   previousScore: number;
   newScore: number;
-  previousProbability: number;
-  newProbability: number;
-  previousImpact: number;
-  newImpact: number;
+  previousProbability?: number;
+  newProbability?: number;
+  previousImpact?: number;
+  newImpact?: number;
   changedBy: string;
   reason?: string;
 }
@@ -268,6 +270,9 @@ export interface Supplier {
   supportsCriticalFunction?: boolean;
   doraCriticality?: 'Critical' | 'Important' | 'None';
   serviceType?: 'SaaS' | 'Cloud' | 'Software' | 'Hardware' | 'Consulting' | 'Network' | 'Security';
+  relatedAssetIds?: string[];
+  relatedRiskIds?: string[];
+  relatedProjectIds?: string[];
 
   riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
   riskAssessment: {

@@ -3,10 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, limit, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, ProjectMilestone, ProjectTemplate } from '../types';
-import { canEditResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, MoreHorizontal, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, X, History, MessageSquare, LayoutDashboard, Download, Copy, Zap } from '../components/ui/Icons';
-import { ProjectFormModal } from '../components/projects/ProjectFormModal';
+import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, ProjectMilestone, ProjectTemplate, Audit, Supplier } from '../types';
+import { canEditResource, canDeleteResource } from '../utils/permissions';
+import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, X, History, MessageSquare, LayoutDashboard, Download, Copy, Zap } from '../components/ui/Icons';
+
+import { Drawer } from '../components/ui/Drawer';
+// import { Modal } from '../components/ui/Modal'; // Removed Modal
+import { ProjectForm } from '../components/projects/ProjectForm';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
@@ -78,7 +81,8 @@ export const Projects: React.FC = () => {
 
     const loading = loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers;
 
-    const [showModal, setShowModal] = useState(false);
+    const [creationMode, setCreationMode] = useState(false);
+    const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
@@ -90,13 +94,15 @@ export const Projects: React.FC = () => {
     const [taskViewMode, setTaskViewMode] = useState<'list' | 'board'>('list');
     const [projectHistory, setProjectHistory] = useState<SystemLog[]>([]);
     const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
+    const [linkedAudits, setLinkedAudits] = useState<Audit[]>([]);
+    const [linkedSuppliers, setLinkedSuppliers] = useState<Supplier[]>([]);
     const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
     const [ganttViewMode, setGanttViewMode] = useState<'Day' | 'Week' | 'Month'>('Week');
 
     const canEdit = canEditResource(user, 'Project');
 
     // Form State
-    const [isEditing, setIsEditing] = useState(false);
+    // const [isEditing, setIsEditing] = useState(false); // Removed unused
 
 
     // Confirm Dialog
@@ -108,7 +114,7 @@ export const Projects: React.FC = () => {
         setSelectedProject(project);
         setInspectorTab('overview');
         setGanttViewMode('Week');
-        setIsEditing(false);
+        // setIsEditing(false); // Removed unused
 
         // Fetch History
         try {
@@ -140,6 +146,25 @@ export const Projects: React.FC = () => {
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.openInspector.milestones', 'FETCH_FAILED');
         }
+
+        // Fetch Linked Audits
+        try {
+            const q = query(collection(db, 'audits'), where('organizationId', '==', user?.organizationId), where('relatedProjectIds', 'array-contains', project.id));
+            const snap = await getDocs(q);
+            setLinkedAudits(snap.docs.map(d => ({ id: d.id, ...d.data() } as Audit)));
+        } catch (e) {
+            console.error("Error fetching linked audits", e);
+            // Fallback or silent fail if index missing
+        }
+
+        // Fetch Linked Suppliers
+        try {
+            const q = query(collection(db, 'suppliers'), where('organizationId', '==', user?.organizationId), where('relatedProjectIds', 'array-contains', project.id));
+            const snap = await getDocs(q);
+            setLinkedSuppliers(snap.docs.map(d => ({ id: d.id, ...d.data() } as Supplier)));
+        } catch (e) {
+            console.error("Error fetching linked suppliers", e);
+        }
     };
 
     useEffect(() => {
@@ -152,8 +177,8 @@ export const Projects: React.FC = () => {
         }
     }, [location.state, loading, projects]);
 
-    const openCreateModal = async () => {
-        // Check limits
+    const openCreationDrawer = async () => {
+        // Check limits only for creation
         if (user?.organizationId) {
             const canAdd = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
             if (!canAdd) {
@@ -163,8 +188,13 @@ export const Projects: React.FC = () => {
                 return;
             }
         }
-        setIsEditing(false);
-        setShowModal(true);
+        setEditingProject(null);
+        setCreationMode(true);
+    };
+
+    const openEditDrawer = (project: Project) => {
+        setEditingProject(project);
+        setCreationMode(false);
     };
 
     // Unified handler for ProjectFormModal submission (create or update)
@@ -172,17 +202,18 @@ export const Projects: React.FC = () => {
         if (!canEdit || !user?.organizationId) return;
 
         try {
-            if (isEditing && selectedProject) {
+            if (editingProject) {
                 // Update existing project
-                await updateDoc(doc(db, 'projects', selectedProject.id), {
+                await updateDoc(doc(db, 'projects', editingProject.id), {
                     ...projectData
                 });
                 await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${projectData.name}`);
-                addToast("Projet mis à jour", "success");
 
                 // Update local state - No longer needed with useFirestoreCollection
-                const updatedProject = { ...selectedProject, ...projectData };
-                setSelectedProject(updatedProject);
+                const updatedProject = { ...editingProject, ...projectData } as Project;
+                if (selectedProject?.id === editingProject.id) {
+                    setSelectedProject(updatedProject);
+                }
             } else {
                 // Create new project
                 await addDoc(collection(db, 'projects'), {
@@ -195,8 +226,9 @@ export const Projects: React.FC = () => {
                 await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${projectData.name}`);
                 addToast("Projet créé avec succès", "success");
             }
-            setShowModal(false);
-            setIsEditing(false);
+            setCreationMode(false);
+            setEditingProject(null);
+            // setIsEditing(false); // Removed unused
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleProjectFormSubmit', 'UPDATE_FAILED');
         }
@@ -270,7 +302,7 @@ export const Projects: React.FC = () => {
     };
 
     const initiateDelete = (id: string, name: string) => {
-        if (!canEdit) return;
+        if (!canDeleteResource(user, 'Project')) return;
         setConfirmData({
             isOpen: true,
             title: "Supprimer le projet ?",
@@ -512,7 +544,7 @@ export const Projects: React.FC = () => {
                             Depuis Template
                         </button>
                         <button
-                            onClick={openCreateModal}
+                            onClick={openCreationDrawer}
                             className="flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20"
                         >
                             <Plus className="h-4 w-4 mr-2" />
@@ -545,7 +577,7 @@ export const Projects: React.FC = () => {
                             title="Aucun projet en cours"
                             description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
                             actionLabel={filter ? undefined : "Créer un projet"}
-                            onAction={filter ? undefined : openCreateModal}
+                            onAction={filter ? undefined : openCreationDrawer}
                         />
                     </div>
                 ) : (
@@ -555,7 +587,18 @@ export const Projects: React.FC = () => {
                                 <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border shadow-sm ${getStatusColor(project.status)}`}>
                                     {project.status}
                                 </span>
-                                <MoreHorizontal className="h-5 w-5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {canEdit && (
+                                        <>
+                                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-400 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                <Edit className="h-4 w-4" />
+                                            </button>
+                                            <button onClick={(e) => { e.stopPropagation(); initiateDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-400 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
 
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{project.name}</h3>
@@ -608,7 +651,7 @@ export const Projects: React.FC = () => {
                                             <button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer"><Copy className="h-5 w-5" /></button>
                                         )}
                                         {canEdit && (
-                                            <button onClick={() => { setIsEditing(true); setShowModal(true); }} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                            <button onClick={() => openEditDrawer(selectedProject)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                         )}
                                         {canEdit && (
                                             <button onClick={() => initiateDelete(selectedProject.id, selectedProject.name)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
@@ -749,6 +792,54 @@ export const Projects: React.FC = () => {
                                                     </div>
                                                 )}
                                             </div>
+
+                                            {/* Linked Audits */}
+                                            {linkedAudits.length > 0 && (
+                                                <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6 mt-6">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <div>
+                                                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Audits de conformité</p>
+                                                            <h4 className="text-lg font-bold text-slate-900 dark:text-white">Audits liés</h4>
+                                                        </div>
+                                                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{linkedAudits.length} audits</span>
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        {linkedAudits.map(audit => (
+                                                            <div key={audit.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                                <div>
+                                                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{audit.name}</p>
+                                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{audit.type} • {new Date(audit.dateScheduled).toLocaleDateString()}</p>
+                                                                </div>
+                                                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg ${audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>{audit.status}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Linked Suppliers */}
+                                            {linkedSuppliers.length > 0 && (
+                                                <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6 mt-6">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <div>
+                                                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Chaîne d'approvisionnement</p>
+                                                            <h4 className="text-lg font-bold text-slate-900 dark:text-white">Fournisseurs impliqués</h4>
+                                                        </div>
+                                                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{linkedSuppliers.length} fournisseurs</span>
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        {linkedSuppliers.map(supplier => (
+                                                            <div key={supplier.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                                <div>
+                                                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{supplier.name}</p>
+                                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{supplier.category}</p>
+                                                                </div>
+                                                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg ${supplier.criticality === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>{supplier.criticality}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
 
                                         </div>
                                     )}
@@ -914,20 +1005,24 @@ export const Projects: React.FC = () => {
                 document.body
             )}
 
-            {/* Create Modal */}
-            {showModal && (
-                <ProjectFormModal
-                    isOpen={showModal}
-                    onClose={() => setShowModal(false)}
+            {/* Create/Edit Drawer */}
+            <Drawer
+                isOpen={creationMode || !!editingProject}
+                onClose={() => { setCreationMode(false); setEditingProject(null); }}
+                title={editingProject ? "Modifier le Projet" : "Nouveau Projet"}
+                subtitle={editingProject ? editingProject.name : "Création"}
+                width="max-w-4xl"
+            >
+                <ProjectForm
+                    onCancel={() => { setCreationMode(false); setEditingProject(null); }}
                     onSubmit={handleProjectFormSubmit}
-                    availableUsers={usersList.map(u => u.displayName)}
-                    existingProject={isEditing && selectedProject ? selectedProject : undefined}
+                    existingProject={editingProject || undefined}
+                    availableUsers={usersList.map(u => u.displayName || u.email)}
                     availableRisks={risks}
                     availableControls={controls}
                     availableAssets={assets}
                 />
-            )}
+            </Drawer>
         </div>
     );
 };
-
