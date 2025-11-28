@@ -31,7 +31,6 @@ export const Privacy: React.FC = () => {
     const [selectedActivity, setSelectedActivity] = useState<ProcessingActivity | null>(null);
     const [inspectorTab, setInspectorTab] = useState<'details' | 'data' | 'history' | 'comments'>('details');
     const [activityHistory, setActivityHistory] = useState<SystemLog[]>([]);
-    // const [editForm, setEditForm] = useState<Partial<ProcessingActivity>>({}); // Removed
     const [isEditing, setIsEditing] = useState(false);
 
     // Stats State
@@ -196,7 +195,7 @@ export const Privacy: React.FC = () => {
             a.retentionPeriod,
             a.hasDPIA ? 'Oui' : 'Non'
         ]);
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
+        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(','))].join('\n');
         const link = document.createElement('a');
         link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
         link.download = `ropa_gdpr_export_${new Date().toISOString().split('T')[0]}.csv`;

@@ -10,3 +10,11 @@ interface ImportMetaEnv {
 interface ImportMeta {
     readonly env: ImportMetaEnv;
 }
+
+declare module 'jspdf' {
+    interface jsPDF {
+        autoTable: (options: any) => jsPDF;
+        lastAutoTable: { finalY: number };
+        internal: any;
+    }
+}

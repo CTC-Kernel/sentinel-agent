@@ -590,8 +590,8 @@ export const Compliance: React.FC = () => {
                             ))}
                         </div>
 
-                        <button onClick={generateSoAReport} className="flex items-center px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm whitespace-nowrap">
-                            <Download className="h-4 w-4 mr-2" /> Rapport
+                        <button onClick={generateSoAReport} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white whitespace-nowrap">
+                            <Download className="h-4 w-4 mr-2 text-slate-500" /> Rapport
                         </button>
                     </div>
                 }
@@ -601,13 +601,13 @@ export const Compliance: React.FC = () => {
             <ComplianceDashboard controls={controls} onFilterChange={setStatusFilter} />
 
             {/* Filter Bar - Clean Style */}
-            <div className="flex flex-col sm:flex-row gap-4 p-1">
-                <div className="flex-1 relative group">
+            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-col sm:flex-row gap-4 border border-slate-200 dark:border-white/5 shadow-sm">
+                <div className="flex-1 relative group flex items-center">
                     <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                     <input
                         type="text"
                         placeholder="Rechercher un contrôle (ex: A.5.1, Accès)..."
-                        className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm font-medium transition-all shadow-sm placeholder:text-slate-400"
+                        className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus:ring-0 text-sm font-medium transition-all placeholder:text-slate-400 text-slate-700 dark:text-white"
                         value={filter}
                         onChange={e => setFilter(e.target.value)}
                     />
@@ -671,7 +671,7 @@ export const Compliance: React.FC = () => {
                             const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
 
                             return (
-                                <div key={domain.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
+                                <div key={domain.id} className="glass-panel rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
                                     <div
                                         onClick={() => toggleDomain(domain.id)}
                                         className={`p-6 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
@@ -777,6 +777,7 @@ export const Compliance: React.FC = () => {
                                 risks={risks}
                                 controls={controls}
                                 usersList={usersList}
+                                projects={projects}
                                 initialData={modalInitialData}
                             />
                         )}

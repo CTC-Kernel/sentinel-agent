@@ -64,10 +64,10 @@ export class AccountService {
           // If no other users in this org (we already deleted current user doc), delete the org
           if (usersInOrg.empty) {
             await deleteDoc(doc(db, 'organizations', user.organizationId));
-            console.log(`Organization ${user.organizationId} deleted (no remaining users)`);
+
           }
         } catch (e) {
-          console.warn("Could not delete organization:", e);
+          ErrorLogger.error(e, 'AccountService.deleteAccount.deleteOrg');
         }
       }
 
@@ -113,7 +113,7 @@ export class AccountService {
         const backupStorageRef = ref(storage, `backups/${organizationId}`);
         await this.deleteStorageFolder(backupStorageRef);
       } catch (e) {
-        console.warn("Storage cleanup warning:", e);
+        ErrorLogger.error(e, 'AccountService.deleteOrganization.storageCleanup');
       }
 
     } catch (error) {
