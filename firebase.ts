@@ -27,13 +27,10 @@ if (typeof window !== 'undefined') {
   const isDebugMode = localStorage.getItem('debug_app_check') === 'true';
   const isLocal = window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1' ||
-    window.location.hostname === 'app.cyber-threat-consulting.com' ||
     isDebugMode;
 
-  if (import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN && isLocal) {
-    // @ts-expect-error - FIREBASE_APPCHECK_DEBUG_TOKEN is not defined on self
-    self.FIREBASE_APPCHECK_DEBUG_TOKEN = import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN;
-  } else if (import.meta.env.DEV || isLocal) {
+  if (isLocal) {
+    // Force a new debug token to be generated in the console
     // @ts-expect-error - FIREBASE_APPCHECK_DEBUG_TOKEN is not defined on self
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
   }
