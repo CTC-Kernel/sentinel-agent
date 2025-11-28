@@ -26,6 +26,7 @@ export interface Asset {
   ownerId?: string;
   relatedProjectIds?: string[];
   scope?: ('NIS2' | 'DORA' | 'PCI_DSS' | 'HDS' | 'ISO27001' | 'SOC2')[];
+  supplierId?: string;
 }
 
 export interface MaintenanceRecord {
@@ -57,6 +58,7 @@ export interface Risk {
   mitigationControlIds?: string[];
   lastReviewDate?: string;
   createdAt?: string;
+  affectedProcessIds?: string[];
 }
 
 export interface Control {
@@ -101,7 +103,7 @@ export interface Audit {
   id: string;
   organizationId: string;
   name: string;
-  type: 'Interne' | 'Externe' | 'Certification';
+  type: 'Interne' | 'Externe' | 'Certification' | 'Fournisseur';
   auditor: string;
   dateScheduled: string;
   status: 'Planifié' | 'En cours' | 'Terminé' | 'Validé';
@@ -218,6 +220,7 @@ export interface Incident {
   category?: 'Ransomware' | 'Phishing' | 'Vol Matériel' | 'Indisponibilité' | 'Fuite de Données' | 'Autre';
   playbookStepsCompleted?: string[];
   affectedAssetId?: string;
+  affectedProcessId?: string;
   relatedRiskId?: string;
   financialImpact?: number; // Coût estimé de l'incident
   reporter: string;
@@ -244,6 +247,7 @@ export interface Supplier {
   owner?: string;
   ownerId?: string;
   description?: string;
+  supportedProcessIds?: string[];
   contractDocumentId?: string;
   contractEnd?: string;
   securityScore?: number;
@@ -375,6 +379,16 @@ export interface BusinessProcess {
   supportingAssetIds: string[];
   drpDocumentId?: string;
   lastTestDate?: string;
+  relatedRiskIds?: string[]; // Scenarios
+  supplierIds?: string[]; // Outsourcing
+  recoveryTasks?: {
+    id: string;
+    title: string;
+    description?: string;
+    owner: string;
+    duration: string; // e.g. "30m", "2h"
+    order: number;
+  }[];
 }
 
 export interface BcpDrill {
@@ -384,7 +398,7 @@ export interface BcpDrill {
   date: string;
   type: 'Tabletop' | 'Simulation' | 'Bascule réelle';
   result: 'Succès' | 'Succès partiel' | 'Échec';
-  notes: string;
+  notes?: string;
   createdAt: string;
 }
 

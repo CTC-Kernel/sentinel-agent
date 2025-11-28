@@ -3,10 +3,10 @@ import React, { useEffect, useState } from 'react';
 
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit } from '../types';
+import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit, Supplier, BusinessProcess } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Clock, Copy, Euro, FolderKanban, CheckSquare, Link, Network, ShieldCheck } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Clock, Copy, Euro, FolderKanban, CheckSquare, Link, Network, ShieldCheck, Truck, HeartPulse } from '../components/ui/Icons';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -29,9 +29,10 @@ import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { assetSchema, AssetFormData } from '../schemas/assetSchema';
+import { CustomSelect } from '../components/ui/CustomSelect';
 
 export const Assets: React.FC = () => {
     const { user, addToast } = useStore();
@@ -61,6 +62,18 @@ export const Assets: React.FC = () => {
         { logError: true }
     );
 
+    const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
+        'suppliers',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: processes, loading: processesLoading } = useFirestoreCollection<BusinessProcess>(
+        'business_processes',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
     // Derived State
     const assets = React.useMemo(() => {
         return rawAssets.map(a => ({
@@ -69,7 +82,7 @@ export const Assets: React.FC = () => {
         })).sort((a, b) => a.name.localeCompare(b.name));
     }, [rawAssets]);
 
-    const loading = assetsLoading || usersLoading;
+    const loading = assetsLoading || usersLoading || suppliersLoading || processesLoading;
 
     const canEdit = canEditResource(user, 'Asset');
 
@@ -88,7 +101,7 @@ export const Assets: React.FC = () => {
     const [showInspector, setShowInspector] = useState(false);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
-    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isDirty } } = useForm<AssetFormData>({
+    const { register, control, handleSubmit, reset, setValue, watch, formState: { errors, isDirty } } = useForm<AssetFormData>({
         resolver: zodResolver(assetSchema) as any,
         defaultValues: {
             name: '',
@@ -98,7 +111,8 @@ export const Assets: React.FC = () => {
             integrity: Criticality.LOW,
             availability: Criticality.LOW,
             location: '',
-            lifecycleStatus: 'Neuf'
+            lifecycleStatus: 'Neuf',
+            supplierId: ''
         }
     });
 
@@ -167,7 +181,8 @@ export const Assets: React.FC = () => {
                 integrity: Criticality.LOW,
                 availability: Criticality.LOW,
                 location: '',
-                lifecycleStatus: 'Neuf'
+                lifecycleStatus: 'Neuf',
+                supplierId: ''
             });
             setSelectedAsset(null);
             setInspectorTab('details');
@@ -570,6 +585,22 @@ export const Assets: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="col-span-2"><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Localisation</label><input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium" {...register('location')} /></div>
+                                    <div className="col-span-2">
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Fournisseur / Mainteneur</label>
+                                        <Controller
+                                            name="supplierId"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <CustomSelect
+                                                    options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
+                                                    value={field.value || ''}
+                                                    onChange={field.onChange}
+                                                    placeholder="Sélectionner un fournisseur..."
+                                                    disabled={!canEdit}
+                                                />
+                                            )}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
@@ -616,6 +647,51 @@ export const Assets: React.FC = () => {
                                             {scope.replace('_', ' ')}
                                         </label>
                                     ))}
+                                </div>
+                            </div>
+
+                            {/* Dependencies & Relationships */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center">
+                                        <Truck className="h-4 w-4 mr-2" /> Fournisseur Associé
+                                    </h3>
+                                    {watch('supplierId') ? (
+                                        (() => {
+                                            const sup = suppliers.find(s => s.id === watch('supplierId'));
+                                            return sup ? (
+                                                <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                                    <div className="font-bold text-slate-900 dark:text-white">{sup.name}</div>
+                                                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{sup.category}</div>
+                                                    <div className="mt-3 flex gap-2">
+                                                        <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${sup.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{sup.status}</span>
+                                                        <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${sup.criticality === 'Critique' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>{sup.criticality}</span>
+                                                    </div>
+                                                </div>
+                                            ) : <p className="text-sm text-gray-400 italic">Fournisseur introuvable.</p>;
+                                        })()
+                                    ) : (
+                                        <p className="text-sm text-gray-400 italic">Aucun fournisseur lié.</p>
+                                    )}
+                                </div>
+
+                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center">
+                                        <HeartPulse className="h-4 w-4 mr-2" /> Processus Supportés
+                                    </h3>
+                                    {(() => {
+                                        const supported = processes.filter(p => p.supportingAssetIds?.includes(selectedAsset?.id || ''));
+                                        return supported.length > 0 ? (
+                                            <div className="space-y-2">
+                                                {supported.map(p => (
+                                                    <div key={p.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 flex justify-between items-center">
+                                                        <span className="text-sm font-medium text-slate-700 dark:text-white">{p.name}</span>
+                                                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'}`}>{p.priority}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : <p className="text-sm text-gray-400 italic">Cet actif ne supporte aucun processus critique.</p>;
+                                    })()}
                                 </div>
                             </div>
                         </div>
@@ -751,7 +827,7 @@ export const Assets: React.FC = () => {
                     )}
                     {inspectorTab === 'comments' && selectedAsset && (<div className="h-full flex flex-col"><Comments collectionName="assets" documentId={selectedAsset.id} /></div>)}
                 </div>
-            </Drawer>
-        </div>
+            </Drawer >
+        </div >
     );
 };

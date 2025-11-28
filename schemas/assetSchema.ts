@@ -10,14 +10,17 @@ export const assetSchema = z.object({
     confidentiality: z.nativeEnum(Criticality),
     integrity: z.nativeEnum(Criticality),
     availability: z.nativeEnum(Criticality),
-    location: z.string().optional(),
+    location: z.string().min(1, "La localisation est requise"),
     purchaseDate: z.string().optional(),
     purchasePrice: z.coerce.number().min(0).optional(),
+    currentValue: z.coerce.number().min(0).optional(),
     warrantyEnd: z.string().optional(),
     nextMaintenance: z.string().optional(),
     lifecycleStatus: z.enum(['Neuf', 'En service', 'En réparation', 'Fin de vie', 'Rebut']).optional(),
     ownerId: z.string().optional(),
+    relatedProjectIds: z.array(z.string()).optional(),
     scope: z.array(z.enum(['NIS2', 'DORA', 'PCI_DSS', 'HDS', 'ISO27001', 'SOC2'])).optional(),
+    supplierId: z.string().optional(),
 });
 
 export type AssetFormData = z.infer<typeof assetSchema>;

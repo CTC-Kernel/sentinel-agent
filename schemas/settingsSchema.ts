@@ -19,7 +19,10 @@ export const passwordSchema = z.object({
 export type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export const organizationSchema = z.object({
-    orgName: z.string().min(1, 'Le nom de l\'organisation est requis')
+    orgName: z.string().min(1, 'Le nom de l\'organisation est requis'),
+    address: z.string().optional(),
+    vatNumber: z.string().optional(),
+    contactEmail: z.string().email("Email invalide").optional().or(z.literal(''))
 });
 
 export type OrganizationFormData = z.infer<typeof organizationSchema>;
