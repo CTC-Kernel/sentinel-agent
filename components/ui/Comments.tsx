@@ -33,6 +33,7 @@ export const Comments: React.FC<CommentsProps> = ({ collectionName, documentId }
       await addDoc(collection(db, collectionName, documentId, 'comments'), {
         userId: user.uid,
         userName: user.displayName || user.email,
+        organizationId: user.organizationId, // Add organizationId for cleanup/security
         content: newComment.trim(),
         createdAt: new Date().toISOString()
       });
@@ -61,8 +62,8 @@ export const Comments: React.FC<CommentsProps> = ({ collectionName, documentId }
                   </div>
                 )}
                 <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm relative group ${isMe
-                    ? 'bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-br-none'
-                    : 'bg-white dark:bg-slate-800 border border-gray-100 dark:border-gray-700 text-slate-800 dark:text-slate-200 rounded-bl-none'
+                  ? 'bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-br-none'
+                  : 'bg-white dark:bg-slate-800 border border-gray-100 dark:border-gray-700 text-slate-800 dark:text-slate-200 rounded-bl-none'
                   }`}>
                   <p className="whitespace-pre-wrap leading-relaxed">{comment.content}</p>
                   <span className={`text-[9px] font-medium block mt-1 text-right ${isMe ? 'text-brand-100' : 'text-gray-400'}`}>
