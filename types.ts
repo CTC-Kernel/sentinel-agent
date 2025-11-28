@@ -59,6 +59,7 @@ export interface Risk {
   lastReviewDate?: string;
   createdAt?: string;
   affectedProcessIds?: string[];
+  relatedSupplierIds?: string[];
 }
 
 export interface Control {
@@ -74,6 +75,8 @@ export interface Control {
   evidenceStrength?: 'Faible' | 'Forte';
   lastUpdated?: string;
   assigneeId?: string;
+  relatedAssetIds?: string[];
+  relatedSupplierIds?: string[];
 }
 
 export interface Document {
@@ -110,6 +113,7 @@ export interface Audit {
   findingsCount: number;
   relatedAssetIds?: string[];
   relatedRiskIds?: string[];
+  relatedControlIds?: string[];
 }
 
 export interface Finding {

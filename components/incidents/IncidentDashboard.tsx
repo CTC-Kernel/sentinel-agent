@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { ShieldAlert, CalendarDays, Activity, AlertTriangle, Clock, Search, FileSpreadsheet, Siren, Trash2 } from '../ui/Icons';
 import { Incident, Criticality } from '../../types';
 import { useStore } from '../../store';
-import { IncidentPlaybookModal } from './IncidentPlaybookModal';
-import { IncidentTimeline } from './IncidentTimeline';
 import { EmptyState } from '../ui/EmptyState';
 import { CardSkeleton } from '../ui/Skeleton';
 
@@ -13,14 +11,11 @@ interface IncidentDashboardProps {
     onSelect: (incident: Incident) => void;
     loading?: boolean;
     onDelete?: (id: string) => void;
-    showTimeline: boolean;
 }
 
-export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete, showTimeline }) => {
+export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete }) => {
     const { user } = useStore();
     const canEdit = user?.role === 'admin' || user?.role === 'auditor';
-    const [showPlaybookModal, setShowPlaybookModal] = useState(false);
-    const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
     const [filter, setFilter] = useState('');
 
     const stats = useMemo(() => {
@@ -60,11 +55,6 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-    };
-
-    const handleIncidentClick = (inc: Incident) => {
-        setSelectedIncident(inc);
-        onSelect(inc);
     };
 
     const getSeverityColor = (s: Criticality) => {
@@ -139,13 +129,6 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 </button>
             </div>
 
-            {/* Timeline View */}
-            {showTimeline && selectedIncident && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 animate-slide-up">
-                    <IncidentTimeline selectedIncident={selectedIncident} />
-                </div>
-            )}
-
             {/* Incident list */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {loading ? (
@@ -164,7 +147,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                     filteredIncidents.map((inc) => (
                         <div
                             key={inc.id}
-                            onClick={() => handleIncidentClick(inc)}
+                            onClick={() => onSelect(inc)}
                             className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5"
                         >
                             {inc.severity === Criticality.CRITICAL && (
@@ -212,8 +195,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setSelectedIncident(inc);
-                                                setShowPlaybookModal(true);
+                                                onSelect(inc);
                                             }}
                                             className="text-xs px-2 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg hover:scale-105 transition-transform font-bold"
                                         >
@@ -229,44 +211,6 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                     ))
                 )}
             </div>
-
-            {/* Playbook Modal */}
-            {showPlaybookModal && selectedIncident && (
-                <IncidentPlaybookModal
-                    isOpen={showPlaybookModal}
-                    title={`Playbook: ${selectedIncident.category || 'Incident'}`}
-                    onClose={() => {
-                        setShowPlaybookModal(false);
-                        setSelectedIncident(null);
-                    }}
-                >
-                    <div className="space-y-4">
-                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
-                            <h3 className="font-semibold text-slate-900 dark:text-white mb-2">
-                                {selectedIncident.title}
-                            </h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                                {selectedIncident.description}
-                            </p>
-                        </div>
-                        <div className="text-sm text-slate-600 dark:text-slate-400">
-                            <p>Sévérité: <span className="font-semibold">{selectedIncident.severity}</span></p>
-                            <p>Statut: <span className="font-semibold">{selectedIncident.status}</span></p>
-                            <p>Reporter: <span className="font-semibold">{selectedIncident.reporter}</span></p>
-                        </div>
-                        {selectedIncident.playbookStepsCompleted && selectedIncident.playbookStepsCompleted.length > 0 && (
-                            <div>
-                                <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Étapes complétées:</h4>
-                                <ul className="list-disc list-inside space-y-1 text-sm text-slate-600 dark:text-slate-400">
-                                    {selectedIncident.playbookStepsCompleted.map((step, idx) => (
-                                        <li key={idx}>{step}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                </IncidentPlaybookModal>
-            )}
         </div>
     );
 };

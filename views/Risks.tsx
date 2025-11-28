@@ -5,7 +5,7 @@ import { riskSchema, RiskFormData } from '../schemas/riskSchema';
 import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess } from '../types';
+import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Edit, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw } from '../components/ui/Icons';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
@@ -73,6 +73,12 @@ export const Risks: React.FC = () => {
         { logError: true }
     );
 
+    const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
+        'suppliers',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
     // Derived State (Sorting)
     const risks = React.useMemo(() => [...rawRisks].sort((a, b) => b.score - a.score), [rawRisks]);
     const controls = React.useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
@@ -99,7 +105,7 @@ export const Risks: React.FC = () => {
     const [riskScoreHistory, setRiskScoreHistory] = useState<RiskHistory[]>([]);
     const [stats, setStats] = useState({ total: 0, critical: 0, mitigated: 0, reviewDue: 0 });
     const [importing, setImporting] = useState(false);
-    const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || importing;
+    const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || importing;
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const { control, handleSubmit: handleFormSubmit, reset, formState: { errors }, setValue, watch, getValues } = useForm<RiskFormData>({
         resolver: zodResolver(riskSchema),
@@ -115,7 +121,9 @@ export const Risks: React.FC = () => {
             status: 'Ouvert',
             ownerId: '',
             mitigationControlIds: [],
-            affectedProcessIds: []
+            mitigationControlIds: [],
+            affectedProcessIds: [],
+            relatedSupplierIds: []
         }
     });
 
@@ -248,7 +256,9 @@ export const Risks: React.FC = () => {
                 status: risk.status,
                 ownerId: resolvedOwnerId,
                 mitigationControlIds: risk.mitigationControlIds || [],
-                affectedProcessIds: risk.affectedProcessIds || []
+                mitigationControlIds: risk.mitigationControlIds || [],
+                affectedProcessIds: risk.affectedProcessIds || [],
+                relatedSupplierIds: risk.relatedSupplierIds || []
             });
         }
         else {
@@ -266,7 +276,9 @@ export const Risks: React.FC = () => {
                 status: 'Ouvert',
                 ownerId: '',
                 mitigationControlIds: [],
-                affectedProcessIds: []
+                mitigationControlIds: [],
+                affectedProcessIds: [],
+                relatedSupplierIds: []
             });
         }
         setShowModal(true);
@@ -740,18 +752,44 @@ export const Risks: React.FC = () => {
                                     {/* Affected Processes Section */}
                                     <div className="space-y-4">
                                         <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Processus Impactés</label>
-                                        <Controller
-                                            name="affectedProcessIds"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <CustomSelect
-                                                    options={rawProcesses.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
-                                                    value={field.value || []}
-                                                    onChange={field.onChange}
-                                                    placeholder="Sélectionner les processus impactés..."
-                                                    multiple
-                                                />
-                                            )}
+                                        <CustomSelect
+                                            options={rawProcesses.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
+                                            value={selectedRisk.affectedProcessIds || []}
+                                            onChange={async (val) => {
+                                                if (!selectedRisk || !canEdit) return;
+                                                const newIds = Array.isArray(val) ? val : [val];
+                                                try {
+                                                    await updateDoc(doc(db, 'risks', selectedRisk.id), { affectedProcessIds: newIds });
+                                                    setSelectedRisk({ ...selectedRisk, affectedProcessIds: newIds });
+                                                    refreshRisks();
+                                                    addToast("Processus mis à jour", "success");
+                                                } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.updateProcesses', 'UPDATE_FAILED'); }
+                                            }}
+                                            placeholder="Sélectionner les processus impactés..."
+                                            multiple
+                                            disabled={!canEdit}
+                                        />
+                                    </div>
+
+                                    {/* Related Suppliers Section */}
+                                    <div className="space-y-4">
+                                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Fournisseurs Concernés</label>
+                                        <CustomSelect
+                                            options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
+                                            value={selectedRisk.relatedSupplierIds || []}
+                                            onChange={async (val) => {
+                                                if (!selectedRisk || !canEdit) return;
+                                                const newIds = Array.isArray(val) ? val : [val];
+                                                try {
+                                                    await updateDoc(doc(db, 'risks', selectedRisk.id), { relatedSupplierIds: newIds });
+                                                    setSelectedRisk({ ...selectedRisk, relatedSupplierIds: newIds });
+                                                    refreshRisks();
+                                                    addToast("Fournisseurs mis à jour", "success");
+                                                } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.updateSuppliers', 'UPDATE_FAILED'); }
+                                            }}
+                                            placeholder="Sélectionner les fournisseurs concernés..."
+                                            multiple
+                                            disabled={!canEdit}
                                         />
                                     </div>
 
@@ -944,6 +982,7 @@ export const Risks: React.FC = () => {
                                                 )}
                                             />
 
+
                                             <Controller
                                                 name="affectedProcessIds"
                                                 control={control}
@@ -953,6 +992,20 @@ export const Risks: React.FC = () => {
                                                         value={field.value || []}
                                                         onChange={field.onChange}
                                                         options={rawProcesses.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
+                                                        multiple
+                                                    />
+                                                )}
+                                            />
+
+                                            <Controller
+                                                name="relatedSupplierIds"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <CustomSelect
+                                                        label="Fournisseurs Concernés"
+                                                        value={field.value || []}
+                                                        onChange={field.onChange}
+                                                        options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
                                                         multiple
                                                     />
                                                 )}
