@@ -101,7 +101,16 @@ export const Assets: React.FC = () => {
     const [newMaintenance, setNewMaintenance] = useState<Partial<MaintenanceRecord>>({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
 
 
-    const [stats, setStats] = useState({ total: 0, critical: 0, maintenanceDue: 0, totalValue: 0 });
+    const stats = React.useMemo(() => {
+        const nextMonth = new Date();
+        nextMonth.setDate(nextMonth.getDate() + 30);
+        return {
+            total: assets.length,
+            critical: assets.filter(a => a.confidentiality === Criticality.CRITICAL || a.integrity === Criticality.CRITICAL || a.availability === Criticality.CRITICAL).length,
+            maintenanceDue: assets.filter(a => a.nextMaintenance && new Date(a.nextMaintenance) < nextMonth).length,
+            totalValue: assets.reduce((acc, a) => acc + (a.currentValue || 0), 0)
+        };
+    }, [assets]);
     const [showInspector, setShowInspector] = useState(false);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
@@ -129,27 +138,7 @@ export const Assets: React.FC = () => {
         return data;
     };
 
-    useEffect(() => {
-        const nextMonth = new Date();
-        nextMonth.setDate(nextMonth.getDate() + 30);
 
-        setStats({
-            total: assets.length,
-            critical: assets.filter(a => a.confidentiality === Criticality.CRITICAL || a.integrity === Criticality.CRITICAL || a.availability === Criticality.CRITICAL).length,
-            maintenanceDue: assets.filter(a => a.nextMaintenance && new Date(a.nextMaintenance) < nextMonth).length,
-            totalValue: assets.reduce((acc, a) => acc + (a.currentValue || 0), 0)
-        });
-    }, [assets]);
-
-    useEffect(() => {
-        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
-        if (!state.fromVoxel || !state.voxelSelectedId) return;
-        if (loading || assets.length === 0) return;
-        const asset = assets.find(a => a.id === state.voxelSelectedId);
-        if (asset) {
-            openInspector(asset);
-        }
-    }, [location.state, loading, assets]);
 
     const openInspector = async (asset?: Asset) => {
         if (!asset) {
@@ -203,6 +192,17 @@ export const Assets: React.FC = () => {
             return () => unsubMaint();
         }
     };
+
+    useEffect(() => {
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loading || assets.length === 0) return;
+        const asset = assets.find(a => a.id === state.voxelSelectedId);
+        if (asset) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            openInspector(asset);
+        }
+    }, [location.state, loading, assets]);
 
     const handleCreate = async (data: AssetFormData) => {
         if (!user?.organizationId) return;
