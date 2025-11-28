@@ -212,3 +212,25 @@ export const canEditResource = (user: UserProfile | null, resource: ResourceType
 
     return hasPermission(user, resource, 'update');
 };
+
+export const canDeleteResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string): boolean => {
+    if (!user) return false;
+    if (user.role === 'admin' || user.role === 'rssi') return true;
+
+    if (resource === 'Document' && isResourceOwner(user, resourceOwnerId)) {
+        return true;
+    }
+
+    if (user.role === 'project_manager' && resource === 'Project') {
+        // Project Managers can delete their own projects (or all projects if belongsToOrg, logic in rules is broad)
+        // Rules: allow delete: if canDelete(orgId) || (isProjectManager() && belongsToOrganization(orgId));
+        return true;
+    }
+
+    // Auditors generally cannot delete, except maybe Drafts? Rules say NO for Risks/Assets/Controls.
+    // Rules say YES for Audits?
+    // Audit Rules: allow delete: if canDelete(orgId); -> Admin/RSSI only.
+    // So Auditors CANNOT delete Audits in Firestore rules.
+
+    return hasPermission(user, resource, 'delete');
+};

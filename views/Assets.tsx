@@ -6,12 +6,11 @@ import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit, Supplier, BusinessProcess } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, Save, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Clock, Copy, Euro, FolderKanban, CheckSquare, Link, Network, ShieldCheck, Truck, HeartPulse } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Clock, Copy, Euro, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse } from '../components/ui/Icons';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
-import { aiService } from '../services/aiService';
-import { Sparkles } from 'lucide-react';
+
 import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 import { Comments } from '../components/ui/Comments';
@@ -29,10 +28,10 @@ import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { assetSchema, AssetFormData } from '../schemas/assetSchema';
-import { CustomSelect } from '../components/ui/CustomSelect';
+import { AssetForm } from '../components/assets/AssetForm';
+import { AssetFormData } from '../schemas/assetSchema';
+
+import { Edit } from '../components/ui/Icons';
 
 export const Assets: React.FC = () => {
     const { user, addToast } = useStore();
@@ -88,6 +87,8 @@ export const Assets: React.FC = () => {
     const canEdit = canEditResource(user, 'Asset');
 
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+    const [creationMode, setCreationMode] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'projects' | 'audits' | 'history' | 'comments' | 'graph'>('details');
     const [assetHistory, setAssetHistory] = useState<SystemLog[]>([]);
     const [linkedRisks, setLinkedRisks] = useState<Risk[]>([]);
@@ -98,27 +99,16 @@ export const Assets: React.FC = () => {
     const [activeFilters, setActiveFilters] = useState<SearchFilters>({ query: '', type: 'all' });
     const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
     const [newMaintenance, setNewMaintenance] = useState<Partial<MaintenanceRecord>>({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
+
+
     const [stats, setStats] = useState({ total: 0, critical: 0, maintenanceDue: 0, totalValue: 0 });
     const [showInspector, setShowInspector] = useState(false);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
-    const { register, control, handleSubmit, reset, setValue, watch, formState: { errors, isDirty } } = useForm<AssetFormData>({
-        resolver: zodResolver(assetSchema) as any,
-        defaultValues: {
-            name: '',
-            type: 'Matériel',
-            owner: '',
-            confidentiality: Criticality.LOW,
-            integrity: Criticality.LOW,
-            availability: Criticality.LOW,
-            location: '',
-            lifecycleStatus: 'Neuf',
-            supplierId: ''
-        }
-    });
+
 
     // AI Helper State
-    const [suggestingField, setSuggestingField] = useState<string | null>(null);
+
 
     const calculateTCO = () => {
         const purchase = selectedAsset?.purchasePrice || 0;
@@ -174,29 +164,21 @@ export const Assets: React.FC = () => {
                 }
             }
 
-            reset({
-                name: 'Nouvel Actif',
-                type: 'Matériel',
-                owner: '',
-                confidentiality: Criticality.LOW,
-                integrity: Criticality.LOW,
-                availability: Criticality.LOW,
-                location: '',
-                lifecycleStatus: 'Neuf',
-                supplierId: ''
-            });
             setSelectedAsset(null);
+            setCreationMode(true);
+            setIsEditing(false);
             setInspectorTab('details');
             setShowInspector(true);
         } else {
             setSelectedAsset(asset);
-            reset(asset);
+            setCreationMode(false);
+            setIsEditing(false);
             setInspectorTab('details');
             setShowInspector(true);
 
             try {
-                const q = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), where('resource', '==', 'Asset'), limit(20));
-                const snap = await getDocs(q);
+                const logsQ = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), orderBy('timestamp', 'desc'), limit(50));
+                const snap = await getDocs(logsQ);
                 const logs = snap.docs.map(d => d.data() as SystemLog);
                 const filtered = logs.filter(l => l.details?.includes(asset.name));
                 filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -222,64 +204,50 @@ export const Assets: React.FC = () => {
         }
     };
 
-    const onFormSubmit: SubmitHandler<AssetFormData> = async (data) => {
-        if (!canEdit || !user?.organizationId) return;
-
+    const handleCreate = async (data: AssetFormData) => {
+        if (!user?.organizationId) return;
         try {
             const cleanData = sanitizeData(data);
+            const newDoc = { ...cleanData, organizationId: user.organizationId, createdAt: new Date().toISOString() };
+            await addDoc(collection(db, 'assets'), newDoc);
 
-            if (selectedAsset) {
-                await updateDoc(doc(db, 'assets', selectedAsset.id), cleanData);
-                await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${cleanData.name}`);
-                const updatedAsset = { ...selectedAsset, ...cleanData, currentValue: calculateDepreciation(cleanData.purchasePrice || 0, cleanData.purchaseDate || '') } as Asset;
-                refreshAssets();
-                setSelectedAsset(updatedAsset);
-                addToast("Modifications enregistrées", "success");
-            } else {
-                const newDoc = { ...cleanData, organizationId: user.organizationId, createdAt: new Date().toISOString() };
-                const docRef = await addDoc(collection(db, 'assets'), newDoc);
-                const newAsset = { id: docRef.id, ...newDoc, currentValue: calculateDepreciation(newDoc.purchasePrice || 0, newDoc.purchaseDate || '') } as Asset;
-                refreshAssets();
-                setSelectedAsset(newAsset);
-                await logAction(user, 'CREATE', 'Asset', `Création Actif: ${cleanData.name}`);
-                addToast("Actif créé avec succès", "success");
-            }
-            reset(data); // Reset form state to clean
-            refreshAssets(); // Refresh stats
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.onFormSubmit', 'UPDATE_FAILED'); }
-    };
 
-    const handleDuplicate = async () => {
-        if (!selectedAsset || !canEdit || !user?.organizationId) return;
-        try {
-            const newAssetData = { ...selectedAsset, name: `${selectedAsset.name} (Copie)`, createdAt: new Date().toISOString() };
-            const docRef = await addDoc(collection(db, 'assets'), newAssetData);
-            await logAction(user, 'CREATE', 'Asset', `Duplication Actif: ${newAssetData.name}`);
-            addToast("Actif dupliqué", "success");
+            await logAction(user, 'CREATE', 'Asset', `Création Actif: ${cleanData.name}`);
+            addToast("Actif créé avec succès", "success");
+
             refreshAssets();
-            openInspector({ ...newAssetData, id: docRef.id } as Asset);
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.handleDuplicate', 'CREATE_FAILED'); }
+            setCreationMode(false);
+            setShowInspector(false);
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.handleCreate', 'CREATE_FAILED'); }
     };
 
-
-
-
-
-    const handleSuggestField = async (field: keyof AssetFormData) => {
-        setSuggestingField(field);
+    const handleUpdate = async (data: AssetFormData) => {
+        if (!selectedAsset || !user?.organizationId) return;
         try {
-            const currentValues = watch();
-            const suggestion = await aiService.suggestField(currentValues, field);
-            if (suggestion.value) {
-                setValue(field, suggestion.value, { shouldDirty: true });
-                addToast(`Suggestion: ${suggestion.value}`, "info");
-            }
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Assets.handleSuggestField', 'AI_ERROR');
-        } finally {
-            setSuggestingField(null);
-        }
+            const cleanData = sanitizeData(data);
+            await updateDoc(doc(db, 'assets', selectedAsset.id), cleanData);
+            await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${cleanData.name}`);
+
+            const updatedAsset = { ...selectedAsset, ...cleanData, currentValue: calculateDepreciation(cleanData.purchasePrice || 0, cleanData.purchaseDate || '') } as Asset;
+            setSelectedAsset(updatedAsset);
+            addToast("Modifications enregistrées", "success");
+
+            refreshAssets();
+            setIsEditing(false);
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.handleUpdate', 'UPDATE_FAILED'); }
     };
+
+    const handleDuplicate = () => {
+        if (!selectedAsset) return;
+        const copy = { ...selectedAsset, name: `${selectedAsset.name} (Copie)` };
+        setSelectedAsset(copy);
+        setCreationMode(true);
+        setIsEditing(false);
+        setShowInspector(true);
+        addToast("Mode création activé avec les données dupliquées.", "info");
+    };
+
+
 
     const getCriticalityColor = (level: Criticality) => {
         switch (level) {
@@ -313,7 +281,7 @@ export const Assets: React.FC = () => {
                 nextDate.setFullYear(nextDate.getFullYear() + 1);
                 const nextStr = nextDate.toISOString().split('T')[0];
                 await updateDoc(doc(db, 'assets', selectedAsset.id), { nextMaintenance: nextStr });
-                setValue('nextMaintenance', nextStr, { shouldDirty: true });
+                setSelectedAsset(prev => prev ? { ...prev, nextMaintenance: nextStr } : null);
                 addToast("Maintenance ajoutée et prochaine échéance planifiée (+1 an)", "success");
             } else {
                 addToast("Intervention enregistrée", "success");
@@ -509,325 +477,283 @@ export const Assets: React.FC = () => {
             )}
 
             {/* Inspector Drawer */}
-            {/* Inspector Drawer */}
+
             <Drawer
                 isOpen={showInspector}
-                onClose={() => { setShowInspector(false); setSelectedAsset(null); reset({}); }}
+                onClose={() => { setShowInspector(false); setSelectedAsset(null); }}
                 title={selectedAsset ? selectedAsset.name : 'Nouvel Actif'}
                 subtitle={
                     <div className="flex items-center gap-2">
-                        {watch('type')}
-                        <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                        {selectedAsset?.id || 'Brouillon'}
+                        <>
+                            {!creationMode && !isEditing && (
+                                <>
+                                    <button onClick={() => setIsEditing(true)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-brand-500">
+                                        <Edit className="h-5 w-5" />
+                                    </button>
+                                    <button onClick={() => handleDuplicate()} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-blue-500">
+                                        <Copy className="h-5 w-5" />
+                                    </button>
+                                    <button onClick={() => selectedAsset && initiateDelete(selectedAsset.id, selectedAsset.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-red-500">
+                                        <Trash2 className="h-5 w-5" />
+                                    </button>
+                                </>
+                            )}
+                        </>
                     </div>
                 }
-                actions={
-                    <>
-                        {canEdit && selectedAsset && (
-                            <button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer" aria-label="Dupliquer l'actif">
-                                <Copy className="h-5 w-5" />
-                            </button>
-                        )}
-                        {canEdit && isDirty && (
-                            <button onClick={handleSubmit(onFormSubmit as any)} className="flex items-center px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl shadow-lg hover:scale-105 transition-all" aria-label="Enregistrer les modifications">
-                                <Save className="h-4 w-4 mr-2" /> Enregistrer
-                            </button>
-                        )}
-                    </>
-                }
             >
-                <div className="px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
-                    <ScrollableTabs
-                        tabs={[
-                            { id: 'details', label: 'Général', icon: Tag },
-                            { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock },
-                            { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert },
-                            { id: 'projects', label: 'Projets', icon: FolderKanban },
-                            { id: 'audits', label: 'Audits', icon: CheckSquare },
-                            { id: 'history', label: 'Audit Trail', icon: History },
-                            { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                            { id: 'graph', label: 'Graphe', icon: Network }
-                        ].filter(tab => selectedAsset || ['details', 'lifecycle'].includes(tab.id))}
-                        activeTab={inspectorTab}
-                        onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
-                    />
-                </div>
+                {creationMode || (isEditing && selectedAsset) ? (
+                    <div className="p-6">
+                        <AssetForm
+                            onSubmit={creationMode ? handleCreate : handleUpdate}
+                            onCancel={() => {
+                                if (creationMode) setShowInspector(false);
+                                else setIsEditing(false);
+                            }}
+                            initialData={selectedAsset}
+                            usersList={usersList}
+                            suppliers={suppliers}
+                            isEditing={isEditing}
+                        />
+                    </div>
+                ) : (
+                    <>
+                        <div className="px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
+                            <ScrollableTabs
+                                tabs={[
+                                    { id: 'details', label: 'Général', icon: Tag },
+                                    { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock },
+                                    { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert },
+                                    { id: 'projects', label: 'Projets', icon: FolderKanban },
+                                    { id: 'audits', label: 'Audits', icon: CheckSquare },
+                                    { id: 'history', label: 'Audit Trail', icon: History },
+                                    { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                                    { id: 'graph', label: 'Graphe', icon: Network }
+                                ].filter(tab => selectedAsset || ['details', 'lifecycle'].includes(tab.id))}
+                                activeTab={inspectorTab}
+                                onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
+                            />
+                        </div>
 
-                <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-black/20 custom-scrollbar">
-                    {inspectorTab === 'details' && (
-                        <div className="space-y-8">
-                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Informations Principales</h3>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="col-span-2">
-                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Nom de l'actif</label>
-                                        <div className="relative">
-                                            <input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium pr-10" {...register('name')} />
-                                            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
-                                            {canEdit && <button onClick={() => handleSuggestField('name')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-500 transition-colors" title="Suggérer un nom"><Sparkles className={`h-4 w-4 ${suggestingField === 'name' ? 'animate-spin' : ''}`} /></button>}
+                        <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-black/20 custom-scrollbar">
+                            {inspectorTab === 'details' && selectedAsset && (
+                                <div className="space-y-8">
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Informations Principales</h3>
+                                        <div className="grid grid-cols-2 gap-6">
+                                            <div className="col-span-2">
+                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Nom de l'actif</label>
+                                                <div className="text-lg font-medium text-slate-900 dark:text-white">{selectedAsset.name}</div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Type</label>
+                                                <div className="text-base text-slate-900 dark:text-white">{selectedAsset.type}</div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Propriétaire</label>
+                                                <div className="text-base text-slate-900 dark:text-white">{selectedAsset.owner || 'Non assigné'}</div>
+                                            </div>
+                                            <div className="col-span-2">
+                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Localisation</label>
+                                                <div className="text-base text-slate-900 dark:text-white">{selectedAsset.location || 'Non spécifiée'}</div>
+                                            </div>
+                                            <div className="col-span-2">
+                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Fournisseur / Mainteneur</label>
+                                                {(() => {
+                                                    const sup = suppliers.find(s => s.id === selectedAsset.supplierId);
+                                                    return sup ? (
+                                                        <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                                            <div className="font-bold text-slate-900 dark:text-white">{sup.name}</div>
+                                                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{sup.category}</div>
+                                                        </div>
+                                                    ) : <p className="text-sm text-gray-400 italic">Aucun fournisseur lié.</p>;
+                                                })()}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Type</label>
-                                        <div className="relative">
-                                            <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" {...register('type')}>{['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].map(t => <option key={t} value={t}>{t}</option>)}</select>
-                                            {errors.type && <p className="text-red-500 text-xs mt-1">{errors.type.message}</p>}
-                                            {canEdit && <button onClick={() => handleSuggestField('type')} className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-500 transition-colors" title="Suggérer le type"><Sparkles className={`h-4 w-4 ${suggestingField === 'type' ? 'animate-spin' : ''}`} /></button>}
+
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center">
+                                            <AlertTriangle className="h-4 w-4 mr-2" /> Classification DIC
+                                        </h3>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            {['confidentiality', 'integrity', 'availability'].map((field) => (
+                                                <div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5">
+                                                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
+                                                    <div className={`text-sm font-bold ${getCriticalityColor(selectedAsset[field as keyof Asset] as Criticality)} px-2 py-1 rounded-lg inline-block`}>
+                                                        {selectedAsset[field as keyof Asset]}
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Propriétaire</label>
-                                        <div className="relative">
-                                            <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium" {...register('owner')}>
-                                                <option value="">Sélectionner...</option>
-                                                {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
-                                            </select>
-                                            {errors.owner && <p className="text-red-500 text-xs mt-1">{errors.owner.message}</p>}
+
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center">
+                                            <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
+                                        </h3>
+                                        <div className="flex flex-wrap gap-3">
+                                            {selectedAsset.scope && selectedAsset.scope.length > 0 ? selectedAsset.scope.map((scope) => (
+                                                <span key={scope} className="px-4 py-2 rounded-xl bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-bold">
+                                                    {scope.replace('_', ' ')}
+                                                </span>
+                                            )) : <p className="text-sm text-gray-400 italic">Aucun périmètre défini.</p>}
                                         </div>
                                     </div>
-                                    <div className="col-span-2"><label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Localisation</label><input type="text" disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium" {...register('location')} /></div>
-                                    <div className="col-span-2">
-                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Fournisseur / Mainteneur</label>
-                                        <Controller
-                                            name="supplierId"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <CustomSelect
-                                                    options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
-                                                    value={field.value || ''}
-                                                    onChange={field.onChange}
-                                                    placeholder="Sélectionner un fournisseur..."
-                                                    disabled={!canEdit}
-                                                />
-                                            )}
-                                        />
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center">
+                                                <HeartPulse className="h-4 w-4 mr-2" /> Processus Supportés
+                                            </h3>
+                                            {(() => {
+                                                const supported = processes.filter(p => p.supportingAssetIds?.includes(selectedAsset.id));
+                                                return supported.length > 0 ? (
+                                                    <div className="space-y-2">
+                                                        {supported.map(p => (
+                                                            <div key={p.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 flex justify-between items-center">
+                                                                <span className="text-sm font-medium text-slate-700 dark:text-white">{p.name}</span>
+                                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'}`}>{p.priority}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : <p className="text-sm text-gray-400 italic">Cet actif ne supporte aucun processus critique.</p>;
+                                            })()}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center justify-between">
-                                    <div className="flex items-center"><AlertTriangle className="h-4 w-4 mr-2" /> Classification DIC</div>
-                                    {canEdit && <button onClick={() => handleSuggestField('confidentiality')} className="text-xs normal-case font-medium text-brand-500 hover:text-brand-600 flex items-center bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg transition-colors"><Sparkles className="h-3 w-3 mr-1.5" /> Suggérer Classification</button>}
-                                </h3>
-                                <div className="grid grid-cols-3 gap-4">
-                                    {['confidentiality', 'integrity', 'availability'].map((field) => (
-                                        <div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5">
-                                            <label className="block text-[10px] font-bold uppercase text-slate-400 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
-                                            <select disabled={!canEdit} className="w-full bg-transparent border-none p-0 font-bold text-slate-900 dark:text-white focus:ring-0 cursor-pointer text-sm" {...register(field as keyof AssetFormData)}>
-                                                {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
-                                            </select>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center">
-                                    <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
-                                </h3>
-                                <div className="flex flex-wrap gap-3">
-                                    {['NIS2', 'DORA', 'PCI_DSS', 'HDS', 'ISO27001', 'SOC2'].map((scope) => (
-                                        <label key={scope} className={`cursor-pointer px-4 py-2 rounded-xl border transition-all ${(watch('scope') || []).includes(scope as any)
-                                            ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-bold'
-                                            : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
-                                            }`}>
-                                            <input
-                                                type="checkbox"
-                                                className="hidden"
-                                                value={scope}
-                                                disabled={!canEdit}
-                                                checked={(watch('scope') || []).includes(scope as any)}
-                                                onChange={(e) => {
-                                                    const current = watch('scope') || [];
-                                                    if (e.target.checked) {
-                                                        setValue('scope', [...current, scope as any], { shouldDirty: true });
-                                                    } else {
-                                                        setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
-                                                    }
-                                                }}
+                            )}
+                            {inspectorTab === 'lifecycle' && (
+                                <div className="space-y-8">
+                                    <div className="bg-white dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-x-auto">
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-8">Timeline du cycle de vie</h3>
+                                        <div className="min-w-[600px] px-4">
+                                            <LifecycleTimeline
+                                                status={selectedAsset?.lifecycleStatus || 'Neuf'}
+                                                purchaseDate={selectedAsset?.purchaseDate}
+                                                warrantyEnd={selectedAsset?.warrantyEnd}
+                                                nextMaintenance={selectedAsset?.nextMaintenance}
                                             />
-                                            {scope.replace('_', ' ')}
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Dependencies & Relationships */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center">
-                                        <Truck className="h-4 w-4 mr-2" /> Fournisseur Associé
-                                    </h3>
-                                    {watch('supplierId') ? (
-                                        (() => {
-                                            const sup = suppliers.find(s => s.id === watch('supplierId'));
-                                            return sup ? (
-                                                <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
-                                                    <div className="font-bold text-slate-900 dark:text-white">{sup.name}</div>
-                                                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{sup.category}</div>
-                                                    <div className="mt-3 flex gap-2">
-                                                        <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${sup.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>{sup.status}</span>
-                                                        <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${sup.criticality === 'Critique' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>{sup.criticality}</span>
-                                                    </div>
-                                                </div>
-                                            ) : <p className="text-sm text-gray-400 italic">Fournisseur introuvable.</p>;
-                                        })()
-                                    ) : (
-                                        <p className="text-sm text-gray-400 italic">Aucun fournisseur lié.</p>
-                                    )}
-                                </div>
-
-                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center">
-                                        <HeartPulse className="h-4 w-4 mr-2" /> Processus Supportés
-                                    </h3>
-                                    {(() => {
-                                        const supported = processes.filter(p => p.supportingAssetIds?.includes(selectedAsset?.id || ''));
-                                        return supported.length > 0 ? (
-                                            <div className="space-y-2">
-                                                {supported.map(p => (
-                                                    <div key={p.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 flex justify-between items-center">
-                                                        <span className="text-sm font-medium text-slate-700 dark:text-white">{p.name}</span>
-                                                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'}`}>{p.priority}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : <p className="text-sm text-gray-400 italic">Cet actif ne supporte aucun processus critique.</p>;
-                                    })()}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {inspectorTab === 'lifecycle' && (
-                        <div className="space-y-8">
-                            <div className="bg-white dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-x-auto">
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-8">Timeline du cycle de vie</h3>
-                                <div className="min-w-[600px] px-4">
-                                    <LifecycleTimeline
-                                        status={watch('lifecycleStatus') || 'Neuf'}
-                                        purchaseDate={watch('purchaseDate')}
-                                        warrantyEnd={watch('warrantyEnd')}
-                                        nextMaintenance={watch('nextMaintenance')}
-                                    />
-                                </div>
-                            </div>
-                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600/80 flex items-center"><Archive className="h-4 w-4 mr-2" /> État du cycle de vie</h3>
-                                    <div className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 text-xs font-bold">{watch('lifecycleStatus') || 'Neuf'}</div>
-                                </div>
-                                <div className="space-y-4">
-                                    <select disabled={!canEdit} className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none" {...register('lifecycleStatus')}>
-                                        {['Neuf', 'En service', 'En réparation', 'Fin de vie', 'Rebut'].map(s => <option key={s} value={s}>{s}</option>)}
-                                    </select>
-                                    <div className="grid grid-cols-2 gap-6 pt-2">
-                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Date d'achat</label><input type="date" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" {...register('purchaseDate')} /></div>
-                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Fin de garantie</label><input type="date" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" {...register('warrantyEnd')} /></div>
-                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Prix d'achat (€)</label><input type="number" disabled={!canEdit} className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium" {...register('purchasePrice', { valueAsNumber: true })} /></div>
-                                        <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Coût Maintenance (€)</label><div className="px-4 py-3 rounded-2xl bg-gray-50 dark:bg-white/5 text-sm font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(maintenanceRecords.reduce((acc, m) => acc + (m.cost || 0), 0))}</div></div>
+                                        </div>
                                     </div>
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600/80 flex items-center"><Archive className="h-4 w-4 mr-2" /> État du cycle de vie</h3>
+                                            <div className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 text-xs font-bold">{selectedAsset?.lifecycleStatus || 'Neuf'}</div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-6 pt-2">
+                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Date d'achat</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchaseDate ? new Date(selectedAsset.purchaseDate).toLocaleDateString() : '-'}</div></div>
+                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Fin de garantie</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.warrantyEnd ? new Date(selectedAsset.warrantyEnd).toLocaleDateString() : '-'}</div></div>
+                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Prix d'achat (€)</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchasePrice ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(selectedAsset.purchasePrice) : '-'}</div></div>
+                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Coût Maintenance (€)</label><div className="px-4 py-3 rounded-2xl bg-gray-50 dark:bg-white/5 text-sm font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(maintenanceRecords.reduce((acc, m) => acc + (m.cost || 0), 0))}</div></div>
+                                            </div>
 
-                                    {/* Financial Charts */}
-                                    {selectedAsset?.purchasePrice && (
-                                        <div className="mt-6 pt-6 border-t border-dashed border-slate-200 dark:border-white/10">
-                                            <div className="grid grid-cols-2 gap-4 mb-6">
-                                                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
-                                                    <p className="text-[10px] font-bold uppercase text-emerald-600 mb-1">Valeur Actuelle (Net)</p>
-                                                    <p className="text-xl font-black text-emerald-700 dark:text-emerald-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateDepreciation(selectedAsset.purchasePrice, selectedAsset.purchaseDate || ''))}</p>
+                                            {/* Financial Charts */}
+                                            {selectedAsset?.purchasePrice && (
+                                                <div className="mt-6 pt-6 border-t border-dashed border-slate-200 dark:border-white/10">
+                                                    <div className="grid grid-cols-2 gap-4 mb-6">
+                                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
+                                                            <p className="text-[10px] font-bold uppercase text-emerald-600 mb-1">Valeur Actuelle (Net)</p>
+                                                            <p className="text-xl font-black text-emerald-700 dark:text-emerald-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateDepreciation(selectedAsset.purchasePrice, selectedAsset.purchaseDate || ''))}</p>
+                                                        </div>
+                                                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-900/30">
+                                                            <p className="text-[10px] font-bold uppercase text-blue-600 mb-1">TCO (Coût Total)</p>
+                                                            <p className="text-xl font-black text-blue-700 dark:text-blue-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateTCO())}</p>
+                                                        </div>
+                                                    </div>
+                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Courbe d'amortissement (5 ans)</h4>
+                                                    <div className="h-40 w-full">
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <AreaChart data={getDepreciationData()}>
+                                                                <defs>
+                                                                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                                    </linearGradient>
+                                                                </defs>
+                                                                <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2} />
+                                                                <XAxis dataKey="year" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                                                                <YAxis hide />
+                                                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }} itemStyle={{ color: '#fff' }} formatter={(val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)} />
+                                                                <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
+                                                            </AreaChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
                                                 </div>
-                                                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-900/30">
-                                                    <p className="text-[10px] font-bold uppercase text-blue-600 mb-1">TCO (Coût Total)</p>
-                                                    <p className="text-xl font-black text-blue-700 dark:text-blue-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateTCO())}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div><div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500" /> Historique Maintenance</h3></div>{canEdit && (<div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm"><div className="grid grid-cols-2 gap-4 mb-4"><input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({ ...newMaintenance, date: e.target.value })} /><select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({ ...newMaintenance, type: e.target.value as MaintenanceRecord['type'] })}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select></div><div className="flex gap-4 mb-4"><input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })} /><input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })} /></div><button onClick={handleAddMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform">Ajouter Intervention</button></div>)}<div className="space-y-3">{maintenanceRecords.length === 0 ? <p className="text-sm text-gray-400 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (<div key={rec.id} className="flex items-start p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all"><div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div><div className="flex-1"><div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-gray-300 font-bold">{rec.type}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p><div className="flex justify-between mt-2"><span className="text-[10px] text-gray-400 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[10px] font-bold text-slate-500">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div></div></div>))}</div></div>
+                                </div>
+                            )}
+                            {inspectorTab === 'security' && (<div className="space-y-8"><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})</h3>{linkedRisks.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>) : (<div className="grid gap-4">{linkedRisks.map(risk => (<div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span><span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{risk.vulnerability}</p>{risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}</div>))}</div>)}</div><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})</h3>{linkedIncidents.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>) : (<div className="grid gap-4">{linkedIncidents.map(inc => (<div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span><span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p></div>))}</div>)}</div></div>)}
+                            {inspectorTab === 'projects' && (
+                                <div className="space-y-8">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Liés ({linkedProjects.length})</h3>
+                                    {linkedProjects.length === 0 ? (
+                                        <p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé.</p>
+                                    ) : (
+                                        <div className="grid gap-4">
+                                            {linkedProjects.map(proj => (
+                                                <div key={proj.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
+                                                        <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{proj.status}</span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{proj.description}</p>
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="w-full bg-slate-200 rounded-full h-1.5 mr-4 max-w-[100px]">
+                                                            <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${proj.progress}%` }}></div>
+                                                        </div>
+                                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{proj.progress}%</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Courbe d'amortissement (5 ans)</h4>
-                                            <div className="h-40 w-full">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <AreaChart data={getDepreciationData()}>
-                                                        <defs>
-                                                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                                            </linearGradient>
-                                                        </defs>
-                                                        <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2} />
-                                                        <XAxis dataKey="year" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                                                        <YAxis hide />
-                                                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }} itemStyle={{ color: '#fff' }} formatter={(val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)} />
-                                                        <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
-                                                    </AreaChart>
-                                                </ResponsiveContainer>
-                                            </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                            <div><div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500" /> Historique Maintenance</h3></div>{canEdit && (<div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm"><div className="grid grid-cols-2 gap-4 mb-4"><input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({ ...newMaintenance, date: e.target.value })} /><select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({ ...newMaintenance, type: e.target.value as MaintenanceRecord['type'] })}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select></div><div className="flex gap-4 mb-4"><input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })} /><input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })} /></div><button onClick={handleAddMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform">Ajouter Intervention</button></div>)}<div className="space-y-3">{maintenanceRecords.length === 0 ? <p className="text-sm text-gray-400 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (<div key={rec.id} className="flex items-start p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all"><div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div><div className="flex-1"><div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-gray-300 font-bold">{rec.type}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p><div className="flex justify-between mt-2"><span className="text-[10px] text-gray-400 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[10px] font-bold text-slate-500">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div></div></div>))}</div></div>
-                        </div>
-                    )}
-                    {inspectorTab === 'security' && (<div className="space-y-8"><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})</h3>{linkedRisks.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>) : (<div className="grid gap-4">{linkedRisks.map(risk => (<div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span><span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{risk.vulnerability}</p>{risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}</div>))}</div>)}</div><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})</h3>{linkedIncidents.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>) : (<div className="grid gap-4">{linkedIncidents.map(inc => (<div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span><span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p></div>))}</div>)}</div></div>)}
-                    {inspectorTab === 'projects' && (
-                        <div className="space-y-8">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Liés ({linkedProjects.length})</h3>
-                            {linkedProjects.length === 0 ? (
-                                <p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé.</p>
-                            ) : (
-                                <div className="grid gap-4">
-                                    {linkedProjects.map(proj => (
-                                        <div key={proj.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
-                                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{proj.status}</span>
-                                            </div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{proj.description}</p>
-                                            <div className="flex items-center justify-between">
-                                                <div className="w-full bg-slate-200 rounded-full h-1.5 mr-4 max-w-[100px]">
-                                                    <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${proj.progress}%` }}></div>
+                            )}
+                            {inspectorTab === 'audits' && (
+                                <div className="space-y-8">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><CheckSquare className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
+                                    {linkedAudits.length === 0 ? (
+                                        <p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé.</p>
+                                    ) : (
+                                        <div className="grid gap-4">
+                                            {linkedAudits.map(audit => (
+                                                <div key={audit.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <span className="text-sm font-bold text-slate-900 dark:text-white">{audit.name}</span>
+                                                        <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{audit.status}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-4 mt-2">
+                                                        <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                                            <CalendarClock className="h-3 w-3" />
+                                                            {new Date(audit.dateScheduled).toLocaleDateString()}
+                                                        </div>
+                                                        <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                                            <AlertTriangle className="h-3 w-3" />
+                                                            {audit.findingsCount} constats
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{proj.progress}%</span>
-                                            </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             )}
-                        </div>
-                    )}
-                    {inspectorTab === 'audits' && (
-                        <div className="space-y-8">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><CheckSquare className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
-                            {linkedAudits.length === 0 ? (
-                                <p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé.</p>
-                            ) : (
-                                <div className="grid gap-4">
-                                    {linkedAudits.map(audit => (
-                                        <div key={audit.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{audit.name}</span>
-                                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{audit.status}</span>
-                                            </div>
-                                            <div className="flex items-center gap-4 mt-2">
-                                                <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                                                    <CalendarClock className="h-3 w-3" />
-                                                    {new Date(audit.dateScheduled).toLocaleDateString()}
-                                                </div>
-                                                <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                                                    <AlertTriangle className="h-3 w-3" />
-                                                    {audit.findingsCount} constats
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+
+                            {inspectorTab === 'history' && (<div className="relative border-l-2 border-slate-200 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">{assetHistory.map((log, i) => (<div key={i} className="relative"><span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-900"><div className="h-2 w-2 rounded-full bg-brand-500"></div></span><div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span><p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p><p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p><div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div></div></div>))}</div>)}
+                            {inspectorTab === 'graph' && selectedAsset && (
+                                <div className="h-[500px]">
+                                    <RelationshipGraph rootId={selectedAsset.id} rootType="Asset" />
                                 </div>
                             )}
+                            {inspectorTab === 'comments' && selectedAsset && (<div className="h-full flex flex-col"><Comments collectionName="assets" documentId={selectedAsset.id} /></div>)}
                         </div>
-                    )}
-                    {inspectorTab === 'history' && (<div className="relative border-l-2 border-slate-200 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">{assetHistory.map((log, i) => (<div key={i} className="relative"><span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-900"><div className="h-2 w-2 rounded-full bg-brand-500"></div></span><div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span><p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p><p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p><div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div></div></div>))}</div>)}
-                    {inspectorTab === 'graph' && selectedAsset && (
-                        <div className="h-[500px]">
-                            <RelationshipGraph rootId={selectedAsset.id} rootType="Asset" />
-                        </div>
-                    )}
-                    {inspectorTab === 'comments' && selectedAsset && (<div className="h-full flex flex-col"><Comments collectionName="assets" documentId={selectedAsset.id} /></div>)}
-                </div>
+                    </>
+                )}
             </Drawer >
         </div >
     );

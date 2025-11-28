@@ -217,6 +217,19 @@ export const aiService = {
             ErrorLogger.error(error, 'aiService.generatePolicy', { metadata: { type, topic } });
             throw new Error("Échec de la génération de politique.");
         }
+    },
+
+    /**
+     * Generates text based on a prompt.
+     */
+    async generateText(prompt: string): Promise<string> {
+        if (!API_KEY) return "";
+        try {
+            return await generateContentSafe(prompt);
+        } catch (error) {
+            ErrorLogger.error(error, 'aiService.generateText');
+            return "";
+        }
     }
 };
 
