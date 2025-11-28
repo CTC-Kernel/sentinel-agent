@@ -104,16 +104,6 @@ export const Projects: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    useEffect(() => {
-        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
-        if (!state.fromVoxel || !state.voxelSelectedId) return;
-        if (loading || projects.length === 0) return;
-        const project = projects.find(p => p.id === state.voxelSelectedId);
-        if (project) {
-            openInspector(project);
-        }
-    }, [location.state, loading, projects]);
-
     const openInspector = async (project: Project) => {
         setSelectedProject(project);
         setInspectorTab('overview');
@@ -151,6 +141,16 @@ export const Projects: React.FC = () => {
             ErrorLogger.handleErrorWithToast(e, 'Projects.openInspector.milestones', 'FETCH_FAILED');
         }
     };
+
+    useEffect(() => {
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loading || projects.length === 0) return;
+        const project = projects.find(p => p.id === state.voxelSelectedId);
+        if (project) {
+            openInspector(project);
+        }
+    }, [location.state, loading, projects]);
 
     const openCreateModal = async () => {
         // Check limits
@@ -466,6 +466,7 @@ export const Projects: React.FC = () => {
                     } else {
                         // Create new task
                         const newTask: ProjectTask = {
+                            // eslint-disable-next-line react-hooks/purity
                             id: Date.now().toString(),
                             ...cleanTaskData
                         } as ProjectTask;

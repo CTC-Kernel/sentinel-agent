@@ -15,7 +15,8 @@ import { SubscriptionService } from '../services/subscriptionService';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userSchema, UserFormData } from '../schemas/userSchema';
 
@@ -505,15 +506,25 @@ export const Team: React.FC = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
-                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        {...inviteForm.register('role')}>
-                                        <option value="user">Utilisateur</option>
-                                        <option value="rssi">RSSI</option>
-                                        <option value="auditor">Auditeur</option>
-                                        <option value="project_manager">Chef de Projet</option>
-                                        <option value="direction">Direction</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
+                                    <Controller
+                                        control={inviteForm.control}
+                                        name="role"
+                                        render={({ field }) => (
+                                            <CustomSelect
+                                                label=""
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                options={[
+                                                    { value: 'user', label: 'Utilisateur' },
+                                                    { value: 'rssi', label: 'RSSI' },
+                                                    { value: 'auditor', label: 'Auditeur' },
+                                                    { value: 'project_manager', label: 'Chef de Projet' },
+                                                    { value: 'direction', label: 'Direction' },
+                                                    { value: 'admin', label: 'Admin' }
+                                                ]}
+                                            />
+                                        )}
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>
@@ -554,15 +565,25 @@ export const Team: React.FC = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
-                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        {...editForm.register('role')}>
-                                        <option value="user">Utilisateur</option>
-                                        <option value="rssi">RSSI</option>
-                                        <option value="auditor">Auditeur</option>
-                                        <option value="project_manager">Chef de Projet</option>
-                                        <option value="direction">Direction</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
+                                    <Controller
+                                        control={editForm.control}
+                                        name="role"
+                                        render={({ field }) => (
+                                            <CustomSelect
+                                                label=""
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                options={[
+                                                    { value: 'user', label: 'Utilisateur' },
+                                                    { value: 'rssi', label: 'RSSI' },
+                                                    { value: 'auditor', label: 'Auditeur' },
+                                                    { value: 'project_manager', label: 'Chef de Projet' },
+                                                    { value: 'direction', label: 'Direction' },
+                                                    { value: 'admin', label: 'Admin' }
+                                                ]}
+                                            />
+                                        )}
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>

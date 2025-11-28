@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile } from '../types';
+import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile, BusinessProcess } from '../types';
 import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, X, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
@@ -16,7 +16,8 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useLocation } from 'react-router-dom';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supplierSchema, SupplierFormData } from '../schemas/supplierSchema';
 
@@ -102,6 +103,12 @@ export const Suppliers: React.FC = () => {
         { logError: true }
     );
 
+    const { data: processesRaw, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
+        'business_processes',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
     // Derived State
     const suppliers = React.useMemo(() => {
         const resolved = suppliersRaw.map(s => {
@@ -138,7 +145,7 @@ export const Suppliers: React.FC = () => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;
         if (!state.fromVoxel || !state.voxelSelectedId) return;
-        if (loadingSuppliers || suppliers.length === 0) return;
+        if (loadingSuppliers || loadingProcesses || suppliers.length === 0) return;
         const supplier = suppliers.find(s => s.id === state.voxelSelectedId);
         if (supplier) {
             setSelectedSupplier(supplier);
@@ -168,7 +175,8 @@ export const Suppliers: React.FC = () => {
             isICTProvider: supplier.isICTProvider,
             supportsCriticalFunction: supplier.supportsCriticalFunction,
             doraCriticality: supplier.doraCriticality,
-            serviceType: supplier.serviceType
+            serviceType: supplier.serviceType,
+            supportedProcessIds: supplier.supportedProcessIds || []
         });
         setIsEditing(false);
 
@@ -187,7 +195,8 @@ export const Suppliers: React.FC = () => {
             name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
             owner: user?.displayName || '', ownerId: user?.uid || '',
             assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false },
-            isICTProvider: false, supportsCriticalFunction: false, doraCriticality: 'None', serviceType: 'SaaS'
+            isICTProvider: false, supportsCriticalFunction: false, doraCriticality: 'None', serviceType: 'SaaS',
+            supportedProcessIds: []
         });
         setIsEditing(false);
         setShowCreateModal(true);
@@ -592,6 +601,22 @@ export const Suppliers: React.FC = () => {
                                                                 {['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'].map(c => <option key={c} value={c}>{c}</option>)}
                                                             </select>
                                                         </div>
+                                                        <div className="col-span-2">
+                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Processus Supportés</label>
+                                                            <Controller
+                                                                name="supportedProcessIds"
+                                                                control={editForm.control}
+                                                                render={({ field }) => (
+                                                                    <CustomSelect
+                                                                        options={processesRaw.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
+                                                                        value={field.value || []}
+                                                                        onChange={field.onChange}
+                                                                        placeholder="Sélectionner les processus supportés..."
+                                                                        multiple
+                                                                    />
+                                                                )}
+                                                            />
+                                                        </div>
                                                     </div>
                                                     <div>
                                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
@@ -725,6 +750,25 @@ export const Suppliers: React.FC = () => {
                                                             </div>
                                                         </div>
                                                     )}
+
+                                                    {selectedSupplier.supportedProcessIds && selectedSupplier.supportedProcessIds.length > 0 && (
+                                                        <div className="p-6 bg-purple-50/80 dark:bg-purple-900/10 rounded-3xl border border-purple-100 dark:border-purple-900/30 shadow-sm mt-6">
+                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 mb-4 flex items-center">
+                                                                <FileText className="h-4 w-4 mr-2" /> Processus Supportés
+                                                            </h4>
+                                                            <div className="space-y-2">
+                                                                {selectedSupplier.supportedProcessIds.map(pid => {
+                                                                    const process = processesRaw.find(p => p.id === pid);
+                                                                    return process ? (
+                                                                        <div key={pid} className="flex items-center justify-between text-sm p-2 bg-white dark:bg-slate-800 rounded-lg border border-purple-100 dark:border-purple-900/20">
+                                                                            <span className="font-medium text-slate-700 dark:text-slate-300">{process.name}</span>
+                                                                            <span className="text-xs text-slate-500">RTO: {process.rto}</span>
+                                                                        </div>
+                                                                    ) : null;
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </>
                                             )}
                                         </div>
@@ -835,6 +879,22 @@ export const Suppliers: React.FC = () => {
                                         <option value="">Sélectionner...</option>
                                         {usersRaw.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                     </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Processus Supportés</label>
+                                    <Controller
+                                        name="supportedProcessIds"
+                                        control={createForm.control}
+                                        render={({ field }) => (
+                                            <CustomSelect
+                                                options={processesRaw.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
+                                                value={field.value || []}
+                                                onChange={field.onChange}
+                                                placeholder="Sélectionner les processus supportés..."
+                                                multiple
+                                            />
+                                        )}
+                                    />
                                 </div>
                                 <div className="grid grid-cols-2 gap-6">
                                     <div>
