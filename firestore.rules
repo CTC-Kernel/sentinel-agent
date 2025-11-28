@@ -221,9 +221,10 @@ service cloud.firestore {
     match /incidentPlaybooks/{playbookId} {
       // Playbooks ne contiennent pas de données spécifiques à une organisation
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && (isAdmin() || isRSSI() || isAuditor());
-      allow update: if isAuthenticated() && (isAdmin() || isRSSI() || isAuditor());
-      allow delete: if isAuthenticated() && (isAdmin() || isRSSI());
+      // Global playbooks are read-only for tenant admins to prevent tampering
+      allow create: if false; 
+      allow update: if false;
+      allow delete: if false;
     }
 
     // Incident Responses (liées aux incidents et donc aux organisations)
@@ -319,7 +320,8 @@ service cloud.firestore {
     // Stats History
     match /stats_history/{statId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId;
       allow update: if false;
       allow delete: if false;
     }
