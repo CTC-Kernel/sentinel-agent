@@ -6,7 +6,7 @@ import { incidentSchema, IncidentFormData } from '../schemas/incidentSchema';
 import { collection, where, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase'; // Keep original db path
 import { useStore } from '../store';
-import { Incident, Asset, Risk, UserProfile, Criticality } from '../types';
+import { Incident, Asset, Risk, UserProfile, Criticality, BusinessProcess } from '../types';
 import { IncidentDashboard } from '../components/incidents/IncidentDashboard';
 import { IncidentPlaybookModal } from '../components/incidents/IncidentPlaybookModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -61,12 +61,18 @@ export const Incidents: React.FC = () => {
         { logError: true }
     );
 
+    const { data: rawProcesses, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
+        'business_processes',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
     // Derived State
     const incidents = React.useMemo(() => [...rawIncidents].sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()), [rawIncidents]);
     const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
     const risks = React.useMemo(() => [...rawRisks].sort((a, b) => a.threat.localeCompare(b.threat)), [rawRisks]);
 
-    const loading = loadingIncidents || loadingAssets || loadingRisks || loadingUsers;
+    const loading = loadingIncidents || loadingAssets || loadingRisks || loadingUsers || loadingProcesses;
 
     const [showModal, setShowModal] = useState(false);
     const [showTimeline, setShowTimeline] = useState(false);
@@ -85,6 +91,7 @@ export const Incidents: React.FC = () => {
             playbookStepsCompleted: [],
             affectedAssetId: '',
             relatedRiskId: '',
+            affectedProcessId: '',
             reporter: user?.displayName || user?.email || '',
             financialImpact: 0,
             dateResolved: '',
@@ -108,6 +115,20 @@ export const Incidents: React.FC = () => {
         }
     }, [location.state, loading, incidents]);
 
+    const affectedAssetId = form.watch('affectedAssetId');
+
+    useEffect(() => {
+        if (!affectedAssetId) return;
+        const currentProcess = form.getValues('affectedProcessId');
+        if (currentProcess) return;
+
+        const relatedProcesses = rawProcesses.filter(p => p.supportingAssetIds?.includes(affectedAssetId));
+        if (relatedProcesses.length === 1) {
+            form.setValue('affectedProcessId', relatedProcesses[0].id, { shouldDirty: true });
+            addToast(`Processus lié suggéré : ${relatedProcesses[0].name}`, 'info');
+        }
+    }, [affectedAssetId, rawProcesses]);
+
     const openModal = (incident?: Incident) => {
         if (incident) {
             setCurrentIncidentId(incident.id);
@@ -121,6 +142,7 @@ export const Incidents: React.FC = () => {
                 playbookStepsCompleted: incident.playbookStepsCompleted || [],
                 affectedAssetId: incident.affectedAssetId || '',
                 relatedRiskId: incident.relatedRiskId || '',
+                affectedProcessId: incident.affectedProcessId || '',
                 financialImpact: incident.financialImpact || 0,
                 reporter: incident.reporter,
                 dateReported: incident.dateReported,
@@ -144,6 +166,7 @@ export const Incidents: React.FC = () => {
                 playbookStepsCompleted: [],
                 affectedAssetId: '',
                 relatedRiskId: '',
+                affectedProcessId: '',
                 reporter: user?.displayName || user?.email || '',
                 financialImpact: 0,
                 dateResolved: '',
@@ -338,6 +361,14 @@ export const Incidents: React.FC = () => {
                                 {...form.register('affectedAssetId')}>
                                 <option value="">Aucun / Inconnu</option>
                                 {assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Processus Impacté</label>
+                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
+                                {...form.register('affectedProcessId')}>
+                                <option value="">Aucun / Inconnu</option>
+                                {rawProcesses.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
                     </div>

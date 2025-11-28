@@ -16,7 +16,8 @@ import { Organization } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
 import { LegalModal } from '../components/ui/LegalModal';
 import { Scale } from 'lucide-react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, ProfileFormData, passwordSchema, PasswordFormData, organizationSchema, OrganizationFormData } from '../schemas/settingsSchema';
 
@@ -57,7 +58,7 @@ export const Settings: React.FC = () => {
 
     const orgForm = useForm<OrganizationFormData>({
         resolver: zodResolver(organizationSchema),
-        defaultValues: { orgName: '' }
+        defaultValues: { orgName: '', address: '', vatNumber: '', contactEmail: '' }
     });
 
     // Maintenance State
@@ -126,7 +127,6 @@ export const Settings: React.FC = () => {
                 department: user.department || '',
                 role: (user.role as any) || 'user'
             });
-            orgForm.reset({ orgName: user.organizationName || '' });
             fetchOrgDetails();
         }
         if (hasPermission(user, 'Settings', 'manage') && user?.organizationId) {
@@ -136,6 +136,17 @@ export const Settings: React.FC = () => {
             checkLatency();
         }
     }, [user?.organizationId]);
+
+    useEffect(() => {
+        if (currentOrg) {
+            orgForm.reset({
+                orgName: currentOrg.name || '',
+                address: currentOrg.address || '',
+                vatNumber: currentOrg.vatNumber || '',
+                contactEmail: currentOrg.contactEmail || ''
+            });
+        }
+    }, [currentOrg]);
 
     const checkLatency = async () => {
         const start = Date.now();
@@ -281,18 +292,30 @@ export const Settings: React.FC = () => {
         if (!hasPermission(user, 'Settings', 'manage') || !user?.organizationId) return;
         setSavingOrg(true);
         try {
-            // Update all users in organization with new name
-            const q = query(collection(db, 'users'), where('organizationId', '==', user.organizationId));
-            const snap = await getDocs(q);
-
-            const batch = writeBatch(db);
-            snap.docs.forEach(d => {
-                batch.update(d.ref, { organizationName: data.orgName });
+            // Update organization document
+            const orgRef = doc(db, 'organizations', user.organizationId);
+            await updateDoc(orgRef, {
+                name: data.orgName,
+                address: data.address,
+                vatNumber: data.vatNumber,
+                contactEmail: data.contactEmail
             });
-            await batch.commit();
 
-            setUser({ ...user, organizationName: data.orgName });
-            addToast("Nom de l'organisation mis à jour pour tous les membres", "success");
+            // Update all users in organization with new name if it changed
+            if (currentOrg?.name !== data.orgName) {
+                const q = query(collection(db, 'users'), where('organizationId', '==', user.organizationId));
+                const snap = await getDocs(q);
+
+                const batch = writeBatch(db);
+                snap.docs.forEach(d => {
+                    batch.update(d.ref, { organizationName: data.orgName });
+                });
+                await batch.commit();
+                setUser({ ...user, organizationName: data.orgName });
+            }
+
+            setCurrentOrg(prev => prev ? { ...prev, name: data.orgName, address: data.address, vatNumber: data.vatNumber, contactEmail: data.contactEmail } : null);
+            addToast("Informations de l'organisation mises à jour", "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Settings.handleUpdateOrg', 'UPDATE_FAILED');
         } finally {
@@ -634,23 +657,26 @@ export const Settings: React.FC = () => {
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Rôle</label>
                             <div className="relative">
-                                <select
-                                    className={`w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium appearance-none ${!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                    {...profileForm.register('role')}
-                                    disabled={!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid)}
-                                >
-                                    <option value="admin">Administrateur</option>
-                                    <option value="rssi">RSSI / CISO</option>
-                                    <option value="direction">Direction / DPO</option>
-                                    <option value="project_manager">Chef de Projet</option>
-                                    <option value="auditor">Auditeur</option>
-                                    <option value="user">Utilisateur</option>
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-                                    <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </div>
+                                <Controller
+                                    control={profileForm.control}
+                                    name="role"
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            label=""
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            options={[
+                                                { value: 'admin', label: 'Administrateur' },
+                                                { value: 'rssi', label: 'RSSI / CISO' },
+                                                { value: 'direction', label: 'Direction / DPO' },
+                                                { value: 'project_manager', label: 'Chef de Projet' },
+                                                { value: 'auditor', label: 'Auditeur' },
+                                                { value: 'user', label: 'Utilisateur' }
+                                            ]}
+                                            className={!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) ? 'opacity-50 pointer-events-none' : ''}
+                                        />
+                                    )}
+                                />
                             </div>
                             {!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) && (
                                 <p className="text-[10px] text-slate-400 mt-1.5 ml-1">Contactez un administrateur pour changer de rôle.</p>
@@ -772,16 +798,38 @@ export const Settings: React.FC = () => {
                         </div>
 
                         <div className="p-8 border-b border-gray-100 dark:border-white/5">
-                            <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="flex gap-4 items-end">
-                                <div className="flex-1">
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom de l'organisation</label>
-                                    <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
-                                        {...orgForm.register('orgName')} />
-                                    {orgForm.formState.errors.orgName && <p className="text-red-500 text-xs mt-1">{orgForm.formState.errors.orgName.message}</p>}
+                            <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom de l'organisation</label>
+                                        <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
+                                            {...orgForm.register('orgName')} />
+                                        {orgForm.formState.errors.orgName && <p className="text-red-500 text-xs mt-1">{orgForm.formState.errors.orgName.message}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Email de contact</label>
+                                        <input type="email" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
+                                            {...orgForm.register('contactEmail')} />
+                                        {orgForm.formState.errors.contactEmail && <p className="text-red-500 text-xs mt-1">{orgForm.formState.errors.contactEmail.message}</p>}
+                                    </div>
                                 </div>
-                                <button type="submit" disabled={savingOrg} className="px-6 py-3 bg-brand-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50 mb-[1px]">
-                                    {savingOrg ? '...' : 'Renommer'}
-                                </button>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Adresse</label>
+                                        <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
+                                            {...orgForm.register('address')} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Numéro de TVA</label>
+                                        <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
+                                            {...orgForm.register('vatNumber')} />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end">
+                                    <button type="submit" disabled={savingOrg} className="px-6 py-3 bg-brand-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50">
+                                        {savingOrg ? '...' : 'Enregistrer les modifications'}
+                                    </button>
+                                </div>
                             </form>
                         </div>
 

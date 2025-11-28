@@ -8,14 +8,16 @@ interface Option {
 }
 
 interface CustomSelectProps {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
+    label?: string;
+    value: string | string[];
+    onChange: (value: any) => void;
     options: Option[];
     error?: string;
     className?: string;
     placeholder?: string;
     required?: boolean;
+    multiple?: boolean;
+    disabled?: boolean;
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -26,30 +28,40 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     error,
     className = '',
     placeholder = 'Sélectionner...',
-    required = false
+    required = false,
+    multiple = false,
+    disabled = false
 }) => {
-    const selectedOption = options.find(opt => opt.value === value);
+    const selectedOptions = multiple
+        ? options.filter(opt => (Array.isArray(value) ? value.includes(opt.value) : false))
+        : options.filter(opt => opt.value === value);
+
+    const displayValue = selectedOptions.length > 0
+        ? selectedOptions.map(o => o.label).join(', ')
+        : placeholder;
 
     return (
         <div className={`relative ${className}`}>
-            <Listbox value={value} onChange={onChange}>
+            <Listbox value={value} onChange={onChange} multiple={multiple} disabled={disabled}>
                 {({ open }) => (
                     <>
-                        <Listbox.Label className={`
+                        {label && (
+                            <Listbox.Label className={`
                             absolute left-4 transition-all duration-200 pointer-events-none z-10
-                            ${(open || value)
-                                ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded text-brand-600'
-                                : 'top-3.5 text-sm font-medium text-slate-500'
-                            }
+                            ${(open || (Array.isArray(value) ? value.length > 0 : value))
+                                    ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded text-brand-600'
+                                    : 'top-3.5 text-sm font-medium text-slate-500'
+                                }
                             ${error ? '!text-red-500' : ''}
                         `}>
-                            {label} {required && <span className="text-red-500">*</span>}
-                        </Listbox.Label>
+                                {label} {required && <span className="text-red-500">*</span>}
+                            </Listbox.Label>
+                        )}
 
                         <div className="relative mt-1">
                             <Listbox.Button className={`
                                 relative w-full cursor-pointer rounded-2xl py-3.5 pl-4 pr-10 text-left 
-                                border transition-all duration-200 outline-none
+                                border transition-all duration-200 outline-none min-h-[50px]
                                 ${error
                                     ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10 text-red-900 dark:text-red-100'
                                     : open
@@ -57,8 +69,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                         : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/5'
                                 }
                             `}>
-                                <span className={`block truncate font-medium ${!selectedOption ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>
-                                    {selectedOption ? selectedOption.label : placeholder}
+                                <span className={`block truncate font-medium ${selectedOptions.length === 0 ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+                                    {displayValue}
                                 </span>
                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
                                     <ChevronDown
