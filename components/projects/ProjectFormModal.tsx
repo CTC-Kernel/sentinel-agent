@@ -18,6 +18,7 @@ interface ProjectFormModalProps {
     availableRisks?: Risk[];
     availableControls?: Control[];
     availableAssets?: Asset[];
+    initialData?: Partial<ProjectFormData>;
 }
 
 export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
@@ -29,6 +30,7 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
     availableRisks = [],
     availableControls = [],
     availableAssets = [],
+    initialData,
 }) => {
     const {
         register,
@@ -55,19 +57,33 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
 
     useEffect(() => {
         if (isOpen) {
-            reset({
-                name: existingProject?.name || '',
-                description: existingProject?.description || '',
-                manager: existingProject?.manager || '',
-                status: existingProject?.status || 'Planifié',
-                startDate: existingProject?.startDate || '',
-                dueDate: existingProject?.dueDate || '',
-                relatedRiskIds: existingProject?.relatedRiskIds || [],
-                relatedControlIds: existingProject?.relatedControlIds || [],
-                relatedAssetIds: existingProject?.relatedAssetIds || [],
-            });
+            if (existingProject) {
+                reset({
+                    name: existingProject.name || '',
+                    description: existingProject.description || '',
+                    manager: existingProject.manager || '',
+                    status: existingProject.status || 'Planifié',
+                    startDate: existingProject.startDate || '',
+                    dueDate: existingProject.dueDate || '',
+                    relatedRiskIds: existingProject.relatedRiskIds || [],
+                    relatedControlIds: existingProject.relatedControlIds || [],
+                    relatedAssetIds: existingProject.relatedAssetIds || [],
+                });
+            } else {
+                reset({
+                    name: initialData?.name || '',
+                    description: initialData?.description || '',
+                    manager: initialData?.manager || '',
+                    status: initialData?.status || 'Planifié',
+                    startDate: initialData?.startDate || '',
+                    dueDate: initialData?.dueDate || '',
+                    relatedRiskIds: initialData?.relatedRiskIds || [],
+                    relatedControlIds: initialData?.relatedControlIds || [],
+                    relatedAssetIds: initialData?.relatedAssetIds || [],
+                });
+            }
         }
-    }, [isOpen, existingProject, reset]);
+    }, [isOpen, existingProject, initialData, reset]);
 
     const onFormSubmit = (data: ProjectFormData) => {
         onSubmit(data);

@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation } from 'react-router-dom';
+import { Controller } from 'react-hook-form';
+import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
+import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
+import { SeveritySelector } from '../components/audits/SeveritySelector';
+import { FileUploader } from '../components/ui/FileUploader';
+import { AIAssistButton } from '../components/ai/AIAssistButton';
 import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target } from '../components/ui/Icons';
-import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
-import { AIAssistButton } from '../components/ai/AIAssistButton';
-import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
-import { CustomSelect } from '../components/ui/CustomSelect';
-import { SeveritySelector } from '../components/audits/SeveritySelector';
+import { AuditFormModal } from '../components/audits/AuditFormModal';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
@@ -21,15 +24,13 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { sendEmail } from '../services/emailService';
 import { getAuditReminderTemplate } from '../services/emailTemplates';
 import { generateICS, downloadICS } from '../utils/calendar';
-import { FileUploader } from '../components/ui/FileUploader';
 import JSZip from 'jszip';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { useLocation } from 'react-router-dom';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { auditSchema, AuditFormData, findingSchema, FindingFormData } from '../schemas/auditSchema';
+import { AuditFormData, findingSchema, FindingFormData } from '../schemas/auditSchema';
 
 export const Audits: React.FC = () => {
     const { user, addToast } = useStore();
@@ -105,19 +106,7 @@ export const Audits: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    const auditForm = useForm<AuditFormData>({
-        resolver: zodResolver(auditSchema) as any,
-        defaultValues: {
-            name: '',
-            type: 'Interne',
-            auditor: user?.displayName || '',
-            dateScheduled: new Date().toISOString().split('T')[0],
-            status: 'Planifié',
-            relatedAssetIds: [],
-            relatedRiskIds: [],
-            relatedControlIds: []
-        }
-    });
+
 
     const findingForm = useForm<FindingFormData>({
         resolver: zodResolver(findingSchema) as any,
@@ -215,7 +204,6 @@ export const Audits: React.FC = () => {
 
             addToast("Audit planifié et notifié", "success");
             setShowModal(false);
-            auditForm.reset();
             refreshAudits();
         } catch (_e) { addToast("Erreur création audit", "error"); }
     };
@@ -869,94 +857,15 @@ export const Audits: React.FC = () => {
             )}
 
             {/* Create Audit Modal */}
-            {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-lg border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-indigo-50/30 dark:bg-indigo-900/10">
-                            <h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 tracking-tight">Planifier un Audit</h2>
-                        </div>
-                        <form onSubmit={auditForm.handleSubmit(handleCreateAudit)} className="p-8 space-y-6">
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom de l'audit</label>
-                                <input required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-                                    {...auditForm.register('name')} placeholder="Ex: Audit Interne ISO 27001 - Q1" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
-                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none"
-                                        {...auditForm.register('type')}>
-                                        {['Interne', 'Externe', 'Certification'].map(t => <option key={t} value={t}>{t}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Date Prévue</label>
-                                    <input type="date" required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-                                        {...auditForm.register('dateScheduled')} />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Actifs (Périmètre)</label>
-                                    <div className="h-32 overflow-y-auto custom-scrollbar border border-gray-200 dark:border-white/10 rounded-2xl p-3 bg-gray-50/50 dark:bg-black/20">
-                                        {assets.map(a => (
-                                            <label key={a.id} className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-white/5 rounded-lg cursor-pointer">
-                                                <input type="checkbox" checked={auditForm.watch('relatedAssetIds')?.includes(a.id)} onChange={() => {
-                                                    const current = auditForm.getValues('relatedAssetIds') || [];
-                                                    const updated = current.includes(a.id) ? current.filter(id => id !== a.id) : [...current, a.id];
-                                                    auditForm.setValue('relatedAssetIds', updated);
-                                                }} className="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" />
-                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{a.name}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Risques (Périmètre)</label>
-                                    <div className="h-32 overflow-y-auto custom-scrollbar border border-gray-200 dark:border-white/10 rounded-2xl p-3 bg-gray-50/50 dark:bg-black/20">
-                                        {risks.map(r => (
-                                            <label key={r.id} className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-white/5 rounded-lg cursor-pointer">
-                                                <input type="checkbox" checked={auditForm.watch('relatedRiskIds')?.includes(r.id)} onChange={() => {
-                                                    const current = auditForm.getValues('relatedRiskIds') || [];
-                                                    const updated = current.includes(r.id) ? current.filter(id => id !== r.id) : [...current, r.id];
-                                                    auditForm.setValue('relatedRiskIds', updated);
-                                                }} className="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" />
-                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{r.threat}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contrôles (Périmètre)</label>
-                                <CustomSelect
-                                    options={controls.map(c => ({ value: c.id, label: `${c.code} - ${c.name}` }))}
-                                    value={auditForm.watch('relatedControlIds') || []}
-                                    onChange={(val) => auditForm.setValue('relatedControlIds', val)}
-                                    placeholder="Sélectionner les contrôles à auditer..."
-                                    multiple
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Auditeur</label>
-                                <select
-                                    className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none"
-                                    {...auditForm.register('auditor')}
-                                >
-                                    <option value="">Sélectionner...</option>
-                                    {usersList.map(u => (
-                                        <option key={u.uid} value={u.displayName}>{u.displayName}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                                <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                                <button type="submit" className="px-8 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-indigo-500/30">Créer</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <AuditFormModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                onSubmit={handleCreateAudit}
+                assets={assets}
+                risks={risks}
+                controls={controls}
+                usersList={usersList}
+            />
         </div>
     );
 };
