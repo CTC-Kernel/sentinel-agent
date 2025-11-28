@@ -9,10 +9,12 @@ import { FileUploader } from '../components/ui/FileUploader';
 import { AIAssistButton } from '../components/ai/AIAssistButton';
 import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk } from '../types';
-import { canEditResource } from '../utils/permissions';
-import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target } from '../components/ui/Icons';
-import { AuditFormModal } from '../components/audits/AuditFormModal';
+import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk, Project } from '../types';
+import { canEditResource, canDeleteResource } from '../utils/permissions';
+import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target, Edit } from '../components/ui/Icons';
+
+import { Drawer } from '../components/ui/Drawer';
+import { AuditForm } from '../components/audits/AuditForm';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
@@ -73,6 +75,12 @@ export const Audits: React.FC = () => {
         { logError: true }
     );
 
+    const { data: rawProjects, loading: projectsLoading } = useFirestoreCollection<Project>(
+        'projects',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
     // Derived State
     const audits = React.useMemo(() => {
         return [...rawAudits].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime());
@@ -90,9 +98,10 @@ export const Audits: React.FC = () => {
         return [...rawRisks].sort((a, b) => b.score - a.score);
     }, [rawRisks]);
 
-    const loading = auditsLoading || controlsLoading || assetsLoading || risksLoading || usersLoading || docsLoading;
+    const loading = auditsLoading || controlsLoading || assetsLoading || risksLoading || usersLoading || docsLoading || projectsLoading;
 
-    const [showModal, setShowModal] = useState(false);
+    const [creationMode, setCreationMode] = useState(false);
+    const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [filter, setFilter] = useState('');
 
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
@@ -177,35 +186,58 @@ export const Audits: React.FC = () => {
         }
     };
 
-    const handleCreateAudit: SubmitHandler<AuditFormData> = async (data) => {
+    const openCreationDrawer = () => {
+        setCreationMode(true);
+        setEditingAudit(null);
+    };
+
+    const openEditDrawer = (audit: Audit) => {
+        setEditingAudit(audit);
+        setCreationMode(false);
+    };
+
+    const handleAuditFormSubmit: SubmitHandler<AuditFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
-        try {
-            await addDoc(collection(db, 'audits'), { ...data, organizationId: user.organizationId, findingsCount: 0 });
-            await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${data.name} `);
 
-            // Send notification
-            if (data.auditor) {
-                const auditorUser = usersList.find(u => u.displayName === data.auditor);
-                if (auditorUser) {
-                    const emailContent = getAuditReminderTemplate(
-                        data.name || 'Audit',
-                        auditorUser.displayName || 'Auditeur',
-                        data.dateScheduled || '',
-                        'https://sentinel-grc.web.app/audits'
-                    );
-                    await sendEmail(user, {
-                        to: auditorUser.email,
-                        subject: `[Sentinel] Nouvel audit assigné: ${data.name} `,
-                        html: emailContent,
-                        type: 'AUDIT_REMINDER'
-                    });
+        if (editingAudit) {
+            // Update existing audit
+            try {
+                await updateDoc(doc(db, 'audits', editingAudit.id), { ...data });
+                await logAction(user, 'UPDATE', 'Audit', `Mise à jour audit: ${data.name}`);
+                addToast("Audit mis à jour", "success");
+                setEditingAudit(null);
+                refreshAudits();
+            } catch (e) { addToast("Erreur mise à jour audit", "error"); }
+        } else {
+            // Create new audit
+            try {
+                await addDoc(collection(db, 'audits'), { ...data, organizationId: user.organizationId, findingsCount: 0 });
+                await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${data.name}`);
+
+                // Send notification
+                if (data.auditor) {
+                    const auditorUser = usersList.find(u => u.displayName === data.auditor);
+                    if (auditorUser) {
+                        const emailContent = getAuditReminderTemplate(
+                            data.name || 'Audit',
+                            auditorUser.displayName || 'Auditeur',
+                            data.dateScheduled || '',
+                            'https://sentinel-grc.web.app/audits'
+                        );
+                        await sendEmail(user, {
+                            to: auditorUser.email,
+                            subject: `[Sentinel] Nouvel audit assigné: ${data.name}`,
+                            html: emailContent,
+                            type: 'AUDIT_REMINDER'
+                        });
+                    }
                 }
-            }
 
-            addToast("Audit planifié et notifié", "success");
-            setShowModal(false);
-            refreshAudits();
-        } catch (_e) { addToast("Erreur création audit", "error"); }
+                addToast("Audit planifié et notifié", "success");
+                setCreationMode(false);
+                refreshAudits();
+            } catch (_e) { addToast("Erreur création audit", "error"); }
+        }
     };
 
     const handleAddFinding: SubmitHandler<FindingFormData> = async (data) => {
@@ -254,7 +286,7 @@ export const Audits: React.FC = () => {
     };
 
     const initiateDeleteAudit = (id: string, name: string) => {
-        if (!canEdit) return;
+        if (!canDeleteResource(user, 'Audit')) return;
         setConfirmData({
             isOpen: true,
             title: "Supprimer l'audit ?",
@@ -528,11 +560,9 @@ export const Audits: React.FC = () => {
                 ]}
                 icon={<ClipboardCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={canEdit && (
-                    <button
-                        onClick={() => setShowModal(true)}
-                        className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                    >
-                        <Plus className="h-4 w-4 mr-2" /> Nouvel Audit
+                    <button onClick={() => openCreationDrawer()} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
+                        <Plus className="w-5 h-5" />
+                        <span>Nouvel Audit</span>
                     </button>
                 )}
             />
@@ -559,7 +589,7 @@ export const Audits: React.FC = () => {
                             title="Aucun audit planifié"
                             description={filter ? "Aucun audit ne correspond à votre recherche." : "Planifiez des audits réguliers pour assurer la conformité continue."}
                             actionLabel={filter ? undefined : "Planifier un audit"}
-                            onAction={filter ? undefined : () => setShowModal(true)}
+                            onAction={filter ? undefined : () => openCreationDrawer()}
                         />
                     </div>
                 ) : (
@@ -589,9 +619,14 @@ export const Audits: React.FC = () => {
                             </div>
 
                             {canEdit && (
-                                <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(audit.id, audit.name) }} className="absolute top-6 right-6 p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-400 hover:text-red-50 shadow-sm backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Trash2 className="h-4 w-4" />
-                                </button>
+                                <div className="absolute top-6 right-6 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={(e) => { e.stopPropagation(); openEditDrawer(audit); }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-400 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
+                                        <Edit className="h-4 w-4" />
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(audit.id, audit.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-400 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
+                                        <Trash2 className="h-4 w-4" />
+                                    </button>
+                                </div>
                             )}
                         </div>
                     ))
@@ -846,6 +881,22 @@ export const Audits: React.FC = () => {
                                                     {(!selectedAudit.relatedControlIds || selectedAudit.relatedControlIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun contrôle lié.</p>}
                                                 </div>
                                             </div>
+
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Audités ({selectedAudit.relatedProjectIds?.length || 0})</h4>
+                                                <div className="space-y-2">
+                                                    {selectedAudit.relatedProjectIds?.map(pid => {
+                                                        const project = rawProjects.find(p => p.id === pid);
+                                                        return project ? (
+                                                            <div key={pid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
+                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{project.name}</span>
+                                                                <span className={`text-xs px-2 py-1 rounded-lg font-bold uppercase ${project.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>{project.status}</span>
+                                                            </div>
+                                                        ) : null;
+                                                    })}
+                                                    {(!selectedAudit.relatedProjectIds || selectedAudit.relatedProjectIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun projet lié.</p>}
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -856,16 +907,26 @@ export const Audits: React.FC = () => {
                 document.body
             )}
 
-            {/* Create Audit Modal */}
-            <AuditFormModal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                onSubmit={handleCreateAudit}
-                assets={assets}
-                risks={risks}
-                controls={controls}
-                usersList={usersList}
-            />
+            {/* Create/Edit Modal */}
+            {/* Create/Edit Drawer */}
+            <Drawer
+                isOpen={creationMode || !!editingAudit}
+                onClose={() => { setCreationMode(false); setEditingAudit(null); }}
+                title={editingAudit ? "Modifier l'Audit" : "Nouvel Audit"}
+                subtitle={editingAudit ? editingAudit.name : "Planification"}
+                width="max-w-4xl"
+            >
+                <AuditForm
+                    onCancel={() => { setCreationMode(false); setEditingAudit(null); }}
+                    onSubmit={handleAuditFormSubmit}
+                    existingAudit={editingAudit}
+                    assets={assets}
+                    risks={rawRisks}
+                    controls={controls}
+                    projects={rawProjects}
+                    usersList={usersList}
+                />
+            </Drawer>
         </div>
     );
 };

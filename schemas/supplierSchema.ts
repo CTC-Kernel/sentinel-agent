@@ -28,6 +28,9 @@ export const supplierSchema = z.object({
     doraCriticality: z.enum(['Critical', 'Important', 'None']).optional(),
     serviceType: z.enum(['SaaS', 'Cloud', 'Software', 'Hardware', 'Consulting', 'Network', 'Security']).optional(),
     supportedProcessIds: z.array(z.string()).optional(),
+    relatedAssetIds: z.array(z.string()).optional(),
+    relatedRiskIds: z.array(z.string()).optional(),
+    relatedProjectIds: z.array(z.string()).optional(),
 });
 
 export type SupplierFormData = z.infer<typeof supplierSchema>;
