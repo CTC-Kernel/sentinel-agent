@@ -77,6 +77,7 @@ export const Incidents: React.FC = () => {
         if (loading || incidents.length === 0) return;
         const incident = incidents.find(i => i.id === state.voxelSelectedId);
         if (incident) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedIncident(incident);
         }
     }, [location.state, loading, incidents]);
