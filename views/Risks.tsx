@@ -40,11 +40,23 @@ export const Risks: React.FC = () => {
     const location = useLocation();
 
     // Data Fetching with Hooks
-    const { data: rawRisks, loading: risksLoading, refresh: refreshRisks } = useFirestoreCollection<Risk>(
+    const { data: rawRisks, loading: risksLoading, refresh: refreshRisks, error: risksError } = useFirestoreCollection<Risk>(
         'risks',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
         { logError: true, enabled: !!user?.organizationId }
     );
+
+    useEffect(() => {
+        if (risksError) {
+            console.error("Risks permission error details:", {
+                error: risksError,
+                userRole: user?.role,
+                userOrg: user?.organizationId,
+                code: (risksError as any).code
+            });
+            ErrorLogger.handleErrorWithToast(risksError, 'Risks.fetch');
+        }
+    }, [risksError, user]);
 
     const { data: rawControls, loading: controlsLoading } = useFirestoreCollection<Control>(
         'controls',
