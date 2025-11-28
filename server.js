@@ -11,6 +11,14 @@ const PORT = process.env.PORT || 8080;
 // Serve static files from the dist directory
 const distPath = path.resolve(__dirname, 'dist');
 console.log(`Serving static files from: ${distPath}`);
+
+// Add security headers to allow Firebase Auth popups
+app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+    next();
+});
+
 app.use(express.static(distPath));
 
 // Handle SPA routing: return index.html for all non-API routes

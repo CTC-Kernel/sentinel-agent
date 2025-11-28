@@ -23,9 +23,12 @@ const app = initializeApp(firebaseConfig);
 // Initialize App Check with ReCAPTCHA Enterprise
 if (typeof window !== 'undefined') {
   // Enable debug token ONLY for localhost (prevents it from breaking production if env var leaks)
-  // Enable debug token for localhost OR if explicitly enabled via localStorage
+  // Enable debug token for localhost OR if explicitly enabled via localStorage OR for the specific app domain
   const isDebugMode = localStorage.getItem('debug_app_check') === 'true';
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || isDebugMode;
+  const isLocal = window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === 'app.cyber-threat-consulting.com' ||
+    isDebugMode;
 
   if (import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN && isLocal) {
     // @ts-expect-error - FIREBASE_APPCHECK_DEBUG_TOKEN is not defined on self
