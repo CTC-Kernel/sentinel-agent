@@ -3,11 +3,12 @@ import { RiskFormData } from '../schemas/riskSchema';
 
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier } from '../types';
-import { canEditResource } from '../utils/permissions';
-import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Edit, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw } from '../components/ui/Icons';
+import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit } from '../types';
+import { canEditResource, canDeleteResource } from '../utils/permissions';
+import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
-import { RiskFormModal } from '../components/risks/RiskFormModal';
+
+import { RiskForm } from '../components/risks/RiskForm';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
@@ -82,7 +83,7 @@ export const Risks: React.FC = () => {
 
 
 
-    const [showModal, setShowModal] = useState(false);
+    const [creationMode, setCreationMode] = useState(false);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [filter, setFilter] = usePersistedState<string>('risks_filter', '');
     const [viewMode, setViewMode] = usePersistedState<'list' | 'matrix'>('risks_view_mode', 'list');
@@ -93,10 +94,11 @@ export const Risks: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const canEdit = canEditResource(user, 'Risk');
     const [isEditing, setIsEditing] = useState(false);
-    const [currentRiskId, setCurrentRiskId] = useState<string | null>(null);
+    // const [currentRiskId, setCurrentRiskId] = useState<string | null>(null); // Removed unused
     const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'treatment' | 'dashboard' | 'projects' | 'history' | 'comments' | 'graph'>('details');
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'treatment' | 'dashboard' | 'projects' | 'audits' | 'history' | 'comments' | 'graph'>('details');
     const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
+    const [linkedAudits, setLinkedAudits] = useState<Audit[]>([]);
     const [riskHistory, setRiskHistory] = useState<SystemLog[]>([]);
     const [riskScoreHistory, setRiskScoreHistory] = useState<RiskHistory[]>([]);
     const [stats, setStats] = useState({ total: 0, critical: 0, mitigated: 0, reviewDue: 0 });
@@ -126,7 +128,9 @@ export const Risks: React.FC = () => {
 
     const openInspector = async (risk: Risk) => {
         setSelectedRisk(risk);
+        setCreationMode(false);
         setInspectorTab('details');
+        setIsEditing(false);
         try {
             const q = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), limit(50));
             const snap = await getDocs(q);
@@ -143,8 +147,14 @@ export const Risks: React.FC = () => {
 
             const projQ = query(collection(db, 'projects'), where('organizationId', '==', user?.organizationId), where('relatedRiskIds', 'array-contains', risk.id));
             getDocs(projQ).then(snap => { setLinkedProjects(snap.docs.map(d => ({ id: d.id, ...d.data() } as Project))); });
+
+            const auditQ = query(collection(db, 'audits'), where('organizationId', '==', user?.organizationId), where('relatedRiskIds', 'array-contains', risk.id));
+            getDocs(auditQ).then(snap => { setLinkedAudits(snap.docs.map(d => ({ id: d.id, ...d.data() } as Audit))); });
+
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.openInspector', 'FETCH_FAILED'); }
     };
+
+
 
     const onSubmit = async (data: RiskFormData) => {
         if (!canEdit || !user?.organizationId) return;
@@ -159,67 +169,61 @@ export const Risks: React.FC = () => {
             // Sanitize data before sending to Firestore
             const cleanNewRisk = { ...sanitizeData(data), owner: ownerName };
 
-            if (isEditing && currentRiskId) {
-                const oldRisk = risks.find(r => r.id === currentRiskId);
-                const previousScore = oldRisk ? oldRisk.score : undefined;
-
-                if (oldRisk && oldRisk.score !== score) {
-                    await addDoc(collection(db, 'risk_history'), {
-                        riskId: currentRiskId,
-                        organizationId: user.organizationId,
-                        date: new Date().toISOString(),
-                        previousScore: oldRisk.score,
-                        newScore: score,
-                        previousProbability: oldRisk.probability,
-                        newProbability: data.probability,
-                        previousImpact: oldRisk.impact,
-                        newImpact: data.impact,
-                        changedBy: user.email,
-                        reason: 'Mise à jour du score'
-                    });
-                }
-
-                await updateDoc(doc(db, 'risks', currentRiskId), { ...cleanNewRisk, score, residualScore, previousScore });
-                await logAction(user, 'UPDATE', 'Risk', `Modification risque: ${cleanNewRisk.threat}`);
-                addToast("Risque mis à jour", "success");
-                if (selectedRisk?.id === currentRiskId) setSelectedRisk({ ...selectedRisk, ...cleanNewRisk, score, residualScore } as Risk);
-            } else {
-                await addDoc(collection(db, 'risks'), {
-                    ...cleanNewRisk,
-                    organizationId: user.organizationId,
-                    score,
-                    residualScore,
-                    previousScore: score,
-                    createdAt: new Date().toISOString()
-                });
-                await logAction(user, 'CREATE', 'Risk', `Ajout risque: ${cleanNewRisk.threat}`);
-                addToast("Risque ajouté", "success");
-            }
-            setShowModal(false);
+            // Creation only
+            await addDoc(collection(db, 'risks'), {
+                ...cleanNewRisk,
+                organizationId: user.organizationId,
+                score,
+                residualScore,
+                previousScore: score,
+                createdAt: new Date().toISOString()
+            });
+            await logAction(user, 'CREATE', 'Risk', `Ajout risque: ${cleanNewRisk.threat}`);
+            addToast("Risque ajouté", "success");
+            setCreationMode(false);
             refreshRisks();
-        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Risks.handleSubmit', 'UPDATE_FAILED'); }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Risks.onSubmit', 'CREATE_FAILED');
+        }
     };
 
-    const openModal = (risk?: Risk) => {
-        if (!canEdit && !risk) return;
-        if (risk) {
-            setIsEditing(true);
-            setCurrentRiskId(risk.id);
-            // Resolve ownerId if missing (backward compatibility)
-            let resolvedOwnerId = risk.ownerId || '';
-            if (!resolvedOwnerId && risk.owner) {
-                const foundUser = usersList.find(u => u.displayName === risk.owner);
-                if (foundUser) resolvedOwnerId = foundUser.uid;
-            }
+    const handleUpdate = async (data: RiskFormData) => {
+        if (!user?.organizationId || !selectedRisk) return;
+        try {
+            const riskData = sanitizeData({ ...data });
+            const score = riskData.probability * riskData.impact;
+            const historyEntry: RiskHistory = {
+                date: new Date().toISOString(),
+                previousScore: selectedRisk.score,
+                newScore: score,
+                changedBy: user.email || 'Unknown',
+                previousProbability: selectedRisk.probability,
+                newProbability: riskData.probability,
+                previousImpact: selectedRisk.impact,
+                newImpact: riskData.impact
+            };
 
-            // Form reset is handled inside RiskFormModal via existingRisk prop
-        }
-        else {
+            const updatedHistory = [...(selectedRisk.history || []), historyEntry];
+
+            await updateDoc(doc(db, 'risks', selectedRisk.id), {
+                ...riskData,
+                score,
+                history: updatedHistory
+            });
+            await logAction(user, 'UPDATE', 'Risk', `Mise à jour risque: ${riskData.threat}`);
+            addToast("Risque mis à jour", "success");
+            setSelectedRisk({ ...selectedRisk, ...riskData, score, history: updatedHistory } as Risk);
             setIsEditing(false);
-            setCurrentRiskId(null);
-            // Form reset is handled inside RiskFormModal via existingRisk prop (null)
+            refreshRisks();
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Risks.handleUpdate', 'UPDATE_FAILED');
         }
-        setShowModal(true);
+    };
+
+    const openCreationDrawer = () => {
+        if (!canEdit) return;
+        setSelectedRisk(null);
+        setCreationMode(true);
     };
 
     const handleDuplicate = async () => {
@@ -234,7 +238,7 @@ export const Risks: React.FC = () => {
     };
 
     const initiateDelete = async (id: string, threat: string) => {
-        if (!canEdit) return;
+        if (!canDeleteResource(user, 'Risk')) return;
         const incQ = query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId), where('relatedRiskId', '==', id));
         const projQ = query(collection(db, 'projects'), where('organizationId', '==', user?.organizationId), where('relatedRiskIds', 'array-contains', id));
 
@@ -431,12 +435,9 @@ export const Risks: React.FC = () => {
                             <Download className="h-4 w-4 mr-2" />
                             Importer Template
                         </button>
-                        <button
-                            onClick={() => openModal()}
-                            className="flex items-center px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Nouveau Risque
+                        <button onClick={openCreationDrawer} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
+                            <Plus className="w-5 h-5" />
+                            <span>Nouveau Risque</span>
                         </button>
                     </>
                 )}
@@ -538,7 +539,7 @@ export const Risks: React.FC = () => {
                                 title="Aucun risque identifié"
                                 description={filter ? "Aucun risque ne correspond à votre recherche." : "Identifiez et évaluez les risques pour protéger votre organisation."}
                                 actionLabel={filter ? undefined : "Nouveau Risque"}
-                                onAction={filter ? undefined : () => openModal()}
+                                onAction={filter ? undefined : openCreationDrawer}
                             />
                         </div>
                     ) : filteredRisks.map(risk => {
@@ -577,288 +578,357 @@ export const Risks: React.FC = () => {
                     })}</div>
             )}
 
-            {/* Inspector */}
+            {/* Inspector & Creation Drawer */}
             <Drawer
-                isOpen={!!selectedRisk}
-                onClose={() => setSelectedRisk(null)}
-                title={selectedRisk?.threat}
+                isOpen={!!selectedRisk || creationMode}
+                onClose={() => { setSelectedRisk(null); setCreationMode(false); setIsEditing(false); }}
+                title={creationMode ? 'Nouveau Risque' : selectedRisk?.threat}
                 subtitle={
-                    <div className="flex items-center gap-2">
-                        <Server className="h-3.5 w-3.5" /> {getAssetName(selectedRisk?.assetId)}
-                    </div>
+                    creationMode ? 'Création' : (
+                        <div className="flex items-center gap-2">
+                            <Server className="h-3.5 w-3.5" /> {getAssetName(selectedRisk?.assetId)}
+                        </div>
+                    )
                 }
+                width={creationMode || isEditing ? "max-w-4xl" : undefined}
                 actions={
-                    <>
-                        {canEdit && selectedRisk && (
-                            <>
-                                <button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer" aria-label="Dupliquer le risque">
-                                    <Copy className="h-5 w-5" />
-                                </button>
-                                <button onClick={() => openModal(selectedRisk)} className="p-2.5 text-gray-500 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" aria-label="Modifier le risque">
-                                    <Edit className="h-5 w-5" />
-                                </button>
-                                <button onClick={() => initiateDelete(selectedRisk.id, selectedRisk.threat)} className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm" aria-label="Supprimer le risque">
-                                    <Trash2 className="h-5 w-5" />
-                                </button>
-                            </>
-                        )}
-                    </>
+                    !creationMode && (
+                        <>
+                            {canEdit && selectedRisk && (
+                                <>
+                                    <button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer" aria-label="Dupliquer le risque">
+                                        <Copy className="h-5 w-5" />
+                                    </button>
+                                    <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Modifier" aria-label="Modifier le risque">
+                                        <Edit className="h-5 w-5" />
+                                    </button>
+                                    <button onClick={() => initiateDelete(selectedRisk.id, selectedRisk.threat)} className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm" aria-label="Supprimer le risque">
+                                        <Trash2 className="h-5 w-5" />
+                                    </button>
+                                </>
+                            )}
+                        </>
+                    )
                 }
             >
-                {selectedRisk && (
-                    <>
-                        <div className="px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
-                            <ScrollableTabs
-                                tabs={[
-                                    { id: 'details', label: 'Détails', icon: ShieldAlert },
-                                    { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
-                                    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                                    { id: 'projects', label: 'Projets', icon: FolderKanban },
-                                    { id: 'history', label: 'Historique', icon: History },
-                                    { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                                    { id: 'graph', label: 'Graphe', icon: Network }
-                                ]}
-                                activeTab={inspectorTab}
-                                onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
-                            />
-                        </div>
-
-                        <div className="p-8 space-y-8">
-                            {inspectorTab === 'details' && (
-                                <div className="space-y-8">
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <div className="p-6 bg-red-50/80 dark:bg-red-900/10 rounded-3xl border border-red-100 dark:border-red-900/30 shadow-sm">
-                                            <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4">Risque Brut</h4>
-                                            <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{selectedRisk.score}</div>
-                                            <div className="text-xs font-medium text-slate-500">Prob: {selectedRisk.probability} × Impact: {selectedRisk.impact}</div>
-                                        </div>
-                                        <div className="p-6 bg-emerald-50/80 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
-                                            <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4">Risque Résiduel</h4>
-                                            <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{selectedRisk.residualScore || selectedRisk.score}</div>
-                                            <div className="text-xs font-medium text-slate-500">Prob: {selectedRisk.residualProbability || selectedRisk.probability} × Impact: {selectedRisk.residualImpact || selectedRisk.impact}</div>
-                                        </div>
-                                    </div>
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Stratégie de Traitement</h4>
-                                        <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.strategy}</div>
-                                    </div>
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Propriétaire</h4>
-                                        <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.owner || 'Non assigné'}</div>
-                                    </div>
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Statut Actuel</h4>
-                                        <div className="flex justify-between items-center">
-                                            {canEdit ? (
-                                                <div className="flex gap-3">
-                                                    {['Ouvert', 'En cours', 'Fermé'].map(s => (
-                                                        <button key={s} onClick={() => handleStatusChange(selectedRisk, s as Risk['status'])} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'}`}>{s}</button>
-                                                    ))}
-                                                </div>
-                                            ) : <span className="px-4 py-2 bg-gray-100 dark:bg-slate-700 rounded-xl text-sm font-bold">{selectedRisk.status}</span>}
-                                            {canEdit && (<button onClick={handleReview} className="flex items-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors"><CalendarDays className="h-3.5 w-3.5 mr-2" /> Valider la revue</button>)}
-                                        </div>
-                                        {selectedRisk.lastReviewDate && (<p className="text-xs text-slate-400 mt-3 text-right">Dernière revue le : {new Date(selectedRisk.lastReviewDate).toLocaleDateString()}</p>)}
-                                    </div>
+                {creationMode ? (
+                    <RiskForm
+                        onSubmit={onSubmit}
+                        onCancel={() => setCreationMode(false)}
+                        assets={assets}
+                        usersList={usersList}
+                        processes={rawProcesses}
+                        suppliers={suppliers}
+                        controls={controls}
+                    />
+                ) : selectedRisk && (
+                    <div className="flex flex-col h-full">
+                        {isEditing ? (
+                            <div className="p-6">
+                                <RiskForm
+                                    onSubmit={handleUpdate}
+                                    onCancel={() => setIsEditing(false)}
+                                    initialData={selectedRisk}
+                                    existingRisk={selectedRisk}
+                                    assets={assets}
+                                    usersList={usersList}
+                                    processes={rawProcesses}
+                                    suppliers={suppliers}
+                                    controls={controls}
+                                    isEditing={true}
+                                />
+                            </div>
+                        ) : (
+                            <>
+                                <div className="px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
+                                    <ScrollableTabs
+                                        tabs={[
+                                            { id: 'details', label: 'Détails', icon: ShieldAlert },
+                                            { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
+                                            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+                                            { id: 'projects', label: 'Projets', icon: FolderKanban },
+                                            { id: 'audits', label: 'Audits', icon: CheckCircle2 },
+                                            { id: 'history', label: 'Historique', icon: History },
+                                            { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                                            { id: 'graph', label: 'Graphe', icon: Network }
+                                        ]}
+                                        activeTab={inspectorTab}
+                                        onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
+                                    />
                                 </div>
-                            )}
 
-                            {inspectorTab === 'treatment' && (
-                                <div className="space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Mesures de sécurité (Contrôles ISO)</h3>
-                                        <span className="text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-600 px-2.5 py-1 rounded-full">{selectedRisk.mitigationControlIds?.length || 0} mesures</span>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Stratégie de traitement</label>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {['Accepter', 'Atténuer', 'Transférer', 'Éviter'].map(s => (
-                                                <button
-                                                    key={s}
-                                                    type="button"
-                                                    onClick={() => handleStrategyChange(selectedRisk, s as any)}
-                                                    className={`
+                                <div className="p-8 space-y-8">
+                                    {inspectorTab === 'details' && (
+                                        <div className="space-y-8">
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div className="p-6 bg-red-50/80 dark:bg-red-900/10 rounded-3xl border border-red-100 dark:border-red-900/30 shadow-sm">
+                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4">Risque Brut</h4>
+                                                    <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{selectedRisk.score}</div>
+                                                    <div className="text-xs font-medium text-slate-500">Prob: {selectedRisk.probability} × Impact: {selectedRisk.impact}</div>
+                                                </div>
+                                                <div className="p-6 bg-emerald-50/80 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
+                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4">Risque Résiduel</h4>
+                                                    <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{selectedRisk.residualScore || selectedRisk.score}</div>
+                                                    <div className="text-xs font-medium text-slate-500">Prob: {selectedRisk.residualProbability || selectedRisk.probability} × Impact: {selectedRisk.residualImpact || selectedRisk.impact}</div>
+                                                </div>
+                                            </div>
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Stratégie de Traitement</h4>
+                                                <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.strategy}</div>
+                                            </div>
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Propriétaire</h4>
+                                                <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.owner || 'Non assigné'}</div>
+                                            </div>
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Statut Actuel</h4>
+                                                <div className="flex justify-between items-center">
+                                                    {canEdit ? (
+                                                        <div className="flex gap-3">
+                                                            {['Ouvert', 'En cours', 'Fermé'].map(s => (
+                                                                <button key={s} onClick={() => handleStatusChange(selectedRisk, s as Risk['status'])} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'}`}>{s}</button>
+                                                            ))}
+                                                        </div>
+                                                    ) : <span className="px-4 py-2 bg-gray-100 dark:bg-slate-700 rounded-xl text-sm font-bold">{selectedRisk.status}</span>}
+                                                    {canEdit && (<button onClick={handleReview} className="flex items-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors"><CalendarDays className="h-3.5 w-3.5 mr-2" /> Valider la revue</button>)}
+                                                </div>
+                                                {selectedRisk.lastReviewDate && (<p className="text-xs text-slate-400 mt-3 text-right">Dernière revue le : {new Date(selectedRisk.lastReviewDate).toLocaleDateString()}</p>)}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {inspectorTab === 'treatment' && (
+                                        <div className="space-y-6">
+                                            <div className="flex items-center justify-between">
+                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Mesures de sécurité (Contrôles ISO)</h3>
+                                                <span className="text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-600 px-2.5 py-1 rounded-full">{selectedRisk.mitigationControlIds?.length || 0} mesures</span>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Stratégie de traitement</label>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {['Accepter', 'Atténuer', 'Transférer', 'Éviter'].map(s => (
+                                                        <button
+                                                            key={s}
+                                                            type="button"
+                                                            onClick={() => handleStrategyChange(selectedRisk, s as any)}
+                                                            className={`
                                                         px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
                                                         ${selectedRisk.strategy === s
-                                                            ? 'bg-brand-500 text-white border-brand-500 shadow-lg shadow-brand-500/20'
-                                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-50 dark:hover:bg-brand-900/10'}
+                                                                    ? 'bg-brand-500 text-white border-brand-500 shadow-lg shadow-brand-500/20'
+                                                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-50 dark:hover:bg-brand-900/10'}
                                                     `}
-                                                >
-                                                    {s}
-                                                </button>
-                                            ))}
+                                                        >
+                                                            {s}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Affected Processes Section */}
+                                            <div className="space-y-4">
+                                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Processus Impactés</label>
+                                                <CustomSelect
+                                                    options={rawProcesses.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
+                                                    value={selectedRisk.affectedProcessIds || []}
+                                                    onChange={async (val) => {
+                                                        if (!selectedRisk || !canEdit) return;
+                                                        const newIds = Array.isArray(val) ? val : [val];
+                                                        try {
+                                                            await updateDoc(doc(db, 'risks', selectedRisk.id), { affectedProcessIds: newIds });
+                                                            setSelectedRisk({ ...selectedRisk, affectedProcessIds: newIds });
+                                                            refreshRisks();
+                                                            addToast("Processus mis à jour", "success");
+                                                        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.updateProcesses', 'UPDATE_FAILED'); }
+                                                    }}
+                                                    placeholder="Sélectionner les processus impactés..."
+                                                    multiple
+                                                    disabled={!canEdit}
+                                                />
+                                            </div>
+
+                                            {/* Related Suppliers Section (Combined Direct & Reverse) */}
+                                            <div className="space-y-4">
+                                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Fournisseurs Concernés</label>
+                                                <CustomSelect
+                                                    options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
+                                                    value={selectedRisk.relatedSupplierIds || []}
+                                                    onChange={async (val) => {
+                                                        if (!selectedRisk || !canEdit) return;
+                                                        const newIds = Array.isArray(val) ? val : [val];
+                                                        try {
+                                                            await updateDoc(doc(db, 'risks', selectedRisk.id), { relatedSupplierIds: newIds });
+                                                            setSelectedRisk({ ...selectedRisk, relatedSupplierIds: newIds });
+                                                            refreshRisks();
+                                                            addToast("Fournisseurs mis à jour", "success");
+                                                        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.updateSuppliers', 'UPDATE_FAILED'); }
+                                                    }}
+                                                    placeholder="Sélectionner les fournisseurs concernés..."
+                                                    multiple
+                                                    disabled={!canEdit}
+                                                />
+
+                                                {/* Display Reverse Linked Suppliers (if any are not already in direct links) */}
+                                                {(() => {
+                                                    const directIds = selectedRisk.relatedSupplierIds || [];
+                                                    const reverseLinked = suppliers.filter(s => s.relatedRiskIds?.includes(selectedRisk.id) && !directIds.includes(s.id));
+
+                                                    if (reverseLinked.length > 0) {
+                                                        return (
+                                                            <div className="mt-2 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                                                <h5 className="text-xs font-bold uppercase text-slate-400 mb-2">Liés depuis la fiche Fournisseur</h5>
+                                                                <div className="space-y-2">
+                                                                    {reverseLinked.map(s => (
+                                                                        <div key={s.id} className="flex justify-between items-center">
+                                                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{s.name}</span>
+                                                                            <span className="text-xs text-slate-500">{s.category}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
+                                            </div>
+
+                                            {selectedRisk.mitigationControlIds && selectedRisk.mitigationControlIds.length > 0 ? (
+                                                <div className="space-y-3">
+                                                    {selectedRisk.mitigationControlIds.map(cid => {
+                                                        const ctrl = controls.find(c => c.id === cid);
+                                                        return ctrl ? (
+                                                            <div key={cid} className="flex items-start p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all">
+                                                                <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-xl mr-4 text-green-600"><CheckCircle2 className="h-5 w-5" /></div>
+                                                                <div>
+                                                                    <div className="font-bold text-sm text-slate-900 dark:text-white mb-1">{ctrl.code}</div>
+                                                                    <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{ctrl.name}</div>
+                                                                </div>
+                                                            </div>
+                                                        ) : null;
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-12 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10">
+                                                    <ShieldAlert className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                                                    Aucun contrôle d'atténuation lié.
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
+                                    )}
 
-                                    {/* Affected Processes Section */}
-                                    <div className="space-y-4">
-                                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Processus Impactés</label>
-                                        <CustomSelect
-                                            options={rawProcesses.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
-                                            value={selectedRisk.affectedProcessIds || []}
-                                            onChange={async (val) => {
-                                                if (!selectedRisk || !canEdit) return;
-                                                const newIds = Array.isArray(val) ? val : [val];
-                                                try {
-                                                    await updateDoc(doc(db, 'risks', selectedRisk.id), { affectedProcessIds: newIds });
-                                                    setSelectedRisk({ ...selectedRisk, affectedProcessIds: newIds });
-                                                    refreshRisks();
-                                                    addToast("Processus mis à jour", "success");
-                                                } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.updateProcesses', 'UPDATE_FAILED'); }
-                                            }}
-                                            placeholder="Sélectionner les processus impactés..."
-                                            multiple
-                                            disabled={!canEdit}
-                                        />
-                                    </div>
+                                    {inspectorTab === 'dashboard' && (
+                                        <div className="space-y-6">
+                                            <RiskDashboard risks={[selectedRisk]} />
+                                        </div>
+                                    )}
 
-                                    {/* Related Suppliers Section */}
-                                    <div className="space-y-4">
-                                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Fournisseurs Concernés</label>
-                                        <CustomSelect
-                                            options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
-                                            value={selectedRisk.relatedSupplierIds || []}
-                                            onChange={async (val) => {
-                                                if (!selectedRisk || !canEdit) return;
-                                                const newIds = Array.isArray(val) ? val : [val];
-                                                try {
-                                                    await updateDoc(doc(db, 'risks', selectedRisk.id), { relatedSupplierIds: newIds });
-                                                    setSelectedRisk({ ...selectedRisk, relatedSupplierIds: newIds });
-                                                    refreshRisks();
-                                                    addToast("Fournisseurs mis à jour", "success");
-                                                } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.updateSuppliers', 'UPDATE_FAILED'); }
-                                            }}
-                                            placeholder="Sélectionner les fournisseurs concernés..."
-                                            multiple
-                                            disabled={!canEdit}
-                                        />
-                                    </div>
+                                    {inspectorTab === 'projects' && (
+                                        <div className="space-y-8">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
+                                            {linkedProjects.length === 0 ? (
+                                                <p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé à ce risque.</p>
+                                            ) : (
+                                                <div className="grid gap-4">
+                                                    {linkedProjects.map(proj => (
+                                                        <div key={proj.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
+                                                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{proj.status}</span>
+                                                            </div>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{proj.description}</p>
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="w-full bg-slate-200 rounded-full h-1.5 mr-4 max-w-[100px]">
+                                                                    <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${proj.progress}%` }}></div>
+                                                                </div>
+                                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{proj.progress}%</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
-                                    {selectedRisk.mitigationControlIds && selectedRisk.mitigationControlIds.length > 0 ? (
-                                        <div className="space-y-3">
-                                            {selectedRisk.mitigationControlIds.map(cid => {
-                                                const ctrl = controls.find(c => c.id === cid);
-                                                return ctrl ? (
-                                                    <div key={cid} className="flex items-start p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all">
-                                                        <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-xl mr-4 text-green-600"><CheckCircle2 className="h-5 w-5" /></div>
+                                    {inspectorTab === 'audits' && (
+                                        <div className="space-y-8">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
+                                            {linkedAudits.length === 0 ? (
+                                                <p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé à ce risque.</p>
+                                            ) : (
+                                                <div className="grid gap-4">
+                                                    {linkedAudits.map(audit => (
+                                                        <div key={audit.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{audit.name}</span>
+                                                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{audit.status}</span>
+                                                            </div>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Auditeur: {audit.auditor}</p>
+                                                            <div className="flex items-center text-xs text-slate-500">
+                                                                <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
+                                                                {new Date(audit.dateScheduled).toLocaleDateString()}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {inspectorTab === 'graph' && (
+                                        <div className="h-[500px]">
+                                            <RelationshipGraph rootId={selectedRisk.id} rootType="Risk" />
+                                        </div>
+                                    )}
+
+                                    {inspectorTab === 'history' && (
+                                        <div className="space-y-8">
+                                            <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Évolution du Score</h4>
+                                                {riskScoreHistory.length === 0 ? <p className="text-sm text-gray-400 italic">Aucun changement de score enregistré.</p> : riskScoreHistory.map((h, i) => (
+                                                    <div key={i} className="relative">
+                                                        <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900">
+                                                            <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                                                        </span>
                                                         <div>
-                                                            <div className="font-bold text-sm text-slate-900 dark:text-white mb-1">{ctrl.code}</div>
-                                                            <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{ctrl.name}</div>
+                                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(h.date).toLocaleString()}</span>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-sm font-bold text-slate-500">Score:</span>
+                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{h.previousScore} ➔ {h.newScore}</span>
+                                                            </div>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Par: {h.changedBy}</p>
                                                         </div>
                                                     </div>
-                                                ) : null;
-                                            })}
+                                                ))}
+                                            </div>
+                                            <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Journal d'Audit</h4>
+                                                {riskHistory.map((log, i) => (
+                                                    <div key={i} className="relative">
+                                                        <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
+                                                            <div className="h-2 w-2 rounded-full bg-brand-500"></div>
+                                                        </span>
+                                                        <div>
+                                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                            <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
+                                                            <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    ) : (
-                                        <div className="text-center py-12 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10">
-                                            <ShieldAlert className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                                            Aucun contrôle d'atténuation lié.
+                                    )}
+
+                                    {inspectorTab === 'comments' && (
+                                        <div className="h-full flex flex-col">
+                                            <Comments collectionName="risks" documentId={selectedRisk.id} />
                                         </div>
                                     )}
                                 </div>
-                            )}
-
-                            {inspectorTab === 'dashboard' && (
-                                <div className="space-y-6">
-                                    <RiskDashboard risks={[selectedRisk]} />
-                                </div>
-                            )}
-
-                            {inspectorTab === 'projects' && (
-                                <div className="space-y-8">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
-                                    {linkedProjects.length === 0 ? (
-                                        <p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé à ce risque.</p>
-                                    ) : (
-                                        <div className="grid gap-4">
-                                            {linkedProjects.map(proj => (
-                                                <div key={proj.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
-                                                        <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{proj.status}</span>
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{proj.description}</p>
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="w-full bg-slate-200 rounded-full h-1.5 mr-4 max-w-[100px]">
-                                                            <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${proj.progress}%` }}></div>
-                                                        </div>
-                                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{proj.progress}%</span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {inspectorTab === 'graph' && (
-                                <div className="h-[500px]">
-                                    <RelationshipGraph rootId={selectedRisk.id} rootType="Risk" />
-                                </div>
-                            )}
-
-                            {inspectorTab === 'history' && (
-                                <div className="space-y-8">
-                                    <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Évolution du Score</h4>
-                                        {riskScoreHistory.length === 0 ? <p className="text-sm text-gray-400 italic">Aucun changement de score enregistré.</p> : riskScoreHistory.map((h, i) => (
-                                            <div key={i} className="relative">
-                                                <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900">
-                                                    <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                                                </span>
-                                                <div>
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(h.date).toLocaleString()}</span>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <span className="text-sm font-bold text-slate-500">Score:</span>
-                                                        <span className="text-sm font-bold text-slate-900 dark:text-white">{h.previousScore} ➔ {h.newScore}</span>
-                                                    </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Par: {h.changedBy}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Journal d'Audit</h4>
-                                        {riskHistory.map((log, i) => (
-                                            <div key={i} className="relative">
-                                                <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
-                                                    <div className="h-2 w-2 rounded-full bg-brand-500"></div>
-                                                </span>
-                                                <div>
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
-                                                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                    <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {inspectorTab === 'comments' && (
-                                <div className="h-full flex flex-col">
-                                    <Comments collectionName="risks" documentId={selectedRisk.id} />
-                                </div>
-                            )}
-                        </div>
-                    </>
+                            </>
+                        )}
+                    </div>
                 )}
             </Drawer>
-
-            {/* Create/Edit Modal */}
-            <RiskFormModal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                onSubmit={onSubmit}
-                existingRisk={isEditing && currentRiskId ? risks.find(r => r.id === currentRiskId) : undefined}
-                assets={assets}
-                usersList={usersList}
-                processes={rawProcesses}
-                suppliers={suppliers}
-                controls={controls}
-                isEditing={isEditing}
-            />
         </div >
     );
 };
