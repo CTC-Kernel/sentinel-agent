@@ -14,6 +14,7 @@ export const riskSchema = z.object({
     ownerId: z.string().optional(),
     mitigationControlIds: z.array(z.string()).optional(),
     affectedProcessIds: z.array(z.string()).optional(),
+    relatedSupplierIds: z.array(z.string()).optional(),
 });
 
 export type RiskFormData = z.infer<typeof riskSchema>;

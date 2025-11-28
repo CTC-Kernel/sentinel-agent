@@ -3,8 +3,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile, BusinessProcess } from '../types';
-import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, X, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload } from '../components/ui/Icons';
+import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk } from '../types';
+import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, X, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
@@ -105,6 +105,18 @@ export const Suppliers: React.FC = () => {
 
     const { data: processesRaw, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: assetsRaw } = useFirestoreCollection<Asset>(
+        'assets',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
+    const { data: risksRaw } = useFirestoreCollection<Risk>(
+        'risks',
         [where('organizationId', '==', user?.organizationId)],
         { logError: true }
     );
@@ -769,6 +781,42 @@ export const Suppliers: React.FC = () => {
                                                             </div>
                                                         </div>
                                                     )}
+
+                                                    {/* Linked Assets */}
+                                                    <div className="p-6 bg-slate-50/80 dark:bg-slate-800/30 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm mt-6">
+                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center">
+                                                            <Server className="h-4 w-4 mr-2" /> Actifs Fournis ({assetsRaw.filter(a => a.supplierId === selectedSupplier.id).length})
+                                                        </h4>
+                                                        <div className="space-y-2">
+                                                            {assetsRaw.filter(a => a.supplierId === selectedSupplier.id).map(asset => (
+                                                                <div key={asset.id} className="flex items-center justify-between text-sm p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                    <span className="font-medium text-slate-700 dark:text-slate-300">{asset.name}</span>
+                                                                    <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-500">{asset.type}</span>
+                                                                </div>
+                                                            ))}
+                                                            {assetsRaw.filter(a => a.supplierId === selectedSupplier.id).length === 0 && (
+                                                                <p className="text-sm text-gray-400 italic">Aucun actif associé.</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Linked Risks */}
+                                                    <div className="p-6 bg-red-50/50 dark:bg-red-900/10 rounded-3xl border border-red-100 dark:border-red-900/30 shadow-sm mt-6">
+                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 mb-4 flex items-center">
+                                                            <ShieldAlert className="h-4 w-4 mr-2" /> Risques Associés ({risksRaw.filter(r => r.relatedSupplierIds?.includes(selectedSupplier.id)).length})
+                                                        </h4>
+                                                        <div className="space-y-2">
+                                                            {risksRaw.filter(r => r.relatedSupplierIds?.includes(selectedSupplier.id)).map(risk => (
+                                                                <div key={risk.id} className="flex items-center justify-between text-sm p-3 bg-white dark:bg-slate-800 rounded-xl border border-red-100 dark:border-red-900/20">
+                                                                    <span className="font-medium text-slate-700 dark:text-slate-300 truncate max-w-[200px]">{risk.threat}</span>
+                                                                    <span className={`text-xs px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>Score: {risk.score}</span>
+                                                                </div>
+                                                            ))}
+                                                            {risksRaw.filter(r => r.relatedSupplierIds?.includes(selectedSupplier.id)).length === 0 && (
+                                                                <p className="text-sm text-gray-400 italic">Aucun risque associé.</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </>
                                             )}
                                         </div>
