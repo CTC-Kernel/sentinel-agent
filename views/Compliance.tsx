@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Control, Document, Risk, Finding, UserProfile, SystemLog } from '../types';
-import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User } from '../components/ui/Icons';
+import { Control, Document, Risk, Finding, UserProfile, SystemLog, Asset, Supplier, Project, Audit } from '../types';
+import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { jsPDF } from 'jspdf';
@@ -32,7 +32,7 @@ export const Compliance: React.FC = () => {
     // UI State
     const [selectedControl, setSelectedControl] = useState<Control | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'evidence' | 'comments' | 'history'>('details');
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'evidence' | 'comments' | 'history' | 'linkedItems'>('details');
     const [controlHistory, setControlHistory] = useState<SystemLog[]>([]);
 
     const [editJustification, setEditJustification] = useState('');
@@ -77,7 +77,31 @@ export const Compliance: React.FC = () => {
         { logError: true }
     );
 
-    const loading = controlsLoading || docsLoading || risksLoading || findingsLoading || usersLoading;
+    const { data: assets, loading: assetsLoading } = useFirestoreCollection<Asset>(
+        'assets',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
+        'suppliers',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: projects, loading: projectsLoading } = useFirestoreCollection<Project>(
+        'projects',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const { data: audits, loading: auditsLoading } = useFirestoreCollection<Audit>(
+        'audits',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
+    const loading = controlsLoading || docsLoading || risksLoading || findingsLoading || usersLoading || assetsLoading || suppliersLoading || projectsLoading || auditsLoading;
 
     // Derived State and Seeding Logic
     const [controls, setControls] = useState<Control[]>([]);
@@ -289,6 +313,54 @@ export const Compliance: React.FC = () => {
             setSelectedControl({ ...selectedControl, evidenceIds: newEvidence });
             addToast("Preuve retirée", "info");
         } catch (_e) { addToast("Erreur suppression lien", "error"); }
+    };
+
+    const handleLinkAsset = async (assetId: string) => {
+        if (!selectedControl || !user?.organizationId) return;
+        try {
+            if (selectedControl.relatedAssetIds?.includes(assetId)) return;
+            await updateDoc(doc(db, 'controls', selectedControl.id), { relatedAssetIds: arrayUnion(assetId) });
+            const newAssets = [...(selectedControl.relatedAssetIds || []), assetId];
+            refreshControls();
+            setSelectedControl({ ...selectedControl, relatedAssetIds: newAssets });
+            await logAction(user, 'LINK', 'Compliance', `Actif lié au contrôle ${selectedControl.code}`);
+            addToast("Actif lié", "success");
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkAsset', 'UPDATE_FAILED'); }
+    };
+
+    const handleUnlinkAsset = async (assetId: string) => {
+        if (!selectedControl || !user?.organizationId) return;
+        try {
+            const newAssets = (selectedControl.relatedAssetIds || []).filter(id => id !== assetId);
+            await updateDoc(doc(db, 'controls', selectedControl.id), { relatedAssetIds: newAssets });
+            refreshControls();
+            setSelectedControl({ ...selectedControl, relatedAssetIds: newAssets });
+            addToast("Lien actif retiré", "info");
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkAsset', 'UPDATE_FAILED'); }
+    };
+
+    const handleLinkSupplier = async (supplierId: string) => {
+        if (!selectedControl || !user?.organizationId) return;
+        try {
+            if (selectedControl.relatedSupplierIds?.includes(supplierId)) return;
+            await updateDoc(doc(db, 'controls', selectedControl.id), { relatedSupplierIds: arrayUnion(supplierId) });
+            const newSuppliers = [...(selectedControl.relatedSupplierIds || []), supplierId];
+            refreshControls();
+            setSelectedControl({ ...selectedControl, relatedSupplierIds: newSuppliers });
+            await logAction(user, 'LINK', 'Compliance', `Fournisseur lié au contrôle ${selectedControl.code}`);
+            addToast("Fournisseur lié", "success");
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkSupplier', 'UPDATE_FAILED'); }
+    };
+
+    const handleUnlinkSupplier = async (supplierId: string) => {
+        if (!selectedControl || !user?.organizationId) return;
+        try {
+            const newSuppliers = (selectedControl.relatedSupplierIds || []).filter(id => id !== supplierId);
+            await updateDoc(doc(db, 'controls', selectedControl.id), { relatedSupplierIds: newSuppliers });
+            refreshControls();
+            setSelectedControl({ ...selectedControl, relatedSupplierIds: newSuppliers });
+            addToast("Lien fournisseur retiré", "info");
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkSupplier', 'UPDATE_FAILED'); }
     };
 
     const getDomainStats = (prefix: string) => {
@@ -572,6 +644,7 @@ export const Compliance: React.FC = () => {
                         <div className="flex border-b border-gray-100 dark:border-white/5 px-6 bg-white/50 dark:bg-white/5 backdrop-blur-sm sticky top-0 z-10">
                             <button onClick={() => setInspectorTab('details')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'details' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Détails</button>
                             <button onClick={() => setInspectorTab('evidence')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'evidence' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Preuves ({selectedControl.evidenceIds?.length || 0})</button>
+                            <button onClick={() => setInspectorTab('linkedItems')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'linkedItems' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Éléments Liés</button>
                             <button onClick={() => setInspectorTab('comments')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'comments' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Discussion</button>
                             <button onClick={() => setInspectorTab('history')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'history' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Historique</button>
                         </div>
@@ -625,6 +698,58 @@ export const Compliance: React.FC = () => {
                                                         {usersList.find(u => u.uid === selectedControl.assigneeId)?.displayName || 'Non assigné'}
                                                     </span>
                                                 </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Linked Resources */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Actifs Liés</h3>
+                                            <div className="space-y-2 mb-4">
+                                                {selectedControl.relatedAssetIds?.map(assetId => {
+                                                    const asset = assets.find(a => a.id === assetId);
+                                                    return asset ? (
+                                                        <div key={assetId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
+                                                            <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
+                                                            {canEdit && <button onClick={() => handleUnlinkAsset(assetId)} className="text-slate-400 hover:text-red-500"><X className="h-3.5 w-3.5" /></button>}
+                                                        </div>
+                                                    ) : null;
+                                                })}
+                                                {(!selectedControl.relatedAssetIds || selectedControl.relatedAssetIds.length === 0) && <p className="text-xs text-slate-400 italic">Aucun actif lié.</p>}
+                                            </div>
+                                            {canEdit && (
+                                                <CustomSelect
+                                                    label=""
+                                                    value=""
+                                                    onChange={(val) => handleLinkAsset(val)}
+                                                    options={assets.filter(a => !selectedControl.relatedAssetIds?.includes(a.id)).map(a => ({ value: a.id, label: a.name }))}
+                                                    placeholder="Lier un actif..."
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Fournisseurs Liés</h3>
+                                            <div className="space-y-2 mb-4">
+                                                {selectedControl.relatedSupplierIds?.map(supplierId => {
+                                                    const supplier = suppliers.find(s => s.id === supplierId);
+                                                    return supplier ? (
+                                                        <div key={supplierId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
+                                                            <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
+                                                            {canEdit && <button onClick={() => handleUnlinkSupplier(supplierId)} className="text-slate-400 hover:text-red-500"><X className="h-3.5 w-3.5" /></button>}
+                                                        </div>
+                                                    ) : null;
+                                                })}
+                                                {(!selectedControl.relatedSupplierIds || selectedControl.relatedSupplierIds.length === 0) && <p className="text-xs text-slate-400 italic">Aucun fournisseur lié.</p>}
+                                            </div>
+                                            {canEdit && (
+                                                <CustomSelect
+                                                    label=""
+                                                    value=""
+                                                    onChange={(val) => handleLinkSupplier(val)}
+                                                    options={suppliers.filter(s => !selectedControl.relatedSupplierIds?.includes(s.id)).map(s => ({ value: s.id, label: s.name }))}
+                                                    placeholder="Lier un fournisseur..."
+                                                />
                                             )}
                                         </div>
                                     </div>
@@ -694,6 +819,67 @@ export const Compliance: React.FC = () => {
                                                 </div>
                                             </div>
                                         )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {inspectorTab === 'linkedItems' && (
+                                <div className="space-y-8 max-w-3xl mx-auto">
+                                    {/* Linked Risks */}
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest flex items-center"><ShieldAlert className="h-3.5 w-3.5 mr-2" /> Risques Atténués</h3>
+                                        <div className="space-y-2">
+                                            {risks.filter(r => r.mitigationControlIds?.includes(selectedControl.id)).map(risk => (
+                                                <div key={risk.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                    <div>
+                                                        <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{risk.threat}</div>
+                                                        <div className="text-xs text-slate-500 mt-0.5">Score: {risk.score} → {risk.residualScore}</div>
+                                                    </div>
+                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${risk.status === 'Ouvert' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>{risk.status}</span>
+                                                </div>
+                                            ))}
+                                            {risks.filter(r => r.mitigationControlIds?.includes(selectedControl.id)).length === 0 && (
+                                                <p className="text-sm text-slate-400 italic">Aucun risque lié.</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Linked Projects */}
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets Liés</h3>
+                                        <div className="space-y-2">
+                                            {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).map(project => (
+                                                <div key={project.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                    <div>
+                                                        <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{project.name}</div>
+                                                        <div className="text-xs text-slate-500 mt-0.5">{project.description?.substring(0, 50)}...</div>
+                                                    </div>
+                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${project.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>{project.status}</span>
+                                                </div>
+                                            ))}
+                                            {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
+                                                <p className="text-sm text-slate-400 italic">Aucun projet lié.</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Linked Audits */}
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest flex items-center"><FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> Audits Liés</h3>
+                                        <div className="space-y-2">
+                                            {audits.filter(a => a.relatedControlIds?.includes(selectedControl.id)).map(audit => (
+                                                <div key={audit.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                    <div>
+                                                        <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{audit.name}</div>
+                                                        <div className="text-xs text-slate-500 mt-0.5">{new Date(audit.dateScheduled).toLocaleDateString()}</div>
+                                                    </div>
+                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${audit.status === 'Terminé' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{audit.status}</span>
+                                                </div>
+                                            ))}
+                                            {audits.filter(a => a.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
+                                                <p className="text-sm text-slate-400 italic">Aucun audit lié.</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}
