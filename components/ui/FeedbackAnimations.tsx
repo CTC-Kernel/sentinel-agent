@@ -23,7 +23,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   const [isPressed, setIsPressed] = useState(false);
 
   const baseClasses = 'font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
-  
+
   const variantClasses = {
     primary: 'bg-brand-600 hover:bg-brand-700 text-white focus:ring-brand-500 shadow-lg shadow-brand-500/20',
     secondary: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-brand-500',
@@ -40,7 +40,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     setIsPressed(true);
     setTimeout(() => setIsPressed(false), 200);
-    
+
     // Créer effet ripple
     const button = e.currentTarget;
     const rect = button.getBoundingClientRect();
@@ -81,7 +81,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
       )}
       <span className={loading ? 'opacity-0' : ''}>{children}</span>
 
-      <style jsx>{`
+      <style>{`
         .ripple {
           position: absolute;
           border-radius: 50%;
@@ -149,7 +149,7 @@ export const PulseSkeleton: React.FC<PulseSkeletonProps> = ({
   variant = 'rectangular'
 }) => {
   const baseClasses = 'bg-slate-200 dark:bg-slate-700 animate-pulse';
-  
+
   const variantClasses = {
     text: 'h-4 rounded-md',
     circular: 'rounded-full',

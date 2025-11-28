@@ -116,7 +116,8 @@ import {
   Move,
   MonitorPlay,
   HardDrive,
-  RotateCcw
+  RotateCcw,
+  Circle
 } from 'lucide-react';
 
 export {
@@ -236,5 +237,6 @@ export {
   Move,
   MonitorPlay,
   HardDrive,
-  RotateCcw
+  RotateCcw,
+  Circle
 };

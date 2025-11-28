@@ -20,7 +20,7 @@ export class PushNotificationService {
      */
     static async initialize(): Promise<boolean> {
         if (!('serviceWorker' in navigator) || !messaging) {
-            console.warn('Push notifications not supported');
+
             return false;
         }
 
@@ -40,7 +40,7 @@ export class PushNotificationService {
 
                 // Écouter les messages au premier plan
                 onMessage(messaging, (payload) => {
-                    console.log('Message received. ', payload);
+
                     // On peut afficher un toast ou une notification locale ici si l'app est ouverte
                     if (payload.notification) {
                         new Notification(payload.notification.title || 'Notification', {
@@ -81,7 +81,7 @@ export class PushNotificationService {
                 fcmTokens: arrayUnion(token)
             }, { merge: true });
         } catch (error) {
-            console.error('Error saving FCM token:', error);
+            ErrorLogger.error(error, 'PushNotificationService.saveTokenToDatabase');
         }
     }
 
@@ -124,13 +124,13 @@ export class PushNotificationService {
 
     // --- Helpers pour les notifications spécifiques ---
 
-    static async notifyIncidentCritique(incidentTitle: string, _incidentId: string): Promise<void> {
+    static async notifyIncidentCritique(_incidentTitle: string, _incidentId: string): Promise<void> {
         // Cette méthode est maintenant principalement gérée par le backend via Cloud Functions
         // Mais on peut l'utiliser pour des feedbacks locaux immédiats
-        console.log('Incident critique notifié localement:', incidentTitle);
+
     }
 
-    static async notifyAuditImminent(auditName: string, _daysRemaining: number): Promise<void> {
-        console.log('Audit imminent notifié localement:', auditName);
+    static async notifyAuditImminent(_auditName: string, _daysRemaining: number): Promise<void> {
+
     }
 }

@@ -110,8 +110,12 @@ class ErrorLoggerService {
     const code = typeof anyError?.code === 'string' ? anyError.code : undefined;
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    if (code === 'permission-denied' || code === 'failed-precondition') {
+    if (code === 'permission-denied') {
       messageKey = 'PERMISSION_DENIED';
+    } else if (code === 'failed-precondition') {
+      // Often means Missing Index
+      messageKey = 'MISSING_INDEX' as ErrorMessageKey;
+
     } else if (
       code === 'unauthenticated' ||
       code === 'auth/id-token-expired' ||
@@ -197,6 +201,7 @@ export const ERROR_MESSAGES = {
   UNKNOWN_ERROR: "Une erreur inattendue s'est produite",
   NETWORK_ERROR: "Erreur de connexion réseau",
   PERMISSION_DENIED: "Vous n'avez pas les permissions nécessaires",
+  MISSING_INDEX: "Index Firestore manquant (vérifiez la console)",
 
   // Authentification
   AUTH_FAILED: "Échec de l'authentification",

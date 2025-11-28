@@ -78,6 +78,8 @@ export const Suppliers: React.FC = () => {
         }
     }, [selectedSupplier, editForm]);
 
+
+
     const { data: suppliersRaw, loading: loadingSuppliers } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId)],
@@ -89,6 +91,15 @@ export const Suppliers: React.FC = () => {
         [where('organizationId', '==', user?.organizationId)],
         { logError: true }
     );
+
+    const selectedOwnerId = editForm.watch('ownerId');
+
+    useEffect(() => {
+        if (selectedOwnerId) {
+            const selectedUser = usersRaw.find(u => u.uid === selectedOwnerId);
+            editForm.setValue('owner', selectedUser?.displayName || '');
+        }
+    }, [selectedOwnerId, usersRaw, editForm]);
 
     const { data: documentsRaw } = useFirestoreCollection<Document>(
         'documents',
@@ -375,8 +386,6 @@ export const Suppliers: React.FC = () => {
                     }
                 });
                 await batch.commit();
-                await logAction(user, 'IMPORT', 'Supplier', `Import CSV de ${count} fournisseurs`);
-                addToast(`${count} fournisseurs importés`, "success");
                 await logAction(user, 'IMPORT', 'Supplier', `Import CSV de ${count} fournisseurs`);
                 addToast(`${count} fournisseurs importés`, "success");
             } catch (_error) { addToast("Erreur import CSV", "error"); } finally { if (fileInputRef.current) fileInputRef.current.value = ''; }
@@ -672,12 +681,7 @@ export const Suppliers: React.FC = () => {
                                             <div>
                                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
                                                 <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                                    {...editForm.register('ownerId')}
-                                                    onChange={e => {
-                                                        editForm.setValue('ownerId', e.target.value);
-                                                        const selectedUser = usersRaw.find(u => u.uid === e.target.value);
-                                                        editForm.setValue('owner', selectedUser?.displayName || '');
-                                                    }}>
+                                                    {...editForm.register('ownerId')}>
                                                     <option value="">Sélectionner...</option>
                                                     {usersRaw.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                                 </select>
@@ -972,6 +976,7 @@ export const Suppliers: React.FC = () => {
                     assets={assetsRaw}
                     risks={risksRaw}
                     projects={projectsRaw}
+                    documents={documentsRaw}
                 />
             </Drawer>
         </div>
