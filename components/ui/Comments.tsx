@@ -1,11 +1,11 @@
 
-import React, { useEffect, useState } from 'react';
-import { collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { db } from '../../firebase';
+import React, { useState } from 'react';
+import { orderBy } from 'firebase/firestore';
 import { useStore } from '../../store';
 import { Comment } from '../../types';
 import { Send, MessageSquare } from './Icons';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useFirestoreCollection } from '../../hooks/useFirestore';
 
 interface CommentsProps {
   collectionName: string;
@@ -13,27 +13,28 @@ interface CommentsProps {
 }
 
 export const Comments: React.FC<CommentsProps> = ({ collectionName, documentId }) => {
-  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const { user } = useStore();
 
-  useEffect(() => {
-    if (!documentId) return;
-    const q = query(collection(db, collectionName, documentId, 'comments'), orderBy('createdAt', 'asc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setComments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Comment)));
-    });
-    return () => unsubscribe();
-  }, [collectionName, documentId]);
+  // Use hook for comments subcollection
+  // Path: collectionName/documentId/comments
+  const { data: comments, add } = useFirestoreCollection<Comment>(
+    `${collectionName}/${documentId}/comments`,
+    [orderBy('createdAt', 'asc')],
+    {
+      realtime: true,
+      enabled: !!documentId
+    }
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !user) return;
     try {
-      await addDoc(collection(db, collectionName, documentId, 'comments'), {
+      await add({
         userId: user.uid,
         userName: user.displayName || user.email,
-        organizationId: user.organizationId, // Add organizationId for cleanup/security
+        organizationId: user.organizationId,
         content: newComment.trim(),
         createdAt: new Date().toISOString()
       });
