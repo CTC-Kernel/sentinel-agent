@@ -1,49 +1,55 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Bell, CheckCircle2, AlertTriangle, Info, X, Check } from './Icons';
 import { NotificationService, Notification } from '../../services/notificationService';
 import { useStore } from '../../store';
 import { useNavigate } from 'react-router-dom';
-import { onSnapshot, collection, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { where, orderBy, limit } from 'firebase/firestore';
+import { useFirestoreCollection } from '../../hooks/useFirestore';
 
 export const NotificationCenter: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-    const { user } = useStore();
+    const { user, demoMode, addToast } = useStore();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if (!user?.uid) return;
-
-        // Real-time listener for notifications
-        const q = query(
-            collection(db, 'notifications'),
-            where('userId', '==', user.uid),
+    // Use the hook for fetching notifications
+    // Note: We need to memoize constraints or they will trigger re-renders if passed inline
+    // But useFirestoreCollection handles constraint memoization internally now.
+    const { data: notifications, update, refresh } = useFirestoreCollection<Notification>(
+        'notifications',
+        [
+            where('userId', '==', user?.uid || 'ignore'),
             orderBy('createdAt', 'desc'),
             limit(20)
-        );
+        ],
+        {
+            realtime: true,
+            enabled: !!user?.uid
+        }
+    );
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const notifs = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            })) as Notification[];
-
-            setNotifications(notifs);
-            setUnreadCount(notifs.filter((n) => !n.read).length);
-        });
-
-        return () => unsubscribe();
-    }, [user?.uid]);
+    const unreadCount = notifications.filter(n => !n.read).length;
 
     const handleMarkAsRead = async (notificationId: string) => {
-        await NotificationService.markAsRead(notificationId);
+        await update(notificationId, { read: true });
     };
 
     const handleMarkAllAsRead = async () => {
         if (!user?.uid) return;
+
+        if (demoMode) {
+            addToast("Action simulée en mode démo", "info");
+            // Optimistically mark all as read in local state isn't easily possible with the hook's current API 
+            // without iterating updates, which might be slow/complex. 
+            // For now, we'll just accept that "Mark All" might not visually update everything instantly in demo mode 
+            // unless we iterate.
+            notifications.forEach(n => {
+                if (!n.read) update(n.id, { read: true });
+            });
+            return;
+        }
+
         await NotificationService.markAllAsRead(user.uid);
+        refresh(); // Refresh to get updated state
     };
 
     const handleNotificationClick = async (notification: Notification) => {
