@@ -86,7 +86,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             const suggestion = await aiService.generateText(prompt);
             if (suggestion) {
                 // Clean up suggestion
-                let cleanSuggestion = suggestion.trim().replace(/^"|"$/g, '');
+                const cleanSuggestion = suggestion.replace(/^["']|["']$/g, '').trim();
 
                 // Validate against enum if needed
                 if (field === 'type' && !['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].includes(cleanSuggestion)) {
