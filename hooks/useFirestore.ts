@@ -27,6 +27,7 @@ import {
 interface UseFirestoreOptions {
     realtime?: boolean;
     logError?: boolean;
+    enabled?: boolean;
 }
 
 interface UseFirestoreReturn<T> {
@@ -65,18 +66,24 @@ const getDemoDataForCollection = (collectionName: string): any[] => {
 export const useFirestoreCollection = <T = DocumentData>(
     collectionName: string,
     constraints: QueryConstraint[] = [],
-    options: UseFirestoreOptions = { realtime: false, logError: true }
+    options: UseFirestoreOptions = { realtime: false, logError: true, enabled: true }
 ): UseFirestoreReturn<T & { id: string }> => {
     const [data, setData] = useState<(T & { id: string })[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(options.enabled !== false);
     const [error, setError] = useState<Error | null>(null);
     const { demoMode, addToast } = useStore();
 
     // Memoize constraints to prevent infinite loops if passed as a new array every render
     // We stringify the entire constraints array to capture values (e.g. where clauses)
     const constraintsKey = JSON.stringify(constraints);
+    const isEnabled = options.enabled !== false;
 
     const fetchData = useCallback(async () => {
+        if (!isEnabled) {
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
@@ -104,9 +111,14 @@ export const useFirestoreCollection = <T = DocumentData>(
         } finally {
             if (!demoMode) setLoading(false);
         }
-    }, [collectionName, constraintsKey, options.logError, demoMode]);
+    }, [collectionName, constraintsKey, options.logError, demoMode, isEnabled]);
 
     useEffect(() => {
+        if (!isEnabled) {
+            setLoading(false);
+            return;
+        }
+
         if (demoMode) {
             fetchData();
             return;
@@ -134,7 +146,7 @@ export const useFirestoreCollection = <T = DocumentData>(
         } else {
             fetchData();
         }
-    }, [collectionName, constraintsKey, options.realtime, fetchData, demoMode]);
+    }, [collectionName, constraintsKey, options.realtime, fetchData, demoMode, isEnabled]);
 
     const add = async (newData: WithFieldValue<DocumentData>) => {
         if (demoMode) {

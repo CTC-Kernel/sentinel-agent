@@ -1,17 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { riskSchema, RiskFormData } from '../schemas/riskSchema';
-import { createPortal } from 'react-dom';
+import { RiskFormData } from '../schemas/riskSchema';
+
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Edit, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw } from '../components/ui/Icons';
-import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { CustomSelect } from '../components/ui/CustomSelect';
-import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
-import { RiskMatrixSelector } from '../components/risks/RiskMatrixSelector';
+import { RiskFormModal } from '../components/risks/RiskFormModal';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
@@ -28,7 +24,7 @@ import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
 import { RiskTemplate, createRisksFromTemplate } from '../utils/riskTemplates';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
-import { AIAssistButton } from '../components/ai/AIAssistButton';
+
 import { PageHeader } from '../components/ui/PageHeader';
 import { Drawer } from '../components/ui/Drawer';
 import { ErrorLogger } from '../services/errorLogger';
@@ -36,7 +32,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useLocation } from 'react-router-dom';
 
-const STANDARD_THREATS = ["Panne matérielle serveur", "Incendie", "Inondation", "Vol d'équipement", "Attaque par Ransomware", "Phishing / Ingénierie Sociale", "Erreur humaine / Configuration", "Divulgation non autorisée", "Interruption de service FAI", "Sabotage interne", "Obsolescence technologique", "Perte de personnel clé"];
+
 
 export const Risks: React.FC = () => {
     const { user, addToast } = useStore();
@@ -46,37 +42,37 @@ export const Risks: React.FC = () => {
     const { data: rawRisks, loading: risksLoading, refresh: refreshRisks } = useFirestoreCollection<Risk>(
         'risks',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, enabled: !!user?.organizationId }
     );
 
     const { data: rawControls, loading: controlsLoading } = useFirestoreCollection<Control>(
         'controls',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, enabled: !!user?.organizationId }
     );
 
     const { data: rawAssets, loading: assetsLoading } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, enabled: !!user?.organizationId }
     );
 
     const { data: rawProcesses, loading: processesLoading } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, enabled: !!user?.organizationId }
     );
 
     const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, enabled: !!user?.organizationId }
     );
 
     const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, enabled: !!user?.organizationId }
     );
 
     // Derived State (Sorting)
@@ -107,34 +103,6 @@ export const Risks: React.FC = () => {
     const [importing, setImporting] = useState(false);
     const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || importing;
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-    const { control, handleSubmit: handleFormSubmit, reset, formState: { errors }, setValue, watch, getValues } = useForm<RiskFormData>({
-        resolver: zodResolver(riskSchema),
-        defaultValues: {
-            assetId: '',
-            threat: '',
-            vulnerability: '',
-            probability: 3,
-            impact: 3,
-            residualProbability: 3,
-            residualImpact: 3,
-            strategy: 'Atténuer',
-            status: 'Ouvert',
-            ownerId: '',
-            mitigationControlIds: [],
-            mitigationControlIds: [],
-            affectedProcessIds: [],
-            relatedSupplierIds: []
-        }
-    });
-
-    // Watch values for score calculation
-    const probability = watch('probability');
-    const impact = watch('impact');
-    const residualProbability = watch('residualProbability');
-    const residualImpact = watch('residualImpact');
-    const mitigationControlIds = watch('mitigationControlIds');
-    const strategy = watch('strategy');
-    const status = watch('status');
 
     useEffect(() => {
         const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -244,42 +212,12 @@ export const Risks: React.FC = () => {
                 if (foundUser) resolvedOwnerId = foundUser.uid;
             }
 
-            reset({
-                assetId: risk.assetId,
-                threat: risk.threat,
-                vulnerability: risk.vulnerability,
-                probability: risk.probability,
-                impact: risk.impact,
-                residualProbability: risk.residualProbability || risk.probability,
-                residualImpact: risk.residualImpact || risk.impact,
-                strategy: risk.strategy,
-                status: risk.status,
-                ownerId: resolvedOwnerId,
-                mitigationControlIds: risk.mitigationControlIds || [],
-                mitigationControlIds: risk.mitigationControlIds || [],
-                affectedProcessIds: risk.affectedProcessIds || [],
-                relatedSupplierIds: risk.relatedSupplierIds || []
-            });
+            // Form reset is handled inside RiskFormModal via existingRisk prop
         }
         else {
             setIsEditing(false);
             setCurrentRiskId(null);
-            reset({
-                assetId: '',
-                threat: '',
-                vulnerability: '',
-                probability: 3,
-                impact: 3,
-                residualProbability: 3,
-                residualImpact: 3,
-                strategy: 'Atténuer',
-                status: 'Ouvert',
-                ownerId: '',
-                mitigationControlIds: [],
-                mitigationControlIds: [],
-                affectedProcessIds: [],
-                relatedSupplierIds: []
-            });
+            // Form reset is handled inside RiskFormModal via existingRisk prop (null)
         }
         setShowModal(true);
     };
@@ -326,11 +264,21 @@ export const Risks: React.FC = () => {
         try {
             await updateDoc(doc(db, 'risks', risk.id), { status: newStatus });
             await logAction(user, 'UPDATE', 'Risk', `Statut risque changé vers ${newStatus}`);
-            // Optimistic update handled by hook refresh or local state if needed, but hook refresh is safer for consistency
             refreshRisks();
             if (selectedRisk?.id === risk.id) setSelectedRisk({ ...selectedRisk, status: newStatus });
             addToast(`Statut changé`, "success");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleStatusChange', 'UPDATE_FAILED'); }
+    };
+
+    const handleStrategyChange = async (risk: Risk, newStrategy: Risk['strategy']) => {
+        if (!canEdit) return;
+        try {
+            await updateDoc(doc(db, 'risks', risk.id), { strategy: newStrategy });
+            await logAction(user, 'UPDATE', 'Risk', `Stratégie risque changée vers ${newStrategy}`);
+            refreshRisks();
+            if (selectedRisk?.id === risk.id) setSelectedRisk({ ...selectedRisk, strategy: newStrategy });
+            addToast(`Stratégie changée`, "success");
+        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleStrategyChange', 'UPDATE_FAILED'); }
     };
 
     const handleReview = async () => {
@@ -369,14 +317,7 @@ export const Risks: React.FC = () => {
         }
     };
 
-    const toggleControlSelection = (controlId: string) => {
-        const currentIds = getValues('mitigationControlIds') || [];
-        if (currentIds.includes(controlId)) {
-            setValue('mitigationControlIds', currentIds.filter(id => id !== controlId), { shouldDirty: true });
-        } else {
-            setValue('mitigationControlIds', [...currentIds, controlId], { shouldDirty: true });
-        }
-    };
+
 
     const handleExportCSV = () => {
         const headers = ["Menace", "Vulnérabilité", "Actif", "Score Brut", "Score Résiduel", "Stratégie", "Statut", "Propriétaire"];
@@ -735,10 +676,10 @@ export const Risks: React.FC = () => {
                                                 <button
                                                     key={s}
                                                     type="button"
-                                                    onClick={() => setValue('strategy', s as any, { shouldDirty: true })}
+                                                    onClick={() => handleStrategyChange(selectedRisk, s as any)}
                                                     className={`
                                                         px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
-                                                        ${strategy === s
+                                                        ${selectedRisk.strategy === s
                                                             ? 'bg-brand-500 text-white border-brand-500 shadow-lg shadow-brand-500/20'
                                                             : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-50 dark:hover:bg-brand-900/10'}
                                                     `}
@@ -906,206 +847,18 @@ export const Risks: React.FC = () => {
             </Drawer>
 
             {/* Create/Edit Modal */}
-            {
-                showModal && canEdit && createPortal(
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                        <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-3xl border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
-                            <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-slate-900/50">
-                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{isEditing ? 'Modifier le risque' : 'Nouveau Risque'}</h2>
-                                <p className="text-sm text-slate-500 mt-1">Définissez la menace, la vulnérabilité et les impacts.</p>
-                            </div>
-                            <form onSubmit={handleFormSubmit(onSubmit)} className="p-8 overflow-y-auto custom-scrollbar">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                                    <div className="space-y-6">
-                                        <Controller
-                                            name="assetId"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <CustomSelect
-                                                    label="Actif concerné"
-                                                    value={field.value}
-                                                    onChange={field.onChange}
-                                                    options={assets.map(a => ({ value: a.id, label: a.name }))}
-                                                    required
-                                                    error={errors.assetId?.message}
-                                                />
-                                            )}
-                                        />
-                                        <div className="relative">
-                                            <FloatingLabelInput
-                                                label="Menace"
-                                                {...control.register('threat')}
-                                                list="threatsList"
-                                                required
-                                                error={errors.threat?.message}
-                                            />
-                                            <div className="absolute right-2 top-2 z-10">
-                                                <AIAssistButton
-                                                    context={{ asset: assets.find(a => a.id === getValues('assetId')), existingThreats: STANDARD_THREATS }}
-                                                    fieldName="Menace"
-                                                    prompt="Suggère une menace de sécurité pertinente pour cet actif (Asset). Réponds uniquement par le titre de la menace, court et précis."
-                                                    onSuggest={(val: string) => setValue('threat', val, { shouldDirty: true })}
-                                                />
-                                            </div>
-                                            <datalist id="threatsList">
-                                                {STANDARD_THREATS.map((t, i) => <option key={i} value={t} />)}
-                                            </datalist>
-                                        </div>
-                                        <div className="relative">
-                                            <FloatingLabelTextarea
-                                                label="Vulnérabilité"
-                                                {...control.register('vulnerability')}
-                                                required
-                                                rows={3}
-                                                error={errors.vulnerability?.message}
-                                            />
-                                            <div className="absolute right-2 top-2 z-10">
-                                                <AIAssistButton
-                                                    context={{ asset: assets.find(a => a.id === getValues('assetId')), threat: getValues('threat') }}
-                                                    fieldName="Vulnérabilité"
-                                                    prompt="Décris une vulnérabilité technique ou organisationnelle qui pourrait permettre la réalisation de cette menace sur cet actif. Soyez concis."
-                                                    onSuggest={(val: string) => setValue('vulnerability', val, { shouldDirty: true })}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-4">
-                                            <Controller
-                                                name="ownerId"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <CustomSelect
-                                                        label="Propriétaire"
-                                                        value={field.value || ''}
-                                                        onChange={field.onChange}
-                                                        options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                                                    />
-                                                )}
-                                            />
-
-
-                                            <Controller
-                                                name="affectedProcessIds"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <CustomSelect
-                                                        label="Processus Impactés"
-                                                        value={field.value || []}
-                                                        onChange={field.onChange}
-                                                        options={rawProcesses.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
-                                                        multiple
-                                                    />
-                                                )}
-                                            />
-
-                                            <Controller
-                                                name="relatedSupplierIds"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <CustomSelect
-                                                        label="Fournisseurs Concernés"
-                                                        value={field.value || []}
-                                                        onChange={field.onChange}
-                                                        options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
-                                                        multiple
-                                                    />
-                                                )}
-                                            />
-
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <RiskMatrixSelector
-                                                    label="Évaluation du Risque Brut"
-                                                    probability={probability}
-                                                    impact={impact}
-                                                    onChange={(p, i) => {
-                                                        setValue('probability', p, { shouldDirty: true });
-                                                        setValue('impact', i, { shouldDirty: true });
-                                                    }}
-                                                />
-                                                <RiskMatrixSelector
-                                                    label="Évaluation du Risque Résiduel"
-                                                    probability={residualProbability || probability}
-                                                    impact={residualImpact || impact}
-                                                    onChange={(p, i) => {
-                                                        setValue('residualProbability', p, { shouldDirty: true });
-                                                        setValue('residualImpact', i, { shouldDirty: true });
-                                                    }}
-                                                />
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Stratégie de traitement</label>
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    {['Accepter', 'Atténuer', 'Transférer', 'Éviter'].map(s => (
-                                                        <button
-                                                            key={s}
-                                                            type="button"
-                                                            onClick={() => setValue('strategy', s as any, { shouldDirty: true })}
-                                                            className={`
-                                                            px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
-                                                            ${strategy === s
-                                                                    ? 'bg-brand-500 text-white border-brand-500 shadow-lg shadow-brand-500/20'
-                                                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-50 dark:hover:bg-brand-900/10'}
-                                                        `}
-                                                        >
-                                                            {s}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Statut</label>
-                                                <div className="flex gap-3">
-                                                    {['Ouvert', 'En cours', 'Fermé'].map(s => (
-                                                        <button
-                                                            key={s}
-                                                            type="button"
-                                                            onClick={() => setValue('status', s as any, { shouldDirty: true })}
-                                                            className={`
-                                                            flex-1 px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
-                                                            ${status === s
-                                                                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-lg'
-                                                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}
-                                                        `}
-                                                        >
-                                                            {s}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                    <div className="bg-slate-50/80 dark:bg-slate-900/30 rounded-3xl p-6 border border-gray-100 dark:border-white/5 flex flex-col h-full">
-                                        <label className="flex items-center text-xs font-bold uppercase tracking-widest text-brand-600 mb-4">
-                                            <CheckCircle2 className="h-4 w-4 mr-2" /> Contrôles d'atténuation
-                                        </label>
-                                        <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar max-h-[400px]">
-                                            {controls.map(ctrl => (
-                                                <label key={ctrl.id} className={`flex items-start space-x-3 p-3.5 rounded-xl cursor-pointer transition-all border ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 border-brand-200 dark:border-brand-800 shadow-md' : 'border-transparent hover:bg-white dark:hover:bg-slate-800'}`}>
-                                                    <div className={`mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-brand-500 border-brand-500' : 'border-gray-300 bg-white dark:bg-black/20'}`}>
-                                                        {mitigationControlIds?.includes(ctrl.id) && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                                                    </div>
-                                                    <input type="checkbox" className="hidden" checked={mitigationControlIds?.includes(ctrl.id) || false} onChange={() => toggleControlSelection(ctrl.id)} />
-                                                    <div>
-                                                        <span className="text-xs font-bold text-slate-900 dark:text-white block mb-0.5">{ctrl.code}</span>
-                                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug block">{ctrl.name}</span>
-                                                    </div>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex justify-end space-x-4 pt-8 mt-4 border-t border-gray-100 dark:border-white/5">
-                                    <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                                    <button type="submit" className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none">{isEditing ? 'Enregistrer les modifications' : 'Créer le Risque'}</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>,
-                    document.body
-                )
-            }
+            <RiskFormModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                onSubmit={onSubmit}
+                existingRisk={isEditing && currentRiskId ? risks.find(r => r.id === currentRiskId) : undefined}
+                assets={assets}
+                usersList={usersList}
+                processes={rawProcesses}
+                suppliers={suppliers}
+                controls={controls}
+                isEditing={isEditing}
+            />
         </div >
     );
 };
