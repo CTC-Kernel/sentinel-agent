@@ -134,15 +134,14 @@ export const Onboarding: React.FC = () => {
         const email = targetUser.email || '';
         const photoURL = targetUser.photoURL || null;
 
-        console.log("Starting Step 1...", { uid, organizationName: data.organizationName, displayName: data.displayName });
+
 
         try {
             // Generate a NEW organization ID
             const newOrgId = generateUUID();
             const orgName = data.organizationName || (user as any)?.organizationName || 'Mon Organisation';
 
-            console.log("Generated Org ID:", newOrgId);
-            console.log("Org Name:", orgName);
+
 
             // USE BATCH FOR ATOMICITY
             const batch = writeBatch(db);
@@ -162,7 +161,7 @@ export const Onboarding: React.FC = () => {
                 lastLogin: new Date().toISOString()
             };
 
-            console.log("Updating User Profile:", userUpdates);
+
             // Important: merge is not directly available in batch.set, but we can use update if doc exists
             // However, since we want upsert behavior, we use set with merge option which IS supported in batch
             batch.set(userRef, userUpdates, { merge: true });
@@ -171,7 +170,9 @@ export const Onboarding: React.FC = () => {
             const orgRef = doc(db, 'organizations', newOrgId);
 
             // Generate slug from organization name safely
-            const safeName = orgName || 'org';
+            const safeName = String(orgName || 'org');
+
+
             const slug = safeName
                 .toLowerCase()
                 .normalize('NFD')
@@ -179,7 +180,7 @@ export const Onboarding: React.FC = () => {
                 .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with dash
                 .replace(/^-+|-+$/g, ''); // Remove leading/trailing dashes
 
-            console.log("Creating Organization:", { newOrgId, orgName, slug });
+
 
             batch.set(orgRef, {
                 id: newOrgId,
@@ -210,7 +211,7 @@ export const Onboarding: React.FC = () => {
                 setUser(userUpdates as any);
             }
 
-            console.log("Organization Created & User Linked (Batch).");
+
 
             // 3. Send welcome email (async, don't block)
             try {
@@ -257,7 +258,7 @@ export const Onboarding: React.FC = () => {
         setLoading(true);
         try {
             // Update user onboarding status
-            console.log("Finalizing onboarding for user:", user.uid);
+
             await setDoc(doc(db, 'users', user.uid), { onboardingCompleted: true }, { merge: true });
 
             // Force refresh session to ensure claims and context are up to date
@@ -486,7 +487,7 @@ export const Onboarding: React.FC = () => {
                                         >
                                             Retour
                                         </button>
-                                        <button type="submit" disabled={loading || (!user?.organizationId && !form.watch('organizationName'))} className="w-2/3 py-4 bg-[#000000] dark:bg-white text-white dark:text-black font-bold rounded-2xl shadow-lg card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <button type="submit" disabled={loading || (!user?.organizationId && !form.watch('organizationName'))} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
                                             {loading ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <>Continuer <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>
@@ -558,7 +559,7 @@ export const Onboarding: React.FC = () => {
                                         <button
                                             onClick={handleFinalize}
                                             disabled={loading}
-                                            className="w-2/3 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                            className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                                         >
                                             {loading ? (
                                                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>

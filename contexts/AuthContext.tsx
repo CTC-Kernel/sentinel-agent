@@ -11,6 +11,7 @@ import {
     serverTimestamp,
     enableNetwork,
     disableNetwork,
+    updateDoc,
     collection,
     query,
     where,
@@ -147,16 +148,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             try {
-                // 1. Mettre à jour le dernier login (avec setDoc merge pour ne pas planter si doc inexistant)
+                // 1. Mettre à jour le dernier login (Non-blocking & Safe)
+                // Use updateDoc to avoid creating a partial document if it doesn't exist yet.
+                // We don't await this to prevent blocking the UI/Profile load.
                 const userRef = doc(db, 'users', u.uid);
-                try {
-                    await setDoc(userRef, {
-                        lastLogin: new Date().toISOString(),
-                        lastActive: serverTimestamp()
-                    }, { merge: true });
-                } catch (e) {
-                    console.warn("Failed to update lastLogin (might be due to missing permissions on create)", e);
-                }
+                updateDoc(userRef, {
+                    lastLogin: new Date().toISOString(),
+                    lastActive: serverTimestamp()
+                }).catch((e: any) => {
+                    // Ignore "not found" errors as the profile might not exist yet (will be created below)
+                    if (e.code !== 'not-found') {
+                        console.warn("Failed to update lastLogin", e);
+                    }
+                });
 
                 // 2. Écouter les changements du profil utilisateur en temps réel
                 unsubscribeProfile = onSnapshot(userRef, async (snapshot) => {
@@ -165,10 +169,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         const userData = snapshot.data() as UserProfile;
 
                         // SELF-HEALING: Vérifier la cohérence des données
-                        // 1. Si le rôle est manquant, on le force à 'admin'
+                        // 1. Si le rôle est manquant, on le force à 'admin' et ON LE SAUVEGARDE
                         if (!userData.role) {
                             console.warn("User role missing in Firestore, defaulting to admin for recovery");
                             userData.role = 'admin';
+                            // Fix persistence immediately
+                            setDoc(userRef, { role: 'admin' }, { merge: true }).catch(e => console.error("Role auto-fix failed", e));
                         }
 
                         // 2. Si l'utilisateur a une organisation mais onboarding non validé -> Auto-fix

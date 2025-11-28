@@ -304,7 +304,7 @@ export class BackupService {
       const nextBackup = new Date(schedule.nextBackup);
 
       if (now >= nextBackup) {
-        console.log('Triggering scheduled backup...');
+
         // Trigger backup
         await this.createBackup(user, schedule.config);
 

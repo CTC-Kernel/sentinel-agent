@@ -683,7 +683,7 @@ export const Settings: React.FC = () => {
                             )}
                         </div>
 
-                        <button type="submit" disabled={savingProfile} className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none disabled:opacity-70 flex justify-center items-center mt-4">
+                        <button type="submit" disabled={savingProfile} className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-500/20 disabled:opacity-70 flex justify-center items-center mt-4">
                             {savingProfile ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : 'Enregistrer'}
                         </button>
                     </form>
@@ -708,7 +708,7 @@ export const Settings: React.FC = () => {
                                     {passwordForm.formState.errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{passwordForm.formState.errors.confirmPassword.message}</p>}
                                 </div>
                             </div>
-                            <button type="submit" disabled={changingPassword} className="w-full px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50 text-sm mt-4">
+                            <button type="submit" disabled={changingPassword} className="w-full px-4 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-500/20 disabled:opacity-50 text-sm mt-4">
                                 {changingPassword ? '...' : t('settings.changePassword')}
                             </button>
                         </form>
@@ -737,7 +737,7 @@ export const Settings: React.FC = () => {
                                     <span className="text-sm font-bold text-slate-700 dark:text-slate-300">English</span>
                                     <span className="text-xs text-slate-400">EN</span>
                                 </div>
-                                <button onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${language === 'en' ? 'bg-indigo-600' : 'bg-gray-200'}`}>
+                                <button onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${language === 'en' ? 'bg-brand-600' : 'bg-gray-200'}`}>
                                     <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${language === 'en' ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
                             </div>
