@@ -380,7 +380,8 @@ export const demoProcessingActivities: ProcessingActivity[] = [
         dataSubjects: ['Employés'],
         retentionPeriod: '5 ans',
         hasDPIA: false,
-        status: 'Actif'
+        status: 'Actif',
+        createdAt: new Date().toISOString()
     },
     {
         id: 'proc-2',
@@ -393,7 +394,74 @@ export const demoProcessingActivities: ProcessingActivity[] = [
         dataSubjects: ['Clients', 'Prospects'],
         retentionPeriod: '3 ans après dernier contact',
         hasDPIA: true,
-        status: 'Actif'
+        status: 'Actif',
+        createdAt: new Date().toISOString()
+    }
+];
+
+export const demoNotifications: any[] = [
+    {
+        id: 'notif-1',
+        organizationId: DEMO_ORG_ID,
+        userId: 'user-1',
+        type: 'warning',
+        title: 'Revue de document requise',
+        message: 'La politique de sécurité des systèmes d\'information doit être révisée.',
+        link: '/documents',
+        read: false,
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
+    },
+    {
+        id: 'notif-2',
+        organizationId: DEMO_ORG_ID,
+        userId: 'user-1',
+        type: 'danger',
+        title: 'Nouveau risque critique',
+        message: 'Un nouveau risque critique a été identifié sur le serveur de production.',
+        link: '/risks',
+        read: false,
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+    },
+    {
+        id: 'notif-3',
+        organizationId: DEMO_ORG_ID,
+        userId: 'user-1',
+        type: 'success',
+        title: 'Audit terminé',
+        message: 'L\'audit interne Q3 2024 a été clôturé avec succès.',
+        link: '/audits',
+        read: true,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days ago
+    },
+    {
+        id: 'notif-4',
+        organizationId: DEMO_ORG_ID,
+        userId: 'user-1',
+        type: 'info',
+        title: 'Bienvenue sur Sentinel GRC',
+        message: 'Découvrez les nouvelles fonctionnalités de la version 2.0.',
+        link: '/',
+        read: true,
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days ago
+    }
+];
+
+export const demoComments: any[] = [
+    {
+        id: 'com-1',
+        userId: 'user-2',
+        userName: 'Jean Dupont',
+        organizationId: DEMO_ORG_ID,
+        content: 'Nous devons prioriser ce point lors du prochain comité.',
+        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+    },
+    {
+        id: 'com-2',
+        userId: 'user-1',
+        userName: 'Admin',
+        organizationId: DEMO_ORG_ID,
+        content: 'C\'est noté, je l\'ajoute à l\'ordre du jour.',
+        createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
     }
 ];
 
