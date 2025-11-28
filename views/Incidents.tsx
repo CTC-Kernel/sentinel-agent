@@ -294,7 +294,26 @@ export const Incidents: React.FC = () => {
 
                                     {inspectorTab === 'playbook' && (
                                         <div className="animate-fade-in">
-                                            <IncidentPlaybook incident={selectedIncident} />
+                                            <IncidentPlaybook
+                                                incident={selectedIncident}
+                                                onToggleStep={async (step) => {
+                                                    if (!selectedIncident || !user?.organizationId) return;
+                                                    const currentSteps = selectedIncident.playbookStepsCompleted || [];
+                                                    const newSteps = currentSteps.includes(step)
+                                                        ? currentSteps.filter(s => s !== step)
+                                                        : [...currentSteps, step];
+
+                                                    try {
+                                                        await updateDoc(doc(db, 'incidents', selectedIncident.id), {
+                                                            playbookStepsCompleted: newSteps
+                                                        });
+                                                        setSelectedIncident({ ...selectedIncident, playbookStepsCompleted: newSteps });
+                                                        addToast("Playbook mis à jour", "success");
+                                                    } catch (error) {
+                                                        ErrorLogger.handleErrorWithToast(error, 'Incidents.togglePlaybookStep', 'UPDATE_FAILED');
+                                                    }
+                                                }}
+                                            />
                                         </div>
                                     )}
 

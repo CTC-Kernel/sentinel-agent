@@ -142,9 +142,16 @@ export const Risks: React.FC = () => {
         setSelectedRisk(risk);
         setCreationMode(false);
         setInspectorTab('details');
+        setInspectorTab('details');
         setIsEditing(false);
+
+        if (!user?.organizationId) {
+            console.warn("Cannot open inspector: User has no organization ID");
+            return;
+        }
+
         try {
-            const q = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), limit(50));
+            const q = query(collection(db, 'system_logs'), where('organizationId', '==', user.organizationId), limit(50));
             const snap = await getDocs(q);
             const logs = snap.docs.map(d => d.data() as SystemLog);
             const relevantLogs = logs.filter(l => l.resource === 'Risk' && l.details?.includes(risk.threat));
@@ -447,7 +454,7 @@ export const Risks: React.FC = () => {
                             <Download className="h-4 w-4 mr-2" />
                             Importer Template
                         </button>
-                        <button onClick={openCreationDrawer} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
+                        <button onClick={openCreationDrawer} className="flex items-center space-x-2 px-4 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
                             <Plus className="w-5 h-5" />
                             <span>Nouveau Risque</span>
                         </button>

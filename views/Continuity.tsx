@@ -39,7 +39,6 @@ export const Continuity: React.FC = () => {
     const [selectedProcess, setSelectedProcess] = useState<BusinessProcess | null>(null);
     const [inspectorTab, setInspectorTab] = useState<'details' | 'recovery' | 'scenarios' | 'drills' | 'history' | 'comments'>('details');
     const [processHistory, setProcessHistory] = useState<SystemLog[]>([]);
-    // const [editForm, setEditForm] = useState<Partial<BusinessProcess>>({}); // Removed
     const [isEditing, setIsEditing] = useState(false);
 
     // Confirm Dialog
@@ -239,9 +238,9 @@ export const Continuity: React.FC = () => {
             p.rto,
             p.rpo,
             p.owner,
-            p.lastTestDate ? new Date(p.lastTestDate).toLocaleDateString() : 'Jamais'
+            p.lastTestDate ? new Date(p.lastTestDate).toLocaleDateString('fr-FR') : 'Jamais'
         ]);
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
+        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(','))].join('\n');
         const link = document.createElement('a');
         link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
         link.download = `bia_export_${new Date().toISOString().split('T')[0]}.csv`;

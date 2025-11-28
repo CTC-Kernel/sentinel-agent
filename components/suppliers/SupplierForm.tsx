@@ -3,7 +3,7 @@ import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supplierSchema, SupplierFormData } from '../../schemas/supplierSchema';
 import { CustomSelect } from '../ui/CustomSelect';
-import { Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../../types';
+import { Criticality, UserProfile, BusinessProcess, Asset, Risk, Project, Document } from '../../types';
 import { ShieldAlert } from '../ui/Icons';
 
 interface SupplierFormProps {
@@ -14,6 +14,7 @@ interface SupplierFormProps {
     assets: Asset[];
     risks: Risk[];
     projects: Project[];
+    documents: Document[];
 }
 
 export const SupplierForm: React.FC<SupplierFormProps> = ({
@@ -23,7 +24,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     processes,
     assets,
     risks,
-    projects
+    projects,
+    documents
 }) => {
     const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm<SupplierFormData>({
         resolver: zodResolver(supplierSchema),
@@ -36,6 +38,15 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         }
     });
 
+    const selectedOwnerId = watch('ownerId');
+
+    React.useEffect(() => {
+        if (selectedOwnerId) {
+            const selectedUser = users.find(u => u.uid === selectedOwnerId);
+            setValue('owner', selectedUser?.displayName || '');
+        }
+    }, [selectedOwnerId, users, setValue]);
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
@@ -47,12 +58,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
             <div>
                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
                 <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                    {...register('ownerId')}
-                    onChange={e => {
-                        setValue('ownerId', e.target.value);
-                        const selectedUser = users.find(u => u.uid === e.target.value);
-                        setValue('owner', selectedUser?.displayName || '');
-                    }}>
+                    {...register('ownerId')}>
                     <option value="">Sélectionner...</option>
                     {users.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                 </select>
@@ -140,6 +146,24 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
             <div className="grid grid-cols-2 gap-6">
                 <div>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label>
+                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                        {...register('status')}>
+                        <option value="Actif">Actif</option>
+                        <option value="En cours">En cours</option>
+                        <option value="Terminé">Terminé</option>
+                    </select>
+                </div>
+                <div className="col-span-2">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
+                    <textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none"
+                        rows={3}
+                        {...register('description')} />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+                <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contact (Nom)</label>
                     <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                         {...register('contactName')} />
@@ -151,10 +175,20 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                 </div>
             </div>
 
-            <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Fin de Contrat</label>
-                <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                    {...register('contractEnd')} />
+            <div className="grid grid-cols-2 gap-6">
+                <div>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contrat (Document)</label>
+                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                        {...register('contractDocumentId')}>
+                        <option value="">Sélectionner...</option>
+                        {documents.map(d => <option key={d.id} value={d.id}>{d.title}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Fin de Contrat</label>
+                    <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                        {...register('contractEnd')} />
+                </div>
             </div>
 
             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
