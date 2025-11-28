@@ -23,7 +23,9 @@ const app = initializeApp(firebaseConfig);
 // Initialize App Check with ReCAPTCHA Enterprise
 if (typeof window !== 'undefined') {
   // Enable debug token ONLY for localhost (prevents it from breaking production if env var leaks)
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  // Enable debug token for localhost OR if explicitly enabled via localStorage
+  const isDebugMode = localStorage.getItem('debug_app_check') === 'true';
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || isDebugMode;
 
   if (import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN && isLocal) {
     // @ts-expect-error - FIREBASE_APPCHECK_DEBUG_TOKEN is not defined on self
@@ -39,9 +41,6 @@ if (typeof window !== 'undefined') {
         provider: new ReCaptchaEnterpriseProvider('6Le2FxUsAAAAAOn9WU8omrp4NXSMJIHIRUBhYFSR'),
         isTokenAutoRefreshEnabled: true
       });
-      console.log("App Check initialized.");
-    } else {
-      console.warn("initializeAppCheck is not a function.");
     }
   } catch (error) {
     console.warn('App Check initialization failed:', error);
