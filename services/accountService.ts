@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, deleteDoc, doc, writeBatch } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc, writeBatch, collectionGroup } from 'firebase/firestore';
 import { deleteUser, User } from 'firebase/auth';
 import { db, storage } from '../firebase';
 import { ref, deleteObject, listAll } from 'firebase/storage';
@@ -15,7 +15,6 @@ export class AccountService {
     'suppliers',
     'incidents',
     'documents',
-    'comments',
     'processing_activities',
     'business_processes',
     'bcp_drills',
@@ -24,7 +23,15 @@ export class AccountService {
     'backups',
     'backup_schedules',
     'supplier_assessments',
-    'supplier_incidents'
+    'supplier_incidents',
+    // New collections added for completeness
+    'join_requests',
+    'invitations',
+    'risk_history',
+    'incidentResponses',
+    'audit_checklists',
+    'findings',
+    'project_milestones'
   ];
 
   /**
@@ -85,16 +92,20 @@ export class AccountService {
         await this.deleteCollectionData(collectionName, organizationId);
       }
 
-      // 2. Delete users associated with this org
+      // 2. Delete subcollections (comments) using collectionGroup
+      // Note: This requires 'organizationId' to be present on the subcollection documents
+      await this.deleteCollectionGroupData('comments', organizationId);
+
+      // 3. Delete users associated with this org
       // Note: We can only delete their profile docs from Firestore. 
       // We cannot delete their Auth accounts without Admin SDK (Cloud Functions).
       // They will be orphaned.
       await this.deleteCollectionData('users', organizationId);
 
-      // 3. Delete Organization document
+      // 4. Delete Organization document
       await deleteDoc(doc(db, 'organizations', organizationId));
 
-      // 4. Cleanup Storage (Best effort)
+      // 5. Cleanup Storage (Best effort)
       try {
         const orgStorageRef = ref(storage, `organizations/${organizationId}`);
         await this.deleteStorageFolder(orgStorageRef);
@@ -118,6 +129,29 @@ export class AccountService {
     if (snapshot.empty) return;
 
     // Batch delete (Firestore limits batches to 500 operations)
+    const chunks = [];
+    const docs = snapshot.docs;
+
+    for (let i = 0; i < docs.length; i += 500) {
+      chunks.push(docs.slice(i, i + 500));
+    }
+
+    for (const chunk of chunks) {
+      const batch = writeBatch(db);
+      chunk.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+    }
+  }
+
+  private static async deleteCollectionGroupData(collectionId: string, organizationId: string) {
+    // This query requires a composite index on 'organizationId' for the collection group
+    const q = query(collectionGroup(db, collectionId), where('organizationId', '==', organizationId));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) return;
+
     const chunks = [];
     const docs = snapshot.docs;
 
