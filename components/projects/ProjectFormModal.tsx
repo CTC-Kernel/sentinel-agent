@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import { Project } from '../../types';
+import { Project, Risk, Control, Asset } from '../../types';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { CustomSelect } from '../ui/CustomSelect';
 import { CustomDatePicker } from '../ui/CustomDatePicker';
@@ -15,6 +15,9 @@ interface ProjectFormModalProps {
     onSubmit: (project: Omit<Project, 'id' | 'organizationId' | 'tasks' | 'progress' | 'createdAt'>) => void;
     existingProject?: Project;
     availableUsers?: string[]; // list of manager display names
+    availableRisks?: Risk[];
+    availableControls?: Control[];
+    availableAssets?: Asset[];
 }
 
 export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
@@ -23,6 +26,9 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
     onSubmit,
     existingProject,
     availableUsers = [],
+    availableRisks = [],
+    availableControls = [],
+    availableAssets = [],
 }) => {
     const {
         register,
@@ -207,6 +213,66 @@ export const ProjectFormModal: React.FC<ProjectFormModalProps> = ({
                             )}
                         />
                     </div>
+
+                    {/* Linking Section */}
+                    <div className="space-y-6 pt-6 border-t border-gray-100 dark:border-white/5">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Liens & Dépendances</h3>
+
+                        {/* Risks */}
+                        <div>
+                            <Controller
+                                name="relatedRiskIds"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Risques traités"
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        multiple
+                                        options={availableRisks.map(r => ({ value: r.id, label: `${r.threat} (Score: ${r.score})` }))}
+                                        placeholder="Sélectionner les risques..."
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        {/* Controls */}
+                        <div>
+                            <Controller
+                                name="relatedControlIds"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Contrôles implémentés"
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        multiple
+                                        options={availableControls.map(c => ({ value: c.id, label: `${c.code} - ${c.name}` }))}
+                                        placeholder="Sélectionner les contrôles..."
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        {/* Assets */}
+                        <div>
+                            <Controller
+                                name="relatedAssetIds"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Actifs concernés"
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        multiple
+                                        options={availableAssets.map(a => ({ value: a.id, label: a.name }))}
+                                        placeholder="Sélectionner les actifs..."
+                                    />
+                                )}
+                            />
+                        </div>
+                    </div>
+
                     {/* Actions */}
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                         <button type="button" onClick={onClose} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">

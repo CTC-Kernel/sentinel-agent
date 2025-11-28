@@ -922,6 +922,9 @@ export const Projects: React.FC = () => {
                     onSubmit={handleProjectFormSubmit}
                     availableUsers={usersList.map(u => u.displayName)}
                     existingProject={isEditing && selectedProject ? selectedProject : undefined}
+                    availableRisks={risks}
+                    availableControls={controls}
+                    availableAssets={assets}
                 />
             )}
         </div>

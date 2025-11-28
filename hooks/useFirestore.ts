@@ -20,7 +20,8 @@ import { useStore } from '../store';
 import {
     demoAssets, demoRisks, demoControls, demoProjects, demoAudits,
     demoIncidents, demoSuppliers, demoProcessingActivities,
-    demoBusinessProcesses, demoBcpDrills, demoDocuments, demoUsers, demoLogs
+    demoBusinessProcesses, demoBcpDrills, demoDocuments, demoUsers, demoLogs,
+    demoSupplierAssessments, demoSupplierIncidents, demoFindings
 } from '../data/demoData';
 
 interface UseFirestoreOptions {
@@ -54,6 +55,9 @@ const getDemoDataForCollection = (collectionName: string): any[] => {
         case 'documents': return demoDocuments;
         case 'users': return demoUsers;
         case 'system_logs': return demoLogs;
+        case 'supplierAssessments': return demoSupplierAssessments;
+        case 'supplierIncidents': return demoSupplierIncidents;
+        case 'findings': return demoFindings;
         default: return [];
     }
 };

@@ -7,7 +7,8 @@ export const auditSchema = z.object({
     dateScheduled: z.string().min(1, "La date est requise"),
     status: z.enum(['Planifié', 'En cours', 'Terminé', 'Validé']).default('Planifié'),
     relatedAssetIds: z.array(z.string()).optional(),
-    relatedRiskIds: z.array(z.string()).optional()
+    relatedRiskIds: z.array(z.string()).optional(),
+    relatedControlIds: z.array(z.string()).optional()
 });
 
 export type AuditFormData = z.infer<typeof auditSchema>;

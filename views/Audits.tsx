@@ -8,6 +8,7 @@ import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, Al
 import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
 import { AIAssistButton } from '../components/ai/AIAssistButton';
 import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { SeveritySelector } from '../components/audits/SeveritySelector';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -113,7 +114,8 @@ export const Audits: React.FC = () => {
             dateScheduled: new Date().toISOString().split('T')[0],
             status: 'Planifié',
             relatedAssetIds: [],
-            relatedRiskIds: []
+            relatedRiskIds: [],
+            relatedControlIds: []
         }
     });
 
@@ -297,7 +299,12 @@ export const Audits: React.FC = () => {
     const generateChecklist = async () => {
         if (!selectedAudit || !user?.organizationId) return;
         try {
-            const questions: AuditQuestion[] = controls.map(c => ({
+            const scopeControlIds = selectedAudit.relatedControlIds || [];
+            const controlsToAudit = scopeControlIds.length > 0
+                ? controls.filter(c => scopeControlIds.includes(c.id))
+                : controls;
+
+            const questions: AuditQuestion[] = controlsToAudit.map(c => ({
                 id: Math.random().toString(36).substr(2, 9),
                 controlCode: c.code,
                 question: `Le contrôle ${c.code} (${c.name}) est - il implémenté et efficace ? `,
@@ -835,6 +842,22 @@ export const Audits: React.FC = () => {
                                                     {(!selectedAudit.relatedRiskIds || selectedAudit.relatedRiskIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun risque lié.</p>}
                                                 </div>
                                             </div>
+
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Contrôles Audités ({selectedAudit.relatedControlIds?.length || 0})</h4>
+                                                <div className="space-y-2">
+                                                    {selectedAudit.relatedControlIds?.map(cid => {
+                                                        const control = controls.find(c => c.id === cid);
+                                                        return control ? (
+                                                            <div key={cid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
+                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{control.code} - {control.name}</span>
+                                                                <span className="text-xs px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300">{control.status}</span>
+                                                            </div>
+                                                        ) : null;
+                                                    })}
+                                                    {(!selectedAudit.relatedControlIds || selectedAudit.relatedControlIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun contrôle lié.</p>}
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -903,6 +926,16 @@ export const Audits: React.FC = () => {
                                         ))}
                                     </div>
                                 </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contrôles (Périmètre)</label>
+                                <CustomSelect
+                                    options={controls.map(c => ({ value: c.id, label: `${c.code} - ${c.name}` }))}
+                                    value={auditForm.watch('relatedControlIds') || []}
+                                    onChange={(val) => auditForm.setValue('relatedControlIds', val)}
+                                    placeholder="Sélectionner les contrôles à auditer..."
+                                    multiple
+                                />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Auditeur</label>

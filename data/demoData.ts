@@ -1,7 +1,8 @@
 import {
     Asset, Risk, Control, Project, Audit, Incident, Supplier,
     ProcessingActivity, BusinessProcess, BcpDrill, UserProfile,
-    Criticality, SystemLog, Document
+    Criticality, SystemLog, Document, SupplierAssessment, SupplierIncident,
+    Finding
 } from '../types';
 
 const DEMO_ORG_ID = 'demo-org-123';
@@ -20,7 +21,8 @@ export const demoAssets: Asset[] = [
         location: 'Data Center Paris',
         createdAt: new Date().toISOString(),
         lifecycleStatus: 'En service',
-        currentValue: 15000
+        currentValue: 15000,
+        supplierId: 'sup-1'
     },
     {
         id: 'asset-2',
@@ -33,7 +35,8 @@ export const demoAssets: Asset[] = [
         availability: Criticality.HIGH,
         location: 'Cloud Privé',
         createdAt: new Date().toISOString(),
-        lifecycleStatus: 'En service'
+        lifecycleStatus: 'En service',
+        supplierId: 'sup-1'
     },
     {
         id: 'asset-3',
@@ -59,7 +62,8 @@ export const demoAssets: Asset[] = [
         availability: Criticality.MEDIUM,
         location: 'Hébergeur Externe',
         createdAt: new Date().toISOString(),
-        lifecycleStatus: 'En service'
+        lifecycleStatus: 'En service',
+        supplierId: 'sup-2'
     }
 ];
 
@@ -79,7 +83,8 @@ export const demoRisks: Risk[] = [
         strategy: 'Atténuer',
         status: 'En cours',
         owner: 'RSSI',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        affectedProcessIds: ['bp-1', 'proc-2']
     },
     {
         id: 'risk-2',
@@ -96,7 +101,8 @@ export const demoRisks: Risk[] = [
         strategy: 'Atténuer',
         status: 'Ouvert',
         owner: 'DSI',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        affectedProcessIds: ['bp-1']
     },
     {
         id: 'risk-3',
@@ -110,7 +116,8 @@ export const demoRisks: Risk[] = [
         strategy: 'Accepter',
         status: 'Fermé',
         owner: 'Webmaster',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        affectedProcessIds: ['bp-1']
     }
 ];
 
@@ -201,6 +208,29 @@ export const demoAudits: Audit[] = [
     }
 ];
 
+export const demoFindings: Finding[] = [
+    {
+        id: 'find-1',
+        organizationId: DEMO_ORG_ID,
+        auditId: 'audit-2',
+        description: 'Absence de revue trimestrielle des accès utilisateurs.',
+        type: 'Mineure',
+        status: 'Ouvert',
+        relatedControlId: 'ctrl-1',
+        createdAt: new Date(Date.now() - 95 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+        id: 'find-2',
+        organizationId: DEMO_ORG_ID,
+        auditId: 'audit-2',
+        description: 'Politique de classification des données non diffusée à l\'ensemble du personnel.',
+        type: 'Majeure',
+        status: 'Fermé',
+        relatedControlId: 'ctrl-2',
+        createdAt: new Date(Date.now() - 95 * 24 * 60 * 60 * 1000).toISOString()
+    }
+];
+
 export const demoIncidents: Incident[] = [
     {
         id: 'inc-1',
@@ -212,7 +242,9 @@ export const demoIncidents: Incident[] = [
         category: 'Phishing',
         reporter: 'Système de détection',
         dateReported: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        dateResolved: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+        dateResolved: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        affectedAssetId: 'asset-3',
+        affectedProcessId: 'proc-1'
     },
     {
         id: 'inc-2',
@@ -223,7 +255,22 @@ export const demoIncidents: Incident[] = [
         status: 'Analyse',
         category: 'Vol Matériel',
         reporter: 'Commercial Sud',
-        dateReported: new Date().toISOString()
+        dateReported: new Date().toISOString(),
+        affectedAssetId: 'asset-3'
+    },
+    {
+        id: 'inc-3',
+        organizationId: DEMO_ORG_ID,
+        title: 'Indisponibilité Site Web',
+        description: 'Site web inaccessible pendant 2 heures suite à une mise à jour CMS.',
+        severity: Criticality.HIGH,
+        status: 'Résolu',
+        category: 'Indisponibilité',
+        reporter: 'Monitoring',
+        dateReported: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        dateResolved: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 7200000).toISOString(),
+        affectedAssetId: 'asset-4',
+        affectedProcessId: 'bp-1'
     }
 ];
 
@@ -244,7 +291,8 @@ export const demoSuppliers: Supplier[] = [
             contractReview: new Date().toISOString(),
             securityReview: new Date().toISOString(),
             complianceReview: new Date().toISOString()
-        }
+        },
+        supportedProcessIds: ['bp-1']
     },
     {
         id: 'sup-2',
@@ -262,7 +310,61 @@ export const demoSuppliers: Supplier[] = [
             contractReview: new Date().toISOString(),
             securityReview: new Date().toISOString(),
             complianceReview: new Date().toISOString()
-        }
+        },
+        supportedProcessIds: ['bp-1']
+    }
+];
+
+export const demoSupplierAssessments: SupplierAssessment[] = [
+    {
+        id: 'sa-1',
+        supplierId: 'sup-1',
+        organizationId: DEMO_ORG_ID,
+        assessmentDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        assessorId: DEMO_USER_ID,
+        assessorName: 'Utilisateur Démo',
+        categories: {
+            security: { score: 4, findings: [], evidence: [] },
+            compliance: { score: 5, findings: [], evidence: [] },
+            operational: { score: 4, findings: [], evidence: [] },
+            financial: { score: 3, findings: [], evidence: [] }
+        },
+        overallScore: 85,
+        riskLevel: 'Low',
+        recommendations: ['Maintenir le niveau actuel'],
+        requiredActions: [],
+        followUpDate: new Date(Date.now() + 335 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'Approved',
+        approvedBy: DEMO_USER_ID,
+        approvedDate: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString()
+    }
+];
+
+export const demoSupplierIncidents: SupplierIncident[] = [
+    {
+        id: 'si-1',
+        supplierId: 'sup-2',
+        organizationId: DEMO_ORG_ID,
+        title: 'Retard de livraison critique',
+        description: 'Le module de paiement a été livré avec 2 semaines de retard.',
+        severity: 'Medium',
+        category: 'Other',
+        impact: {
+            operational: 'Moderate',
+            financial: 5000,
+            reputational: 'Minor'
+        },
+        timeline: {
+            detected: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+            reported: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+            resolved: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        rootCause: 'Mauvaise estimation de la complexité',
+        lessonsLearned: ['Améliorer le suivi de projet'],
+        preventiveActions: ['Points hebdomadaires obligatoires'],
+        status: 'Closed',
+        createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
     }
 ];
 
@@ -305,7 +407,27 @@ export const demoBusinessProcesses: BusinessProcess[] = [
         rto: '4 heures',
         rpo: '1 heure',
         priority: 'Critique',
-        supportingAssetIds: ['asset-1', 'asset-2', 'asset-4']
+        supportingAssetIds: ['asset-1', 'asset-2', 'asset-4'],
+        supplierIds: ['sup-1', 'sup-2'],
+        relatedRiskIds: ['risk-1', 'risk-2', 'risk-3'],
+        recoveryTasks: [
+            {
+                id: 'rt-1',
+                title: 'Activer le site de secours',
+                description: 'Basculer les DNS vers le site statique',
+                owner: 'DSI',
+                duration: '30m',
+                order: 1
+            },
+            {
+                id: 'rt-2',
+                title: 'Restaurer la base de données',
+                description: 'Restaurer le dernier dump SQL',
+                owner: 'DBA',
+                duration: '2h',
+                order: 2
+            }
+        ]
     }
 ];
 
