@@ -50,28 +50,29 @@ export const Assets: React.FC = () => {
     };
 
     // Data Fetching with Hooks
+    // Data Fetching with Hooks
     const { data: rawAssets, loading: assetsLoading, refresh: refreshAssets } = useFirestoreCollection<Asset>(
         'assets',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, enabled: !!user?.organizationId }
     );
 
     const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
         'users',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, enabled: !!user?.organizationId }
     );
 
     const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, enabled: !!user?.organizationId }
     );
 
     const { data: processes, loading: processesLoading } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, enabled: !!user?.organizationId }
     );
 
     // Derived State
