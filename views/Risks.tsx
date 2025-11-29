@@ -23,6 +23,7 @@ import { RiskDashboard } from '../components/risks/RiskDashboard';
 import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
 import { RiskTemplate, createRisksFromTemplate } from '../utils/riskTemplates';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { RiskAIAssistant } from '../components/risks/RiskAIAssistant';
 
 
 import { PageHeader } from '../components/ui/PageHeader';
@@ -722,6 +723,9 @@ export const Risks: React.FC = () => {
                                                     <div className="text-xs font-medium text-slate-500">Prob: {selectedRisk.residualProbability || selectedRisk.probability} × Impact: {selectedRisk.residualImpact || selectedRisk.impact}</div>
                                                 </div>
                                             </div>
+
+                                            <RiskAIAssistant risk={selectedRisk} />
+
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Stratégie de Traitement</h4>
                                                 <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.strategy}</div>

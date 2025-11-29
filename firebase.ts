@@ -6,6 +6,7 @@ import { initializeFirestore, persistentLocalCache, persistentSingleTabManager }
 import { getStorage } from 'firebase/storage';
 import { getMessaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
+import { getAnalytics } from 'firebase/analytics';
 // import { initializeAppCheck } from 'firebase/app-check';
 
 const firebaseConfig = {
@@ -64,6 +65,7 @@ export const db = initializeFirestore(app, {
 
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
+export const analytics = getAnalytics(app);
 
 // Initialisation de la messagerie (Sécurisée avec détection de fonctionnalités)
 let messaging: any = null;

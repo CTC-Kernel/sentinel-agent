@@ -123,10 +123,12 @@ const ComplianceAIAssistant: React.FC<{ control: Control, onApplyPolicy: (text: 
 
 
 
+import { canEditResource, hasPermission } from '../utils/permissions';
+
 export const Compliance: React.FC = () => {
     const { user, addToast } = useStore();
 
-    const canEdit = user?.role === 'admin' || user?.role === 'auditor' || user?.role === 'rssi';
+    const canEdit = canEditResource(user, 'Control');
 
     // UI State
     const [selectedControl, setSelectedControl] = useState<Control | null>(null);
@@ -792,7 +794,7 @@ export const Compliance: React.FC = () => {
                 onClose={() => { setIsDrawerOpen(false); setCreationMode(null); }}
                 title={creationMode ? (creationMode === 'risk' ? 'Nouveau Risque' : creationMode === 'project' ? 'Nouveau Projet' : 'Nouvel Audit') : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : '')}
                 subtitle={creationMode ? 'Création' : (selectedControl?.framework || currentFramework)}
-                width="max-w-6xl"
+                width={creationMode ? "max-w-4xl" : "max-w-6xl"}
             >
                 {creationMode ? (
                     <div className="h-full bg-slate-50 dark:bg-slate-900/50">
@@ -1025,16 +1027,20 @@ export const Compliance: React.FC = () => {
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><ShieldAlert className="h-3.5 w-3.5 mr-2" /> Risques Atténués</h3>
                                             <div className="flex gap-2">
-                                                <CustomSelect
-                                                    options={risks.filter(r => !r.mitigationControlIds?.includes(selectedControl.id)).map(r => ({ value: r.id, label: r.threat }))}
-                                                    value=""
-                                                    onChange={(val) => handleLinkRisk(val as string)}
-                                                    placeholder="Lier existant..."
-                                                    className="w-40"
-                                                />
-                                                <button onClick={() => { setModalInitialData({ mitigationControlIds: [selectedControl.id] }); setCreationMode('risk'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
-                                                    <Plus className="h-4 w-4" />
-                                                </button>
+                                                {canEditResource(user, 'Risk') && (
+                                                    <CustomSelect
+                                                        options={risks.filter(r => !r.mitigationControlIds?.includes(selectedControl.id)).map(r => ({ value: r.id, label: r.threat }))}
+                                                        value=""
+                                                        onChange={(val) => handleLinkRisk(val as string)}
+                                                        placeholder="Lier existant..."
+                                                        className="w-40"
+                                                    />
+                                                )}
+                                                {hasPermission(user, 'Risk', 'create') && (
+                                                    <button onClick={() => { setModalInitialData({ mitigationControlIds: [selectedControl.id] }); setCreationMode('risk'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
+                                                        <Plus className="h-4 w-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="space-y-2">
@@ -1058,16 +1064,20 @@ export const Compliance: React.FC = () => {
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets Liés</h3>
                                             <div className="flex gap-2">
-                                                <CustomSelect
-                                                    options={projects.filter(p => !p.relatedControlIds?.includes(selectedControl.id)).map(p => ({ value: p.id, label: p.name }))}
-                                                    value=""
-                                                    onChange={(val) => handleLinkProject(val as string)}
-                                                    placeholder="Lier existant..."
-                                                    className="w-40"
-                                                />
-                                                <button onClick={() => { setModalInitialData({ relatedControlIds: [selectedControl.id] }); setCreationMode('project'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
-                                                    <Plus className="h-4 w-4" />
-                                                </button>
+                                                {canEditResource(user, 'Project') && (
+                                                    <CustomSelect
+                                                        options={projects.filter(p => !p.relatedControlIds?.includes(selectedControl.id)).map(p => ({ value: p.id, label: p.name }))}
+                                                        value=""
+                                                        onChange={(val) => handleLinkProject(val as string)}
+                                                        placeholder="Lier existant..."
+                                                        className="w-40"
+                                                    />
+                                                )}
+                                                {hasPermission(user, 'Project', 'create') && (
+                                                    <button onClick={() => { setModalInitialData({ relatedControlIds: [selectedControl.id] }); setCreationMode('project'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
+                                                        <Plus className="h-4 w-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="space-y-2">
@@ -1091,16 +1101,20 @@ export const Compliance: React.FC = () => {
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> Audits Liés</h3>
                                             <div className="flex gap-2">
-                                                <CustomSelect
-                                                    options={audits.filter(a => !a.relatedControlIds?.includes(selectedControl.id)).map(a => ({ value: a.id, label: a.name }))}
-                                                    value=""
-                                                    onChange={(val) => handleLinkAudit(val as string)}
-                                                    placeholder="Lier existant..."
-                                                    className="w-40"
-                                                />
-                                                <button onClick={() => { setModalInitialData({ relatedControlIds: [selectedControl.id] }); setCreationMode('audit'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
-                                                    <Plus className="h-4 w-4" />
-                                                </button>
+                                                {canEditResource(user, 'Audit') && (
+                                                    <CustomSelect
+                                                        options={audits.filter(a => !a.relatedControlIds?.includes(selectedControl.id)).map(a => ({ value: a.id, label: a.name }))}
+                                                        value=""
+                                                        onChange={(val) => handleLinkAudit(val as string)}
+                                                        placeholder="Lier existant..."
+                                                        className="w-40"
+                                                    />
+                                                )}
+                                                {hasPermission(user, 'Audit', 'create') && (
+                                                    <button onClick={() => { setModalInitialData({ relatedControlIds: [selectedControl.id] }); setCreationMode('audit'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
+                                                        <Plus className="h-4 w-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="space-y-2">

@@ -1,7 +1,7 @@
 
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const sgMail = require('@sendgrid/mail');
-sgMail.setApiKey('***REDACTED***');
+// sgMail.setApiKey is now called with secret
 
 const getJoinRequestEmailHtml = (requesterName, requesterEmail, orgName, link) => `
 <div style="font-family: sans-serif; padding: 20px;">
@@ -103,7 +103,8 @@ exports.onJoinRequestUpdated = onDocumentUpdated("join_requests/{requestId}", as
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { defineString, defineInt } = require("firebase-functions/params");
+const { defineString, defineInt, defineSecret } = require("firebase-functions/params");
+const sendGridApiKey = defineSecret("SENDGRID_API_KEY");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
 
@@ -484,7 +485,8 @@ exports.processMailQueue = onDocumentCreated({
     document: "mail_queue/{docId}",
     maxInstances: 10,      // Increased to allow better scaling
     concurrency: 50,      // Allow this single instance to handle multiple requests
-    retry: false          // We handle retries manually with our scheduled function
+    retry: false,          // We handle retries manually with our scheduled function
+    secrets: [sendGridApiKey]
 }, async (event) => {
     const snap = event.data;
     if (!snap) return;
@@ -507,7 +509,8 @@ exports.processMailQueue = onDocumentCreated({
  */
 async function attemptSendEmail(docRef, data) {
     try {
-        console.log(`Processing email for ${data.to}`);
+        sgMail.setApiKey(sendGridApiKey.value());
+        console.log(`Processing email for ${data.to} via SendGrid`);
 
         const msg = {
             to: data.to,
@@ -564,7 +567,10 @@ async function attemptSendEmail(docRef, data) {
     }
 }
 
-exports.retryFailedEmails = onSchedule("every 5 minutes", async (event) => {
+exports.retryFailedEmails = onSchedule({
+    schedule: "every 5 minutes",
+    secrets: [sendGridApiKey]
+}, async (event) => {
     const now = admin.firestore.Timestamp.now();
 
     // Query 1: Standard retries
