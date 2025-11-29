@@ -14,8 +14,7 @@ import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import { PdfService } from '../services/PdfService';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { generateICS, downloadICS } from '../utils/calendar';
@@ -360,64 +359,78 @@ export const Projects: React.FC = () => {
 
     const generateReport = () => {
         if (!selectedProject) return;
-        const doc = new jsPDF();
 
-        doc.setFillColor(30, 41, 59);
-        doc.rect(0, 0, 210, 40, 'F');
-        doc.setFontSize(18);
-        doc.setTextColor(255, 255, 255);
-        doc.text(`Rapport de Projet: ${selectedProject.name}`, 14, 25);
-        doc.setFontSize(10);
-        doc.setTextColor(150);
-        doc.text(`Généré le ${new Date().toLocaleDateString()}`, 14, 32);
+        PdfService.generateCustomReport(
+            {
+                title: 'Rapport de Projet',
+                subtitle: `Projet: ${selectedProject.name} | ${new Date().toLocaleDateString()}`,
+                filename: `Projet_${selectedProject.name}_Report.pdf`
+            },
+            (doc, startY) => {
+                let y = startY;
 
-        let y = 50;
+                // Summary
+                doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
+                doc.text("Synthèse", 14, y);
+                y += 8;
 
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.text("Synthèse", 14, y);
-        y += 8;
+                const summaryData = [
+                    ['Chef de Projet', selectedProject.manager],
+                    ['Statut', selectedProject.status],
+                    ['Avancement', `${selectedProject.progress}%`],
+                    ['Échéance', selectedProject.dueDate ? new Date(selectedProject.dueDate).toLocaleDateString() : '-'],
+                    ['Risques Liés', (selectedProject.relatedRiskIds?.length || 0).toString()]
+                ];
 
-        const summaryData = [
-            ['Chef de Projet', selectedProject.manager],
-            ['Statut', selectedProject.status],
-            ['Avancement', `${selectedProject.progress}%`],
-            ['Échéance', new Date(selectedProject.dueDate).toLocaleDateString()],
-            ['Risques Liés', (selectedProject.relatedRiskIds?.length || 0).toString()]
-        ];
+                (doc as any).autoTable({
+                    startY: y,
+                    body: summaryData,
+                    theme: 'plain',
+                    styles: { fontSize: 10, cellPadding: 2 },
+                    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
+                });
 
-        (doc as any).autoTable({
-            startY: y,
-            body: summaryData,
-            theme: 'plain',
-            styles: { fontSize: 10, cellPadding: 2 }
-        });
+                y = (doc as any).lastAutoTable.finalY + 15;
 
-        y = (doc as any).lastAutoTable.finalY + 15;
+                // Description
+                doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
+                doc.text("Description", 14, y);
+                y += 6;
+                doc.setFontSize(10); doc.setTextColor(80); doc.setFont('helvetica', 'normal');
 
-        doc.text("Description", 14, y);
-        y += 6;
-        doc.setFontSize(10);
-        doc.setTextColor(80);
-        const splitDesc = doc.splitTextToSize(selectedProject.description, 180);
-        doc.text(splitDesc, 14, y);
-        y += (splitDesc.length * 5) + 15;
+                const splitDesc = doc.splitTextToSize(selectedProject.description, 180);
+                doc.text(splitDesc, 14, y);
+                y += (splitDesc.length * 5) + 15;
 
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.text("État des Tâches", 14, y);
-        y += 8;
+                // Tasks
+                doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
+                doc.text("État des Tâches", 14, y);
+                y += 8;
 
-        const tasksData = selectedProject.tasks.map(t => [t.title, t.status]);
-        (doc as any).autoTable({
-            startY: y,
-            head: [['Tâche', 'Statut']],
-            body: tasksData,
-            theme: 'striped',
-            headStyles: { fillColor: [59, 130, 246] }
-        });
+                const tasksData = selectedProject.tasks.map(t => [t.title, t.status]);
+                (doc as any).autoTable({
+                    startY: y,
+                    head: [['Tâche', 'Statut']],
+                    body: tasksData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [79, 70, 229] }
+                });
+            }
+        );
+    };
 
-        doc.save(`Projet_${selectedProject.name}_Report.pdf`);
+    const exportPDF = () => {
+        const data = projects.map(p => [p.name, p.status, p.manager, p.progress + '%', p.dueDate || '-']);
+
+        PdfService.generateTableReport(
+            {
+                title: 'Suivi des Projets SSI',
+                subtitle: `Exporté le ${new Date().toLocaleDateString()}`,
+                filename: 'projets_ssi.pdf'
+            },
+            ['Nom du Projet', 'Statut', 'Responsable', 'Progression', 'Échéance'],
+            data
+        );
     };
 
     const handleExportCSV = () => {
@@ -564,6 +577,9 @@ export const Projects: React.FC = () => {
                 />
                 <button onClick={handleExportCSV} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-gray-500 hover:text-slate-900 dark:hover:text-white" title="Exporter CSV">
                     <FileSpreadsheet className="h-4 w-4" />
+                </button>
+                <button onClick={exportPDF} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-gray-500 hover:text-slate-900 dark:hover:text-white ml-2" title="Exporter PDF">
+                    <Download className="h-4 w-4" />
                 </button>
             </div>
 

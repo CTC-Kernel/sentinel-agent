@@ -11,7 +11,7 @@ import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 
-import { jsPDF } from 'jspdf';
+import { PdfService } from '../services/PdfService';
 import QRCode from 'qrcode';
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -336,17 +336,44 @@ export const Assets: React.FC = () => {
         const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `assets_export.csv`; link.click();
     };
 
-    const generateLabel = async (asset: Asset) => {
-        try {
-            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [50, 30] });
-            const qrData = await QRCode.toDataURL(JSON.stringify({ id: asset.id, name: asset.name }), { margin: 1 });
-            doc.addImage(qrData, 'PNG', 2, 2, 26, 26);
-            doc.setFontSize(8); doc.setFont("times", "bold"); doc.text(asset.name.substring(0, 15), 30, 6);
-            doc.setFontSize(6); doc.setFont("times", "normal"); doc.text(asset.id.substring(0, 8) + '...', 30, 10); doc.text(asset.owner.substring(0, 15), 30, 14);
-            doc.setFillColor(0, 0, 0); doc.rect(30, 20, 18, 5, 'F');
-            doc.setTextColor(255, 255, 255); doc.setFontSize(6); doc.setFont("times", "bold"); doc.text(asset.confidentiality.toUpperCase(), 39, 23.5, { align: 'center' });
-            doc.save(`Label_${asset.name}.pdf`);
-        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Assets.generateLabel', 'UNKNOWN_ERROR'); }
+    const generateLabels = () => {
+        PdfService.generateCustomReport(
+            {
+                title: 'Étiquettes d\'Actifs',
+                orientation: 'landscape',
+                filename: 'etiquettes-actifs.pdf'
+            },
+            (doc) => {
+                let x = 10, y = 10;
+                assets.forEach((asset, index) => {
+                    if (index > 0 && index % 8 === 0) {
+                        doc.addPage();
+                        x = 10; y = 10;
+                    }
+
+                    doc.setDrawColor(200);
+                    doc.rect(x, y, 90, 50);
+
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(asset.name, x + 5, y + 10);
+
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`ID: ${asset.id.substring(0, 8)}`, x + 5, y + 20);
+                    doc.text(`Type: ${asset.type}`, x + 5, y + 27);
+                    doc.text(`Propriétaire: ${asset.owner || 'N/A'}`, x + 5, y + 34);
+
+                    // QR Code placeholder
+                    doc.rect(x + 65, y + 5, 20, 20);
+                    doc.setFontSize(6);
+                    doc.text('QR', x + 72, y + 17);
+
+                    x += 95;
+                    if (x > 200) { x = 10; y += 55; }
+                });
+            }
+        );
     };
 
     const generateIntakeLink = () => {
