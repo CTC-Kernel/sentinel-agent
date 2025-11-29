@@ -5,7 +5,7 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
 
 import { RiskForm } from '../components/risks/RiskForm';
@@ -15,8 +15,7 @@ import { usePersistedState } from '../hooks/usePersistedState';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import { PdfService } from '../services/PdfService';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -349,14 +348,44 @@ export const Risks: React.FC = () => {
         const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `risks.csv`; link.click();
     };
 
+    const exportPDF = () => {
+        const data = risks.map(r => [
+            r.threat,
+            `${r.probability}x${r.impact} (${r.score})`,
+            r.strategy,
+            r.status,
+            r.residualScore ? `${r.residualScore}` : '-'
+        ]);
+
+        PdfService.generateTableReport(
+            {
+                title: 'Registre des Risques',
+                subtitle: `Exporté le ${new Date().toLocaleDateString()}`,
+                filename: 'risques.pdf'
+            },
+            ['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel'],
+            data
+        );
+    };
+
     const generateRTP = () => {
-        const doc = new jsPDF();
-        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
-        doc.setFontSize(18); doc.setTextColor(255, 255, 255); doc.text("Plan de Traitement des Risques (RTP)", 14, 25);
-        doc.setFontSize(10); doc.text(`ISO 27001 | ${new Date().toLocaleDateString()} | Cyber Threat Consulting`, 14, 32);
-        const data = filteredRisks.map(r => [r.threat, r.score.toString(), r.strategy, r.status, (r.residualScore || r.score).toString()]);
-        (doc as jsPDF & { autoTable: any }).autoTable({ startY: 50, head: [['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel']], body: data, theme: 'striped', headStyles: { fillColor: [59, 130, 246] } });
-        doc.save('RTP.pdf');
+        const data = filteredRisks.map(r => [
+            r.threat,
+            r.score.toString(),
+            r.strategy,
+            r.status,
+            (r.residualScore || r.score).toString()
+        ]);
+
+        PdfService.generateTableReport(
+            {
+                title: 'Plan de Traitement des Risques (RTP)',
+                subtitle: `ISO 27001 | ${new Date().toLocaleDateString()} | Cyber Threat Consulting`,
+                filename: 'RTP.pdf'
+            },
+            ['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel'],
+            data
+        );
     };
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -475,6 +504,7 @@ export const Risks: React.FC = () => {
                 <div className="flex gap-2">
                     <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                     <button onClick={generateRTP} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Download className="h-4 w-4 mr-2" /> RTP (PDF)</button>
+                    <button onClick={exportPDF} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><FileText className="h-4 w-4 mr-2" /> Registre (PDF)</button>
                     <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>
                     <button onClick={handleExportCSV} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"><FileSpreadsheet className="h-4 w-4" /></button>
                     <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm ml-2"><button onClick={() => setViewMode('list')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'list' ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-700'}`}>Liste</button><button onClick={() => setViewMode('matrix')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center ${viewMode === 'matrix' ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-700'}`}><LayoutDashboard className="h-4 w-4 mr-2" /> Matrice</button></div>
