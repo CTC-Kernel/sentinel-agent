@@ -8,7 +8,7 @@ import { ErrorLogger } from "./errorLogger";
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const MODEL_NAME = "gemini-3-pro-preview";
+const MODEL_NAME = "gemini-1.5-flash";
 
 interface GraphData {
     assets: Asset[];
@@ -216,6 +216,46 @@ export const aiService = {
         } catch (error) {
             ErrorLogger.error(error, 'aiService.generatePolicy', { metadata: { type, topic } });
             throw new Error("Échec de la génération de politique.");
+        }
+    },
+
+    /**
+     * Generates a specific audit checklist for a list of controls.
+     */
+    async generateAuditChecklist(controls: { code: string; name: string; description: string }[], auditContext: string): Promise<{ controlCode: string; questions: string[] }[]> {
+        if (!API_KEY) return controls.map(c => ({ controlCode: c.code, questions: [`Le contrôle ${c.code} est-il implémenté ?`] }));
+
+        try {
+            // Batch controls to avoid token limits if too many
+            // For now, take top 20 or all if less
+            const controlsToProcess = controls.slice(0, 20);
+
+            const prompt = `
+                You are an ISO 27001 Lead Auditor.
+                Context: ${auditContext}
+
+                For each of the following security controls, generate 3 specific, actionable verification questions (checklist) to verify its effective implementation.
+                Questions must be in French.
+
+                Controls:
+                ${JSON.stringify(controlsToProcess.map(c => ({ code: c.code, name: c.name, description: c.description })))}
+
+                Return strictly a JSON array:
+                [
+                  {
+                    "controlCode": "A.5.1",
+                    "questions": ["Question 1?", "Question 2?", "Question 3?"]
+                  }
+                ]
+            `;
+
+            const text = await generateContentSafe(prompt);
+            const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(jsonString);
+        } catch (error) {
+            ErrorLogger.error(error, 'aiService.generateAuditChecklist');
+            // Fallback to generic
+            return controls.map(c => ({ controlCode: c.code, questions: [`Le contrôle ${c.code} est-il implémenté ?`] }));
         }
     },
 

@@ -218,6 +218,7 @@ export const ERROR_MESSAGES = {
   AUTH_EXPIRED: "Session expirée, veuillez vous reconnecter",
   AUTH_INVALID_EMAIL: "Adresse email invalide",
   AUTH_INVALID_PASSWORD: "Mot de passe invalide",
+  INVITE_FAILED: "Erreur lors de l'invitation",
 
   // Données
   FETCH_FAILED: "Impossible de charger les données",

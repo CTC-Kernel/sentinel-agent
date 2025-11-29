@@ -6,7 +6,7 @@ interface FloatingLabelInputProps extends React.InputHTMLAttributes<HTMLInputEle
     icon?: React.ElementType;
 }
 
-export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
+export const FloatingLabelInput = React.forwardRef<HTMLInputElement, FloatingLabelInputProps>(({
     label,
     error,
     icon: Icon,
@@ -15,7 +15,7 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
     onFocus,
     onBlur,
     ...props
-}) => {
+}, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const hasValue = value !== undefined && value !== '';
 
@@ -47,6 +47,7 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
                 )}
 
                 <input
+                    ref={ref}
                     {...props}
                     value={value}
                     onFocus={handleFocus}
@@ -86,4 +87,6 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
             )}
         </div>
     );
-};
+});
+
+FloatingLabelInput.displayName = 'FloatingLabelInput';

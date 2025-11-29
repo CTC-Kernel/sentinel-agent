@@ -198,11 +198,54 @@ service cloud.firestore {
 
     // Audits
     match /audits/{auditId} {
-      allow read: if canRead(resource.data.organizationId);
+      allow read: if canRead(resource.data.organizationId) ||
+        (isAuthenticated() && "collaborators" in resource.data && resource.data.collaborators.hasAny([request.auth.uid])) ||
+        (isAuthenticated() && "externalAuditors" in resource.data && resource.data.externalAuditors.hasAny([request.auth.token.email]));
+        
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         canWrite(request.resource.data.organizationId);
-      allow update: if canWrite(resource.data.organizationId);
+        
+      allow update: if canWrite(resource.data.organizationId) ||
+        (isAuthenticated() && "collaborators" in resource.data && resource.data.collaborators.hasAny([request.auth.uid])) ||
+        (isAuthenticated() && "externalAuditors" in resource.data && resource.data.externalAuditors.hasAny([request.auth.token.email]));
+        
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
+    // Evidence Requests
+    match /evidence_requests/{requestId} {
+      allow read: if canRead(resource.data.organizationId) ||
+        (isAuthenticated() && 
+          exists(/databases/$(database)/documents/audits/$(resource.data.auditId)) &&
+          (
+            ("collaborators" in get(/databases/$(database)/documents/audits/$(resource.data.auditId)).data && get(/databases/$(database)/documents/audits/$(resource.data.auditId)).data.collaborators.hasAny([request.auth.uid])) ||
+            ("externalAuditors" in get(/databases/$(database)/documents/audits/$(resource.data.auditId)).data && get(/databases/$(database)/documents/audits/$(resource.data.auditId)).data.externalAuditors.hasAny([request.auth.token.email]))
+          )
+        );
+        
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (
+          canWrite(request.resource.data.organizationId) ||
+          (
+            exists(/databases/$(database)/documents/audits/$(request.resource.data.auditId)) &&
+            (
+              ("collaborators" in get(/databases/$(database)/documents/audits/$(request.resource.data.auditId)).data && get(/databases/$(database)/documents/audits/$(request.resource.data.auditId)).data.collaborators.hasAny([request.auth.uid])) ||
+              ("externalAuditors" in get(/databases/$(database)/documents/audits/$(request.resource.data.auditId)).data && get(/databases/$(database)/documents/audits/$(request.resource.data.auditId)).data.externalAuditors.hasAny([request.auth.token.email]))
+            )
+          )
+        );
+        
+      allow update: if canWrite(resource.data.organizationId) ||
+        (isAuthenticated() && 
+          exists(/databases/$(database)/documents/audits/$(resource.data.auditId)) &&
+          (
+            ("collaborators" in get(/databases/$(database)/documents/audits/$(resource.data.auditId)).data && get(/databases/$(database)/documents/audits/$(resource.data.auditId)).data.collaborators.hasAny([request.auth.uid])) ||
+            ("externalAuditors" in get(/databases/$(database)/documents/audits/$(resource.data.auditId)).data && get(/databases/$(database)/documents/audits/$(resource.data.auditId)).data.externalAuditors.hasAny([request.auth.token.email]))
+          )
+        );
+        
       allow delete: if canDelete(resource.data.organizationId);
     }
 

@@ -259,7 +259,7 @@ export const Privacy: React.FC = () => {
                 addToast(`${count} traitements importés`, "success");
                 fetchActivities();
             } catch (error) {
-                console.error(error);
+                ErrorLogger.handleErrorWithToast(error, 'Privacy.handleFileUpload', 'FILE_UPLOAD_FAILED');
                 addToast("Erreur import CSV", "error");
             } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
         };

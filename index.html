@@ -6,19 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
   <!-- Content Security Policy -->
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://apis.google.com https://aistudiocdn.com blob:;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src 'self' data: https://fonts.gstatic.com;
-    img-src 'self' data: https: blob:;
-    connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net https://*.firebase.googleapis.com wss://*.firebaseio.com https://aistudiocdn.com https://www.google.com/recaptcha/enterprise/ https://raw.githack.com https://cdn.jsdelivr.net https://raw.githubusercontent.com;
-    frame-src 'self' https://www.google.com https://recaptcha.google.com https://*.firebaseapp.com;
-    worker-src 'self' blob:;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    upgrade-insecure-requests;
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://apis.google.com
+  https://aistudiocdn.com https://www.googletagmanager.com blob:;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' data: https://fonts.gstatic.com;
+  img-src 'self' data: https: blob:;
+  connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net
+  https://*.firebase.googleapis.com wss://*.firebaseio.com https://aistudiocdn.com
+  https://www.google.com/recaptcha/enterprise/ https://raw.githack.com https://cdn.jsdelivr.net
+  https://raw.githubusercontent.com https://www.googletagmanager.com https://firestore.googleapis.com
+  https://identitytoolkit.googleapis.com https://securetoken.googleapis.com;
+  frame-src 'self' https://www.google.com https://recaptcha.google.com https://*.firebaseapp.com;
+  worker-src 'self' blob:;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+  upgrade-insecure-requests;
   ">
 
   <link rel="icon" type="image/webp" href="/favicon.webp" />

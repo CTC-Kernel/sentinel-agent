@@ -41,7 +41,7 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         SupplierIncident: ['manage']
     },
     auditor: {
-        Audit: ['manage'],
+        Audit: ['read', 'create', 'update'],
         Document: ['read', 'create', 'update'],
         Risk: ['read', 'update'],
         Project: ['read'],
