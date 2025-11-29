@@ -6,11 +6,10 @@ import { Incident, Asset, Risk, UserProfile, Criticality, BusinessProcess } from
 import { IncidentDashboard } from '../components/incidents/IncidentDashboard';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { logAction } from '../services/logger';
-import { sendEmail } from '../services/emailService';
-import { getIncidentAlertTemplate } from '../services/emailTemplates';
+import { NotificationService } from '../services/notificationService';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit } from '../components/ui/Icons';
+import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Sparkles, Loader2 } from '../components/ui/Icons';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { useLocation } from 'react-router-dom';
@@ -22,6 +21,8 @@ import { IncidentForm } from '../components/incidents/IncidentForm';
 import { IncidentFormData } from '../schemas/incidentSchema';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
+import { canEditResource } from '../utils/permissions';
+import { aiService } from '../services/aiService';
 
 export const Incidents: React.FC = () => {
     const { user, addToast } = useStore();
@@ -71,6 +72,10 @@ export const Incidents: React.FC = () => {
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [inspectorTab, setInspectorTab] = useState<'details' | 'playbook' | 'timeline' | 'ai'>('details');
 
+    // AI State
+    const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+    const [analyzing, setAnalyzing] = useState(false);
+
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;
@@ -82,6 +87,11 @@ export const Incidents: React.FC = () => {
         }
     }, [location.state, loading, incidents]);
 
+    // Reset AI analysis when incident changes
+    useEffect(() => {
+        setAiAnalysis(null);
+    }, [selectedIncident]);
+
     const handleCreate = async (data: IncidentFormData) => {
         if (!user?.organizationId) return;
         try {
@@ -92,21 +102,16 @@ export const Incidents: React.FC = () => {
             if (incidentData.status === 'Contenu' && !incidentData.dateContained) incidentData.dateContained = now;
             if ((incidentData.status === 'Résolu' || incidentData.status === 'Fermé') && !incidentData.dateResolved) incidentData.dateResolved = now;
 
-            await addDoc(collection(db, 'incidents'), { ...incidentData, organizationId: user.organizationId, dateReported: new Date().toISOString() });
+            const docRef = await addDoc(collection(db, 'incidents'), { ...incidentData, organizationId: user.organizationId, dateReported: new Date().toISOString() });
             await logAction(user, 'CREATE', 'Incident', `Nouvel Incident: ${incidentData.title} `);
 
-            const incidentLink = `${window.location.origin} /#/incidents`;
-            const htmlContent = getIncidentAlertTemplate(data.title || 'Incident', data.severity || 'Moyenne', user?.displayName || 'Utilisateur', incidentLink);
+            await NotificationService.notifyNewIncident({
+                id: docRef.id,
+                ...incidentData,
+                organizationId: user.organizationId,
+                reporter: user.displayName || 'Utilisateur'
+            });
 
-            // Find recipients (Admins & RSSI)
-            const recipients = usersList
-                .filter(u => u.role === 'admin' || u.role === 'rssi')
-                .map(u => u.email)
-                .filter(email => email && email.includes('@')); // Basic validation
-
-            const to = recipients.length > 0 ? recipients.join(',') : user.email;
-
-            await sendEmail(user, { to, subject: `[ALERTE SÉCURITÉ] ${data.severity?.toUpperCase()} - ${data.title} `, type: 'INCIDENT_ALERT', html: htmlContent });
             addToast("Incident déclaré (Alerte envoyée)", "success");
             setCreationMode(false);
         } catch (error) {
@@ -150,7 +155,36 @@ export const Incidents: React.FC = () => {
         return `${hours}h`;
     };
 
-    const canEdit = user?.role === 'admin' || user?.role === 'auditor';
+    const canEdit = canEditResource(user, 'Incident');
+
+    const handleAnalyzeIncident = async () => {
+        if (!selectedIncident) return;
+        setAnalyzing(true);
+        try {
+            const prompt = `
+                Analyse cet incident de sécurité et fournis un rapport structuré :
+                
+                Titre: ${selectedIncident.title}
+                Description: ${selectedIncident.description}
+                Sévérité: ${selectedIncident.severity}
+                Catégorie: ${selectedIncident.category}
+                
+                Structure attendue :
+                1. Analyse de la cause racine probable (Root Cause Analysis)
+                2. Impact potentiel (Business & Technique)
+                3. Recommandations immédiates pour le confinement
+                4. Mesures préventives à long terme
+                
+                Réponds en Markdown.
+            `;
+            const response = await aiService.chatWithAI(prompt);
+            setAiAnalysis(response);
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Incidents.analyze', 'UNKNOWN_ERROR');
+        } finally {
+            setAnalyzing(false);
+        }
+    };
 
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
@@ -324,12 +358,45 @@ export const Incidents: React.FC = () => {
                                     )}
 
                                     {inspectorTab === 'ai' && (
-                                        <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-3xl border border-dashed border-slate-200 dark:border-white/10 text-center animate-fade-in">
-                                            <BrainCircuit className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                                            <h3 className="font-bold text-slate-900 dark:text-white mb-2">Analyse IA</h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                L'analyse automatique des causes racines et des recommandations sera bientôt disponible.
-                                            </p>
+                                        <div className="animate-fade-in space-y-6">
+                                            {!aiAnalysis ? (
+                                                <div className="bg-slate-50 dark:bg-white/5 p-8 rounded-3xl border border-dashed border-slate-200 dark:border-white/10 text-center">
+                                                    <BrainCircuit className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                                                    <h3 className="font-bold text-slate-900 dark:text-white mb-2">Analyse IA de l'incident</h3>
+                                                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
+                                                        L'IA peut analyser les détails de l'incident pour identifier la cause racine probable et suggérer des mesures correctives.
+                                                    </p>
+                                                    <button
+                                                        onClick={handleAnalyzeIncident}
+                                                        disabled={analyzing}
+                                                        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2 mx-auto"
+                                                    >
+                                                        {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                                        {analyzing ? 'Analyse en cours...' : 'Lancer l\'analyse'}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <h3 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                                                            <Sparkles className="h-5 w-5 text-indigo-500" /> Rapport d'analyse
+                                                        </h3>
+                                                        <button
+                                                            onClick={handleAnalyzeIncident}
+                                                            disabled={analyzing}
+                                                            className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                                                            title="Relancer l'analyse"
+                                                        >
+                                                            <Loader2 className={`h-4 w-4 ${analyzing ? 'animate-spin' : ''}`} />
+                                                        </button>
+                                                    </div>
+                                                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm prose dark:prose-invert max-w-none text-sm">
+                                                        {aiAnalysis.split('\n').map((line, i) => (
+                                                            <p key={i} className="mb-2 last:mb-0">{line}</p>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -345,7 +412,7 @@ export const Incidents: React.FC = () => {
                 onClose={() => setCreationMode(false)}
                 title="Déclarer un incident"
                 subtitle="Nouvel incident de sécurité"
-                width="600px"
+                width="max-w-4xl"
             >
                 <div className="p-6">
                     <IncidentForm

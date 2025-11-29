@@ -169,6 +169,7 @@ export interface ProjectTask {
   description?: string;
   status: 'A faire' | 'En cours' | 'Terminé' | 'Bloqué';
   assignee?: string;
+  assigneeId?: string;
   startDate?: string; // Added for Gantt chart
   dueDate?: string;
   priority?: 'low' | 'medium' | 'high';

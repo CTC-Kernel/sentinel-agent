@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Calendar, User, Clock, Target, AlertCircle } from 'lucide-react';
-import { ProjectTask } from '../../types';
+import { ProjectTask, UserProfile } from '../../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectTaskSchema, ProjectTaskFormData } from '../../schemas/projectSchema';
@@ -12,7 +12,7 @@ interface TaskFormModalProps {
     onSubmit: (task: Omit<ProjectTask, 'id'>) => void;
     existingTask?: ProjectTask;
     availableTasks?: ProjectTask[]; // For dependencies
-    availableUsers?: string[]; // For assignee selection
+    availableUsers?: UserProfile[]; // For assignee selection
 }
 
 export const TaskFormModal: React.FC<TaskFormModalProps> = ({
@@ -37,6 +37,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
             description: '',
             status: 'A faire',
             assignee: '',
+            assigneeId: '',
             startDate: '',
             dueDate: '',
             priority: 'medium',
@@ -54,6 +55,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 description: existingTask?.description || '',
                 status: existingTask?.status || 'A faire',
                 assignee: existingTask?.assignee || '',
+                assigneeId: existingTask?.assigneeId || '',
                 startDate: existingTask?.startDate || '',
                 dueDate: existingTask?.dueDate || '',
                 priority: existingTask?.priority || 'medium',
@@ -165,12 +167,17 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             </label>
                             {availableUsers.length > 0 ? (
                                 <select
-                                    {...register('assignee')}
+                                    {...register('assignee', {
+                                        onChange: (e) => {
+                                            const selectedUser = availableUsers.find(u => u.displayName === e.target.value);
+                                            setValue('assigneeId', selectedUser?.uid);
+                                        }
+                                    })}
                                     className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
                                 >
                                     <option value="">Non assigné</option>
                                     {availableUsers.map(user => (
-                                        <option key={user} value={user}>{user}</option>
+                                        <option key={user.uid} value={user.displayName}>{user.displayName}</option>
                                     ))}
                                 </select>
                             ) : (

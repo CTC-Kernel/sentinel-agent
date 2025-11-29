@@ -5,7 +5,7 @@ import { logAction } from './logger';
 import { ErrorLogger } from './errorLogger';
 
 // Types d'emails supportés
-type EmailType =
+export type EmailType =
   | 'INVITATION'
   | 'INCIDENT_ALERT'
   | 'DOCUMENT_REVIEW'
@@ -19,9 +19,10 @@ type EmailType =
   | 'SUPPLIER_REVIEW'
   | 'JOIN_REQUEST'
   | 'JOIN_REQUEST_APPROVED'
-  | 'JOIN_REQUEST_REJECTED';
+  | 'JOIN_REQUEST_REJECTED'
+  | 'MAINTENANCE_ALERT';
 
-interface EmailPayload {
+export interface EmailPayload {
   to: string;
   subject: string;
   html: string;

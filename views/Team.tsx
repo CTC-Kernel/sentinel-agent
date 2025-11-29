@@ -21,6 +21,8 @@ import { CustomSelect } from '../components/ui/CustomSelect';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userSchema, UserFormData } from '../schemas/userSchema';
 
+import { hasPermission } from '../utils/permissions';
+
 export const Team: React.FC = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState<UserProfile[]>([]);
@@ -58,7 +60,7 @@ export const Team: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    const canAdmin = user?.role === 'admin';
+    const canAdmin = hasPermission(user, 'User', 'manage');
 
     const fetchUsers = async () => {
         if (!user?.organizationId) return;
@@ -486,6 +488,7 @@ export const Team: React.FC = () => {
                 onClose={() => setShowInviteModal(false)}
                 title="Inviter un collaborateur"
                 subtitle={`Ils rejoindront ${user?.organizationName}.`}
+                width="max-w-4xl"
             >
                 <form onSubmit={inviteForm.handleSubmit(handleAddUser)} className="p-8 space-y-6">
                     <div className="flex justify-center mb-6">
@@ -546,6 +549,7 @@ export const Team: React.FC = () => {
                 onClose={() => setShowEditModal(false)}
                 title="Modifier Utilisateur"
                 subtitle="Mettez à jour les informations du collaborateur."
+                width="max-w-4xl"
             >
                 {selectedUser && (
                     <form onSubmit={editForm.handleSubmit(handleUpdateUser)} className="p-8 space-y-6">
