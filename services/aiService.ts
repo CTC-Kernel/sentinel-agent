@@ -94,19 +94,26 @@ export const aiService = {
                     insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
                 };
             } catch (modelError: any) {
-                ErrorLogger.warn("Primary model failed, trying fallback...", 'aiService.analyzeGraph', { metadata: { error: modelError } });
-                // Fallback to gemini-1.5-flash if specific version fails
-                if (modelError.message?.includes('404') || modelError.message?.includes('not found')) {
-                    model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-                    const result = await model.generateContent(prompt);
-                    const response = await result.response;
-                    const text = response.text();
-                    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const parsed = JSON.parse(cleanText);
-                    return {
-                        suggestions: parsed.suggestions.map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
-                        insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
-                    };
+                ErrorLogger.warn("Primary model failed, trying fallbacks...", 'aiService.analyzeGraph', { metadata: { error: modelError } });
+
+                const fallbackModels = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-pro'];
+
+                for (const modelName of fallbackModels) {
+                    try {
+                        model = genAI.getGenerativeModel({ model: modelName });
+                        const result = await model.generateContent(prompt);
+                        const response = await result.response;
+                        const text = response.text();
+                        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                        const parsed = JSON.parse(cleanText);
+                        return {
+                            suggestions: parsed.suggestions.map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
+                            insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
+                        };
+                    } catch (e) {
+                        console.warn(`Fallback ${modelName} failed`);
+                        continue;
+                    }
                 }
                 throw modelError;
             }
@@ -282,10 +289,20 @@ async function generateContentSafe(prompt: string): Promise<string> {
         return (await result.response).text();
     } catch (error: any) {
         if (error.message?.includes('404') || error.message?.includes('not found')) {
-            ErrorLogger.warn(`Model ${MODEL_NAME} not found, falling back to gemini-1.5-flash`, 'aiService.generateContentSafe');
-            const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-            const result = await fallbackModel.generateContent(prompt);
-            return (await result.response).text();
+            ErrorLogger.warn(`Model ${MODEL_NAME} not found, trying fallbacks...`, 'aiService.generateContentSafe');
+
+            const fallbackModels = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-pro'];
+
+            for (const modelName of fallbackModels) {
+                try {
+                    const fallbackModel = genAI.getGenerativeModel({ model: modelName });
+                    const result = await fallbackModel.generateContent(prompt);
+                    return (await result.response).text();
+                } catch (e) {
+                    console.warn(`Fallback ${modelName} failed`);
+                    continue;
+                }
+            }
         }
         throw error;
     }
