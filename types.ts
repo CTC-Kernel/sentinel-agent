@@ -116,6 +116,7 @@ export interface Audit {
   relatedRiskIds?: string[];
   relatedProjectIds?: string[];
   relatedControlIds?: string[];
+  findings?: Finding[];
 }
 
 export interface Finding {
@@ -542,4 +543,18 @@ export interface Organization {
     theme?: 'light' | 'dark' | 'system';
     language?: 'fr' | 'en';
   };
+}
+
+export interface JoinRequest {
+  id: string;
+  userId: string;
+  displayName: string;
+  userEmail: string;
+  organizationId: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  rejectedBy?: string;
+  rejectedAt?: string;
 }

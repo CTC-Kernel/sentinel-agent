@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight, Home } from './Icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface BreadcrumbItem {
   label: string;
@@ -15,6 +15,27 @@ interface PageHeaderProps {
   icon?: React.ReactNode;
 }
 
+const ROUTE_LABELS: Record<string, string> = {
+  'risks': 'Risques',
+  'assets': 'Actifs',
+  'compliance': 'Conformité',
+  'incidents': 'Incidents',
+  'projects': 'Projets',
+  'audits': 'Audits',
+  'team': 'Équipe',
+  'settings': 'Paramètres',
+  'documents': 'Documents',
+  'suppliers': 'Fournisseurs',
+  'privacy': 'Confidentialité',
+  'continuity': 'Continuité',
+  'analytics': 'Analytique',
+  'search': 'Recherche',
+  'help': 'Aide',
+  'notifications': 'Notifications',
+  'backup': 'Sauvegarde',
+  'voxel': 'CTC Engine'
+};
+
 export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   subtitle,
@@ -23,40 +44,71 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   icon
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Generate breadcrumbs automatically if not provided
+  const items = breadcrumbs || (() => {
+    const pathnames = location.pathname.split('/').filter((x) => x);
+    const crumbs: BreadcrumbItem[] = [];
+
+    let currentPath = '';
+    pathnames.forEach((value, index) => {
+      currentPath += `/${value}`;
+      const isLast = index === pathnames.length - 1;
+
+      // Try to map the path segment to a readable label
+      let label = ROUTE_LABELS[value] || value;
+
+      // Capitalize first letter if not in map
+      if (!ROUTE_LABELS[value]) {
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+      }
+
+      // If it looks like an ID (long string with numbers/dashes), truncate or label as "Détails"
+      if (value.length > 20 || /\d/.test(value)) {
+        label = 'Détails';
+      }
+
+      crumbs.push({
+        label,
+        path: isLast ? undefined : currentPath
+      });
+    });
+
+    return crumbs;
+  })();
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
       <div className="flex-1">
         {/* Breadcrumb Navigation */}
-        {breadcrumbs && breadcrumbs.length > 0 && (
-          <nav className="flex items-center gap-2 mb-4" aria-label="Breadcrumb">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors group"
-              aria-label="Retour à l'accueil"
-            >
-              <Home className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
-            </button>
-            
-            {breadcrumbs.map((crumb, index) => (
-              <React.Fragment key={index}>
-                <ChevronRight className="h-3.5 w-3.5 text-slate-300 dark:text-slate-600" />
-                {crumb.path ? (
-                  <button
-                    onClick={() => navigate(crumb.path!)}
-                    className="text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
-                  >
-                    {crumb.label}
-                  </button>
-                ) : (
-                  <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                    {crumb.label}
-                  </span>
-                )}
-              </React.Fragment>
-            ))}
-          </nav>
-        )}
+        <nav className="flex items-center gap-2 mb-4" aria-label="Breadcrumb">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors group"
+            aria-label="Retour à l'accueil"
+          >
+            <Home className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
+          </button>
+
+          {items.map((crumb, index) => (
+            <React.Fragment key={index}>
+              <ChevronRight className="h-3.5 w-3.5 text-slate-300 dark:text-slate-600" />
+              {crumb.path ? (
+                <button
+                  onClick={() => navigate(crumb.path!)}
+                  className="text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors capitalize"
+                >
+                  {crumb.label}
+                </button>
+              ) : (
+                <span className="text-sm font-semibold text-slate-900 dark:text-white capitalize">
+                  {crumb.label}
+                </span>
+              )}
+            </React.Fragment>
+          ))}
+        </nav>
 
         {/* Title Section with Icon */}
         <div className="flex items-center gap-4">

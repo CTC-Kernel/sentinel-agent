@@ -24,6 +24,7 @@ import { SkipLink } from './components/ui/SkipLink';
 import { useHotkeys } from './hooks/useHotkeys';
 import { LoadingScreen } from './components/ui/LoadingScreen';
 import { CookieConsent } from './components/ui/CookieConsent';
+import { ShortcutsHelp } from './components/ui/ShortcutsHelp';
 
 // Lazy Loading des Vues
 const Dashboard = React.lazy(() => import('./views/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -66,7 +67,7 @@ const NotFound = () => (
 // Wrapper to activate global shortcuts inside Router context
 const GlobalShortcutsWrapper: React.FC = () => {
     const navigate = useNavigate();
-    useGlobalShortcuts();
+    const { showHelp, setShowHelp } = useGlobalShortcuts() || { showHelp: false, setShowHelp: () => { } };
 
     useHotkeys('ctrl+k', () => {
         navigate('/search');
@@ -75,7 +76,10 @@ const GlobalShortcutsWrapper: React.FC = () => {
     useHotkeys('ctrl+/', () => {
         navigate('/help');
     });
-    return null;
+
+    return (
+        <ShortcutsHelp isOpen={showHelp} onClose={() => setShowHelp(false)} />
+    );
 };
 
 const AppLayout: React.FC = () => {

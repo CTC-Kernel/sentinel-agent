@@ -192,7 +192,7 @@ export const Incidents: React.FC = () => {
                 onClose={() => { setSelectedIncident(null); setIsEditing(false); }}
                 title={selectedIncident?.title || 'Détails de l\'incident'}
                 subtitle={selectedIncident?.category}
-                width="600px"
+                width="max-w-6xl"
             >
                 {selectedIncident && (
                     <div className="flex flex-col h-full">
@@ -219,7 +219,7 @@ export const Incidents: React.FC = () => {
                                             { id: 'ai', label: 'Analyse IA', icon: BrainCircuit },
                                         ]}
                                         activeTab={inspectorTab}
-                                        onTabChange={(id) => setInspectorTab(id as any)}
+                                        onTabChange={(id) => setInspectorTab(id as 'details' | 'playbook' | 'timeline' | 'ai')}
                                     />
                                 </div>
 

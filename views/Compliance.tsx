@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, limit, addDoc } from 'firebase/firestore';
+import { RiskFormData } from '../schemas/riskSchema';
+import { ProjectFormData } from '../schemas/projectSchema';
+import { AuditFormData } from '../schemas/auditSchema';
 import { db } from '../firebase';
 import { Control, Document, Risk, Finding, UserProfile, SystemLog, Asset, Supplier, Project, Audit, BusinessProcess } from '../types';
 import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet } from '../components/ui/Icons';
@@ -144,7 +147,7 @@ export const Compliance: React.FC = () => {
 
     // Creation Mode State
     const [creationMode, setCreationMode] = useState<'risk' | 'project' | 'audit' | null>(null);
-    const [modalInitialData, setModalInitialData] = useState<any>(null);
+    const [modalInitialData, setModalInitialData] = useState<Partial<Risk> | Partial<Project> | Partial<Audit> | null>(null);
 
     // Data Fetching with Hooks
     const { data: rawControls, loading: controlsLoading, refresh: refreshControls } = useFirestoreCollection<Control>(
@@ -482,7 +485,7 @@ export const Compliance: React.FC = () => {
         }
     };
 
-    const handleCreateRisk = async (data: any) => {
+    const handleCreateRisk = async (data: RiskFormData) => {
         if (!selectedControl || !user?.organizationId) return;
         try {
             await addDoc(collection(db, 'risks'), {
@@ -512,7 +515,7 @@ export const Compliance: React.FC = () => {
         }
     };
 
-    const handleCreateProject = async (data: any) => {
+    const handleCreateProject = async (data: ProjectFormData) => {
         if (!selectedControl || !user?.organizationId) return;
         try {
             await addDoc(collection(db, 'projects'), {
@@ -542,7 +545,7 @@ export const Compliance: React.FC = () => {
         }
     };
 
-    const handleCreateAudit = async (data: any) => {
+    const handleCreateAudit = async (data: AuditFormData) => {
         if (!selectedControl || !user?.organizationId) return;
         try {
             await addDoc(collection(db, 'audits'), {
@@ -789,7 +792,7 @@ export const Compliance: React.FC = () => {
                 onClose={() => { setIsDrawerOpen(false); setCreationMode(null); }}
                 title={creationMode ? (creationMode === 'risk' ? 'Nouveau Risque' : creationMode === 'project' ? 'Nouveau Projet' : 'Nouvel Audit') : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : '')}
                 subtitle={creationMode ? 'Création' : (selectedControl?.framework || currentFramework)}
-                width="max-w-4xl"
+                width="max-w-6xl"
             >
                 {creationMode ? (
                     <div className="h-full bg-slate-50 dark:bg-slate-900/50">
@@ -802,7 +805,7 @@ export const Compliance: React.FC = () => {
                                 processes={processes}
                                 suppliers={suppliers}
                                 controls={controls}
-                                initialData={modalInitialData}
+                                initialData={modalInitialData as Partial<RiskFormData> || undefined}
                             />
                         )}
                         {creationMode === 'project' && (
@@ -813,7 +816,7 @@ export const Compliance: React.FC = () => {
                                 availableRisks={risks}
                                 availableControls={controls}
                                 availableAssets={assets}
-                                initialData={modalInitialData}
+                                initialData={modalInitialData as Partial<ProjectFormData> || undefined}
                             />
                         )}
                         {creationMode === 'audit' && (
@@ -825,7 +828,7 @@ export const Compliance: React.FC = () => {
                                 controls={controls}
                                 usersList={usersList}
                                 projects={projects}
-                                initialData={modalInitialData}
+                                initialData={modalInitialData as Partial<AuditFormData> || undefined}
                             />
                         )}
                     </div>
@@ -876,7 +879,7 @@ export const Compliance: React.FC = () => {
                                                 <CustomSelect
                                                     label="Assigné à"
                                                     value={selectedControl.assigneeId || ''}
-                                                    onChange={(val) => handleAssign(val)}
+                                                    onChange={(val) => handleAssign(val as string)}
                                                     options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                                                     placeholder="Sélectionner un responsable..."
                                                 />
@@ -913,7 +916,7 @@ export const Compliance: React.FC = () => {
                                                 <CustomSelect
                                                     label=""
                                                     value=""
-                                                    onChange={(val) => handleLinkAsset(val)}
+                                                    onChange={(val) => handleLinkAsset(val as string)}
                                                     options={assets.filter(a => !selectedControl.relatedAssetIds?.includes(a.id)).map(a => ({ value: a.id, label: a.name }))}
                                                     placeholder="Lier un actif..."
                                                 />
@@ -937,7 +940,7 @@ export const Compliance: React.FC = () => {
                                                 <CustomSelect
                                                     label=""
                                                     value=""
-                                                    onChange={(val) => handleLinkSupplier(val)}
+                                                    onChange={(val) => handleLinkSupplier(val as string)}
                                                     options={suppliers.filter(s => !selectedControl.relatedSupplierIds?.includes(s.id)).map(s => ({ value: s.id, label: s.name }))}
                                                     placeholder="Lier un fournisseur..."
                                                 />
@@ -1025,7 +1028,7 @@ export const Compliance: React.FC = () => {
                                                 <CustomSelect
                                                     options={risks.filter(r => !r.mitigationControlIds?.includes(selectedControl.id)).map(r => ({ value: r.id, label: r.threat }))}
                                                     value=""
-                                                    onChange={(val) => handleLinkRisk(val)}
+                                                    onChange={(val) => handleLinkRisk(val as string)}
                                                     placeholder="Lier existant..."
                                                     className="w-40"
                                                 />
@@ -1058,7 +1061,7 @@ export const Compliance: React.FC = () => {
                                                 <CustomSelect
                                                     options={projects.filter(p => !p.relatedControlIds?.includes(selectedControl.id)).map(p => ({ value: p.id, label: p.name }))}
                                                     value=""
-                                                    onChange={(val) => handleLinkProject(val)}
+                                                    onChange={(val) => handleLinkProject(val as string)}
                                                     placeholder="Lier existant..."
                                                     className="w-40"
                                                 />
@@ -1091,7 +1094,7 @@ export const Compliance: React.FC = () => {
                                                 <CustomSelect
                                                     options={audits.filter(a => !a.relatedControlIds?.includes(selectedControl.id)).map(a => ({ value: a.id, label: a.name }))}
                                                     value=""
-                                                    onChange={(val) => handleLinkAudit(val)}
+                                                    onChange={(val) => handleLinkAudit(val as string)}
                                                     placeholder="Lier existant..."
                                                     className="w-40"
                                                 />
