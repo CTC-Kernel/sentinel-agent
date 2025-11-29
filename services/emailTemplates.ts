@@ -405,3 +405,28 @@ export const getJoinRequestRejectedTemplate = (userName: string, orgName: string
     </div>
   `;
 };
+
+export const getMaintenanceTemplate = (assetName: string, maintenanceDate: string, ownerName: string, link: string) => {
+  return `
+    <div style="${BASE_STYLES}">
+      ${HEADER}
+      <div style="padding: 32px 0;">
+        <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">🛠️ Maintenance Planifiée</h2>
+        <p>Bonjour ${ownerName},</p>
+        <p>Une maintenance est prévue prochainement pour l'actif <strong>${assetName}</strong>.</p>
+        
+        <div style="background-color: #f1f5f9; padding: 16px; border-radius: 8px; margin: 20px 0; text-align: center;">
+          <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date de maintenance</span>
+          <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(maintenanceDate).toLocaleDateString()}</div>
+        </div>
+
+        <p>Veuillez vous assurer que tout est prêt pour cette intervention.</p>
+
+        <div style="text-align: center;">
+          <a href="${link}" style="${BUTTON_STYLE}">Voir l'actif</a>
+        </div>
+      </div>
+      ${FOOTER}
+    </div>
+  `;
+};

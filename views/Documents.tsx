@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { documentSchema, DocumentFormData } from '../schemas/documentSchema';
@@ -26,6 +27,7 @@ import { useFirestoreCollection } from '../hooks/useFirestore';
 
 export const Documents: React.FC = () => {
     const { user, addToast } = useStore();
+    const location = useLocation();
     const canCreate = canEditResource(user, 'Document');
 
     // Data Fetching with Hooks
@@ -73,6 +75,16 @@ export const Documents: React.FC = () => {
     const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
     const [inspectorTab, setInspectorTab] = useState<'details' | 'history' | 'comments'>('details');
     const [docHistory, setDocHistory] = useState<SystemLog[]>([]);
+
+    useEffect(() => {
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loading || documents.length === 0) return;
+        const doc = documents.find(d => d.id === state.voxelSelectedId);
+        if (doc) {
+            setSelectedDocument(doc);
+        }
+    }, [location.state, loading, documents]);
 
     const [isEditing, setIsEditing] = useState(false);
 
@@ -187,7 +199,8 @@ export const Documents: React.FC = () => {
             await logAction(user, 'WORKFLOW', 'Document', `${logMsg}: ${selectedDocument.title}`);
             setSelectedDocument({ ...selectedDocument, ...updates });
             addToast(logMsg, "success");
-        } catch (_e) {
+        } catch (error) {
+            ErrorLogger.error(error, 'Documents.handleWorkflowAction');
             addToast("Erreur workflow", "error");
         }
     };
@@ -238,8 +251,9 @@ export const Documents: React.FC = () => {
             setSelectedDocument({ ...selectedDocument, ...data, updatedAt: new Date().toISOString() });
             setIsEditing(false);
             addToast("Document mis à jour", "success");
-        } catch (_e) {
-            addToast("Erreur mise à jour", "error");
+        } catch (error) {
+            ErrorLogger.error(error, 'Documents.handleUpdate');
+            addToast("Erreur lors de la modification", "error");
         }
     };
 
@@ -300,8 +314,9 @@ export const Documents: React.FC = () => {
             setSelectedDocument(null);
             await logAction(user, 'DELETE', 'Document', `Suppression: ${title}`);
             addToast("Document supprimé", "info");
-        } catch (_e) {
-            addToast("Erreur suppression", "error");
+        } catch (error) {
+            ErrorLogger.error(error, 'Documents.handleDelete');
+            addToast("Erreur lors de la suppression", "error");
         }
     };
 
@@ -318,7 +333,8 @@ export const Documents: React.FC = () => {
                 html
             });
             addToast("Rappel envoyé au propriétaire", "success");
-        } catch (_e) {
+        } catch (error) {
+            ErrorLogger.error(error, 'Documents.sendReminder');
             addToast("Erreur envoi rappel", "error");
         }
     };
@@ -447,7 +463,7 @@ export const Documents: React.FC = () => {
                 <div className="fixed inset-0 z-[9999] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedDocument(null)} />
                     <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
-                        <div className="w-screen max-w-2xl pointer-events-auto">
+                        <div className="w-screen max-w-6xl pointer-events-auto">
                             <div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
                                 <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
                                     <div>
@@ -700,7 +716,7 @@ export const Documents: React.FC = () => {
             {/* Create Modal */}
             {showCreateModal && createPortal(
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-lg border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
+                    <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-4xl border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-blue-50/30 dark:bg-blue-900/10">
                             <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-100 tracking-tight">Nouveau Document</h2>
                         </div>

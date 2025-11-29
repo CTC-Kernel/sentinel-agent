@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
+import { canEditResource } from '../utils/permissions';
 
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -27,7 +28,7 @@ export const Suppliers: React.FC = () => {
     const [filter, setFilter] = useState('');
     const { user, addToast } = useStore();
     const location = useLocation();
-    const canEdit = user?.role === 'admin';
+    const canEdit = canEditResource(user, 'Supplier');
 
     const [creationMode, setCreationMode] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
@@ -966,7 +967,7 @@ export const Suppliers: React.FC = () => {
                 onClose={() => setCreationMode(false)}
                 title="Nouveau Fournisseur"
                 subtitle="Enregistrement d'un tiers"
-                width="max-w-lg"
+                width="max-w-4xl"
             >
                 <SupplierForm
                     onSubmit={handleCreate}

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import 'jspdf-autotable';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, limit, where } from 'firebase/firestore';
@@ -13,6 +13,7 @@ import { Drawer } from '../components/ui/Drawer';
 import { ProjectForm } from '../components/projects/ProjectForm';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
+import { NotificationService } from '../services/notificationService';
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PdfService } from '../services/PdfService';
@@ -110,7 +111,7 @@ export const Projects: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    const openInspector = async (project: Project) => {
+    const openInspector = useCallback(async (project: Project) => {
         setSelectedProject(project);
         setInspectorTab('overview');
         setGanttViewMode('Week');
@@ -165,7 +166,7 @@ export const Projects: React.FC = () => {
         } catch (e) {
             console.error("Error fetching linked suppliers", e);
         }
-    };
+    }, [user?.organizationId]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
@@ -175,7 +176,7 @@ export const Projects: React.FC = () => {
         if (project) {
             openInspector(project);
         }
-    }, [location.state, loading, projects]);
+    }, [location.state, loading, projects, openInspector]);
 
     const openCreationDrawer = async () => {
         // Check limits only for creation
@@ -496,11 +497,11 @@ export const Projects: React.FC = () => {
                     setShowTaskModal(false);
                     setEditingTask(undefined);
                 }}
-                onSubmit={(taskData) => {
+                onSubmit={async (taskData) => {
                     // Sanitize data: Firestore doesn't support 'undefined'
                     const cleanTaskData = sanitizeData(taskData);
 
-                    if (!selectedProject) return;
+                    if (!selectedProject || !user?.organizationId) return;
 
                     if (editingTask) {
                         // Update existing task
@@ -508,6 +509,16 @@ export const Projects: React.FC = () => {
                             t.id === editingTask.id ? { ...t, ...cleanTaskData } : t
                         ) || [];
                         updateTasks(updatedTasks as ProjectTask[]);
+
+                        // Notify if assignee changed
+                        if (cleanTaskData.assigneeId && cleanTaskData.assigneeId !== editingTask.assigneeId) {
+                            await NotificationService.notifyTaskAssigned({
+                                id: editingTask.id,
+                                title: cleanTaskData.title,
+                                projectName: selectedProject.name,
+                                organizationId: user.organizationId
+                            }, cleanTaskData.assigneeId);
+                        }
                     } else {
                         // Create new task
                         const newTask: ProjectTask = {
@@ -517,11 +528,21 @@ export const Projects: React.FC = () => {
                         } as ProjectTask;
                         const updatedTasks = [...(selectedProject.tasks || []), newTask];
                         updateTasks(updatedTasks);
+
+                        // Notify assignee
+                        if (cleanTaskData.assigneeId) {
+                            await NotificationService.notifyTaskAssigned({
+                                id: newTask.id,
+                                title: newTask.title,
+                                projectName: selectedProject.name,
+                                organizationId: user.organizationId
+                            }, cleanTaskData.assigneeId);
+                        }
                     }
                 }}
                 existingTask={editingTask}
                 availableTasks={selectedProject?.tasks || []}
-                availableUsers={usersList.map(u => u.displayName)}
+                availableUsers={usersList}
             />
 
             {/* Template Selection Modal */}
@@ -650,7 +671,7 @@ export const Projects: React.FC = () => {
                 <div className="fixed inset-0 z-[9999] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedProject(null)} />
                     <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
-                        <div className="w-screen max-w-3xl pointer-events-auto">
+                        <div className="w-screen max-w-6xl pointer-events-auto">
                             <div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
                                 {/* Header */}
                                 <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
@@ -1027,7 +1048,7 @@ export const Projects: React.FC = () => {
                 onClose={() => { setCreationMode(false); setEditingProject(null); }}
                 title={editingProject ? "Modifier le Projet" : "Nouveau Projet"}
                 subtitle={editingProject ? editingProject.name : "Création"}
-                width="max-w-6xl"
+                width="max-w-4xl"
             >
                 <ProjectForm
                     onCancel={() => { setCreationMode(false); setEditingProject(null); }}

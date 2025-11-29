@@ -1,4 +1,6 @@
 import { useStore } from '../store';
+import { analytics } from '../firebase';
+import { logEvent } from 'firebase/analytics';
 
 /**
  * Service centralisé de gestion des erreurs
@@ -171,14 +173,22 @@ class ErrorLoggerService {
    * Envoyer vers système externe (Firebase Analytics, Mixpanel, etc.)
    */
   private logToExternal(type: string, data: any): void {
-    // TODO: Implémenter envoi vers Firebase Analytics ou autre
-    // Pour l'instant, stockage local en développement
-    if (this.isDevelopment && typeof window !== 'undefined') {
-      const logs = JSON.parse(localStorage.getItem('app_logs') || '[]');
-      logs.push({ type, ...data });
-      // Garder seulement les 100 derniers logs
-      if (logs.length > 100) logs.shift();
-      localStorage.setItem('app_logs', JSON.stringify(logs));
+    // Envoi vers Firebase Analytics
+    if (typeof window !== 'undefined') {
+      try {
+        logEvent(analytics, type, data);
+      } catch (e) {
+        // Fail silently if analytics fails (e.g. ad blocker)
+        if (this.isDevelopment) console.warn('Analytics failed:', e);
+      }
+
+      // Stockage local en développement pour debug
+      if (this.isDevelopment) {
+        const logs = JSON.parse(localStorage.getItem('app_logs') || '[]');
+        logs.push({ type, ...data });
+        if (logs.length > 100) logs.shift();
+        localStorage.setItem('app_logs', JSON.stringify(logs));
+      }
     }
   }
 

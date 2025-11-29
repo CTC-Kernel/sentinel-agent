@@ -5,6 +5,7 @@ export const projectTaskSchema = z.object({
     description: z.string().optional(),
     status: z.enum(['A faire', 'En cours', 'Terminé', 'Bloqué']).default('A faire'),
     assignee: z.string().optional(),
+    assigneeId: z.string().optional(),
     startDate: z.string().optional(),
     dueDate: z.string().optional(),
     priority: z.enum(['low', 'medium', 'high']).optional().default('medium'),

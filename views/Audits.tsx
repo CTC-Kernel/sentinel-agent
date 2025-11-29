@@ -697,7 +697,7 @@ export const Audits: React.FC = () => {
                 <div className="fixed inset-0 z-[9999] overflow-hidden">
                     <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setShowFindingsDrawer(false)} />
                     <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
-                        <div className="w-screen max-w-2xl pointer-events-auto">
+                        <div className="w-screen max-w-6xl pointer-events-auto">
                             <div className="h-full flex flex-col bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
                                 <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
                                     <div>
@@ -749,17 +749,25 @@ export const Audits: React.FC = () => {
                                                     <div className="space-y-6">
                                                         <div className="flex flex-col gap-1">
                                                             <div className="flex justify-end">
-                                                                <AIAssistButton
-                                                                    context={{
-                                                                        auditName: selectedAudit.name,
-                                                                        auditType: selectedAudit.type,
-                                                                        findingType: findingForm.watch('type'),
-                                                                        control: findingForm.watch('relatedControlId') ? controls.find(c => c.id === findingForm.watch('relatedControlId'))?.code : 'Non spécifié'
-                                                                    }}
-                                                                    fieldName="description"
-                                                                    onSuggest={(val: string) => findingForm.setValue('description', val)}
-                                                                    prompt="Rédige un constat d'audit (écart) clair, factuel et professionnel. Précise le problème observé et l'impact potentiel."
-                                                                />
+                                                                {(() => {
+                                                                    const findingType = findingForm.watch('type');
+                                                                    const relatedControlId = findingForm.watch('relatedControlId');
+                                                                    const controlCode = relatedControlId ? controls.find(c => c.id === relatedControlId)?.code : 'Non spécifié';
+
+                                                                    return (
+                                                                        <AIAssistButton
+                                                                            context={{
+                                                                                auditName: selectedAudit.name,
+                                                                                auditType: selectedAudit.type,
+                                                                                findingType: findingType,
+                                                                                control: controlCode
+                                                                            }}
+                                                                            fieldName="description"
+                                                                            onSuggest={(val: string) => findingForm.setValue('description', val)}
+                                                                            prompt="Rédige un constat d'audit (écart) clair, factuel et professionnel. Précise le problème observé et l'impact potentiel."
+                                                                        />
+                                                                    );
+                                                                })()}
                                                             </div>
                                                             <FloatingLabelTextarea
                                                                 label="Description de l'écart"

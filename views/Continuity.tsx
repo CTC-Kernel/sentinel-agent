@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { businessProcessSchema, BusinessProcessFormData, bcpDrillSchema, BcpDrillFormData } from '../schemas/continuitySchema';
+import { canEditResource } from '../utils/permissions';
 
 import { Drawer } from '../components/ui/Drawer';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
@@ -33,8 +34,10 @@ export const Continuity: React.FC = () => {
     const [showDrillModal, setShowDrillModal] = useState(false);
     const [activeTab, setActiveTab] = useState<'bia' | 'drills'>('bia');
 
+
+
     const { user, addToast } = useStore();
-    const canEdit = user?.role === 'admin' || user?.role === 'auditor';
+    const canEdit = canEditResource(user, 'BusinessProcess');
 
     // Inspector State
     const [selectedProcess, setSelectedProcess] = useState<BusinessProcess | null>(null);
@@ -783,6 +786,7 @@ export const Continuity: React.FC = () => {
                 onClose={() => setShowCreateModal(false)}
                 title="Nouveau Processus Critique"
                 subtitle="Définissez un nouveau processus pour l'analyse d'impact."
+                width="max-w-4xl"
             >
                 <form onSubmit={createProcessForm.handleSubmit(handleCreateProcess)} className="p-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -823,6 +827,7 @@ export const Continuity: React.FC = () => {
                 onClose={() => setShowDrillModal(false)}
                 title="Enregistrer un exercice"
                 subtitle="Documentez vos tests de continuité."
+                width="max-w-4xl"
             >
                 <form onSubmit={drillForm.handleSubmit(handleSubmitDrill)} className="p-8 space-y-5">
                     <div>

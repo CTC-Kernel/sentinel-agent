@@ -1,6 +1,18 @@
 import { db } from '../firebase';
-import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, getDoc } from 'firebase/firestore';
 import { UserProfile } from '../types';
+import { sendEmail } from './emailService';
+import {
+    getTaskAssignmentTemplate,
+    getIncidentAlertTemplate,
+    getAuditReminderTemplate,
+    getDocumentReviewTemplate,
+    getRiskTreatmentDueTemplate,
+    getComplianceAlertTemplate,
+    getMaintenanceTemplate,
+    getSupplierReviewTemplate
+} from './emailTemplates';
+import { ErrorLogger } from './errorLogger';
 
 export interface Notification {
     id: string;
@@ -189,6 +201,17 @@ export class NotificationService {
                             read: false,
                             createdAt: new Date().toISOString(),
                         });
+
+                        // Send Email
+                        const auditorData = auditorSnap.docs[0].data();
+                        if (auditorData.email) {
+                            await sendEmail(null, {
+                                to: auditorData.email,
+                                subject: `Rappel Audit : ${audit.name}`,
+                                html: getAuditReminderTemplate(audit.name, auditorData.displayName || 'Auditeur', audit.dateScheduled, 'https://sentinel-grc.web.app/audits'),
+                                type: 'AUDIT_REMINDER'
+                            });
+                        }
                     }
                 }
             }
@@ -244,6 +267,17 @@ export class NotificationService {
                             read: false,
                             createdAt: new Date().toISOString(),
                         });
+
+                        // Send Email
+                        const ownerData = ownerSnap.docs[0].data();
+                        if (ownerData.email) {
+                            await sendEmail(null, {
+                                to: ownerData.email,
+                                subject: `Révision requise : ${doc.title}`,
+                                html: getDocumentReviewTemplate(doc.title, ownerData.displayName || 'Propriétaire', doc.nextReviewDate, 'https://sentinel-grc.web.app/documents'),
+                                type: 'DOCUMENT_REVIEW'
+                            });
+                        }
                     }
                 }
             }
@@ -305,6 +339,17 @@ export class NotificationService {
                                 read: false,
                                 createdAt: new Date().toISOString(),
                             });
+
+                            // Send Email
+                            const ownerData = ownerSnap.docs[0].data();
+                            if (ownerData.email) {
+                                await sendEmail(null, {
+                                    to: ownerData.email,
+                                    subject: `Maintenance : ${asset.name}`,
+                                    html: getMaintenanceTemplate(asset.name, asset.nextMaintenance, ownerData.displayName || 'Propriétaire', 'https://sentinel-grc.web.app/assets'),
+                                    type: 'MAINTENANCE_ALERT'
+                                });
+                            }
                         }
                     }
                 }
@@ -361,6 +406,17 @@ export class NotificationService {
                         read: false,
                         createdAt: new Date().toISOString(),
                     });
+
+                    // Send Email
+                    const adminData = adminDoc.data();
+                    if (adminData.email) {
+                        await sendEmail(null, {
+                            to: adminData.email,
+                            subject: `Action requise : ${criticalRisksWithoutMitigation.length} Risques Critiques`,
+                            html: getRiskTreatmentDueTemplate('Risques Critiques non traités', new Date().toISOString(), adminData.displayName || 'Admin', 'https://sentinel-grc.web.app/risks'),
+                            type: 'RISK_TREATMENT_DUE'
+                        });
+                    }
                 }
             }
         }
@@ -370,19 +426,40 @@ export class NotificationService {
      * Notify user about a new task assignment
      */
     static async notifyTaskAssigned(task: any, assigneeId: string): Promise<void> {
+        // 1. Fetch User Profile to get email
+        let userData: UserProfile | undefined;
+        try {
+            const userSnap = await getDoc(doc(db, 'users', assigneeId));
+            if (userSnap.exists()) {
+                userData = userSnap.data() as UserProfile;
+            }
+        } catch (e) { ErrorLogger.error(e, 'NotificationService.notifyTaskAssigned'); }
+
+        // 2. Create Notification
         await this.create(
-            { uid: assigneeId, organizationId: task.organizationId } as UserProfile, // Mock user profile for create method
+            { uid: assigneeId, organizationId: task.organizationId } as UserProfile,
             'info',
             'Nouvelle tâche assignée',
             `On vous a assigné la tâche : ${task.title}`,
             '/projects'
         );
+
+        // 3. Send Email
+        if (userData && userData.email) {
+            await sendEmail(null, {
+                to: userData.email,
+                subject: `Nouvelle tâche : ${task.title}`,
+                html: getTaskAssignmentTemplate(task.title, task.projectName || 'Projet', 'Gestionnaire', `https://sentinel-grc.web.app/projects`),
+                type: 'TASK_ASSIGNMENT'
+            });
+        }
     }
 
     /**
      * Notify admins about a new incident
      */
     static async notifyNewIncident(incident: any): Promise<void> {
+        // 1. Notify all users (Push + In-App)
         await this.createForOrganization(
             incident.organizationId,
             'danger',
@@ -390,12 +467,48 @@ export class NotificationService {
             `${incident.title} (${incident.severity})`,
             `/incidents?id=${incident.id}`
         );
+
+        // 2. Send Email to Admins
+        try {
+            const adminsSnap = await getDocs(
+                query(
+                    collection(db, 'users'),
+                    where('organizationId', '==', incident.organizationId),
+                    where('role', 'in', ['admin', 'rssi'])
+                )
+            );
+
+            const emailPromises = adminsSnap.docs.map(adminDoc => {
+                const adminData = adminDoc.data();
+                if (adminData.email) {
+                    return sendEmail(null, {
+                        to: adminData.email,
+                        subject: `🚨 Incident : ${incident.title}`,
+                        html: getIncidentAlertTemplate(incident.title, incident.severity, incident.reporter || 'Un utilisateur', `https://sentinel-grc.web.app/incidents?id=${incident.id}`),
+                        type: 'INCIDENT_ALERT'
+                    });
+                }
+                return Promise.resolve();
+            });
+
+            await Promise.all(emailPromises);
+        } catch (e) { ErrorLogger.error(e, 'NotificationService.notifyNewIncident'); }
     }
 
     /**
      * Notify user about a control assignment
      */
     static async notifyControlAssigned(control: any, assigneeId: string): Promise<void> {
+        // 1. Fetch User
+        let userData: UserProfile | undefined;
+        try {
+            const userSnap = await getDoc(doc(db, 'users', assigneeId));
+            if (userSnap.exists()) {
+                userData = userSnap.data() as UserProfile;
+            }
+        } catch (e) { ErrorLogger.error(e, 'NotificationService.notifyControlAssigned'); }
+
+        // 2. Create Notification
         await this.create(
             { uid: assigneeId, organizationId: control.organizationId } as UserProfile,
             'info',
@@ -403,17 +516,104 @@ export class NotificationService {
             `On vous a assigné le contrôle : ${control.code} - ${control.name}`,
             '/compliance'
         );
+
+        // 3. Send Email
+        if (userData && userData.email) {
+            await sendEmail(null, {
+                to: userData.email,
+                subject: `Contrôle assigné : ${control.code}`,
+                html: getComplianceAlertTemplate(control.code, control.name, "Vous avez été désigné responsable de ce contrôle.", `https://sentinel-grc.web.app/compliance`),
+                type: 'COMPLIANCE_ALERT'
+            });
+        }
     }
 
     /**
      * Run all automated checks
      */
     static async runAutomatedChecks(organizationId: string): Promise<void> {
-        await Promise.allSettled([
+        const results = await Promise.allSettled([
             this.checkUpcomingAudits(organizationId),
             this.checkOverdueDocuments(organizationId),
             this.checkUpcomingMaintenance(organizationId),
             this.checkCriticalRisks(organizationId),
+            this.checkExpiringContracts(organizationId),
         ]);
+
+        results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                const methods = ['checkUpcomingAudits', 'checkOverdueDocuments', 'checkUpcomingMaintenance', 'checkCriticalRisks', 'checkExpiringContracts'];
+                ErrorLogger.error(result.reason, `NotificationService.${methods[index]}`);
+            }
+        });
+    }
+
+    /**
+     * Check for expiring supplier contracts
+     */
+    static async checkExpiringContracts(organizationId: string): Promise<void> {
+        const thirtyDaysFromNow = new Date();
+        thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+        const q = query(
+            collection(db, 'suppliers'),
+            where('organizationId', '==', organizationId),
+            where('status', '==', 'Actif')
+        );
+
+        const snap = await getDocs(q);
+        const suppliers = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as any));
+
+        for (const supplier of suppliers) {
+            if (supplier.contractEnd) {
+                const endDate = new Date(supplier.contractEnd);
+                if (endDate <= thirtyDaysFromNow && endDate > new Date()) {
+                    const daysUntil = Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+                    // Notify Owner
+                    if (supplier.ownerId) {
+                        // Idempotency check
+                        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                        const existingNotifs = await getDocs(query(
+                            collection(db, 'notifications'),
+                            where('userId', '==', supplier.ownerId),
+                            where('link', '==', '/suppliers'),
+                            where('createdAt', '>=', yesterday)
+                        ));
+
+                        const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(supplier.name));
+
+                        if (!alreadyNotified) {
+                            await addDoc(collection(db, 'notifications'), {
+                                organizationId,
+                                userId: supplier.ownerId,
+                                type: 'warning',
+                                title: `Fin de contrat : ${supplier.name}`,
+                                message: `Le contrat expire dans ${daysUntil} jour(s)`,
+                                link: '/suppliers',
+                                read: false,
+                                createdAt: new Date().toISOString(),
+                            });
+
+                            // Send Email
+                            try {
+                                const userSnap = await getDoc(doc(db, 'users', supplier.ownerId));
+                                if (userSnap.exists()) {
+                                    const userData = userSnap.data();
+                                    if (userData.email) {
+                                        await sendEmail(null, {
+                                            to: userData.email,
+                                            subject: `Expiration Contrat : ${supplier.name}`,
+                                            html: getSupplierReviewTemplate(supplier.name, supplier.criticality || 'Moyenne', supplier.contractEnd, 'https://sentinel-grc.web.app/suppliers'),
+                                            type: 'SUPPLIER_REVIEW'
+                                        });
+                                    }
+                                }
+                            } catch (e) { ErrorLogger.error(e, 'NotificationService.checkExpiringContracts.sendEmail'); }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
