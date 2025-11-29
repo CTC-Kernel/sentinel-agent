@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Cookie, X } from 'lucide-react';
 import { LegalModal } from './LegalModal';
+import { useStore } from '../../store';
+import { hybridService } from '../../services/hybridService';
 
 export const CookieConsent: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
@@ -15,9 +17,22 @@ export const CookieConsent: React.FC = () => {
         }
     }, []);
 
-    const handleAccept = () => {
+    const { user } = useStore();
+
+    const handleAccept = async () => {
         localStorage.setItem('sentinel_cookie_consent', 'true');
         setIsVisible(false);
+
+        if (user) {
+            try {
+                // Log consent to backend for GDPR proof
+                await hybridService.logConsent('cookie_policy', true);
+                await hybridService.logConsent('tos', true); // Implicit acceptance
+                await hybridService.logConsent('privacy_policy', true);
+            } catch (error) {
+                console.error('Failed to log consent', error);
+            }
+        }
     };
 
     if (!isVisible) return <LegalModal isOpen={showLegalModal} onClose={() => setShowLegalModal(false)} initialTab="privacy" />;

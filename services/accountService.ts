@@ -4,6 +4,7 @@ import { db, storage } from '../firebase';
 import { ref, deleteObject, listAll } from 'firebase/storage';
 import { UserProfile } from '../types';
 import { ErrorLogger } from './errorLogger';
+import { hybridService } from './hybridService';
 
 export class AccountService {
   private static readonly COLLECTIONS_TO_CLEAN = [
@@ -114,6 +115,13 @@ export class AccountService {
         await this.deleteStorageFolder(backupStorageRef);
       } catch (e) {
         ErrorLogger.error(e, 'AccountService.deleteOrganization.storageCleanup');
+      }
+
+      // 6. Delete Secure Data (GDPR Right to Erasure - Backend)
+      try {
+        await hybridService.wipeOrganizationSecureData();
+      } catch (e) {
+        ErrorLogger.error(e, 'AccountService.deleteOrganization.secureDataCleanup');
       }
 
     } catch (error) {
