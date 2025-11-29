@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store';
 import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, WifiOff, ArrowRight, FileSpreadsheet } from '../components/ui/Icons';
-import { collection, getDocs, query, orderBy, limit, where, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, Timestamp, enableNetwork, disableNetwork, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, where, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, enableNetwork, disableNetwork, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, auth } from '../firebase';
 import { signOut, updatePassword } from 'firebase/auth';
@@ -181,12 +181,14 @@ export const Settings: React.FC = () => {
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.fetchSystemStats', 'FETCH_FAILED'); }
     };
 
+    const [lastVisible, setLastVisible] = useState<any>(null);
+
     const fetchLogs = async (reset = false) => {
         if (loadingLogs || (!hasMoreLogs && !reset) || !user?.organizationId) return;
         setLoadingLogs(true);
         try {
             let q;
-            if (reset || logs.length === 0) {
+            if (reset || !lastVisible) {
                 q = query(
                     collection(db, 'system_logs'),
                     where('organizationId', '==', user.organizationId),
@@ -194,13 +196,11 @@ export const Settings: React.FC = () => {
                     limit(50)
                 );
             } else {
-                const lastLog = logs[logs.length - 1];
-                const lastTimestamp = Timestamp.fromDate(new Date(lastLog.timestamp));
                 q = query(
                     collection(db, 'system_logs'),
                     where('organizationId', '==', user.organizationId),
                     orderBy('timestamp', 'desc'),
-                    startAfter(lastTimestamp),
+                    startAfter(lastVisible),
                     limit(50)
                 );
             }
@@ -217,10 +217,17 @@ export const Settings: React.FC = () => {
                     } as SystemLog;
                 });
 
+                setLastVisible(snap.docs[snap.docs.length - 1]);
+
                 if (reset) {
                     setLogs(newLogs);
                 } else {
-                    setLogs(prev => [...prev, ...newLogs]);
+                    // Filter out duplicates just in case
+                    setLogs(prev => {
+                        const existingIds = new Set(prev.map(l => l.id));
+                        const uniqueNewLogs = newLogs.filter(l => !existingIds.has(l.id));
+                        return [...prev, ...uniqueNewLogs];
+                    });
                 }
                 setHasMoreLogs(snap.docs.length === 50);
             } else {
