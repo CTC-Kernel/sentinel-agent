@@ -1,4 +1,5 @@
 import { auth } from '../firebase';
+import { ErrorLogger } from './errorLogger';
 
 // Base URL for the OVH-hosted Secure Backend
 // In production, this should be an environment variable
@@ -60,7 +61,7 @@ class HybridService {
             const data = await response.json();
             return { success: true, data };
         } catch (error: any) {
-            console.error('HybridService Error:', error);
+            ErrorLogger.error(error, 'HybridService.request');
             return { success: false, error: error.message || 'Unknown error occurred' };
         }
     }
@@ -112,7 +113,7 @@ class HybridService {
             if (!response.ok) throw new Error('Report generation failed');
             return await response.blob();
         } catch (error) {
-            console.error('Report generation error:', error);
+            ErrorLogger.error(error, 'HybridService.generateReport');
             return null;
         }
     }
