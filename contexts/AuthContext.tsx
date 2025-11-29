@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useStore } from '../store';
+import { ErrorLogger } from '../services/errorLogger';
 import { UserProfile, Invitation } from '../types';
 import { httpsCallable, getFunctions } from 'firebase/functions';
 import { demoUsers } from '../data/demoData';
@@ -71,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
             }
         } catch (err) {
-            console.error('Error refreshing session:', err);
+            ErrorLogger.error(err, 'AuthContext.refreshSession');
             setError(err as Error);
         }
     }, []);
@@ -84,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Nettoyer le stockage local si nécessaire
             localStorage.removeItem('last_org_id');
         } catch (err) {
-            console.error('Logout error:', err);
+            ErrorLogger.error(err, 'AuthContext.logout');
             throw err;
         }
     }, [setUser]);
@@ -174,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             console.warn("User role missing in Firestore, defaulting to admin for recovery");
                             userData.role = 'admin';
                             // Fix persistence immediately
-                            setDoc(userRef, { role: 'admin' }, { merge: true }).catch(e => console.error("Role auto-fix failed", e));
+                            setDoc(userRef, { role: 'admin' }, { merge: true }).catch(e => ErrorLogger.error(e, 'AuthContext.autoFixRole'));
                         }
 
                         // 2. Si l'utilisateur a une organisation mais onboarding non validé -> Auto-fix
@@ -182,7 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             console.warn("User has organization but onboarding not marked complete. Auto-fixing.");
                             userData.onboardingCompleted = true;
                             // Corriger la source en arrière-plan
-                            setDoc(userRef, { onboardingCompleted: true }, { merge: true }).catch(e => console.error("Auto-fix failed", e));
+                            setDoc(userRef, { onboardingCompleted: true }, { merge: true }).catch(e => ErrorLogger.error(e, 'AuthContext.autoFixOnboarding'));
                         }
 
                         if (!userData.organizationId && !userData.onboardingCompleted) {
@@ -243,13 +244,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             setLoading(false);
 
                         } catch (err) {
-                            console.error("Error creating user profile:", err);
+                            ErrorLogger.error(err, 'AuthContext.createUserProfile');
                             setError(err as Error);
                             setLoading(false); // Débloquer même en cas d'erreur pour afficher l'erreur
                         }
                     }
                 }, async (err) => {
-                    console.error('Error listening to user profile:', err);
+                    ErrorLogger.error(err, 'AuthContext.onSnapshot');
                     clearTimeout(safetyTimeout); // Clear timeout on error
 
                     // CRITICAL FIX: Do not use a permissive fallback for production.
@@ -261,7 +262,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         try {
                             await logout();
                         } catch (logoutErr) {
-                            console.error('Error during forced logout:', logoutErr);
+                            ErrorLogger.error(logoutErr, 'AuthContext.forcedLogout');
                             // Force local state cleanup even if firebase logout fails
                             setUser(null);
                             setFirebaseUser(null);
@@ -275,7 +276,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 });
 
             } catch (err) {
-                console.error('Error handling user session:', err);
+                ErrorLogger.error(err, 'AuthContext.handleUser');
                 setError(err as Error);
                 setLoading(false);
             }

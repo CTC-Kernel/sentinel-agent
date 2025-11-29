@@ -4,11 +4,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
 import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier } from '../../types';
 import { CheckCircle2 } from '../ui/Icons';
+import { ErrorLogger } from '../../services/errorLogger';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { RiskMatrixSelector } from './RiskMatrixSelector';
 import { AIAssistButton } from '../ai/AIAssistButton';
+import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 
 const STANDARD_THREATS = ["Panne matérielle serveur", "Incendie", "Inondation", "Vol d'équipement", "Attaque par Ransomware", "Phishing / Ingénierie Sociale", "Erreur humaine / Configuration", "Divulgation non autorisée", "Interruption de service FAI", "Sabotage interne", "Obsolescence technologique", "Perte de personnel clé"];
 
@@ -87,7 +89,9 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                 ownerId: resolvedOwnerId,
                 mitigationControlIds: existingRisk.mitigationControlIds || [],
                 affectedProcessIds: existingRisk.affectedProcessIds || [],
-                relatedSupplierIds: existingRisk.relatedSupplierIds || []
+                relatedSupplierIds: existingRisk.relatedSupplierIds || [],
+                treatment: existingRisk.treatment,
+                isSecureStorage: existingRisk.isSecureStorage || false
             });
         } else {
             reset({
@@ -103,7 +107,9 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                 ownerId: initialData?.ownerId || '',
                 mitigationControlIds: initialData?.mitigationControlIds || [],
                 affectedProcessIds: initialData?.affectedProcessIds || [],
-                relatedSupplierIds: initialData?.relatedSupplierIds || []
+                relatedSupplierIds: initialData?.relatedSupplierIds || [],
+                treatment: initialData?.treatment,
+                isSecureStorage: initialData?.isSecureStorage || false
             });
         }
     }, [existingRisk, initialData, reset, usersList]);
@@ -118,7 +124,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit, (errors) => console.error("RiskForm validation errors:", errors))} className="p-8 overflow-y-auto custom-scrollbar h-full">
+        <form onSubmit={handleSubmit(onSubmit, (errors) => ErrorLogger.warn("RiskForm validation errors", 'RiskForm.onSubmit', { metadata: { errors } }))} className="p-8 overflow-y-auto custom-scrollbar h-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
                     <Controller
@@ -278,13 +284,40 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             </div>
                         </div>
 
+                        <div className="flex items-center space-x-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                            <input
+                                type="checkbox"
+                                id="isSecureStorage"
+                                {...control.register('isSecureStorage')}
+                                className="h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500"
+                            />
+                            <label htmlFor="isSecureStorage" className="flex flex-col cursor-pointer">
+                                <span className="text-sm font-bold text-slate-900 dark:text-white">Stockage Sécurisé (SecNumCloud)</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400">Héberger ce risque critique sur le cloud souverain OVH</span>
+                            </label>
+                        </div>
+
                     </div>
                 </div>
-                <div className="bg-slate-50/80 dark:bg-slate-900/30 rounded-3xl p-6 border border-gray-100 dark:border-white/5 flex flex-col h-full">
-                    <label className="flex items-center text-xs font-bold uppercase tracking-widest text-brand-600 mb-4">
-                        <CheckCircle2 className="h-4 w-4 mr-2" /> Contrôles d'atténuation
-                    </label>
-                    <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar max-h-[400px]">
+
+                <div className="bg-slate-50/80 dark:bg-slate-900/30 rounded-3xl p-6 border border-gray-100 dark:border-white/5 flex flex-col h-full space-y-6">
+                    {/* Treatment Plan Section */}
+                    <div className="flex-1">
+                        <RiskTreatmentPlan
+                            risk={{ ...existingRisk, ...getValues() } as Risk}
+                            onUpdate={(treatment) => {
+                                setValue('strategy', treatment.strategy, { shouldDirty: true });
+                                setValue('status', treatment.status === 'Terminé' ? 'Fermé' : treatment.status === 'En cours' ? 'En cours' : 'Ouvert', { shouldDirty: true });
+                                setValue('treatment', treatment, { shouldDirty: true });
+                            }}
+                            users={usersList}
+                        />
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar max-h-[300px]">
+                        <label className="flex items-center text-xs font-bold uppercase tracking-widest text-brand-600 mb-4">
+                            <CheckCircle2 className="h-4 w-4 mr-2" /> Contrôles d'atténuation
+                        </label>
                         {controls.map(ctrl => (
                             <label key={ctrl.id} className={`flex items-start space-x-3 p-3.5 rounded-xl cursor-pointer transition-all border ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 border-brand-200 dark:border-brand-800 shadow-md' : 'border-transparent hover:bg-white dark:hover:bg-slate-800'}`}>
                                 <div className={`mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-brand-500 border-brand-500' : 'border-gray-300 bg-white dark:bg-black/20'}`}>
@@ -304,6 +337,6 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                 <button type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
                 <button type="submit" className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none">{isEditing ? 'Enregistrer les modifications' : 'Créer le Risque'}</button>
             </div>
-        </form>
+        </form >
     );
 };

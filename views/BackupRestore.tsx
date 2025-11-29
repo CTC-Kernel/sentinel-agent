@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
+import { ErrorLogger } from '../services/errorLogger';
 import { BackupService, BackupMetadata } from '../services/backupService';
 import { Save, RotateCcw, Clock, CheckCircle2, AlertTriangle, FileText, Shield, Users, Database, Download, Trash2, RefreshCw, HardDrive, Calendar, CalendarDays, HelpCircle } from '../components/ui/Icons';
 import { format } from 'date-fns';
@@ -134,7 +135,8 @@ export const BackupRestore: React.FC = () => {
         addToast("Erreur lors de la restauration", "error");
       }
     } catch (error) {
-      addToast("Erreur critique lors de la restauration", "error");
+      ErrorLogger.handleErrorWithToast(error, 'BackupRestore.handleRestore', 'UNKNOWN_ERROR');
+      addToast("Erreur lors de la restauration", "error");
     } finally {
       setLoading(false);
     }

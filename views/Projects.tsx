@@ -154,8 +154,7 @@ export const Projects: React.FC = () => {
             const snap = await getDocs(q);
             setLinkedAudits(snap.docs.map(d => ({ id: d.id, ...d.data() } as Audit)));
         } catch (e) {
-            console.error("Error fetching linked audits", e);
-            // Fallback or silent fail if index missing
+            ErrorLogger.handleErrorWithToast(e, 'Projects.fetchLinkedAudits', 'FETCH_FAILED');
         }
 
         // Fetch Linked Suppliers
@@ -164,7 +163,7 @@ export const Projects: React.FC = () => {
             const snap = await getDocs(q);
             setLinkedSuppliers(snap.docs.map(d => ({ id: d.id, ...d.data() } as Supplier)));
         } catch (e) {
-            console.error("Error fetching linked suppliers", e);
+            ErrorLogger.handleErrorWithToast(e, 'Projects.fetchLinkedSuppliers', 'FETCH_FAILED');
         }
     }, [user?.organizationId]);
 

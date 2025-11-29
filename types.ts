@@ -61,6 +61,19 @@ export interface Risk {
   affectedProcessIds?: string[];
   relatedSupplierIds?: string[];
   history?: RiskHistory[];
+  treatment?: RiskTreatment;
+  isSecureStorage?: boolean;
+}
+
+export interface RiskTreatment {
+  strategy: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
+  description?: string;
+  ownerId?: string;
+  dueDate?: string;
+  completedDate?: string;
+  status: 'Planifié' | 'En cours' | 'Terminé' | 'Retard';
+  slaStatus?: 'On Track' | 'At Risk' | 'Breached';
+  estimatedCost?: number;
 }
 
 export interface Control {
@@ -117,6 +130,24 @@ export interface Audit {
   relatedProjectIds?: string[];
   relatedControlIds?: string[];
   findings?: Finding[];
+  collaborators?: string[]; // User IDs of internal collaborators
+  externalAuditors?: string[]; // Emails of external auditors
+}
+
+export interface EvidenceRequest {
+  id: string;
+  auditId: string;
+  organizationId: string;
+  title: string;
+  description: string;
+  status: 'Pending' | 'Provided' | 'Accepted' | 'Rejected';
+  requestedBy: string; // User ID
+  assignedTo?: string; // User ID
+  dueDate?: string;
+  documentIds?: string[]; // Linked evidence documents
+  createdAt: string;
+  updatedAt: string;
+  relatedControlId?: string;
 }
 
 export interface Finding {

@@ -9,15 +9,17 @@ interface RiskAIAssistantProps {
     onUpdate?: (updates: Partial<Risk>) => void;
 }
 
-export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk }) => {
+export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate }) => {
     const [loading, setLoading] = useState(false);
-    const [response, setResponse] = useState<string | null>(null);
+    const [response, setResponse] = useState<any | null>(null);
     const [mode, setMode] = useState<'analyze' | 'mitigate' | 'improve' | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const handleAction = async (action: 'analyze' | 'mitigate' | 'improve') => {
         setLoading(true);
         setMode(action);
         setResponse(null);
+        setError(null);
         try {
             let prompt = '';
             if (action === 'analyze') {
@@ -28,10 +30,12 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk }) => {
                     Actif concerné (ID) : "${risk.assetId}"
                     
                     Estime la probabilité (1-5) et l'impact (1-5) avec une justification courte.
-                    Format de réponse attendu :
-                    Probabilité : [X]/5
-                    Impact : [Y]/5
-                    Justification : [Texte]
+                    Format de réponse JSON attendu :
+                    {
+                        "probability": number,
+                        "impact": number,
+                        "justification": "string"
+                    }
                 `;
             } else if (action === 'mitigate') {
                 prompt = `
@@ -39,7 +43,10 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk }) => {
                     Menace : "${risk.threat}"
                     Vulnérabilité : "${risk.vulnerability}"
                     
-                    Réponds sous forme de liste à puces.
+                    Format de réponse JSON attendu :
+                    {
+                        "measures": ["string", "string", "string"]
+                    }
                 `;
             } else if (action === 'improve') {
                 prompt = `
@@ -47,20 +54,59 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk }) => {
                     Menace actuelle : "${risk.threat}"
                     Vulnérabilité actuelle : "${risk.vulnerability}"
                     
-                    Format :
-                    Menace : [Nouvelle formulation]
-                    Vulnérabilité : [Nouvelle formulation]
+                    Format de réponse JSON attendu :
+                    {
+                        "threat": "string",
+                        "vulnerability": "string"
+                    }
                 `;
             }
 
-            const result = await aiService.generateText(prompt);
-            setResponse(result);
+            const resultText = await aiService.generateText(prompt);
+
+            // Try to parse JSON
+            try {
+                const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    setResponse(parsed);
+                } else {
+                    // Fallback for non-JSON response (should not happen with good prompt)
+                    setResponse({ text: resultText });
+                }
+            } catch (e) {
+                ErrorLogger.warn("Failed to parse AI response", 'RiskAIAssistant.handleAction', { metadata: { error: e } });
+                setResponse({ text: resultText });
+            }
+
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'RiskAIAssistant.handleAction', 'AI_ERROR');
-            setResponse("Désolé, une erreur est survenue lors de l'analyse.");
+            setError("Désolé, une erreur est survenue lors de l'analyse.");
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleApply = () => {
+        if (!onUpdate || !response) return;
+
+        if (mode === 'analyze' && response.probability && response.impact) {
+            onUpdate({
+                probability: response.probability,
+                impact: response.impact,
+                // @ts-ignore - justification is not in Risk type but we pass it for the handler
+                justification: response.justification
+            });
+        } else if (mode === 'improve' && response.threat && response.vulnerability) {
+            onUpdate({
+                threat: response.threat,
+                vulnerability: response.vulnerability
+            });
+        }
+        // For 'mitigate', we might need a more complex UI to add controls, 
+        // for now we just show them.
+
+        setResponse(null);
     };
 
     return (
@@ -102,6 +148,10 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk }) => {
                 </button>
             </div>
 
+            {error && (
+                <div className="text-xs text-red-500 mb-2">{error}</div>
+            )}
+
             {response && (
                 <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-indigo-100 dark:border-indigo-500/20 shadow-sm animate-fade-in">
                     <div className="flex justify-between items-start mb-2">
@@ -111,10 +161,38 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk }) => {
                         </h4>
                         <button onClick={() => setResponse(null)} className="text-slate-400 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>
                     </div>
+
                     <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                        {response}
+                        {mode === 'analyze' && response.probability && (
+                            <div>
+                                <p><strong>Probabilité suggérée :</strong> {response.probability}/5</p>
+                                <p><strong>Impact suggéré :</strong> {response.impact}/5</p>
+                                <p className="mt-2"><em>{response.justification}</em></p>
+                            </div>
+                        )}
+                        {mode === 'mitigate' && response.measures && (
+                            <ul className="list-disc pl-4 space-y-1">
+                                {response.measures.map((m: string, i: number) => <li key={i}>{m}</li>)}
+                            </ul>
+                        )}
+                        {mode === 'improve' && response.threat && (
+                            <div>
+                                <p><strong>Nouvelle Menace :</strong> {response.threat}</p>
+                                <p><strong>Nouvelle Vulnérabilité :</strong> {response.vulnerability}</p>
+                            </div>
+                        )}
+                        {response.text && <p>{response.text}</p>}
                     </div>
-                    {/* Future: Add "Apply" button if onUpdate is provided and response can be parsed */}
+
+                    {onUpdate && mode !== 'mitigate' && !response.text && (
+                        <button
+                            onClick={handleApply}
+                            className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors"
+                        >
+                            <ShieldCheck className="h-3.5 w-3.5 mr-2" />
+                            Appliquer les changements
+                        </button>
+                    )}
                 </div>
             )}
         </div>

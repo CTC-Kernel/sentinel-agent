@@ -151,8 +151,8 @@ export const Team: React.FC = () => {
             addToast("Invitation envoyée par email", "success");
             fetchUsers();
         } catch (error) {
-            console.error(error);
-            addToast("Erreur lors de l'invitation", "error");
+            ErrorLogger.handleErrorWithToast(error, 'Team.handleInvite', 'INVITE_FAILED');
+            addToast("Erreur invitation", "error");
         }
     };
 
@@ -182,8 +182,8 @@ export const Team: React.FC = () => {
             setShowEditModal(false);
             addToast("Utilisateur mis à jour", "success");
         } catch (error) {
-            console.error(error);
-            addToast("Erreur mise à jour", "error");
+            ErrorLogger.handleErrorWithToast(error, 'Team.handleUpdateRole', 'UPDATE_FAILED');
+            addToast("Erreur mise à jour rôle", "error");
         }
     };
 
@@ -301,7 +301,7 @@ export const Team: React.FC = () => {
             }
             setUsers(prev => prev.filter(user => user.uid !== u.uid));
         } catch (error) {
-            console.error(error);
+            ErrorLogger.handleErrorWithToast(error, 'Team.handleDeleteUser', 'DELETE_FAILED');
             addToast("Erreur suppression", "error");
         }
     };
