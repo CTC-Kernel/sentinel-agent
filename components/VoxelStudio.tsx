@@ -4,18 +4,10 @@ import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environ
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
-import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink } from '../types';
+import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, VoxelNode } from '../types';
 import { VoxelDetailOverlay } from './VoxelDetailOverlay';
 
-interface VoxelNode {
-  id: string;
-  type: 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier';
-  position: [number, number, number];
-  color: string;
-  size: number;
-  data: Asset | Risk | Project | Audit | Incident | Supplier;
-  connections: string[];
-}
+
 
 interface VoxelStudioProps {
   assets: Asset[];
@@ -745,7 +737,7 @@ const VoxelMesh: React.FC<{
         default:
           return (
             <mesh>
-              <boxGeometry args={[node.size, node.size, node.size]} />
+              <boxGeometry args={[(node as any).size || 1, (node as any).size || 1, (node as any).size || 1]} />
               <GlassMaterial {...sharedMaterialProps} />
               <EdgesWithColor />
             </mesh>
