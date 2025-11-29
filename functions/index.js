@@ -480,7 +480,7 @@ const mailReplyTo = defineString("MAIL_REPLY_TO", { default: "" });
 
 exports.processMailQueue = onDocumentCreated({
     document: "mail_queue/{docId}",
-    maxInstances: 1,      // CRITICAL: Force single instance to reuse connection pool
+    maxInstances: 10,      // Increased to allow better scaling
     concurrency: 50,      // Allow this single instance to handle multiple requests
     retry: false          // We handle retries manually with our scheduled function
 }, async (event) => {
@@ -607,13 +607,30 @@ exports.retryFailedEmails = onSchedule("every 5 minutes", async (event) => {
         .limit(20)
         .get();
 
-    const [retrySnap, errorSnap] = await Promise.all([retryQuery, errorQuery]);
+    // Query 3: Recover stuck PENDING emails (older than 10 mins)
+    // Note: We fetch PENDING and filter in memory to avoid needing a composite index on status+createdAt
+    const pendingQuery = admin.firestore().collection('mail_queue')
+        .where('status', '==', 'PENDING')
+        .limit(50)
+        .get();
 
-    const docsToProcess = [...retrySnap.docs, ...errorSnap.docs];
+    const [retrySnap, errorSnap, pendingSnap] = await Promise.all([retryQuery, errorQuery, pendingQuery]);
+
+    // Filter pendingSnap for old items
+    const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+    const stuckPendingDocs = pendingSnap.docs.filter(doc => {
+        const data = doc.data();
+        // Check createdAt. If missing, assume old.
+        if (!data.createdAt) return true;
+        const createdTime = data.createdAt.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+        return createdTime < tenMinutesAgo;
+    });
+
+    const docsToProcess = [...retrySnap.docs, ...errorSnap.docs, ...stuckPendingDocs];
 
     if (docsToProcess.length === 0) return;
 
-    console.log(`Retrying ${docsToProcess.length} emails (${retrySnap.size} pending, ${errorSnap.size} errors)...`);
+    console.log(`Retrying ${docsToProcess.length} emails (${retrySnap.size} pending retry, ${errorSnap.size} errors, ${stuckPendingDocs.length} stuck)...`);
 
     // Use a Map to deduplicate by ID just in case
     const uniqueDocs = new Map();
