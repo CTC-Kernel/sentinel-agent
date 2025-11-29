@@ -512,7 +512,7 @@ export const Assets: React.FC = () => {
                 isOpen={showInspector}
                 onClose={() => { setShowInspector(false); setSelectedAsset(null); }}
                 title={selectedAsset ? selectedAsset.name : 'Nouvel Actif'}
-                width="max-w-6xl"
+                width={creationMode ? "max-w-4xl" : "max-w-6xl"}
                 subtitle={
                     <div className="flex items-center gap-2">
                         <>

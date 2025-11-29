@@ -17,6 +17,8 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { Drawer } from '../components/ui/Drawer';
 
+import { canEditResource } from '../utils/permissions';
+
 export const Privacy: React.FC = () => {
     const [activities, setActivities] = useState<ProcessingActivity[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
@@ -24,7 +26,7 @@ export const Privacy: React.FC = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [filter, setFilter] = useState('');
     const { user, addToast } = useStore();
-    const canEdit = user?.role === 'admin' || user?.role === 'auditor';
+    const canEdit = canEditResource(user, 'ProcessingActivity');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Inspector State
@@ -610,6 +612,7 @@ export const Privacy: React.FC = () => {
                 onClose={() => setShowCreateModal(false)}
                 title="Nouveau Traitement"
                 subtitle="Ajoutez une nouvelle activité de traitement au registre."
+                width="max-w-4xl"
             >
                 <form onSubmit={createActivityForm.handleSubmit(handleCreate)} className="p-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
