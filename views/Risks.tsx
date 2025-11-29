@@ -5,7 +5,7 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
 
 import { RiskForm } from '../components/risks/RiskForm';
@@ -24,11 +24,13 @@ import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
 import { RiskTemplate, createRisksFromTemplate } from '../utils/riskTemplates';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { RiskAIAssistant } from '../components/risks/RiskAIAssistant';
+import { RiskRecommendationsModal } from '../components/risks/RiskRecommendationsModal';
 
 
 import { PageHeader } from '../components/ui/PageHeader';
 import { Drawer } from '../components/ui/Drawer';
 import { ErrorLogger } from '../services/errorLogger';
+import { hybridService } from '../services/hybridService';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useLocation } from 'react-router-dom';
@@ -48,12 +50,6 @@ export const Risks: React.FC = () => {
 
     useEffect(() => {
         if (risksError) {
-            console.error("Risks permission error details:", {
-                error: risksError,
-                userRole: user?.role,
-                userOrg: user?.organizationId,
-                code: (risksError as { code?: string })?.code
-            });
             ErrorLogger.handleErrorWithToast(risksError, 'Risks.fetch');
         }
     }, [risksError, user]);
@@ -118,6 +114,11 @@ export const Risks: React.FC = () => {
     const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || importing;
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
+    // AI Recommendations State
+    const [showRecommendations, setShowRecommendations] = useState(false);
+    const [recommendations, setRecommendations] = useState<any[]>([]);
+    const [analyzing, setAnalyzing] = useState(false);
+
     useEffect(() => {
         const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
         setStats({
@@ -146,7 +147,7 @@ export const Risks: React.FC = () => {
         setIsEditing(false);
 
         if (!user?.organizationId) {
-            console.warn("Cannot open inspector: User has no organization ID");
+            ErrorLogger.error("Cannot open inspector: User has no organization ID", 'Risks.openInspector');
             return;
         }
 
@@ -189,7 +190,7 @@ export const Risks: React.FC = () => {
             const cleanNewRisk = { ...sanitizeData(data), owner: ownerName };
 
             // Creation only
-            await addDoc(collection(db, 'risks'), {
+            const docRef = await addDoc(collection(db, 'risks'), {
                 ...cleanNewRisk,
                 organizationId: user.organizationId,
                 score,
@@ -197,12 +198,20 @@ export const Risks: React.FC = () => {
                 previousScore: score,
                 createdAt: new Date().toISOString()
             });
+
+            if (cleanNewRisk.isSecureStorage) {
+                await hybridService.storeSecureData('risk', {
+                    id: docRef.id,
+                    ...cleanNewRisk,
+                    organizationId: user.organizationId
+                });
+                addToast("Risque sécurisé sur OVH SecNumCloud", "success");
+            }
             await logAction(user, 'CREATE', 'Risk', `Ajout risque: ${cleanNewRisk.threat}`);
             addToast("Risque ajouté", "success");
             setCreationMode(false);
             refreshRisks();
         } catch (error) {
-            console.error("Risk creation error:", error);
             ErrorLogger.handleErrorWithToast(error, 'Risks.onSubmit', 'CREATE_FAILED');
         }
     };
@@ -220,7 +229,9 @@ export const Risks: React.FC = () => {
                 previousProbability: selectedRisk.probability,
                 newProbability: riskData.probability,
                 previousImpact: selectedRisk.impact,
-                newImpact: riskData.impact
+                newImpact: riskData.impact,
+                // Add justification if present (e.g. from AI)
+                reason: data.justification
             };
 
             const updatedHistory = [...(selectedRisk.history || []), historyEntry];
@@ -230,6 +241,15 @@ export const Risks: React.FC = () => {
                 score,
                 history: updatedHistory
             });
+
+            if (riskData.isSecureStorage) {
+                await hybridService.storeSecureData('risk', {
+                    id: selectedRisk.id,
+                    ...riskData,
+                    organizationId: user.organizationId
+                });
+                addToast("Données synchronisées avec OVH SecNumCloud", "success");
+            }
             await logAction(user, 'UPDATE', 'Risk', `Mise à jour risque: ${riskData.threat}`);
             addToast("Risque mis à jour", "success");
             setSelectedRisk({ ...selectedRisk, ...riskData, score, history: updatedHistory } as Risk);
@@ -452,6 +472,45 @@ export const Risks: React.FC = () => {
 
     const getRiskLevel = (score: number) => { if (score >= 15) return { label: 'Critique', color: 'bg-rose-500 text-white shadow-lg shadow-rose-500/30 border-rose-400' }; if (score >= 10) return { label: 'Élevé', color: 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 border-orange-400' }; if (score >= 5) return { label: 'Moyen', color: 'bg-amber-400 text-white shadow-lg shadow-amber-400/30 border-amber-300' }; return { label: 'Faible', color: 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 border-emerald-400' }; };
 
+    const handleGenerateReport = async () => {
+        try {
+            addToast("Génération du rapport PDF en cours...", "info");
+            const blob = await hybridService.generateReport('risks');
+            if (blob) {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Rapport_Risques_ISO27005_${new Date().toISOString().split('T')[0]}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                addToast("Rapport téléchargé avec succès", "success");
+            } else {
+                throw new Error("Erreur lors de la génération du rapport");
+            }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Risks.handleGenerateReport', 'UNKNOWN_ERROR');
+        }
+    };
+
+    const handleAIAnalysis = async () => {
+        try {
+            setAnalyzing(true);
+            setShowRecommendations(true);
+            const response = await hybridService.analyzeRisk();
+            if (response.success && response.data) {
+                setRecommendations(response.data.recommendations);
+            } else {
+                throw new Error(response.error || "Erreur lors de l'analyse");
+            }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Risks.handleAIAnalysis', 'UNKNOWN_ERROR');
+            setShowRecommendations(false);
+        } finally {
+            setAnalyzing(false);
+        }
+    };
+
     return (
         <div className="space-y-6 relative">
             <RiskTemplateModal
@@ -459,6 +518,13 @@ export const Risks: React.FC = () => {
                 onClose={() => setShowTemplateModal(false)}
                 onSelectTemplate={handleImportTemplate}
                 owners={usersList.map(u => u.displayName || u.email)}
+            />
+
+            <RiskRecommendationsModal
+                isOpen={showRecommendations}
+                onClose={() => setShowRecommendations(false)}
+                recommendations={recommendations}
+                isLoading={analyzing}
             />
 
             <ConfirmModal
@@ -484,6 +550,22 @@ export const Risks: React.FC = () => {
                         >
                             <Download className="h-4 w-4 mr-2" />
                             Importer Template
+                        </button>
+
+                        <button
+                            onClick={handleGenerateReport}
+                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+                        >
+                            <FileText className="h-4 w-4 mr-2 text-red-500" />
+                            Rapport PDF
+                        </button>
+
+                        <button
+                            onClick={handleAIAnalysis}
+                            className="flex items-center px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
+                        >
+                            <BrainCircuit className="h-4 w-4 mr-2" />
+                            Analyse IA
                         </button>
                         <button onClick={openCreationDrawer} className="flex items-center space-x-2 px-4 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
                             <Plus className="w-5 h-5" />
@@ -724,7 +806,10 @@ export const Risks: React.FC = () => {
                                                 </div>
                                             </div>
 
-                                            <RiskAIAssistant risk={selectedRisk} />
+                                            <RiskAIAssistant
+                                                risk={selectedRisk}
+                                                onUpdate={(updates) => handleUpdate({ ...selectedRisk, ...updates } as unknown as RiskFormData)}
+                                            />
 
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Stratégie de Traitement</h4>

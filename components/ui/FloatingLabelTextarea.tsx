@@ -5,7 +5,7 @@ interface FloatingLabelTextareaProps extends React.TextareaHTMLAttributes<HTMLTe
     error?: string;
 }
 
-export const FloatingLabelTextarea: React.FC<FloatingLabelTextareaProps> = ({
+export const FloatingLabelTextarea = React.forwardRef<HTMLTextAreaElement, FloatingLabelTextareaProps>(({
     label,
     error,
     className = '',
@@ -13,7 +13,7 @@ export const FloatingLabelTextarea: React.FC<FloatingLabelTextareaProps> = ({
     onFocus,
     onBlur,
     ...props
-}) => {
+}, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const hasValue = value !== undefined && value !== '';
 
@@ -39,6 +39,7 @@ export const FloatingLabelTextarea: React.FC<FloatingLabelTextareaProps> = ({
                 }
             `}>
                 <textarea
+                    ref={ref}
                     {...props}
                     value={value}
                     onFocus={handleFocus}
@@ -76,4 +77,6 @@ export const FloatingLabelTextarea: React.FC<FloatingLabelTextareaProps> = ({
             )}
         </div>
     );
-};
+});
+
+FloatingLabelTextarea.displayName = 'FloatingLabelTextarea';

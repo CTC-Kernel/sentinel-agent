@@ -325,7 +325,7 @@ export const Compliance: React.FC = () => {
             relevantLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setControlHistory(relevantLogs);
         } catch (error) {
-            console.error("Error fetching history", error);
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.fetchHistory', 'FETCH_FAILED');
         }
     };
 
