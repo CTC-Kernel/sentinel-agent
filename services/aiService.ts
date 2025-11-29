@@ -8,7 +8,7 @@ import { ErrorLogger } from "./errorLogger";
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const MODEL_NAME = "gemini-1.5-flash";
+const MODEL_NAME = "gemini-1.5-pro";
 
 interface GraphData {
     assets: Asset[];
