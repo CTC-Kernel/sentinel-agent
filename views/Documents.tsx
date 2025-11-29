@@ -481,7 +481,7 @@ export const Documents: React.FC = () => {
                                     ].map(tab => (
                                         <button
                                             key={tab.id}
-                                            onClick={() => setInspectorTab(tab.id as any)}
+                                            onClick={() => setInspectorTab(tab.id as 'details' | 'history' | 'comments')}
                                             className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                         >
                                             <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-blue-500' : 'opacity-70'}`} />

@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { ErrorLogger } from '../services/errorLogger';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 
-const StatCard: React.FC<{ title: string; value: string | number | null; icon: any; trend?: string; colorClass: string; delay?: string; onClick?: () => void }> = ({ title, value, icon: Icon, trend, colorClass, delay, onClick }) => (
+const StatCard: React.FC<{ title: string; value: string | number | null; icon: React.ElementType; trend?: string; colorClass: string; delay?: string; onClick?: () => void }> = ({ title, value, icon: Icon, trend, colorClass, delay, onClick }) => (
     <div onClick={onClick} className={`relative group glass - panel p - 6 rounded - [2rem] hover: shadow - apple transition - all duration - 500 hover: -translate - y - 1 overflow - hidden ${delay} border border - white / 60 dark: border - white / 5 cursor - pointer`}>
         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
         <div className="flex flex-col h-full justify-between relative z-10">
@@ -101,9 +101,9 @@ export const Dashboard: React.FC = () => {
                 setActiveIncidentsCount(incCount.data().count);
                 setOpenAuditsCount(auditCount.data().count);
                 setError(null);
-            } catch (error: any) {
+            } catch (error) {
                 ErrorLogger.handleErrorWithToast(error, 'Dashboard.fetchCounts', 'FETCH_FAILED');
-                if (error?.code === 'permission-denied') setError('permission-denied');
+                if ((error as any)?.code === 'permission-denied') setError('permission-denied');
             } finally {
                 setManualLoading(false);
             }
@@ -116,7 +116,7 @@ export const Dashboard: React.FC = () => {
 
     const historyData = React.useMemo(() => {
         return historyStats
-            .filter(d => typeof (d as any).compliance === 'number' && Number.isFinite((d as any).compliance))
+            .filter(d => typeof d.compliance === 'number' && Number.isFinite(d.compliance))
             .sort((a, b) => a.date.localeCompare(b.date));
     }, [historyStats]);
 
@@ -315,7 +315,7 @@ export const Dashboard: React.FC = () => {
                 y += 5;
 
                 const riskData = topRisks.map(r => [r.threat, r.score.toString(), r.strategy, r.status]);
-                (doc as any).autoTable({
+                doc.autoTable({
                     startY: y,
                     head: [['Menace', 'Score', 'Stratégie', 'Statut']],
                     body: riskData,
@@ -324,7 +324,7 @@ export const Dashboard: React.FC = () => {
                     margin: { left: 14, right: 14 }
                 });
 
-                y = (doc as any).lastAutoTable.finalY + 15;
+                y = doc.lastAutoTable.finalY + 15;
 
                 // Compliance Summary
                 doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
@@ -332,7 +332,7 @@ export const Dashboard: React.FC = () => {
                 y += 5;
 
                 const complianceData = radarData.map(d => [d.subject, `${d.A}%`]);
-                (doc as any).autoTable({
+                doc.autoTable({
                     startY: y,
                     head: [['Domaine', 'Score']],
                     body: complianceData,
@@ -535,35 +535,35 @@ export const Dashboard: React.FC = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
-                <button onClick={() => navigate('/voxel')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-lg transition-all group shadow-sm hover:border-purple-300 dark:hover:border-purple-500/50">
-                    <div className="p-3 bg-purple-50 dark:bg-purple-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                <button onClick={() => navigate('/voxel')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-purple-300 dark:hover:border-purple-500/50 active:scale-95">
+                    <div className="p-3 bg-purple-50 dark:bg-purple-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/30">
                         <Settings3D className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Voxel 3D</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Voxel 3D</span>
                 </button>
-                <button onClick={() => navigate('/incidents')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-lg transition-all group shadow-sm hover:border-red-300 dark:hover:border-red-500/50">
-                    <div className="p-3 bg-red-50 dark:bg-red-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                <button onClick={() => navigate('/incidents')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-red-300 dark:hover:border-red-500/50 active:scale-95">
+                    <div className="p-3 bg-red-50 dark:bg-red-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-red-100 dark:group-hover:bg-red-500/30">
                         <Siren className="h-6 w-6 text-red-600 dark:text-red-400" />
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Incidents</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">Incidents</span>
                 </button>
-                <button onClick={() => navigate('/risks')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-lg transition-all group shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50">
-                    <div className="p-3 bg-orange-50 dark:bg-orange-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                <button onClick={() => navigate('/risks')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50 active:scale-95">
+                    <div className="p-3 bg-orange-50 dark:bg-orange-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/30">
                         <ShieldAlert className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Risques</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Risques</span>
                 </button>
-                <button onClick={() => navigate('/assets')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-lg transition-all group shadow-sm hover:border-blue-300 dark:hover:border-blue-500/50">
-                    <div className="p-3 bg-blue-50 dark:bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                <button onClick={() => navigate('/assets')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-blue-300 dark:hover:border-blue-500/50 active:scale-95">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30">
                         <Server className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Actifs</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Actifs</span>
                 </button>
-                <button onClick={() => navigate('/team')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-lg transition-all group shadow-sm hover:border-emerald-300 dark:hover:border-emerald-500/50">
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                <button onClick={() => navigate('/team')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-emerald-300 dark:hover:border-emerald-500/50 active:scale-95">
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/30">
                         <User className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Équipe</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Équipe</span>
                 </button>
             </div>
 

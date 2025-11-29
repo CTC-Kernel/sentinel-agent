@@ -125,7 +125,7 @@ export const Settings: React.FC = () => {
             profileForm.reset({
                 displayName: user.displayName || '',
                 department: user.department || '',
-                role: (user.role as any) || 'user'
+                role: (user.role as UserProfile['role']) || 'user'
             });
             fetchOrgDetails();
         }
@@ -331,8 +331,8 @@ export const Settings: React.FC = () => {
                 await updatePassword(currentUser, data.newPassword);
                 addToast("Mot de passe modifié avec succès", "success");
                 passwordForm.reset();
-            } catch (error: any) {
-                if (error.code === 'auth/requires-recent-login') {
+            } catch (error) {
+                if ((error as any).code === 'auth/requires-recent-login') {
                     addToast("Veuillez vous reconnecter pour changer le mot de passe", "error");
                 } else {
                     ErrorLogger.handleErrorWithToast(error, 'Settings.handleChangePassword', 'UPDATE_FAILED');
@@ -513,7 +513,7 @@ export const Settings: React.FC = () => {
             } else {
                 await SubscriptionService.manageSubscription(user.organizationId);
             }
-        } catch (error: any) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Settings.handleManageSubscription', 'UNKNOWN_ERROR');
         } finally {
             setSubLoading(false);
@@ -531,9 +531,9 @@ export const Settings: React.FC = () => {
                     await AccountService.deleteAccount(user, auth.currentUser);
                     addToast("Compte supprimé avec succès", "success");
                     // Redirect handled by auth state change in App.tsx
-                } catch (e: any) {
+                } catch (e) {
                     ErrorLogger.handleErrorWithToast(e, 'Settings.handleDeleteAccount', 'DELETE_FAILED');
-                    if (e.code === 'auth/requires-recent-login') {
+                    if ((e as any).code === 'auth/requires-recent-login') {
                         addToast("Veuillez vous reconnecter pour supprimer votre compte", "error");
                     } else {
                         ErrorLogger.handleErrorWithToast(e, 'Settings.handleDeleteAccount', 'DELETE_FAILED');
@@ -895,7 +895,7 @@ export const Settings: React.FC = () => {
                                     <div className="flex items-center gap-3">
                                         <select
                                             value={u.role}
-                                            onChange={(e) => handleUpdateUserRole(u.uid, e.target.value as any)}
+                                            onChange={(e) => handleUpdateUserRole(u.uid, e.target.value as UserProfile['role'])}
                                             disabled={u.uid === user.uid}
                                             className="text-xs font-bold bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500"
                                         >

@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import 'jspdf-autotable';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, limit, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, ProjectMilestone, ProjectTemplate, Audit, Supplier } from '../types';
@@ -381,8 +382,7 @@ export const Projects: React.FC = () => {
                     ['Échéance', selectedProject.dueDate ? new Date(selectedProject.dueDate).toLocaleDateString() : '-'],
                     ['Risques Liés', (selectedProject.relatedRiskIds?.length || 0).toString()]
                 ];
-
-                (doc as any).autoTable({
+                doc.autoTable({
                     startY: y,
                     body: summaryData,
                     theme: 'plain',
@@ -390,7 +390,7 @@ export const Projects: React.FC = () => {
                     columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
                 });
 
-                y = (doc as any).lastAutoTable.finalY + 15;
+                y = doc.lastAutoTable.finalY + 15;
 
                 // Description
                 doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
@@ -408,7 +408,7 @@ export const Projects: React.FC = () => {
                 y += 8;
 
                 const tasksData = selectedProject.tasks.map(t => [t.title, t.status]);
-                (doc as any).autoTable({
+                doc.autoTable({
                     startY: y,
                     head: [['Tâche', 'Statut']],
                     body: tasksData,
@@ -688,7 +688,7 @@ export const Projects: React.FC = () => {
                                             { id: 'comments', label: 'Commentaires', icon: MessageSquare }
                                         ]}
                                         activeTab={inspectorTab}
-                                        onTabChange={(id) => setInspectorTab(id as any)}
+                                        onTabChange={(id) => setInspectorTab(id as 'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt')}
                                     />
                                 </div>
 
@@ -1027,7 +1027,7 @@ export const Projects: React.FC = () => {
                 onClose={() => { setCreationMode(false); setEditingProject(null); }}
                 title={editingProject ? "Modifier le Projet" : "Nouveau Projet"}
                 subtitle={editingProject ? editingProject.name : "Création"}
-                width="max-w-4xl"
+                width="max-w-6xl"
             >
                 <ProjectForm
                     onCancel={() => { setCreationMode(false); setEditingProject(null); }}

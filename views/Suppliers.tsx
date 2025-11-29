@@ -572,7 +572,7 @@ export const Suppliers: React.FC = () => {
                 onClose={() => setSelectedSupplier(null)}
                 title={selectedSupplier?.name || ''}
                 subtitle={selectedSupplier ? `${selectedSupplier.category} • ${selectedSupplier.status}` : ''}
-                width="max-w-2xl"
+                width="max-w-6xl"
                 actions={
                     <div className="flex gap-2">
                         {canEdit && !isEditing && (

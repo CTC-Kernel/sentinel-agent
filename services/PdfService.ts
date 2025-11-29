@@ -3,13 +3,7 @@ import 'jspdf-autotable';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-// Extend jsPDF type for autotable
-declare module 'jspdf' {
-    interface jsPDF {
-        autoTable: (options: any) => jsPDF;
-        lastAutoTable: { finalY: number };
-    }
-}
+
 
 interface ReportOptions {
     title: string;

@@ -51,7 +51,7 @@ export const Risks: React.FC = () => {
                 error: risksError,
                 userRole: user?.role,
                 userOrg: user?.organizationId,
-                code: (risksError as any).code
+                code: (risksError as { code?: string })?.code
             });
             ErrorLogger.handleErrorWithToast(risksError, 'Risks.fetch');
         }
@@ -201,6 +201,7 @@ export const Risks: React.FC = () => {
             setCreationMode(false);
             refreshRisks();
         } catch (error) {
+            console.error("Risk creation error:", error);
             ErrorLogger.handleErrorWithToast(error, 'Risks.onSubmit', 'CREATE_FAILED');
         }
     };
@@ -639,7 +640,7 @@ export const Risks: React.FC = () => {
                         </div>
                     )
                 }
-                width={creationMode || isEditing ? "max-w-4xl" : undefined}
+                width={creationMode || isEditing ? "max-w-4xl" : "max-w-6xl"}
                 actions={
                     !creationMode && (
                         <>
@@ -759,7 +760,7 @@ export const Risks: React.FC = () => {
                                                         <button
                                                             key={s}
                                                             type="button"
-                                                            onClick={() => handleStrategyChange(selectedRisk, s as any)}
+                                                            onClick={() => handleStrategyChange(selectedRisk, s as Risk['strategy'])}
                                                             className={`
                                                         px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
                                                         ${selectedRisk.strategy === s
