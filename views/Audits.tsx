@@ -226,7 +226,12 @@ export const Audits: React.FC = () => {
         } else {
             // Create new audit
             try {
-                await addDoc(collection(db, 'audits'), { ...data, organizationId: user.organizationId, findingsCount: 0 });
+                await addDoc(collection(db, 'audits'), {
+                    ...data,
+                    organizationId: user.organizationId,
+                    findingsCount: 0,
+                    createdBy: user.uid // Track creator for Segregation of Duties
+                });
                 await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${data.name}`);
 
                 // Send notification
@@ -768,6 +773,33 @@ export const Audits: React.FC = () => {
                                             <Trash2 className="h-5 w-5" />
                                         </button>
                                         <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-2"></div>
+
+                                        {/* Validation Button (Segregation of Duties) */}
+                                        {selectedAudit.status !== 'Validé' && canEdit && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (selectedAudit.createdBy === user?.uid) {
+                                                        addToast("Ségrégation des tâches : Vous ne pouvez pas valider un audit que vous avez créé.", "error");
+                                                        return;
+                                                    }
+                                                    try {
+                                                        await updateDoc(doc(db, 'audits', selectedAudit.id), { status: 'Validé' });
+                                                        await logAction(user, 'VALIDATE', 'Audit', `Audit validé: ${selectedAudit.name}`);
+                                                        addToast("Audit validé avec succès", "success");
+                                                        refreshAudits();
+                                                        setSelectedAudit({ ...selectedAudit, status: 'Validé' });
+                                                    } catch (e) {
+                                                        ErrorLogger.handleErrorWithToast(e, 'Audits.validate', 'UPDATE_FAILED');
+                                                    }
+                                                }}
+                                                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-colors shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+                                                title={selectedAudit.createdBy === user?.uid ? "Vous ne pouvez pas valider votre propre audit" : "Valider l'audit"}
+                                            >
+                                                <CheckCheck className="h-4 w-4" />
+                                                <span className="hidden sm:inline">Valider</span>
+                                            </button>
+                                        )}
+
                                         <button onClick={generateAuditReport} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-blue-500" title="Rapport d'Audit">
                                             <FileText className="h-5 w-5" />
                                         </button>

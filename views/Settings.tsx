@@ -12,6 +12,7 @@ import { logAction } from '../services/logger';
 import { hasPermission } from '../utils/permissions';
 import { SubscriptionService } from '../services/subscriptionService';
 import { AccountService } from '../services/accountService';
+import { hybridService } from '../services/hybridService';
 import { Organization } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
 import { LegalModal } from '../components/ui/LegalModal';
@@ -368,6 +369,17 @@ export const Settings: React.FC = () => {
                 const snap = await getDocs(q);
                 exportData[colName] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             }));
+
+            // Fetch secure data from hybrid backend (GDPR Data Portability)
+            try {
+                const response = await hybridService.exportOrganizationSecureData();
+                if (response.success && response.data) {
+                    exportData['secure_risk_data'] = response.data.secure_data || [];
+                }
+            } catch (e) {
+                console.warn('Failed to fetch secure data for export', e);
+                exportData['secure_risk_data_error'] = 'Failed to retrieve secure data';
+            }
 
             exportData['exportedAt'] = new Date().toISOString();
             exportData['organizationId'] = user.organizationId;

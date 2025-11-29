@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Risk, RiskTreatment, Criticality } from '../../types';
 import { Calendar, AlertTriangle, CheckCircle2, Clock, User, DollarSign } from '../ui/Icons';
 import { format, addDays, isAfter, parseISO } from 'date-fns';
@@ -11,13 +11,6 @@ interface RiskTreatmentPlanProps {
 }
 
 export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUpdate, users }) => {
-    const [treatment, setTreatment] = useState<RiskTreatment>(risk.treatment || {
-        strategy: risk.strategy || 'Atténuer',
-        status: 'Planifié',
-        description: '',
-        ownerId: risk.ownerId
-    });
-
     // Default SLAs (in days)
     const SLA_DAYS = {
         [Criticality.CRITICAL]: 7,
@@ -26,43 +19,60 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
         [Criticality.LOW]: 180
     };
 
-    // Calculate SLA Due Date if not set
-    useEffect(() => {
-        if (!treatment.dueDate && risk.createdAt) {
+    // Helper to calculate SLA status
+    const calculateSLAStatus = (dueDate: string | undefined, status: string): 'On Track' | 'At Risk' | 'Breached' => {
+        if (!dueDate) return 'On Track';
+
+        const today = new Date();
+        const due = parseISO(dueDate);
+
+        if (isAfter(today, due) && status !== 'Terminé') {
+            return 'Breached';
+        } else if (status !== 'Terminé') {
+            // Warning if within 3 days
+            const warningDate = addDays(today, 3);
+            if (isAfter(warningDate, due)) {
+                return 'At Risk';
+            }
+        }
+        return 'On Track';
+    };
+
+    const [treatment, setTreatment] = useState<RiskTreatment>(() => {
+        const initial: RiskTreatment = risk.treatment ? { ...risk.treatment } : {
+            strategy: risk.strategy || 'Atténuer',
+            status: 'Planifié',
+            description: '',
+            ownerId: risk.ownerId
+        };
+
+        // Calculate default due date if not present
+        if (!initial.dueDate && risk.createdAt) {
             const days = SLA_DAYS[risk.score >= 15 ? Criticality.CRITICAL :
                 risk.score >= 10 ? Criticality.HIGH :
                     risk.score >= 5 ? Criticality.MEDIUM : Criticality.LOW];
 
             const suggestedDate = addDays(parseISO(risk.createdAt), days);
-            setTreatment(prev => ({ ...prev, dueDate: format(suggestedDate, 'yyyy-MM-dd') }));
+            const formattedDate = format(suggestedDate, 'yyyy-MM-dd');
+
+            initial.dueDate = formattedDate;
+            initial.slaStatus = calculateSLAStatus(formattedDate, initial.status || 'Planifié');
         }
-    }, [risk.score, risk.createdAt]);
 
-    // Check SLA Status
-    useEffect(() => {
-        if (treatment.dueDate) {
-            const today = new Date();
-            const due = parseISO(treatment.dueDate);
-            let status: 'On Track' | 'At Risk' | 'Breached' = 'On Track';
-
-            if (isAfter(today, due) && treatment.status !== 'Terminé') {
-                status = 'Breached';
-            } else if (treatment.status !== 'Terminé') {
-                // Warning if within 3 days
-                const warningDate = addDays(today, 3);
-                if (isAfter(warningDate, due)) {
-                    status = 'At Risk';
-                }
-            }
-
-            if (status !== treatment.slaStatus) {
-                setTreatment(prev => ({ ...prev, slaStatus: status }));
-            }
-        }
-    }, [treatment.dueDate, treatment.status]);
+        return initial;
+    });
 
     const handleChange = (field: keyof RiskTreatment, value: any) => {
         const updated = { ...treatment, [field]: value };
+
+        // Recalculate SLA if relevant fields change
+        if (field === 'dueDate' || field === 'status') {
+            updated.slaStatus = calculateSLAStatus(
+                field === 'dueDate' ? value : treatment.dueDate,
+                field === 'status' ? value : (treatment.status || 'Planifié')
+            );
+        }
+
         setTreatment(updated);
         onUpdate(updated);
     };

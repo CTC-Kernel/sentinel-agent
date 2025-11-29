@@ -96,6 +96,47 @@ class HybridService {
     }
 
     /**
+     * Log user consent for GDPR compliance
+     */
+    async logConsent(documentType: string, accepted: boolean = true): Promise<HybridResponse> {
+        return this.request('/consent/log', {
+            method: 'POST',
+            body: JSON.stringify({
+                document_type: documentType,
+                accepted,
+                version: '1.0' // Should be dynamic in production
+            }),
+        });
+    }
+
+    /**
+     * Delete secure data (Right to Erasure)
+     */
+    async deleteSecureData(dataType: string, id: string): Promise<HybridResponse> {
+        return this.request(`/secure-storage/${dataType}/${id}`, {
+            method: 'DELETE',
+        });
+    }
+
+    /**
+     * Wipe all secure data for the organization
+     */
+    async wipeOrganizationSecureData(): Promise<HybridResponse> {
+        return this.request('/secure-storage/organization/wipe', {
+            method: 'DELETE',
+        });
+    }
+
+    /**
+     * Export all secure data for the organization (Data Portability)
+     */
+    async exportOrganizationSecureData(): Promise<HybridResponse> {
+        return this.request('/secure-storage/organization/export', {
+            method: 'GET',
+        });
+    }
+
+    /**
      * Generate a PDF report using the backend's reporting engine
      */
     async generateReport(reportType: 'risks' | 'compliance' | 'audit'): Promise<Blob | null> {
