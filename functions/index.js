@@ -1,5 +1,7 @@
 
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey('***REDACTED***');
 
 const getJoinRequestEmailHtml = (requesterName, requesterEmail, orgName, link) => `
 <div style="font-family: sans-serif; padding: 20px;">
@@ -500,69 +502,40 @@ exports.processMailQueue = onDocumentCreated({
 /**
  * Helper function to attempt sending an email with retry logic.
  */
+/**
+ * Helper function to attempt sending an email with retry logic using SendGrid.
+ */
 async function attemptSendEmail(docRef, data) {
-    const host = smtpHost.value();
-    const user = smtpUser.value();
-    const pass = smtpPass.value();
-
-    // Check for placeholder values
-    if (host === "smtp.ethereal.email" && user === "placeholder_user") {
-        const msg = "WARNING: Using placeholder SMTP settings. Configure SMTP_HOST, SMTP_USER, SMTP_PASS via Firebase secrets/params.";
-        console.warn(msg);
-        return docRef.update({
-            status: "CONFIG_ERROR",
-            error: msg,
-            attempts: 0
-        });
-    }
-
-    // Initialize transporter if not exists
-    if (!transporter) {
-        transporter = nodemailer.createTransport({
-            host: host,
-            port: smtpPort.value(),
-            secure: smtpPort.value() === 465,
-            pool: true, // Use pooled connections
-            maxConnections: 3, // Limit concurrent connections to avoid 454
-            rateLimit: 10, // Helper to pace sending
-            auth: {
-                user: user,
-                pass: pass,
-            },
-        });
-    }
-
     try {
         console.log(`Processing email for ${data.to}`);
 
-        const mailOptions = {
-            from: mailFrom.value(),
+        const msg = {
             to: data.to,
+            from: 'contact@cyber-threat-consulting.com', // Verified sender
             subject: data.message.subject,
             html: data.message.html,
         };
 
         if (mailReplyTo.value()) {
-            mailOptions.replyTo = mailReplyTo.value();
+            msg.replyTo = mailReplyTo.value();
         }
 
-        // Send email
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Message sent: %s", info.messageId);
+        // Send email via SendGrid
+        const info = await sgMail.send(msg);
+        console.log("Message sent via SendGrid");
 
         // Update Firestore document status
         return docRef.update({
             status: "SENT",
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
-            messageId: info.messageId,
-            deliveryInfo: info.response,
+            deliveryInfo: info[0].statusCode,
         });
     } catch (error) {
         console.error("Error sending email:", error);
 
         // Determine if error is transient
-        // 4xx errors are typically transient (e.g., 454, 421)
-        const responseCode = error.responseCode || (error.message && parseInt(error.message.substring(0, 3)));
+        // SendGrid errors usually have a code or response.body.errors
+        const responseCode = error.code;
         const isTransient = responseCode && responseCode >= 400 && responseCode < 500;
         const currentAttempts = data.attempts || 0;
         const MAX_ATTEMPTS = 5;

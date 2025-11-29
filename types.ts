@@ -558,3 +558,18 @@ export interface JoinRequest {
   rejectedBy?: string;
   rejectedAt?: string;
 }
+
+export type DataNode =
+  | { id: string; type: 'asset'; data: Asset }
+  | { id: string; type: 'risk'; data: Risk }
+  | { id: string; type: 'project'; data: Project }
+  | { id: string; type: 'audit'; data: Audit }
+  | { id: string; type: 'incident'; data: Incident }
+  | { id: string; type: 'supplier'; data: Supplier };
+
+export type VoxelNode = DataNode & {
+  position: [number, number, number];
+  color: string;
+  size: number;
+  connections: string[];
+};
