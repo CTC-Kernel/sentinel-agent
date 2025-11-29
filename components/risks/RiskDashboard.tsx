@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { Risk } from '../../types';
-import { AlertTriangle, TrendingUp, TrendingDown, ShieldAlert, Target, CheckCircle2 } from '../ui/Icons';
+import { ShieldAlert, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, Target, Clock } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, ZAxis } from 'recharts';
 
 interface RiskDashboardProps {
@@ -61,7 +61,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
     return (
         <div className="space-y-6">
             {/* Metrics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {/* Total Risks */}
                 <div
                     onClick={() => onFilterChange?.(null)}
@@ -122,6 +122,32 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                     </div>
                     <div className="text-3xl font-bold text-green-700 dark:text-green-400">{riskReduction.toFixed(0)}%</div>
                     <div className="text-xs text-green-600 dark:text-green-500 mt-1">Efficacité traitements</div>
+                </div>
+
+                {/* SLA Status */}
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">SLA Traitement</span>
+                        <Clock className="h-5 w-5 text-orange-500" />
+                    </div>
+                    <div className="flex items-end gap-2">
+                        <div className="text-3xl font-bold text-slate-900 dark:text-white">
+                            {risks.filter(r => r.treatment?.slaStatus === 'On Track').length}
+                        </div>
+                        <span className="text-sm text-slate-400 mb-1">/ {risks.filter(r => r.treatment?.slaStatus).length || 0}</span>
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                        {risks.filter(r => r.treatment?.slaStatus === 'Breached').length > 0 && (
+                            <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+                                {risks.filter(r => r.treatment?.slaStatus === 'Breached').length} Dépassés
+                            </span>
+                        )}
+                        {risks.filter(r => r.treatment?.slaStatus === 'At Risk').length > 0 && (
+                            <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
+                                {risks.filter(r => r.treatment?.slaStatus === 'At Risk').length} À risque
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 

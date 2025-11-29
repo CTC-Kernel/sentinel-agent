@@ -430,3 +430,27 @@ export const getMaintenanceTemplate = (assetName: string, maintenanceDate: strin
     </div>
   `;
 };
+
+export const getAuditInvitationTemplate = (inviterName: string, auditName: string, role: string, link: string) => {
+  return `
+    <div style="${BASE_STYLES}">
+      ${HEADER}
+      <div style="padding: 32px 0;">
+        <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">Invitation à un Audit</h2>
+        <p>Bonjour,</p>
+        <p><strong>${inviterName}</strong> vous invite à collaborer sur l'audit <strong>"${auditName}"</strong> en tant que <strong>${role}</strong>.</p>
+        
+        <div style="background-color: #f1f5f9; padding: 16px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0; color: #64748b; font-size: 14px;">Vous aurez accès aux constats, aux preuves et à la checklist de cet audit.</p>
+        </div>
+
+        <div style="text-align: center;">
+          <a href="${link}" style="${BUTTON_STYLE}">Accéder à l'audit</a>
+        </div>
+        
+        <p style="font-size: 13px; color: #64748b; margin-top: 24px;">Si vous n'avez pas encore de compte, vous serez invité à en créer un.</p>
+      </div>
+      ${FOOTER}
+    </div>
+  `;
+};

@@ -62,7 +62,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
 
     // STRICT RBAC FILTERING
     switch (item.name) {
-      case 'Incidents': return hasPermission(user, 'Risk', 'read');
+      case 'Incidents': return hasPermission(user, 'Incident', 'read');
       case 'Projets SSI': return hasPermission(user, 'Project', 'read');
       case 'Gestion des Risques': return hasPermission(user, 'Risk', 'read');
       case 'Audits': return hasPermission(user, 'Audit', 'read');

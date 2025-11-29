@@ -7,11 +7,14 @@ import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
 import { SeveritySelector } from '../components/audits/SeveritySelector';
 import { FileUploader } from '../components/ui/FileUploader';
 import { AIAssistButton } from '../components/ai/AIAssistButton';
-import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk, Project } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target, Edit, FileText, Calendar, AlertTriangle } from '../components/ui/Icons';
+import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
+import { AuditTeam } from '../components/audits/AuditTeam';
+import { Comments } from '../components/ui/Comments';
+import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare } from '../components/ui/Icons';
 
 import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
@@ -108,7 +111,7 @@ export const Audits: React.FC = () => {
     const [findings, setFindings] = useState<Finding[]>([]);
     const [showFindingsDrawer, setShowFindingsDrawer] = useState(false);
     const [checklist, setChecklist] = useState<AuditChecklist | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist' | 'scope'>('findings');
+    const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist' | 'scope' | 'collaboration' | 'evidence' | 'team'>('findings');
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -132,6 +135,8 @@ export const Audits: React.FC = () => {
     const handleEvidenceUpload = async (url: string, fileName: string) => {
         if (!user?.organizationId || !selectedAudit) return;
         try {
+            const relatedControlId = findingForm.getValues('relatedControlId');
+
             // Auto-create Document
             const docRef = await addDoc(collection(db, 'documents'), {
                 title: `Preuve - ${fileName} `,
@@ -144,12 +149,21 @@ export const Audits: React.FC = () => {
                 ownerId: user.uid,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                relatedAuditIds: [selectedAudit.id]
+                relatedAuditIds: [selectedAudit.id],
+                relatedControlIds: relatedControlId ? [relatedControlId] : []
             });
 
             // Link to new finding
             const currentIds = findingForm.getValues('evidenceIds') || [];
             findingForm.setValue('evidenceIds', [...currentIds, docRef.id]);
+
+            // Link to Control (if applicable)
+            if (relatedControlId) {
+                await updateDoc(doc(db, 'controls', relatedControlId), {
+                    evidenceIds: arrayUnion(docRef.id)
+                });
+            }
+
             addToast("Preuve téléversée et liée", "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Audits.handleEvidenceUpload', 'FILE_UPLOAD_FAILED');
@@ -181,7 +195,7 @@ export const Audits: React.FC = () => {
             if (!cSnap.empty) setChecklist({ id: cSnap.docs[0].id, ...cSnap.docs[0].data() } as AuditChecklist);
             else setChecklist(null);
         } catch (error) {
-            console.error(error);
+            ErrorLogger.handleErrorWithToast(error, 'Audits.handleOpenAudit', 'FETCH_FAILED');
             setFindings([]);
             setChecklist(null);
         }
@@ -238,7 +252,7 @@ export const Audits: React.FC = () => {
                 setCreationMode(false);
                 refreshAudits();
             } catch (error) {
-                console.error(error);
+                ErrorLogger.handleErrorWithToast(error, 'Audits.handleAuditFormSubmit', 'CREATE_FAILED');
                 addToast("Erreur création audit", "error");
             }
         }
@@ -265,7 +279,7 @@ export const Audits: React.FC = () => {
             findingForm.reset({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
             addToast("Constat ajouté", "success");
         } catch (error) {
-            console.error(error);
+            ErrorLogger.handleErrorWithToast(error, 'Audits.handleAddFinding', 'CREATE_FAILED');
             addToast("Erreur ajout constat", "error");
         }
     };
@@ -290,7 +304,7 @@ export const Audits: React.FC = () => {
             setFindings(prev => prev.filter(f => f.id !== findingId));
             addToast("Constat supprimé", "info");
         } catch (error) {
-            console.error(error);
+            ErrorLogger.handleErrorWithToast(error, 'Audits.handleDeleteFinding', 'DELETE_FAILED');
             addToast("Erreur suppression", "error");
         }
     };
@@ -324,25 +338,61 @@ export const Audits: React.FC = () => {
             await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name} `);
             addToast("Audit et constats supprimés", "info");
         } catch (error) {
-            console.error(error);
+            ErrorLogger.handleErrorWithToast(error, 'Audits.handleDeleteAudit', 'DELETE_FAILED');
             addToast("Erreur suppression", "error");
         }
     };
 
     const generateChecklist = async () => {
         if (!selectedAudit || !user?.organizationId) return;
+
+        // Check if checklist already exists
+        if (checklist) {
+            if (!window.confirm("Une checklist existe déjà. Voulez-vous la régénérer ? Cela effacera les réponses actuelles.")) return;
+        }
+
+        addToast("Génération de la checklist IA en cours...", "info");
+
         try {
             const scopeControlIds = selectedAudit.relatedControlIds || [];
             const controlsToAudit = scopeControlIds.length > 0
                 ? controls.filter(c => scopeControlIds.includes(c.id))
                 : controls;
 
-            const questions: AuditQuestion[] = controlsToAudit.map(c => ({
-                id: Math.random().toString(36).substr(2, 9),
-                controlCode: c.code,
-                question: `Le contrôle ${c.code} (${c.name}) est - il implémenté et efficace ? `,
-                response: 'Non-applicable'
-            }));
+            if (controlsToAudit.length === 0) {
+                addToast("Aucun contrôle dans le périmètre de l'audit.", "info");
+                return;
+            }
+
+            // Use AI to generate specific questions
+            const aiResponse = await import('../services/aiService').then(m => m.aiService.generateAuditChecklist(
+                controlsToAudit.map(c => ({ code: c.code, name: c.name, description: c.description || '' })),
+                `Audit: ${selectedAudit.name} (${selectedAudit.type})`
+            ));
+
+            const questions: AuditQuestion[] = [];
+
+            controlsToAudit.forEach(c => {
+                const aiData = aiResponse.find(r => r.controlCode === c.code);
+                if (aiData && aiData.questions.length > 0) {
+                    aiData.questions.forEach(qText => {
+                        questions.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            controlCode: c.code,
+                            question: qText,
+                            response: 'Non-applicable'
+                        });
+                    });
+                } else {
+                    // Fallback
+                    questions.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        controlCode: c.code,
+                        question: `Le contrôle ${c.code} (${c.name}) est-il implémenté et efficace ?`,
+                        response: 'Non-applicable'
+                    });
+                }
+            });
 
             const newChecklist = {
                 auditId: selectedAudit.id,
@@ -352,12 +402,19 @@ export const Audits: React.FC = () => {
                 completedAt: new Date().toISOString()
             };
 
-            const ref = await addDoc(collection(db, 'audit_checklists'), newChecklist);
-            setChecklist({ ...newChecklist, id: ref.id });
-            addToast("Checklist générée", "success");
+            // If updating existing, delete old one first or update doc
+            // For simplicity, we'll treat it as a new/update
+            if (checklist) {
+                await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions });
+                setChecklist({ ...checklist, questions });
+            } else {
+                const ref = await addDoc(collection(db, 'audit_checklists'), newChecklist);
+                setChecklist({ ...newChecklist, id: ref.id });
+            }
+
+            addToast("Checklist intelligente générée", "success");
         } catch (error) {
-            console.error(error);
-            addToast("Erreur génération checklist", "error");
+            ErrorLogger.handleErrorWithToast(error, 'Audits.generateChecklist', 'AI_ERROR');
         }
     };
 
@@ -733,6 +790,9 @@ export const Audits: React.FC = () => {
                                         tabs={[
                                             { id: 'findings', label: 'Constats', icon: AlertOctagon },
                                             { id: 'checklist', label: 'Checklist', icon: CheckSquare },
+                                            { id: 'evidence', label: 'Preuves & Demandes', icon: FileText },
+                                            { id: 'collaboration', label: 'Collaboration', icon: MessageSquare },
+                                            { id: 'team', label: 'Équipe', icon: Users },
                                             { id: 'scope', label: 'Périmètre', icon: Target }
                                         ]}
                                         activeTab={inspectorTab}
@@ -741,7 +801,7 @@ export const Audits: React.FC = () => {
                                 </div>
 
                                 <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar space-y-8">
-                                    {inspectorTab === 'findings' ? (
+                                    {inspectorTab === 'findings' && (
                                         <>
                                             {canEdit && (
                                                 <form onSubmit={findingForm.handleSubmit(handleAddFinding)} className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm mb-8">
@@ -866,7 +926,9 @@ export const Audits: React.FC = () => {
                                                 )}
                                             </div>
                                         </>
-                                    ) : (
+                                    )}
+
+                                    {inspectorTab === 'checklist' && (
                                         <div className="space-y-6">
                                             {!checklist ? (
                                                 <div className="text-center py-12">
@@ -914,6 +976,34 @@ export const Audits: React.FC = () => {
                                             )}
                                         </div>
                                     )}
+
+                                    {inspectorTab === 'evidence' && (
+                                        <EvidenceRequestList
+                                            auditId={selectedAudit.id}
+                                            organizationId={user?.organizationId || ''}
+                                            users={usersList}
+                                            controls={controls}
+                                            canEdit={canEdit}
+                                        />
+                                    )}
+
+                                    {inspectorTab === 'collaboration' && (
+                                        <div className="max-w-3xl mx-auto">
+                                            <Comments
+                                                collectionName="audits"
+                                                documentId={selectedAudit.id}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {inspectorTab === 'team' && (
+                                        <AuditTeam
+                                            audit={selectedAudit}
+                                            users={usersList}
+                                            canEdit={canEdit}
+                                        />
+                                    )}
+
                                     {inspectorTab === 'scope' && (
                                         <div className="space-y-8">
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">

@@ -21,7 +21,7 @@ import { IncidentForm } from '../components/incidents/IncidentForm';
 import { IncidentFormData } from '../schemas/incidentSchema';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { canEditResource } from '../utils/permissions';
+import { canEditResource, hasPermission } from '../utils/permissions';
 import { aiService } from '../services/aiService';
 
 export const Incidents: React.FC = () => {
@@ -199,7 +199,7 @@ export const Incidents: React.FC = () => {
                 icon={<Siren className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
                     <div className="flex gap-3">
-                        {canEdit && (
+                        {(canEdit || hasPermission(user, 'Incident', 'create')) && (
                             <button
                                 onClick={() => setCreationMode(true)}
                                 className="flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"
