@@ -23,6 +23,7 @@ import { IncidentFormData } from '../schemas/incidentSchema';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { canEditResource, hasPermission } from '../utils/permissions';
 import { aiService } from '../services/aiService';
+import { hybridService } from '../services/hybridService';
 
 export const Incidents: React.FC = () => {
     const { user, addToast } = useStore();
@@ -105,6 +106,14 @@ export const Incidents: React.FC = () => {
             const docRef = await addDoc(collection(db, 'incidents'), { ...incidentData, organizationId: user.organizationId, dateReported: new Date().toISOString() });
             await logAction(user, 'CREATE', 'Incident', `Nouvel Incident: ${incidentData.title} `);
 
+            // Backend Audit Log (ISO 27001)
+            await hybridService.logCriticalEvent({
+                action: 'CREATE',
+                resource: 'Incident',
+                details: `Created incident: ${incidentData.title}`,
+                metadata: { severity: incidentData.severity, category: incidentData.category }
+            });
+
             await NotificationService.notifyNewIncident({
                 id: docRef.id,
                 ...incidentData,
@@ -131,6 +140,18 @@ export const Incidents: React.FC = () => {
 
             await updateDoc(doc(db, 'incidents', selectedIncident.id), incidentData);
             await logAction(user, 'UPDATE', 'Incident', `MAJ Incident: ${incidentData.title} `);
+
+            // Backend Audit Log
+            await hybridService.logCriticalEvent({
+                action: 'UPDATE',
+                resource: 'Incident',
+                details: `Updated incident: ${incidentData.title}`,
+                metadata: {
+                    status: incidentData.status,
+                    changes: Object.keys(incidentData).join(', ')
+                }
+            });
+
             addToast("Incident mis à jour", "success");
             setSelectedIncident({ ...selectedIncident, ...incidentData } as Incident);
             setIsEditing(false);
@@ -140,7 +161,24 @@ export const Incidents: React.FC = () => {
     };
 
     const initiateDelete = (id: string) => { setConfirmData({ isOpen: true, title: "Supprimer l'incident ?", message: "Cette action est définitive.", onConfirm: () => handleDelete(id) }); };
-    const handleDelete = async (id: string) => { try { await deleteDoc(doc(db, 'incidents', id)); if (selectedIncident?.id === id) setSelectedIncident(null); addToast("Incident supprimé", "info"); } catch (error) { addToast("Erreur suppression", "error"); } };
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteDoc(doc(db, 'incidents', id));
+
+            // Backend Audit Log
+            await hybridService.logCriticalEvent({
+                action: 'DELETE',
+                resource: 'Incident',
+                details: `Deleted incident ID: ${id}`,
+                metadata: { incidentId: id }
+            });
+
+            if (selectedIncident?.id === id) setSelectedIncident(null);
+            addToast("Incident supprimé", "info");
+        } catch (error) {
+            addToast("Erreur suppression", "error");
+        }
+    };
 
     const getTimeToResolve = (incident: Incident) => {
         if (!incident.dateResolved || !incident.dateReported) return null;

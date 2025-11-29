@@ -772,7 +772,17 @@ export const Risks: React.FC = () => {
                                 <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
-                                        <span className={`text-xs font-bold ${risk.status === 'Ouvert' ? 'text-rose-500' : risk.status === 'En cours' ? 'text-amber-500' : 'text-emerald-500'}`}>{risk.status}</span>
+                                        <div className="flex items-center gap-2">
+                                            {risk.treatment?.slaStatus && risk.treatment.status !== 'Terminé' && (
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-red-100 text-red-700 border-red-200' :
+                                                    risk.treatment.slaStatus === 'At Risk' ? 'bg-orange-100 text-orange-700 border-orange-200' :
+                                                        'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                                    }`}>
+                                                    SLA: {risk.treatment.slaStatus}
+                                                </span>
+                                            )}
+                                            <span className={`text-xs font-bold ${risk.status === 'Ouvert' ? 'text-rose-500' : risk.status === 'En cours' ? 'text-amber-500' : 'text-emerald-500'}`}>{risk.status}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>)
@@ -910,6 +920,7 @@ export const Risks: React.FC = () => {
                                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">Mesures de sécurité (Contrôles ISO)</h3>
                                                 <span className="text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-600 px-2.5 py-1 rounded-full">{selectedRisk.mitigationControlIds?.length || 0} mesures</span>
                                             </div>
+
                                             <div className="space-y-4">
                                                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Stratégie de traitement</label>
                                                 <div className="grid grid-cols-2 gap-3">
@@ -930,6 +941,109 @@ export const Risks: React.FC = () => {
                                                     ))}
                                                 </div>
                                             </div>
+
+                                            {/* SLA & Treatment Plan Details */}
+                                            {selectedRisk.strategy !== 'Accepter' && (
+                                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
+                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center"><Clock className="h-4 w-4 mr-2" /> Plan de Traitement (SLA)</h4>
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        <div>
+                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Échéance (Due Date)</label>
+                                                            <input
+                                                                type="date"
+                                                                className="w-full px-4 py-3 rounded-xl border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium text-sm"
+                                                                value={selectedRisk.treatment?.dueDate || ''}
+                                                                onChange={async (e) => {
+                                                                    if (!canEdit) return;
+                                                                    const newDate = e.target.value;
+                                                                    const treatment = { ...selectedRisk.treatment, dueDate: newDate };
+
+                                                                    // Calculate SLA Status
+                                                                    let slaStatus: 'On Track' | 'At Risk' | 'Breached' = 'On Track';
+                                                                    if (newDate) {
+                                                                        const due = new Date(newDate);
+                                                                        const now = new Date();
+                                                                        const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+                                                                        if (diffDays < 0) slaStatus = 'Breached';
+                                                                        else if (diffDays < 7) slaStatus = 'At Risk';
+                                                                    }
+                                                                    treatment.slaStatus = slaStatus;
+
+                                                                    try {
+                                                                        await updateDoc(doc(db, 'risks', selectedRisk.id), { treatment });
+                                                                        setSelectedRisk({ ...selectedRisk, treatment });
+                                                                        refreshRisks();
+                                                                        addToast("Échéance mise à jour", "success");
+                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateDueDate', 'UPDATE_FAILED'); }
+                                                                }}
+                                                                disabled={!canEdit}
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable du traitement</label>
+                                                            <CustomSelect
+                                                                options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
+                                                                value={selectedRisk.treatment?.ownerId || ''}
+                                                                onChange={async (val) => {
+                                                                    if (!canEdit) return;
+                                                                    const treatment = { ...selectedRisk.treatment, ownerId: val as string };
+                                                                    try {
+                                                                        await updateDoc(doc(db, 'risks', selectedRisk.id), { treatment });
+                                                                        setSelectedRisk({ ...selectedRisk, treatment });
+                                                                        refreshRisks();
+                                                                        addToast("Responsable mis à jour", "success");
+                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateOwner', 'UPDATE_FAILED'); }
+                                                                }}
+                                                                placeholder="Sélectionner un responsable..."
+                                                                disabled={!canEdit}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Avancement</label>
+                                                        <div className="flex items-center gap-4">
+                                                            <select
+                                                                className="flex-1 px-4 py-3 rounded-xl border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium text-sm appearance-none"
+                                                                value={selectedRisk.treatment?.status || 'Planifié'}
+                                                                onChange={async (e) => {
+                                                                    if (!canEdit) return;
+                                                                    const newStatus = e.target.value as any;
+                                                                    const treatment = {
+                                                                        ...selectedRisk.treatment,
+                                                                        status: newStatus,
+                                                                        completedDate: newStatus === 'Terminé' ? new Date().toISOString() : undefined
+                                                                    };
+                                                                    try {
+                                                                        await updateDoc(doc(db, 'risks', selectedRisk.id), { treatment });
+                                                                        setSelectedRisk({ ...selectedRisk, treatment });
+                                                                        refreshRisks();
+                                                                        addToast("Statut d'avancement mis à jour", "success");
+                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateTreatmentStatus', 'UPDATE_FAILED'); }
+                                                                }}
+                                                                disabled={!canEdit}
+                                                            >
+                                                                <option value="Planifié">Planifié</option>
+                                                                <option value="En cours">En cours</option>
+                                                                <option value="Terminé">Terminé</option>
+                                                                <option value="Retard">Retard</option>
+                                                            </select>
+
+                                                            {/* SLA Badge */}
+                                                            {selectedRisk.treatment?.slaStatus && selectedRisk.treatment.status !== 'Terminé' && (
+                                                                <div className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border ${selectedRisk.treatment.slaStatus === 'Breached' ? 'bg-red-50 text-red-600 border-red-100 dark:bg-red-900/20 dark:text-red-400' :
+                                                                    selectedRisk.treatment.slaStatus === 'At Risk' ? 'bg-orange-50 text-orange-600 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400' :
+                                                                        'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400'
+                                                                    }`}>
+                                                                    SLA: {selectedRisk.treatment.slaStatus}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {/* Affected Processes Section */}
                                             <div className="space-y-4">
@@ -1020,6 +1134,7 @@ export const Risks: React.FC = () => {
                                                 </div>
                                             )}
                                         </div>
+
                                     )}
 
                                     {inspectorTab === 'dashboard' && (
@@ -1134,8 +1249,9 @@ export const Risks: React.FC = () => {
                             </>
                         )}
                     </div>
-                )}
-            </Drawer>
+                )
+                }
+            </Drawer >
         </div >
     );
 };
