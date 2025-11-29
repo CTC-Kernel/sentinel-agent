@@ -2,8 +2,7 @@ import { auth } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 
 // Base URL for the OVH-hosted Secure Backend
-// In production, this should be an environment variable
-const OVH_API_BASE_URL = 'https://cyber-threat-consulting.com/api/v1';
+const OVH_API_BASE_URL = import.meta.env.VITE_OVH_API_BASE_URL || 'https://cyber-threat-consulting.com/api/v1';
 
 interface HybridRequestOptions extends RequestInit {
     requiresAuth?: boolean;
