@@ -20,7 +20,7 @@ import { useStore } from '../store';
 import {
     demoAssets, demoRisks, demoControls, demoProjects, demoAudits,
     demoIncidents, demoSuppliers, demoProcessingActivities,
-    demoBusinessProcesses, demoNotifications, demoComments, demoBcpDrills, demoDocuments, demoUsers, demoLogs,
+    demoBusinessProcesses, demoComments, demoBcpDrills, demoDocuments, demoUsers, demoLogs,
     demoSupplierAssessments, demoSupplierIncidents, demoFindings
 } from '../data/demoData';
 

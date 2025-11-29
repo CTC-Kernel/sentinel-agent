@@ -27,6 +27,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     isEditing = false
 }) => {
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues } = useForm<AssetFormData>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(assetSchema) as any,
         defaultValues: {
             name: '',

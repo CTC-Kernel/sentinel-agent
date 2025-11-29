@@ -20,10 +20,10 @@ service firebase.storage {
       return request.resource.size < maxSizeMB * 1024 * 1024;
     }
     
-    // Avatar uploads - user-specific (no org check needed)
-    match /avatars/{allPaths=**} {
+    // Avatar uploads - user-specific
+    match /avatars/{userId}/{allPaths=**} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && isValidFileSize(5);
+      allow write: if isAuthenticated() && request.auth.uid == userId && isValidFileSize(5);
     }
     
     // Documents - organization-based with Firestore lookup

@@ -25,6 +25,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
         reset,
         formState: { errors }
     } = useForm<TemplateFormData>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(templateFormSchema) as any,
         defaultValues: {
             projectName: '',

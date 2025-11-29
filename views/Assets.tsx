@@ -12,7 +12,7 @@ import { useStore } from '../store';
 import { logAction } from '../services/logger';
 
 import { PdfService } from '../services/PdfService';
-import QRCode from 'qrcode';
+
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -336,16 +336,18 @@ export const Assets: React.FC = () => {
         const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `assets_export.csv`; link.click();
     };
 
-    const generateLabels = () => {
+    const generateLabels = (targetAsset?: Asset) => {
+        const assetsToPrint = targetAsset ? [targetAsset] : assets;
+
         PdfService.generateCustomReport(
             {
                 title: 'Étiquettes d\'Actifs',
                 orientation: 'landscape',
-                filename: 'etiquettes-actifs.pdf'
+                filename: targetAsset ? `etiquette-${targetAsset.name}.pdf` : 'etiquettes-actifs.pdf'
             },
             (doc) => {
                 let x = 10, y = 10;
-                assets.forEach((asset, index) => {
+                assetsToPrint.forEach((asset, index) => {
                     if (index > 0 && index % 8 === 0) {
                         doc.addPage();
                         x = 10; y = 10;
@@ -447,6 +449,7 @@ export const Assets: React.FC = () => {
                     Filtres Avancés
                 </button>
                 <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors"><FileSpreadsheet className="h-4 w-4" /></button>
+                <button onClick={() => generateLabels()} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>
             </div>
 
             {/* List */}
@@ -482,7 +485,7 @@ export const Assets: React.FC = () => {
                                             <td className="px-6 py-5"><span className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wide border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span></td>
                                             <td className="px-6 py-5"><span className={`flex items-center w-fit px-2.5 py-1 rounded-full text-[11px] font-bold border ${asset.lifecycleStatus === 'En service' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}><span className={`w-1.5 h-1.5 rounded-full mr-2 ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>{asset.lifecycleStatus || 'Neuf'}</span></td>
                                             <td className="px-6 py-5 text-slate-500 dark:text-slate-400 font-medium text-xs">{asset.location}</td>
-                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}><button onClick={() => generateLabel(asset)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>{canEdit && (<button onClick={() => initiateDelete(asset.id, asset.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer"><Trash2 className="h-4 w-4" /></button>)}</td>
+                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}><button onClick={() => generateLabels(asset)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>{canEdit && (<button onClick={() => initiateDelete(asset.id, asset.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer"><Trash2 className="h-4 w-4" /></button>)}</td>
                                         </tr>
                                     )
                                 })
@@ -509,6 +512,7 @@ export const Assets: React.FC = () => {
                 isOpen={showInspector}
                 onClose={() => { setShowInspector(false); setSelectedAsset(null); }}
                 title={selectedAsset ? selectedAsset.name : 'Nouvel Actif'}
+                width="max-w-6xl"
                 subtitle={
                     <div className="flex items-center gap-2">
                         <>

@@ -257,7 +257,7 @@ exports.healMe = onCall(async (request) => {
 
 // --- STRIPE SUBSCRIPTION LOGIC ---
 
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY || "***REDACTED***");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // Define Plans mapping for backend
 const PLANS = {

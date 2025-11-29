@@ -90,8 +90,8 @@ export const aiService = {
                 const parsed = JSON.parse(cleanText);
 
                 return {
-                    suggestions: parsed.suggestions.map((s: any, i: number) => ({ ...s, id: `ai-link-${i}` })),
-                    insights: parsed.insights.map((s: any, i: number) => ({ ...s, id: `ai-insight-${i}` })),
+                    suggestions: parsed.suggestions.map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
+                    insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
                 };
             } catch (modelError: any) {
                 ErrorLogger.warn("Primary model failed, trying fallback...", 'aiService.analyzeGraph', { metadata: { error: modelError } });
@@ -104,8 +104,8 @@ export const aiService = {
                     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
                     const parsed = JSON.parse(cleanText);
                     return {
-                        suggestions: parsed.suggestions.map((s: any, i: number) => ({ ...s, id: `ai-link-${i}` })),
-                        insights: parsed.insights.map((s: any, i: number) => ({ ...s, id: `ai-insight-${i}` })),
+                        suggestions: parsed.suggestions.map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
+                        insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
                     };
                 }
                 throw modelError;
@@ -152,7 +152,7 @@ export const aiService = {
     /**
      * Suggests a value for a specific field based on context.
      */
-    async suggestField(context: any, fieldName: string): Promise<{ value: string; reasoning: string }> {
+    async suggestField(context: Record<string, unknown>, fieldName: string): Promise<{ value: string; reasoning: string }> {
         if (!API_KEY) return { value: '', reasoning: 'AI Key missing' };
 
         try {
@@ -174,7 +174,7 @@ export const aiService = {
     /**
      * General chat with the AI assistant.
      */
-    async chatWithAI(message: string, context?: any): Promise<string> {
+    async chatWithAI(message: string, context?: Record<string, unknown>): Promise<string> {
         if (!API_KEY) return "Je ne peux pas répondre car la clé API Gemini est manquante.";
 
         const systemPrompt = `Tu es Sentinel AI, un assistant expert en cybersécurité et GRC (Gouvernance, Risque, Conformité).
