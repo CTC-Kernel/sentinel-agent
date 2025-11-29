@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import { UserProfile, Invitation } from '../types';
-import { Users, Mail, Plus, Building, User, Trash2, Edit, X, Clock, Timer, FileSpreadsheet, Check, XCircle, UserPlus } from '../components/ui/Icons';
+import { UserProfile, Invitation, JoinRequest } from '../types';
+import { Users, Mail, Plus, Building, User, Trash2, Edit, Clock, Timer, FileSpreadsheet, Check, XCircle, UserPlus } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { sendEmail } from '../services/emailService';
 import { getInvitationTemplate } from '../services/emailTemplates';
@@ -15,6 +15,7 @@ import { SubscriptionService } from '../services/subscriptionService';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
+import { Drawer } from '../components/ui/Drawer';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,7 +24,7 @@ import { userSchema, UserFormData } from '../schemas/userSchema';
 export const Team: React.FC = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState<UserProfile[]>([]);
-    const [joinRequests, setJoinRequests] = useState<any[]>([]);
+    const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -90,7 +91,7 @@ export const Team: React.FC = () => {
                 : [];
 
             const requests = results[2].status === 'fulfilled'
-                ? results[2].value.docs.map(d => ({ id: d.id, ...d.data() }))
+                ? results[2].value.docs.map(d => ({ id: d.id, ...d.data() } as JoinRequest))
                 : [];
 
             setUsers([...activeUsers, ...pendingInvites]);
@@ -147,7 +148,8 @@ export const Team: React.FC = () => {
             inviteForm.reset();
             addToast("Invitation envoyée par email", "success");
             fetchUsers();
-        } catch (_e) {
+        } catch (error) {
+            console.error(error);
             addToast("Erreur lors de l'invitation", "error");
         }
     };
@@ -157,7 +159,7 @@ export const Team: React.FC = () => {
         editForm.reset({
             displayName: u.displayName || '',
             email: u.email,
-            role: u.role as any,
+            role: u.role,
             department: u.department || ''
         });
         setShowEditModal(true);
@@ -177,12 +179,13 @@ export const Team: React.FC = () => {
             setUsers(prev => prev.map(u => u.uid === selectedUser.uid ? { ...u, ...data } : u));
             setShowEditModal(false);
             addToast("Utilisateur mis à jour", "success");
-        } catch (_e) {
+        } catch (error) {
+            console.error(error);
             addToast("Erreur mise à jour", "error");
         }
     };
 
-    const handleApproveRequest = async (req: any) => {
+    const handleApproveRequest = async (req: JoinRequest) => {
         if (!user?.organizationId) return;
 
         // Check plan limits
@@ -222,7 +225,7 @@ export const Team: React.FC = () => {
         }
     };
 
-    const handleRejectRequest = async (req: any) => {
+    const handleRejectRequest = async (req: JoinRequest) => {
         if (!user) return;
         if (!confirm(`Refuser la demande de ${req.displayName} ?`)) return;
         try {
@@ -295,7 +298,8 @@ export const Team: React.FC = () => {
                 addToast("Utilisateur supprimé", "info");
             }
             setUsers(prev => prev.filter(user => user.uid !== u.uid));
-        } catch (_e) {
+        } catch (error) {
+            console.error(error);
             addToast("Erreur suppression", "error");
         }
     };
@@ -476,130 +480,123 @@ export const Team: React.FC = () => {
                     ))
                 )}
             </div>
-            {/* INVITE MODAL */}
-            {showInviteModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl">
-                        <div className="text-center mb-8 relative">
-                            <button onClick={() => setShowInviteModal(false)} className="absolute right-0 top-0 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                                <X className="h-5 w-5" />
-                            </button>
-                            <div className="w-14 h-14 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4 text-slate-900 dark:text-white shadow-inner">
-                                <User className="h-7 w-7" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Inviter un collaborateur</h3>
-                            <p className="text-sm text-slate-500 mt-1">Ils rejoindront {user?.organizationName}.</p>
+            {/* INVITE DRAWER */}
+            <Drawer
+                isOpen={showInviteModal}
+                onClose={() => setShowInviteModal(false)}
+                title="Inviter un collaborateur"
+                subtitle={`Ils rejoindront ${user?.organizationName}.`}
+            >
+                <form onSubmit={inviteForm.handleSubmit(handleAddUser)} className="p-8 space-y-6">
+                    <div className="flex justify-center mb-6">
+                        <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white shadow-inner">
+                            <User className="h-10 w-10" />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom complet (Optionnel)</label>
+                        <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                            {...inviteForm.register('displayName')} placeholder="Jean Dupont" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email professionnel</label>
+                        <input type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                            {...inviteForm.register('email')} placeholder="jean@entreprise.com" />
+                        {inviteForm.formState.errors.email && <p className="text-red-500 text-xs mt-1">{inviteForm.formState.errors.email.message}</p>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
+                            <Controller
+                                control={inviteForm.control}
+                                name="role"
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label=""
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        options={[
+                                            { value: 'user', label: 'Utilisateur' },
+                                            { value: 'rssi', label: 'RSSI' },
+                                            { value: 'auditor', label: 'Auditeur' },
+                                            { value: 'project_manager', label: 'Chef de Projet' },
+                                            { value: 'direction', label: 'Direction' },
+                                            { value: 'admin', label: 'Admin' }
+                                        ]}
+                                    />
+                                )}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>
+                            <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                {...inviteForm.register('department')} placeholder="IT" />
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
+                        <button type="button" onClick={() => setShowInviteModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                        <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">Envoyer</button>
+                    </div>
+                </form>
+            </Drawer>
+
+            {/* EDIT DRAWER */}
+            <Drawer
+                isOpen={showEditModal && !!selectedUser && !selectedUser.isPending}
+                onClose={() => setShowEditModal(false)}
+                title="Modifier Utilisateur"
+                subtitle="Mettez à jour les informations du collaborateur."
+            >
+                {selectedUser && (
+                    <form onSubmit={editForm.handleSubmit(handleUpdateUser)} className="p-8 space-y-6">
+                        <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl mb-4">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Compte</p>
+                            <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedUser.email}</p>
                         </div>
 
-                        <form onSubmit={inviteForm.handleSubmit(handleAddUser)} className="space-y-5">
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom complet (Optionnel)</label>
-                                <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                    {...inviteForm.register('displayName')} placeholder="Jean Dupont" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email professionnel</label>
-                                <input type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                    {...inviteForm.register('email')} placeholder="jean@entreprise.com" />
-                                {inviteForm.formState.errors.email && <p className="text-red-500 text-xs mt-1">{inviteForm.formState.errors.email.message}</p>}
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
-                                    <Controller
-                                        control={inviteForm.control}
-                                        name="role"
-                                        render={({ field }) => (
-                                            <CustomSelect
-                                                label=""
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                options={[
-                                                    { value: 'user', label: 'Utilisateur' },
-                                                    { value: 'rssi', label: 'RSSI' },
-                                                    { value: 'auditor', label: 'Auditeur' },
-                                                    { value: 'project_manager', label: 'Chef de Projet' },
-                                                    { value: 'direction', label: 'Direction' },
-                                                    { value: 'admin', label: 'Admin' }
-                                                ]}
-                                            />
-                                        )}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>
-                                    <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                        {...inviteForm.register('department')} placeholder="IT" />
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-3 mt-8 pt-4">
-                                <button type="button" onClick={() => setShowInviteModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                                <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">Envoyer</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* EDIT MODAL */}
-            {showEditModal && selectedUser && !selectedUser.isPending && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl">
-                        <div className="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-white/5 pb-4">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Modifier Utilisateur</h3>
-                            <button onClick={() => setShowEditModal(false)} className="p-2 text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors"><X className="h-5 w-5" /></button>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom d'affichage</label>
+                            <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                {...editForm.register('displayName')} />
                         </div>
 
-                        <form onSubmit={editForm.handleSubmit(handleUpdateUser)} className="space-y-5">
-                            <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl mb-4">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Compte</p>
-                                <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedUser.email}</p>
-                            </div>
-
+                        <div className="grid grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom d'affichage</label>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
+                                <Controller
+                                    control={editForm.control}
+                                    name="role"
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            label=""
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            options={[
+                                                { value: 'user', label: 'Utilisateur' },
+                                                { value: 'rssi', label: 'RSSI' },
+                                                { value: 'auditor', label: 'Auditeur' },
+                                                { value: 'project_manager', label: 'Chef de Projet' },
+                                                { value: 'direction', label: 'Direction' },
+                                                { value: 'admin', label: 'Admin' }
+                                            ]}
+                                        />
+                                    )}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>
                                 <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                    {...editForm.register('displayName')} />
+                                    {...editForm.register('department')} />
                             </div>
+                        </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
-                                    <Controller
-                                        control={editForm.control}
-                                        name="role"
-                                        render={({ field }) => (
-                                            <CustomSelect
-                                                label=""
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                options={[
-                                                    { value: 'user', label: 'Utilisateur' },
-                                                    { value: 'rssi', label: 'RSSI' },
-                                                    { value: 'auditor', label: 'Auditeur' },
-                                                    { value: 'project_manager', label: 'Chef de Projet' },
-                                                    { value: 'direction', label: 'Direction' },
-                                                    { value: 'admin', label: 'Admin' }
-                                                ]}
-                                            />
-                                        )}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>
-                                    <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                        {...editForm.register('department')} />
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-white/5">
-                                <button type="button" onClick={() => setShowEditModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                                <button type="submit" className="px-8 py-3 bg-brand-600 text-white rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">Enregistrer</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                        <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
+                            <button type="button" onClick={() => setShowEditModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                            <button type="submit" className="px-8 py-3 bg-brand-600 text-white rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">Enregistrer</button>
+                        </div>
+                    </form>
+                )}
+            </Drawer>
         </div>
     );
 };

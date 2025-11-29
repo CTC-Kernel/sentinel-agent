@@ -3,11 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { businessProcessSchema, BusinessProcessFormData, bcpDrillSchema, BcpDrillFormData } from '../schemas/continuitySchema';
-import { createPortal } from 'react-dom';
+
+import { Drawer } from '../components/ui/Drawer';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { BusinessProcess, Asset, BcpDrill, SystemLog, UserProfile, Risk, Supplier } from '../types';
-import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, X, History, MessageSquare, Save, LayoutDashboard, FileSpreadsheet, ShieldAlert, Truck } from '../components/ui/Icons';
+import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, History, MessageSquare, Save, LayoutDashboard, FileSpreadsheet, ShieldAlert, Truck } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -442,441 +443,427 @@ export const Continuity: React.FC = () => {
             )}
 
             {/* Inspector Drawer */}
-            {selectedProcess && createPortal(
-                <div className="fixed inset-0 z-[9999] overflow-hidden">
-                    <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedProcess(null)} />
-                    <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
-                        <div className="w-screen max-w-2xl pointer-events-auto">
-                            <div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
-                                <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedProcess.name}</h2>
-                                        <p className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-2">
-                                            {selectedProcess.priority}
-                                        </p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        {canEdit && !isEditing && (
-                                            <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
-                                        )}
-                                        {canEdit && isEditing && (
-                                            <button onClick={editProcessForm.handleSubmit(handleUpdateProcess)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
-                                        )}
-                                        {canEdit && (
-                                            <button onClick={() => initiateDelete(selectedProcess.id, selectedProcess.name)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
-                                        )}
-                                        <button onClick={() => setSelectedProcess(null)} className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
-                                    </div>
-                                </div>
+            {/* Inspector Drawer */}
+            <Drawer
+                isOpen={!!selectedProcess}
+                onClose={() => setSelectedProcess(null)}
+                title={selectedProcess?.name || ''}
+                subtitle={selectedProcess?.priority}
+                actions={
+                    <div className="flex gap-2">
+                        {canEdit && !isEditing && (
+                            <button onClick={() => setIsEditing(true)} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"><Edit className="h-4 w-4" /></button>
+                        )}
+                        {canEdit && isEditing && (
+                            <button onClick={editProcessForm.handleSubmit(handleUpdateProcess)} className="p-2 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"><Save className="h-4 w-4" /></button>
+                        )}
+                        {canEdit && (
+                            <button onClick={() => selectedProcess && initiateDelete(selectedProcess.id, selectedProcess.name)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
+                        )}
+                    </div>
+                }
+                width="max-w-6xl"
+            >
+                {selectedProcess && (
+                    <div className="flex flex-col h-full">
 
-                                <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5">
-                                    {[
-                                        { id: 'details', label: 'Détails', icon: LayoutDashboard },
-                                        { id: 'recovery', label: 'Plan de Reprise', icon: ClipboardCheck },
-                                        { id: 'scenarios', label: 'Scénarios (Risques)', icon: ShieldAlert },
-                                        { id: 'drills', label: 'Exercices', icon: Zap },
-                                        { id: 'history', label: 'Historique', icon: History },
-                                        { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                                    ].map(tab => (
-                                        <button
-                                            key={tab.id}
-                                            onClick={() => setInspectorTab(tab.id as any)}
-                                            className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-                                        >
-                                            <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
-                                            {tab.label}
-                                        </button>
-                                    ))}
-                                </div>
+                        <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5">
+                            {[
+                                { id: 'details', label: 'Détails', icon: LayoutDashboard },
+                                { id: 'recovery', label: 'Plan de Reprise', icon: ClipboardCheck },
+                                { id: 'scenarios', label: 'Scénarios (Risques)', icon: ShieldAlert },
+                                { id: 'drills', label: 'Exercices', icon: Zap },
+                                { id: 'history', label: 'Historique', icon: History },
+                                { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                            ].map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setInspectorTab(tab.id as any)}
+                                    className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                >
+                                    <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
 
-                                <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
-                                    {inspectorTab === 'details' && (
-                                        <div className="space-y-8">
-                                            {isEditing ? (
-                                                <div className="space-y-6">
-                                                    <div className="grid grid-cols-2 gap-6">
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('name')} /></div>
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Priorité</label>
-                                                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editProcessForm.register('priority')}>
-                                                                {['Critique', 'Élevée', 'Moyenne', 'Faible'].map(p => <option key={p} value={p}>{p}</option>)}
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={3} {...editProcessForm.register('description')} /></div>
-                                                    <div className="grid grid-cols-2 gap-6">
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RTO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('rto')} /></div>
-                                                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RPO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('rpo')} /></div>
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Actifs supports</label>
-                                                        <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-white/10 rounded-2xl p-2 space-y-1 custom-scrollbar bg-white dark:bg-black/20">
-                                                            {assets.map(asset => (
-                                                                <label key={asset.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl cursor-pointer transition-colors">
-                                                                    <input type="checkbox" checked={editProcessForm.watch('supportingAssetIds')?.includes(asset.id)}
-                                                                        onChange={() => toggleAssetSelection(asset.id)} className="rounded text-rose-600 focus:ring-rose-500 border-gray-300" />
-                                                                    <span className="text-sm font-medium dark:text-white">{asset.name} <span className="text-xs text-gray-400 ml-1">({asset.type})</span></span>
-                                                                </label>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Fournisseurs Critiques</label>
-                                                        <Controller
-                                                            name="supplierIds"
-                                                            control={editProcessForm.control}
-                                                            render={({ field }) => (
-                                                                <CustomSelect
-                                                                    options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
-                                                                    value={field.value || []}
-                                                                    onChange={field.onChange}
-                                                                    placeholder="Sélectionner les fournisseurs..."
-                                                                    multiple
-                                                                />
-                                                            )}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <div className="grid grid-cols-2 gap-6">
-                                                        <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm text-center">
-                                                            <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">RTO (Objectif Temps)</span>
-                                                            <span className="text-3xl font-black text-slate-800 dark:text-white">{selectedProcess.rto}</span>
-                                                        </div>
-                                                        <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm text-center">
-                                                            <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">RPO (Objectif Données)</span>
-                                                            <span className="text-3xl font-black text-slate-800 dark:text-white">{selectedProcess.rpo}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Description</h4>
-                                                        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{selectedProcess.description}</p>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Dépendances Techniques</h4>
-                                                            {selectedProcess.supportingAssetIds && selectedProcess.supportingAssetIds.length > 0 ? (
-                                                                <div className="space-y-2">
-                                                                    {selectedProcess.supportingAssetIds.map(assetId => {
-                                                                        const a = assets.find(as => as.id === assetId);
-                                                                        return a ? (
-                                                                            <div key={assetId} className="flex items-center p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                                <Server className="h-4 w-4 mr-3 text-slate-400" />
-                                                                                <span className="text-sm font-medium text-slate-700 dark:text-white">{a.name}</span>
-                                                                            </div>
-                                                                        ) : null;
-                                                                    })}
-                                                                </div>
-                                                            ) : <p className="text-sm text-gray-400 italic">Aucune dépendance déclarée.</p>}
-                                                        </div>
-                                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Fournisseurs Critiques</h4>
-                                                            {selectedProcess.supplierIds && selectedProcess.supplierIds.length > 0 ? (
-                                                                <div className="space-y-2">
-                                                                    {selectedProcess.supplierIds.map(sid => {
-                                                                        const s = suppliers.find(sup => sup.id === sid);
-                                                                        return s ? (
-                                                                            <div key={sid} className="flex items-center p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                                <Truck className="h-4 w-4 mr-3 text-slate-400" />
-                                                                                <span className="text-sm font-medium text-slate-700 dark:text-white">{s.name}</span>
-                                                                            </div>
-                                                                        ) : null;
-                                                                    })}
-                                                                </div>
-                                                            ) : <p className="text-sm text-gray-400 italic">Aucun fournisseur lié.</p>}
-                                                        </div>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'recovery' && (
+                        <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
+                            {inspectorTab === 'details' && (
+                                <div className="space-y-8">
+                                    {isEditing ? (
                                         <div className="space-y-6">
-                                            <div className="flex justify-between items-center">
-                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Plan de Reprise (DRP)</h3>
-                                                {isEditing && (
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('name')} /></div>
+                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Priorité</label>
+                                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editProcessForm.register('priority')}>
+                                                        {['Critique', 'Élevée', 'Moyenne', 'Faible'].map(p => <option key={p} value={p}>{p}</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={3} {...editProcessForm.register('description')} /></div>
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RTO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('rto')} /></div>
+                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RPO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('rpo')} /></div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Actifs supports</label>
+                                                <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-white/10 rounded-2xl p-2 space-y-1 custom-scrollbar bg-white dark:bg-black/20">
+                                                    {assets.map(asset => (
+                                                        <label key={asset.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl cursor-pointer transition-colors">
+                                                            <input type="checkbox" checked={editProcessForm.watch('supportingAssetIds')?.includes(asset.id)}
+                                                                onChange={() => toggleAssetSelection(asset.id)} className="rounded text-rose-600 focus:ring-rose-500 border-gray-300" />
+                                                            <span className="text-sm font-medium dark:text-white">{asset.name} <span className="text-xs text-gray-400 ml-1">({asset.type})</span></span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Fournisseurs Critiques</label>
+                                                <Controller
+                                                    name="supplierIds"
+                                                    control={editProcessForm.control}
+                                                    render={({ field }) => (
+                                                        <CustomSelect
+                                                            options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
+                                                            value={field.value || []}
+                                                            onChange={field.onChange}
+                                                            placeholder="Sélectionner les fournisseurs..."
+                                                            multiple
+                                                        />
+                                                    )}
+                                                />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm text-center">
+                                                    <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">RTO (Objectif Temps)</span>
+                                                    <span className="text-3xl font-black text-slate-800 dark:text-white">{selectedProcess.rto}</span>
+                                                </div>
+                                                <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm text-center">
+                                                    <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">RPO (Objectif Données)</span>
+                                                    <span className="text-3xl font-black text-slate-800 dark:text-white">{selectedProcess.rpo}</span>
+                                                </div>
+                                            </div>
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Description</h4>
+                                                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{selectedProcess.description}</p>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Dépendances Techniques</h4>
+                                                    {selectedProcess.supportingAssetIds && selectedProcess.supportingAssetIds.length > 0 ? (
+                                                        <div className="space-y-2">
+                                                            {selectedProcess.supportingAssetIds.map(assetId => {
+                                                                const a = assets.find(as => as.id === assetId);
+                                                                return a ? (
+                                                                    <div key={assetId} className="flex items-center p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                        <Server className="h-4 w-4 mr-3 text-slate-400" />
+                                                                        <span className="text-sm font-medium text-slate-700 dark:text-white">{a.name}</span>
+                                                                    </div>
+                                                                ) : null;
+                                                            })}
+                                                        </div>
+                                                    ) : <p className="text-sm text-gray-400 italic">Aucune dépendance déclarée.</p>}
+                                                </div>
+                                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Fournisseurs Critiques</h4>
+                                                    {selectedProcess.supplierIds && selectedProcess.supplierIds.length > 0 ? (
+                                                        <div className="space-y-2">
+                                                            {selectedProcess.supplierIds.map(sid => {
+                                                                const s = suppliers.find(sup => sup.id === sid);
+                                                                return s ? (
+                                                                    <div key={sid} className="flex items-center p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                        <Truck className="h-4 w-4 mr-3 text-slate-400" />
+                                                                        <span className="text-sm font-medium text-slate-700 dark:text-white">{s.name}</span>
+                                                                    </div>
+                                                                ) : null;
+                                                            })}
+                                                        </div>
+                                                    ) : <p className="text-sm text-gray-400 italic">Aucun fournisseur lié.</p>}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {inspectorTab === 'recovery' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Plan de Reprise (DRP)</h3>
+                                        {isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const currentTasks = editProcessForm.getValues('recoveryTasks') || [];
+                                                    editProcessForm.setValue('recoveryTasks', [
+                                                        ...currentTasks,
+                                                        { id: crypto.randomUUID(), title: '', owner: '', duration: '', order: currentTasks.length + 1 }
+                                                    ]);
+                                                }}
+                                                className="text-xs font-bold text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors"
+                                            >
+                                                + Ajouter une étape
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {isEditing ? (
+                                        <div className="space-y-4">
+                                            {editProcessForm.watch('recoveryTasks')?.map((task, index) => (
+                                                <div key={task.id} className="flex gap-4 items-start bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10">
+                                                    <div className="mt-3 text-xs font-bold text-slate-400 w-6">{index + 1}.</div>
+                                                    <div className="flex-1 space-y-3">
+                                                        <input
+                                                            placeholder="Action à effectuer"
+                                                            className="w-full px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm font-medium"
+                                                            {...editProcessForm.register(`recoveryTasks.${index}.title` as any)}
+                                                        />
+                                                        <div className="flex gap-3">
+                                                            <input
+                                                                placeholder="Responsable"
+                                                                className="flex-1 px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-xs"
+                                                                {...editProcessForm.register(`recoveryTasks.${index}.owner` as any)}
+                                                            />
+                                                            <input
+                                                                placeholder="Durée (ex: 30m)"
+                                                                className="w-24 px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-xs"
+                                                                {...editProcessForm.register(`recoveryTasks.${index}.duration` as any)}
+                                                            />
+                                                        </div>
+                                                    </div>
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            const currentTasks = editProcessForm.getValues('recoveryTasks') || [];
-                                                            editProcessForm.setValue('recoveryTasks', [
-                                                                ...currentTasks,
-                                                                { id: crypto.randomUUID(), title: '', owner: '', duration: '', order: currentTasks.length + 1 }
-                                                            ]);
+                                                            const tasks = editProcessForm.getValues('recoveryTasks') || [];
+                                                            editProcessForm.setValue('recoveryTasks', tasks.filter((_, i) => i !== index));
                                                         }}
-                                                        className="text-xs font-bold text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors"
+                                                        className="text-slate-400 hover:text-red-500 p-1"
                                                     >
-                                                        + Ajouter une étape
+                                                        <Trash2 className="h-4 w-4" />
                                                     </button>
-                                                )}
-                                            </div>
-
-                                            {isEditing ? (
-                                                <div className="space-y-4">
-                                                    {editProcessForm.watch('recoveryTasks')?.map((task, index) => (
-                                                        <div key={task.id} className="flex gap-4 items-start bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10">
-                                                            <div className="mt-3 text-xs font-bold text-slate-400 w-6">{index + 1}.</div>
-                                                            <div className="flex-1 space-y-3">
-                                                                <input
-                                                                    placeholder="Action à effectuer"
-                                                                    className="w-full px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm font-medium"
-                                                                    {...editProcessForm.register(`recoveryTasks.${index}.title` as any)}
-                                                                />
-                                                                <div className="flex gap-3">
-                                                                    <input
-                                                                        placeholder="Responsable"
-                                                                        className="flex-1 px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-xs"
-                                                                        {...editProcessForm.register(`recoveryTasks.${index}.owner` as any)}
-                                                                    />
-                                                                    <input
-                                                                        placeholder="Durée (ex: 30m)"
-                                                                        className="w-24 px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-xs"
-                                                                        {...editProcessForm.register(`recoveryTasks.${index}.duration` as any)}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const tasks = editProcessForm.getValues('recoveryTasks') || [];
-                                                                    editProcessForm.setValue('recoveryTasks', tasks.filter((_, i) => i !== index));
-                                                                }}
-                                                                className="text-slate-400 hover:text-red-500 p-1"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-4">
-                                                    {selectedProcess.recoveryTasks && selectedProcess.recoveryTasks.length > 0 ? (
-                                                        selectedProcess.recoveryTasks.sort((a, b) => a.order - b.order).map((task, index) => (
-                                                            <div key={task.id} className="flex items-start gap-4 p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/20 text-brand-600 flex items-center justify-center font-bold text-sm">
-                                                                    {index + 1}
-                                                                </div>
-                                                                <div className="flex-1">
-                                                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">{task.title}</h4>
-                                                                    <div className="flex gap-4 mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                                                        <span className="flex items-center"><Server className="h-3 w-3 mr-1" /> {task.owner}</span>
-                                                                        <span className="flex items-center"><History className="h-3 w-3 mr-1" /> {task.duration}</span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        ))
-                                                    ) : (
-                                                        <EmptyState
-                                                            icon={ClipboardCheck}
-                                                            title="Aucun plan de reprise"
-                                                            description="Définissez les étapes de reprise pour ce processus."
-                                                        />
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'scenarios' && (
-                                        <div className="space-y-6">
-                                            <div className="flex justify-between items-center">
-                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Scénarios de Risque</h3>
-                                            </div>
-                                            {isEditing ? (
-                                                <div>
-                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Lier des Risques</label>
-                                                    <Controller
-                                                        name="relatedRiskIds"
-                                                        control={editProcessForm.control}
-                                                        render={({ field }) => (
-                                                            <CustomSelect
-                                                                options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
-                                                                value={field.value || []}
-                                                                onChange={field.onChange}
-                                                                placeholder="Sélectionner les risques..."
-                                                                multiple
-                                                            />
-                                                        )}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-3">
-                                                    {selectedProcess.relatedRiskIds && selectedProcess.relatedRiskIds.length > 0 ? (
-                                                        selectedProcess.relatedRiskIds.map(rid => {
-                                                            const risk = risks.find(r => r.id === rid);
-                                                            return risk ? (
-                                                                <div key={rid} className="p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex justify-between items-center">
-                                                                    <div>
-                                                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</h4>
-                                                                        <p className="text-xs text-slate-500">{risk.vulnerability}</p>
-                                                                    </div>
-                                                                    <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.score >= 15 ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
-                                                                        Score: {risk.score}
-                                                                    </div>
-                                                                </div>
-                                                            ) : null;
-                                                        })
-                                                    ) : (
-                                                        <EmptyState
-                                                            icon={ShieldAlert}
-                                                            title="Aucun scénario lié"
-                                                            description="Liez des risques existants à ce processus pour analyser les impacts."
-                                                        />
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'drills' && (
-                                        <div className="space-y-4">
-                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Historique des exercices</h3>
-                                            {drills.filter(d => d.processId === selectedProcess.id).length === 0 ? (
-                                                <div className="text-center py-12 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic">Aucun test effectué pour ce processus.</div>
-                                            ) : (
-                                                drills.filter(d => d.processId === selectedProcess.id).map(drill => (
-                                                    <div key={drill.id} className="bg-white dark:bg-slate-800/50 p-5 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                        <div className="flex justify-between items-start mb-2">
-                                                            <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center"><CalendarDays className="h-3.5 w-3.5 mr-2 text-slate-400" /> {new Date(drill.date).toLocaleDateString()}</span>
-                                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${drill.result === 'Succès' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>{drill.result}</span>
-                                                        </div>
-                                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">{drill.type}</p>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-300">{drill.notes}</p>
-                                                    </div>
-                                                ))
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'history' && (
-                                        <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                            {processHistory.map((log, i) => (
-                                                <div key={i} className="relative">
-                                                    <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
-                                                        <div className="h-2 w-2 rounded-full bg-brand-600"></div>
-                                                    </span>
-                                                    <div>
-                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
-                                                        <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                        <p className="text-[10px] text-gray-400 mt-1">Par: {log.userEmail}</p>
-                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
-
-                                    {inspectorTab === 'comments' && (
-                                        <div className="h-full flex flex-col">
-                                            <Comments collectionName="business_processes" documentId={selectedProcess.id} />
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {selectedProcess.recoveryTasks && selectedProcess.recoveryTasks.length > 0 ? (
+                                                selectedProcess.recoveryTasks.sort((a, b) => a.order - b.order).map((task, index) => (
+                                                    <div key={task.id} className="flex items-start gap-4 p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/20 text-brand-600 flex items-center justify-center font-bold text-sm">
+                                                            {index + 1}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">{task.title}</h4>
+                                                            <div className="flex gap-4 mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                                                <span className="flex items-center"><Server className="h-3 w-3 mr-1" /> {task.owner}</span>
+                                                                <span className="flex items-center"><History className="h-3 w-3 mr-1" /> {task.duration}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <EmptyState
+                                                    icon={ClipboardCheck}
+                                                    title="Aucun plan de reprise"
+                                                    description="Définissez les étapes de reprise pour ce processus."
+                                                />
+                                            )}
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            )}
+
+                            {inspectorTab === 'scenarios' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Scénarios de Risque</h3>
+                                    </div>
+                                    {isEditing ? (
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Lier des Risques</label>
+                                            <Controller
+                                                name="relatedRiskIds"
+                                                control={editProcessForm.control}
+                                                render={({ field }) => (
+                                                    <CustomSelect
+                                                        options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
+                                                        value={field.value || []}
+                                                        onChange={field.onChange}
+                                                        placeholder="Sélectionner les risques..."
+                                                        multiple
+                                                    />
+                                                )}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {selectedProcess.relatedRiskIds && selectedProcess.relatedRiskIds.length > 0 ? (
+                                                selectedProcess.relatedRiskIds.map(rid => {
+                                                    const risk = risks.find(r => r.id === rid);
+                                                    return risk ? (
+                                                        <div key={rid} className="p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex justify-between items-center">
+                                                            <div>
+                                                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</h4>
+                                                                <p className="text-xs text-slate-500">{risk.vulnerability}</p>
+                                                            </div>
+                                                            <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.score >= 15 ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
+                                                                Score: {risk.score}
+                                                            </div>
+                                                        </div>
+                                                    ) : null;
+                                                })
+                                            ) : (
+                                                <EmptyState
+                                                    icon={ShieldAlert}
+                                                    title="Aucun scénario lié"
+                                                    description="Liez des risques existants à ce processus pour analyser les impacts."
+                                                />
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {inspectorTab === 'drills' && (
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Historique des exercices</h3>
+                                    {drills.filter(d => d.processId === selectedProcess.id).length === 0 ? (
+                                        <div className="text-center py-12 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic">Aucun test effectué pour ce processus.</div>
+                                    ) : (
+                                        drills.filter(d => d.processId === selectedProcess.id).map(drill => (
+                                            <div key={drill.id} className="bg-white dark:bg-slate-800/50 p-5 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center"><CalendarDays className="h-3.5 w-3.5 mr-2 text-slate-400" /> {new Date(drill.date).toLocaleDateString()}</span>
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${drill.result === 'Succès' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>{drill.result}</span>
+                                                </div>
+                                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">{drill.type}</p>
+                                                <p className="text-sm text-slate-600 dark:text-slate-300">{drill.notes}</p>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+
+                            {inspectorTab === 'history' && (
+                                <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
+                                    {processHistory.map((log, i) => (
+                                        <div key={i} className="relative">
+                                            <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
+                                                <div className="h-2 w-2 rounded-full bg-brand-600"></div>
+                                            </span>
+                                            <div>
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
+                                                <p className="text-[10px] text-gray-400 mt-1">Par: {log.userEmail}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {inspectorTab === 'comments' && (
+                                <div className="h-full flex flex-col">
+                                    <Comments collectionName="business_processes" documentId={selectedProcess.id} />
+                                </div>
+                            )}
                         </div>
                     </div>
-                </div>,
-                document.body
-            )}
+                )}
+            </Drawer>
 
 
             {/* Create Process Modal */}
-            {
-                showCreateModal && createPortal(
-                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                        <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-xl border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
-                            <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-rose-50/30 dark:bg-rose-900/10">
-                                <h2 className="text-2xl font-bold text-rose-900 dark:text-rose-100 tracking-tight">Nouveau Processus Critique</h2>
-                            </div>
-                            <form onSubmit={createProcessForm.handleSubmit(handleCreateProcess)} className="p-8 space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom du processus</label>
-                                        <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium"
-                                            {...createProcessForm.register('name')} placeholder="ex: Gestion des Commandes" />
-                                        {createProcessForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{createProcessForm.formState.errors.name.message}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
-                                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium appearance-none"
-                                            {...createProcessForm.register('owner')}>
-                                            <option value="">Sélectionner...</option>
-                                            {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RTO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium" {...createProcessForm.register('rto')} placeholder="4h" /></div>
-                                    <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RPO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium" {...createProcessForm.register('rpo')} placeholder="1h" /></div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
-                                    <textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium resize-none" rows={2} {...createProcessForm.register('description')} />
-                                </div>
-                                <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                                    <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                                    <button type="submit" className="px-8 py-3 bg-rose-600 text-white rounded-xl hover:bg-rose-700 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-rose-500/30">Créer</button>
-                                </div>
-                            </form>
+            {/* Create Process Drawer */}
+            <Drawer
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                title="Nouveau Processus Critique"
+                subtitle="Définissez un nouveau processus pour l'analyse d'impact."
+            >
+                <form onSubmit={createProcessForm.handleSubmit(handleCreateProcess)} className="p-8 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom du processus</label>
+                            <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium"
+                                {...createProcessForm.register('name')} placeholder="ex: Gestion des Commandes" />
+                            {createProcessForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{createProcessForm.formState.errors.name.message}</p>}
                         </div>
-                    </div>,
-                    document.body
-                )
-            }
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
+                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium appearance-none"
+                                {...createProcessForm.register('owner')}>
+                                <option value="">Sélectionner...</option>
+                                {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RTO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium" {...createProcessForm.register('rto')} placeholder="4h" /></div>
+                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RPO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium" {...createProcessForm.register('rpo')} placeholder="1h" /></div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
+                        <textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium resize-none" rows={2} {...createProcessForm.register('description')} />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
+                        <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                        <button type="submit" className="px-8 py-3 bg-rose-600 text-white rounded-xl hover:bg-rose-700 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-rose-500/30">Créer</button>
+                    </div>
+                </form>
+            </Drawer>
 
             {/* Drill Modal */}
-            {
-                showDrillModal && createPortal(
-                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                        <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-md border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
-                            <div className="p-8 border-b border-gray-100 dark:border-white/5">
-                                <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Enregistrer un exercice</h2>
-                            </div>
-                            <form onSubmit={drillForm.handleSubmit(handleSubmitDrill)} className="p-8 space-y-5">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Processus Testé</label>
-                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        {...drillForm.register('processId')}>
-                                        {processes.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Date</label>
-                                        <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                            {...drillForm.register('date')} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
-                                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                            {...drillForm.register('type')}>
-                                            {['Tabletop', 'Simulation', 'Bascule réelle'].map(t => <option key={t} value={t}>{t}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Résultat</label>
-                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                        {...drillForm.register('result')}>
-                                        {['Succès', 'Succès partiel', 'Échec'].map(r => <option key={r} value={r}>{r}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Notes / Observations</label>
-                                    <textarea rows={3} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none"
-                                        {...drillForm.register('notes')} placeholder="Le RTO a-t-il été respecté ?" />
-                                </div>
-                                <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                                    <button type="button" onClick={() => setShowDrillModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                                    <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg">Enregistrer</button>
-                                </div>
-                            </form>
+            {/* Drill Drawer */}
+            <Drawer
+                isOpen={showDrillModal}
+                onClose={() => setShowDrillModal(false)}
+                title="Enregistrer un exercice"
+                subtitle="Documentez vos tests de continuité."
+            >
+                <form onSubmit={drillForm.handleSubmit(handleSubmitDrill)} className="p-8 space-y-5">
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Processus Testé</label>
+                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                            {...drillForm.register('processId')}>
+                            {processes.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Date</label>
+                            <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                {...drillForm.register('date')} />
                         </div>
-                    </div>,
-                    document.body
-                )
-            }
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
+                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                                {...drillForm.register('type')}>
+                                {['Tabletop', 'Simulation', 'Bascule réelle'].map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Résultat</label>
+                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
+                            {...drillForm.register('result')}>
+                            {['Succès', 'Succès partiel', 'Échec'].map(r => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Notes / Observations</label>
+                        <textarea rows={3} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none"
+                            {...drillForm.register('notes')} placeholder="Le RTO a-t-il été respecté ?" />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
+                        <button type="button" onClick={() => setShowDrillModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                        <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg">Enregistrer</button>
+                    </div>
+                </form>
+            </Drawer>
         </div >
     );
 };

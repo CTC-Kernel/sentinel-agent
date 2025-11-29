@@ -10,7 +10,7 @@ interface Option {
 interface CustomSelectProps {
     label?: string;
     value: string | string[];
-    onChange: (value: any) => void;
+    onChange: (value: string | string[]) => void;
     options: Option[];
     error?: string;
     className?: string;

@@ -118,7 +118,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="p-8 overflow-y-auto custom-scrollbar h-full">
+        <form onSubmit={handleSubmit(onSubmit, (errors) => console.error("RiskForm validation errors:", errors))} className="p-8 overflow-y-auto custom-scrollbar h-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
                     <Controller

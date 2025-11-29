@@ -11,7 +11,7 @@ import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc } 
 import { db } from '../firebase';
 import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk, Project } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target, Edit } from '../components/ui/Icons';
+import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target, Edit, FileText, Calendar, AlertTriangle } from '../components/ui/Icons';
 
 import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
@@ -118,7 +118,7 @@ export const Audits: React.FC = () => {
 
 
     const findingForm = useForm<FindingFormData>({
-        resolver: zodResolver(findingSchema) as any,
+        resolver: zodResolver(findingSchema),
         defaultValues: {
             description: '',
             type: 'Mineure',
@@ -180,7 +180,8 @@ export const Audits: React.FC = () => {
             const cSnap = await getDocs(cq);
             if (!cSnap.empty) setChecklist({ id: cSnap.docs[0].id, ...cSnap.docs[0].data() } as AuditChecklist);
             else setChecklist(null);
-        } catch (_error) {
+        } catch (error) {
+            console.error(error);
             setFindings([]);
             setChecklist(null);
         }
@@ -236,7 +237,10 @@ export const Audits: React.FC = () => {
                 addToast("Audit planifié et notifié", "success");
                 setCreationMode(false);
                 refreshAudits();
-            } catch (_e) { addToast("Erreur création audit", "error"); }
+            } catch (error) {
+                console.error(error);
+                addToast("Erreur création audit", "error");
+            }
         }
     };
 
@@ -260,7 +264,10 @@ export const Audits: React.FC = () => {
 
             findingForm.reset({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
             addToast("Constat ajouté", "success");
-        } catch (_e) { addToast("Erreur ajout constat", "error"); }
+        } catch (error) {
+            console.error(error);
+            addToast("Erreur ajout constat", "error");
+        }
     };
 
     const initiateDeleteFinding = (findingId: string) => {
@@ -282,7 +289,10 @@ export const Audits: React.FC = () => {
             refreshAudits();
             setFindings(prev => prev.filter(f => f.id !== findingId));
             addToast("Constat supprimé", "info");
-        } catch (_e) { addToast("Erreur suppression", "error"); }
+        } catch (error) {
+            console.error(error);
+            addToast("Erreur suppression", "error");
+        }
     };
 
     const initiateDeleteAudit = (id: string, name: string) => {
@@ -313,7 +323,10 @@ export const Audits: React.FC = () => {
             }
             await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name} `);
             addToast("Audit et constats supprimés", "info");
-        } catch (_e) { addToast("Erreur suppression", "error"); }
+        } catch (error) {
+            console.error(error);
+            addToast("Erreur suppression", "error");
+        }
     };
 
     const generateChecklist = async () => {
@@ -342,7 +355,10 @@ export const Audits: React.FC = () => {
             const ref = await addDoc(collection(db, 'audit_checklists'), newChecklist);
             setChecklist({ ...newChecklist, id: ref.id });
             addToast("Checklist générée", "success");
-        } catch (_e) { addToast("Erreur génération checklist", "error"); }
+        } catch (error) {
+            console.error(error);
+            addToast("Erreur génération checklist", "error");
+        }
     };
 
     const handleChecklistAnswer = async (questionId: string, response: AuditQuestion['response'], comment?: string) => {
@@ -406,7 +422,7 @@ export const Audits: React.FC = () => {
         doc.text(`Audit: ${selectedAudit.name} | Date: ${new Date().toLocaleDateString()} `, 14, 33);
 
         const data = checklist.questions.map(q => [q.controlCode, q.response, q.comment || '']);
-        (doc as jsPDF & { autoTable: any }).autoTable({
+        doc.autoTable({
             startY: 50,
             head: [['Contrôle', 'Statut', 'Justification']],
             body: data,
@@ -535,7 +551,7 @@ export const Audits: React.FC = () => {
             doc.setFontSize(10); doc.setTextColor(220); doc.text(`Auditeur: ${selectedAudit.auditor} | Date: ${new Date(selectedAudit.dateScheduled).toLocaleDateString()}`, 14, 33);
 
             const findingsData = findings.map(f => [f.type, f.description, f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-', f.status]);
-            (doc as any).autoTable({ startY: 50, head: [['Type', 'Description', 'Contrôle', 'Statut']], body: findingsData, theme: 'striped', headStyles: { fillColor: [79, 70, 229] } });
+            doc.autoTable({ startY: 50, head: [['Type', 'Description', 'Contrôle', 'Statut']], body: findingsData, theme: 'striped', headStyles: { fillColor: [79, 70, 229] } });
 
             const pdfBlob = doc.output('blob');
             folder.file(`Rapport_Audit.pdf`, pdfBlob);
@@ -691,8 +707,22 @@ export const Audits: React.FC = () => {
                                         </p>
                                     </div>
                                     <div className="flex gap-2 items-center">
-                                        <button onClick={handleExportPack} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Exporter Pack (Zip)"><FolderKanban className="h-5 w-5" /></button>
-                                        <button onClick={generateAuditReport} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Rapport PDF"><Download className="h-5 w-5" /></button>
+                                        <button onClick={() => selectedAudit && initiateDeleteAudit(selectedAudit.id, selectedAudit.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-red-500">
+                                            <Trash2 className="h-5 w-5" />
+                                        </button>
+                                        <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-2"></div>
+                                        <button onClick={generateAuditReport} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-blue-500" title="Rapport d'Audit">
+                                            <FileText className="h-5 w-5" />
+                                        </button>
+                                        <button onClick={generateAuditPlan} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-purple-500" title="Plan d'Audit">
+                                            <Calendar className="h-5 w-5" />
+                                        </button>
+                                        <button onClick={generateNonConformityReport} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-orange-500" title="Rapport Non-Conformités">
+                                            <AlertTriangle className="h-5 w-5" />
+                                        </button>
+                                        <button onClick={handleExportPack} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-emerald-500" title="Pack Complet (ZIP)">
+                                            <Download className="h-5 w-5" />
+                                        </button>
                                         <button onClick={() => setShowFindingsDrawer(false)} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
                                     </div>
                                 </div>
@@ -706,7 +736,7 @@ export const Audits: React.FC = () => {
                                             { id: 'scope', label: 'Périmètre', icon: Target }
                                         ]}
                                         activeTab={inspectorTab}
-                                        onTabChange={(id) => setInspectorTab(id as any)}
+                                        onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
                                     />
                                 </div>
 
@@ -957,7 +987,7 @@ export const Audits: React.FC = () => {
                 onClose={() => { setCreationMode(false); setEditingAudit(null); }}
                 title={editingAudit ? "Modifier l'Audit" : "Nouvel Audit"}
                 subtitle={editingAudit ? editingAudit.name : "Planification"}
-                width="max-w-4xl"
+                width="max-w-6xl"
             >
                 <AuditForm
                     onCancel={() => { setCreationMode(false); setEditingAudit(null); }}

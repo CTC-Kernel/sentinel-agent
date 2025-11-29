@@ -10,7 +10,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 
 interface ProjectFormProps {
-    onSubmit: (project: Omit<Project, 'id' | 'organizationId' | 'tasks' | 'progress' | 'createdAt'>) => void;
+    onSubmit: (project: ProjectFormData) => void;
     onCancel: () => void;
     existingProject?: Project;
     availableUsers?: string[]; // list of manager display names
