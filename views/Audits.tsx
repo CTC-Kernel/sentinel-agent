@@ -17,8 +17,8 @@ import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
+import { PdfService } from '../services/PdfService';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -432,49 +432,92 @@ export const Audits: React.FC = () => {
         doc.text(`Auditeur: ${selectedAudit.auditor} | Date: ${new Date(selectedAudit.dateScheduled).toLocaleDateString()}`, 14, 33);
 
         // Stats Summary
-        const major = findings.filter(f => f.type === 'Majeure').length;
-        const minor = findings.filter(f => f.type === 'Mineure').length;
-        const open = findings.filter(f => f.status === 'Ouvert').length;
+        const findings = selectedAudit.findings || [];
 
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(12);
-        doc.text("Synthèse des résultats", 14, 55);
+        PdfService.generateCustomReport(
+            {
+                title: 'Rapport d\'Audit',
+                subtitle: `Audit: ${selectedAudit.name} | ${new Date().toLocaleDateString()}`,
+                filename: `Rapport_Audit_${selectedAudit.name}.pdf`
+            },
+            (doc, startY) => {
+                let y = startY;
 
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text(`Total Constats: ${findings.length}`, 14, 62);
-        doc.text(`Écarts Majeurs: ${major}`, 14, 67);
-        doc.text(`Écarts Mineurs: ${minor}`, 14, 72);
-        doc.text(`Non résolus (Ouverts): ${open}`, 14, 77);
+                // Audit Details
+                doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
+                doc.text("Détails de l'Audit", 14, y);
+                y += 8;
 
-        // Table
-        const rows = findings.map(f => [
-            f.type,
-            f.description,
-            f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-',
-            f.status
-        ]);
+                const details = [
+                    ['Auditeur', selectedAudit.auditor],
+                    ['Date', selectedAudit.dateScheduled ? new Date(selectedAudit.dateScheduled).toLocaleDateString() : 'Non planifié'],
+                    ['Statut', selectedAudit.status]
+                ];
 
-        (doc as jsPDF & { autoTable: any }).autoTable({
-            startY: 85,
-            head: [['Type', 'Description', 'Contrôle Lié', 'Statut']],
-            body: rows,
-            theme: 'striped',
-            headStyles: { fillColor: [79, 70, 229] }, // Indigo
-            columnStyles: { 1: { cellWidth: 80 } },
-            styles: { fontSize: 9 }
-        });
+                (doc as any).autoTable({
+                    startY: y,
+                    body: details,
+                    theme: 'plain',
+                    styles: { fontSize: 10, cellPadding: 2 },
+                    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
+                });
 
-        const pageCount = (doc as jsPDF & { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(9);
-            doc.setTextColor(150);
-            doc.text('Rapport généré par Sentinel GRC (Cyber Threat Consulting)', 14, 285);
-            doc.text(`Page ${i} / ${pageCount}`, 190, 285, { align: 'right' });
-        }
+                y = (doc as any).lastAutoTable.finalY + 15;
 
-        doc.save(`Audit_Report_${selectedAudit.name.replace(/\s+/g, '_')}.pdf`);
+                // Findings
+                doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
+                doc.text("Constats d'Audit", 14, y);
+                y += 8;
+
+                const findingsData = findings.map(f => [f.type, f.description, f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-', f.status]) || [];
+                (doc as any).autoTable({
+                    startY: y,
+                    head: [['Type', 'Description', 'Contrôle', 'Statut']],
+                    body: findingsData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [79, 70, 229] }
+                });
+            }
+        );
+    };
+
+    const generateAuditPlan = () => {
+        if (!selectedAudit) return;
+
+        PdfService.generateCustomReport(
+            {
+                title: 'Plan d\'Audit',
+                subtitle: `Audit: ${selectedAudit.name} | ${new Date().toLocaleDateString()}`,
+                filename: `Plan_Audit_${selectedAudit.name}.pdf`
+            },
+            (doc, startY) => {
+                let y = startY;
+
+                doc.setFontSize(12); doc.text(`Objectif: Vérifier la conformité ISO 27001`, 14, y);
+                y += 10;
+                doc.text(`Auditeur: ${selectedAudit.auditor}`, 14, y);
+                y += 10;
+                doc.text(`Date: ${selectedAudit.dateScheduled}`, 14, y);
+            }
+        );
+    };
+
+    const generateNonConformityReport = () => {
+        if (!selectedAudit || !findings) return;
+        const nc = findings.filter(f => f.type === 'Majeure' || f.type === 'Mineure'); // Assuming 'Majeure' and 'Mineure' are non-conformities
+        if (nc.length === 0) { addToast("Aucune non-conformité à exporter", "info"); return; }
+
+        const rows = nc.map(f => [f.type, f.description, f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-', f.status]);
+
+        PdfService.generateTableReport(
+            {
+                title: 'Rapport de Non-Conformités',
+                subtitle: `Audit: ${selectedAudit.name} | ${new Date().toLocaleDateString()}`,
+                filename: `NC_Report_${selectedAudit.name}.pdf`
+            },
+            ['Type', 'Description', 'Contrôle', 'Statut'],
+            rows
+        );
     };
 
     const handleExportPack = async () => {
@@ -491,8 +534,8 @@ export const Audits: React.FC = () => {
             doc.setFontSize(18); doc.setTextColor(255, 255, 255); doc.text(`Rapport d'Audit: ${selectedAudit.name}`, 14, 25);
             doc.setFontSize(10); doc.setTextColor(220); doc.text(`Auditeur: ${selectedAudit.auditor} | Date: ${new Date(selectedAudit.dateScheduled).toLocaleDateString()}`, 14, 33);
 
-            const rows = findings.map(f => [f.type, f.description, f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-', f.status]);
-            (doc as jsPDF & { autoTable: any }).autoTable({ startY: 50, head: [['Type', 'Description', 'Contrôle', 'Statut']], body: rows, theme: 'striped', headStyles: { fillColor: [79, 70, 229] } });
+            const findingsData = findings.map(f => [f.type, f.description, f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-', f.status]);
+            (doc as any).autoTable({ startY: 50, head: [['Type', 'Description', 'Contrôle', 'Statut']], body: findingsData, theme: 'striped', headStyles: { fillColor: [79, 70, 229] } });
 
             const pdfBlob = doc.output('blob');
             folder.file(`Rapport_Audit.pdf`, pdfBlob);

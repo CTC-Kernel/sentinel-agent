@@ -5,10 +5,9 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ChartTooltip } from '../components/ui/ChartTooltip';
 import { db } from '../firebase';
 import { collection, getDocs, query, where, doc, setDoc, limit, getCountFromServer, getDoc, orderBy } from 'firebase/firestore';
-import { Risk, Control, Audit, Project, DailyStat, Document, Asset, SystemLog, Supplier, Incident } from '../types';
+import { Risk, Control, Audit, Project, DailyStat, Document, Asset, SystemLog, Supplier } from '../types';
 import { Skeleton } from '../components/ui/Skeleton';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import { PdfService } from '../services/PdfService';
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
 import { ErrorLogger } from '../services/errorLogger';
@@ -56,13 +55,13 @@ export const Dashboard: React.FC = () => {
     const { data: allRisks, loading: risksLoading } = useFirestoreCollection<Risk>('risks', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true });
     const { data: allAssets, loading: assetsLoading } = useFirestoreCollection<Asset>('assets', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true });
     const { data: allSuppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>('suppliers', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true });
-    const { data: latestIncidents, loading: incidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore'), orderBy('dateReported', 'desc'), limit(5)], { logError: true });
+
     const { data: myProjects, loading: projectsLoading } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId || 'ignore'), where('manager', '==', user?.displayName || 'ignore'), where('status', '==', 'En cours')], { logError: true });
     const { data: myAudits, loading: auditsLoading } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId || 'ignore'), where('auditor', '==', user?.displayName || 'ignore'), where('status', 'in', ['Planifié', 'En cours'])], { logError: true });
     const { data: myDocs, loading: myDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('owner', '==', user?.email || 'ignore')], { logError: true });
     const { data: publishedDocs, loading: publishedDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '==', 'Publié')], { logError: true });
 
-    const loading = manualLoading || controlsLoading || logsLoading || historyLoading || risksLoading || assetsLoading || suppliersLoading || incidentsLoading || projectsLoading || auditsLoading || myDocsLoading || publishedDocsLoading;
+    const loading = manualLoading || controlsLoading || logsLoading || historyLoading || risksLoading || assetsLoading || suppliersLoading || projectsLoading || auditsLoading || myDocsLoading || publishedDocsLoading;
 
     // Fetch Counts & Org Name
     useEffect(() => {
@@ -276,26 +275,73 @@ export const Dashboard: React.FC = () => {
     };
 
     const generateExecutiveReport = () => {
-        const doc = new jsPDF(); const date = new Date().toLocaleDateString();
-        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F'); doc.setFontSize(22); doc.setTextColor(255, 255, 255); doc.text("Rapport Exécutif de Sécurité", 14, 20); doc.setFontSize(12); doc.setTextColor(148, 163, 184); doc.text(`Généré le ${date} | Sentinel GRC by Cyber Threat Consulting`, 14, 30);
-        let y = 55; doc.setFontSize(16); doc.setTextColor(15, 23, 42); doc.text("Synthèse & Indicateurs Clés", 14, y); y += 10;
-        const kpiData = [['Note Globale', scoreGrade], ['Niveau de Conformité ISO 27001', `${stats.compliance}%`], ['Risques Critiques Identifiés', stats.highRisks.toString()], ['Incidents de Sécurité Actifs', stats.activeIncidents.toString()], ['Audits en cours', stats.auditsOpen.toString()], ['Actifs Recensés', stats.assets.toString()], ['Valorisation du Parc', `${stats.assetValue} €`]];
-        doc.autoTable({ startY: y, head: [['Indicateur', 'Valeur']], body: kpiData, theme: 'striped', headStyles: { fillColor: [59, 130, 246] }, styles: { fontSize: 11, cellPadding: 4 }, columnStyles: { 0: { fontStyle: 'bold' } } }); y = doc.lastAutoTable.finalY + 20;
-        doc.setFontSize(16); doc.text("Top 5 Risques Critiques", 14, y); y += 10;
-        const riskRows = topRisks.map(r => [r.threat, r.score.toString(), r.strategy, r.status]);
-        doc.autoTable({ startY: y, head: [['Menace', 'Score', 'Stratégie', 'Statut']], body: riskRows, theme: 'striped', headStyles: { fillColor: [239, 68, 68] }, styles: { fontSize: 10 }, }); y = doc.lastAutoTable.finalY + 20;
-        if (latestIncidents.length > 0) { doc.setFontSize(16); doc.text("Derniers Incidents de Sécurité", 14, y); y += 10; const incRows = latestIncidents.map(i => [new Date(i.dateReported).toLocaleDateString(), i.title, i.severity, i.status]); doc.autoTable({ startY: y, head: [['Date', 'Titre', 'Sévérité', 'Statut']], body: incRows, theme: 'striped', headStyles: { fillColor: [249, 115, 22] }, styles: { fontSize: 10 }, }); }
+        PdfService.generateCustomReport(
+            {
+                title: 'Rapport Exécutif',
+                subtitle: `Généré le ${new Date().toLocaleDateString()}`,
+                filename: 'rapport-executif.pdf'
+            },
+            (doc, startY) => {
+                let y = startY;
 
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(9);
-            doc.setTextColor(150);
-            doc.text('Rapport généré par Sentinel GRC (Cyber Threat Consulting)', 14, 285);
-            doc.text(`Page ${i} / ${pageCount}`, 190, 285, { align: 'right' });
-        }
+                // Stats Grid
+                doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
+                doc.text('Indicateurs Clés', 14, y);
+                y += 10;
 
-        doc.save(`Executive_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+                const stats = [
+                    { label: 'Score de Conformité', value: `${complianceScore}%` },
+                    { label: 'Risques Critiques', value: topRisks.filter(r => r.score >= 15).length.toString() },
+                    { label: 'Incidents Actifs', value: activeIncidentsCount.toString() },
+                    { label: 'Audits Ouverts', value: openAuditsCount.toString() }
+                ];
+
+                let x = 14;
+                stats.forEach(stat => {
+                    doc.setFillColor(248, 250, 252); doc.setDrawColor(226, 232, 240);
+                    doc.rect(x, y, 40, 25, 'FD');
+                    doc.setFontSize(16); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                    doc.text(stat.value, x + 20, y + 12, { align: 'center' });
+                    doc.setFontSize(8); doc.setTextColor(100); doc.setFont('helvetica', 'normal');
+                    doc.text(stat.label, x + 20, y + 20, { align: 'center' });
+                    x += 45;
+                });
+
+                y += 35;
+
+                // Top Risks Table
+                doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
+                doc.text('Top 5 Risques Critiques', 14, y);
+                y += 5;
+
+                const riskData = topRisks.map(r => [r.threat, r.score.toString(), r.strategy, r.status]);
+                (doc as any).autoTable({
+                    startY: y,
+                    head: [['Menace', 'Score', 'Stratégie', 'Statut']],
+                    body: riskData,
+                    theme: 'grid',
+                    headStyles: { fillColor: [79, 70, 229] },
+                    margin: { left: 14, right: 14 }
+                });
+
+                y = (doc as any).lastAutoTable.finalY + 15;
+
+                // Compliance Summary
+                doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
+                doc.text('Conformité par Domaine', 14, y);
+                y += 5;
+
+                const complianceData = radarData.map(d => [d.subject, `${d.A}%`]);
+                (doc as any).autoTable({
+                    startY: y,
+                    head: [['Domaine', 'Score']],
+                    body: complianceData,
+                    theme: 'grid',
+                    headStyles: { fillColor: [79, 70, 229] },
+                    margin: { left: 14, right: 14 }
+                });
+            }
+        );
     };
 
     if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-panel rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Accès Refusé</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">La base de données est verrouillée. Veuillez configurer les règles de sécurité.</p> <button onClick={copyRules} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm">Copier les Règles</button> </div> </div>); }
