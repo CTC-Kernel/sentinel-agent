@@ -207,6 +207,16 @@ export const Risks: React.FC = () => {
                 });
                 addToast("Risque sécurisé sur OVH SecNumCloud", "success");
             }
+
+            // Centralized Audit Logging (SecNumCloud)
+            await hybridService.logCriticalEvent({
+                action: 'create',
+                object_type: 'risk',
+                object_id: docRef.id,
+                description: `Created risk: ${cleanNewRisk.threat}`,
+                metadata: { score, residualScore }
+            });
+
             await logAction(user, 'CREATE', 'Risk', `Ajout risque: ${cleanNewRisk.threat}`);
             addToast("Risque ajouté", "success");
             setCreationMode(false);
@@ -250,6 +260,19 @@ export const Risks: React.FC = () => {
                 });
                 addToast("Données synchronisées avec OVH SecNumCloud", "success");
             }
+
+            // Centralized Audit Logging (SecNumCloud)
+            await hybridService.logCriticalEvent({
+                action: 'update',
+                object_type: 'risk',
+                object_id: selectedRisk.id,
+                description: `Updated risk: ${riskData.threat}`,
+                metadata: {
+                    previousScore: selectedRisk.score,
+                    newScore: score
+                }
+            });
+
             await logAction(user, 'UPDATE', 'Risk', `Mise à jour risque: ${riskData.threat}`);
             addToast("Risque mis à jour", "success");
             setSelectedRisk({ ...selectedRisk, ...riskData, score, history: updatedHistory } as Risk);
@@ -296,6 +319,15 @@ export const Risks: React.FC = () => {
     const handleDeleteRisk = async (id: string, threat: string) => {
         try {
             await deleteDoc(doc(db, 'risks', id));
+
+            // Centralized Audit Logging (SecNumCloud)
+            await hybridService.logCriticalEvent({
+                action: 'delete',
+                object_type: 'risk',
+                object_id: id,
+                description: `Deleted risk: ${threat}`
+            });
+
             await logAction(user, 'DELETE', 'Risk', `Suppression risque: ${threat}`);
             if (selectedRisk?.id === id) setSelectedRisk(null);
             addToast("Risque supprimé", "info");
@@ -307,6 +339,16 @@ export const Risks: React.FC = () => {
         if (!canEdit) return;
         try {
             await updateDoc(doc(db, 'risks', risk.id), { status: newStatus });
+
+            // Centralized Audit Logging
+            await hybridService.logCriticalEvent({
+                action: 'update_status',
+                object_type: 'risk',
+                object_id: risk.id,
+                description: `Risk status changed to ${newStatus}`,
+                metadata: { oldStatus: risk.status, newStatus }
+            });
+
             await logAction(user, 'UPDATE', 'Risk', `Statut risque changé vers ${newStatus}`);
             refreshRisks();
             if (selectedRisk?.id === risk.id) setSelectedRisk({ ...selectedRisk, status: newStatus });
@@ -318,6 +360,16 @@ export const Risks: React.FC = () => {
         if (!canEdit) return;
         try {
             await updateDoc(doc(db, 'risks', risk.id), { strategy: newStrategy });
+
+            // Centralized Audit Logging
+            await hybridService.logCriticalEvent({
+                action: 'update_strategy',
+                object_type: 'risk',
+                object_id: risk.id,
+                description: `Risk strategy changed to ${newStrategy}`,
+                metadata: { oldStrategy: risk.strategy, newStrategy }
+            });
+
             await logAction(user, 'UPDATE', 'Risk', `Stratégie risque changée vers ${newStrategy}`);
             refreshRisks();
             if (selectedRisk?.id === risk.id) setSelectedRisk({ ...selectedRisk, strategy: newStrategy });
@@ -408,6 +460,14 @@ export const Risks: React.FC = () => {
             ['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel'],
             data
         );
+
+        // Centralized Audit Logging
+        hybridService.logCriticalEvent({
+            action: 'export',
+            object_type: 'report',
+            object_id: 'rtp',
+            description: 'Generated Risk Treatment Plan (RTP) PDF'
+        });
     };
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -485,6 +545,14 @@ export const Risks: React.FC = () => {
                 link.click();
                 document.body.removeChild(link);
                 addToast("Rapport téléchargé avec succès", "success");
+
+                // Centralized Audit Logging
+                await hybridService.logCriticalEvent({
+                    action: 'export',
+                    object_type: 'report',
+                    object_id: 'risk_register',
+                    description: 'Generated Risk Register PDF'
+                });
             } else {
                 throw new Error("Erreur lors de la génération du rapport");
             }
