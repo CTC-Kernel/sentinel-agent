@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { VoxelStudio } from '../components/VoxelStudio';
 import { db } from '../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIInsight } from '../types';
+import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIInsight, VoxelNode, DataNode } from '../types';
 import { aiService } from '../services/aiService';
 import { ErrorLogger } from '../services/errorLogger';
 import { useStore } from '../store';
@@ -14,6 +14,8 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Network } from '../components/ui/Icons';
 
 type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier';
+
+
 
 const formatSafeDate = (date: any): string => {
   if (!date) return '—';
@@ -46,6 +48,32 @@ const safeRender = (value: any): string => {
   return String(value);
 };
 
+
+// Helper to convert Firestore Timestamps to ISO strings
+const convertTimestamps = (obj: unknown): unknown => {
+  if (!obj || typeof obj !== 'object') return obj;
+
+  // Handle Firestore Timestamp
+  const timestampObj = obj as { seconds?: number; nanoseconds?: number };
+  if (timestampObj.seconds !== undefined && timestampObj.nanoseconds !== undefined) {
+    return new Date(timestampObj.seconds * 1000).toISOString();
+  }
+
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertTimestamps(item));
+  }
+
+  // Handle objects recursively
+  const converted: Record<string, unknown> = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      converted[key] = convertTimestamps((obj as Record<string, unknown>)[key]);
+    }
+  }
+  return converted;
+};
+
 export const VoxelView: React.FC = () => {
   const { user, addToast } = useStore();
   const navigate = useNavigate();
@@ -56,7 +84,7 @@ export const VoxelView: React.FC = () => {
   const [audits, setAudits] = useState<Audit[]>([]);
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [selectedNode, setSelectedNode] = useState<{ id: string; type: LayerType; data: any } | null>(null);
+  const [selectedNode, setSelectedNode] = useState<DataNode | null>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [releaseToken, setReleaseToken] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -284,20 +312,32 @@ export const VoxelView: React.FC = () => {
     if (!selectedNode) return null;
 
     // Helper to get the correct "person in charge" based on type
-    const getOwner = (node: { type: LayerType; data: any }) => {
+    const getOwner = (node: DataNode) => {
       switch (node.type) {
         case 'project': return node.data.manager;
         case 'audit': return node.data.auditor;
-        case 'incident': return node.data.responseOwner || node.data.reporter;
-        case 'supplier': return node.data.owner; // or contactName if preferred
+        case 'incident': return (node.data as any).responseOwner || node.data.reporter;
+        case 'supplier': return node.data.owner || '';
         case 'risk': return node.data.owner;
         case 'asset': return node.data.owner;
-        default: return (node.data as any).owner || '';
+        default: return '';
+      }
+    };
+
+    const getTitle = (node: DataNode) => {
+      switch (node.type) {
+        case 'asset': return node.data.name;
+        case 'risk': return node.data.threat;
+        case 'project': return node.data.name;
+        case 'audit': return node.data.name;
+        case 'incident': return node.data.title;
+        case 'supplier': return node.data.name;
+        default: return 'Élément';
       }
     };
 
     const base = {
-      title: selectedNode.data.name || selectedNode.data.title || selectedNode.data.threat || 'Élément',
+      title: getTitle(selectedNode),
       type: selectedNode.type,
       owner: getOwner(selectedNode),
     };
@@ -461,6 +501,7 @@ export const VoxelView: React.FC = () => {
     if (!orderedNodes.length) return;
     const first = orderedNodes[0];
     applyFocus(first.id, first.type as LayerType);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, orderedNodes, selectedNode]);
 
   useEffect(() => {
@@ -497,27 +538,7 @@ export const VoxelView: React.FC = () => {
     setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
   };
 
-  // Helper to convert Firestore Timestamps to ISO strings
-  const convertTimestamps = (obj: any): any => {
-    if (!obj || typeof obj !== 'object') return obj;
 
-    // Handle Firestore Timestamp
-    if (obj.seconds !== undefined && obj.nanoseconds !== undefined) {
-      return new Date(obj.seconds * 1000).toISOString();
-    }
-
-    // Handle arrays
-    if (Array.isArray(obj)) {
-      return obj.map(item => convertTimestamps(item));
-    }
-
-    // Handle objects recursively
-    const converted: any = {};
-    for (const key in obj) {
-      converted[key] = convertTimestamps(obj[key]);
-    }
-    return converted;
-  };
 
   useEffect(() => {
     if (!user?.organizationId) {
@@ -562,7 +583,7 @@ export const VoxelView: React.FC = () => {
     fetchData();
   }, [user?.organizationId, addToast]);
 
-  const handleNodeClick = (node: any) => {
+  const handleNodeClick = (node: VoxelNode | null) => {
     if (selectedNode?.id !== node?.id) {
       setIsDetailMinimized(false);
     }
@@ -1090,7 +1111,7 @@ export const VoxelView: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-slate-300 capitalize">{selectedNode.type}</p>
-                  <p className="text-lg font-semibold">{(selectedNode.data as any).name || (selectedNode.data as any).title}</p>
+                  <p className="text-lg font-semibold">{selectedNodeDetails?.title}</p>
                 </div>
               </div>
 
@@ -1123,7 +1144,7 @@ export const VoxelView: React.FC = () => {
                 <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
                   <p className="uppercase tracking-wide text-[10px] text-slate-400">Dernière mise à jour</p>
                   <p className="mt-1 text-sm font-semibold">
-                    {formatSafeDate((selectedNode.data as any).updatedAt)}
+                    {formatSafeDate((selectedNode.data as any).updatedAt || (selectedNode.data as any).createdAt)}
                   </p>
                 </div>
               </div>

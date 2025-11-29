@@ -157,7 +157,7 @@ export const Risks: React.FC = () => {
             relevantLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setRiskHistory(relevantLogs);
 
-            const hq = query(collection(db, 'risk_history'), where('riskId', '==', risk.id));
+            const hq = query(collection(db, 'risk_history'), where('riskId', '==', risk.id), where('organizationId', '==', user.organizationId));
             const hSnap = await getDocs(hq);
             const historyData = hSnap.docs.map(d => ({ id: d.id, ...d.data() } as RiskHistory));
             historyData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
