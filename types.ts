@@ -66,12 +66,12 @@ export interface Risk {
 }
 
 export interface RiskTreatment {
-  strategy: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
+  strategy?: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
   description?: string;
   ownerId?: string;
   dueDate?: string;
   completedDate?: string;
-  status: 'Planifié' | 'En cours' | 'Terminé' | 'Retard';
+  status?: 'Planifié' | 'En cours' | 'Terminé' | 'Retard';
   slaStatus?: 'On Track' | 'At Risk' | 'Breached';
   estimatedCost?: number;
 }
@@ -132,6 +132,7 @@ export interface Audit {
   findings?: Finding[];
   collaborators?: string[]; // User IDs of internal collaborators
   externalAuditors?: string[]; // Emails of external auditors
+  createdBy?: string; // User ID of the creator (for Segregation of Duties)
 }
 
 export interface EvidenceRequest {
