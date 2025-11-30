@@ -71,7 +71,7 @@ export const MigrationTool: React.FC = () => {
                                 if (userSnap.exists() && userSnap.data().organizationId) {
                                     targetOrgId = userSnap.data().organizationId;
                                 }
-                            } catch (_e) {
+                            } catch (e) {
                                 // Ignore error
                             }
                         }
@@ -111,7 +111,7 @@ export const MigrationTool: React.FC = () => {
             let orgFixed = 0;
 
             for (const org of orgs) {
-                const updates: any = {};
+                const updates: Record<string, unknown> = {};
 
                 // Check Slug
                 if (!org.slug) {
@@ -149,9 +149,10 @@ export const MigrationTool: React.FC = () => {
             log("🎉 Migration terminée avec succès !");
             addToast(`Migration terminée. ${totalFixed} documents et ${orgFixed} organisations corrigés.`, "success");
 
-        } catch (error: any) {
+        } catch (error) {
             ErrorLogger.error(error, 'MigrationTool.runMigration');
-            log(`❌ Erreur: ${error.message}`);
+            const msg = error instanceof Error ? error.message : 'Unknown error';
+            log(`❌ Erreur: ${msg}`);
             addToast("Erreur lors de la migration", "error");
         } finally {
             setLoading(false);

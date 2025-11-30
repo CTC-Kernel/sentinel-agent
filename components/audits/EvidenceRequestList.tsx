@@ -69,7 +69,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
             setIsCreating(false);
             setFormData({ title: '', description: '', assignedTo: '', dueDate: '', relatedControlId: '' });
             refresh();
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleCreate', 'CREATE_FAILED');
         }
     };
@@ -81,7 +81,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 updatedAt: new Date().toISOString()
             });
             refresh();
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleStatusChange', 'UPDATE_FAILED');
         }
     };
@@ -92,7 +92,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
             await deleteDoc(doc(db, 'evidence_requests', id));
             refresh();
             addToast("Demande supprimée", "info");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleDelete', 'DELETE_FAILED');
         }
     };
@@ -133,7 +133,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
 
             refresh();
             addToast("Preuve ajoutée et liée", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleFileUpload', 'FILE_UPLOAD_FAILED');
         }
     };
@@ -206,7 +206,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                 window.URL.revokeObjectURL(url);
 
                                 addToast("Export ZIP téléchargé", "success");
-                            } catch (_error) {
+                            } catch (error) {
                                 ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleExport', 'UNKNOWN_ERROR');
                                 addToast("Erreur lors de l'export", "error");
                             }

@@ -39,6 +39,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
         watch,
         formState: { errors }
     } = useForm<ProjectFormData>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(projectSchema) as any,
         defaultValues: {
             name: '',

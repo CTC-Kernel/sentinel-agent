@@ -103,9 +103,8 @@ export const Privacy: React.FC = () => {
             const review = data.filter(a => a.status !== 'Actif').length;
 
             setStats({ total, sensitive, dpiaMissing, review });
-
-        } catch (_error) {
-            console.error(error);
+        } catch (error) {
+            ErrorLogger.error(error, 'Privacy.fetchActivities');
             addToast("Erreur chargement traitements", "error");
         } finally {
             setLoading(false);
@@ -138,8 +137,7 @@ export const Privacy: React.FC = () => {
             const filteredLogs = logs.filter(l => l.resource === 'Privacy' && l.details?.includes(activity.name));
             filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setActivityHistory(filteredLogs);
-        } catch (_e) {
-            console.error(e);
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Privacy.handleSelectActivity');
         }
     };
@@ -153,9 +151,8 @@ export const Privacy: React.FC = () => {
             setShowCreateModal(false);
             createActivityForm.reset();
             fetchActivities();
-        } catch (_e) {
-            console.error(e);
-            addToast("Erreur enregistrement", "error");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Privacy.handleCreate', 'CREATE_FAILED');
         }
     };
 
@@ -169,9 +166,8 @@ export const Privacy: React.FC = () => {
             setIsEditing(false);
             addToast("Traitement mis à jour", "success");
             fetchActivities();
-        } catch (_e) {
-            console.error(e);
-            addToast("Erreur mise à jour", "error");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Privacy.handleUpdate', 'UPDATE_FAILED');
         }
     };
 
@@ -193,9 +189,8 @@ export const Privacy: React.FC = () => {
             await logAction(user, 'DELETE', 'Privacy', `Suppression: ${name}`);
             addToast("Traitement supprimé", "info");
             fetchActivities();
-        } catch (_e) {
-            console.error(e);
-            addToast("Erreur suppression", "error");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Privacy.handleDelete', 'DELETE_FAILED');
         }
     };
 
@@ -258,9 +253,8 @@ export const Privacy: React.FC = () => {
                 await logAction(user, 'IMPORT', 'Privacy', `Import CSV de ${count} traitements`);
                 addToast(`${count} traitements importés`, "success");
                 fetchActivities();
-            } catch (_error) {
+            } catch (error) {
                 ErrorLogger.handleErrorWithToast(error, 'Privacy.handleFileUpload', 'FILE_UPLOAD_FAILED');
-                addToast("Erreur import CSV", "error");
             } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
         };
         reader.readAsText(file);

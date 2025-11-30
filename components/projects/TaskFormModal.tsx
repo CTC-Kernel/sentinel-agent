@@ -31,6 +31,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         setValue,
         formState: { errors }
     } = useForm<ProjectTaskFormData>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(projectTaskSchema) as any,
         defaultValues: {
             title: '',

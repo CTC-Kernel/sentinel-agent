@@ -142,7 +142,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
     const CustomTooltip = ({ task }: { task: Task }) => {
         const startDate = task.start;
         const endDate = task.end;
-        const originalTask = (task as any).projectTask as ProjectTask;
+        const originalTask = (task as unknown as { projectTask: ProjectTask }).projectTask;
         const assignee = originalTask?.assignee;
 
         return (
@@ -205,11 +205,11 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
         );
     };
 
-    const TaskListTable = ({ rowHeight, tasks }: any) => {
+    const TaskListTable = ({ rowHeight, tasks }: { rowHeight: number; tasks: Task[] }) => {
         return (
             <div className="border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/30 h-full backdrop-blur-sm">
                 {tasks.map((t: Task) => {
-                    const originalTask = (t as any).projectTask as ProjectTask;
+                    const originalTask = (t as unknown as { projectTask: ProjectTask }).projectTask;
                     return (
                         <div
                             key={t.id}

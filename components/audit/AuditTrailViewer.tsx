@@ -24,8 +24,8 @@ interface AuditLog {
     userId: string;
     userName: string;
     timestamp: Date;
-    before?: any;
-    after?: any;
+    before?: Record<string, unknown>;
+    after?: Record<string, unknown>;
     changes?: string[];
 }
 
@@ -80,7 +80,7 @@ export const AuditTrailViewer: React.FC = () => {
                 });
 
                 setLogs(fetchedLogs);
-            } catch (_error) {
+            } catch (error) {
                 ErrorLogger.error(error, 'AuditTrailViewer.fetchLogs');
             } finally {
                 setLoading(false);
@@ -214,7 +214,7 @@ export const AuditTrailViewer: React.FC = () => {
                     {/* Action filter */}
                     <select
                         value={filters.action}
-                        onChange={(e) => setFilters({ ...filters, action: e.target.value as any })}
+                        onChange={(e) => setFilters({ ...filters, action: e.target.value as 'all' | 'create' | 'update' | 'delete' })}
                         className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                     >
                         <option value="all">Toutes les actions</option>

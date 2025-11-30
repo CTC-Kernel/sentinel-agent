@@ -82,7 +82,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
   const handleLogout = async () => {
     try {
       await signOut(auth);
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'Sidebar.handleLogout');
     }
   };
