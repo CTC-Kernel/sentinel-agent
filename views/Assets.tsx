@@ -326,7 +326,7 @@ export const Assets: React.FC = () => {
             refreshAssets();
             setSelectedAsset(null);
             addToast("Actif supprimé", "info");
-        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Assets.handleDeleteAsset', 'DELETE_FAILED'); }
+        } catch (_error) { ErrorLogger.handleErrorWithToast(error, 'Assets.handleDeleteAsset', 'DELETE_FAILED'); }
     };
 
     const handleExportCSV = () => {

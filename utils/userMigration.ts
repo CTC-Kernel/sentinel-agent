@@ -22,7 +22,7 @@ export const fixAllUsers = async (): Promise<{
 
         const result = await fixAllUsersFunc();
         return result.data as any;
-    } catch (error) {
+    } catch (_error) {
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error'

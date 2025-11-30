@@ -77,7 +77,7 @@ export class StatsService {
             await setDoc(docRef, { ...stats, organizationId });
             console.log('Daily stats snapshot created for', today);
 
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.error(error, 'StatsService.snapshotDailyStats');
         }
     }
@@ -102,7 +102,7 @@ export class StatsService {
             return snapshot.docs
                 .map(d => d.data() as DailyStats)
                 .reverse(); // Return chronological order (oldest to newest)
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.error(error, 'StatsService.getHistory');
             return [];
         }

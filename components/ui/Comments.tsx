@@ -39,7 +39,7 @@ export const Comments: React.FC<CommentsProps> = ({ collectionName, documentId }
         createdAt: new Date().toISOString()
       });
       setNewComment('');
-    } catch (error) { ErrorLogger.error(error, 'Comments.handleSubmit'); }
+    } catch (_error) { ErrorLogger.error(error, 'Comments.handleSubmit'); }
   };
 
   return (

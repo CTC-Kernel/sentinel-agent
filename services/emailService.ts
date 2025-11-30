@@ -65,7 +65,7 @@ export const sendEmail = async (
     }
 
     return true;
-  } catch (error) {
+  } catch (_error) {
     ErrorLogger.error(error, 'emailService.sendEmail', { metadata: { to: payload.to, type: payload.type } });
     return false;
   }
@@ -116,7 +116,7 @@ export const sendBulkEmail = async (
     await Promise.all(promises);
     await logAction(user, 'BULK_EMAIL_QUEUED', 'System', `${recipients.length} emails '${payload.type}' envoyés`);
     return true;
-  } catch (error) {
+  } catch (_error) {
     ErrorLogger.error(error, 'emailService.sendBulkEmail', { metadata: { count: recipients.length, type: payload.type } });
     return false;
   }
@@ -148,7 +148,7 @@ export const scheduleEmail = async (
 
     await logAction(user, 'EMAIL_SCHEDULED', 'System', `Email '${payload.type}' programmé pour ${scheduledFor.toLocaleString()}`);
     return true;
-  } catch (error) {
+  } catch (_error) {
     ErrorLogger.error(error, 'emailService.scheduleEmail', { metadata: { to: payload.to, type: payload.type, scheduledFor } });
     return false;
   }

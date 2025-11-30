@@ -163,7 +163,7 @@ export const CommandPalette: React.FC = () => {
                     }));
 
                     setDbItems(items);
-                } catch (error) {
+                } catch (_error) {
                     ErrorLogger.error(error, 'CommandPalette.fetchSearchableItems');
                 } finally {
                     setLoading(false);

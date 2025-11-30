@@ -155,7 +155,7 @@ export const InteractiveTimeline: React.FC = () => {
                 });
 
                 setEvents(allEvents);
-            } catch (error) {
+            } catch (_error) {
                 ErrorLogger.error(error, 'InteractiveTimeline.fetchEvents');
             } finally {
                 setLoading(false);
@@ -278,7 +278,7 @@ export const InteractiveTimeline: React.FC = () => {
             link.href = image;
             link.download = `timeline-export-${new Date().toISOString().split('T')[0]}.png`;
             link.click();
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.error(error, 'InteractiveTimeline.handleExportPNG');
             alert('Erreur lors de l\'exportation de la timeline');
         }

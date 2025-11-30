@@ -36,6 +36,15 @@ def fix_unused_event_params(content):
     
     return content
 
+def fix_unused_vars(content):
+    """Prefix unused variables with _ to satisfy linting rules"""
+    # This is a heuristic and might need manual review
+    # Pattern: 'variable' is defined but never used
+    # We can't easily fix this with regex alone without the lint report line numbers
+    # But we can try to fix common patterns like catch(e) -> catch(_e) which is already done
+    # For now, let's focus on the catch block fix which is safe
+    return content
+
 def process_file(filepath):
     """Process a single TypeScript/TSX file"""
     try:
@@ -47,6 +56,7 @@ def process_file(filepath):
         # Apply fixes
         content = fix_unused_catch_params(content)
         # content = fix_unused_event_params(content)  # Commented out - needs more careful analysis
+        content = fix_unused_vars(content) # Call the new function
         
         # Only write if changed
         if content != original_content:

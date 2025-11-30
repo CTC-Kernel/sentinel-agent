@@ -74,12 +74,12 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                     // Fallback for non-JSON response (should not happen with good prompt)
                     setResponse({ text: resultText });
                 }
-            } catch (e) {
+            } catch (_e) {
                 ErrorLogger.warn("Failed to parse AI response", 'RiskAIAssistant.handleAction', { metadata: { error: e } });
                 setResponse({ text: resultText });
             }
 
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'RiskAIAssistant.handleAction', 'AI_ERROR');
             setError("Désolé, une erreur est survenue lors de l'analyse.");
         } finally {

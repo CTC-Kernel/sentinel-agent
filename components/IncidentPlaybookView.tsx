@@ -61,7 +61,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         setSelectedPlaybook(playbook);
         setCurrentStep(existingResponse.currentStepIndex);
       }
-    } catch (error) {
+    } catch (_error) {
       ErrorLogger.error(error, 'IncidentPlaybookView.loadResponse');
     }
   }, [incident.id]);

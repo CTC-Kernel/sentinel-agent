@@ -70,7 +70,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 setUploading(false);
                 if (fileInputRef.current) fileInputRef.current.value = '';
             }, 500);
-        } catch (err) {
+        } catch (_err) {
             setError(err instanceof Error ? err.message : 'Upload failed');
             setUploading(false);
             setProgress(0);

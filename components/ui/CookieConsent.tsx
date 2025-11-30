@@ -29,7 +29,7 @@ export const CookieConsent: React.FC = () => {
                 await hybridService.logConsent('cookie_policy', true);
                 await hybridService.logConsent('tos', true); // Implicit acceptance
                 await hybridService.logConsent('privacy_policy', true);
-            } catch (error) {
+            } catch (_error) {
                 console.error('Failed to log consent', error);
             }
         }

@@ -688,3 +688,6 @@ exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId
         console.error("Error sending push notification:", error);
     }
 });
+
+// Export the API function
+exports.api = require("./api").api;

@@ -107,7 +107,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             const snapshot = await getDocs(q);
             const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
             setData(docs);
-        } catch (err) {
+        } catch (_err) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             setError(errorObj);
             if (options.logError) {
@@ -162,7 +162,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             const docRef = await addDoc(collection(db, collectionName), newData);
             if (!options.realtime) await fetchData(); // Manually refresh if not realtime
             return docRef.id;
-        } catch (err) {
+        } catch (_err) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             if (options.logError) ErrorLogger.error(errorObj, `useFirestoreCollection.add.${collectionName}`);
             throw errorObj;
@@ -180,7 +180,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, updateData);
             if (!options.realtime) await fetchData();
-        } catch (err) {
+        } catch (_err) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             if (options.logError) ErrorLogger.error(errorObj, `useFirestoreCollection.update.${collectionName}`);
             throw errorObj;
@@ -197,7 +197,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             const docRef = doc(db, collectionName, id);
             await deleteDoc(docRef);
             if (!options.realtime) await fetchData();
-        } catch (err) {
+        } catch (_err) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             if (options.logError) ErrorLogger.error(errorObj, `useFirestoreCollection.remove.${collectionName}`);
             throw errorObj;
@@ -239,7 +239,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
             } else {
                 setData(null);
             }
-        } catch (err) {
+        } catch (_err) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             setError(errorObj);
             if (options.logError) {

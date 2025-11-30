@@ -47,7 +47,7 @@ const app = initializeApp(firebaseConfig);
 //       // });
 //       console.log("App Check disabled temporarily for debugging.");
 //     }
-//   } catch (error) {
+//   } catch (_error) {
 //     console.warn('App Check initialization failed:', error);
 //   }
 // }
