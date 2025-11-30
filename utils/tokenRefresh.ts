@@ -27,7 +27,7 @@ export const refreshUserToken = async (): Promise<boolean> => {
         // Force token refresh on client side
         await user.getIdToken(true);
         return true;
-    } catch (_error) {
+    } catch {
         return false;
     }
 };
@@ -42,7 +42,7 @@ export const hasCustomClaims = async (): Promise<boolean> => {
 
         const tokenResult = await user.getIdTokenResult();
         return !!(tokenResult.claims.organizationId);
-    } catch (_error) {
+    } catch {
         return false;
     }
 };
@@ -69,7 +69,7 @@ export const autoRefreshTokenIfNeeded = async (): Promise<void> => {
                 window.location.reload();
             }
         }
-    } catch (_error) {
+    } catch {
         // Error handled silently
     }
 };

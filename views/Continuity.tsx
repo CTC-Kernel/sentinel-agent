@@ -92,7 +92,7 @@ export const Continuity: React.FC = () => {
 
             const getDocsData = <T,>(result: PromiseSettledResult<unknown>): T[] => {
                 if (result.status === 'fulfilled') {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
                     return (result.value as QuerySnapshot<DocumentData>).docs.map((d) => ({ id: d.id, ...d.data() })) as T[];
                 }
                 console.warn("Failed to load some data in Continuity view");

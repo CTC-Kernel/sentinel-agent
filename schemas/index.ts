@@ -13,32 +13,32 @@ export const RiskSchema = z.object({
   threat: z.string()
     .min(3, "La menace doit contenir au moins 3 caractères")
     .max(200, "La menace ne peut pas dépasser 200 caractères"),
-  
+
   vulnerability: z.string()
     .min(3, "La vulnérabilité doit contenir au moins 3 caractères")
     .max(500, "La vulnérabilité ne peut pas dépasser 500 caractères"),
-  
+
   assetId: z.string()
     .min(1, "L'actif est obligatoire"),
-  
+
   probability: z.number()
     .int("La probabilité doit être un entier")
     .min(1, "La probabilité doit être entre 1 et 5")
     .max(5, "La probabilité doit être entre 1 et 5"),
-  
+
   impact: z.number()
     .int("L'impact doit être un entier")
     .min(1, "L'impact doit être entre 1 et 5")
     .max(5, "L'impact doit être entre 1 et 5"),
-  
+
   residualProbability: z.number().int().min(1).max(5),
   residualImpact: z.number().int().min(1).max(5),
-  
+
   strategy: z.enum(['Atténuer', 'Accepter', 'Transférer', 'Éviter']),
   status: z.enum(['Ouvert', 'En cours', 'Fermé']),
-  
+
   owner: z.string().min(2, "Le propriétaire est obligatoire"),
-  
+
   mitigationControlIds: z.array(z.string()).optional(),
   description: z.string().optional(),
   treatmentPlan: z.string().optional(),
@@ -55,19 +55,19 @@ export const AssetSchema = z.object({
   name: z.string()
     .min(2, "Le nom doit contenir au moins 2 caractères")
     .max(100, "Le nom ne peut pas dépasser 100 caractères"),
-  
+
   type: z.enum([
     'Serveur', 'Poste de travail', 'Application', 'Base de données',
     'Réseau', 'Sauvegarde', 'Personnel', 'Locaux', 'Données', 'Service', 'Autre'
   ]),
-  
+
   owner: z.string().min(2, "Le propriétaire est obligatoire"),
   location: z.string().min(2, "La localisation est obligatoire"),
-  
+
   confidentiality: z.enum(['Publique', 'Interne', 'Confidentielle', 'Strictement confidentielle']),
   integrity: z.enum(['Faible', 'Moyenne', 'Élevée', 'Critique']),
   availability: z.enum(['Faible', 'Moyenne', 'Élevée', 'Critique']),
-  
+
   description: z.string().optional(),
   purchaseDate: z.string().optional(),
   purchasePrice: z.number().nonnegative("Le prix ne peut pas être négatif").optional(),
@@ -200,9 +200,9 @@ export function validateData<T>(
   try {
     const validatedData = schema.parse(data);
     return { success: true, data: validatedData };
-  } catch (_error) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.issues.map(err => 
+      const errors = error.issues.map(err =>
         `${err.path.join('.')}: ${err.message}`
       );
       return { success: false, errors };
@@ -221,7 +221,7 @@ export function getValidationError<T>(
   try {
     schema.parse(data);
     return null;
-  } catch (_error) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return error.issues[0]?.message || "Données invalides";
     }

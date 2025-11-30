@@ -11,6 +11,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 const initializeApp = async () => {
   try {
     // Configure StatusBar for iOS
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((window as any).Capacitor?.getPlatform() === 'ios') {
       await StatusBar.setStyle({ style: Style.Dark });
       await StatusBar.setBackgroundColor({ color: '#0f172a' });
@@ -18,7 +19,7 @@ const initializeApp = async () => {
 
     // Hide splash screen after app is ready
     await SplashScreen.hide();
-  } catch (_error) {
+  } catch (error) {
     console.error('Error initializing Capacitor:', error);
   }
 };

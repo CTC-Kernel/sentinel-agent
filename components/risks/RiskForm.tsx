@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
 import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier } from '../../types';
@@ -39,7 +39,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     initialData,
     isEditing = false
 }) => {
-    const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues } = useForm<RiskFormData>({
+    const { control, handleSubmit, reset, formState: { errors }, setValue, getValues } = useForm<RiskFormData>({
         resolver: zodResolver(riskSchema),
         defaultValues: {
             assetId: '',
@@ -59,13 +59,13 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     });
 
     // Watch values for score calculation
-    const probability = watch('probability');
-    const impact = watch('impact');
-    const residualProbability = watch('residualProbability');
-    const residualImpact = watch('residualImpact');
-    const mitigationControlIds = watch('mitigationControlIds');
-    const strategy = watch('strategy');
-    const status = watch('status');
+    const probability = useWatch({ control, name: 'probability' });
+    const impact = useWatch({ control, name: 'impact' });
+    const residualProbability = useWatch({ control, name: 'residualProbability' });
+    const residualImpact = useWatch({ control, name: 'residualImpact' });
+    const mitigationControlIds = useWatch({ control, name: 'mitigationControlIds' });
+    const strategy = useWatch({ control, name: 'strategy' });
+    const status = useWatch({ control, name: 'status' });
 
     useEffect(() => {
         if (existingRisk) {
@@ -249,7 +249,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                     <button
                                         key={s}
                                         type="button"
-                                        onClick={() => setValue('strategy', s as any, { shouldDirty: true })}
+                                        onClick={() => setValue('strategy', s as Risk['strategy'], { shouldDirty: true })}
                                         className={`
                                         px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
                                         ${strategy === s
@@ -270,7 +270,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                     <button
                                         key={s}
                                         type="button"
-                                        onClick={() => setValue('status', s as any, { shouldDirty: true })}
+                                        onClick={() => setValue('status', s as Risk['status'], { shouldDirty: true })}
                                         className={`
                                         flex-1 px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
                                         ${status === s
@@ -306,7 +306,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                         <RiskTreatmentPlan
                             risk={{ ...existingRisk, ...getValues() } as Risk}
                             onUpdate={(treatment) => {
-                                setValue('strategy', treatment.strategy, { shouldDirty: true });
+                                setValue('strategy', treatment.strategy || 'Atténuer', { shouldDirty: true });
                                 setValue('status', treatment.status === 'Terminé' ? 'Fermé' : treatment.status === 'En cours' ? 'En cours' : 'Ouvert', { shouldDirty: true });
                                 setValue('treatment', treatment, { shouldDirty: true });
                             }}

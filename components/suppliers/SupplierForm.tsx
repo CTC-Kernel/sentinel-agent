@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { useForm, Controller, SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supplierSchema, SupplierFormData } from '../../schemas/supplierSchema';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -27,7 +27,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     projects,
     documents
 }) => {
-    const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm<SupplierFormData>({
+    const { register, handleSubmit, control, setValue, formState: { errors } } = useForm<SupplierFormData>({
         resolver: zodResolver(supplierSchema),
         defaultValues: {
             name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
@@ -38,7 +38,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         }
     });
 
-    const selectedOwnerId = watch('ownerId');
+    const selectedOwnerId = useWatch({ control, name: 'ownerId' });
 
     React.useEffect(() => {
         if (selectedOwnerId) {

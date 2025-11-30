@@ -75,7 +75,7 @@ export interface IncidentResponse {
   assignedTo: string[];
   currentStepIndex: number;
   completedSteps: string[];
-  evidence: Record<string, any>;
+  evidence: Record<string, unknown>;
   notes: ResponseNote[];
   timeline: TimelineEvent[];
 }
@@ -96,7 +96,7 @@ export interface TimelineEvent {
   description: string;
   userId?: string;
   userName?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class IncidentPlaybookService {
@@ -281,7 +281,7 @@ export class IncidentPlaybookService {
     responseId: string,
     stepId: string,
     completed: boolean,
-    evidence?: Record<string, any>,
+    evidence?: Record<string, unknown>,
     note?: string
   ): Promise<void> {
     try {
@@ -566,7 +566,7 @@ export class IncidentPlaybookService {
   }
 
   // Analytics and Reporting
-  static async getResponseStats(timeframe: 'week' | 'month' | 'quarter'): Promise<any> {
+  static async getResponseStats(timeframe: 'week' | 'month' | 'quarter'): Promise<Record<string, unknown> | null> {
     try {
       // Implementation for response statistics
       const now = new Date();

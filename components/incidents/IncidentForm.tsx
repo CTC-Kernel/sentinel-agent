@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { incidentSchema, IncidentFormData } from '../../schemas/incidentSchema';
 import { Criticality, UserProfile, BusinessProcess, Asset, Risk } from '../../types';
@@ -29,7 +29,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     risks
 }) => {
     const { addToast } = useStore();
-    const { register, handleSubmit, setValue, watch, getValues, formState: { errors } } = useForm<IncidentFormData>({
+    const { register, handleSubmit, setValue, control, getValues, formState: { errors } } = useForm<IncidentFormData>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(incidentSchema) as any,
         defaultValues: {
@@ -53,7 +53,11 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
         }
     });
 
-    const affectedAssetId = watch('affectedAssetId');
+    const affectedAssetId = useWatch({ control, name: 'affectedAssetId' });
+    const isSignificant = useWatch({ control, name: 'isSignificant' });
+    const title = useWatch({ control, name: 'title' });
+    const category = useWatch({ control, name: 'category' });
+    const severity = useWatch({ control, name: 'severity' });
 
     useEffect(() => {
         if (!affectedAssetId) return;
@@ -86,7 +90,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                         </label>
                     </div>
 
-                    {watch('isSignificant') && (
+                    {isSignificant && (
                         <div className="animate-fade-in pl-8">
                             <div className="p-4 bg-white dark:bg-slate-900/50 rounded-2xl border border-red-100 dark:border-red-900/30 mb-4">
                                 <h4 className="text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 mb-2">Délais de Notification</h4>
@@ -113,10 +117,10 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Description détaillée</label>
                     <AIAssistButton
                         context={{
-                            title: watch('title'),
-                            category: watch('category'),
-                            severity: watch('severity'),
-                            affectedAsset: assets.find(a => a.id === watch('affectedAssetId'))?.name
+                            title: title,
+                            category: category,
+                            severity: severity,
+                            affectedAsset: assets.find(a => a.id === affectedAssetId)?.name
                         }}
                         fieldName="description"
                         onSuggest={(val: string) => setValue('description', val)}
