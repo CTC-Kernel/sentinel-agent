@@ -4,7 +4,7 @@ const sgMail = require('@sendgrid/mail');
 // sgMail.setApiKey is now called with secret
 
 const getJoinRequestEmailHtml = (requesterName, requesterEmail, orgName, link) => `
-<div style="font-family: sans-serif; padding: 20px;">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; padding: 20px;">
   <h2>Nouvelle demande d'accès</h2>
   <p><strong>${requesterName}</strong> (${requesterEmail}) souhaite rejoindre <strong>${orgName}</strong>.</p>
   <a href="${link}" style="display: inline-block; padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px;">Gérer la demande</a>
@@ -12,7 +12,7 @@ const getJoinRequestEmailHtml = (requesterName, requesterEmail, orgName, link) =
 `;
 
 const getApprovedEmailHtml = (userName, orgName, link) => `
-<div style="font-family: sans-serif; padding: 20px;">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; padding: 20px;">
   <h2>Demande approuvée !</h2>
   <p>Bonjour ${userName},</p>
   <p>Votre demande pour rejoindre <strong>${orgName}</strong> a été acceptée.</p>
@@ -21,7 +21,7 @@ const getApprovedEmailHtml = (userName, orgName, link) => `
 `;
 
 const getRejectedEmailHtml = (userName, orgName) => `
-<div style="font-family: sans-serif; padding: 20px;">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; padding: 20px;">
   <h2>Demande refusée</h2>
   <p>Bonjour ${userName},</p>
   <p>Votre demande pour rejoindre <strong>${orgName}</strong> a été refusée.</p>
