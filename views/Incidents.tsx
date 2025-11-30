@@ -10,6 +10,7 @@ import { NotificationService } from '../services/notificationService';
 
 import { PageHeader } from '../components/ui/PageHeader';
 import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Sparkles, Loader2, Server, Activity } from '../components/ui/Icons';
+import { Badge } from '../components/ui/Badge';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { useLocation } from 'react-router-dom';
@@ -315,13 +316,18 @@ export const Incidents: React.FC = () => {
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
                                                     <span className="text-xs text-slate-400 block mb-1">Sévérité</span>
-                                                    <span className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-bold ${selectedIncident.severity === Criticality.CRITICAL ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}`}>
+                                                    <Badge
+                                                        status={selectedIncident.severity === Criticality.CRITICAL ? 'error' : selectedIncident.severity === Criticality.HIGH ? 'warning' : 'info'}
+                                                        variant="soft"
+                                                    >
                                                         {selectedIncident.severity}
-                                                    </span>
+                                                    </Badge>
                                                 </div>
                                                 <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
                                                     <span className="text-xs text-slate-400 block mb-1">Statut</span>
-                                                    <span className="font-bold text-slate-900 dark:text-white">{selectedIncident.status}</span>
+                                                    <Badge status={selectedIncident.status === 'Résolu' ? 'success' : 'info'} variant="outline">
+                                                        {selectedIncident.status}
+                                                    </Badge>
                                                 </div>
                                                 <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
                                                     <span className="text-xs text-slate-400 block mb-1">Impact Financier</span>
@@ -448,8 +454,8 @@ export const Incidents: React.FC = () => {
 
                                                             {urlReputationResult && (
                                                                 <div className={`p-3 rounded-lg border flex items-center gap-3 ${urlReputationResult.safe
-                                                                        ? 'bg-emerald-50 border-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-900/30 dark:text-emerald-400'
-                                                                        : 'bg-red-50 border-red-100 text-red-700 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400'
+                                                                    ? 'bg-emerald-50 border-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-900/30 dark:text-emerald-400'
+                                                                    : 'bg-red-50 border-red-100 text-red-700 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400'
                                                                     }`}>
                                                                     {urlReputationResult.safe ? (
                                                                         <>

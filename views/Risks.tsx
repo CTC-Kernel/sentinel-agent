@@ -8,6 +8,7 @@ import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, Bus
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
+import { Badge } from '../components/ui/Badge';
 
 import { RiskForm } from '../components/risks/RiskForm';
 import { RelationshipGraph } from '../components/RelationshipGraph';
@@ -571,7 +572,12 @@ export const Risks: React.FC = () => {
 
     const getCellColor = (prob: number, impact: number) => { const score = prob * impact; if (score >= 15) return 'bg-rose-500 shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]'; if (score >= 10) return 'bg-orange-500 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'; if (score >= 5) return 'bg-amber-400'; return 'bg-emerald-500'; };
 
-    const getRiskLevel = (score: number) => { if (score >= 15) return { label: 'Critique', color: 'bg-rose-500 text-white shadow-lg shadow-rose-500/30 border-rose-400' }; if (score >= 10) return { label: 'Élevé', color: 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 border-orange-400' }; if (score >= 5) return { label: 'Moyen', color: 'bg-amber-400 text-white shadow-lg shadow-amber-400/30 border-amber-300' }; return { label: 'Faible', color: 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 border-emerald-400' }; };
+    const getRiskLevel = (score: number) => {
+        if (score >= 15) return { label: 'Critique', status: 'error' as const };
+        if (score >= 10) return { label: 'Élevé', status: 'warning' as const };
+        if (score >= 5) return { label: 'Moyen', status: 'info' as const };
+        return { label: 'Faible', status: 'success' as const };
+    };
 
     const handleGenerateReport = async () => {
         try {
@@ -811,7 +817,9 @@ export const Risks: React.FC = () => {
                             <div key={risk.id} onClick={() => openInspector(risk)} className="group glass-panel p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5">
                                 <div className="flex justify-between items-start mb-5">
                                     <div className="flex items-center gap-2">
-                                        <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm flex items-center border ${level.color}`}>{level.label} {risk.score}</div>
+                                        <Badge status={level.status} variant="soft" size="sm">
+                                            {level.label} {risk.score}
+                                        </Badge>
                                         {trend === 'up' && <span className="text-red-500" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
                                         {trend === 'down' && <span className="text-emerald-500" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
                                         {isMitigated && (<><ArrowRight className="w-3 h-3 text-gray-400" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
@@ -839,7 +847,12 @@ export const Risks: React.FC = () => {
                                                     SLA: {risk.treatment.slaStatus}
                                                 </span>
                                             )}
-                                            <span className={`text-xs font-bold ${risk.status === 'Ouvert' ? 'text-rose-500' : risk.status === 'En cours' ? 'text-amber-500' : 'text-emerald-500'}`}>{risk.status}</span>
+                                            <Badge
+                                                status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'}
+                                                variant="outline"
+                                            >
+                                                {risk.status}
+                                            </Badge>
                                         </div>
                                     </div>
                                 </div>
@@ -965,7 +978,7 @@ export const Risks: React.FC = () => {
                                                                 <button key={s} onClick={() => handleStatusChange(selectedRisk, s as Risk['status'])} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'}`}>{s}</button>
                                                             ))}
                                                         </div>
-                                                    ) : <span className="px-4 py-2 bg-gray-100 dark:bg-slate-700 rounded-xl text-sm font-bold">{selectedRisk.status}</span>}
+                                                    ) : <Badge status={selectedRisk.status === 'Ouvert' ? 'error' : selectedRisk.status === 'En cours' ? 'warning' : 'success'} variant="soft">{selectedRisk.status}</Badge>}
                                                     {canEdit && (<button onClick={handleReview} className="flex items-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors"><CalendarDays className="h-3.5 w-3.5 mr-2" /> Valider la revue</button>)}
                                                 </div>
                                                 {selectedRisk.lastReviewDate && (<p className="text-xs text-slate-400 mt-3 text-right">Dernière revue le : {new Date(selectedRisk.lastReviewDate).toLocaleDateString()}</p>)}
@@ -1400,8 +1413,8 @@ export const Risks: React.FC = () => {
                                                                                 } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.addMitreTechnique'); }
                                                                             }}
                                                                             className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isLinked
-                                                                                    ? 'bg-green-100 text-green-700 cursor-default'
-                                                                                    : 'bg-brand-600 text-white hover:bg-brand-700 shadow-sm hover:shadow'
+                                                                                ? 'bg-green-100 text-green-700 cursor-default'
+                                                                                : 'bg-brand-600 text-white hover:bg-brand-700 shadow-sm hover:shadow'
                                                                                 }`}
                                                                             disabled={!canEdit || isLinked}
                                                                         >
