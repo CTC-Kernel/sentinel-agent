@@ -28,6 +28,7 @@ import { Risk, Asset, Incident, Control, Project } from '../../types';
 import { StatCard } from '../ui/StatCard';
 import { ProgressRing } from '../ui/ProgressRing';
 import { DataTable } from '../ui/DataTable';
+import { Badge } from '../ui/Badge';
 import { ColumnDef } from '@tanstack/react-table';
 import { StatsService } from '../../services/statsService';
 import { OnboardingService } from '../../services/onboardingService';
@@ -201,19 +202,26 @@ export const AnalyticsDashboard: React.FC = () => {
             cell: ({ getValue }) => {
                 const value = getValue() as number;
                 return (
-                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${value >= 15 ? 'bg-red-100 text-red-700' :
-                        value >= 10 ? 'bg-orange-100 text-orange-700' :
-                            'bg-green-100 text-green-700'
-                        }`}>
+                    <Badge
+                        variant="soft"
+                        status={value >= 15 ? 'error' : value >= 10 ? 'warning' : 'success'}
+                    >
                         {value}
-                    </span>
+                    </Badge>
                 );
             }
         },
         {
             accessorKey: 'status',
             header: 'Statut',
-            cell: ({ getValue }) => (getValue() as string) || 'Ouvert'
+            cell: ({ getValue }) => {
+                const status = (getValue() as string) || 'Ouvert';
+                return (
+                    <Badge status={status === 'Ouvert' ? 'info' : 'success'} variant="outline">
+                        {status}
+                    </Badge>
+                );
+            }
         },
         {
             accessorKey: 'responsable',
@@ -350,11 +358,16 @@ export const AnalyticsDashboard: React.FC = () => {
                             <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                    border: '1px solid #e5e7eb',
+                                    backgroundColor: 'var(--glass-bg)',
+                                    border: '1px solid var(--glass-border)',
                                     borderRadius: '12px',
-                                    padding: '12px'
+                                    boxShadow: 'var(--glass-shadow)',
+                                    backdropFilter: 'blur(12px)',
+                                    padding: '12px',
+                                    color: 'var(--text-primary)'
                                 }}
+                                itemStyle={{ color: 'inherit' }}
+                                labelStyle={{ color: 'inherit', fontWeight: 600, marginBottom: '0.5rem' }}
                             />
                             <Legend />
                             <Area
