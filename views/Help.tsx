@@ -279,11 +279,16 @@ const HELP_CONTENT: HelpCategory[] = [
     }
 ];
 
+import { FeedbackModal } from '../components/ui/FeedbackModal';
+
+// ... (existing imports)
+
 export const Help: React.FC = () => {
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('getting-started');
     const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
     const [isContactOpen, setIsContactOpen] = useState(false);
+    const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // Filter content based on search
@@ -355,12 +360,19 @@ export const Help: React.FC = () => {
                         ))}
                     </nav>
 
-                    <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800">
+                    <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800 space-y-3">
+                        <button
+                            onClick={() => setIsFeedbackOpen(true)}
+                            className="w-full py-3 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400 rounded-xl text-sm font-bold border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-all flex items-center justify-center gap-2"
+                        >
+                            <MessageSquare className="w-4 h-4" />
+                            Donner mon avis
+                        </button>
                         <button
                             onClick={() => setIsContactOpen(true)}
                             className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
                         >
-                            <MessageSquare className="w-4 h-4" />
+                            <HelpCircle className="w-4 h-4" />
                             Support
                         </button>
                     </div>
@@ -465,7 +477,11 @@ export const Help: React.FC = () => {
                 onClose={() => setIsContactOpen(false)}
                 subject="Support Sentinel GRC"
             />
+
+            <FeedbackModal
+                isOpen={isFeedbackOpen}
+                onClose={() => setIsFeedbackOpen(false)}
+            />
         </div>
     );
 };
-

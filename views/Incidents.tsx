@@ -9,7 +9,7 @@ import { logAction } from '../services/logger';
 import { NotificationService } from '../services/notificationService';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Sparkles, Loader2 } from '../components/ui/Icons';
+import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Sparkles, Loader2, Server, Activity } from '../components/ui/Icons';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { useLocation } from 'react-router-dom';
@@ -342,6 +342,59 @@ export const Incidents: React.FC = () => {
                                                     </div>
                                                 </div>
                                             )}
+
+                                            {/* Linked Items Section */}
+                                            <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">Impact & Portée</h4>
+
+                                                {selectedIncident.affectedAssetId && (
+                                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-white/5">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600">
+                                                                <Server className="h-4 w-4" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400">Actif Affecté</p>
+                                                                <p className="font-bold text-sm text-slate-900 dark:text-white">
+                                                                    {assets.find(a => a.id === selectedIncident.affectedAssetId)?.name || 'Actif introuvable'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {selectedIncident.relatedRiskId && (
+                                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-white/5">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-amber-600">
+                                                                <ShieldAlert className="h-4 w-4" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400">Risque Lié</p>
+                                                                <p className="font-bold text-sm text-slate-900 dark:text-white">
+                                                                    {risks.find(r => r.id === selectedIncident.relatedRiskId)?.threat || 'Risque introuvable'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {selectedIncident.affectedProcessId && (
+                                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-white/5">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600">
+                                                                <Activity className="h-4 w-4" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400">Processus Affecté</p>
+                                                                <p className="font-bold text-sm text-slate-900 dark:text-white">
+                                                                    {rawProcesses.find(p => p.id === selectedIncident.affectedProcessId)?.name || 'Processus introuvable'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
 
                                             <div className="flex gap-3 pt-4">
                                                 {canEdit && (

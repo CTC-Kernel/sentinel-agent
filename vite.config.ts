@@ -13,6 +13,13 @@ export default defineConfig({
     headers: {
       'Cross-Origin-Embedder-Policy': 'unsafe-none',
       'Cross-Origin-Opener-Policy': 'same-origin-allow-popups'
+    },
+    proxy: {
+      '/api': {
+        target: 'https://us-central1-sentinel-grc-a8701.cloudfunctions.net',
+        changeOrigin: true,
+        secure: true,
+      }
     }
   },
   build: {
