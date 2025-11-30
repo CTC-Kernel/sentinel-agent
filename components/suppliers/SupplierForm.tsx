@@ -8,6 +8,7 @@ import { Criticality, UserProfile, BusinessProcess, Asset, Risk, Project, Docume
 import { ShieldAlert, Building2, Wand2, Link as LinkIcon, FileText } from 'lucide-react';
 import { aiService } from '../../services/aiService';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface SupplierFormProps {
     onSubmit: SubmitHandler<SupplierFormData>;
@@ -76,7 +77,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                 addToast("Suggestion appliquée", "success");
             }
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'SupplierForm.handleAISuggestion');
             addToast("Erreur lors de la génération", "error");
         }
     };

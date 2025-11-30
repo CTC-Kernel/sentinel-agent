@@ -3,6 +3,7 @@ import { Cookie, X } from 'lucide-react';
 import { LegalModal } from './LegalModal';
 import { useStore } from '../../store';
 import { hybridService } from '../../services/hybridService';
+import { ErrorLogger } from '../../services/errorLogger';
 
 export const CookieConsent: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
@@ -30,7 +31,7 @@ export const CookieConsent: React.FC = () => {
                 await hybridService.logConsent('tos', true); // Implicit acceptance
                 await hybridService.logConsent('privacy_policy', true);
             } catch (error) {
-                console.error('Failed to log consent', error);
+                ErrorLogger.error(error, 'CookieConsent.handleAccept');
             }
         }
     };

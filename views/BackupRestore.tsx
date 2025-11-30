@@ -78,7 +78,7 @@ export const BackupRestore: React.FC = () => {
       const backupStats = await BackupService.getBackupStats(user.organizationId);
       setStats(backupStats);
     } catch (error) {
-      console.error(error);
+      ErrorLogger.error(error, 'BackupRestore.loadStats');
     }
   }, [user?.organizationId]);
 
