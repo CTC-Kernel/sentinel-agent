@@ -4,13 +4,19 @@ import { PushNotificationService } from '../../services/pushNotificationService'
 
 export const NotificationPermissionBanner: React.FC = () => {
     const [show, setShow] = useState(false);
-    const [permission, setPermission] = useState<NotificationPermission>(() => 
+    const [permission, setPermission] = useState<NotificationPermission>(() =>
         typeof Notification !== 'undefined' ? Notification.permission : 'default'
     );
 
     useEffect(() => {
         // Vérifier si les notifications sont supportées
         if (!PushNotificationService.isSupported()) {
+            return;
+        }
+
+        // Si déjà accordé, on initialise pour être sûr d'avoir le token et le listener
+        if (permission === 'granted') {
+            PushNotificationService.initialize();
             return;
         }
 

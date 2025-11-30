@@ -4,6 +4,14 @@ const { logger } = require("firebase-functions");
 const sgMail = require('@sendgrid/mail');
 // sgMail.setApiKey is now called with secret
 
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { defineString, defineSecret } = require("firebase-functions/params");
+const sendGridApiKey = defineSecret("SENDGRID_API_KEY");
+const admin = require("firebase-admin");
+
+admin.initializeApp();
+
 const getJoinRequestEmailHtml = (requesterName, requesterEmail, orgName, link) => `
 <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; padding: 20px;">
   <h2>Nouvelle demande d'accès</h2>
@@ -102,13 +110,7 @@ exports.onJoinRequestUpdated = onDocumentUpdated("join_requests/{requestId}", as
     }
 });
 
-const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
-const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { defineString, defineSecret } = require("firebase-functions/params");
-const sendGridApiKey = defineSecret("SENDGRID_API_KEY");
-const admin = require("firebase-admin");
-
-admin.initializeApp();
+// Imports moved to top
 
 // Set custom claims when user document is created/updated
 exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
@@ -500,7 +502,13 @@ exports.processMailQueue = onDocumentCreated({
  */
 async function attemptSendEmail(docRef, data) {
     try {
-        sgMail.setApiKey(sendGridApiKey.value().trim());
+        const rawApiKey = sendGridApiKey.value();
+        if (!rawApiKey) {
+            throw new Error("SendGrid API Key is missing");
+        }
+        // Remove all whitespace including newlines
+        const cleanApiKey = rawApiKey.replace(/\s+/g, '');
+        sgMail.setApiKey(cleanApiKey);
         logger.info(`Processing email for ${data.to} via SendGrid`);
 
         const msg = {
@@ -682,3 +690,489 @@ exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId
 
 // Export the API function
 exports.api = require("./api").api;
+
+// --- SCHEDULED NOTIFICATION CHECKS ---
+
+// Email Templates for Scheduled Checks
+const Templates = {
+    BASE_STYLES: `
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+      line-height: 1.6;
+      color: #334155;
+      max-width: 600px;
+      margin: 0 auto;
+    `,
+    BUTTON_STYLE: `
+      display: inline-block;
+      background-color: #2563eb;
+      color: #ffffff;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      margin-top: 20px;
+      font-size: 14px;
+    `,
+    HEADER: `
+      <div style="text-align: center; padding: 24px 0; border-bottom: 1px solid #e2e8f0;">
+        <div style="font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
+          Sentinel <span style="color: #2563eb;">GRC</span>
+        </div>
+      </div>
+    `,
+    FOOTER: `
+      <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
+        <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+        <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
+      </div>
+    `,
+    getAuditReminderTemplate: (auditName, auditorName, scheduledDate, link) => `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto;">
+          <div style="text-align: center; padding: 24px 0; border-bottom: 1px solid #e2e8f0;">
+            <div style="font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
+              Sentinel <span style="color: #2563eb;">GRC</span>
+            </div>
+          </div>
+          <div style="padding: 32px 0;">
+            <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">📋 Rappel d'Audit Planifié</h2>
+            <p>Bonjour ${auditorName},</p>
+            <p>Un audit est planifié dans les prochains jours et nécessite votre attention.</p>
+            
+            <div style="background-color: #dbeafe; border-left: 4px solid #2563eb; padding: 16px; border-radius: 4px; margin: 20px 0;">
+              <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #1e40af;">${auditName}</h3>
+              <p style="margin: 0; font-size: 14px; color: #1e3a8a;">Date prévue : <strong>${new Date(scheduledDate).toLocaleDateString()}</strong></p>
+            </div>
+    
+            <p>Assurez-vous d'avoir préparé tous les documents et preuves nécessaires pour cet audit.</p>
+    
+            <div style="text-align: center;">
+              <a href="${link}" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; font-size: 14px;">Voir l'audit</a>
+            </div>
+          </div>
+          <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
+            <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+            <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
+          </div>
+        </div>
+    `,
+    getDocumentReviewTemplate: (docTitle, ownerName, dueDate, link) => `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto;">
+          <div style="text-align: center; padding: 24px 0; border-bottom: 1px solid #e2e8f0;">
+            <div style="font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
+              Sentinel <span style="color: #2563eb;">GRC</span>
+            </div>
+          </div>
+          <div style="padding: 32px 0;">
+            <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">Révision Documentaire Requise</h2>
+            <p>Bonjour ${ownerName},</p>
+            <p>Le document <strong>"${docTitle}"</strong> arrive à échéance de révision.</p>
+            <p>Conformément à la norme ISO 27001, les politiques et procédures doivent être revues périodiquement pour assurer leur pertinence.</p>
+            
+            <div style="background-color: #f1f5f9; padding: 16px; border-radius: 8px; margin: 20px 0; text-align: center;">
+              <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date d'échéance</span>
+              <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(dueDate).toLocaleDateString()}</div>
+            </div>
+    
+            <div style="text-align: center;">
+              <a href="${link}" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; font-size: 14px;">Accéder au document</a>
+            </div>
+          </div>
+          <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
+            <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+            <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
+          </div>
+        </div>
+    `,
+    getMaintenanceTemplate: (assetName, maintenanceDate, ownerName, link) => `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto;">
+          <div style="text-align: center; padding: 24px 0; border-bottom: 1px solid #e2e8f0;">
+            <div style="font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
+              Sentinel <span style="color: #2563eb;">GRC</span>
+            </div>
+          </div>
+          <div style="padding: 32px 0;">
+            <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">🛠️ Maintenance Planifiée</h2>
+            <p>Bonjour ${ownerName},</p>
+            <p>Une maintenance est prévue prochainement pour l'actif <strong>${assetName}</strong>.</p>
+            
+            <div style="background-color: #f1f5f9; padding: 16px; border-radius: 8px; margin: 20px 0; text-align: center;">
+              <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date de maintenance</span>
+              <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(maintenanceDate).toLocaleDateString()}</div>
+            </div>
+    
+            <p>Veuillez vous assurer que tout est prêt pour cette intervention.</p>
+    
+            <div style="text-align: center;">
+              <a href="${link}" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; font-size: 14px;">Voir l'actif</a>
+            </div>
+          </div>
+          <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
+            <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+            <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
+          </div>
+        </div>
+    `,
+    getRiskTreatmentDueTemplate: (riskTitle, dueDate, responsiblePerson, link) => `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto;">
+          <div style="text-align: center; padding: 24px 0; border-bottom: 1px solid #e2e8f0;">
+            <div style="font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
+              Sentinel <span style="color: #2563eb;">GRC</span>
+            </div>
+          </div>
+          <div style="padding: 32px 0;">
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 4px; margin-bottom: 24px;">
+              <h2 style="font-size: 18px; color: #d97706; margin: 0; font-weight: 700;">⏰ Échéance de Traitement de Risque</h2>
+            </div>
+            
+            <p>Bonjour ${responsiblePerson},</p>
+            <p>Le plan de traitement du risque suivant arrive à échéance :</p>
+            
+            <div style="border-left: 4px solid #f59e0b; padding-left: 16px; margin: 24px 0;">
+              <h3 style="margin: 0; font-size: 16px; color: #0f172a;">${riskTitle}</h3>
+              <p style="margin: 8px 0 0 0; color: #64748b;">Date limite : <strong style="color: #d97706;">${new Date(dueDate).toLocaleDateString()}</strong></p>
+            </div>
+    
+            <p>Veuillez mettre à jour le statut du traitement ou demander une extension si nécessaire.</p>
+    
+            <div style="text-align: center;">
+              <a href="${link}" style="display: inline-block; background-color: #f59e0b; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; font-size: 14px;">Gérer le risque</a>
+            </div>
+          </div>
+          <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
+            <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+            <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
+          </div>
+        </div>
+    `,
+    getSupplierReviewTemplate: (supplierName, criticality, lastReviewDate, link) => {
+        const criticalityColor = criticality === 'Critique' ? '#dc2626' : criticality === 'Élevée' ? '#f59e0b' : '#22c55e';
+        return `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto;">
+          <div style="text-align: center; padding: 24px 0; border-bottom: 1px solid #e2e8f0;">
+            <div style="font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
+              Sentinel <span style="color: #2563eb;">GRC</span>
+            </div>
+          </div>
+          <div style="padding: 32px 0;">
+            <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">🏢 Révision Fournisseur Requise</h2>
+            <p>Un fournisseur critique nécessite une révision de sécurité.</p>
+            
+            <div style="background-color: ${criticalityColor}15; border-left: 4px solid ${criticalityColor}; padding: 16px; border-radius: 4px; margin: 20px 0;">
+              <h3 style="margin: 0 0 8px 0; font-size: 18px; color: #0f172a;">${supplierName}</h3>
+              <p style="margin: 0; font-size: 14px; color: #64748b;">Criticité : <strong style="color: ${criticalityColor};">${criticality}</strong></p>
+              <p style="margin: 8px 0 0 0; font-size: 14px; color: #64748b;">Dernière révision : ${new Date(lastReviewDate).toLocaleDateString()}</p>
+            </div>
+    
+            <p>Conformément à la politique de gestion des tiers, une révision annuelle est requise pour tous les fournisseurs critiques.</p>
+    
+            <div style="text-align: center;">
+              <a href="${link}" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; font-size: 14px;">Réviser le fournisseur</a>
+            </div>
+          </div>
+          <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
+            <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+            <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
+          </div>
+        </div>
+        `;
+    }
+};
+
+exports.scheduledNotificationChecks = onSchedule({
+    schedule: "every 6 hours",
+    secrets: [sendGridApiKey]
+}, async (event) => {
+    logger.info("Starting scheduled notification checks...");
+    const db = admin.firestore();
+
+    // Get all organizations
+    const orgsSnapshot = await db.collection('users').get();
+    const organizationIds = new Set();
+    orgsSnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.organizationId) {
+            organizationIds.add(data.organizationId);
+        }
+    });
+
+    logger.info(`Running checks for ${organizationIds.size} organizations`);
+
+    for (const orgId of organizationIds) {
+        await Promise.allSettled([
+            checkUpcomingAudits(db, orgId),
+            checkOverdueDocuments(db, orgId),
+            checkUpcomingMaintenance(db, orgId),
+            checkCriticalRisks(db, orgId),
+            checkExpiringContracts(db, orgId)
+        ]);
+    }
+
+    logger.info("Scheduled checks completed.");
+});
+
+// Helper Checks
+async function checkUpcomingAudits(db, organizationId) {
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+
+    const auditsSnap = await db.collection('audits')
+        .where('organizationId', '==', organizationId)
+        .where('status', 'in', ['Planifié', 'En cours'])
+        .get();
+
+    for (const doc of auditsSnap.docs) {
+        const audit = doc.data();
+        const auditDate = new Date(audit.dateScheduled);
+
+        if (auditDate <= sevenDaysFromNow && auditDate > new Date()) {
+            const daysUntil = Math.ceil((auditDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+            // Find auditor
+            const auditorSnap = await db.collection('users')
+                .where('organizationId', '==', organizationId)
+                .where('displayName', '==', audit.auditor)
+                .limit(1)
+                .get();
+
+            if (!auditorSnap.empty) {
+                const auditorDoc = auditorSnap.docs[0];
+                const auditorId = auditorDoc.id;
+                const auditorData = auditorDoc.data();
+
+                if (await shouldNotify(db, auditorId, '/audits', audit.name)) {
+                    await sendNotificationAndEmail(db, {
+                        organizationId,
+                        userId: auditorId,
+                        type: daysUntil <= 3 ? 'danger' : 'warning',
+                        title: `Audit à venir : ${audit.name}`,
+                        message: `L'audit est prévu dans ${daysUntil} jour(s) - ${new Date(audit.dateScheduled).toLocaleDateString()}`,
+                        link: '/audits',
+                        email: auditorData.email,
+                        emailSubject: `Rappel Audit : ${audit.name}`,
+                        emailHtml: Templates.getAuditReminderTemplate(audit.name, auditorData.displayName || 'Auditeur', audit.dateScheduled, 'https://sentinel-grc.web.app/audits'),
+                        emailType: 'AUDIT_REMINDER'
+                    });
+                }
+            }
+        }
+    }
+}
+
+async function checkOverdueDocuments(db, organizationId) {
+    const docsSnap = await db.collection('documents')
+        .where('organizationId', '==', organizationId)
+        .where('status', '==', 'Publié')
+        .get();
+
+    for (const doc of docsSnap.docs) {
+        const document = doc.data();
+        if (document.nextReviewDate && new Date(document.nextReviewDate) < new Date()) {
+            // Find owner
+            const ownerSnap = await db.collection('users')
+                .where('organizationId', '==', organizationId)
+                .where('email', '==', document.owner)
+                .limit(1)
+                .get();
+
+            if (!ownerSnap.empty) {
+                const ownerDoc = ownerSnap.docs[0];
+                const ownerId = ownerDoc.id;
+                const ownerData = ownerDoc.data();
+
+                if (await shouldNotify(db, ownerId, '/documents', document.title)) {
+                    await sendNotificationAndEmail(db, {
+                        organizationId,
+                        userId: ownerId,
+                        type: 'warning',
+                        title: `Document à réviser : ${document.title}`,
+                        message: `La date de révision est dépassée depuis le ${new Date(document.nextReviewDate).toLocaleDateString()}`,
+                        link: '/documents',
+                        email: ownerData.email,
+                        emailSubject: `Révision requise : ${document.title}`,
+                        emailHtml: Templates.getDocumentReviewTemplate(document.title, ownerData.displayName || 'Propriétaire', document.nextReviewDate, 'https://sentinel-grc.web.app/documents'),
+                        emailType: 'DOCUMENT_REVIEW'
+                    });
+                }
+            }
+        }
+    }
+}
+
+async function checkUpcomingMaintenance(db, organizationId) {
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    const assetsSnap = await db.collection('assets')
+        .where('organizationId', '==', organizationId)
+        .get();
+
+    for (const doc of assetsSnap.docs) {
+        const asset = doc.data();
+        if (asset.nextMaintenance) {
+            const maintenanceDate = new Date(asset.nextMaintenance);
+            if (maintenanceDate <= thirtyDaysFromNow && maintenanceDate > new Date()) {
+                const daysUntil = Math.ceil((maintenanceDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+                // Find owner
+                const ownerSnap = await db.collection('users')
+                    .where('organizationId', '==', organizationId)
+                    .where('displayName', '==', asset.owner)
+                    .limit(1)
+                    .get();
+
+                if (!ownerSnap.empty) {
+                    const ownerDoc = ownerSnap.docs[0];
+                    const ownerId = ownerDoc.id;
+                    const ownerData = ownerDoc.data();
+
+                    if (await shouldNotify(db, ownerId, '/assets', asset.name)) {
+                        await sendNotificationAndEmail(db, {
+                            organizationId,
+                            userId: ownerId,
+                            type: daysUntil <= 7 ? 'warning' : 'info',
+                            title: `Maintenance à prévoir : ${asset.name}`,
+                            message: `Maintenance prévue dans ${daysUntil} jour(s)`,
+                            link: '/assets',
+                            email: ownerData.email,
+                            emailSubject: `Maintenance : ${asset.name}`,
+                            emailHtml: Templates.getMaintenanceTemplate(asset.name, asset.nextMaintenance, ownerData.displayName || 'Propriétaire', 'https://sentinel-grc.web.app/assets'),
+                            emailType: 'MAINTENANCE_ALERT'
+                        });
+                    }
+                }
+            }
+        }
+    }
+}
+
+async function checkCriticalRisks(db, organizationId) {
+    const risksSnap = await db.collection('risks')
+        .where('organizationId', '==', organizationId)
+        .get();
+
+    const criticalRisksWithoutMitigation = [];
+    risksSnap.forEach(doc => {
+        const risk = doc.data();
+        if (risk.score >= 15 && (!risk.mitigationControlIds || risk.mitigationControlIds.length === 0)) {
+            criticalRisksWithoutMitigation.push(risk);
+        }
+    });
+
+    if (criticalRisksWithoutMitigation.length > 0) {
+        // Notify all admins
+        const adminsSnap = await db.collection('users')
+            .where('organizationId', '==', organizationId)
+            .where('role', '==', 'admin')
+            .get();
+
+        for (const adminDoc of adminsSnap.docs) {
+            const adminId = adminDoc.id;
+            const adminData = adminDoc.data();
+
+            if (await shouldNotify(db, adminId, '/risks', 'risque(s) critique(s)')) {
+                await sendNotificationAndEmail(db, {
+                    organizationId,
+                    userId: adminId,
+                    type: 'danger',
+                    title: `${criticalRisksWithoutMitigation.length} risque(s) critique(s) sans atténuation`,
+                    message: `Des risques critiques n'ont pas de contrôles d'atténuation associés`,
+                    link: '/risks',
+                    email: adminData.email,
+                    emailSubject: `Action requise : ${criticalRisksWithoutMitigation.length} Risques Critiques`,
+                    emailHtml: Templates.getRiskTreatmentDueTemplate('Risques Critiques non traités', new Date().toISOString(), adminData.displayName || 'Admin', 'https://sentinel-grc.web.app/risks'),
+                    emailType: 'RISK_TREATMENT_DUE'
+                });
+            }
+        }
+    }
+}
+
+async function checkExpiringContracts(db, organizationId) {
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    const suppliersSnap = await db.collection('suppliers')
+        .where('organizationId', '==', organizationId)
+        .where('status', '==', 'Actif')
+        .get();
+
+    for (const doc of suppliersSnap.docs) {
+        const supplier = doc.data();
+        if (supplier.contractEnd) {
+            const endDate = new Date(supplier.contractEnd);
+            if (endDate <= thirtyDaysFromNow && endDate > new Date()) {
+                const daysUntil = Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+                if (supplier.ownerId) {
+                    const ownerSnap = await db.collection('users').doc(supplier.ownerId).get();
+                    if (ownerSnap.exists) {
+                        const ownerData = ownerSnap.data();
+
+                        if (await shouldNotify(db, supplier.ownerId, '/suppliers', supplier.name)) {
+                            await sendNotificationAndEmail(db, {
+                                organizationId,
+                                userId: supplier.ownerId,
+                                type: 'warning',
+                                title: `Fin de contrat : ${supplier.name}`,
+                                message: `Le contrat expire dans ${daysUntil} jour(s)`,
+                                link: '/suppliers',
+                                email: ownerData.email,
+                                emailSubject: `Expiration Contrat : ${supplier.name}`,
+                                emailHtml: Templates.getSupplierReviewTemplate(supplier.name, supplier.criticality || 'Moyenne', supplier.contractEnd, 'https://sentinel-grc.web.app/suppliers'),
+                                emailType: 'SUPPLIER_REVIEW'
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Utility to check if notification was already sent in last 24h
+async function shouldNotify(db, userId, link, contentMatch) {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const notifsSnap = await db.collection('notifications')
+        .where('userId', '==', userId)
+        .where('link', '==', link)
+        .where('createdAt', '>=', yesterday)
+        .get();
+
+    let alreadyNotified = false;
+    notifsSnap.forEach(doc => {
+        const data = doc.data();
+        if (data.title.includes(contentMatch) || data.message.includes(contentMatch)) {
+            alreadyNotified = true;
+        }
+    });
+
+    return !alreadyNotified;
+}
+
+async function sendNotificationAndEmail(db, params) {
+    // 1. Create In-App Notification
+    await db.collection('notifications').add({
+        organizationId: params.organizationId,
+        userId: params.userId,
+        type: params.type,
+        title: params.title,
+        message: params.message,
+        link: params.link,
+        read: false,
+        createdAt: new Date().toISOString()
+    });
+
+    // 2. Queue Email
+    if (params.email) {
+        await db.collection('mail_queue').add({
+            to: params.email,
+            message: {
+                subject: params.emailSubject,
+                html: params.emailHtml
+            },
+            type: params.emailType,
+            status: 'PENDING',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    }
+}
