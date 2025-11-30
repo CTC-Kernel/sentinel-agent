@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserProfile, Invitation, JoinRequest } from '../types';
@@ -62,7 +62,7 @@ export const Team: React.FC = () => {
 
     const canAdmin = hasPermission(user, 'User', 'manage');
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         if (!user?.organizationId) return;
         setLoading(true);
         try {
@@ -98,14 +98,14 @@ export const Team: React.FC = () => {
 
             setUsers([...activeUsers, ...pendingInvites]);
             setJoinRequests(requests);
-        } catch (_e) {
-            ErrorLogger.handleErrorWithToast(e, 'Team.fetchUsers', 'FETCH_FAILED');
+        } catch {
+            ErrorLogger.handleErrorWithToast(new Error('Fetch failed'), 'Team.fetchUsers', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
-    };
+    }, [user?.organizationId]);
 
-    useEffect(() => { fetchUsers(); }, [user?.organizationId]);
+    useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
     const handleOpenInviteModal = async () => {
         if (!user?.organizationId) return;
@@ -149,8 +149,9 @@ export const Team: React.FC = () => {
             setShowInviteModal(false);
             inviteForm.reset();
             addToast("Invitation envoyée par email", "success");
+            addToast("Invitation envoyée par email", "success");
             fetchUsers();
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Team.handleInvite', 'INVITE_FAILED');
             addToast("Erreur invitation", "error");
         }
@@ -180,8 +181,9 @@ export const Team: React.FC = () => {
             await logAction(user, 'UPDATE', 'User', `Modification utilisateur: ${selectedUser.email}`);
             setUsers(prev => prev.map(u => u.uid === selectedUser.uid ? { ...u, ...data } : u));
             setShowEditModal(false);
+            setShowEditModal(false);
             addToast("Utilisateur mis à jour", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Team.handleUpdateRole', 'UPDATE_FAILED');
             addToast("Erreur mise à jour rôle", "error");
         }
@@ -220,8 +222,9 @@ export const Team: React.FC = () => {
             addToast(`Accès approuvé pour ${req.displayName}`, "success");
 
             // Refresh
+            // Refresh
             fetchUsers();
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Team.handleApproveRequest');
             addToast("Erreur lors de l'approbation", "error");
         }
@@ -238,7 +241,7 @@ export const Team: React.FC = () => {
             });
             addToast("Demande refusée", "info");
             fetchUsers();
-        } catch (_e) {
+        } catch {
             addToast("Erreur lors du refus", "error");
         }
     };
@@ -300,7 +303,7 @@ export const Team: React.FC = () => {
                 addToast("Utilisateur supprimé", "info");
             }
             setUsers(prev => prev.filter(user => user.uid !== u.uid));
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Team.handleDeleteUser', 'DELETE_FAILED');
             addToast("Erreur suppression", "error");
         }
