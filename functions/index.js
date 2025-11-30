@@ -266,12 +266,12 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const PLANS = {
     'discovery': { monthly: null, yearly: null },
     'professional': {
-        monthly: 'price_1SXOWoDKg6Juwz5xp4oBw1eM',
-        yearly: 'price_1SXOWpDKg6Juwz5xk5puuJDg'
+        monthly: 'price_1SZ5JwDKg6Juwz5xoPsDEGHo',
+        yearly: 'price_1SZ5uZDKg6Juwz5xmkEvoxww'
     },
     'enterprise': {
-        monthly: 'price_1SXOWqDKg6Juwz5xaOzjO7IC',
-        yearly: 'price_1SXOWrDKg6Juwz5xQGPV1309'
+        monthly: 'price_1SZ5HXDKg6Juwz5x5Uml5fG3',
+        yearly: 'price_1SZ5tXDKg6Juwz5xukDpGfgZ'
     }
 };
 
