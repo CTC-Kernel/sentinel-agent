@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { ErrorLogger } from './services/errorLogger';
 
 // Capacitor imports for native functionality
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -20,7 +21,7 @@ const initializeApp = async () => {
     // Hide splash screen after app is ready
     await SplashScreen.hide();
   } catch (error) {
-    console.error('Error initializing Capacitor:', error);
+    ErrorLogger.error(error, 'index.initializeApp');
   }
 };
 

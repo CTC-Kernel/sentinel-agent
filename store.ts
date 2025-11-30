@@ -33,7 +33,7 @@ export const useStore = create<AppState>((set, get) => ({
   theme: (localStorage.getItem('theme') as 'light' | 'dark') || 'light',
   isLoading: true,
   toasts: [],
-  demoMode: localStorage.getItem('demoMode') === 'true',
+  demoMode: false,
   language: (localStorage.getItem('language') as 'fr' | 'en') || 'fr',
   setUser: (user) => set({ user }),
   setTheme: (theme) => set(() => {
@@ -84,16 +84,8 @@ export const useStore = create<AppState>((set, get) => ({
     // Legacy state update removed
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
-  toggleDemoMode: () => set((state) => {
-    const newMode = !state.demoMode;
-    localStorage.setItem('demoMode', String(newMode));
-    if (newMode) {
-      toast.info(state.language === 'fr' ? "Mode Démo activé" : "Demo Mode activated");
-    } else {
-      toast.info(state.language === 'fr' ? "Mode Démo désactivé" : "Demo Mode deactivated");
-    }
-    // Force reload to refresh all data hooks with new mode
-    setTimeout(() => window.location.reload(), 500);
-    return { demoMode: newMode };
+  toggleDemoMode: () => set(() => {
+    // Demo mode disabled for production
+    return { demoMode: false };
   }),
 }));

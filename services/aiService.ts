@@ -8,7 +8,7 @@ import { ErrorLogger } from "./errorLogger";
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const MODEL_NAME = "gemini-1.5-pro-001";
+const MODEL_NAME = "gemini-3-pro-preview";
 
 interface GraphData {
     assets: Asset[];
@@ -96,7 +96,7 @@ export const aiService = {
             } catch (modelError: unknown) {
                 ErrorLogger.warn("Primary model failed, trying fallbacks...", 'aiService.analyzeGraph', { metadata: { error: modelError } });
 
-                const fallbackModels = ['gemini-1.5-flash-001', 'gemini-1.5-flash', 'gemini-pro'];
+                const fallbackModels = ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro'];
 
                 for (const modelName of fallbackModels) {
                     try {
@@ -292,7 +292,7 @@ async function generateContentSafe(prompt: string): Promise<string> {
         if (errorMessage.includes('404') || errorMessage.includes('not found')) {
             ErrorLogger.warn(`Model ${MODEL_NAME} not found, trying fallbacks...`, 'aiService.generateContentSafe');
 
-            const fallbackModels = ['gemini-1.5-flash-001', 'gemini-1.5-flash', 'gemini-pro'];
+            const fallbackModels = ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro'];
 
             for (const modelName of fallbackModels) {
                 try {

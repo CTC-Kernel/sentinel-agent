@@ -1,5 +1,6 @@
 
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { logger } = require("firebase-functions");
 const sgMail = require('@sendgrid/mail');
 // sgMail.setApiKey is now called with secret
 
@@ -40,7 +41,7 @@ exports.onJoinRequestCreated = onDocumentCreated("join_requests/{requestId}", as
         .get();
 
     if (adminsSnap.empty) {
-        console.log(`No admins found for org ${request.organizationId}`);
+        logger.info(`No admins found for org ${request.organizationId}`);
         return;
     }
 
@@ -64,7 +65,7 @@ exports.onJoinRequestCreated = onDocumentCreated("join_requests/{requestId}", as
     });
 
     await batch.commit();
-    console.log(`Queued join request emails for ${adminsSnap.size} admins.`);
+    logger.info(`Queued join request emails for ${adminsSnap.size} admins.`);
 });
 
 exports.onJoinRequestUpdated = onDocumentUpdated("join_requests/{requestId}", async (event) => {
@@ -103,21 +104,11 @@ exports.onJoinRequestUpdated = onDocumentUpdated("join_requests/{requestId}", as
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { defineString, defineInt, defineSecret } = require("firebase-functions/params");
+const { defineString, defineSecret } = require("firebase-functions/params");
 const sendGridApiKey = defineSecret("SENDGRID_API_KEY");
 const admin = require("firebase-admin");
-const nodemailer = require("nodemailer");
 
 admin.initializeApp();
-
-// Define configuration parameters
-const smtpHost = defineString("SMTP_HOST", { default: "smtp.ethereal.email" });
-const smtpPort = defineInt("SMTP_PORT", { default: 587 });
-const smtpUser = defineString("SMTP_USER", { default: "placeholder_user" });
-const smtpPass = defineString("SMTP_PASS", { default: "placeholder_pass" });
-
-// Global transporter for connection pooling
-let transporter = null;
 
 // Set custom claims when user document is created/updated
 exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
@@ -129,7 +120,7 @@ exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
 
     // Validate organizationId before setting claims
     if (!userData.organizationId) {
-        console.warn(`User ${userId} has no organizationId - skipping claims creation`);
+        logger.warn(`User ${userId} has no organizationId - skipping claims creation`);
         return;
     }
 
@@ -144,7 +135,7 @@ exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
             const orgData = orgSnap.data();
             // Enforce ADMIN role if user is the owner
             if (orgData.ownerId === userId) {
-                console.log(`User ${userId} is owner of org ${userData.organizationId} - Enforcing ADMIN role`);
+                logger.info(`User ${userId} is owner of org ${userData.organizationId} - Enforcing ADMIN role`);
                 role = 'admin';
 
                 // Update Firestore if needed
@@ -160,9 +151,9 @@ exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
             role: role
         });
 
-        console.log(`Custom claims set for user ${userId}: org=${userData.organizationId}, role=${role}`);
+        logger.info(`Custom claims set for user ${userId}: org=${userData.organizationId}, role=${role}`);
     } catch (error) {
-        console.error(`Error setting custom claims for user ${userId}:`, error);
+        logger.error(`Error setting custom claims for user ${userId}:`, error);
     }
 });
 
@@ -184,7 +175,7 @@ exports.refreshUserToken = onCall(async (request) => {
 
         // Only update claims if user has an organizationId
         if (!userData.organizationId) {
-            console.warn(`User ${uid} has no organizationId - skipping token refresh`);
+            logger.warn(`User ${uid} has no organizationId - skipping token refresh`);
             return { success: false, message: 'User has no organization - onboarding required' };
         }
 
@@ -196,7 +187,7 @@ exports.refreshUserToken = onCall(async (request) => {
 
         return { success: true, message: 'Token refreshed successfully' };
     } catch (error) {
-        console.error('Error refreshing token:', error);
+        logger.error('Error refreshing token:', error);
         throw new HttpsError('internal', 'Failed to refresh token: ' + error.message);
     }
 });
@@ -246,7 +237,7 @@ exports.healMe = onCall(async (request) => {
 
         return { success: false, error: 'No organization found' };
     } catch (e) {
-        console.error('HealMe failed', e);
+        logger.error('HealMe failed', e);
         throw new HttpsError('internal', e.message);
     }
 });
@@ -367,7 +358,7 @@ exports.createCheckoutSession = onCall(async (request) => {
 
         return { url: session.url };
     } catch (error) {
-        console.error("Stripe Checkout Error", error);
+        logger.error("Stripe Checkout Error", error);
         throw new HttpsError("internal", "Unable to create checkout session.");
     }
 });
@@ -383,16 +374,16 @@ exports.createPortalSession = onCall(async (request) => {
     const { organizationId, returnUrl } = request.data;
 
     if (!organizationId) {
-        console.error("No organizationId provided");
+        logger.error("No organizationId provided");
         throw new HttpsError("invalid-argument", "Organization ID is required");
     }
 
-    console.log(`Fetching organization: ${organizationId}`);
+    logger.info(`Fetching organization: ${organizationId}`);
     const orgRef = admin.firestore().collection("organizations").doc(organizationId);
     const orgSnap = await orgRef.get();
 
     if (!orgSnap.exists) {
-        console.error(`Organization not found: ${organizationId}`);
+        logger.error(`Organization not found: ${organizationId}`);
         throw new HttpsError("not-found", `Organization not found: ${organizationId}`);
     }
 
@@ -421,7 +412,7 @@ exports.createPortalSession = onCall(async (request) => {
         });
         return { url: session.url };
     } catch (err) {
-        console.error("Portal Error", err);
+        logger.error("Portal Error", err);
         throw new HttpsError("internal", "Could not create portal session");
     }
 });
@@ -438,7 +429,7 @@ exports.stripeWebhook = onRequest(async (req, res) => {
     try {
         event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
     } catch (err) {
-        console.error(`Webhook Error: ${err.message}`);
+        logger.error(`Webhook Error: ${err.message}`);
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
@@ -447,7 +438,7 @@ exports.stripeWebhook = onRequest(async (req, res) => {
         const organizationId = subscription.metadata.organizationId;
 
         if (!organizationId) {
-            console.warn("Missing organizationId in subscription metadata");
+            logger.warn("Missing organizationId in subscription metadata");
             return res.json({ received: true });
         }
 
@@ -472,7 +463,7 @@ exports.stripeWebhook = onRequest(async (req, res) => {
             'subscription.cancelAtPeriodEnd': subscription.cancel_at_period_end
         });
 
-        console.log(`Updated subscription for org ${organizationId} to ${status}`);
+        logger.info(`Updated subscription for org ${organizationId} to ${status}`);
     }
 
     res.json({ received: true });
@@ -510,7 +501,7 @@ exports.processMailQueue = onDocumentCreated({
 async function attemptSendEmail(docRef, data) {
     try {
         sgMail.setApiKey(sendGridApiKey.value());
-        console.log(`Processing email for ${data.to} via SendGrid`);
+        logger.info(`Processing email for ${data.to} via SendGrid`);
 
         const msg = {
             to: data.to,
@@ -525,7 +516,7 @@ async function attemptSendEmail(docRef, data) {
 
         // Send email via SendGrid
         const info = await sgMail.send(msg);
-        console.log("Message sent via SendGrid");
+        logger.info("Message sent via SendGrid");
 
         // Update Firestore document status
         return docRef.update({
@@ -534,7 +525,7 @@ async function attemptSendEmail(docRef, data) {
             deliveryInfo: info[0].statusCode,
         });
     } catch (error) {
-        console.error("Error sending email:", error);
+        logger.error("Error sending email:", error);
 
         // Determine if error is transient
         // SendGrid errors usually have a code or response.body.errors
@@ -549,7 +540,7 @@ async function attemptSendEmail(docRef, data) {
             const retryDate = new Date();
             retryDate.setMinutes(retryDate.getMinutes() + retryDelayMinutes);
 
-            console.log(`Transient error ${responseCode}. Scheduling retry #${currentAttempts + 1} in ${retryDelayMinutes} minutes.`);
+            logger.info(`Transient error ${responseCode}. Scheduling retry #${currentAttempts + 1} in ${retryDelayMinutes} minutes.`);
 
             return docRef.update({
                 status: "RETRY_PENDING",
@@ -609,7 +600,7 @@ exports.retryFailedEmails = onSchedule({
 
     if (docsToProcess.length === 0) return;
 
-    console.log(`Retrying ${docsToProcess.length} emails (${retrySnap.size} pending retry, ${errorSnap.size} errors, ${stuckPendingDocs.length} stuck)...`);
+    logger.info(`Retrying ${docsToProcess.length} emails (${retrySnap.size} pending retry, ${errorSnap.size} errors, ${stuckPendingDocs.length} stuck)...`);
 
     // Use a Map to deduplicate by ID just in case
     const uniqueDocs = new Map();
@@ -630,7 +621,7 @@ exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId
     const userId = notification.userId;
 
     if (!userId) {
-        console.log("No userId in notification");
+        logger.info("No userId in notification");
         return;
     }
 
@@ -639,7 +630,7 @@ exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId
         const userDoc = await admin.firestore().collection('users').doc(userId).get();
 
         if (!userDoc.exists) {
-            console.log(`User ${userId} not found`);
+            logger.info(`User ${userId} not found`);
             return;
         }
 
@@ -647,7 +638,7 @@ exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId
         const tokens = userData.fcmTokens;
 
         if (!tokens || tokens.length === 0) {
-            console.log(`No FCM tokens for user ${userId}`);
+            logger.info(`No FCM tokens for user ${userId}`);
             return;
         }
 
@@ -666,7 +657,7 @@ exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId
 
         // Send multicast message
         const response = await admin.messaging().sendMulticast(message);
-        console.log(`Sent ${response.successCount} notifications to user ${userId}`);
+        logger.info(`Sent ${response.successCount} notifications to user ${userId}`);
 
         // Cleanup invalid tokens
         if (response.failureCount > 0) {
@@ -681,11 +672,11 @@ exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId
                 await admin.firestore().collection('users').doc(userId).update({
                     fcmTokens: admin.firestore.FieldValue.arrayRemove(...failedTokens)
                 });
-                console.log(`Removed ${failedTokens.length} invalid tokens`);
+                logger.info(`Removed ${failedTokens.length} invalid tokens`);
             }
         }
     } catch (error) {
-        console.error("Error sending push notification:", error);
+        logger.error("Error sending push notification:", error);
     }
 });
 
