@@ -132,7 +132,7 @@ export const Projects: React.FC = () => {
             const filteredLogs = logs.filter(l => l.resource === 'Project' && l.details?.includes(project.name));
             filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setProjectHistory(filteredLogs);
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.openInspector.history', 'FETCH_FAILED');
         }
 
@@ -144,7 +144,7 @@ export const Projects: React.FC = () => {
             const milestones = snap.docs.map(d => ({ id: d.id, ...d.data() } as ProjectMilestone));
             milestones.sort((a, b) => new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime());
             setProjectMilestones(milestones);
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.openInspector.milestones', 'FETCH_FAILED');
         }
 
@@ -153,7 +153,7 @@ export const Projects: React.FC = () => {
             const q = query(collection(db, 'audits'), where('organizationId', '==', user?.organizationId), where('relatedProjectIds', 'array-contains', project.id));
             const snap = await getDocs(q);
             setLinkedAudits(snap.docs.map(d => ({ id: d.id, ...d.data() } as Audit)));
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.fetchLinkedAudits', 'FETCH_FAILED');
         }
 
@@ -162,7 +162,7 @@ export const Projects: React.FC = () => {
             const q = query(collection(db, 'suppliers'), where('organizationId', '==', user?.organizationId), where('relatedProjectIds', 'array-contains', project.id));
             const snap = await getDocs(q);
             setLinkedSuppliers(snap.docs.map(d => ({ id: d.id, ...d.data() } as Supplier)));
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.fetchLinkedSuppliers', 'FETCH_FAILED');
         }
     }, [user?.organizationId]);
@@ -229,7 +229,7 @@ export const Projects: React.FC = () => {
             setCreationMode(false);
             setEditingProject(null);
             // setIsEditing(false); // Removed unused
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleProjectFormSubmit', 'UPDATE_FAILED');
         }
     };
@@ -264,7 +264,7 @@ export const Projects: React.FC = () => {
             await logAction(user, 'CREATE', 'Project', `Projet créé depuis template ${template.name}: ${projectName}`);
             addToast(`Projet créé avec ${project.tasks.length} tâches et ${milestones.length} jalons`, "success");
             setShowTemplateModal(false);
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleCreateFromTemplate', 'CREATE_FAILED');
         }
     };
@@ -296,7 +296,7 @@ export const Projects: React.FC = () => {
             await addDoc(collection(db, 'projects'), newProjData);
             await logAction(user, 'CREATE', 'Project', `Duplication Projet: ${newProjData.name}`);
             addToast("Projet dupliqué", "success");
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleDuplicate', 'CREATE_FAILED');
         }
     };
@@ -316,7 +316,7 @@ export const Projects: React.FC = () => {
             await deleteDoc(doc(db, 'projects', id));
             setSelectedProject(null);
             addToast("Projet supprimé", "info");
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleDeleteProject', 'DELETE_FAILED');
         }
     };
@@ -353,7 +353,7 @@ export const Projects: React.FC = () => {
         try {
             await updateDoc(doc(db, 'projects', selectedProject.id), { tasks, progress });
             setSelectedProject({ ...selectedProject, tasks, progress });
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.updateTasks', 'UPDATE_FAILED');
         }
     };
@@ -512,11 +512,11 @@ export const Projects: React.FC = () => {
                         // Notify if assignee changed
                         if (cleanTaskData.assigneeId && cleanTaskData.assigneeId !== editingTask.assigneeId) {
                             await NotificationService.notifyTaskAssigned({
-                                id: editingTask.id,
-                                title: cleanTaskData.title,
+                                ...editingTask,
+                                ...cleanTaskData,
                                 projectName: selectedProject.name,
                                 organizationId: user.organizationId
-                            }, cleanTaskData.assigneeId);
+                            } as ProjectTask & { organizationId: string; projectName?: string }, cleanTaskData.assigneeId);
                         }
                     } else {
                         // Create new task
@@ -531,11 +531,10 @@ export const Projects: React.FC = () => {
                         // Notify assignee
                         if (cleanTaskData.assigneeId) {
                             await NotificationService.notifyTaskAssigned({
-                                id: newTask.id,
-                                title: newTask.title,
+                                ...newTask,
                                 projectName: selectedProject.name,
                                 organizationId: user.organizationId
-                            }, cleanTaskData.assigneeId);
+                            } as ProjectTask & { organizationId: string; projectName?: string }, cleanTaskData.assigneeId);
                         }
                     }
                 }}
