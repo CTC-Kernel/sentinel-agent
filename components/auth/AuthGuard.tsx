@@ -32,7 +32,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
         return <Navigate to="/onboarding" replace />;
     }
 
-    if (firebaseUser && !user && !loading) {
+    if (firebaseUser && !user && !loading && requireOnboarding) {
         console.warn("AuthGuard: Firebase user exists but Firestore profile is missing. Redirecting to Onboarding.");
         return <Navigate to="/onboarding" replace />;
     }
