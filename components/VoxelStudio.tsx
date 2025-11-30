@@ -1,11 +1,28 @@
 import React, { useRef, useState, useMemo, useEffect, createContext, useContext, useCallback } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment, Html, Billboard } from '@react-three/drei';
-import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial } from 'three';
+import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, VoxelNode } from '../types';
 import { VoxelDetailOverlay } from './VoxelDetailOverlay';
+
+export interface VoxelDetail {
+  title: string;
+  type: string;
+  owner: string;
+  badge: string;
+  gradient: string;
+  stats: { label: string; value: string | number }[];
+  meta: { label: string; value: string | number }[];
+}
+
+export interface RelatedElement {
+  id: string;
+  type: string;
+  label: string;
+  meta?: string;
+}
 
 
 
@@ -33,24 +50,25 @@ interface VoxelStudioProps {
   suggestedLinks?: AISuggestedLink[];
   presentationMode?: boolean;
   // Overlay props
-  selectedNodeDetails?: any;
+  selectedNodeDetails?: VoxelDetail | null;
   isDetailMinimized?: boolean;
   setIsDetailMinimized?: (v: boolean | ((prev: boolean) => boolean)) => void;
   handleSelectionClear?: () => void;
-  relatedElements?: any[];
-  applyFocus?: (id: string, type: any) => void;
+  relatedElements?: RelatedElement[];
+  applyFocus?: (id: string, type: VoxelNode['type']) => void;
   handleOpenSelected?: () => void;
 }
 
-const safeRender = (value: any): React.ReactNode => {
+const safeRender = (value: unknown): React.ReactNode => {
   if (value === null || value === undefined) return null;
-  if (typeof value === 'object') {
-    if ('seconds' in value && 'nanoseconds' in value) {
-      return new Date(value.seconds * 1000).toLocaleDateString();
+  if (typeof value === 'object' && value !== null) {
+    const val = value as { seconds?: number; nanoseconds?: number };
+    if (val.seconds !== undefined && val.nanoseconds !== undefined) {
+      return new Date(val.seconds * 1000).toLocaleDateString();
     }
     return ''; // Safely ignore other objects to prevent crashes
   }
-  return value;
+  return String(value);
 };
 
 const SCENE_OFFSET: [number, number, number] = [5.5, 0, 0];
@@ -104,7 +122,7 @@ const MODEL_LIBRARY_CONFIG: Partial<Record<VoxelNode['type'], { key: keyof Model
 };
 
 const StarField: React.FC = () => {
-  const starsRef = useRef<any>(null);
+  const starsRef = useRef<ThreePoints>(null);
   const positions = useMemo(() => {
     const starCount = 1200;
     const array = new Float32Array(starCount * 3);
@@ -414,7 +432,7 @@ const MovingParticle: React.FC<{ curve: CatmullRomCurve3; offset: number; color:
   );
 };
 
-const GlassMaterial: React.FC<any> = ({ color, emissive, opacity, isDimmed, isHighlighted, ...props }) => (
+const GlassMaterial: React.FC<React.ComponentProps<'meshPhysicalMaterial'> & { isDimmed?: boolean; isHighlighted?: boolean }> = ({ color, emissive, opacity, isDimmed, isHighlighted, ...props }) => (
   <meshPhysicalMaterial
     color={isDimmed ? '#1e293b' : isHighlighted ? '#ffffff' : color}
     emissive={isDimmed ? '#000000' : isHighlighted ? color : emissive}
@@ -426,7 +444,7 @@ const GlassMaterial: React.FC<any> = ({ color, emissive, opacity, isDimmed, isHi
     clearcoat={isDimmed ? 0 : 1}
     clearcoatRoughness={0.1}
     transparent
-    opacity={isDimmed ? 0.1 : Math.max(opacity, 0.6)}
+    opacity={isDimmed ? 0.1 : Math.max(Number(opacity || 1), 0.6)}
     side={DoubleSide}
     {...props}
   />
@@ -441,7 +459,7 @@ const VoxelMesh: React.FC<{
   highlightCritical?: boolean;
   xRayMode?: boolean;
   opacity?: number;
-  overlayProps?: any;
+  overlayProps?: React.ComponentProps<typeof VoxelDetailOverlay>;
   overlayOffset?: { x: number; y: number };
   isImpacted?: boolean;
 }> = ({
@@ -734,18 +752,26 @@ const VoxelMesh: React.FC<{
               })}
             </>
           );
-        default:
+        default: {
+          const n = node as VoxelNode;
           return (
             <mesh>
-              <boxGeometry args={[(node as any).size || 1, (node as any).size || 1, (node as any).size || 1]} />
+              <boxGeometry args={[n.size || 1, n.size || 1, n.size || 1]} />
               <GlassMaterial {...sharedMaterialProps} />
               <EdgesWithColor />
             </mesh>
           );
+        }
       }
     };
 
-    const rawLabel = (node.data as any).name || (node.data as any).title || (node.data as any).threat || (node.data as any).label || 'Élément';
+    const getDataLabel = (data: VoxelNode['data']): string => {
+      if ('name' in data) return data.name;
+      if ('title' in data) return data.title;
+      if ('threat' in data) return data.threat;
+      return 'Élément';
+    };
+    const rawLabel = getDataLabel(node.data);
     const label = rawLabel.length > 24 ? `${rawLabel.slice(0, 21)}…` : rawLabel;
     const safeLabel = safeRender(label);
 
@@ -939,13 +965,13 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   };
 
   const overlayProps = {
-    selectedNodeDetails,
-    isDetailMinimized,
-    setIsDetailMinimized,
-    handleSelectionClear,
-    relatedElements,
-    applyFocus,
-    handleOpenSelected,
+    selectedNodeDetails: selectedNodeDetails ?? null,
+    isDetailMinimized: isDetailMinimized ?? false,
+    setIsDetailMinimized: setIsDetailMinimized ?? (() => { }),
+    handleSelectionClear: handleSelectionClear ?? (() => { }),
+    relatedElements: relatedElements ?? [],
+    applyFocus: applyFocus ?? (() => { }),
+    handleOpenSelected: handleOpenSelected ?? (() => { }),
     onPositionChange: handleOverlayPositionChange,
     onRequestFocus: handleOverlayFocusRequest,
     impactMode,
@@ -1360,7 +1386,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
             maxDistance={55}
             zoomSpeed={0.6}
             dampingFactor={0.05}
-            ref={controlsRef as any}
+            ref={controlsRef}
           />
 
           {voxelNodes.length > 0 && (

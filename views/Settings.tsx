@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../store';
 import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, WifiOff, ArrowRight, FileSpreadsheet } from '../components/ui/Icons';
-import { collection, getDocs, query, orderBy, limit, where, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, enableNetwork, disableNetwork, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, where, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, enableNetwork, disableNetwork, getDoc, QueryDocumentSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, auth } from '../firebase';
 import { signOut, updatePassword } from 'firebase/auth';
@@ -76,7 +76,7 @@ export const Settings: React.FC = () => {
     const [showLegalModal, setShowLegalModal] = useState(false);
     const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms'>('mentions');
 
-    const fetchOrgDetails = async () => {
+    const fetchOrgDetails = useCallback(async () => {
         if (!user?.organizationId) return;
         try {
             const orgRef = doc(db, 'organizations', user.organizationId);
@@ -85,9 +85,9 @@ export const Settings: React.FC = () => {
                 setCurrentOrg({ id: orgSnap.id, ...orgSnap.data() } as Organization);
             }
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.fetchOrgDetails', 'FETCH_FAILED'); }
-    };
+    }, [user?.organizationId]);
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         if (!user?.organizationId) return;
         try {
             const q = query(collection(db, 'users'), where('organizationId', '==', user.organizationId));
@@ -95,7 +95,7 @@ export const Settings: React.FC = () => {
             const users = snap.docs.map(d => ({ ...d.data(), uid: d.id } as UserProfile));
             setUsersList(users);
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.fetchUsers', 'FETCH_FAILED'); }
-    };
+    }, [user?.organizationId]);
 
     const handleUpdateUserRole = async (targetUserId: string, newRole: UserProfile['role']) => {
         if (!hasPermission(user, 'User', 'manage')) return;
@@ -121,35 +121,9 @@ export const Settings: React.FC = () => {
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.handleRemoveUser', 'DELETE_FAILED'); }
     };
 
-    useEffect(() => {
-        if (user) {
-            profileForm.reset({
-                displayName: user.displayName || '',
-                department: user.department || '',
-                role: (user.role as UserProfile['role']) || 'user'
-            });
-            fetchOrgDetails();
-        }
-        if (hasPermission(user, 'Settings', 'manage') && user?.organizationId) {
-            fetchLogs(true);
-            fetchSystemStats();
-            fetchUsers();
-            checkLatency();
-        }
-    }, [user?.organizationId]);
 
-    useEffect(() => {
-        if (currentOrg) {
-            orgForm.reset({
-                orgName: currentOrg.name || '',
-                address: currentOrg.address || '',
-                vatNumber: currentOrg.vatNumber || '',
-                contactEmail: currentOrg.contactEmail || ''
-            });
-        }
-    }, [currentOrg]);
 
-    const checkLatency = async () => {
+    const checkLatency = useCallback(async () => {
         const start = Date.now();
         try {
             await getDocs(query(collection(db, 'users'), where('uid', '==', user?.uid)));
@@ -158,16 +132,16 @@ export const Settings: React.FC = () => {
         } catch {
             setNetworkLatency('Erreur');
         }
-    };
+    }, [user?.uid]);
 
-    const fetchSystemStats = async () => {
+    const fetchSystemStats = useCallback(async () => {
         if (!user?.organizationId) return;
         try {
             const countCol = async (col: string) => {
                 try {
                     const snap = await getCountFromServer(query(collection(db, col), where('organizationId', '==', user.organizationId)));
                     return snap.data().count;
-                } catch (_e) { return 0; }
+                } catch { return 0; }
             };
 
             const [assets, docs, risks, logs] = await Promise.all([
@@ -179,11 +153,11 @@ export const Settings: React.FC = () => {
 
             setSysStats({ assets, docs, risks, logs });
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.fetchSystemStats', 'FETCH_FAILED'); }
-    };
+    }, [user?.organizationId]);
 
-    const [lastVisible, setLastVisible] = useState<any>(null);
+    const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot | null>(null);
 
-    const fetchLogs = async (reset = false) => {
+    const fetchLogs = useCallback(async (reset = false) => {
         if (loadingLogs || (!hasMoreLogs && !reset) || !user?.organizationId) return;
         setLoadingLogs(true);
         try {
@@ -234,7 +208,35 @@ export const Settings: React.FC = () => {
                 setHasMoreLogs(false);
             }
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.fetchLogs', 'FETCH_FAILED'); } finally { setLoadingLogs(false); }
-    };
+    }, [loadingLogs, hasMoreLogs, user?.organizationId, lastVisible]);
+
+    useEffect(() => {
+        if (user) {
+            profileForm.reset({
+                displayName: user.displayName || '',
+                department: user.department || '',
+                role: (user.role as UserProfile['role']) || 'user'
+            });
+            fetchOrgDetails();
+        }
+        if (hasPermission(user, 'Settings', 'manage') && user?.organizationId) {
+            fetchLogs(true);
+            fetchSystemStats();
+            fetchUsers();
+            checkLatency();
+        }
+    }, [user, fetchOrgDetails, fetchLogs, fetchSystemStats, fetchUsers, checkLatency, profileForm]);
+
+    useEffect(() => {
+        if (currentOrg) {
+            orgForm.reset({
+                orgName: currentOrg.name || '',
+                address: currentOrg.address || '',
+                vatNumber: currentOrg.vatNumber || '',
+                contactEmail: currentOrg.contactEmail || ''
+            });
+        }
+    }, [currentOrg, orgForm]);
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!user || !e.target.files || e.target.files.length === 0) return;
@@ -256,7 +258,7 @@ export const Settings: React.FC = () => {
                 setUser({ ...user, photoURL: downloadURL });
                 addToast("Photo de profil mise à jour", "success");
             }
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Settings.handlePhotoUpload', 'FILE_UPLOAD_FAILED');
         } finally {
             setUploadingPhoto(false);
@@ -289,7 +291,7 @@ export const Settings: React.FC = () => {
 
             setUser(userData);
             addToast("Profil mis à jour avec succès.", "success");
-        } catch (_err) {
+        } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Settings.handleUpdateProfile', 'UPDATE_FAILED');
         } finally {
             setSavingProfile(false);
@@ -324,7 +326,7 @@ export const Settings: React.FC = () => {
 
             setCurrentOrg(prev => prev ? { ...prev, name: data.orgName, address: data.address, vatNumber: data.vatNumber, contactEmail: data.contactEmail } : null);
             addToast("Informations de l'organisation mises à jour", "success");
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Settings.handleUpdateOrg', 'UPDATE_FAILED');
         } finally {
             setSavingOrg(false);
@@ -339,8 +341,8 @@ export const Settings: React.FC = () => {
                 await updatePassword(currentUser, data.newPassword);
                 addToast("Mot de passe modifié avec succès", "success");
                 passwordForm.reset();
-            } catch (_error) {
-                if ((error as any).code === 'auth/requires-recent-login') {
+            } catch (error) {
+                if ((error as { code?: string }).code === 'auth/requires-recent-login') {
                     addToast("Veuillez vous reconnecter pour changer le mot de passe", "error");
                 } else {
                     ErrorLogger.handleErrorWithToast(error, 'Settings.handleChangePassword', 'UPDATE_FAILED');
@@ -369,7 +371,7 @@ export const Settings: React.FC = () => {
         setExporting(true);
         try {
             const collectionsToExport = ['assets', 'risks', 'controls', 'audits', 'users', 'documents', 'projects', 'incidents', 'suppliers', 'processing_activities', 'business_processes', 'bcp_drills'];
-            const exportData: Record<string, any> = {};
+            const exportData: Record<string, unknown> = {};
 
             await Promise.all(collectionsToExport.map(async (colName) => {
                 const q = query(collection(db, colName), where('organizationId', '==', user.organizationId));
@@ -383,7 +385,7 @@ export const Settings: React.FC = () => {
                 if (response.success && response.data) {
                     exportData['secure_risk_data'] = response.data.secure_data || [];
                 }
-            } catch (_e) {
+            } catch (e) {
                 console.warn('Failed to fetch secure data for export', e);
                 exportData['secure_risk_data_error'] = 'Failed to retrieve secure data';
             }
@@ -403,7 +405,7 @@ export const Settings: React.FC = () => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             addToast("Sauvegarde complète téléchargée", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Settings.handleExport', 'FETCH_FAILED');
         } finally {
             setExporting(false);
@@ -437,7 +439,7 @@ export const Settings: React.FC = () => {
             link.download = `audit_logs_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
             addToast("Logs d'audit exportés (CSV)", "success");
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Settings.handleExportLogsCSV', 'FETCH_FAILED');
         } finally {
             setExportingLogs(false);
@@ -511,7 +513,7 @@ export const Settings: React.FC = () => {
             // Local state update handled by onSnapshot in App.tsx, forcing redirect to Onboarding
             // Local state update handled by onSnapshot in App.tsx, forcing redirect to Onboarding
             window.location.reload();
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Settings.handleLeaveOrg', 'UPDATE_FAILED');
         }
     };
@@ -532,7 +534,7 @@ export const Settings: React.FC = () => {
             } else {
                 await SubscriptionService.manageSubscription(user.organizationId);
             }
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Settings.handleManageSubscription', 'UNKNOWN_ERROR');
         } finally {
             setSubLoading(false);
@@ -550,9 +552,9 @@ export const Settings: React.FC = () => {
                     await AccountService.deleteAccount(user, auth.currentUser);
                     addToast("Compte supprimé avec succès", "success");
                     // Redirect handled by auth state change in App.tsx
-                } catch (_e) {
+                } catch (e) {
                     ErrorLogger.handleErrorWithToast(e, 'Settings.handleDeleteAccount', 'DELETE_FAILED');
-                    if ((e as any).code === 'auth/requires-recent-login') {
+                    if ((e as { code?: string }).code === 'auth/requires-recent-login') {
                         addToast("Veuillez vous reconnecter pour supprimer votre compte", "error");
                     } else {
                         ErrorLogger.handleErrorWithToast(e, 'Settings.handleDeleteAccount', 'DELETE_FAILED');
@@ -619,7 +621,7 @@ export const Settings: React.FC = () => {
                                     {currentOrg?.subscription?.status === 'active' ? 'Actif' : 'Gratuit'}
                                 </span>
                                 {currentOrg?.subscription?.currentPeriodEnd && (
-                                    <span className="text-xs text-slate-500">Renouvellement le {new Date((currentOrg.subscription.currentPeriodEnd as any).seconds ? (currentOrg.subscription.currentPeriodEnd as any).seconds * 1000 : currentOrg.subscription.currentPeriodEnd).toLocaleDateString()}</span>
+                                    <span className="text-xs text-slate-500">Renouvellement le {new Date((currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds ? (currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds * 1000 : (currentOrg.subscription.currentPeriodEnd as string | number)).toLocaleDateString()}</span>
                                 )}
                             </div>
                         </div>
