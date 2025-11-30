@@ -208,10 +208,25 @@ class HybridService {
      */
     async exportOrganizationSecureData(): Promise<HybridResponse> {
         try {
-            const { collection, getDocs, getFirestore } = await import('firebase/firestore');
+            const { collection, query, where, getDocs, getFirestore } = await import('firebase/firestore');
             const db = getFirestore();
-            // In a real app, filter by organizationId
-            const snapshot = await getDocs(collection(db, 'secure_storage'));
+
+            const user = auth.currentUser;
+            let organizationId: string | undefined;
+
+            if (user) {
+                const tokenResult = await user.getIdTokenResult();
+                organizationId = tokenResult.claims.organizationId as string;
+            }
+
+            if (!organizationId) {
+                // Fallback: try to get it from the user profile if claims are not set (though claims are preferred for security)
+                // For now, if we can't determine org ID, we return empty or throw
+                throw new Error("Organization ID not found for export");
+            }
+
+            const q = query(collection(db, 'secure_storage'), where('organizationId', '==', organizationId));
+            const snapshot = await getDocs(q);
             const data = snapshot.docs.map(d => d.data());
             return { success: true, data: { export: data } };
         } catch (error) {

@@ -144,6 +144,37 @@ export const Login: React.FC = () => {
                             <span className="ml-3 text-[15px] font-bold text-slate-700 dark:text-white">Continuer avec Google</span>
                         </button>
 
+                        <button
+                            onClick={async () => {
+                                setLoading(true);
+                                setErrorMsg(null);
+                                try {
+                                    const { OAuthProvider, signInWithPopup } = await import('firebase/auth');
+                                    const provider = new OAuthProvider('apple.com');
+                                    provider.addScope('email');
+                                    provider.addScope('name');
+                                    await signInWithPopup(auth, provider);
+                                } catch (error: unknown) {
+                                    const code = (error as { code?: string })?.code;
+                                    if (code === 'auth/operation-not-allowed') {
+                                        setErrorMsg("Apple Sign In non activé dans la console Firebase.");
+                                    } else {
+                                        setErrorMsg("Erreur Apple Sign In.");
+                                    }
+                                } finally { setLoading(false); }
+                            }}
+                            disabled={loading}
+                            className="w-full flex items-center justify-center px-4 py-4 bg-black text-white border border-transparent rounded-2xl card-hover transition-all duration-200 shadow-sm active:scale-[0.98]"
+                        >
+                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-.98-.4-2.05-.4-3.08.4-1.05.45-2.05.45-3.08-.4-1.05-.85-2.05-2.4-2.05-4.6 0-3.15 2.05-4.8 4.1-4.8 1.05 0 2.05.45 3.08.45 1.05 0 2.05-.45 3.08-.45 1.05 0 2.05.45 3.08.45.98 0 1.95-.45 2.55-1.15-2.05-1.15-2.05-3.6-2.05-3.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15zM12.03 7.25c-.05-.25-.05-.5-.05-.75 1.55-.65 2.55-1.9 2.55-3.15.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15z" />
+                                <path d="M12.03 7.25c.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15-.05-.25-.05-.5-.05-.75 1.55-.65 2.55-1.9 2.55-3.15z" fill="none" />
+                                <path d="M13.03 2.1c-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75z" />
+                                <path d="M17.03 11.28c-.6-.7-1.55-1.15-2.55-1.15-1.03 0-2.03.45-3.08.45-1.03 0-2.03-.45-3.08-.45-2.05 0-4.1 1.65-4.1 4.8 0 2.2 1 3.75 2.05 4.6 1.03.85 2.03.85 3.08.4 1.03-.8 2.1-.8 3.08.4 1.03.48 2.1.55 3.08-.4 1.03-.85 2.03-2.4 2.05-4.6-.05-.15-2.05-1.15-2.05-3.75.05-.15 2.05-1.15 2.05-3.75z" />
+                            </svg>
+                            <span className="ml-3 text-[15px] font-bold">Continuer avec Apple</span>
+                        </button>
+
                         <div className="relative py-2">
                             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-white/10"></div></div>
                             <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-400">Ou via email</span></div>
