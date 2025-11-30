@@ -26,11 +26,7 @@ export const RoleManagement: React.FC = () => {
     const [editingUser, setEditingUser] = useState<string | null>(null);
     const [selectedRole, setSelectedRole] = useState<Role>('user');
 
-    useEffect(() => {
-        fetchUsers();
-    }, [user?.organizationId]);
-
-    const fetchUsers = async () => {
+    const fetchUsers = React.useCallback(async () => {
         if (!user?.organizationId) return;
 
         try {
@@ -45,12 +41,16 @@ export const RoleManagement: React.FC = () => {
             })) as UserProfile[];
 
             setUsers(usersData);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'RoleManagement.fetchUsers');
         } finally {
             setLoading(false);
         }
-    };
+    }, [user?.organizationId]);
+
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
 
     const handleUpdateRole = async (userId: string, newRole: Role) => {
         try {
@@ -62,7 +62,7 @@ export const RoleManagement: React.FC = () => {
                 prev.map((u) => (u.uid === userId ? { ...u, role: newRole } : u))
             );
             setEditingUser(null);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'RoleManagement.handleUpdateRole');
             alert('Erreur lors de la mise à jour du rôle');
         }

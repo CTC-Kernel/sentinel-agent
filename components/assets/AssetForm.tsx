@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { assetSchema, AssetFormData } from '../../schemas/assetSchema';
 import { Asset, UserProfile, Supplier, Criticality } from '../../types';
@@ -92,13 +92,14 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 // Validate against enum if needed
                 if (field === 'type' && !['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].includes(cleanSuggestion)) {
                     // Fallback or ignore
-                } else if (field === 'confidentiality' && !Object.values(Criticality).includes(cleanSuggestion as any)) {
+                } else if (field === 'confidentiality' && !Object.values(Criticality).includes(cleanSuggestion as Criticality)) {
                     // Fallback
                 } else {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     setValue(field, cleanSuggestion as any, { shouldDirty: true });
                 }
             }
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'AssetForm.handleSuggestField', 'FETCH_FAILED');
         } finally {
             setSuggestingField(null);
@@ -106,7 +107,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit as SubmitHandler<AssetFormData>)} className="space-y-8 p-6">
+        <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-8 p-6">
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Informations Principales</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -236,10 +237,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
                 </h3>
                 <div className="flex flex-wrap gap-3">
-                    {['NIS2', 'DORA', 'PCI_DSS', 'HDS', 'ISO27001', 'SOC2'].map((scope) => (
+                    {(['NIS2', 'DORA', 'PCI_DSS', 'HDS', 'ISO27001', 'SOC2'] as const).map((scope) => (
                         <label
                             key={scope}
-                            className={`cursor-pointer px-4 py-2 rounded-xl border transition-all ${(watch('scope') || []).includes(scope as any)
+                            className={`cursor-pointer px-4 py-2 rounded-xl border transition-all ${(watch('scope') || []).includes(scope)
                                 ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-bold'
                                 : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
                                 }`}
@@ -248,11 +249,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 type="checkbox"
                                 className="hidden"
                                 value={scope}
-                                checked={(watch('scope') || []).includes(scope as any)}
+                                checked={(watch('scope') || []).includes(scope)}
                                 onChange={(e) => {
                                     const current = watch('scope') || [];
                                     if (e.target.checked) {
-                                        setValue('scope', [...current, scope as any], { shouldDirty: true });
+                                        setValue('scope', [...current, scope], { shouldDirty: true });
                                     } else {
                                         setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
                                     }

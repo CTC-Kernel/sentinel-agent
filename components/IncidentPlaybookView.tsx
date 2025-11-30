@@ -35,7 +35,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   const [initiating, setInitiating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [notes, setNotes] = useState('');
-  const [evidence, setEvidence] = useState<Record<string, any>>({});
+  const [evidence, setEvidence] = useState<Record<string, string>>({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState<() => void>(() => { });
   const [confirmMessage, setConfirmMessage] = useState('');
@@ -45,8 +45,8 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
     try {
       const availablePlaybooks = await IncidentPlaybookService.getPlaybooks(incident.category);
       setPlaybooks(availablePlaybooks);
-    } catch (_error) {
-      addToast('Erreur chargement playbooks', 'error');
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybookView.loadPlaybooks', 'FETCH_FAILED');
     } finally {
       setLoading(false);
     }
@@ -61,7 +61,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         setSelectedPlaybook(playbook);
         setCurrentStep(existingResponse.currentStepIndex);
       }
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookView.loadResponse');
     }
   }, [incident.id]);
@@ -84,8 +84,8 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
 
       await loadResponse();
       addToast('Response initiée avec succès', 'success');
-    } catch (_error) {
-      addToast('Erreur lors de l\'initialisation', 'error');
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybookView.handleInitiateResponse', 'CREATE_FAILED');
     } finally {
       setInitiating(false);
     }
@@ -108,8 +108,8 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
       setEvidence({});
       setCurrentStep(currentStep + 1);
       addToast('Étape complétée', 'success');
-    } catch (_error) {
-      addToast('Erreur lors de la complétion', 'error');
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybookView.handleStepComplete', 'UPDATE_FAILED');
     }
   };
 
@@ -126,8 +126,8 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         );
         await loadResponse();
         addToast('Incident escaladé', 'success');
-      } catch (_error) {
-        addToast('Erreur lors de l\'escalade', 'error');
+      } catch (error) {
+        ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybookView.handleEscalate', 'UPDATE_FAILED');
       }
     });
     setShowConfirmModal(true);
@@ -147,8 +147,8 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         });
         addToast('Response terminée', 'success');
         onClose();
-      } catch (_error) {
-        addToast('Erreur lors de la finalisation', 'error');
+      } catch (error) {
+        ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybookView.handleCompleteResponse', 'UPDATE_FAILED');
       }
     });
     setShowConfirmModal(true);
@@ -226,8 +226,8 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                     <div
                       key={playbook.id}
                       className={`border rounded-lg p-4 cursor-pointer transition-colors ${selectedPlaybook?.id === playbook.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
                         }`}
                       onClick={() => setSelectedPlaybook(playbook)}
                     >
@@ -316,10 +316,10 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                 <div
                   key={step.id}
                   className={`border rounded-lg p-4 mb-4 ${index === currentStep
-                      ? 'border-blue-500 bg-blue-50'
-                      : index < currentStep
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 bg-gray-50'
+                    ? 'border-blue-500 bg-blue-50'
+                    : index < currentStep
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-200 bg-gray-50'
                     }`}
                 >
                   <div className="flex items-start justify-between">

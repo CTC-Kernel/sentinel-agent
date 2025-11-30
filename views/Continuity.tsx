@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { businessProcessSchema, BusinessProcessFormData, bcpDrillSchema, BcpDrillFormData } from '../schemas/continuitySchema';
@@ -73,7 +72,7 @@ export const Continuity: React.FC = () => {
         }
     });
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!user?.organizationId) {
             setLoading(false);
             return;
@@ -91,9 +90,10 @@ export const Continuity: React.FC = () => {
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
             ]);
 
-            const getDocsData = <T,>(result: PromiseSettledResult<any>): T[] => {
+            const getDocsData = <T,>(result: PromiseSettledResult<unknown>): T[] => {
                 if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    return (result.value as any).docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
                 }
                 console.warn("Failed to load some data in Continuity view");
                 return [];
@@ -119,15 +119,14 @@ export const Continuity: React.FC = () => {
 
             const usersData = getDocsData<UserProfile>(results[5]);
             setUsersList(usersData);
-
-        } catch (_err) {
+        } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Continuity.fetchData', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
-    };
+    }, [user?.organizationId]);
 
-    useEffect(() => { fetchData(); }, [user?.organizationId]);
+    useEffect(() => { fetchData(); }, [fetchData]);
 
     // ... rest of the component code (openInspector, CRUD, etc.) ...
     // Including the rest of the file content to ensure integrity
@@ -167,7 +166,7 @@ export const Continuity: React.FC = () => {
         if (!canEdit || !user?.organizationId) return;
         try {
             await addDoc(collection(db, 'business_processes'), { ...data, organizationId: user.organizationId });
-            await logAction(user, 'CREATE', 'BCP', `Nouveau Processus: ${data.name}`);
+            await logAction(user, 'CREATE', 'BCP', `Nouveau Processus: ${data.name} `);
             addToast("Processus créé", "success");
             setShowCreateModal(false);
             createProcessForm.reset();
@@ -179,7 +178,7 @@ export const Continuity: React.FC = () => {
         if (!canEdit || !selectedProcess) return;
         try {
             await updateDoc(doc(db, 'business_processes', selectedProcess.id), data);
-            await logAction(user, 'UPDATE', 'BCP', `MAJ Processus: ${data.name}`);
+            await logAction(user, 'UPDATE', 'BCP', `MAJ Processus: ${data.name} `);
 
             setProcesses(prev => prev.map(p => p.id === selectedProcess.id ? { ...p, ...data } : p));
             setSelectedProcess({ ...selectedProcess, ...data });
@@ -203,8 +202,7 @@ export const Continuity: React.FC = () => {
             await deleteDoc(doc(db, 'business_processes', id));
             setProcesses(prev => prev.filter(p => p.id !== id));
             setSelectedProcess(null);
-            await logAction(user, 'DELETE', 'BCP', `Suppression: ${name}`);
-            await logAction(user, 'DELETE', 'BCP', `Suppression: ${name}`);
+            await logAction(user, 'DELETE', 'BCP', `Suppression: ${name} `);
             addToast("Processus supprimé", "info");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleDeleteProcess', 'DELETE_FAILED'); }
     };
@@ -227,7 +225,7 @@ export const Continuity: React.FC = () => {
             if (data.processId) {
                 await updateDoc(doc(db, 'business_processes', data.processId), { lastTestDate: data.date });
             }
-            await logAction(user, 'CREATE', 'BCP', `Nouvel exercice de crise`);
+            await logAction(user, 'CREATE', 'BCP', 'Nouvel exercice de crise');
             addToast("Exercice enregistré", "success");
             setShowDrillModal(false);
             fetchData();
@@ -481,7 +479,7 @@ export const Continuity: React.FC = () => {
                             ].map(tab => (
                                 <button
                                     key={tab.id}
-                                    onClick={() => setInspectorTab(tab.id as any)}
+                                    onClick={() => setInspectorTab(tab.id as typeof inspectorTab)}
                                     className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                 >
                                     <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
@@ -622,18 +620,18 @@ export const Continuity: React.FC = () => {
                                                         <input
                                                             placeholder="Action à effectuer"
                                                             className="w-full px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm font-medium"
-                                                            {...editProcessForm.register(`recoveryTasks.${index}.title` as any)}
+                                                            {...editProcessForm.register(`recoveryTasks.${index}.title`)}
                                                         />
                                                         <div className="flex gap-3">
                                                             <input
                                                                 placeholder="Responsable"
                                                                 className="flex-1 px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-xs"
-                                                                {...editProcessForm.register(`recoveryTasks.${index}.owner` as any)}
+                                                                {...editProcessForm.register(`recoveryTasks.${index}.owner`)}
                                                             />
                                                             <input
                                                                 placeholder="Durée (ex: 30m)"
                                                                 className="w-24 px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-xs"
-                                                                {...editProcessForm.register(`recoveryTasks.${index}.duration` as any)}
+                                                                {...editProcessForm.register(`recoveryTasks.${index}.duration`)}
                                                             />
                                                         </div>
                                                     </div>

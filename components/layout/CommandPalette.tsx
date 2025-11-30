@@ -12,7 +12,7 @@ interface CommandItem {
     id: string;
     title: string;
     subtitle?: string;
-    icon: any;
+    icon: React.ElementType;
     path?: string;
     action?: () => void;
     category: string;
@@ -163,7 +163,7 @@ export const CommandPalette: React.FC = () => {
                     }));
 
                     setDbItems(items);
-                } catch (_error) {
+                } catch (error) {
                     ErrorLogger.error(error, 'CommandPalette.fetchSearchableItems');
                 } finally {
                     setLoading(false);

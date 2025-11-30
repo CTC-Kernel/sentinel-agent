@@ -31,6 +31,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
     initialData
 }) => {
     const { register, handleSubmit, reset, control } = useForm<AuditFormData>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(auditSchema) as any,
         defaultValues: {
             name: '',
