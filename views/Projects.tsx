@@ -9,6 +9,7 @@ import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, X, History, MessageSquare, LayoutDashboard, Download, Copy, Zap } from '../components/ui/Icons';
+import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
 // import { Modal } from '../components/ui/Modal'; // Removed Modal
@@ -471,14 +472,7 @@ export const Projects: React.FC = () => {
     const getRiskById = (id: string) => risks.find(r => r.id === id);
     const getControlById = (id: string) => controls.find(c => c.id === id);
 
-    const getStatusColor = (s: string) => {
-        switch (s) {
-            case 'En cours': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-            case 'Terminé': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-            case 'Suspendu': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-            default: return 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-gray-400';
-        }
-    };
+
 
     const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
 
@@ -635,9 +629,12 @@ export const Projects: React.FC = () => {
                     filteredProjects.map(project => (
                         <div key={project.id} onClick={() => openInspector(project)} className="glass-panel rounded-[2.5rem] p-6 card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5">
                             <div className="flex justify-between items-start mb-4">
-                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border shadow-sm ${getStatusColor(project.status)}`}>
+                                <Badge
+                                    status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'}
+                                    variant="soft"
+                                >
                                     {project.status}
-                                </span>
+                                </Badge>
                                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     {canEdit && (
                                         <>
@@ -691,7 +688,12 @@ export const Projects: React.FC = () => {
                                 <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
-                                            <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase border shadow-sm ${getStatusColor(selectedProject.status)}`}>{selectedProject.status}</span>
+                                            <Badge
+                                                status={selectedProject.status === 'En cours' ? 'info' : selectedProject.status === 'Terminé' ? 'success' : selectedProject.status === 'Suspendu' ? 'error' : 'neutral'}
+                                                variant="soft"
+                                            >
+                                                {selectedProject.status}
+                                            </Badge>
                                             <span className="text-xs font-bold text-slate-500">Échéance: {new Date(selectedProject.dueDate).toLocaleDateString()}</span>
                                         </div>
                                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedProject.name}</h2>
@@ -798,7 +800,6 @@ export const Projects: React.FC = () => {
                                                                 const risk = getRiskById(riskId);
                                                                 if (!risk) return null;
                                                                 const level = risk.score >= 15 ? 'Critique' : risk.score >= 10 ? 'Élevé' : risk.score >= 5 ? 'Moyen' : 'Faible';
-                                                                const badgeColor = risk.score >= 15 ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' : risk.score >= 10 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' : risk.score >= 5 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
                                                                 return (
                                                                     <div key={riskId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
                                                                         <div>
@@ -806,7 +807,13 @@ export const Projects: React.FC = () => {
                                                                             <p className="text-xs text-slate-500 dark:text-slate-400">{risk.vulnerability}</p>
                                                                         </div>
                                                                         <div className="flex items-center gap-2">
-                                                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg ${badgeColor}`}>{level}</span>
+                                                                            <Badge
+                                                                                status={risk.score >= 15 ? 'error' : risk.score >= 10 ? 'warning' : risk.score >= 5 ? 'info' : 'success'}
+                                                                                variant="soft"
+                                                                                size="sm"
+                                                                            >
+                                                                                {level}
+                                                                            </Badge>
                                                                             <span className="text-xs text-slate-400 dark:text-slate-500">Score {risk.score}</span>
                                                                         </div>
                                                                     </div>
@@ -835,7 +842,7 @@ export const Projects: React.FC = () => {
                                                                             <p className="text-sm font-semibold text-slate-900 dark:text-white">{control.code} — {control.name}</p>
                                                                             {control.description && <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{control.description}</p>}
                                                                         </div>
-                                                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{control.status}</span>
+                                                                        <Badge status="neutral" variant="outline" size="sm">{control.status}</Badge>
                                                                     </div>
                                                                 );
                                                             })}
@@ -861,7 +868,13 @@ export const Projects: React.FC = () => {
                                                                     <p className="text-sm font-semibold text-slate-900 dark:text-white">{audit.name}</p>
                                                                     <p className="text-xs text-slate-500 dark:text-slate-400">{audit.type} • {new Date(audit.dateScheduled).toLocaleDateString()}</p>
                                                                 </div>
-                                                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg ${audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>{audit.status}</span>
+                                                                <Badge
+                                                                    status={audit.status === 'Terminé' ? 'success' : 'info'}
+                                                                    variant="soft"
+                                                                    size="sm"
+                                                                >
+                                                                    {audit.status}
+                                                                </Badge>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -885,7 +898,13 @@ export const Projects: React.FC = () => {
                                                                     <p className="text-sm font-semibold text-slate-900 dark:text-white">{supplier.name}</p>
                                                                     <p className="text-xs text-slate-500 dark:text-slate-400">{supplier.category}</p>
                                                                 </div>
-                                                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg ${supplier.criticality === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>{supplier.criticality}</span>
+                                                                <Badge
+                                                                    status={supplier.criticality === 'Critique' ? 'error' : 'neutral'}
+                                                                    variant="soft"
+                                                                    size="sm"
+                                                                >
+                                                                    {supplier.criticality}
+                                                                </Badge>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -1054,7 +1073,8 @@ export const Projects: React.FC = () => {
                     </div>
                 </div>,
                 document.body
-            )}
+            )
+            }
 
             {/* Create/Edit Drawer */}
             <Drawer
@@ -1074,6 +1094,6 @@ export const Projects: React.FC = () => {
                     availableAssets={assets}
                 />
             </Drawer>
-        </div>
+        </div >
     );
 };
