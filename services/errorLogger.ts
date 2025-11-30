@@ -12,7 +12,7 @@ interface ErrorContext {
   action?: string;
   userId?: string;
   organizationId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 class ErrorLoggerService {
@@ -93,7 +93,7 @@ class ErrorLoggerService {
   /**
    * Log une action utilisateur importante
    */
-  logUserAction(action: string, details?: Record<string, any>): void {
+  logUserAction(action: string, details?: Record<string, unknown>): void {
     if (this.isDevelopment) {
       console.log(`👤 USER ACTION [${action}]:`, details);
     }
@@ -172,7 +172,7 @@ class ErrorLoggerService {
   /**
    * Envoyer vers système externe (Firebase Analytics, Mixpanel, etc.)
    */
-  private logToExternal(type: string, data: any): void {
+  private logToExternal(type: string, data: Record<string, unknown>): void {
     // Envoi vers Firebase Analytics
     if (typeof window !== 'undefined') {
       try {

@@ -93,7 +93,7 @@ export const aiService = {
                     suggestions: parsed.suggestions.map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
                     insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
                 };
-            } catch (modelError: any) {
+            } catch (modelError: unknown) {
                 ErrorLogger.warn("Primary model failed, trying fallbacks...", 'aiService.analyzeGraph', { metadata: { error: modelError } });
 
                 const fallbackModels = ['gemini-1.5-flash-001', 'gemini-1.5-flash', 'gemini-pro'];
@@ -117,7 +117,7 @@ export const aiService = {
                 }
                 throw modelError;
             }
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'aiService.analyzeGraph');
             throw new Error("Failed to analyze graph with Gemini.");
         }
@@ -150,7 +150,7 @@ export const aiService = {
             const text = await generateContentSafe(prompt);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'aiService.analyzeImportData');
             return { mappings: {}, confidence: 0 };
         }
@@ -172,7 +172,7 @@ export const aiService = {
             const text = await generateContentSafe(prompt);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'aiService.suggestField', { metadata: { fieldName } });
             return { value: '', reasoning: 'Error generating suggestion' };
         }
@@ -190,7 +190,7 @@ export const aiService = {
 
         try {
             return await runChatSafe(systemPrompt, message);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'aiService.chatWithAI');
             return "Désolé, une erreur est survenue lors de la communication avec l'IA.";
         }
@@ -220,7 +220,7 @@ export const aiService = {
             `;
 
             return await generateContentSafe(prompt);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'aiService.generatePolicy', { metadata: { type, topic } });
             throw new Error("Échec de la génération de politique.");
         }
@@ -259,7 +259,7 @@ export const aiService = {
             const text = await generateContentSafe(prompt);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'aiService.generateAuditChecklist');
             // Fallback to generic
             return controls.map(c => ({ controlCode: c.code, questions: [`Le contrôle ${c.code} est-il implémenté ?`] }));
@@ -273,7 +273,7 @@ export const aiService = {
         if (!API_KEY) return "";
         try {
             return await generateContentSafe(prompt);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'aiService.generateText');
             return "";
         }
@@ -287,8 +287,9 @@ async function generateContentSafe(prompt: string): Promise<string> {
         const model = genAI.getGenerativeModel({ model: MODEL_NAME });
         const result = await model.generateContent(prompt);
         return (await result.response).text();
-    } catch (error: any) {
-        if (error.message?.includes('404') || error.message?.includes('not found')) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
             ErrorLogger.warn(`Model ${MODEL_NAME} not found, trying fallbacks...`, 'aiService.generateContentSafe');
 
             const fallbackModels = ['gemini-1.5-flash-001', 'gemini-1.5-flash', 'gemini-pro'];
@@ -323,8 +324,9 @@ async function runChatSafe(systemPrompt: string, message: string): Promise<strin
 
     try {
         return await runChat(MODEL_NAME);
-    } catch (error: any) {
-        if (error.message?.includes('404') || error.message?.includes('not found')) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
             console.warn(`Model ${MODEL_NAME} not found for chat, falling back to gemini-1.5-flash`);
             return await runChat('gemini-1.5-flash');
         }
