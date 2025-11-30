@@ -5,7 +5,7 @@ import { businessProcessSchema, BusinessProcessFormData, bcpDrillSchema, BcpDril
 import { canEditResource } from '../utils/permissions';
 
 import { Drawer } from '../components/ui/Drawer';
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, QuerySnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
 import { BusinessProcess, Asset, BcpDrill, SystemLog, UserProfile, Risk, Supplier } from '../types';
 import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, History, MessageSquare, Save, LayoutDashboard, FileSpreadsheet, ShieldAlert, Truck } from '../components/ui/Icons';
@@ -93,7 +93,7 @@ export const Continuity: React.FC = () => {
             const getDocsData = <T,>(result: PromiseSettledResult<unknown>): T[] => {
                 if (result.status === 'fulfilled') {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    return (result.value as any).docs.map((d: any) => ({ id: d.id, ...d.data() })) as T[];
+                    return (result.value as QuerySnapshot<DocumentData>).docs.map((d) => ({ id: d.id, ...d.data() })) as T[];
                 }
                 console.warn("Failed to load some data in Continuity view");
                 return [];

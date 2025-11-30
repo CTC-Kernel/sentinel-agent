@@ -58,11 +58,12 @@ export const Login: React.FC = () => {
                 await createUserWithEmailAndPassword(auth, data.email, data.password);
                 addToast("Compte créé avec succès", "success");
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             let msg = "Erreur d'authentification.";
-            if (error.code === 'auth/invalid-credential') msg = "Identifiants incorrects.";
-            if (error.code === 'auth/email-already-in-use') msg = "Cet email est déjà utilisé.";
-            if (error.code === 'auth/weak-password') msg = "Le mot de passe est trop faible.";
+            const code = (error as { code?: string })?.code;
+            if (code === 'auth/invalid-credential') msg = "Identifiants incorrects.";
+            if (code === 'auth/email-already-in-use') msg = "Cet email est déjà utilisé.";
+            if (code === 'auth/weak-password') msg = "Le mot de passe est trop faible.";
             setErrorMsg(msg);
         } finally { setLoading(false); }
     };
@@ -73,8 +74,9 @@ export const Login: React.FC = () => {
         try {
             const provider = new GoogleAuthProvider();
             await signInWithPopup(auth, provider);
-        } catch (error: any) {
-            if (error.code === 'auth/unauthorized-domain' || error.code === 'auth/operation-not-allowed') {
+        } catch (error: unknown) {
+            const code = (error as { code?: string })?.code;
+            if (code === 'auth/unauthorized-domain' || code === 'auth/operation-not-allowed') {
                 setErrorMsg("Environnement restreint : Google Auth non disponible ici. Utilisez l'email.");
             } else {
                 setErrorMsg("Erreur Google Auth.");
@@ -87,7 +89,7 @@ export const Login: React.FC = () => {
         try {
             await sendPasswordResetEmail(auth, data.email);
             setResetSent(true);
-        } catch (error: any) {
+        } catch (error) {
             addToast("Erreur envoi email de réinitialisation", "error");
         } finally {
             setLoading(false);
