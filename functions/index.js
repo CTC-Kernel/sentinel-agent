@@ -500,7 +500,7 @@ exports.processMailQueue = onDocumentCreated({
  */
 async function attemptSendEmail(docRef, data) {
     try {
-        sgMail.setApiKey(sendGridApiKey.value());
+        sgMail.setApiKey(sendGridApiKey.value().trim());
         logger.info(`Processing email for ${data.to} via SendGrid`);
 
         const msg = {
