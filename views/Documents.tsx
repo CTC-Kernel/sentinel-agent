@@ -199,7 +199,7 @@ export const Documents: React.FC = () => {
             await logAction(user, 'WORKFLOW', 'Document', `${logMsg}: ${selectedDocument.title}`);
             setSelectedDocument({ ...selectedDocument, ...updates });
             addToast(logMsg, "success");
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.error(error, 'Documents.handleWorkflowAction');
             addToast("Erreur workflow", "error");
         }
@@ -231,7 +231,7 @@ export const Documents: React.FC = () => {
                 owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
                 relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
             });
-        } catch (e) {
+        } catch (_e) {
             ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
             addToast("Erreur lors de la création", "error");
         }
@@ -251,7 +251,7 @@ export const Documents: React.FC = () => {
             setSelectedDocument({ ...selectedDocument, ...data, updatedAt: new Date().toISOString() });
             setIsEditing(false);
             addToast("Document mis à jour", "success");
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.error(error, 'Documents.handleUpdate');
             addToast("Erreur lors de la modification", "error");
         }
@@ -302,7 +302,7 @@ export const Documents: React.FC = () => {
                 message: "Cette action est définitive.",
                 onConfirm: () => handleDelete(id, title)
             });
-        } catch (e) {
+        } catch (_e) {
             ErrorLogger.handleErrorWithToast(e, 'Documents.initiateDelete');
             addToast("Erreur lors de la vérification des dépendances", "error");
         }
@@ -314,7 +314,7 @@ export const Documents: React.FC = () => {
             setSelectedDocument(null);
             await logAction(user, 'DELETE', 'Document', `Suppression: ${title}`);
             addToast("Document supprimé", "info");
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.error(error, 'Documents.handleDelete');
             addToast("Erreur lors de la suppression", "error");
         }
@@ -333,7 +333,7 @@ export const Documents: React.FC = () => {
                 html
             });
             addToast("Rappel envoyé au propriétaire", "success");
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.error(error, 'Documents.sendReminder');
             addToast("Erreur envoi rappel", "error");
         }

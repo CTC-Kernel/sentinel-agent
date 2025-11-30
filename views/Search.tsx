@@ -155,7 +155,7 @@ export const Search: React.FC = () => {
             }
 
             setResults(searchResults);
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Search.performSearch', 'FETCH_FAILED');
         } finally {
             setLoading(false);

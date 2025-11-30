@@ -60,7 +60,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
             addToast('Votre message a été envoyé avec succès.', 'success');
             onClose();
             setFormData(prev => ({ ...prev, message: '', subject: '' }));
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.error(error, 'ContactModal.handleSubmit');
             addToast("Erreur lors de l'envoi du message.", 'error');
         } finally {

@@ -112,7 +112,7 @@ const AppLayout: React.FC = () => {
                 if (hasPermission(user, 'Settings', 'manage')) {
                     await BackupService.checkScheduledBackups(user);
                 }
-            } catch (e) {
+            } catch (_e) {
                 ErrorLogger.error(e, 'Automation checks failed');
             }
         };

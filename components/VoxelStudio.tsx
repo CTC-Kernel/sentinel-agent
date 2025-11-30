@@ -953,12 +953,12 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   };
 
 
-  const safeAssets = assets ?? [];
-  const safeRisks = risks ?? [];
-  const safeProjects = projects ?? [];
-  const safeAudits = audits ?? [];
-  const safeIncidents = incidents ?? [];
-  const safeSuppliers = suppliers ?? [];
+  const safeAssets = useMemo(() => assets ?? [], [assets]);
+  const safeRisks = useMemo(() => risks ?? [], [risks]);
+  const safeProjects = useMemo(() => projects ?? [], [projects]);
+  const safeAudits = useMemo(() => audits ?? [], [audits]);
+  const safeIncidents = useMemo(() => incidents ?? [], [incidents]);
+  const safeSuppliers = useMemo(() => suppliers ?? [], [suppliers]);
 
   // Convert data to voxel nodes
   const baseNodes = useMemo(() => {
@@ -1204,11 +1204,14 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     }
     const node = voxelNodes.find(n => n.id === focusNodeId);
     if (node) {
-      setTimeout(() => setSelectedNode(node), 0);
-      focusOnCardRef.current = true;
-      shouldSnapToTarget.current = true;
+      // Only update if the node is different to avoid infinite loops
+      if (selectedNode?.id !== node.id) {
+        setTimeout(() => setSelectedNode(node), 0);
+        focusOnCardRef.current = true;
+        shouldSnapToTarget.current = true;
+      }
     }
-  }, [focusNodeId, voxelNodes]);
+  }, [focusNodeId, voxelNodes, selectedNode]);
 
   useEffect(() => {
     if (selectionUpdateFromOutside.current) {
