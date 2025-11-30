@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
@@ -32,19 +32,9 @@ export const Search: React.FC = () => {
     const { user } = useStore();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            if (queryText.length > 1 || advancedFilters.status || advancedFilters.owner || advancedFilters.dateFrom) {
-                performSearch();
-            } else {
-                setResults([]);
-            }
-        }, 500);
 
-        return () => clearTimeout(delayDebounceFn);
-    }, [queryText, activeFilter, advancedFilters]);
 
-    const performSearch = async () => {
+    const performSearch = useCallback(async () => {
         if (!user?.organizationId) return;
         setLoading(true);
 
@@ -155,12 +145,24 @@ export const Search: React.FC = () => {
             }
 
             setResults(searchResults);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Search.performSearch', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
-    };
+    }, [user?.organizationId, advancedFilters, queryText, activeFilter]);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (queryText.length > 1 || advancedFilters.status || advancedFilters.owner || advancedFilters.dateFrom) {
+                performSearch();
+            } else {
+                setResults([]);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [queryText, activeFilter, advancedFilters, performSearch]);
 
     const getIcon = (type: string) => {
         switch (type) {

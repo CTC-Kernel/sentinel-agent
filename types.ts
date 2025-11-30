@@ -27,6 +27,7 @@ export interface Asset {
   relatedProjectIds?: string[];
   scope?: ('NIS2' | 'DORA' | 'PCI_DSS' | 'HDS' | 'ISO27001' | 'SOC2')[];
   supplierId?: string;
+  updatedAt?: string;
 }
 
 export interface MaintenanceRecord {
@@ -63,6 +64,7 @@ export interface Risk {
   history?: RiskHistory[];
   treatment?: RiskTreatment;
   isSecureStorage?: boolean;
+  updatedAt?: string;
 }
 
 export interface RiskTreatment {
@@ -133,6 +135,7 @@ export interface Audit {
   collaborators?: string[]; // User IDs of internal collaborators
   externalAuditors?: string[]; // Emails of external auditors
   createdBy?: string; // User ID of the creator (for Segregation of Duties)
+  updatedAt?: string;
 }
 
 export interface EvidenceRequest {
@@ -247,7 +250,9 @@ export interface Project {
   relatedRiskIds?: string[];
   relatedControlIds?: string[];
   relatedAssetIds?: string[];
+  milestones?: ProjectMilestone[];
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Incident {
@@ -273,6 +278,10 @@ export interface Incident {
   isSignificant?: boolean;
   notificationStatus?: 'Not Required' | 'Pending' | 'Reported';
   relevantAuthorities?: string[];
+  responseOwner?: string;
+  detectedAt?: string;
+  impact?: string;
+  updatedAt?: string;
 }
 
 export interface Supplier {
@@ -323,6 +332,8 @@ export interface Supplier {
     complianceReview: string;
     contractEnd?: string;
   };
+  serviceCatalog?: string[];
+  sla?: string;
 }
 
 export interface SupplierAssessment {

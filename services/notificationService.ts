@@ -1,6 +1,6 @@
 import { db } from '../firebase';
 import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, getDoc } from 'firebase/firestore';
-import { UserProfile } from '../types';
+import { UserProfile, Audit, Document as GRCDocument, Asset, Risk, ProjectTask, Incident, Control, Supplier } from '../types';
 import { sendEmail } from './emailService';
 import {
     getTaskAssignmentTemplate,
@@ -160,7 +160,7 @@ export class NotificationService {
         );
 
         const snap = await getDocs(q);
-        const audits = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as any));
+        const audits = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Audit));
 
         for (const audit of audits) {
             const auditDate = new Date(audit.dateScheduled);
@@ -229,7 +229,7 @@ export class NotificationService {
         );
 
         const snap = await getDocs(q);
-        const documents = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as any));
+        const documents = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as GRCDocument));
 
         for (const doc of documents) {
             if (doc.nextReviewDate && new Date(doc.nextReviewDate) < new Date()) {
@@ -297,7 +297,7 @@ export class NotificationService {
         );
 
         const snap = await getDocs(q);
-        const assets = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as any));
+        const assets = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Asset));
 
         for (const asset of assets) {
             if (asset.nextMaintenance) {
@@ -367,7 +367,7 @@ export class NotificationService {
         );
 
         const snap = await getDocs(q);
-        const risks = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as any));
+        const risks = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Risk));
 
         const criticalRisksWithoutMitigation = risks.filter(
             (risk) => risk.score >= 15 && (!risk.mitigationControlIds || risk.mitigationControlIds.length === 0)
@@ -425,7 +425,7 @@ export class NotificationService {
     /**
      * Notify user about a new task assignment
      */
-    static async notifyTaskAssigned(task: any, assigneeId: string): Promise<void> {
+    static async notifyTaskAssigned(task: ProjectTask & { organizationId: string; projectName?: string }, assigneeId: string): Promise<void> {
         // 1. Fetch User Profile to get email
         let userData: UserProfile | undefined;
         try {
@@ -458,7 +458,7 @@ export class NotificationService {
     /**
      * Notify admins about a new incident
      */
-    static async notifyNewIncident(incident: any): Promise<void> {
+    static async notifyNewIncident(incident: Incident): Promise<void> {
         // 1. Notify all users (Push + In-App)
         await this.createForOrganization(
             incident.organizationId,
@@ -498,7 +498,7 @@ export class NotificationService {
     /**
      * Notify user about a control assignment
      */
-    static async notifyControlAssigned(control: any, assigneeId: string): Promise<void> {
+    static async notifyControlAssigned(control: Control, assigneeId: string): Promise<void> {
         // 1. Fetch User
         let userData: UserProfile | undefined;
         try {
@@ -562,7 +562,7 @@ export class NotificationService {
         );
 
         const snap = await getDocs(q);
-        const suppliers = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as any));
+        const suppliers = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Supplier));
 
         for (const supplier of suppliers) {
             if (supplier.contractEnd) {
