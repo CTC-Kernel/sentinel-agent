@@ -173,14 +173,14 @@ export const Suppliers: React.FC = () => {
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;
-        if (!state.fromVoxel || !state.voxelSelectedId) return;
+
         if (loadingSuppliers || loadingProcesses || suppliers.length === 0) return;
         const supplier = suppliers.find(s => s.id === state.voxelSelectedId);
         if (supplier) {
             setSelectedSupplier(supplier);
             setInspectorTab('profile');
         }
-    }, [location.state, loadingSuppliers, suppliers]);
+    }, [location.state, loadingSuppliers, loadingProcesses, suppliers]);
 
     // ... (Rest of the file logic unchanged)
 
@@ -236,7 +236,7 @@ export const Suppliers: React.FC = () => {
             await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${data.name}`);
             addToast("Fournisseur ajouté", "success");
             setCreationMode(false);
-        } catch (_e) { addToast("Erreur enregistrement", "error"); }
+        } catch { addToast("Erreur enregistrement", "error"); }
     };
 
     const handleUpdate: SubmitHandler<SupplierFormData> = async (data) => {
@@ -249,8 +249,9 @@ export const Suppliers: React.FC = () => {
             await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${data.name}`);
             setSelectedSupplier({ ...selectedSupplier, ...data, criticality: data.criticality as Criticality });
             setIsEditing(false);
+            setIsEditing(false);
             addToast("Fournisseur mis à jour", "success");
-        } catch (_e) { addToast("Erreur mise à jour", "error"); }
+        } catch { addToast("Erreur mise à jour", "error"); }
     };
 
     const initiateDelete = (id: string, name: string) => {
@@ -282,7 +283,7 @@ export const Suppliers: React.FC = () => {
 
             addToast('Fournisseur et données associées supprimés', 'success');
             if (selectedSupplier?.id === id) setSelectedSupplier(null);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleDelete');
             addToast('Erreur lors de la suppression', 'error');
         }
@@ -389,7 +390,7 @@ export const Suppliers: React.FC = () => {
                 await batch.commit();
                 await logAction(user, 'IMPORT', 'Supplier', `Import CSV de ${count} fournisseurs`);
                 addToast(`${count} fournisseurs importés`, "success");
-            } catch (_error) { addToast("Erreur import CSV", "error"); } finally { if (fileInputRef.current) fileInputRef.current.value = ''; }
+            } catch { addToast("Erreur import CSV", "error"); } finally { if (fileInputRef.current) fileInputRef.current.value = ''; }
         };
         reader.readAsText(file);
     };

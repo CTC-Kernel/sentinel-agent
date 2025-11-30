@@ -17,12 +17,13 @@ type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier
 
 
 
-const formatSafeDate = (date: any): string => {
+const formatSafeDate = (date: unknown): string => {
   if (!date) return '—';
   try {
     // Handle Firestore Timestamp
-    if (date && typeof date === 'object' && 'seconds' in date) {
-      return new Date(date.seconds * 1000).toLocaleDateString('fr-FR');
+    if (typeof date === 'object' && date !== null && 'seconds' in date) {
+      const ts = date as { seconds: number };
+      return new Date(ts.seconds * 1000).toLocaleDateString('fr-FR');
     }
     // Handle Date object
     if (date instanceof Date) {
@@ -34,12 +35,12 @@ const formatSafeDate = (date: any): string => {
       return isNaN(d.getTime()) ? date : d.toLocaleDateString('fr-FR');
     }
     return String(date);
-  } catch (_e) {
+  } catch {
     return '—';
   }
 };
 
-const safeRender = (value: any): string => {
+const safeRender = (value: unknown): string => {
   if (value === null || value === undefined) return '—';
   if (typeof value === 'object') {
     if ('seconds' in value) return formatSafeDate(value);
@@ -73,6 +74,15 @@ const convertTimestamps = (obj: unknown): unknown => {
   }
   return converted;
 };
+
+const layerOptions: { id: LayerType; label: string; hint: string; color: string }[] = [
+  { id: 'asset', label: 'Actifs', hint: 'Socle infrastructure', color: 'bg-blue-500' },
+  { id: 'risk', label: 'Risques', hint: 'Menaces ISO 27005', color: 'bg-orange-500' },
+  { id: 'project', label: 'Projets', hint: 'Programmes SSI', color: 'bg-purple-500' },
+  { id: 'audit', label: 'Audits', hint: 'Contrôles et revues', color: 'bg-cyan-500' },
+  { id: 'incident', label: 'Incidents', hint: 'Alertes SOC', color: 'bg-red-500' },
+  { id: 'supplier', label: 'Fournisseurs', hint: 'Partenaires critiques', color: 'bg-green-500' }
+];
 
 export const VoxelView: React.FC = () => {
   const { user, addToast } = useStore();
@@ -135,14 +145,8 @@ export const VoxelView: React.FC = () => {
     supplier: '/suppliers'
   };
 
-  const layerOptions: { id: LayerType; label: string; hint: string; color: string }[] = [
-    { id: 'asset', label: 'Actifs', hint: 'Socle infrastructure', color: 'bg-blue-500' },
-    { id: 'risk', label: 'Risques', hint: 'Menaces ISO 27005', color: 'bg-orange-500' },
-    { id: 'project', label: 'Projets', hint: 'Programmes SSI', color: 'bg-purple-500' },
-    { id: 'audit', label: 'Audits', hint: 'Contrôles et revues', color: 'bg-cyan-500' },
-    { id: 'incident', label: 'Incidents', hint: 'Alertes SOC', color: 'bg-red-500' },
-    { id: 'supplier', label: 'Fournisseurs', hint: 'Partenaires critiques', color: 'bg-green-500' }
-  ];
+
+
   const [activeLayers, setActiveLayers] = useState<LayerType[]>(() => {
     const saved = localStorage.getItem('voxel_activeLayers');
     return saved !== null ? JSON.parse(saved) : layerOptions.map(l => l.id);
@@ -211,8 +215,14 @@ export const VoxelView: React.FC = () => {
 
 
   const orderedNodes = useMemo(() => {
-    const mapNode = (collection: any[], type: LayerType) =>
-      collection.map(item => ({ id: item.id, type, label: item.name || item.title || item.threat || 'Élément' }));
+    const getDataLabel = (item: DataNode['data']): string => {
+      if ('name' in item) return item.name;
+      if ('title' in item) return item.title;
+      if ('threat' in item) return item.threat;
+      return 'Élément';
+    };
+    const mapNode = (collection: DataNode['data'][], type: LayerType) =>
+      collection.map(item => ({ id: item.id, type, label: getDataLabel(item) }));
     return [
       ...mapNode(assets, 'asset'),
       ...mapNode(risks, 'risk'),
@@ -230,7 +240,7 @@ export const VoxelView: React.FC = () => {
   };
 
   const findEntityByType = (type: LayerType, id: string) => {
-    const sourceMap: Record<LayerType, any[]> = {
+    const sourceMap: Record<LayerType, DataNode['data'][]> = {
       asset: assets,
       risk: risks,
       project: projects,
@@ -246,7 +256,7 @@ export const VoxelView: React.FC = () => {
     setFocusedNodeId(nodeId);
     const entity = findEntityByType(type, nodeId);
     if (entity) {
-      setSelectedNode({ id: nodeId, type, data: entity });
+      setSelectedNode({ id: nodeId, type, data: entity } as DataNode);
     }
   };
 
@@ -282,7 +292,7 @@ export const VoxelView: React.FC = () => {
   };
 
   const categorizedNodes = useMemo(() => {
-    const sourceMap: Record<LayerType, any[]> = {
+    const sourceMap: Record<LayerType, DataNode['data'][]> = {
       asset: assets,
       risk: risks,
       project: projects,
@@ -293,20 +303,27 @@ export const VoxelView: React.FC = () => {
 
     return layerOptions.map(option => ({
       ...option,
-      items: sourceMap[option.id].map(item => ({
-        id: item.id,
-        label: safeRender(item.name || item.title || item.threat || 'Élément'),
-        meta:
-          option.id === 'risk'
-            ? `Score ${(item as Risk).score}`
-            : option.id === 'project'
-              ? `${(item as Project).progress || 0}%`
-              : option.id === 'incident'
-                ? safeRender((item as Incident).severity)
-                : safeRender((item as any).owner || (item as any).status || ''),
-      })).filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase())),
+      items: sourceMap[option.id].map(item => {
+        let label = 'Élément';
+        if ('name' in item) label = item.name;
+        else if ('title' in item) label = item.title;
+        else if ('threat' in item) label = item.threat;
+
+        let meta = '';
+        if (option.id === 'risk') meta = `Score ${(item as Risk).score}`;
+        else if (option.id === 'project') meta = `${(item as Project).progress || 0}%`;
+        else if (option.id === 'incident') meta = safeRender((item as Incident).severity);
+        else if ('owner' in item) meta = safeRender(item.owner);
+        else if ('status' in item) meta = safeRender(item.status);
+
+        return {
+          id: item.id,
+          label: safeRender(label),
+          meta,
+        };
+      }).filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase())),
     }));
-  }, [layerOptions, assets, risks, projects, audits, incidents, suppliers]);
+  }, [assets, risks, projects, audits, incidents, suppliers, searchQuery]);
 
   const selectedNodeDetails = useMemo(() => {
     if (!selectedNode) return null;
@@ -316,7 +333,7 @@ export const VoxelView: React.FC = () => {
       switch (node.type) {
         case 'project': return node.data.manager;
         case 'audit': return node.data.auditor;
-        case 'incident': return (node.data as any).responseOwner || node.data.reporter;
+        case 'incident': return (node.data as Incident).responseOwner || (node.data as Incident).reporter;
         case 'supplier': return node.data.owner || '';
         case 'risk': return node.data.owner;
         case 'asset': return node.data.owner;
@@ -381,10 +398,10 @@ export const VoxelView: React.FC = () => {
           stats: [
             { label: 'Progression', value: `${(selectedNode.data as Project).progress ?? 0}%` },
             { label: 'Responsable', value: (selectedNode.data as Project).manager || '—' },
-            { label: 'Statut', value: (selectedNode.data as any).status || '—' },
+            { label: 'Statut', value: (selectedNode.data as Project).status || '—' },
           ],
           meta: [
-            { label: 'Jalons', value: String((selectedNode.data as any).milestones?.length || 0) },
+            { label: 'Jalons', value: String((selectedNode.data as Project).milestones?.length || 0) },
             { label: 'Risques liés', value: String(((selectedNode.data as Project).relatedRiskIds || []).length) },
           ],
         };
@@ -410,12 +427,12 @@ export const VoxelView: React.FC = () => {
           gradient: 'from-rose-500/90 via-orange-500/80 to-amber-500/70',
           stats: [
             { label: 'Sévérité', value: (selectedNode.data as Incident).severity },
-            { label: 'Impact', value: (selectedNode.data as any).impact || '—' },
-            { label: 'État', value: (selectedNode.data as any).status || '—' },
+            { label: 'Impact', value: (selectedNode.data as Incident).impact || '—' },
+            { label: 'État', value: (selectedNode.data as Incident).status || '—' },
           ],
           meta: [
-            { label: 'Détection', value: formatSafeDate((selectedNode.data as any).detectedAt) },
-            { label: 'Réponse', value: (selectedNode.data as any).responseOwner || 'Non assigné' },
+            { label: 'Détection', value: formatSafeDate((selectedNode.data as Incident).detectedAt) },
+            { label: 'Réponse', value: (selectedNode.data as Incident).responseOwner || 'Non assigné' },
           ],
         };
       case 'supplier':
@@ -425,12 +442,12 @@ export const VoxelView: React.FC = () => {
           gradient: 'from-emerald-500/90 via-lime-500/80 to-yellow-500/70',
           stats: [
             { label: 'Criticité', value: (selectedNode.data as Supplier).criticality },
-            { label: 'Services', value: (selectedNode.data as any).serviceCatalog?.length ? `${(selectedNode.data as any).serviceCatalog.length} services` : '—' },
-            { label: 'SLA', value: (selectedNode.data as any).sla || 'Non défini' },
+            { label: 'Services', value: (selectedNode.data as Supplier).serviceCatalog?.length ? `${(selectedNode.data as Supplier).serviceCatalog!.length} services` : '—' },
+            { label: 'SLA', value: (selectedNode.data as Supplier).sla || 'Non défini' },
           ],
           meta: [
-            { label: 'Contact', value: (selectedNode.data as any).contactName || '—' },
-            { label: 'Statut', value: (selectedNode.data as any).status || '—' },
+            { label: 'Contact', value: (selectedNode.data as Supplier).contactName || '—' },
+            { label: 'Statut', value: (selectedNode.data as Supplier).status || '—' },
           ],
         };
       default:
@@ -466,7 +483,7 @@ export const VoxelView: React.FC = () => {
     if (selectedNode.type === 'risk') {
       const asset = assets.find(a => a.id === (selectedNode.data as Risk).assetId);
       if (asset) items.push({ id: asset.id, type: 'asset', label: asset.name, meta: 'Actif lié' });
-      const linkedProjects = projects.filter(p => ((p as any).relatedRiskIds || []).includes(selectedNode.id));
+      const linkedProjects = projects.filter(p => ((p as Project).relatedRiskIds || []).includes(selectedNode.id));
       linkedProjects.forEach(project => items.push({ id: project.id, type: 'project', label: project.name, meta: 'Projet' }));
       const linkedIncidents = incidents.filter(incident => incident.affectedAssetId === (selectedNode.data as Risk).assetId);
       linkedIncidents.forEach(incident => items.push({ id: incident.id, type: 'incident', label: incident.title, meta: 'Incident impacté' }));
@@ -573,7 +590,7 @@ export const VoxelView: React.FC = () => {
         setIncidents(incidentsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Incident[]);
         setSuppliers(suppliersSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Supplier[]);
 
-      } catch (_error) {
+      } catch (error) {
         ErrorLogger.handleErrorWithToast(error, 'VoxelView.fetchData', 'FETCH_FAILED');
       } finally {
         setLoading(false);
@@ -614,7 +631,7 @@ export const VoxelView: React.FC = () => {
       setAiInsights(result.insights);
       setShowInsights(true);
       addToast("Analyse terminée avec succès", "success");
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'VoxelView.handleAIAnalysis', 'UNKNOWN_ERROR');
     } finally {
       setAnalyzing(false);
@@ -1144,7 +1161,7 @@ export const VoxelView: React.FC = () => {
                 <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
                   <p className="uppercase tracking-wide text-[10px] text-slate-400">Dernière mise à jour</p>
                   <p className="mt-1 text-sm font-semibold">
-                    {formatSafeDate((selectedNode.data as any).updatedAt || (selectedNode.data as any).createdAt)}
+                    {formatSafeDate((selectedNode.data as { updatedAt?: string }).updatedAt || (selectedNode.data as { createdAt?: string }).createdAt)}
                   </p>
                 </div>
               </div>
