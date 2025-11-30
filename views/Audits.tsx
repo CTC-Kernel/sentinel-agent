@@ -165,23 +165,15 @@ export const Audits: React.FC = () => {
             }
 
             addToast("Preuve téléversée et liée", "success");
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Audits.handleEvidenceUpload', 'FILE_UPLOAD_FAILED');
             addToast("Erreur création document preuve", "error");
         }
     };
 
-    useEffect(() => {
-        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
-        if (!state.fromVoxel || !state.voxelSelectedId) return;
-        if (loading || audits.length === 0) return;
-        const audit = audits.find(a => a.id === state.voxelSelectedId);
-        if (audit) {
-            handleOpenAudit(audit);
-        }
-    }, [location.state, loading, audits]);
 
-    const handleOpenAudit = async (audit: Audit) => {
+
+    const handleOpenAudit = React.useCallback(async (audit: Audit) => {
         setSelectedAudit(audit);
         setShowFindingsDrawer(true);
         findingForm.reset({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
@@ -194,12 +186,22 @@ export const Audits: React.FC = () => {
             const cSnap = await getDocs(cq);
             if (!cSnap.empty) setChecklist({ id: cSnap.docs[0].id, ...cSnap.docs[0].data() } as AuditChecklist);
             else setChecklist(null);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Audits.handleOpenAudit', 'FETCH_FAILED');
             setFindings([]);
             setChecklist(null);
         }
-    };
+    }, [user?.organizationId, findingForm]);
+
+    useEffect(() => {
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loading || audits.length === 0) return;
+        const audit = audits.find(a => a.id === state.voxelSelectedId);
+        if (audit) {
+            handleOpenAudit(audit);
+        }
+    }, [location.state, loading, audits, handleOpenAudit]);
 
     const openCreationDrawer = () => {
         setCreationMode(true);
@@ -222,7 +224,10 @@ export const Audits: React.FC = () => {
                 addToast("Audit mis à jour", "success");
                 setEditingAudit(null);
                 refreshAudits();
-            } catch (_e) { addToast("Erreur mise à jour audit", "error"); }
+            } catch (e) {
+                ErrorLogger.error(e, 'Audits.handleAuditFormSubmit.update');
+                addToast("Erreur mise à jour audit", "error");
+            }
         } else {
             // Create new audit
             try {
@@ -256,7 +261,8 @@ export const Audits: React.FC = () => {
                 addToast("Audit planifié et notifié", "success");
                 setCreationMode(false);
                 refreshAudits();
-            } catch (_error) {
+                refreshAudits();
+            } catch (error) {
                 ErrorLogger.handleErrorWithToast(error, 'Audits.handleAuditFormSubmit', 'CREATE_FAILED');
                 addToast("Erreur création audit", "error");
             }
@@ -283,7 +289,7 @@ export const Audits: React.FC = () => {
 
             findingForm.reset({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
             addToast("Constat ajouté", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Audits.handleAddFinding', 'CREATE_FAILED');
             addToast("Erreur ajout constat", "error");
         }
@@ -308,7 +314,7 @@ export const Audits: React.FC = () => {
             refreshAudits();
             setFindings(prev => prev.filter(f => f.id !== findingId));
             addToast("Constat supprimé", "info");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Audits.handleDeleteFinding', 'DELETE_FAILED');
             addToast("Erreur suppression", "error");
         }
@@ -342,7 +348,7 @@ export const Audits: React.FC = () => {
             }
             await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name} `);
             addToast("Audit et constats supprimés", "info");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Audits.handleDeleteAudit', 'DELETE_FAILED');
             addToast("Erreur suppression", "error");
         }
@@ -418,7 +424,7 @@ export const Audits: React.FC = () => {
             }
 
             addToast("Checklist intelligente générée", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Audits.generateChecklist', 'AI_ERROR');
         }
     };
@@ -532,7 +538,7 @@ export const Audits: React.FC = () => {
                     ['Statut', selectedAudit.status]
                 ];
 
-                (doc as any).autoTable({
+                (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
                     startY: y,
                     body: details,
                     theme: 'plain',
@@ -540,7 +546,7 @@ export const Audits: React.FC = () => {
                     columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
                 });
 
-                y = (doc as any).lastAutoTable.finalY + 15;
+                y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
 
                 // Findings
                 doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
@@ -632,7 +638,7 @@ export const Audits: React.FC = () => {
                         const response = await fetch(d.url);
                         const blob = await response.blob();
                         evidenceFolder?.file(`${d.title.replace(/[^a-z0-9]/gi, '_')}.pdf`, blob); // Assuming PDF or appending extension based on type if possible
-                    } catch (_e) {
+                    } catch (e) {
                         ErrorLogger.error(e, 'Audits.handleExportPack.fetchEvidence', { metadata: { title: d.title } });
                     }
                 }));
@@ -645,7 +651,7 @@ export const Audits: React.FC = () => {
             link.download = `Audit_Pack_${selectedAudit.name}.zip`;
             link.click();
             addToast("Pack d'audit téléchargé", "success");
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Audits.handleExportPack', 'FETCH_FAILED');
             addToast("Erreur lors de l'export du pack", "error");
         }
@@ -788,7 +794,7 @@ export const Audits: React.FC = () => {
                                                         addToast("Audit validé avec succès", "success");
                                                         refreshAudits();
                                                         setSelectedAudit({ ...selectedAudit, status: 'Validé' });
-                                                    } catch (_e) {
+                                                    } catch (e) {
                                                         ErrorLogger.handleErrorWithToast(e, 'Audits.validate', 'UPDATE_FAILED');
                                                     }
                                                 }}

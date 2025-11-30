@@ -3,7 +3,7 @@ import { RiskFormData } from '../schemas/riskSchema';
 
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit } from '../types';
+import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
@@ -116,7 +116,7 @@ export const Risks: React.FC = () => {
 
     // AI Recommendations State
     const [showRecommendations, setShowRecommendations] = useState(false);
-    const [recommendations, setRecommendations] = useState<any[]>([]);
+    const [recommendations, setRecommendations] = useState<RiskRecommendation[]>([]);
     const [analyzing, setAnalyzing] = useState(false);
 
     useEffect(() => {
@@ -129,20 +129,11 @@ export const Risks: React.FC = () => {
         });
     }, [risks]);
 
-    useEffect(() => {
-        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
-        if (!state.fromVoxel || !state.voxelSelectedId) return;
-        if (loading || risks.length === 0) return;
-        const risk = risks.find(r => r.id === state.voxelSelectedId);
-        if (risk) {
-            openInspector(risk);
-        }
-    }, [location.state, loading, risks]);
 
-    const openInspector = async (risk: Risk) => {
+
+    const openInspector = React.useCallback(async (risk: Risk) => {
         setSelectedRisk(risk);
         setCreationMode(false);
-        setInspectorTab('details');
         setInspectorTab('details');
         setIsEditing(false);
 
@@ -172,7 +163,17 @@ export const Risks: React.FC = () => {
             getDocs(auditQ).then(snap => { setLinkedAudits(snap.docs.map(d => ({ id: d.id, ...d.data() } as Audit))); });
 
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.openInspector', 'FETCH_FAILED'); }
-    };
+    }, [user?.organizationId]);
+
+    useEffect(() => {
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        if (!state.fromVoxel || !state.voxelSelectedId) return;
+        if (loading || risks.length === 0) return;
+        const risk = risks.find(r => r.id === state.voxelSelectedId);
+        if (risk) {
+            openInspector(risk);
+        }
+    }, [location.state, loading, risks, openInspector]);
 
 
 
@@ -221,7 +222,7 @@ export const Risks: React.FC = () => {
             addToast("Risque ajouté", "success");
             setCreationMode(false);
             refreshRisks();
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Risks.onSubmit', 'CREATE_FAILED');
         }
     };
@@ -278,7 +279,7 @@ export const Risks: React.FC = () => {
             setSelectedRisk({ ...selectedRisk, ...riskData, score, history: updatedHistory } as Risk);
             setIsEditing(false);
             refreshRisks();
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Risks.handleUpdate', 'UPDATE_FAILED');
         }
     };
@@ -408,7 +409,7 @@ export const Risks: React.FC = () => {
             addToast(`${risksToImport.length} risques importés avec succès`, "success");
             setShowTemplateModal(false);
             refreshRisks();
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Risks.handleImportTemplate', 'CREATE_FAILED');
         }
     };
@@ -512,7 +513,7 @@ export const Risks: React.FC = () => {
                 addToast(`${count} risques importés`, "success");
                 refreshRisks();
 
-            } catch (_error) { ErrorLogger.handleErrorWithToast(error, 'Risks.handleFileUpload', 'FILE_UPLOAD_FAILED'); } finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+            } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Risks.handleFileUpload', 'FILE_UPLOAD_FAILED'); } finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
         };
         reader.readAsText(file);
     };
@@ -556,7 +557,7 @@ export const Risks: React.FC = () => {
             } else {
                 throw new Error("Erreur lors de la génération du rapport");
             }
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Risks.handleGenerateReport', 'UNKNOWN_ERROR');
         }
     };
@@ -571,7 +572,7 @@ export const Risks: React.FC = () => {
             } else {
                 throw new Error(response.error || "Erreur lors de l'analyse");
             }
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Risks.handleAIAnalysis', 'UNKNOWN_ERROR');
             setShowRecommendations(false);
         } finally {
@@ -976,7 +977,7 @@ export const Risks: React.FC = () => {
                                                                         setSelectedRisk({ ...selectedRisk, treatment });
                                                                         refreshRisks();
                                                                         addToast("Échéance mise à jour", "success");
-                                                                    } catch (_err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateDueDate', 'UPDATE_FAILED'); }
+                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateDueDate', 'UPDATE_FAILED'); }
                                                                 }}
                                                                 disabled={!canEdit}
                                                             />
@@ -994,7 +995,7 @@ export const Risks: React.FC = () => {
                                                                         setSelectedRisk({ ...selectedRisk, treatment });
                                                                         refreshRisks();
                                                                         addToast("Responsable mis à jour", "success");
-                                                                    } catch (_err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateOwner', 'UPDATE_FAILED'); }
+                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateOwner', 'UPDATE_FAILED'); }
                                                                 }}
                                                                 placeholder="Sélectionner un responsable..."
                                                                 disabled={!canEdit}
@@ -1010,7 +1011,7 @@ export const Risks: React.FC = () => {
                                                                 value={selectedRisk.treatment?.status || 'Planifié'}
                                                                 onChange={async (e) => {
                                                                     if (!canEdit) return;
-                                                                    const newStatus = e.target.value as any;
+                                                                    const newStatus = e.target.value as Risk['treatment']['status'];
                                                                     const treatment = {
                                                                         ...selectedRisk.treatment,
                                                                         status: newStatus,
@@ -1021,7 +1022,7 @@ export const Risks: React.FC = () => {
                                                                         setSelectedRisk({ ...selectedRisk, treatment });
                                                                         refreshRisks();
                                                                         addToast("Statut d'avancement mis à jour", "success");
-                                                                    } catch (_err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateTreatmentStatus', 'UPDATE_FAILED'); }
+                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateTreatmentStatus', 'UPDATE_FAILED'); }
                                                                 }}
                                                                 disabled={!canEdit}
                                                             >

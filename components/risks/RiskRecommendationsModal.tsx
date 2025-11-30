@@ -1,18 +1,12 @@
 import React from 'react';
 import { X, CheckCircle2, BrainCircuit, ShieldCheck } from '../ui/Icons';
 
-interface Recommendation {
-    title: string;
-    description: string;
-    priority: 'urgent' | 'high' | 'medium' | 'low';
-    suggested_actions: { action: string; priority: string }[];
-    confidence_score: number;
-}
+import { RiskRecommendation } from '../../types';
 
 interface RiskRecommendationsModalProps {
     isOpen: boolean;
     onClose: () => void;
-    recommendations: Recommendation[];
+    recommendations: RiskRecommendation[];
     isLoading: boolean;
 }
 

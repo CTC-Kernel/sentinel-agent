@@ -51,7 +51,8 @@ const ComplianceAIAssistant: React.FC<{ control: Control, onApplyPolicy: (text: 
 
             const res = await aiService.chatWithAI(prompt);
             setResponse(res);
-        } catch (_error) {
+        } catch (error) {
+            ErrorLogger.error(error, 'ComplianceAIAssistant.handleAction');
             setResponse("Désolé, je n'ai pas pu générer de réponse. Veuillez réessayer.");
         } finally {
             setLoading(false);
@@ -270,7 +271,7 @@ export const Compliance: React.FC = () => {
         };
 
         seedData();
-    }, [rawControls, currentFramework, user?.organizationId, controlsLoading]);
+    }, [rawControls, currentFramework, user?.organizationId, controlsLoading, refreshControls]);
 
     // Open first domain by default
     useEffect(() => {
@@ -289,7 +290,7 @@ export const Compliance: React.FC = () => {
         if (domains.length > 0 && expandedDomains.length === 0) {
             setExpandedDomains([domains[0].id]);
         }
-    }, [currentFramework]);
+    }, [currentFramework, expandedDomains.length]);
 
     const sortControls = (data: Control[]) => {
         return [...data].sort((a, b) => {
@@ -324,7 +325,7 @@ export const Compliance: React.FC = () => {
             const relevantLogs = logs.filter(l => l.details?.includes(control.code));
             relevantLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setControlHistory(relevantLogs);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.fetchHistory', 'FETCH_FAILED');
         }
     };
@@ -349,7 +350,7 @@ export const Compliance: React.FC = () => {
             refreshControls();
 
             addToast("Assignation mise à jour", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleAssign', 'UPDATE_FAILED');
         }
     };
@@ -368,7 +369,7 @@ export const Compliance: React.FC = () => {
             refreshControls();
 
             addToast("Statut mis à jour", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleStatusChange', 'UPDATE_FAILED');
         }
     };
@@ -387,7 +388,7 @@ export const Compliance: React.FC = () => {
             refreshControls();
 
             addToast("Justification enregistrée", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleJustificationSave', 'UPDATE_FAILED');
         }
     };
@@ -402,7 +403,10 @@ export const Compliance: React.FC = () => {
             setSelectedControl({ ...selectedControl, evidenceIds: newEvidence });
             await logAction(user, 'LINK', 'Compliance', `Preuve liée au contrôle ${selectedControl.code}`);
             addToast("Preuve ajoutée", "success");
-        } catch (_e) { addToast("Erreur lors de la liaison", "error"); }
+        } catch (e) {
+            ErrorLogger.error(e, 'Compliance.linkDocument');
+            addToast("Erreur lors de la liaison", "error");
+        }
     };
 
     const initiateUnlinkDocument = (docId: string) => {
@@ -423,7 +427,10 @@ export const Compliance: React.FC = () => {
             refreshControls();
             setSelectedControl({ ...selectedControl, evidenceIds: newEvidence });
             addToast("Preuve retirée", "info");
-        } catch (_e) { addToast("Erreur suppression lien", "error"); }
+        } catch (e) {
+            ErrorLogger.error(e, 'Compliance.unlinkDocument');
+            addToast("Erreur suppression lien", "error");
+        }
     };
 
     const handleLinkAsset = async (assetId: string) => {
@@ -436,7 +443,7 @@ export const Compliance: React.FC = () => {
             setSelectedControl({ ...selectedControl, relatedAssetIds: newAssets });
             await logAction(user, 'LINK', 'Compliance', `Actif lié au contrôle ${selectedControl.code}`);
             addToast("Actif lié", "success");
-        } catch (_error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkAsset', 'UPDATE_FAILED'); }
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkAsset', 'UPDATE_FAILED'); }
     };
 
     const handleUnlinkAsset = async (assetId: string) => {
@@ -447,7 +454,7 @@ export const Compliance: React.FC = () => {
             refreshControls();
             setSelectedControl({ ...selectedControl, relatedAssetIds: newAssets });
             addToast("Lien actif retiré", "info");
-        } catch (_error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkAsset', 'UPDATE_FAILED'); }
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkAsset', 'UPDATE_FAILED'); }
     };
 
     const handleLinkSupplier = async (supplierId: string) => {
@@ -460,7 +467,7 @@ export const Compliance: React.FC = () => {
             setSelectedControl({ ...selectedControl, relatedSupplierIds: newSuppliers });
             await logAction(user, 'LINK', 'Compliance', `Fournisseur lié au contrôle ${selectedControl.code}`);
             addToast("Fournisseur lié", "success");
-        } catch (_error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkSupplier', 'UPDATE_FAILED'); }
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkSupplier', 'UPDATE_FAILED'); }
     };
 
     const handleUnlinkSupplier = async (supplierId: string) => {
@@ -471,7 +478,7 @@ export const Compliance: React.FC = () => {
             refreshControls();
             setSelectedControl({ ...selectedControl, relatedSupplierIds: newSuppliers });
             addToast("Lien fournisseur retiré", "info");
-        } catch (_error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkSupplier', 'UPDATE_FAILED'); }
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkSupplier', 'UPDATE_FAILED'); }
     };
 
 
@@ -482,7 +489,7 @@ export const Compliance: React.FC = () => {
                 mitigationControlIds: arrayUnion(selectedControl.id)
             });
             addToast("Risque lié avec succès", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkRisk', 'UPDATE_FAILED');
         }
     };
@@ -500,7 +507,7 @@ export const Compliance: React.FC = () => {
             });
             setCreationMode(null);
             addToast("Nouveau risque créé et lié", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleCreateRisk', 'CREATE_FAILED');
         }
     };
@@ -512,7 +519,7 @@ export const Compliance: React.FC = () => {
                 relatedControlIds: arrayUnion(selectedControl.id)
             });
             addToast("Projet lié avec succès", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkProject', 'UPDATE_FAILED');
         }
     };
@@ -530,7 +537,7 @@ export const Compliance: React.FC = () => {
             });
             setCreationMode(null);
             addToast("Nouveau projet créé et lié", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleCreateProject', 'CREATE_FAILED');
         }
     };
@@ -542,7 +549,7 @@ export const Compliance: React.FC = () => {
                 relatedControlIds: arrayUnion(selectedControl.id)
             });
             addToast("Audit lié avec succès", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkAudit', 'UPDATE_FAILED');
         }
     };
@@ -560,7 +567,7 @@ export const Compliance: React.FC = () => {
             });
             setCreationMode(null);
             addToast("Nouvel audit créé et lié", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleCreateAudit', 'CREATE_FAILED');
         }
     };
