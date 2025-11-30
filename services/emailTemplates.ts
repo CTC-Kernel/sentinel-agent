@@ -5,7 +5,7 @@
  */
 
 const BASE_STYLES = `
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   line-height: 1.6;
   color: #334155;
   max-width: 600px;

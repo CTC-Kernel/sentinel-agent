@@ -4,9 +4,11 @@ interface FloatingLabelInputProps extends React.InputHTMLAttributes<HTMLInputEle
     label: string;
     error?: string;
     icon?: React.ElementType;
+    textarea?: boolean;
+    rows?: number;
 }
 
-export const FloatingLabelInput = React.forwardRef<HTMLInputElement, FloatingLabelInputProps>(({
+export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, FloatingLabelInputProps>(({
     label,
     error,
     icon: Icon,
@@ -14,19 +16,21 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement, FloatingLab
     value,
     onFocus,
     onBlur,
+    textarea,
+    rows = 3,
     ...props
 }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const hasValue = value !== undefined && value !== '';
 
-    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setIsFocused(true);
-        onFocus?.(e);
+        onFocus?.(e as React.FocusEvent<HTMLInputElement>);
     };
 
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setIsFocused(false);
-        onBlur?.(e);
+        onBlur?.(e as React.FocusEvent<HTMLInputElement>);
     };
 
     return (
@@ -41,24 +45,41 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement, FloatingLab
                 }
             `}>
                 {Icon && (
-                    <div className={`pl-4 ${error ? 'text-red-500' : isFocused ? 'text-brand-500' : 'text-slate-400'}`}>
+                    <div className={`pl-4 ${error ? 'text-red-500' : isFocused ? 'text-brand-500' : 'text-slate-400'} ${textarea ? 'self-start mt-3.5' : ''}`}>
                         <Icon className="h-5 w-5" />
                     </div>
                 )}
 
-                <input
-                    ref={ref}
-                    {...props}
-                    value={value}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                    className={`
-                        w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
-                        placeholder-transparent rounded-2xl
-                        ${Icon ? 'pl-2' : ''}
-                    `}
-                    placeholder={label}
-                />
+                {textarea ? (
+                    <textarea
+                        ref={ref as React.Ref<HTMLTextAreaElement>}
+                        {...props as React.TextareaHTMLAttributes<HTMLTextAreaElement>}
+                        value={value}
+                        onFocus={handleFocus}
+                        onBlur={handleBlur}
+                        rows={rows}
+                        className={`
+                            w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
+                            placeholder-transparent rounded-2xl resize-none
+                            ${Icon ? 'pl-2' : ''}
+                        `}
+                        placeholder={label}
+                    />
+                ) : (
+                    <input
+                        ref={ref as React.Ref<HTMLInputElement>}
+                        {...props}
+                        value={value}
+                        onFocus={handleFocus}
+                        onBlur={handleBlur}
+                        className={`
+                            w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
+                            placeholder-transparent rounded-2xl
+                            ${Icon ? 'pl-2' : ''}
+                        `}
+                        placeholder={label}
+                    />
+                )}
 
                 <label
                     className={`

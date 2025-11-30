@@ -46,8 +46,8 @@ export const PLANS: Record<PlanType, PlanConfig> = {
     id: 'professional',
     name: 'Professional',
     description: 'Crédibilisez votre démarche avec des rapports pro et plus de capacité.',
-    priceMonthly: 19,
-    priceYearly: 190, // 2 months free
+    priceMonthly: 199,
+    priceYearly: 1990, // 2 months free
     highlight: true,
     limits: {
       maxUsers: 10,
@@ -69,6 +69,7 @@ export const PLANS: Record<PlanType, PlanConfig> = {
       '✅ Rapports Marque Blanche',
       '✅ Modèles personnalisables',
       '✅ Stockage 10 Go',
+      '✅ Option Stockage SecNumCloud (OVH)',
       'Support Email prioritaire'
     ]
   },
@@ -76,8 +77,8 @@ export const PLANS: Record<PlanType, PlanConfig> = {
     id: 'enterprise',
     name: 'Enterprise',
     description: 'La puissance totale sans aucune limite. L\'offre GRC la plus compétitive du marché.',
-    priceMonthly: 49,
-    priceYearly: 490,
+    priceMonthly: 499,
+    priceYearly: 4990,
     highlight: false,
     limits: {
       maxUsers: 9999,
@@ -99,7 +100,8 @@ export const PLANS: Record<PlanType, PlanConfig> = {
       'SSO (SAML / OIDC)',
       'Logs d\'audit avancés',
       'Stockage 100 Go',
-      'Support Dédié'
+      '✅ Option Stockage SecNumCloud (OVH)',
+      'Support Dédié 24/7'
     ]
   }
 };
