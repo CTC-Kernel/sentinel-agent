@@ -120,7 +120,7 @@ export const Continuity: React.FC = () => {
             const usersData = getDocsData<UserProfile>(results[5]);
             setUsersList(usersData);
 
-        } catch (err) {
+        } catch (_err) {
             ErrorLogger.handleErrorWithToast(err, 'Continuity.fetchData', 'FETCH_FAILED');
         } finally {
             setLoading(false);

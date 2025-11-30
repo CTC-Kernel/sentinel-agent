@@ -76,7 +76,7 @@ export const Onboarding: React.FC = () => {
             );
             const snap = await getDocs(q);
             setSearchResults(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        } catch (e) {
+        } catch (_e) {
             ErrorLogger.handleErrorWithToast(e, 'Onboarding.handleSearchOrg', 'FETCH_FAILED');
         } finally {
             setLoading(false);
@@ -98,7 +98,7 @@ export const Onboarding: React.FC = () => {
             });
             setJoinRequestSent(true);
             addToast("Demande envoyée avec succès", "success");
-        } catch (e) {
+        } catch (_e) {
             ErrorLogger.handleErrorWithToast(e, 'Onboarding.handleJoinRequest', 'CREATE_FAILED');
         } finally {
             setLoading(false);
@@ -274,7 +274,7 @@ export const Onboarding: React.FC = () => {
                 // Paid plan: Redirect to Stripe
                 await SubscriptionService.startSubscription(user.organizationId, selectedPlan, 'month'); // Default to monthly for onboarding
             }
-        } catch (e) {
+        } catch (_e) {
             ErrorLogger.handleErrorWithToast(e, 'Onboarding.handleFinalize', 'UPDATE_FAILED');
             setLoading(false);
         }

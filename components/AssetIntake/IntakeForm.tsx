@@ -89,7 +89,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                 relatedProjectIds: formData.projectId ? [formData.projectId] : []
             });
             onSuccess();
-        } catch (err) {
+        } catch (_err) {
             ErrorLogger.error(err, 'IntakeForm.handleSubmit');
             setError("Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.");
         } finally {

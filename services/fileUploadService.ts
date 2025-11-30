@@ -75,7 +75,7 @@ export const deleteFile = async (path: string): Promise<void> => {
     try {
         const storageRef = ref(storage, path);
         await deleteObject(storageRef);
-    } catch (error) {
+    } catch (_error) {
         ErrorLogger.error(error, 'FileUploadService.deleteFile');
         throw new Error('Failed to delete file.');
     }
@@ -91,7 +91,7 @@ export const listFiles = async (path: string) => {
         const storageRef = ref(storage, path);
         const result = await listAll(storageRef);
         return result.items;
-    } catch (error) {
+    } catch (_error) {
         ErrorLogger.error(error, 'FileUploadService.listFiles');
         throw new Error('Failed to list files.');
     }

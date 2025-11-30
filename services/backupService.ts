@@ -95,7 +95,7 @@ export class BackupService {
       await logAction(user, 'CREATE', 'Backup', `Backup créé: ${backupId}`);
       return backupId;
 
-    } catch (error) {
+    } catch (_error) {
       await updateDoc(doc(db, this.BACKUP_COLLECTION, backupId), {
         status: 'failed',
         error: error instanceof Error ? error.message : 'Erreur inconnue'
@@ -179,7 +179,7 @@ export class BackupService {
           summary.collections[collectionName].restored = documents.length - summary.collections[collectionName].skipped;
           summary.restored += summary.collections[collectionName].restored;
 
-        } catch (error) {
+        } catch (_error) {
           const errorMsg = `Erreur lors de la restauration de ${collectionName}: ${error}`;
           summary.errors.push(errorMsg);
         }
@@ -188,7 +188,7 @@ export class BackupService {
       await logAction(user, 'RESTORE', 'Backup', `Backup restauré: ${config.backupId}`);
       return { success: summary.errors.length === 0, summary };
 
-    } catch (error) {
+    } catch (_error) {
       await logAction(user, 'ERROR', 'Backup', `Erreur restauration: ${error}`);
       throw error;
     }
@@ -219,7 +219,7 @@ export class BackupService {
       await deleteObject(backupRef);
 
       await logAction(user, 'DELETE', 'Backup', `Backup supprimé: ${backupId}`);
-    } catch (error) {
+    } catch (_error) {
       await logAction(user, 'ERROR', 'Backup', `Erreur suppression backup: ${error}`);
       throw error;
     }
@@ -314,7 +314,7 @@ export class BackupService {
           nextBackup: this.calculateNextBackup(schedule.frequency).toISOString()
         });
       }
-    } catch (error) {
+    } catch (_error) {
       ErrorLogger.error(error, 'BackupService.checkScheduledBackups');
     }
   }

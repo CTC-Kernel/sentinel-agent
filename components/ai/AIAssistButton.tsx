@@ -39,7 +39,7 @@ export const AIAssistButton: React.FC<AIAssistButtonProps> = ({ context, fieldNa
             } else {
                 addToast("Je n'ai pas trouvé de suggestion pertinente.", "info");
             }
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.error(error, 'AIAssistButton.handleSuggest');
             addToast("Erreur lors de la génération.", "error");
         } finally {

@@ -98,7 +98,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     setValue(field, cleanSuggestion as any, { shouldDirty: true });
                 }
             }
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'AssetForm.handleSuggestField', 'FETCH_FAILED');
         } finally {
             setSuggestingField(null);

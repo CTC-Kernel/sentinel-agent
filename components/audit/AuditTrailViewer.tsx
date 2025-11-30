@@ -80,7 +80,7 @@ export const AuditTrailViewer: React.FC = () => {
                 });
 
                 setLogs(fetchedLogs);
-            } catch (error) {
+            } catch (_error) {
                 ErrorLogger.error(error, 'AuditTrailViewer.fetchLogs');
             } finally {
                 setLoading(false);

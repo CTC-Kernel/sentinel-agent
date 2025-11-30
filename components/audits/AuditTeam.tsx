@@ -38,7 +38,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
             addToast("Collaborateur ajouté", "success");
             setIsAddingInternal(false);
             setSelectedUserId('');
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'AuditTeam.handleAddInternal', 'UPDATE_FAILED');
         }
     };
@@ -72,7 +72,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
             addToast("Auditeur externe invité", "success");
             setIsAddingExternal(false);
             setExternalEmail('');
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'AuditTeam.handleAddExternal', 'UPDATE_FAILED');
         }
     };
@@ -84,7 +84,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                 collaborators: currentCollaborators.filter(id => id !== userId)
             });
             addToast("Collaborateur retiré", "info");
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'AuditTeam.handleRemoveInternal', 'UPDATE_FAILED');
         }
     };
@@ -96,7 +96,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                 externalAuditors: currentExternal.filter(e => e !== email)
             });
             addToast("Auditeur externe retiré", "info");
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'AuditTeam.handleRemoveExternal', 'UPDATE_FAILED');
         }
     };

@@ -18,7 +18,7 @@ const initializeApp = async () => {
 
     // Hide splash screen after app is ready
     await SplashScreen.hide();
-  } catch (error) {
+  } catch (_error) {
     console.error('Error initializing Capacitor:', error);
   }
 };

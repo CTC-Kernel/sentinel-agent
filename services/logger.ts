@@ -25,6 +25,6 @@ export const logAction = async (
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    ErrorLogger.error(error, 'logger.logAction', { metadata: { action, resource } });
+    ErrorLogger.error(error, 'Logger.logAction');
   }
 };

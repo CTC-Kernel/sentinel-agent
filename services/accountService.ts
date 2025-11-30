@@ -50,7 +50,7 @@ export class AccountService {
         try {
           const photoRef = ref(storage, `avatars/${user.uid}`);
           await deleteObject(photoRef);
-        } catch (e) {
+        } catch (_e) {
           ErrorLogger.error(e, 'AccountService.deleteAccount');
         }
       }
@@ -67,14 +67,14 @@ export class AccountService {
             await deleteDoc(doc(db, 'organizations', user.organizationId));
 
           }
-        } catch (e) {
+        } catch (_e) {
           ErrorLogger.error(e, 'AccountService.deleteAccount.deleteOrg');
         }
       }
 
       // 4. Delete Firebase Auth user
       await deleteUser(firebaseUser);
-    } catch (error) {
+    } catch (_error) {
       ErrorLogger.error(error, 'AccountService.deleteAccount');
       throw error;
     }
@@ -113,18 +113,18 @@ export class AccountService {
 
         const backupStorageRef = ref(storage, `backups/${organizationId}`);
         await this.deleteStorageFolder(backupStorageRef);
-      } catch (e) {
+      } catch (_e) {
         ErrorLogger.error(e, 'AccountService.deleteOrganization.storageCleanup');
       }
 
       // 6. Delete Secure Data (GDPR Right to Erasure - Backend)
       try {
         await hybridService.wipeOrganizationSecureData();
-      } catch (e) {
+      } catch (_e) {
         ErrorLogger.error(e, 'AccountService.deleteOrganization.secureDataCleanup');
       }
 
-    } catch (error) {
+    } catch (_error) {
       ErrorLogger.error(error, 'AccountService.deleteOrganization');
       throw error;
     }

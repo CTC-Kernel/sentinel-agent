@@ -23,7 +23,7 @@ const Pricing = () => {
     try {
       setLoading(planId);
       await SubscriptionService.startSubscription(user.organizationId, planId, isAnnual ? 'year' : 'month');
-    } catch (error) {
+    } catch (_error) {
       ErrorLogger.error(error, 'Pricing.handleSubscribe');
       addToast("Une erreur est survenue lors de la redirection vers le paiement.", "error");
     } finally {

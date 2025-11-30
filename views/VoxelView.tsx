@@ -573,7 +573,7 @@ export const VoxelView: React.FC = () => {
         setIncidents(incidentsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Incident[]);
         setSuppliers(suppliersSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Supplier[]);
 
-      } catch (error) {
+      } catch (_error) {
         ErrorLogger.handleErrorWithToast(error, 'VoxelView.fetchData', 'FETCH_FAILED');
       } finally {
         setLoading(false);
@@ -614,7 +614,7 @@ export const VoxelView: React.FC = () => {
       setAiInsights(result.insights);
       setShowInsights(true);
       addToast("Analyse terminée avec succès", "success");
-    } catch (error) {
+    } catch (_error) {
       ErrorLogger.handleErrorWithToast(error, 'VoxelView.handleAIAnalysis', 'UNKNOWN_ERROR');
     } finally {
       setAnalyzing(false);

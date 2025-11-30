@@ -67,11 +67,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     await refreshUserTokenFn();
                     // Re-rafraîchir après l'appel de la fonction
                     await auth.currentUser.getIdToken(true);
-                } catch (e) {
+                } catch (_e) {
                     console.warn('Failed to refresh custom claims via Cloud Function', e);
                 }
             }
-        } catch (err) {
+        } catch (_err) {
             ErrorLogger.error(err, 'AuthContext.refreshSession');
             setError(err as Error);
         }
@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setFirebaseUser(null);
             // Nettoyer le stockage local si nécessaire
             localStorage.removeItem('last_org_id');
-        } catch (err) {
+        } catch (_err) {
             ErrorLogger.error(err, 'AuthContext.logout');
             throw err;
         }
@@ -243,7 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             setUser(initialData as UserProfile);
                             setLoading(false);
 
-                        } catch (err) {
+                        } catch (_err) {
                             ErrorLogger.error(err, 'AuthContext.createUserProfile');
                             setError(err as Error);
                             setLoading(false); // Débloquer même en cas d'erreur pour afficher l'erreur
@@ -275,7 +275,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setLoading(false);
                 });
 
-            } catch (err) {
+            } catch (_err) {
                 ErrorLogger.error(err, 'AuthContext.handleUser');
                 setError(err as Error);
                 setLoading(false);
