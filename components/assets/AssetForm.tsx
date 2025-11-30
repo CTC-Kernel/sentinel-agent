@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, SubmitHandler, Resolver, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { assetSchema, AssetFormData } from '../../schemas/assetSchema';
 import { Asset, UserProfile, Supplier, Criticality } from '../../types';
@@ -27,8 +27,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     isEditing = false
 }) => {
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues } = useForm<AssetFormData>({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolver: zodResolver(assetSchema) as any,
+        resolver: zodResolver(assetSchema) as Resolver<AssetFormData>,
         defaultValues: {
             name: '',
             type: 'Matériel',
@@ -95,8 +94,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 } else if (field === 'confidentiality' && !Object.values(Criticality).includes(cleanSuggestion as Criticality)) {
                     // Fallback
                 } else {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    setValue(field, cleanSuggestion as any, { shouldDirty: true });
+                    setValue(field, cleanSuggestion as AssetFormData[keyof AssetFormData], { shouldDirty: true });
                 }
             }
         } catch (error) {
@@ -107,7 +105,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-8 p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-6">
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Informations Principales</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

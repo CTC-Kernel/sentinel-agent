@@ -87,7 +87,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 setProjects(projectsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
 
                 setLoading(false);
-            } catch (error) {
+            } catch {
                 // ErrorLogger.error(error, 'AnalyticsDashboard.fetchData'); // Optional: log error
                 setLoading(false);
             }
@@ -168,7 +168,7 @@ export const AnalyticsDashboard: React.FC = () => {
         };
 
         fetchHistory();
-    }, [user, timeRange, metrics]);
+    }, [user, timeRange, metrics, assets.length]);
 
     // Risk distribution by category
     const risksByCategory: CategoryData[] = useMemo(() => {
