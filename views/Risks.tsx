@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { RiskFormData } from '../schemas/riskSchema';
+import { RiskFormData, riskSchema } from '../schemas/riskSchema';
+import { z } from 'zod';
 
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -180,16 +181,20 @@ export const Risks: React.FC = () => {
 
     const onSubmit = async (data: RiskFormData) => {
         if (!canEdit || !user?.organizationId) return;
-        const score = data.probability * data.impact;
-        const residualScore = (data.residualProbability || data.probability) * (data.residualImpact || data.impact);
 
         try {
+            // Validate data with Zod
+            const validatedData = riskSchema.parse(data);
+
+            const score = validatedData.probability * validatedData.impact;
+            const residualScore = (validatedData.residualProbability || validatedData.probability) * (validatedData.residualImpact || validatedData.impact);
+
             // Derive owner name
-            const ownerUser = usersList.find(u => u.uid === data.ownerId);
+            const ownerUser = usersList.find(u => u.uid === validatedData.ownerId);
             const ownerName = ownerUser?.displayName || '';
 
             // Sanitize data before sending to Firestore
-            const cleanNewRisk = { ...sanitizeData(data), owner: ownerName };
+            const cleanNewRisk = { ...sanitizeData(validatedData), owner: ownerName };
 
             // Creation only
             const docRef = await addDoc(collection(db, 'risks'), {
@@ -224,14 +229,20 @@ export const Risks: React.FC = () => {
             setCreationMode(false);
             refreshRisks();
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Risks.onSubmit', 'CREATE_FAILED');
+            if (error instanceof z.ZodError) {
+                addToast((error as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+            } else {
+                ErrorLogger.handleErrorWithToast(error, 'Risks.onSubmit', 'CREATE_FAILED');
+            }
         }
     };
 
     const handleUpdate = async (data: RiskFormData) => {
         if (!user?.organizationId || !selectedRisk) return;
         try {
-            const riskData = sanitizeData({ ...data });
+            // Validate data with Zod
+            const validatedData = riskSchema.parse(data);
+            const riskData = sanitizeData({ ...validatedData });
             const score = riskData.probability * riskData.impact;
             const historyEntry: RiskHistory = {
                 date: new Date().toISOString(),
@@ -281,7 +292,11 @@ export const Risks: React.FC = () => {
             setIsEditing(false);
             refreshRisks();
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Risks.handleUpdate', 'UPDATE_FAILED');
+            if (error instanceof z.ZodError) {
+                addToast((error as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+            } else {
+                ErrorLogger.handleErrorWithToast(error, 'Risks.handleUpdate', 'UPDATE_FAILED');
+            }
         }
     };
 

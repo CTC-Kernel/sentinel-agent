@@ -95,7 +95,7 @@ export const Continuity: React.FC = () => {
 
                     return (result.value as QuerySnapshot<DocumentData>).docs.map((d) => ({ id: d.id, ...d.data() })) as T[];
                 }
-                console.warn("Failed to load some data in Continuity view");
+                ErrorLogger.warn("Failed to load some data in Continuity view", 'Continuity.fetchData');
                 return [];
             };
 

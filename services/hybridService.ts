@@ -73,12 +73,15 @@ class HybridService {
     /**
      * Securely store data in Firestore (simulating OVH Secure Storage)
      */
-    async storeSecureData(dataType: string, payload: any): Promise<HybridResponse> {
+    /**
+     * Securely store data in Firestore (simulating OVH Secure Storage)
+     */
+    async storeSecureData(dataType: string, payload: Record<string, unknown>): Promise<HybridResponse> {
         try {
             // In a real scenario, we might encrypt this data before storing
             // For now, we store it in a specific 'secure_storage' collection
             const { id, ...data } = payload;
-            const docId = id || crypto.randomUUID();
+            const docId = (id as string) || crypto.randomUUID();
 
             // Use Firestore directly
             const { doc, setDoc, getFirestore } = await import('firebase/firestore');
@@ -86,11 +89,11 @@ class HybridService {
 
             // Get organizationId from auth
             const user = auth.currentUser;
-            let organizationId = (data as any).organizationId;
+            let organizationId = (data as { organizationId?: string }).organizationId;
 
             if (!organizationId && user) {
                 const tokenResult = await user.getIdTokenResult();
-                organizationId = tokenResult.claims.organizationId;
+                organizationId = tokenResult.claims.organizationId as string;
             }
 
             await setDoc(doc(db, 'secure_storage', `${dataType}_${docId}`), {

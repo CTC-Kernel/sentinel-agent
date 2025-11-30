@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     User,
     onIdTokenChanged,
@@ -25,25 +25,7 @@ import { UserProfile, Invitation } from '../types';
 import { httpsCallable, getFunctions } from 'firebase/functions';
 
 
-interface AuthContextType {
-    user: UserProfile | null;
-    firebaseUser: User | null;
-    loading: boolean;
-    error: Error | null;
-    isAdmin: boolean;
-    refreshSession: () => Promise<void>;
-    logout: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-};
+import { AuthContext } from './AuthContextDefinition';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
@@ -68,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     // Re-rafraîchir après l'appel de la fonction
                     await auth.currentUser.getIdToken(true);
                 } catch (e) {
-                    console.warn('Failed to refresh custom claims via Cloud Function', e);
+                    ErrorLogger.warn('Failed to refresh custom claims via Cloud Function', 'AuthContext.refreshSession', { metadata: { error: e } });
                 }
             }
         } catch (err) {
@@ -99,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Sécurité : Timeout pour éviter le chargement infini
         const safetyTimeout = setTimeout(() => {
             if (loading) {
-                console.warn("Auth loading timeout - forcing stop");
+                ErrorLogger.warn("Auth loading timeout - forcing stop", 'AuthContext.safetyTimeout');
                 setLoading(false);
             }
         }, 8000);
@@ -126,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     // Ignore "not found" errors as the profile might not exist yet (will be created below)
                     const err = e as { code?: string };
                     if (err.code !== 'not-found') {
-                        console.warn("Failed to update lastLogin", e);
+                        ErrorLogger.warn("Failed to update lastLogin", 'AuthContext.handleUser', { metadata: { error: e } });
                     }
                 });
 
@@ -139,7 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         // SELF-HEALING: Vérifier la cohérence des données
                         // 1. Si le rôle est manquant, on le force à 'admin' et ON LE SAUVEGARDE
                         if (!userData.role) {
-                            console.warn("User role missing in Firestore, defaulting to admin for recovery");
+                            ErrorLogger.warn("User role missing in Firestore, defaulting to admin for recovery", 'AuthContext.handleUser');
                             userData.role = 'admin';
                             // Fix persistence immediately
                             setDoc(userRef, { role: 'admin' }, { merge: true }).catch(e => ErrorLogger.error(e, 'AuthContext.autoFixRole'));
@@ -147,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                         // 2. Si l'utilisateur a une organisation mais onboarding non validé -> Auto-fix
                         if (userData.organizationId && !userData.onboardingCompleted) {
-                            console.warn("User has organization but onboarding not marked complete. Auto-fixing.");
+                            ErrorLogger.warn("User has organization but onboarding not marked complete. Auto-fixing.", 'AuthContext.handleUser');
                             userData.onboardingCompleted = true;
                             // Corriger la source en arrière-plan
                             setDoc(userRef, { onboardingCompleted: true }, { merge: true }).catch(e => ErrorLogger.error(e, 'AuthContext.autoFixOnboarding'));
@@ -225,7 +207,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                     // Detect stale session (User deleted in Auth but token still cached)
                     if (err.code === 'permission-denied') {
-                        console.warn('Permission denied for user profile. Session might be invalid or user deleted. Logging out...');
+                        ErrorLogger.warn('Permission denied for user profile. Session might be invalid or user deleted. Logging out...', 'AuthContext.onSnapshot');
                         try {
                             await logout();
                         } catch (logoutErr) {

@@ -1,4 +1,4 @@
-
+import { ErrorLogger } from '../services/errorLogger';
 export interface HardwareInfo {
     gpu: string;
     cpuCores: number | string;
@@ -31,7 +31,7 @@ export const detectHardware = async (): Promise<HardwareInfo> => {
             }
         }
     } catch (error) {
-        console.warn('GPU detection failed', error);
+        ErrorLogger.warn('GPU detection failed', 'detectHardware', { metadata: { error } });
     }
 
     // 2. CPU Cores
