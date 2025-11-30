@@ -7,8 +7,8 @@ interface NodeDetails {
   badge: string;
   title: string;
   owner?: string;
-  stats: { label: string; value: string }[];
-  meta: { label: string; value: string }[];
+  stats: { label: string; value: string | number }[];
+  meta: { label: string; value: string | number }[];
 }
 
 interface RelatedElement {
@@ -19,7 +19,7 @@ interface RelatedElement {
 }
 
 interface VoxelDetailOverlayProps {
-  selectedNodeDetails: NodeDetails;
+  selectedNodeDetails: NodeDetails | null;
   isDetailMinimized: boolean;
   setIsDetailMinimized: (v: boolean | ((prev: boolean) => boolean)) => void;
   handleSelectionClear: () => void;
@@ -202,7 +202,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
                   <div key={item.label} className="group relative overflow-hidden rounded-2xl bg-black/10 hover:bg-black/20 border border-white/5 p-2.5 transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <p className="text-[9px] uppercase tracking-wider text-white/60 truncate mb-0.5">{item.label}</p>
-                    <p className="text-sm font-bold truncate text-white text-shadow-sm" title={item.value}>{item.value}</p>
+                    <p className="text-sm font-bold truncate text-white text-shadow-sm" title={String(item.value)}>{item.value}</p>
                   </div>
                 ))}
               </div>
