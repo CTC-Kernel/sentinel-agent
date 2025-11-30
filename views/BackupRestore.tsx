@@ -59,32 +59,35 @@ export const BackupRestore: React.FC = () => {
     }
   });
 
+
+
+  const loadBackups = React.useCallback(async () => {
+    if (!user?.organizationId) return;
+    try {
+      const list = await BackupService.listBackups(user.organizationId);
+      setBackups(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    } catch (error) {
+      ErrorLogger.error(error, 'BackupRestore.loadBackups');
+      addToast("Erreur lors du chargement des sauvegardes", "error");
+    }
+  }, [user?.organizationId, addToast]);
+
+  const loadStats = React.useCallback(async () => {
+    if (!user?.organizationId) return;
+    try {
+      const backupStats = await BackupService.getBackupStats(user.organizationId);
+      setStats(backupStats);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [user?.organizationId]);
+
   useEffect(() => {
     if (user?.organizationId) {
       loadBackups();
       loadStats();
     }
-  }, [user?.organizationId]);
-
-  const loadBackups = async () => {
-    if (!user?.organizationId) return;
-    try {
-      const list = await BackupService.listBackups(user.organizationId);
-      setBackups(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    } catch (_error) {
-      addToast("Erreur lors du chargement des sauvegardes", "error");
-    }
-  };
-
-  const loadStats = async () => {
-    if (!user?.organizationId) return;
-    try {
-      const backupStats = await BackupService.getBackupStats(user.organizationId);
-      setStats(backupStats);
-    } catch (_error) {
-      console.error(error);
-    }
-  };
+  }, [user?.organizationId, loadBackups, loadStats]);
 
   const handleBackup: SubmitHandler<BackupConfigFormData> = async (data) => {
     if (!user) return;
@@ -94,7 +97,9 @@ export const BackupRestore: React.FC = () => {
       addToast(`Sauvegarde créée avec succès`, "success");
       loadBackups();
       loadStats();
-    } catch (_error) {
+
+    } catch (error) {
+      ErrorLogger.error(error, 'BackupRestore.handleBackup');
       addToast("Erreur lors de la création de la sauvegarde", "error");
     } finally {
       setLoading(false);
@@ -106,7 +111,8 @@ export const BackupRestore: React.FC = () => {
     try {
       await BackupService.scheduleBackup(user, backupForm.getValues(), frequency);
       addToast(`Backup programmé (${frequency})`, 'success');
-    } catch (_error) {
+    } catch (error) {
+      ErrorLogger.error(error, 'BackupRestore.handleScheduleBackup');
       addToast('Erreur lors de la programmation', 'error');
     }
   };
@@ -134,7 +140,7 @@ export const BackupRestore: React.FC = () => {
       } else {
         addToast("Erreur lors de la restauration", "error");
       }
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'BackupRestore.handleRestore', 'UNKNOWN_ERROR');
       addToast("Erreur lors de la restauration", "error");
     } finally {
@@ -153,7 +159,8 @@ export const BackupRestore: React.FC = () => {
         setSelectedBackup(null);
         restoreForm.setValue('backupId', '');
       }
-    } catch (_error) {
+    } catch (error) {
+      ErrorLogger.error(error, 'BackupRestore.handleDeleteBackup');
       addToast("Erreur lors de la suppression", "error");
     }
   };
@@ -168,7 +175,8 @@ export const BackupRestore: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (_error) {
+    } catch (error) {
+      ErrorLogger.error(error, 'BackupRestore.handleDownloadBackup');
       addToast('Erreur lors du téléchargement', 'error');
     }
   };
