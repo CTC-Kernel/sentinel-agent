@@ -17,8 +17,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useLocation } from 'react-router-dom';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
-import { CustomSelect } from '../components/ui/CustomSelect';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supplierSchema, SupplierFormData } from '../schemas/supplierSchema';
 import { Drawer } from '../components/ui/Drawer';
@@ -607,145 +606,18 @@ export const Suppliers: React.FC = () => {
                             {inspectorTab === 'profile' && (
                                 <div className="space-y-8">
                                     {isEditing ? (
-                                        <>
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editForm.register('name')} /></div>
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Catégorie</label>
-                                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('category')}>
-                                                        {['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'].map(c => <option key={c} value={c}>{c}</option>)}
-                                                    </select>
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Processus Supportés</label>
-                                                    <Controller
-                                                        name="supportedProcessIds"
-                                                        control={editForm.control}
-                                                        render={({ field }) => (
-                                                            <CustomSelect
-                                                                options={processesRaw.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
-                                                                value={field.value || []}
-                                                                onChange={field.onChange}
-                                                                placeholder="Sélectionner les processus supportés..."
-                                                                multiple
-                                                            />
-                                                        )}
-                                                    />
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Actifs Liés</label>
-                                                    <Controller
-                                                        name="relatedAssetIds"
-                                                        control={editForm.control}
-                                                        render={({ field }) => (
-                                                            <CustomSelect
-                                                                options={assetsRaw.map(a => ({ value: a.id, label: a.name, subLabel: a.type }))}
-                                                                value={field.value || []}
-                                                                onChange={field.onChange}
-                                                                placeholder="Lier des actifs..."
-                                                                multiple
-                                                            />
-                                                        )}
-                                                    />
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Risques Liés</label>
-                                                    <Controller
-                                                        name="relatedRiskIds"
-                                                        control={editForm.control}
-                                                        render={({ field }) => (
-                                                            <CustomSelect
-                                                                options={risksRaw.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
-                                                                value={field.value || []}
-                                                                onChange={field.onChange}
-                                                                placeholder="Lier des risques..."
-                                                                multiple
-                                                            />
-                                                        )}
-                                                    />
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Projets Liés</label>
-                                                    <Controller
-                                                        name="relatedProjectIds"
-                                                        control={editForm.control}
-                                                        render={({ field }) => (
-                                                            <CustomSelect
-                                                                options={projectsRaw.map(p => ({ value: p.id, label: p.name, subLabel: p.status }))}
-                                                                value={field.value || []}
-                                                                onChange={field.onChange}
-                                                                placeholder="Lier des projets..."
-                                                                multiple
-                                                            />
-                                                        )}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
-                                                <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none"
-                                                    {...editForm.register('ownerId')}>
-                                                    <option value="">Sélectionner...</option>
-                                                    {usersRaw.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
-                                                </select>
-                                            </div>
-                                            <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={2} {...editForm.register('description')} /></div>
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contact Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editForm.register('contactName')} /></div>
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editForm.register('contactEmail')} /></div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Criticité</label>
-                                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('criticality')}>
-                                                        {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
-                                                    </select>
-                                                </div>
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label>
-                                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('status')}>
-                                                        <option value="Actif">Actif</option><option value="En cours">En cours</option><option value="Terminé">Terminé</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div>
-                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contrat (Document)</label>
-                                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('contractDocumentId')}>
-                                                        <option value="">Sélectionner...</option>
-                                                        {documentsRaw.map(d => <option key={d.id} value={d.id}>{d.title}</option>)}
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Fin de Contrat</label>
-                                                    <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editForm.register('contractEnd')} />
-                                                </div>
-                                            </div>
-                                            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
-                                                <h4 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-4 flex items-center">
-                                                    <ShieldAlert className="h-4 w-4 mr-2" /> Conformité DORA
-                                                </h4>
-                                                <div className="grid grid-cols-2 gap-6">
-                                                    <div className="flex items-center space-x-3">
-                                                        <input type="checkbox" className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...editForm.register('isICTProvider')} />
-                                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Prestataire TIC</label>
-                                                    </div>
-                                                    <div className="flex items-center space-x-3">
-                                                        <input type="checkbox" className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...editForm.register('supportsCriticalFunction')} />
-                                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Supporte Fonction Critique</label>
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type de Service</label>
-                                                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('serviceType')}>
-                                                            {['SaaS', 'Cloud', 'Software', 'Hardware', 'Consulting', 'Network', 'Security'].map(c => <option key={c} value={c}>{c}</option>)}
-                                                        </select>
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Criticité DORA</label>
-                                                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editForm.register('doraCriticality')}>
-                                                            {['None', 'Important', 'Critical'].map(c => <option key={c} value={c}>{c}</option>)}
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </>
+                                        <SupplierForm
+                                            onSubmit={handleUpdate}
+                                            onCancel={() => setIsEditing(false)}
+                                            initialData={editForm.getValues()}
+                                            isEditing={true}
+                                            users={usersRaw}
+                                            processes={processesRaw}
+                                            assets={assetsRaw}
+                                            risks={risksRaw}
+                                            projects={projectsRaw}
+                                            documents={documentsRaw}
+                                        />
                                     ) : (
                                         <>
                                             <div className="grid grid-cols-2 gap-6">
@@ -962,7 +834,6 @@ export const Suppliers: React.FC = () => {
             </Drawer>
 
             {/* Create Drawer */}
-
             <Drawer
                 isOpen={creationMode}
                 onClose={() => setCreationMode(false)}
@@ -970,16 +841,18 @@ export const Suppliers: React.FC = () => {
                 subtitle="Enregistrement d'un tiers"
                 width="max-w-4xl"
             >
-                <SupplierForm
-                    onSubmit={handleCreate}
-                    onCancel={() => setCreationMode(false)}
-                    users={usersRaw}
-                    processes={processesRaw}
-                    assets={assetsRaw}
-                    risks={risksRaw}
-                    projects={projectsRaw}
-                    documents={documentsRaw}
-                />
+                <div className="h-full overflow-y-auto p-6">
+                    <SupplierForm
+                        onSubmit={handleCreate}
+                        onCancel={() => setCreationMode(false)}
+                        users={usersRaw}
+                        processes={processesRaw}
+                        assets={assetsRaw}
+                        risks={risksRaw}
+                        projects={projectsRaw}
+                        documents={documentsRaw}
+                    />
+                </div>
             </Drawer>
         </div>
     );

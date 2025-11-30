@@ -595,6 +595,7 @@ export interface Organization {
   settings?: {
     theme?: 'light' | 'dark' | 'system';
     language?: 'fr' | 'en';
+    enableSecNumCloudStorage?: boolean;
   };
 }
 

@@ -17,10 +17,7 @@ export default {
           '-apple-system',
           'BlinkMacSystemFont',
           '"SF Pro Text"',
-          '"Segoe UI"',
-          'Roboto',
-          'Helvetica',
-          'Arial',
+          'system-ui',
           'sans-serif',
           '"Apple Color Emoji"',
           '"Segoe UI Emoji"',
@@ -31,6 +28,7 @@ export default {
           'BlinkMacSystemFont',
           '"SF Pro Display"',
           '"SF Pro Text"',
+          'system-ui',
           'sans-serif'
         ],
         mono: [

@@ -88,7 +88,7 @@ const previewEmailInNewWindow = (payload: EmailPayload) => {
           <div style="background: white; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border-radius: 16px; overflow: hidden;">
             ${payload.html}
           </div>
-          <div style="text-align: center; margin-top: 20px; color: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; font-size: 12px;">
+          <div style="text-align: center; margin-top: 20px; color: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-size: 12px;">
             Ceci est une simulation d'envoi. En production, cet email partirait via SendGrid/Mailgun.
           </div>
         </body>

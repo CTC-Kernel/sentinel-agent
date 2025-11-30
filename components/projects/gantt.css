@@ -2,7 +2,7 @@
 
 /* General Text Styling */
 .gantt-container text {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif !important;
     fill: #64748b !important;
     /* slate-500 */
     font-weight: 500 !important;
