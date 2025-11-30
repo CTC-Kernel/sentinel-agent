@@ -1,4 +1,5 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const { logger } = require("firebase-functions");
 const express = require("express");
 const cors = require("cors");
 const admin = require("firebase-admin");
@@ -30,30 +31,9 @@ app.post("/v1/consent/log", async (req, res) => {
 
         res.json({ success: true, message: "Consent logged" });
     } catch (error) {
-        console.error("Error logging consent:", error);
+        logger.error("Error logging consent:", error);
         res.status(500).json({ success: false, error: error.message });
     }
-});
-
-// Secure Storage Placeholders (Mock implementation for now)
-app.post("/v1/secure-storage/store", (req, res) => {
-    res.json({ success: true, message: "Data securely stored (mock)" });
-});
-
-app.get("/v1/secure-storage/:type/:id", (req, res) => {
-    res.json({ success: true, data: { mock: "data" } });
-});
-
-app.delete("/v1/secure-storage/:type/:id", (req, res) => {
-    res.json({ success: true, message: "Data deleted (mock)" });
-});
-
-app.delete("/v1/secure-storage/organization/wipe", (req, res) => {
-    res.json({ success: true, message: "Organization data wiped (mock)" });
-});
-
-app.get("/v1/secure-storage/organization/export", (req, res) => {
-    res.json({ success: true, data: { export: "complete" } });
 });
 
 // Audit Log
@@ -65,20 +45,9 @@ app.post("/v1/audit/log", async (req, res) => {
         });
         res.json({ success: true, message: "Event logged" });
     } catch (error) {
-        console.error("Error logging audit event:", error);
+        logger.error("Error logging audit event:", error);
         res.status(500).json({ success: false, error: error.message });
     }
-});
-
-// Report Generation
-app.post("/v1/hybrid-features/generate-report", (req, res) => {
-    // In a real app, this would generate a PDF
-    res.status(501).json({ success: false, message: "Report generation not implemented yet" });
-});
-
-// Risk Analysis
-app.post("/v1/hybrid-features/analyze-risks", (req, res) => {
-    res.json({ success: true, message: "Risk analysis started" });
 });
 
 // Expose Express API as a single Cloud Function:
