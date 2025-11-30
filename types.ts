@@ -51,6 +51,7 @@ export interface Risk {
   residualProbability?: 1 | 2 | 3 | 4 | 5;
   residualImpact?: 1 | 2 | 3 | 4 | 5;
   residualScore?: number;
+  mitreTechniques?: { id: string; name: string; description: string; }[];
   previousScore?: number;
   strategy: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
   status: 'Ouvert' | 'En cours' | 'Fermé';
@@ -114,7 +115,7 @@ export interface Document {
   workflowStatus?: 'Draft' | 'Review' | 'Approved' | 'Rejected';
   reviewers?: string[];
   approvers?: string[];
-  signatures?: Array<{ userId: string, date: string, role: string }>;
+  signatures?: Array<{ userId: string, date: string, role: string, signatureImage?: string }>;
   url?: string;
   owner: string;
   ownerId?: string;
@@ -125,6 +126,10 @@ export interface Document {
   relatedControlIds?: string[];
   relatedAssetIds?: string[];
   relatedAuditIds?: string[];
+  // Security & Integrity
+  isSecure?: boolean;
+  hash?: string; // SHA-256
+  watermarkEnabled?: boolean;
 }
 
 export interface Audit {
@@ -136,6 +141,7 @@ export interface Audit {
   dateScheduled: string;
   status: 'Planifié' | 'En cours' | 'Terminé' | 'Validé';
   findingsCount: number;
+  scope?: string;
   relatedAssetIds?: string[];
   relatedRiskIds?: string[];
   relatedProjectIds?: string[];
@@ -186,6 +192,10 @@ export interface RiskHistory {
   newProbability?: number;
   previousImpact?: number;
   newImpact?: number;
+  residualProbability?: number;
+  residualImpact?: number;
+  residualScore?: number;
+  mitreTechniques?: { id: string; name: string; description: string; }[];
   changedBy: string;
   reason?: string;
 }
@@ -499,6 +509,10 @@ export interface UserProfile {
   theme?: 'light' | 'dark';
   isPending?: boolean;
   createdAt?: string;
+  geminiApiKey?: string;
+  shodanApiKey?: string;
+  hibpApiKey?: string;
+  safeBrowsingApiKey?: string;
 }
 
 export interface Invitation {

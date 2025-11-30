@@ -24,6 +24,7 @@ import { useFirestoreCollection } from '../hooks/useFirestore';
 import { canEditResource, hasPermission } from '../utils/permissions';
 import { aiService } from '../services/aiService';
 import { hybridService } from '../services/hybridService';
+import { integrationService } from '../services/integrationService';
 
 export const Incidents: React.FC = () => {
     const { user, addToast } = useStore();
@@ -72,6 +73,11 @@ export const Incidents: React.FC = () => {
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [inspectorTab, setInspectorTab] = useState<'details' | 'playbook' | 'timeline' | 'ai'>('details');
+
+    // Threat Intel State
+    const [urlToCheck, setUrlToCheck] = useState('');
+    const [urlReputationResult, setUrlReputationResult] = useState<{ safe: boolean; threatType?: string } | null>(null);
+    const [checkingUrl, setCheckingUrl] = useState(false);
 
     // AI State
     const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
@@ -394,6 +400,79 @@ export const Incidents: React.FC = () => {
                                                         </div>
                                                     </div>
                                                 )}
+                                            </div>
+
+                                            {/* Threat Intelligence Section */}
+                                            <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center">
+                                                    <ShieldAlert className="h-4 w-4 mr-2" />
+                                                    Threat Intelligence (Google Safe Browsing)
+                                                </h4>
+
+                                                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-white/5">
+                                                    {!user?.safeBrowsingApiKey ? (
+                                                        <div className="text-sm text-amber-600 dark:text-amber-400 flex items-center">
+                                                            <ShieldAlert className="h-4 w-4 mr-2" />
+                                                            Veuillez configurer votre clé API Google Safe Browsing dans les paramètres pour utiliser cette fonctionnalité.
+                                                        </div>
+                                                    ) : (
+                                                        <div className="space-y-4">
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    type="url"
+                                                                    placeholder="Entrez une URL suspecte (ex: http://malware.site)..."
+                                                                    className="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm outline-none focus:ring-2 focus:ring-brand-500"
+                                                                    value={urlToCheck}
+                                                                    onChange={(e) => setUrlToCheck(e.target.value)}
+                                                                />
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        if (!urlToCheck) return;
+                                                                        setCheckingUrl(true);
+                                                                        setUrlReputationResult(null);
+                                                                        try {
+                                                                            const result = await integrationService.checkUrlReputation(urlToCheck, user.safeBrowsingApiKey!);
+                                                                            setUrlReputationResult(result);
+                                                                        } catch (err) {
+                                                                            ErrorLogger.handleErrorWithToast(err, 'Incidents.checkUrl');
+                                                                        } finally {
+                                                                            setCheckingUrl(false);
+                                                                        }
+                                                                    }}
+                                                                    disabled={checkingUrl || !urlToCheck}
+                                                                    className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                                                                >
+                                                                    {checkingUrl ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Analyser'}
+                                                                </button>
+                                                            </div>
+
+                                                            {urlReputationResult && (
+                                                                <div className={`p-3 rounded-lg border flex items-center gap-3 ${urlReputationResult.safe
+                                                                        ? 'bg-emerald-50 border-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-900/30 dark:text-emerald-400'
+                                                                        : 'bg-red-50 border-red-100 text-red-700 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400'
+                                                                    }`}>
+                                                                    {urlReputationResult.safe ? (
+                                                                        <>
+                                                                            <ShieldAlert className="h-5 w-5" />
+                                                                            <div>
+                                                                                <p className="font-bold text-sm">URL Sûre</p>
+                                                                                <p className="text-xs opacity-80">Aucune menace détectée par Google Safe Browsing.</p>
+                                                                            </div>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <ShieldAlert className="h-5 w-5" />
+                                                                            <div>
+                                                                                <p className="font-bold text-sm">URL Malveillante !</p>
+                                                                                <p className="text-xs opacity-80">Type de menace : {urlReputationResult.threatType}</p>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             <div className="flex gap-3 pt-4">

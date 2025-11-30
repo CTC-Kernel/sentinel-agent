@@ -37,6 +37,7 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuditFormData, findingSchema, FindingFormData, auditSchema } from '../schemas/auditSchema';
 import { z } from 'zod';
+import { aiService } from '../services/aiService';
 
 export const Audits: React.FC = () => {
     const { user, addToast } = useStore();
@@ -509,107 +510,231 @@ export const Audits: React.FC = () => {
         doc.save('SoA.pdf');
     };
 
-    const generateAuditReport = () => {
+    const generateAuditReport = async () => {
         if (!selectedAudit) return;
-        const doc = new jsPDF();
+        addToast("Génération du rapport avec analyse IA...", "info");
 
-        // Title Header
-        doc.setFillColor(79, 70, 229); // Indigo
-        doc.rect(0, 0, 210, 40, 'F');
-        doc.setFontSize(18);
-        doc.setTextColor(255, 255, 255);
-        doc.text(`Rapport d'Audit: ${selectedAudit.name}`, 14, 25);
+        try {
+            const findings = selectedAudit.findings || [];
 
-        doc.setFontSize(10);
-        doc.setTextColor(220);
-        doc.text(`Auditeur: ${selectedAudit.auditor} | Date: ${new Date(selectedAudit.dateScheduled).toLocaleDateString()}`, 14, 33);
+            // Get related risks for context
+            const relatedRisks = rawRisks.filter(r => selectedAudit.relatedRiskIds?.includes(r.id));
 
-        // Stats Summary
-        const findings = selectedAudit.findings || [];
+            // Generate AI Summary
+            const summary = await aiService.generateAuditExecutiveSummary(
+                selectedAudit.name,
+                findings.map(f => ({ type: f.type, description: f.description, status: f.status })),
+                relatedRisks.map(r => ({ threat: r.threat, score: r.score }))
+            );
 
-        PdfService.generateCustomReport(
-            {
-                title: 'Rapport d\'Audit',
-                subtitle: `Audit: ${selectedAudit.name} | ${new Date().toLocaleDateString()}`,
-                filename: `Rapport_Audit_${selectedAudit.name}.pdf`
-            },
-            (doc, startY) => {
-                let y = startY;
+            PdfService.generateExecutiveReport(
+                {
+                    title: 'Rapport d\'Audit',
+                    subtitle: selectedAudit.name,
+                    filename: `Rapport_Audit_${selectedAudit.name.replace(/\s+/g, '_')}.pdf`,
+                    organizationName: user?.email?.split('@')[1] || 'Sentinel GRC', // Fallback
+                    author: selectedAudit.auditor,
+                    summary: summary
+                },
+                (doc, startY) => {
+                    let y = startY;
 
-                // Audit Details
-                doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
-                doc.text("Détails de l'Audit", 14, y);
-                y += 8;
+                    // Audit Details Section
+                    doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                    doc.text("1. Détails de l'Audit", 14, y);
+                    y += 8;
 
-                const details = [
-                    ['Auditeur', selectedAudit.auditor],
-                    ['Date', selectedAudit.dateScheduled ? new Date(selectedAudit.dateScheduled).toLocaleDateString() : 'Non planifié'],
-                    ['Statut', selectedAudit.status]
-                ];
+                    const details = [
+                        ['Auditeur', selectedAudit.auditor],
+                        ['Date Planifiée', selectedAudit.dateScheduled ? new Date(selectedAudit.dateScheduled).toLocaleDateString() : 'Non planifié'],
+                        ['Statut', selectedAudit.status],
+                        ['Périmètre', selectedAudit.scope || 'Non défini']
+                    ];
 
-                (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
-                    startY: y,
-                    body: details,
-                    theme: 'plain',
-                    styles: { fontSize: 10, cellPadding: 2 },
-                    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
-                });
+                    (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                        startY: y,
+                        body: details,
+                        theme: 'plain',
+                        styles: { fontSize: 10, cellPadding: 2 },
+                        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
+                    });
 
-                y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+                    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
 
-                // Findings
-                doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
-                doc.text("Constats d'Audit", 14, y);
-                y += 8;
+                    // Findings Section
+                    doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                    doc.text("2. Constats d'Audit", 14, y);
+                    y += 8;
 
-                const findingsData = findings.map(f => [f.type, f.description, f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-', f.status]) || [];
-                (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
-                    startY: y,
-                    head: [['Type', 'Description', 'Contrôle', 'Statut']],
-                    body: findingsData,
-                    theme: 'striped',
-                    headStyles: { fillColor: [79, 70, 229] }
-                });
-            }
-        );
+                    if (findings.length > 0) {
+                        const findingsData = findings.map(f => [
+                            f.type,
+                            f.description,
+                            f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-',
+                            f.status
+                        ]);
+
+                        (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                            startY: y,
+                            head: [['Type', 'Description', 'Contrôle', 'Statut']],
+                            body: findingsData,
+                            theme: 'striped',
+                            headStyles: { fillColor: [79, 70, 229] },
+                            styles: { fontSize: 9 }
+                        });
+                        y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+                    } else {
+                        doc.setFontSize(10); doc.setTextColor(100); doc.setFont('helvetica', 'italic');
+                        doc.text("Aucun constat enregistré.", 14, y);
+                        y += 15;
+                    }
+
+                    // Related Risks Section (if any)
+                    if (relatedRisks.length > 0) {
+                        doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                        doc.text("3. Risques Associés", 14, y);
+                        y += 8;
+
+                        const risksData = relatedRisks.map(r => [
+                            r.threat,
+                            r.score.toString(),
+                            r.status
+                        ]);
+
+                        (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                            startY: y,
+                            head: [['Menace', 'Score', 'Statut']],
+                            body: risksData,
+                            theme: 'grid',
+                            headStyles: { fillColor: [220, 38, 38] }, // Red for risks
+                            styles: { fontSize: 9 }
+                        });
+                    }
+                }
+            );
+            addToast("Rapport généré avec succès", "success");
+        } catch (error) {
+            ErrorLogger.error(error, 'Audits.generateAuditReport');
+            addToast("Erreur lors de la génération du rapport", "error");
+        }
     };
 
     const generateAuditPlan = () => {
         if (!selectedAudit) return;
 
-        PdfService.generateCustomReport(
+        PdfService.generateExecutiveReport(
             {
                 title: 'Plan d\'Audit',
-                subtitle: `Audit: ${selectedAudit.name} | ${new Date().toLocaleDateString()}`,
-                filename: `Plan_Audit_${selectedAudit.name}.pdf`
+                subtitle: selectedAudit.name,
+                filename: `Plan_Audit_${selectedAudit.name.replace(/\s+/g, '_')}.pdf`,
+                organizationName: user?.email?.split('@')[1] || 'Sentinel GRC',
+                author: selectedAudit.auditor
             },
             (doc, startY) => {
                 let y = startY;
 
-                doc.setFontSize(12); doc.text(`Objectif: Vérifier la conformité ISO 27001`, 14, y);
-                y += 10;
-                doc.text(`Auditeur: ${selectedAudit.auditor}`, 14, y);
-                y += 10;
-                doc.text(`Date: ${selectedAudit.dateScheduled}`, 14, y);
+                // 1. Objectifs & Périmètre
+                doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                doc.text("1. Objectifs et Périmètre", 14, y);
+                y += 8;
+
+                doc.setFontSize(10); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal');
+                doc.text(`Objectif Principal: Vérifier la conformité et l'efficacité des contrôles.`, 14, y);
+                y += 6;
+
+                if (selectedAudit.scope) {
+                    doc.setFont('helvetica', 'bold');
+                    doc.text("Périmètre:", 14, y);
+                    y += 5;
+                    doc.setFont('helvetica', 'normal');
+                    const splitScope = doc.splitTextToSize(selectedAudit.scope, 180);
+                    doc.text(splitScope, 14, y);
+                    y += (splitScope.length * 5) + 5;
+                } else {
+                    y += 5;
+                }
+
+                // 2. Référentiel (Contrôles)
+                if (selectedAudit.relatedControlIds && selectedAudit.relatedControlIds.length > 0) {
+                    doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                    doc.text("2. Référentiel et Critères d'Audit", 14, y);
+                    y += 8;
+
+                    const relatedControls = controls.filter(c => selectedAudit.relatedControlIds?.includes(c.id));
+                    const controlsData = relatedControls.map(c => [c.code, c.name]);
+
+                    (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                        startY: y,
+                        head: [['Code', 'Contrôle']],
+                        body: controlsData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [79, 70, 229] },
+                        styles: { fontSize: 9 },
+                        columnStyles: { 0: { cellWidth: 30, fontStyle: 'bold' } }
+                    });
+
+                    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+                }
+
+                // 3. Logistique
+                doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                doc.text("3. Logistique", 14, y);
+                y += 8;
+
+                const logistics = [
+                    ['Date', selectedAudit.dateScheduled ? new Date(selectedAudit.dateScheduled).toLocaleDateString() : 'TBD'],
+                    ['Auditeur Principal', selectedAudit.auditor],
+                    ['Type d\'Audit', selectedAudit.type]
+                ];
+
+                (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                    startY: y,
+                    body: logistics,
+                    theme: 'plain',
+                    styles: { fontSize: 10, cellPadding: 2 },
+                    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
+                });
             }
         );
     };
 
     const generateNonConformityReport = () => {
         if (!selectedAudit || !findings) return;
-        const nc = findings.filter(f => f.type === 'Majeure' || f.type === 'Mineure'); // Assuming 'Majeure' and 'Mineure' are non-conformities
+        const nc = findings.filter(f => f.type === 'Majeure' || f.type === 'Mineure');
         if (nc.length === 0) { addToast("Aucune non-conformité à exporter", "info"); return; }
 
-        const rows = nc.map(f => [f.type, f.description, f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-', f.status]);
-
-        PdfService.generateTableReport(
+        PdfService.generateExecutiveReport(
             {
-                title: 'Rapport de Non-Conformités',
-                subtitle: `Audit: ${selectedAudit.name} | ${new Date().toLocaleDateString()}`,
-                filename: `NC_Report_${selectedAudit.name}.pdf`
+                title: 'Rapport de Non-Conformité',
+                subtitle: selectedAudit.name,
+                filename: `Non_Conformites_${selectedAudit.name.replace(/\s+/g, '_')}.pdf`,
+                organizationName: user?.email?.split('@')[1] || 'Sentinel GRC',
+                author: selectedAudit.auditor,
+                summary: `Ce rapport liste les ${nc.length} non-conformités identifiées lors de l'audit "${selectedAudit.name}". Une attention immédiate est requise pour les non-conformités majeures.`
             },
-            ['Type', 'Description', 'Contrôle', 'Statut'],
-            rows
+            (doc, startY) => {
+                let y = startY;
+
+                doc.setFontSize(14); doc.setTextColor(220, 38, 38); doc.setFont('helvetica', 'bold');
+                doc.text("Liste des Non-Conformités", 14, y);
+                y += 8;
+
+                const rows = nc.map(f => [
+                    f.type,
+                    f.description,
+                    f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-',
+                    f.status
+                ]);
+
+                (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                    startY: y,
+                    head: [['Type', 'Description', 'Contrôle', 'Statut']],
+                    body: rows,
+                    theme: 'striped',
+                    headStyles: { fillColor: [220, 38, 38] }, // Red for alerts
+                    styles: { fontSize: 9 }
+                });
+            }
         );
     };
 

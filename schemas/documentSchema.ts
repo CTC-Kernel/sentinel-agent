@@ -12,11 +12,14 @@ export const documentSchema = z.object({
     readBy: z.array(z.string()).optional(),
     reviewers: z.array(z.string()).optional(),
     approvers: z.array(z.string()).optional(),
-    signatures: z.array(z.object({ userId: z.string(), date: z.string(), role: z.string() })).optional(),
+    signatures: z.array(z.object({ userId: z.string(), date: z.string(), role: z.string(), signatureImage: z.string().optional() })).optional(),
     relatedControlIds: z.array(z.string()).optional(),
     relatedAssetIds: z.array(z.string()).optional(),
     relatedAuditIds: z.array(z.string()).optional(),
-    url: z.string().optional()
+    url: z.string().optional(),
+    isSecure: z.boolean().optional(),
+    hash: z.string().optional(),
+    watermarkEnabled: z.boolean().optional()
 });
 
 export type DocumentFormData = z.infer<typeof documentSchema>;

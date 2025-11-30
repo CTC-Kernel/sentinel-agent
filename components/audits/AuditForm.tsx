@@ -39,6 +39,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             auditor: '',
             dateScheduled: new Date().toISOString().split('T')[0],
             status: 'Planifié',
+            scope: '',
             relatedAssetIds: [],
             relatedRiskIds: [],
 
@@ -55,6 +56,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 auditor: existingAudit.auditor,
                 dateScheduled: existingAudit.dateScheduled,
                 status: existingAudit.status,
+                scope: existingAudit.scope || '',
                 relatedAssetIds: existingAudit.relatedAssetIds || [],
                 relatedRiskIds: existingAudit.relatedRiskIds || [],
 
@@ -68,6 +70,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 auditor: initialData?.auditor || '',
                 dateScheduled: initialData?.dateScheduled || new Date().toISOString().split('T')[0],
                 status: initialData?.status || 'Planifié',
+                scope: initialData?.scope || '',
                 relatedAssetIds: initialData?.relatedAssetIds || [],
                 relatedRiskIds: initialData?.relatedRiskIds || [],
 
@@ -112,6 +115,11 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                         />
                     )}
                 />
+            </div>
+            <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description du Périmètre</label>
+                <textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium min-h-[100px]"
+                    {...register('scope')} placeholder="Décrivez le périmètre de l'audit (ex: Tous les serveurs de production, Processus RH...)" />
             </div>
             <div className="space-y-4">
                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Périmètre</label>

@@ -15,6 +15,8 @@ export interface FileMetadata {
     uploadedBy: string;
     uploadedAt: string;
     organizationId: string;
+    hash?: string;
+    isSecure?: string; // Metadata values must be strings
 }
 
 /**
@@ -39,6 +41,8 @@ export const uploadFile = async (
             name: metadata?.name || file.name,
             size: String(metadata?.size || file.size),
             type: metadata?.type || file.type,
+            hash: metadata?.hash || '',
+            isSecure: metadata?.isSecure || 'false',
         };
 
         const uploadTask = uploadBytesResumable(storageRef, file, {

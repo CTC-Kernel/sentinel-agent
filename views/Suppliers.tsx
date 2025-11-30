@@ -615,7 +615,6 @@ export const Suppliers: React.FC = () => {
                                             processes={processesRaw}
                                             assets={assetsRaw}
                                             risks={risksRaw}
-                                            projects={projectsRaw}
                                             documents={documentsRaw}
                                         />
                                     ) : (
@@ -849,7 +848,6 @@ export const Suppliers: React.FC = () => {
                         processes={processesRaw}
                         assets={assetsRaw}
                         risks={risksRaw}
-                        projects={projectsRaw}
                         documents={documentsRaw}
                     />
                 </div>
