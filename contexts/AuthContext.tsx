@@ -67,11 +67,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     await refreshUserTokenFn();
                     // Re-rafraîchir après l'appel de la fonction
                     await auth.currentUser.getIdToken(true);
-                } catch (_e) {
+                } catch (e) {
                     console.warn('Failed to refresh custom claims via Cloud Function', e);
                 }
             }
-        } catch (_err) {
+        } catch (err) {
             ErrorLogger.error(err, 'AuthContext.refreshSession');
             setError(err as Error);
         }
@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setFirebaseUser(null);
             // Nettoyer le stockage local si nécessaire
             localStorage.removeItem('last_org_id');
-        } catch (_err) {
+        } catch (err) {
             ErrorLogger.error(err, 'AuthContext.logout');
             throw err;
         }
@@ -156,9 +156,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 updateDoc(userRef, {
                     lastLogin: new Date().toISOString(),
                     lastActive: serverTimestamp()
-                }).catch((e: any) => {
+                }).catch((e: unknown) => {
                     // Ignore "not found" errors as the profile might not exist yet (will be created below)
-                    if (e.code !== 'not-found') {
+                    const err = e as { code?: string };
+                    if (err.code !== 'not-found') {
                         console.warn("Failed to update lastLogin", e);
                     }
                 });
@@ -243,7 +244,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             setUser(initialData as UserProfile);
                             setLoading(false);
 
-                        } catch (_err) {
+                        } catch (err) {
                             ErrorLogger.error(err, 'AuthContext.createUserProfile');
                             setError(err as Error);
                             setLoading(false); // Débloquer même en cas d'erreur pour afficher l'erreur
@@ -275,7 +276,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setLoading(false);
                 });
 
-            } catch (_err) {
+            } catch (err) {
                 ErrorLogger.error(err, 'AuthContext.handleUser');
                 setError(err as Error);
                 setLoading(false);
@@ -302,7 +303,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
         };
-    }, [setUser, setTheme]);
+    }, [setUser, setTheme, logout]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const value = {
         user: useStore.getState().user, // On lit depuis le store pour être synchro

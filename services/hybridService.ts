@@ -8,7 +8,7 @@ interface HybridRequestOptions extends RequestInit {
     requiresAuth?: boolean;
 }
 
-interface HybridResponse<T = any> {
+interface HybridResponse<T = unknown> {
     success: boolean;
     data?: T;
     error?: string;
@@ -59,16 +59,17 @@ class HybridService {
 
             const data = await response.json();
             return { success: true, data };
-        } catch (error: any) {
+        } catch (error) {
             ErrorLogger.error(error, 'HybridService.request');
-            return { success: false, error: error.message || 'Unknown error occurred' };
+            const message = error instanceof Error ? error.message : 'Unknown error occurred';
+            return { success: false, error: message };
         }
     }
 
     /**
      * Securely store data in the OVH backend
      */
-    async storeSecureData(dataType: string, payload: any): Promise<HybridResponse> {
+    async storeSecureData(dataType: string, payload: unknown): Promise<HybridResponse> {
         return this.request('/secure-storage/store', {
             method: 'POST',
             body: JSON.stringify({ type: dataType, data: payload }),
@@ -87,7 +88,7 @@ class HybridService {
     /**
      * Log a critical audit event to the SecNumCloud immutable log
      */
-    async logCriticalEvent(event: any): Promise<HybridResponse> {
+    async logCriticalEvent(event: unknown): Promise<HybridResponse> {
         return this.request('/audit/log', {
             method: 'POST',
             body: JSON.stringify(event),
@@ -152,7 +153,7 @@ class HybridService {
 
             if (!response.ok) throw new Error('Report generation failed');
             return await response.blob();
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'HybridService.generateReport');
             return null;
         }

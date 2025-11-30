@@ -11,7 +11,7 @@ interface RiskAIAssistantProps {
 
 export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate }) => {
     const [loading, setLoading] = useState(false);
-    const [response, setResponse] = useState<any | null>(null);
+    const [response, setResponse] = useState<Record<string, unknown> | null>(null);
     const [mode, setMode] = useState<'analyze' | 'mitigate' | 'improve' | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -74,12 +74,12 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                     // Fallback for non-JSON response (should not happen with good prompt)
                     setResponse({ text: resultText });
                 }
-            } catch (_e) {
+            } catch (e) {
                 ErrorLogger.warn("Failed to parse AI response", 'RiskAIAssistant.handleAction', { metadata: { error: e } });
                 setResponse({ text: resultText });
             }
 
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'RiskAIAssistant.handleAction', 'AI_ERROR');
             setError("Désolé, une erreur est survenue lors de l'analyse.");
         } finally {
@@ -90,14 +90,14 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
     const handleApply = () => {
         if (!onUpdate || !response) return;
 
-        if (mode === 'analyze' && response.probability && response.impact) {
+        if (mode === 'analyze' && typeof response.probability === 'number' && typeof response.impact === 'number') {
             onUpdate({
-                probability: response.probability,
-                impact: response.impact,
+                probability: response.probability as 1 | 2 | 3 | 4 | 5,
+                impact: response.impact as 1 | 2 | 3 | 4 | 5,
                 // @ts-expect-error - justification is not in Risk type but we pass it for the handler
-                justification: response.justification
+                justification: response.justification as string
             });
-        } else if (mode === 'improve' && response.threat && response.vulnerability) {
+        } else if (mode === 'improve' && typeof response.threat === 'string' && typeof response.vulnerability === 'string') {
             onUpdate({
                 threat: response.threat,
                 vulnerability: response.vulnerability
@@ -163,25 +163,25 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                     </div>
 
                     <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                        {mode === 'analyze' && response.probability && (
+                        {mode === 'analyze' && typeof response.probability === 'number' && typeof response.impact === 'number' && (
                             <div>
                                 <p><strong>Probabilité suggérée :</strong> {response.probability}/5</p>
                                 <p><strong>Impact suggéré :</strong> {response.impact}/5</p>
-                                <p className="mt-2"><em>{response.justification}</em></p>
+                                <p className="mt-2"><em>{String(response.justification)}</em></p>
                             </div>
                         )}
-                        {mode === 'mitigate' && response.measures && (
+                        {mode === 'mitigate' && Array.isArray(response.measures) && (
                             <ul className="list-disc pl-4 space-y-1">
-                                {response.measures.map((m: string, i: number) => <li key={i}>{m}</li>)}
+                                {response.measures.map((m: unknown, i: number) => <li key={i}>{String(m)}</li>)}
                             </ul>
                         )}
-                        {mode === 'improve' && response.threat && (
+                        {mode === 'improve' && typeof response.threat === 'string' && (
                             <div>
                                 <p><strong>Nouvelle Menace :</strong> {response.threat}</p>
-                                <p><strong>Nouvelle Vulnérabilité :</strong> {response.vulnerability}</p>
+                                <p><strong>Nouvelle Vulnérabilité :</strong> {String(response.vulnerability)}</p>
                             </div>
                         )}
-                        {response.text && <p>{response.text}</p>}
+                        {typeof response.text === 'string' && <p>{response.text}</p>}
                     </div>
 
                     {onUpdate && mode !== 'mitigate' && !response.text && (
@@ -199,7 +199,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
     );
 };
 
-function X(props: any) {
+function X(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             {...props}

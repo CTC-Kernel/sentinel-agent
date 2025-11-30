@@ -10,24 +10,27 @@ export interface ValidationError {
  */
 export const validateAsset = (asset: Partial<Asset>): ValidationError[] => {
     const errors: ValidationError[] = [];
-    const a = asset as any; // Type assertion for partial validation
 
     if (!asset.name?.trim()) {
         errors.push({ field: 'name', message: 'Le nom est requis' });
-    } else if (asset.name.length < 3) {
+    } else if ((asset.name?.length || 0) < 3) {
         errors.push({ field: 'name', message: 'Le nom doit contenir au moins 3 caractères' });
     }
 
-    if (!a.category) {
-        errors.push({ field: 'category', message: 'La catégorie est requise' });
+    if (!asset.type) {
+        errors.push({ field: 'type', message: 'Le type est requis' });
     }
 
-    if (!a.criticality) {
-        errors.push({ field: 'criticality', message: 'La criticité est requise' });
+    if (!asset.confidentiality) {
+        errors.push({ field: 'confidentiality', message: 'La confidentialité est requise' });
     }
 
-    if (a.value !== undefined && a.value < 0) {
-        errors.push({ field: 'value', message: 'La valeur ne peut pas être négative' });
+    if (!asset.integrity) {
+        errors.push({ field: 'integrity', message: 'L\'intégrité est requise' });
+    }
+
+    if (!asset.availability) {
+        errors.push({ field: 'availability', message: 'La disponibilité est requise' });
     }
 
     return errors;
@@ -38,21 +41,16 @@ export const validateAsset = (asset: Partial<Asset>): ValidationError[] => {
  */
 export const validateRisk = (risk: Partial<Risk>): ValidationError[] => {
     const errors: ValidationError[] = [];
-    const r = risk as any;
 
-    if (!r.threat?.trim()) {
+    if (!risk.threat?.trim()) {
         errors.push({ field: 'threat', message: 'La menace est requise' });
     }
 
-    if (!r.category) {
-        errors.push({ field: 'category', message: 'La catégorie est requise' });
-    }
-
-    if (r.probability !== undefined && (r.probability < 1 || r.probability > 5)) {
+    if (risk.probability !== undefined && (risk.probability < 1 || risk.probability > 5)) {
         errors.push({ field: 'probability', message: 'La probabilité doit être entre 1 et 5' });
     }
 
-    if (r.impact !== undefined && (r.impact < 1 || r.impact > 5)) {
+    if (risk.impact !== undefined && (risk.impact < 1 || risk.impact > 5)) {
         errors.push({ field: 'impact', message: "L'impact doit être entre 1 et 5" });
     }
     return errors;
@@ -63,31 +61,23 @@ export const validateRisk = (risk: Partial<Risk>): ValidationError[] => {
  */
 export const validateProject = (project: Partial<Project>): ValidationError[] => {
     const errors: ValidationError[] = [];
-    const p = project as any;
 
-    if (!p.name?.trim()) {
+    if (!project.name?.trim()) {
         errors.push({ field: 'name', message: 'Le nom est requis' });
     }
 
-    if (!p.status) {
+    if (!project.status) {
         errors.push({ field: 'status', message: 'Le statut est requis' });
     }
 
-    if (!p.priority) {
-        errors.push({ field: 'priority', message: 'La priorité est requise' });
-    }
-
-    if (p.startDate && p.endDate) {
-        const start = new Date(p.startDate);
-        const end = new Date(p.endDate);
+    if (project.startDate && project.dueDate) {
+        const start = new Date(project.startDate);
+        const end = new Date(project.dueDate);
         if (end < start) {
-            errors.push({ field: 'endDate', message: 'La date de fin doit être après la date de début' });
+            errors.push({ field: 'dueDate', message: 'La date de fin doit être après la date de début' });
         }
     }
 
-    if (p.budget !== undefined && p.budget < 0) {
-        errors.push({ field: 'budget', message: 'Le budget ne peut pas être négatif' });
-    }
     return errors;
 };
 
@@ -96,25 +86,20 @@ export const validateProject = (project: Partial<Project>): ValidationError[] =>
  */
 export const validateAudit = (audit: Partial<Audit>): ValidationError[] => {
     const errors: ValidationError[] = [];
-    const a = audit as any;
 
-    if (!a.name?.trim()) {
+    if (!audit.name?.trim()) {
         errors.push({ field: 'name', message: 'Le nom est requis' });
     }
 
-    if (!a.type) {
+    if (!audit.type) {
         errors.push({ field: 'type', message: 'Le type est requis' });
     }
 
-    if (!a.scope?.trim()) {
-        errors.push({ field: 'scope', message: 'Le périmètre est requis' });
+    if (!audit.dateScheduled) {
+        errors.push({ field: 'dateScheduled', message: 'La date est requise' });
     }
 
-    if (!a.scheduledDate) {
-        errors.push({ field: 'scheduledDate', message: 'La date est requise' });
-    }
-
-    if (!a.auditor?.trim()) {
+    if (!audit.auditor?.trim()) {
         errors.push({ field: 'auditor', message: "L'auditeur est requis" });
     }
 
@@ -126,25 +111,20 @@ export const validateAudit = (audit: Partial<Audit>): ValidationError[] => {
  */
 export const validateDocument = (document: Partial<Document>): ValidationError[] => {
     const errors: ValidationError[] = [];
-    const d = document as any;
 
-    if (!d.title?.trim()) {
+    if (!document.title?.trim()) {
         errors.push({ field: 'title', message: 'Le titre est requis' });
     }
 
-    if (!d.type) {
+    if (!document.type) {
         errors.push({ field: 'type', message: 'Le type est requis' });
     }
 
-    if (!d.category) {
-        errors.push({ field: 'category', message: 'La catégorie est requise' });
-    }
-
-    if (d.reviewDate) {
-        const reviewDate = new Date(d.reviewDate);
+    if (document.nextReviewDate) {
+        const reviewDate = new Date(document.nextReviewDate);
         const today = new Date();
         if (reviewDate < today) {
-            errors.push({ field: 'reviewDate', message: 'La date de révision doit être dans le futur' });
+            errors.push({ field: 'nextReviewDate', message: 'La date de révision doit être dans le futur' });
         }
     }
 
@@ -156,26 +136,25 @@ export const validateDocument = (document: Partial<Document>): ValidationError[]
  */
 export const validateIncident = (incident: Partial<Incident>): ValidationError[] => {
     const errors: ValidationError[] = [];
-    const i = incident as any;
 
-    if (!i.title?.trim()) {
+    if (!incident.title?.trim()) {
         errors.push({ field: 'title', message: 'Le titre est requis' });
     }
 
-    if (!i.description?.trim()) {
+    if (!incident.description?.trim()) {
         errors.push({ field: 'description', message: 'La description est requise' });
     }
 
-    if (!i.severity) {
+    if (!incident.severity) {
         errors.push({ field: 'severity', message: 'La sévérité est requise' });
     }
 
-    if (!i.category) {
+    if (!incident.category) {
         errors.push({ field: 'category', message: 'La catégorie est requise' });
     }
 
-    if (!i.detectedDate) {
-        errors.push({ field: 'detectedDate', message: 'La date de détection est requise' });
+    if (!incident.dateReported) {
+        errors.push({ field: 'dateReported', message: 'La date de détection est requise' });
     }
 
     return errors;
@@ -186,26 +165,21 @@ export const validateIncident = (incident: Partial<Incident>): ValidationError[]
  */
 export const validateSupplier = (supplier: Partial<Supplier>): ValidationError[] => {
     const errors: ValidationError[] = [];
-    const s = supplier as any;
 
-    if (!s.name?.trim()) {
+    if (!supplier.name?.trim()) {
         errors.push({ field: 'name', message: 'Le nom est requis' });
     }
 
-    if (!s.category) {
+    if (!supplier.category) {
         errors.push({ field: 'category', message: 'La catégorie est requise' });
     }
 
-    if (!s.criticality) {
+    if (!supplier.criticality) {
         errors.push({ field: 'criticality', message: 'La criticité est requise' });
     }
 
-    if (s.email && !isValidEmail(s.email)) {
-        errors.push({ field: 'email', message: 'Email invalide' });
-    }
-
-    if (s.phone && !isValidPhone(s.phone)) {
-        errors.push({ field: 'phone', message: 'Numéro de téléphone invalide' });
+    if (supplier.contactEmail && !isValidEmail(supplier.contactEmail)) {
+        errors.push({ field: 'contactEmail', message: 'Email invalide' });
     }
 
     return errors;
@@ -252,7 +226,7 @@ export const isValidFutureDate = (date: string): boolean => {
 /**
  * Generic required field validator
  */
-export const validateRequired = (value: any, fieldName: string): ValidationError | null => {
+export const validateRequired = (value: unknown, fieldName: string): ValidationError | null => {
     if (value === undefined || value === null || value === '') {
         return { field: fieldName, message: `${fieldName} est requis` };
     }

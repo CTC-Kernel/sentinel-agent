@@ -7,23 +7,23 @@
  */
 export const sanitizeData = <T>(obj: T): T => {
     if (obj === null || obj === undefined) {
-        return null as any;
+        return null as T;
     }
 
     if (Array.isArray(obj)) {
-        return obj.map(item => sanitizeData(item)) as any;
+        return obj.map(item => sanitizeData(item)) as T;
     }
 
     if (typeof obj === 'object') {
         // Handle Date objects (keep them as is)
         if (obj instanceof Date) {
-            return obj as any;
+            return obj as T;
         }
 
-        const newObj: any = {};
+        const newObj: Record<string, unknown> = {};
         for (const key in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                const value = (obj as any)[key];
+                const value = (obj as Record<string, unknown>)[key];
                 if (value === undefined) {
                     newObj[key] = null;
                 } else {
@@ -31,7 +31,7 @@ export const sanitizeData = <T>(obj: T): T => {
                 }
             }
         }
-        return newObj;
+        return newObj as unknown as T;
     }
 
     return obj;

@@ -52,10 +52,10 @@ export const useStore = create<AppState>((set, get) => ({
   t: (path: string) => {
     const lang = get().language;
     const keys = path.split('.');
-    let value: any = translations[lang];
+    let value: Record<string, unknown> | string = translations[lang];
     for (const key of keys) {
-      if (value && value[key]) {
-        value = value[key];
+      if (value && typeof value === 'object' && key in value) {
+        value = (value as Record<string, unknown>)[key] as Record<string, unknown> | string;
       } else {
         return path;
       }

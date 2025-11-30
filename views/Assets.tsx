@@ -202,7 +202,7 @@ export const Assets: React.FC = () => {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             openInspector(asset);
         }
-    }, [location.state, loading, assets]);
+    }, [location.state, loading, assets]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleCreate = async (data: AssetFormData) => {
         if (!user?.organizationId) return;
@@ -326,7 +326,7 @@ export const Assets: React.FC = () => {
             refreshAssets();
             setSelectedAsset(null);
             addToast("Actif supprimé", "info");
-        } catch (_error) { ErrorLogger.handleErrorWithToast(error, 'Assets.handleDeleteAsset', 'DELETE_FAILED'); }
+        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Assets.handleDeleteAsset', 'DELETE_FAILED'); }
     };
 
     const handleExportCSV = () => {

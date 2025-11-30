@@ -62,14 +62,14 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
         return initial;
     });
 
-    const handleChange = (field: keyof RiskTreatment, value: any) => {
+    const handleChange = (field: keyof RiskTreatment, value: string | number) => {
         const updated = { ...treatment, [field]: value };
 
         // Recalculate SLA if relevant fields change
         if (field === 'dueDate' || field === 'status') {
             updated.slaStatus = calculateSLAStatus(
-                field === 'dueDate' ? value : treatment.dueDate,
-                field === 'status' ? value : (treatment.status || 'Planifié')
+                field === 'dueDate' ? String(value) : treatment.dueDate,
+                field === 'status' ? String(value) : (treatment.status || 'Planifié')
             );
         }
 

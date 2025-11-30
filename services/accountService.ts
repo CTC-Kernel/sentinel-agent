@@ -1,7 +1,7 @@
 import { collection, query, where, getDocs, deleteDoc, doc, writeBatch, collectionGroup } from 'firebase/firestore';
 import { deleteUser, User } from 'firebase/auth';
 import { db, storage } from '../firebase';
-import { ref, deleteObject, listAll } from 'firebase/storage';
+import { ref, deleteObject, listAll, StorageReference } from 'firebase/storage';
 import { UserProfile } from '../types';
 import { ErrorLogger } from './errorLogger';
 import { hybridService } from './hybridService';
@@ -50,8 +50,8 @@ export class AccountService {
         try {
           const photoRef = ref(storage, `avatars/${user.uid}`);
           await deleteObject(photoRef);
-        } catch (_e) {
-          ErrorLogger.error(e, 'AccountService.deleteAccount');
+        } catch (error) {
+          ErrorLogger.error(error, 'AccountService.deleteAccount');
         }
       }
 
@@ -67,14 +67,14 @@ export class AccountService {
             await deleteDoc(doc(db, 'organizations', user.organizationId));
 
           }
-        } catch (_e) {
-          ErrorLogger.error(e, 'AccountService.deleteAccount.deleteOrg');
+        } catch (error) {
+          ErrorLogger.error(error, 'AccountService.deleteAccount.deleteOrg');
         }
       }
 
       // 4. Delete Firebase Auth user
       await deleteUser(firebaseUser);
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'AccountService.deleteAccount');
       throw error;
     }
@@ -113,18 +113,18 @@ export class AccountService {
 
         const backupStorageRef = ref(storage, `backups/${organizationId}`);
         await this.deleteStorageFolder(backupStorageRef);
-      } catch (_e) {
-        ErrorLogger.error(e, 'AccountService.deleteOrganization.storageCleanup');
+      } catch (error) {
+        ErrorLogger.error(error, 'AccountService.deleteOrganization.storageCleanup');
       }
 
       // 6. Delete Secure Data (GDPR Right to Erasure - Backend)
       try {
         await hybridService.wipeOrganizationSecureData();
-      } catch (_e) {
-        ErrorLogger.error(e, 'AccountService.deleteOrganization.secureDataCleanup');
+      } catch (error) {
+        ErrorLogger.error(error, 'AccountService.deleteOrganization.secureDataCleanup');
       }
 
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'AccountService.deleteOrganization');
       throw error;
     }
@@ -176,7 +176,7 @@ export class AccountService {
     }
   }
 
-  private static async deleteStorageFolder(folderRef: any) {
+  private static async deleteStorageFolder(folderRef: StorageReference) {
     try {
       const list = await listAll(folderRef);
 
@@ -185,6 +185,7 @@ export class AccountService {
 
       // Recurse for subfolders
       await Promise.all(list.prefixes.map(prefix => this.deleteStorageFolder(prefix)));
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_error) {
       // Folder might not exist or permission denied
     }

@@ -14,7 +14,7 @@ export const Notifications: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const { user } = useStore();
 
-    const fetchNotifications = async () => {
+    const fetchNotifications = React.useCallback(async () => {
         if (!user?.uid) return;
         setLoading(true);
         try {
@@ -25,9 +25,9 @@ export const Notifications: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
 
-    useEffect(() => { fetchNotifications(); }, [user]);
+    useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
     const markAsRead = async (id: string) => {
         try {

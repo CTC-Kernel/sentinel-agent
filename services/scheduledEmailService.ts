@@ -1,4 +1,5 @@
 import { collection, getDocs, query, where } from 'firebase/firestore';
+import { UserProfile } from '../types';
 import { db } from '../firebase';
 import { sendEmail } from './emailService';
 import {
@@ -34,7 +35,7 @@ export const sendAuditReminders = async (organizationId: string) => {
         const usersSnap = await getDocs(
             query(collection(db, 'users'), where('organizationId', '==', organizationId))
         );
-        const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+        const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as unknown as UserProfile[];
 
         let sentCount = 0;
 
@@ -67,7 +68,7 @@ export const sendAuditReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch (_error) {
+    } catch (error) {
         return 0;
     }
 };
@@ -92,7 +93,7 @@ export const sendRiskTreatmentReminders = async (organizationId: string) => {
         const usersSnap = await getDocs(
             query(collection(db, 'users'), where('organizationId', '==', organizationId))
         );
-        const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+        const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as unknown as UserProfile[];
 
         let sentCount = 0;
 
@@ -125,7 +126,7 @@ export const sendRiskTreatmentReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch (_error) {
+    } catch (error) {
         return 0;
     }
 };
@@ -150,7 +151,7 @@ export const sendDocumentReviewReminders = async (organizationId: string) => {
         const usersSnap = await getDocs(
             query(collection(db, 'users'), where('organizationId', '==', organizationId))
         );
-        const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+        const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as unknown as UserProfile[];
 
         let sentCount = 0;
 
@@ -183,7 +184,7 @@ export const sendDocumentReviewReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch (_error) {
+    } catch (error) {
         return 0;
     }
 };
@@ -207,7 +208,7 @@ export const sendSupplierReviewReminders = async (organizationId: string) => {
         const usersSnap = await getDocs(
             query(collection(db, 'users'), where('organizationId', '==', organizationId), where('role', 'in', ['admin', 'rssi']))
         );
-        const admins = usersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+        const admins = usersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as unknown as UserProfile[];
 
         let sentCount = 0;
 
@@ -240,7 +241,7 @@ export const sendSupplierReviewReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch (_error) {
+    } catch (error) {
         return 0;
     }
 };
@@ -265,7 +266,7 @@ export const sendWeeklyDigest = async (organizationId: string) => {
         const risks = risksSnap.docs.map(d => d.data());
         const incidents = incidentsSnap.docs.map(d => d.data());
         const audits = auditsSnap.docs.map(d => d.data());
-        const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+        const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() })) as unknown as UserProfile[];
 
         const newRisks = risks.filter(r => new Date(r.createdAt) > oneWeekAgo).length;
         const newIncidents = incidents.filter(i => new Date(i.dateReported) > oneWeekAgo).length;
@@ -306,7 +307,7 @@ export const sendWeeklyDigest = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch (_error) {
+    } catch (error) {
         return 0;
     }
 };

@@ -110,8 +110,8 @@ export class PdfService {
     static generateTableReport(
         options: ReportOptions,
         columns: string[],
-        data: any[][],
-        columnStyles: any = {}
+        data: (string | number)[][],
+        columnStyles: Record<string, unknown> = {}
     ) {
         const doc = this.createDoc(options.orientation);
         const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
