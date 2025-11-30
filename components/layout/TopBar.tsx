@@ -41,7 +41,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
     const handleLogout = async () => {
         try {
             await signOut(auth);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'TopBar.handleLogout');
         }
     };
@@ -92,7 +92,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                             try {
                                 const newTheme = theme === 'light' ? 'dark' : 'light';
                                 await updateDoc(doc(db, 'users', user.uid), { theme: newTheme });
-                            } catch (_e) {
+                            } catch (e) {
                                 ErrorLogger.error(e, 'TopBar.toggleTheme');
                             }
                         }

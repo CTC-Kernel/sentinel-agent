@@ -92,7 +92,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             </label>
                             <select
                                 value={filters.type}
-                                onChange={(e) => updateFilter('type', e.target.value as any)}
+                                onChange={(e) => updateFilter('type', e.target.value as SearchFilters['type'])}
                                 className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                             >
                                 <option value="all">Tous les types</option>
@@ -168,7 +168,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             </label>
                             <select
                                 value={filters.criticality || ''}
-                                onChange={(e) => updateFilter('criticality', e.target.value as any)}
+                                onChange={(e) => updateFilter('criticality', e.target.value as SearchFilters['criticality'])}
                                 className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                             >
                                 <option value="">Toutes les criticités</option>

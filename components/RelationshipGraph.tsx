@@ -18,7 +18,7 @@ interface Node {
     label: string;
     x: number;
     y: number;
-    data?: any;
+    data?: Asset | Risk | Control;
 }
 
 interface Link {
@@ -107,7 +107,7 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
 
                 setNodes(newNodes);
                 setLinks(newLinks);
-            } catch (_e) {
+            } catch (e) {
                 ErrorLogger.error(e, 'RelationshipGraph.fetchData');
             } finally {
                 setLoading(false);

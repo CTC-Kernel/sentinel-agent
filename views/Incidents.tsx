@@ -83,7 +83,7 @@ export const Incidents: React.FC = () => {
         if (loading || incidents.length === 0) return;
         const incident = incidents.find(i => i.id === state.voxelSelectedId);
         if (incident) {
-             
+
             setSelectedIncident(incident);
         }
     }, [location.state, loading, incidents]);
@@ -117,13 +117,14 @@ export const Incidents: React.FC = () => {
             await NotificationService.notifyNewIncident({
                 id: docRef.id,
                 ...incidentData,
+                dateReported: new Date().toISOString(),
                 organizationId: user.organizationId,
                 reporter: user.displayName || 'Utilisateur'
             });
 
             addToast("Incident déclaré (Alerte envoyée)", "success");
             setCreationMode(false);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.handleCreate', 'CREATE_FAILED');
         }
     };
@@ -155,7 +156,7 @@ export const Incidents: React.FC = () => {
             addToast("Incident mis à jour", "success");
             setSelectedIncident({ ...selectedIncident, ...incidentData } as Incident);
             setIsEditing(false);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.handleUpdate', 'UPDATE_FAILED');
         }
     };
@@ -175,8 +176,8 @@ export const Incidents: React.FC = () => {
 
             if (selectedIncident?.id === id) setSelectedIncident(null);
             addToast("Incident supprimé", "info");
-        } catch (_error) {
-            addToast("Erreur suppression", "error");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Incidents.handleDelete', 'DELETE_FAILED');
         }
     };
 
@@ -217,7 +218,7 @@ export const Incidents: React.FC = () => {
             `;
             const response = await aiService.chatWithAI(prompt);
             setAiAnalysis(response);
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.analyze', 'UNKNOWN_ERROR');
         } finally {
             setAnalyzing(false);
@@ -381,7 +382,7 @@ export const Incidents: React.FC = () => {
                                                         });
                                                         setSelectedIncident({ ...selectedIncident, playbookStepsCompleted: newSteps });
                                                         addToast("Playbook mis à jour", "success");
-                                                    } catch (_error) {
+                                                    } catch (error) {
                                                         ErrorLogger.handleErrorWithToast(error, 'Incidents.togglePlaybookStep', 'UPDATE_FAILED');
                                                     }
                                                 }}

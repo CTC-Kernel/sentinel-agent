@@ -30,7 +30,8 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
 }) => {
     const { addToast } = useStore();
     const { register, handleSubmit, setValue, watch, getValues, formState: { errors } } = useForm<IncidentFormData>({
-        resolver: zodResolver(incidentSchema),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        resolver: zodResolver(incidentSchema) as any,
         defaultValues: {
             title: '',
             description: '',

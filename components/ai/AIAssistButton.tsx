@@ -5,7 +5,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 
 interface AIAssistButtonProps {
-    context: any;
+    context: Record<string, unknown>;
     fieldName: string;
     onSuggest: (value: string) => void;
     prompt?: string;
@@ -39,7 +39,7 @@ export const AIAssistButton: React.FC<AIAssistButtonProps> = ({ context, fieldNa
             } else {
                 addToast("Je n'ai pas trouvé de suggestion pertinente.", "info");
             }
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'AIAssistButton.handleSuggest');
             addToast("Erreur lors de la génération.", "error");
         } finally {

@@ -6,9 +6,9 @@ import { useStore } from '../../store';
 interface CSVImportProps {
     title: string;
     fields: { key: string; label: string; required?: boolean; type?: 'string' | 'number' | 'date' | 'email' }[];
-    onImport: (data: any[]) => Promise<void>;
+    onImport: (data: Record<string, unknown>[]) => Promise<void>;
     onClose: () => void;
-    templateData?: any[];
+    templateData?: Record<string, unknown>[];
 }
 
 interface ValidationError {
@@ -19,23 +19,23 @@ interface ValidationError {
 
 export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, onClose, templateData }) => {
     const [file, setFile] = useState<File | null>(null);
-    const [parsedData, setParsedData] = useState<any[]>([]);
+    const [parsedData, setParsedData] = useState<Record<string, unknown>[]>([]);
     const [errors, setErrors] = useState<ValidationError[]>([]);
     const [importing, setImporting] = useState(false);
     const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'complete'>('upload');
     const [importedCount, setImportedCount] = useState(0);
     const { addToast } = useStore();
 
-    const parseCSV = (text: string): any[] => {
+    const parseCSV = (text: string): Record<string, unknown>[] => {
         const lines = text.split('\n').filter(line => line.trim());
         if (lines.length === 0) return [];
 
         const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-        const data: any[] = [];
+        const data: Record<string, unknown>[] = [];
 
         for (let i = 1; i < lines.length; i++) {
             const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-            const row: any = {};
+            const row: Record<string, unknown> = {};
 
             headers.forEach((header, index) => {
                 const field = fields.find(f => f.label.toLowerCase() === header.toLowerCase() || f.key.toLowerCase() === header.toLowerCase());
@@ -56,7 +56,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
         return data;
     };
 
-    const validateData = (data: any[]): ValidationError[] => {
+    const validateData = (data: Record<string, unknown>[]): ValidationError[] => {
         const validationErrors: ValidationError[] = [];
 
         data.forEach((row, index) => {
@@ -71,7 +71,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                     });
                 }
 
-                if (value && field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                if (value && field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))) {
                     validationErrors.push({
                         row: index + 1,
                         field: field.label,
@@ -79,7 +79,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                     });
                 }
 
-                if (value && field.type === 'number' && isNaN(value)) {
+                if (value && field.type === 'number' && isNaN(Number(value))) {
                     validationErrors.push({
                         row: index + 1,
                         field: field.label,
@@ -130,7 +130,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
             setImportedCount(parsedData.length);
             setStep('complete');
             addToast(`${parsedData.length} éléments importés avec succès`, 'success');
-        } catch (_error) {
+        } catch (error) {
             addToast('Erreur lors de l\'importation', 'error');
             setStep('preview');
         } finally {
@@ -266,7 +266,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                             <tr key={i} className="border-t border-slate-200 dark:border-white/5">
                                                 {fields.map(field => (
                                                     <td key={field.key} className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                                                        {row[field.key] || '-'}
+                                                        {String(row[field.key] || '-')}
                                                     </td>
                                                 ))}
                                             </tr>

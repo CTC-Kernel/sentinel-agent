@@ -23,7 +23,7 @@ const Pricing = () => {
     try {
       setLoading(planId);
       await SubscriptionService.startSubscription(user.organizationId, planId, isAnnual ? 'year' : 'month');
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'Pricing.handleSubscribe');
       addToast("Une erreur est survenue lors de la redirection vers le paiement.", "error");
     } finally {
@@ -67,7 +67,7 @@ const Pricing = () => {
     { name: 'Onboarding Assisté', discovery: false, professional: false, enterprise: true, tooltip: "Accompagnement personnalisé pour la configuration initiale." },
   ];
 
-  const plans: { id: PlanType; name: string; icon: any; popular?: boolean }[] = [
+  const plans: { id: PlanType; name: string; icon: React.ElementType; popular?: boolean }[] = [
     { id: 'discovery', name: 'Discovery', icon: Shield },
     { id: 'professional', name: 'Professional', icon: Zap, popular: true },
     { id: 'enterprise', name: 'Enterprise', icon: Building2 },
