@@ -354,6 +354,7 @@ export const VoxelView: React.FC = () => {
     };
 
     const base = {
+      id: selectedNode.id,
       title: getTitle(selectedNode),
       type: selectedNode.type,
       owner: getOwner(selectedNode),
