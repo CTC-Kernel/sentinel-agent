@@ -19,6 +19,7 @@ export class PdfService {
     private static readonly TEXT_COLOR = '#1E293B'; // Slate 800
     private static readonly SECONDARY_TEXT_COLOR = '#64748B'; // Slate 500
     private static readonly ACCENT_COLOR = '#F8FAFC'; // Slate 50
+    private static readonly BORDER_COLOR = '#E2E8F0'; // Slate 200
 
     /**
      * Initialize a new PDF document with standard settings
@@ -38,7 +39,6 @@ export class PdfService {
         const pageWidth = doc.internal.pageSize.width;
 
         // Logo Placeholder (Left)
-        // In a real app, we would add an image here: doc.addImage(logoData, 'PNG', 14, 10, 10, 10);
         doc.setFillColor(this.BRAND_COLOR);
         doc.rect(14, 10, 10, 10, 'F');
         doc.setTextColor('#FFFFFF');
@@ -53,13 +53,13 @@ export class PdfService {
         doc.text('Sentinel GRC', 28, 17);
 
         // Report Title (Right)
-        doc.setFontSize(20);
+        doc.setFontSize(16);
         doc.setTextColor(this.BRAND_COLOR);
         doc.text(title, pageWidth - 14, 17, { align: 'right' });
 
         // Subtitle/Date (Right, below title)
         if (subtitle) {
-            doc.setFontSize(10);
+            doc.setFontSize(9);
             doc.setTextColor(this.SECONDARY_TEXT_COLOR);
             doc.setFont('helvetica', 'normal');
             doc.text(subtitle, pageWidth - 14, 23, { align: 'right' });
@@ -67,7 +67,7 @@ export class PdfService {
 
         // Extra Header Text (Left, below logo)
         if (extraText) {
-            doc.setFontSize(10);
+            doc.setFontSize(9);
             doc.setTextColor(this.SECONDARY_TEXT_COLOR);
             doc.text(extraText, 14, 25);
         }
@@ -160,6 +160,112 @@ export class PdfService {
 
         this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options.headerText);
 
+        renderContent(doc, 35);
+
+        this.addFooter(doc, options.footerText);
+        doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+    }
+
+    /**
+     * Generate a generic Executive Report with Cover Page, Summary, and Content
+     */
+    static generateExecutiveReport(
+        options: ReportOptions & {
+            organizationName?: string;
+            author?: string;
+            summary?: string;
+        },
+        renderContent: (doc: jsPDF, startY: number) => void
+    ) {
+        const doc = this.createDoc(options.orientation);
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
+
+        // --- COVER PAGE ---
+        // Background Accent
+        doc.setFillColor(this.BRAND_COLOR);
+        doc.rect(0, 0, pageWidth, 8, 'F'); // Top bar
+
+        // Logo (Large)
+        doc.setFillColor(this.BRAND_COLOR);
+        doc.rect(pageWidth / 2 - 15, 60, 30, 30, 'F');
+        doc.setTextColor('#FFFFFF');
+        doc.setFontSize(40);
+        doc.setFont('helvetica', 'bold');
+        doc.text('S', pageWidth / 2 - 7, 82);
+
+        // Title
+        doc.setTextColor(this.TEXT_COLOR);
+        doc.setFontSize(28);
+        doc.text(options.title, pageWidth / 2, 110, { align: 'center' });
+
+        // Subtitle
+        if (options.subtitle) {
+            doc.setFontSize(14);
+            doc.setTextColor(this.SECONDARY_TEXT_COLOR);
+            doc.setFont('helvetica', 'normal');
+            doc.text(options.subtitle, pageWidth / 2, 120, { align: 'center' });
+        }
+
+        // Info Box
+        doc.setDrawColor(this.BORDER_COLOR);
+        doc.setFillColor(this.ACCENT_COLOR);
+        doc.roundedRect(pageWidth / 2 - 60, 140, 120, 50, 3, 3, 'FD');
+
+        doc.setFontSize(11);
+        doc.setTextColor(this.TEXT_COLOR);
+
+        let infoY = 155;
+        if (options.organizationName) {
+            doc.setFont('helvetica', 'bold');
+            doc.text("Organisation:", pageWidth / 2 - 50, infoY);
+            doc.setFont('helvetica', 'normal');
+            doc.text(options.organizationName, pageWidth / 2 + 50, infoY, { align: 'right' });
+            infoY += 10;
+        }
+
+        if (options.author) {
+            doc.setFont('helvetica', 'bold');
+            doc.text("Auteur:", pageWidth / 2 - 50, infoY);
+            doc.setFont('helvetica', 'normal');
+            doc.text(options.author, pageWidth / 2 + 50, infoY, { align: 'right' });
+            infoY += 10;
+        }
+
+        doc.setFont('helvetica', 'bold');
+        doc.text("Date:", pageWidth / 2 - 50, infoY);
+        doc.setFont('helvetica', 'normal');
+        doc.text(dateStr, pageWidth / 2 + 50, infoY, { align: 'right' });
+
+
+        // Footer on Cover
+        doc.setFontSize(10);
+        doc.setTextColor(this.SECONDARY_TEXT_COLOR);
+        doc.text("Généré par Sentinel GRC", pageWidth / 2, pageHeight - 20, { align: 'center' });
+
+        // --- EXECUTIVE SUMMARY PAGE (If provided) ---
+        if (options.summary) {
+            doc.addPage();
+            this.addHeader(doc, options.title, "Synthèse Exécutive");
+
+            doc.setFontSize(16);
+            doc.setTextColor(this.BRAND_COLOR);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Synthèse Exécutive", 14, 45);
+
+            doc.setFontSize(11);
+            doc.setTextColor(this.TEXT_COLOR);
+            doc.setFont('helvetica', 'normal');
+
+            // Split text to fit width
+            const splitSummary = doc.splitTextToSize(options.summary, pageWidth - 28);
+            doc.text(splitSummary, 14, 55);
+        }
+
+        // --- CONTENT PAGES ---
+        doc.addPage();
+        this.addHeader(doc, options.title, options.subtitle || dateStr);
         renderContent(doc, 35);
 
         this.addFooter(doc, options.footerText);

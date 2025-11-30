@@ -33,6 +33,7 @@ import { Drawer } from '../components/ui/Drawer';
 import { ErrorLogger } from '../services/errorLogger';
 import { hybridService } from '../services/hybridService';
 import { aiService } from '../services/aiService';
+import { integrationService } from '../services/integrationService';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useLocation } from 'react-router-dom';
@@ -106,7 +107,10 @@ export const Risks: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     // const [currentRiskId, setCurrentRiskId] = useState<string | null>(null); // Removed unused
     const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'treatment' | 'dashboard' | 'projects' | 'audits' | 'history' | 'comments' | 'graph'>('details');
+    const [mitreQuery, setMitreQuery] = useState('');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [mitreResults, setMitreResults] = useState<any[]>([]);
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'treatment' | 'dashboard' | 'projects' | 'audits' | 'history' | 'comments' | 'graph' | 'threats'>('details');
     const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
     const [linkedAudits, setLinkedAudits] = useState<Audit[]>([]);
     const [riskHistory, setRiskHistory] = useState<SystemLog[]>([]);
@@ -459,32 +463,52 @@ export const Risks: React.FC = () => {
         );
     };
 
-    const generateRTP = () => {
-        const data = filteredRisks.map(r => [
-            r.threat,
-            r.score.toString(),
-            r.strategy,
-            r.status,
-            (r.residualScore || r.score).toString()
-        ]);
+    const generateRTP = async () => {
+        addToast("Génération du RTP avec analyse IA...", "info");
+        try {
+            const summary = await aiService.generateRTPSummary(
+                filteredRisks.map(r => ({ threat: r.threat, score: r.score, strategy: r.strategy, status: r.status }))
+            );
 
-        PdfService.generateTableReport(
-            {
-                title: 'Plan de Traitement des Risques (RTP)',
-                subtitle: `ISO 27001 | ${new Date().toLocaleDateString()} | Cyber Threat Consulting`,
-                filename: 'RTP.pdf'
-            },
-            ['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel'],
-            data
-        );
+            PdfService.generateExecutiveReport(
+                {
+                    title: 'Plan de Traitement des Risques (RTP)',
+                    subtitle: `ISO 27001 | ${new Date().toLocaleDateString()}`,
+                    filename: 'RTP.pdf',
+                    organizationName: user?.email?.split('@')[1] || 'Sentinel GRC',
+                    author: user?.displayName || 'RSSI',
+                    summary: summary
+                },
+                (doc, startY) => {
+                    let y = startY;
 
-        // Centralized Audit Logging
-        hybridService.logCriticalEvent({
-            action: 'export',
-            object_type: 'report',
-            object_id: 'rtp',
-            description: 'Generated Risk Treatment Plan (RTP) PDF'
-        });
+                    doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                    doc.text("Tableau de Traitement", 14, y);
+                    y += 8;
+
+                    const data = filteredRisks.map(r => [
+                        r.threat,
+                        r.score.toString(),
+                        r.strategy,
+                        r.status,
+                        (r.residualScore || r.score).toString()
+                    ]);
+
+                    (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                        startY: y,
+                        head: [['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel']],
+                        body: data,
+                        theme: 'striped',
+                        headStyles: { fillColor: [79, 70, 229] },
+                        styles: { fontSize: 9 }
+                    });
+                }
+            );
+            addToast("RTP généré avec succès", "success");
+        } catch (error) {
+            ErrorLogger.error(error, 'Risks.generateRTP');
+            addToast("Erreur lors de la génération du RTP", "error");
+        }
     };
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -895,7 +919,8 @@ export const Risks: React.FC = () => {
                                             { id: 'audits', label: 'Audits', icon: CheckCircle2 },
                                             { id: 'history', label: 'Historique', icon: History },
                                             { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                                            { id: 'graph', label: 'Graphe', icon: Network }
+                                            { id: 'graph', label: 'Graphe', icon: Network },
+                                            { id: 'threats', label: 'Menaces', icon: ShieldAlert }
                                         ]}
                                         activeTab={inspectorTab}
                                         onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
@@ -1277,6 +1302,123 @@ export const Risks: React.FC = () => {
                                     {inspectorTab === 'comments' && (
                                         <div className="h-full flex flex-col">
                                             <Comments collectionName="risks" documentId={selectedRisk.id} />
+                                        </div>
+                                    )}
+
+                                    {inspectorTab === 'threats' && (
+                                        <div className="space-y-6">
+                                            {/* Linked Techniques */}
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center">
+                                                    Techniques Liées ({selectedRisk.mitreTechniques?.length || 0})
+                                                </h3>
+                                                {!selectedRisk.mitreTechniques || selectedRisk.mitreTechniques.length === 0 ? (
+                                                    <p className="text-sm text-slate-400 italic">Aucune technique liée.</p>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {selectedRisk.mitreTechniques.map((tech) => (
+                                                            <div key={tech.id} className="flex justify-between items-start p-3 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                <div>
+                                                                    <div className="font-bold text-slate-900 dark:text-white text-sm">
+                                                                        {tech.name} <span className="text-slate-400 font-mono text-xs ml-2">({tech.id})</span>
+                                                                    </div>
+                                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{tech.description}</p>
+                                                                </div>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        if (!canEdit) return;
+                                                                        const updatedTechniques = selectedRisk.mitreTechniques?.filter(t => t.id !== tech.id) || [];
+                                                                        try {
+                                                                            await updateDoc(doc(db, 'risks', selectedRisk.id), { mitreTechniques: updatedTechniques });
+                                                                            setSelectedRisk({ ...selectedRisk, mitreTechniques: updatedTechniques });
+                                                                            refreshRisks();
+                                                                            addToast("Technique retirée", "success");
+                                                                        } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.removeMitreTechnique'); }
+                                                                    }}
+                                                                    className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                                                                    title="Retirer"
+                                                                    disabled={!canEdit}
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Search & Add */}
+                                            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5">
+                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center">
+                                                    <ShieldAlert className="w-5 h-5 mr-2 text-red-500" />
+                                                    Rechercher MITRE ATT&CK
+                                                </h3>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                                    Recherchez des techniques pour les lier à ce risque.
+                                                </p>
+
+                                                <div className="flex gap-2 mb-6">
+                                                    <div className="relative flex-1">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Rechercher une technique (ex: Phishing, T1566)..."
+                                                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-brand-500 outline-none"
+                                                            value={mitreQuery}
+                                                            onChange={(e) => setMitreQuery(e.target.value)}
+                                                            onKeyDown={(e) => e.key === 'Enter' && integrationService.getMitreTechniques(mitreQuery).then(setMitreResults)}
+                                                        />
+                                                        <Search className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
+                                                    </div>
+                                                    <button
+                                                        onClick={() => integrationService.getMitreTechniques(mitreQuery).then(setMitreResults)}
+                                                        className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl hover:opacity-90 transition-opacity"
+                                                    >
+                                                        Rechercher
+                                                    </button>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    {mitreResults.length > 0 ? (
+                                                        mitreResults.map((technique) => {
+                                                            const isLinked = selectedRisk.mitreTechniques?.some(t => t.id === technique.id);
+                                                            return (
+                                                                <div key={technique.id} className="p-4 bg-white dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500 transition-colors group">
+                                                                    <div className="flex justify-between items-start mb-2">
+                                                                        <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-500 transition-colors">
+                                                                            {technique.name} <span className="text-slate-400 font-mono text-xs ml-2">({technique.id})</span>
+                                                                        </h4>
+                                                                        <button
+                                                                            onClick={async () => {
+                                                                                if (!canEdit || isLinked) return;
+                                                                                const currentTechniques = selectedRisk.mitreTechniques || [];
+                                                                                const updatedTechniques = [...currentTechniques, technique];
+                                                                                try {
+                                                                                    await updateDoc(doc(db, 'risks', selectedRisk.id), { mitreTechniques: updatedTechniques });
+                                                                                    setSelectedRisk({ ...selectedRisk, mitreTechniques: updatedTechniques });
+                                                                                    refreshRisks();
+                                                                                    addToast("Technique ajoutée", "success");
+                                                                                } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.addMitreTechnique'); }
+                                                                            }}
+                                                                            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isLinked
+                                                                                    ? 'bg-green-100 text-green-700 cursor-default'
+                                                                                    : 'bg-brand-600 text-white hover:bg-brand-700 shadow-sm hover:shadow'
+                                                                                }`}
+                                                                            disabled={!canEdit || isLinked}
+                                                                        >
+                                                                            {isLinked ? 'Lié' : 'Ajouter'}
+                                                                        </button>
+                                                                    </div>
+                                                                    <p className="text-sm text-slate-500 dark:text-slate-400">{technique.description}</p>
+                                                                </div>
+                                                            );
+                                                        })
+                                                    ) : (
+                                                        <div className="text-center py-8 text-slate-400 italic">
+                                                            Aucun résultat. Essayez de rechercher "Phishing" ou "Exploit".
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

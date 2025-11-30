@@ -121,7 +121,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                                             name="priority"
                                             value={p}
                                             checked={priority === p}
-                                            onChange={(e) => setPriority(e.target.value as any)}
+                                            onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}
                                             className="text-brand-600 focus:ring-brand-500"
                                         />
                                         <span className="text-sm text-slate-600 dark:text-slate-400 capitalize">

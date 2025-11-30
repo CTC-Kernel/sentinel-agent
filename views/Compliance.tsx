@@ -28,7 +28,8 @@ import { ProjectForm } from '../components/projects/ProjectForm';
 
 import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS, DORA_DOMAINS, DORA_SEED_CONTROLS, GDPR_DOMAINS, GDPR_SEED_CONTROLS, SOC2_DOMAINS, SOC2_SEED_CONTROLS, HDS_DOMAINS, HDS_SEED_CONTROLS, PCI_DSS_DOMAINS, PCI_DSS_SEED_CONTROLS, NIST_CSF_DOMAINS, NIST_CSF_SEED_CONTROLS } from '../data/complianceData';
 import { aiService } from '../services/aiService';
-import { Sparkles, Bot, Lightbulb, FileText as FileTextIcon, Loader2 as Loader } from '../components/ui/Icons';
+import { integrationService } from '../services/integrationService';
+import { Sparkles, Bot, Lightbulb, FileText as FileTextIcon, Loader2 as Loader, Globe } from '../components/ui/Icons';
 
 const ComplianceAIAssistant: React.FC<{ control: Control, onApplyPolicy: (text: string) => void }> = ({ control, onApplyPolicy }) => {
     const [loading, setLoading] = useState(false);
@@ -151,6 +152,11 @@ export const Compliance: React.FC = () => {
     // Creation Mode State
     const [creationMode, setCreationMode] = useState<'risk' | 'project' | 'audit' | null>(null);
     const [modalInitialData, setModalInitialData] = useState<Partial<Risk> | Partial<Project> | Partial<Audit> | null>(null);
+    const [viewMode, setViewMode] = useState<'compliance' | 'watch'>('compliance');
+
+    // EUR-Lex State
+    const [eurLexQuery, setEurLexQuery] = useState('');
+    const [eurLexResult, setEurLexResult] = useState<string | null>(null);
 
     // Data Fetching with Hooks
     const { data: rawControls, loading: controlsLoading, refresh: refreshControls } = useFirestoreCollection<Control>(
@@ -636,162 +642,247 @@ export const Compliance: React.FC = () => {
                 icon={<ShieldCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
                     <div className="flex gap-3 items-center">
-                        {/* Framework Switcher - Tabs Style */}
-                        <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10 overflow-x-auto max-w-[600px] custom-scrollbar">
-                            {(['ISO27001', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF'] as const).map(fw => (
-                                <button
-                                    key={fw}
-                                    onClick={() => setCurrentFramework(fw)}
-                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap ${currentFramework === fw ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                                >
-                                    {fw === 'ISO27001' ? 'ISO 27001' : fw === 'NIS2' ? 'NIS 2' : fw === 'DORA' ? 'DORA' : fw === 'GDPR' ? 'RGPD' : fw === 'SOC2' ? 'SOC 2' : fw === 'HDS' ? 'HDS' : fw === 'PCI_DSS' ? 'PCI DSS' : 'NIST CSF'}
-                                </button>
-                            ))}
+                        {/* View Switcher */}
+                        <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10 mr-2">
+                            <button
+                                onClick={() => setViewMode('compliance')}
+                                className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${viewMode === 'compliance' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                            >
+                                Conformité
+                            </button>
+                            <button
+                                onClick={() => setViewMode('watch')}
+                                className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${viewMode === 'watch' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                            >
+                                Veille Réglementaire
+                            </button>
                         </div>
 
-                        <button onClick={generateSoAReport} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white whitespace-nowrap">
-                            <Download className="h-4 w-4 mr-2 text-slate-500" /> Rapport
-                        </button>
+                        {viewMode === 'compliance' && (
+                            <>
+                                {/* Framework Switcher - Tabs Style */}
+                                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10 overflow-x-auto max-w-[400px] custom-scrollbar">
+                                    {(['ISO27001', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF'] as const).map(fw => (
+                                        <button
+                                            key={fw}
+                                            onClick={() => setCurrentFramework(fw)}
+                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap ${currentFramework === fw ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                        >
+                                            {fw === 'ISO27001' ? 'ISO 27001' : fw === 'NIS2' ? 'NIS 2' : fw === 'DORA' ? 'DORA' : fw === 'GDPR' ? 'RGPD' : fw === 'SOC2' ? 'SOC 2' : fw === 'HDS' ? 'HDS' : fw === 'PCI_DSS' ? 'PCI DSS' : 'NIST CSF'}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <button onClick={generateSoAReport} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white whitespace-nowrap">
+                                    <Download className="h-4 w-4 mr-2 text-slate-500" /> Rapport
+                                </button>
+                            </>
+                        )}
                     </div>
                 }
             />
 
-            {/* Dashboard Integration */}
-            <ComplianceDashboard controls={controls} onFilterChange={setStatusFilter} />
+            {viewMode === 'compliance' && (
+                <>
+                    {/* Dashboard Integration */}
+                    <ComplianceDashboard controls={controls} onFilterChange={setStatusFilter} />
 
-            {/* Filter Bar - Clean Style */}
-            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-col sm:flex-row gap-4 border border-slate-200 dark:border-white/5 shadow-sm">
-                <div className="flex-1 relative group flex items-center">
-                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
-                    <input
-                        type="text"
-                        placeholder="Rechercher un contrôle (ex: A.5.1, Accès)..."
-                        className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus:ring-0 text-sm font-medium transition-all placeholder:text-slate-400 text-slate-700 dark:text-white"
-                        value={filter}
-                        onChange={e => setFilter(e.target.value)}
-                    />
-                </div>
-
-                <div className="flex gap-3">
-                    {/* Status Filter Badge */}
-                    {statusFilter && (
-                        <button onClick={() => setStatusFilter(null)} className="flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-brand-50 text-brand-700 border border-brand-200 dark:bg-brand-900/20 dark:text-brand-300 dark:border-brand-800 animate-fade-in hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors">
-                            <span className="mr-2 opacity-70">Filtre:</span> {statusFilter} <X className="h-4 w-4 ml-2" />
-                        </button>
-                    )}
-
-                    <button
-                        onClick={() => setShowMissingEvidence(!showMissingEvidence)}
-                        className={`flex items-center px-5 py-3 rounded-xl text-sm font-bold border transition-all shadow-sm ${showMissingEvidence ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'}`}
-                    >
-                        <Filter className={`h-4 w-4 mr-2 ${showMissingEvidence ? 'fill-current' : ''}`} />
-                        Preuves manquantes
-                    </button>
-                </div>
-            </div>
-
-            {/* Accordion List - Clean Card Style */}
-            {loading ? (
-                <div className="space-y-4">
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-white/10 flex items-center gap-4">
-                            <Skeleton className="w-12 h-12 rounded-xl" />
-                            <div className="space-y-2 flex-1">
-                                <Skeleton className="h-5 w-48" />
-                                <Skeleton className="h-4 w-full max-w-md" />
-                            </div>
+                    {/* Filter Bar - Clean Style */}
+                    <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-col sm:flex-row gap-4 border border-slate-200 dark:border-white/5 shadow-sm">
+                        <div className="flex-1 relative group flex items-center">
+                            <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Rechercher un contrôle (ex: A.5.1, Accès)..."
+                                className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus:ring-0 text-sm font-medium transition-all placeholder:text-slate-400 text-slate-700 dark:text-white"
+                                value={filter}
+                                onChange={e => setFilter(e.target.value)}
+                            />
                         </div>
-                    ))}
-                </div>
-            ) : filteredControls.length === 0 ? (
-                <EmptyState
-                    icon={ShieldCheck}
-                    title="Aucun contrôle trouvé"
-                    description={filter ? "Aucun contrôle ne correspond à votre recherche." : "Les contrôles n'ont pas été chargés."}
-                />
-            ) : (
-                <div className="space-y-4">
-                    {(() => {
-                        let domains: { id: string, title: string, description: string }[] = [];
-                        switch (currentFramework) {
-                            case 'ISO27001': domains = ISO_DOMAINS; break;
-                            case 'NIS2': domains = NIS2_DOMAINS; break;
-                            case 'DORA': domains = DORA_DOMAINS; break;
-                            case 'GDPR': domains = GDPR_DOMAINS; break;
-                            case 'SOC2': domains = SOC2_DOMAINS; break;
-                            case 'HDS': domains = HDS_DOMAINS; break;
-                            case 'PCI_DSS': domains = PCI_DSS_DOMAINS; break;
-                            case 'NIST_CSF': domains = NIST_CSF_DOMAINS; break;
-                        }
-                        return domains.map(domain => {
-                            const domainControls = filteredControls.filter(c => c.code.startsWith(domain.id));
-                            if (domainControls.length === 0) return null;
-                            const stats = getDomainStats(domain.id);
-                            const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
 
-                            return (
-                                <div key={domain.id} className="glass-panel rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
-                                    <div
-                                        onClick={() => toggleDomain(domain.id)}
-                                        className={`p-6 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
-                                    >
-                                        <div className="flex items-center gap-5">
-                                            <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-white/10">
-                                                {domain.id.split('.')[1]}
-                                            </div>
-                                            <div>
-                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{domain.title}</h3>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">{domain.description} • <span className="text-slate-700 dark:text-slate-300">{stats.total} contrôles</span></p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-8">
-                                            <div className="hidden md:block w-40">
-                                                <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
-                                                    <span>Progression</span>
-                                                    <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
-                                                </div>
-                                                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                                                    <div className={`h-full rounded-full transition-all duration-500 ${stats.progress === 100 ? 'bg-emerald-500' : 'bg-brand-500'}`} style={{ width: `${stats.progress}%` }}></div>
-                                                </div>
-                                            </div>
-                                            <div className={`p-2 rounded-full transition-all duration-300 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-sm rotate-180 text-slate-900 dark:text-white' : 'text-slate-400'}`}>
-                                                <ChevronDown className="h-5 w-5" />
-                                            </div>
-                                        </div>
+                        <div className="flex gap-3">
+                            {/* Status Filter Badge */}
+                            {statusFilter && (
+                                <button onClick={() => setStatusFilter(null)} className="flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-brand-50 text-brand-700 border border-brand-200 dark:bg-brand-900/20 dark:text-brand-300 dark:border-brand-800 animate-fade-in hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors">
+                                    <span className="mr-2 opacity-70">Filtre:</span> {statusFilter} <X className="h-4 w-4 ml-2" />
+                                </button>
+                            )}
+
+                            <button
+                                onClick={() => setShowMissingEvidence(!showMissingEvidence)}
+                                className={`flex items-center px-5 py-3 rounded-xl text-sm font-bold border transition-all shadow-sm ${showMissingEvidence ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            >
+                                <Filter className={`h-4 w-4 mr-2 ${showMissingEvidence ? 'fill-current' : ''}`} />
+                                Preuves manquantes
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Accordion List - Clean Card Style */}
+                    {loading ? (
+                        <div className="space-y-4">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-white/10 flex items-center gap-4">
+                                    <Skeleton className="w-12 h-12 rounded-xl" />
+                                    <div className="space-y-2 flex-1">
+                                        <Skeleton className="h-5 w-48" />
+                                        <Skeleton className="h-4 w-full max-w-md" />
                                     </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : filteredControls.length === 0 ? (
+                        <EmptyState
+                            icon={ShieldCheck}
+                            title="Aucun contrôle trouvé"
+                            description={filter ? "Aucun contrôle ne correspond à votre recherche." : "Les contrôles n'ont pas été chargés."}
+                        />
+                    ) : (
+                        <div className="space-y-4">
+                            {(() => {
+                                let domains: { id: string, title: string, description: string }[] = [];
+                                switch (currentFramework) {
+                                    case 'ISO27001': domains = ISO_DOMAINS; break;
+                                    case 'NIS2': domains = NIS2_DOMAINS; break;
+                                    case 'DORA': domains = DORA_DOMAINS; break;
+                                    case 'GDPR': domains = GDPR_DOMAINS; break;
+                                    case 'SOC2': domains = SOC2_DOMAINS; break;
+                                    case 'HDS': domains = HDS_DOMAINS; break;
+                                    case 'PCI_DSS': domains = PCI_DSS_DOMAINS; break;
+                                    case 'NIST_CSF': domains = NIST_CSF_DOMAINS; break;
+                                }
+                                return domains.map(domain => {
+                                    const domainControls = filteredControls.filter(c => c.code.startsWith(domain.id));
+                                    if (domainControls.length === 0) return null;
+                                    const stats = getDomainStats(domain.id);
+                                    const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
 
-                                    {isExpanded && (
-                                        <div className="border-t border-slate-200 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
-                                            {domainControls.map(control => {
-                                                const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
-                                                const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
-                                                return (
-                                                    <CustomTooltip key={control.id} content={`Cliquez pour voir les détails de ${control.code}`} position="top" className="w-full">
-                                                        <div onClick={() => openInspector(control)} className="p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex items-center justify-between pl-8 active:scale-[0.99] duration-200">
-                                                            <div className="flex items-center space-x-5 flex-1 min-w-0">
-                                                                <div className="min-w-[50px]"><span className="text-xs font-black text-slate-400 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
-                                                                <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
-                                                                    <div className="flex items-center mt-1 gap-3 text-xs">
-                                                                        {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded"><Paperclip className="h-3 w-3 mr-1" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium"><AlertTriangle className="h-3 w-3 mr-1" /> Preuve manquante</span>) : null}
-                                                                        {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded"><ShieldAlert className="h-3 w-3 mr-1" /> {riskCount} risques</span>)}
-                                                                        {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded"><AlertOctagon className="h-3 w-3 mr-1" /> {findingsCount} écarts</span>)}
+                                    return (
+                                        <div key={domain.id} className="glass-panel rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
+                                            <div
+                                                onClick={() => toggleDomain(domain.id)}
+                                                className={`p-6 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                            >
+                                                <div className="flex items-center gap-5">
+                                                    <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-white/10">
+                                                        {domain.id.split('.')[1]}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{domain.title}</h3>
+                                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">{domain.description} • <span className="text-slate-700 dark:text-slate-300">{stats.total} contrôles</span></p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-8">
+                                                    <div className="hidden md:block w-40">
+                                                        <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+                                                            <span>Progression</span>
+                                                            <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
+                                                        </div>
+                                                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                                                            <div className={`h-full rounded-full transition-all duration-500 ${stats.progress === 100 ? 'bg-emerald-500' : 'bg-brand-500'}`} style={{ width: `${stats.progress}%` }}></div>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`p-2 rounded-full transition-all duration-300 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-sm rotate-180 text-slate-900 dark:text-white' : 'text-slate-400'}`}>
+                                                        <ChevronDown className="h-5 w-5" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {isExpanded && (
+                                                <div className="border-t border-slate-200 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
+                                                    {domainControls.map(control => {
+                                                        const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
+                                                        const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
+                                                        return (
+                                                            <CustomTooltip key={control.id} content={`Cliquez pour voir les détails de ${control.code}`} position="top" className="w-full">
+                                                                <div onClick={() => openInspector(control)} className="p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex items-center justify-between pl-8 active:scale-[0.99] duration-200">
+                                                                    <div className="flex items-center space-x-5 flex-1 min-w-0">
+                                                                        <div className="min-w-[50px]"><span className="text-xs font-black text-slate-400 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
+                                                                        <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
+                                                                            <div className="flex items-center mt-1 gap-3 text-xs">
+                                                                                {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded"><Paperclip className="h-3 w-3 mr-1" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium"><AlertTriangle className="h-3 w-3 mr-1" /> Preuve manquante</span>) : null}
+                                                                                {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded"><ShieldAlert className="h-3 w-3 mr-1" /> {riskCount} risques</span>)}
+                                                                                {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded"><AlertOctagon className="h-3 w-3 mr-1" /> {findingsCount} écarts</span>)}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-4">
+                                                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-500 bg-slate-100 border-slate-200'}`}>{control.status}</span>
+                                                                        <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                            <div className="flex items-center gap-4">
-                                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-500 bg-slate-100 border-slate-200'}`}>{control.status}</span>
-                                                                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
-                                                            </div>
-                                                        </div>
-                                                    </CustomTooltip>
-                                                );
-                                            })}
+                                                            </CustomTooltip>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                            );
-                        });
-                    })()}
+                                    );
+                                });
+                            })()}
+                        </div>
+                    )}
+
+                </>
+            )}
+
+            {viewMode === 'watch' && (
+                <div className="space-y-6 animate-fade-in">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-200 dark:border-white/5 text-center">
+                        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <Globe className="w-8 h-8" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Veille Réglementaire EUR-Lex</h2>
+                        <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-8">
+                            Recherchez les dernières réglementations européennes (Directives, Règlements) directement depuis la source officielle EUR-Lex.
+                        </p>
+
+                        <div className="max-w-2xl mx-auto flex gap-3">
+                            <div className="relative flex-1 text-left">
+                                <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Ex: Intelligence Artificielle, DORA, NIS2..."
+                                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm"
+                                    value={eurLexQuery}
+                                    onChange={(e) => setEurLexQuery(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && setEurLexResult(integrationService.searchEurLex(eurLexQuery))}
+                                />
+                            </div>
+                            <button
+                                onClick={() => setEurLexResult(integrationService.searchEurLex(eurLexQuery))}
+                                className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+                            >
+                                Rechercher
+                            </button>
+                        </div>
+                    </div>
+
+                    {eurLexResult && (
+                        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
+                            <div className="p-4 border-b border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 flex justify-between items-center">
+                                <h3 className="font-bold text-slate-900 dark:text-white flex items-center">
+                                    <Globe className="w-4 h-4 mr-2 text-blue-500" />
+                                    Résultats EUR-Lex
+                                </h3>
+                                <a
+                                    href={eurLexResult}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center"
+                                >
+                                    Ouvrir dans un nouvel onglet <ExternalLink className="w-3 h-3 ml-1" />
+                                </a>
+                            </div>
+                            <div className="aspect-[16/9] w-full bg-slate-100 dark:bg-slate-900">
+                                <iframe
+                                    src={eurLexResult}
+                                    className="w-full h-full border-none"
+                                    title="EUR-Lex Search Results"
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 

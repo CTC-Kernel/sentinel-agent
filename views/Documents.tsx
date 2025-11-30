@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useForm, SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,6 +25,9 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
+import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
+import CryptoJS from 'crypto-js';
+import SignatureCanvas from 'react-signature-canvas';
 
 export const Documents: React.FC = () => {
     const { user, addToast } = useStore();
@@ -108,6 +111,8 @@ export const Documents: React.FC = () => {
         }
     });
     const [uploadedFileUrl, setUploadedFileUrl] = useState<string>('');
+    const [uploadedFileHash, setUploadedFileHash] = useState<string>('');
+    const [uploadedFileSecure, setUploadedFileSecure] = useState<boolean>(false);
     const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null);
 
     // Watch ownerId to update owner name
@@ -128,6 +133,21 @@ export const Documents: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
+    // Signature Modal
+    const [showSignatureModal, setShowSignatureModal] = useState(false);
+    const signaturePadRef = useRef<SignatureCanvas>(null);
+
+    const handleSignatureSubmit = async () => {
+        if (!signaturePadRef.current || signaturePadRef.current.isEmpty()) {
+            addToast("Veuillez signer avant de valider", "info");
+            return;
+        }
+
+        const signatureImage = signaturePadRef.current.toDataURL(); // base64 png
+        await handleWorkflowAction('sign', signatureImage);
+        setShowSignatureModal(false);
+    };
+
     const openInspector = async (docItem: Document) => {
         setSelectedDocument(docItem);
         setInspectorTab('details');
@@ -146,7 +166,10 @@ export const Documents: React.FC = () => {
             relatedControlIds: docItem.relatedControlIds || [],
             relatedAssetIds: docItem.relatedAssetIds || [],
             relatedAuditIds: docItem.relatedAuditIds || [],
-            url: docItem.url
+            url: docItem.url,
+            isSecure: docItem.isSecure,
+            hash: docItem.hash,
+            watermarkEnabled: docItem.watermarkEnabled
         });
         setIsEditing(false);
 
@@ -164,13 +187,22 @@ export const Documents: React.FC = () => {
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Documents.handleSelectDocument'); }
     };
 
-    const handleFileUploadComplete = (url: string, fileName: string) => {
+    const handleFileUploadComplete = (url: string, fileName: string, hash?: string, isSecure?: boolean) => {
         setUploadedFileUrl(url);
+        if (hash) setUploadedFileHash(hash);
+        if (isSecure !== undefined) setUploadedFileSecure(isSecure);
         addToast(`Fichier ${fileName} téléversé avec succès`, 'success');
     };
 
-    const handleWorkflowAction = async (action: 'submit' | 'approve' | 'reject' | 'sign') => {
+    const handleWorkflowAction = async (action: 'submit' | 'approve' | 'reject' | 'sign', signatureImage?: string) => {
         if (!selectedDocument || !user) return;
+
+        // If signing and no image, open modal
+        if (action === 'sign' && !signatureImage) {
+            setShowSignatureModal(true);
+            return;
+        }
+
         let updates: Partial<Document> = {};
         let logMsg = '';
 
@@ -184,7 +216,12 @@ export const Documents: React.FC = () => {
             updates = { status: 'Rejeté', workflowStatus: 'Rejected' };
             logMsg = 'Document rejeté';
         } else if (action === 'sign') {
-            const newSignature = { userId: user.uid, date: new Date().toISOString(), role: user.role };
+            const newSignature = {
+                userId: user.uid,
+                date: new Date().toISOString(),
+                role: user.role,
+                signatureImage: signatureImage
+            };
             const currentSignatures = selectedDocument.signatures || [];
             updates = {
                 status: 'Publié',
@@ -198,12 +235,113 @@ export const Documents: React.FC = () => {
             await updateDoc(doc(db, 'documents', selectedDocument.id), { ...updates, updatedAt: new Date().toISOString() });
             await logAction(user, 'WORKFLOW', 'Document', `${logMsg}: ${selectedDocument.title}`);
 
-            await logAction(user, 'WORKFLOW', 'Document', `${logMsg}: ${selectedDocument.title}`);
             setSelectedDocument({ ...selectedDocument, ...updates });
             addToast(logMsg, "success");
         } catch (error) {
             ErrorLogger.error(error, 'Documents.handleWorkflowAction');
             addToast("Erreur workflow", "error");
+        }
+    };
+
+    const handleSecureView = async (docItem: Document) => {
+        if (!docItem.url) return;
+        addToast("Préparation du document sécurisé...", "info");
+
+        try {
+            // 1. Fetch the file
+            const response = await fetch(docItem.url);
+            const arrayBuffer = await response.arrayBuffer();
+
+            // 2. Verify Integrity (Hash)
+            if (docItem.hash) {
+                const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer as any);
+                const currentHash = CryptoJS.SHA256(wordArray).toString();
+                if (currentHash !== docItem.hash) {
+                    addToast("ALERTE : L'intégrité du document est compromise ! Le hash ne correspond pas.", "error");
+                    // We might want to block viewing here, or just warn.
+                    // For now, let's warn but allow viewing (maybe it was modified legitimately outside system).
+                } else {
+                    addToast("Intégrité du document vérifiée.", "success");
+                }
+            }
+
+            // 3. Watermark & Certificate (if PDF)
+            if (docItem.url.toLowerCase().includes('.pdf')) {
+                const pdfDoc = await PDFDocument.load(arrayBuffer);
+                const pages = pdfDoc.getPages();
+                const { height } = pages[0].getSize();
+                const watermarkText = `CONFIDENTIEL - ${user?.displayName} - ${new Date().toLocaleDateString()}`;
+
+                // Add Watermark
+                if (docItem.watermarkEnabled) {
+                    pages.forEach(page => {
+                        page.drawText(watermarkText, {
+                            x: 50, y: height / 2, size: 30,
+                            color: rgb(0.95, 0.1, 0.1), opacity: 0.3, rotate: degrees(45),
+                        });
+                    });
+                }
+
+                // Add Certificate Page if Signed
+                if (docItem.signatures && docItem.signatures.length > 0) {
+                    const page = pdfDoc.addPage();
+                    const { height } = page.getSize();
+                    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+                    const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+                    page.drawText('CERTIFICAT DE SIGNATURE ÉLECTRONIQUE', { x: 50, y: height - 50, size: 20, font: font, color: rgb(0, 0, 0.5) });
+
+                    let yOffset = height - 100;
+                    page.drawText(`Document : ${docItem.title}`, { x: 50, y: yOffset, size: 12, font: fontRegular });
+                    yOffset -= 20;
+                    page.drawText(`Hash (SHA-256) : ${docItem.hash || 'N/A'}`, { x: 50, y: yOffset, size: 10, font: fontRegular, color: rgb(0.5, 0.5, 0.5) });
+                    yOffset -= 40;
+
+                    for (const sig of docItem.signatures) {
+                        page.drawText(`Signataire : ${usersList.find(u => u.uid === sig.userId)?.displayName || sig.userId}`, { x: 50, y: yOffset, size: 14, font: font });
+                        yOffset -= 20;
+                        page.drawText(`Date : ${new Date(sig.date).toLocaleString()}`, { x: 50, y: yOffset, size: 12, font: fontRegular });
+                        yOffset -= 20;
+                        page.drawText(`Rôle : ${sig.role}`, { x: 50, y: yOffset, size: 12, font: fontRegular });
+                        yOffset -= 20;
+
+                        if (sig.signatureImage) {
+                            try {
+                                const imageBytes = await fetch(sig.signatureImage).then(res => res.arrayBuffer());
+                                const pngImage = await pdfDoc.embedPng(imageBytes);
+                                const pngDims = pngImage.scale(0.5);
+                                page.drawImage(pngImage, {
+                                    x: 50,
+                                    y: yOffset - pngDims.height,
+                                    width: pngDims.width,
+                                    height: pngDims.height,
+                                });
+                                yOffset -= (pngDims.height + 20);
+                            } catch (e) {
+                                console.error("Error embedding signature", e);
+                            }
+                        }
+                        yOffset -= 40;
+                    }
+
+                    page.drawText('Ce document a été signé électroniquement via Sentinel GRC.', { x: 50, y: 50, size: 10, font: fontRegular, color: rgb(0.5, 0.5, 0.5) });
+                }
+
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            } else {
+                // Non-PDF
+                const blob = new Blob([arrayBuffer]);
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            }
+
+            await logAction(user, 'VIEW', 'Document', `Consultation sécurisée: ${docItem.title}`);
+
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Documents.handleSecureView');
         }
     };
 
@@ -217,6 +355,9 @@ export const Documents: React.FC = () => {
             await addDoc(collection(db, 'documents'), {
                 ...validatedData,
                 url: uploadedFileUrl || '',
+                hash: uploadedFileHash || '',
+                isSecure: uploadedFileSecure || false,
+                watermarkEnabled: uploadedFileSecure || false, // Enable watermark by default if secure
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -226,6 +367,8 @@ export const Documents: React.FC = () => {
             addToast("Document ajouté", "success");
             setShowCreateModal(false);
             setUploadedFileUrl('');
+            setUploadedFileHash('');
+            setUploadedFileSecure(false);
             createForm.reset({
                 title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
                 owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
@@ -449,7 +592,14 @@ export const Documents: React.FC = () => {
                                 <div className="p-3 bg-blue-50 dark:bg-slate-800 rounded-2xl text-blue-600 shadow-inner">
                                     <FileText className="h-6 w-6" />
                                 </div>
-                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(docItem.status)}`}>{docItem.status}</span>
+                                <div className="flex gap-2">
+                                    {docItem.isSecure && (
+                                        <span className="px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50 flex items-center">
+                                            <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
+                                        </span>
+                                    )}
+                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(docItem.status)}`}>{docItem.status}</span>
+                                </div>
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight line-clamp-2">{docItem.title}</h3>
                             <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-6">
@@ -460,7 +610,17 @@ export const Documents: React.FC = () => {
                                 <div className="flex items-center text-xs text-slate-400 font-medium" title="Propriétaire">
                                     <Users className="h-3.5 w-3.5 mr-1.5" /> {docItem.owner}
                                 </div>
-                                {docItem.url && <ExternalLink className="h-4 w-4 text-slate-300 hover:text-blue-500 transition-colors" />}
+                                {docItem.url && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            docItem.isSecure ? handleSecureView(docItem) : window.open(docItem.url, '_blank');
+                                        }}
+                                        className="p-1 text-slate-300 hover:text-blue-500 transition-colors"
+                                    >
+                                        {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))
@@ -480,10 +640,19 @@ export const Documents: React.FC = () => {
                                         <p className="text-sm font-medium text-slate-500 mt-1">v{selectedDocument.version} • {selectedDocument.type}</p>
                                     </div>
                                     <div className="flex gap-2">
+                                        {selectedDocument.isSecure && (
+                                            <span className="px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50 flex items-center">
+                                                <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
+                                            </span>
+                                        )}
                                         {selectedDocument.url && (
-                                            <a href={selectedDocument.url} target="_blank" rel="noreferrer" className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Ouvrir">
-                                                <Eye className="h-5 w-5" />
-                                            </a>
+                                            <button
+                                                onClick={() => selectedDocument.isSecure ? handleSecureView(selectedDocument) : window.open(selectedDocument.url, '_blank')}
+                                                className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"
+                                                title={selectedDocument.isSecure ? "Consultation Sécurisée" : "Ouvrir"}
+                                            >
+                                                {selectedDocument.isSecure ? <ShieldCheck className="h-5 w-5 text-emerald-600" /> : <Eye className="h-5 w-5" />}
+                                            </button>
                                         )}
                                         {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !isEditing && (
                                             <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
@@ -850,6 +1019,27 @@ export const Documents: React.FC = () => {
                         link.click();
                     }}
                 />
+            )}
+            {/* Signature Modal */}
+            {showSignatureModal && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-white/10">
+                        <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white">Signature Requise</h3>
+                        <p className="text-sm text-slate-500 mb-4">Veuillez apposer votre signature pour valider ce document.</p>
+                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl mb-6 bg-white overflow-hidden">
+                            <SignatureCanvas
+                                ref={signaturePadRef}
+                                canvasProps={{ className: 'w-full h-48', style: { width: '100%', height: '192px' } }}
+                                velocityFilterWeight={0.7}
+                            />
+                        </div>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={() => signaturePadRef.current?.clear()} className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">Effacer</button>
+                            <button onClick={() => setShowSignatureModal(false)} className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">Annuler</button>
+                            <button onClick={handleSignatureSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">Signer & Valider</button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
