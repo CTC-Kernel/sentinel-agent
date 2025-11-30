@@ -20,8 +20,8 @@ export const Notifications: React.FC = () => {
         try {
             const data = await NotificationService.getAll(user.uid, 100);
             setNotifications(data);
-        } catch (_e) {
-            ErrorLogger.handleErrorWithToast(e, 'Notifications.fetchNotifications', 'FETCH_FAILED');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Notifications.fetchNotifications', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -33,8 +33,8 @@ export const Notifications: React.FC = () => {
         try {
             await NotificationService.markAsRead(id);
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-        } catch (_e) {
-            ErrorLogger.handleErrorWithToast(e, 'Notifications.markAsRead', 'UPDATE_FAILED');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Notifications.markAsRead', 'UPDATE_FAILED');
         }
     };
 
@@ -43,8 +43,8 @@ export const Notifications: React.FC = () => {
         try {
             await NotificationService.markAllAsRead(user.uid);
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        } catch (_e) {
-            ErrorLogger.handleErrorWithToast(e, 'Notifications.markAll', 'UPDATE_FAILED');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Notifications.markAll', 'UPDATE_FAILED');
         }
     };
 

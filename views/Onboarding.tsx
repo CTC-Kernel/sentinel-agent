@@ -15,6 +15,12 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { onboardingSchema, OnboardingFormData } from '../schemas/onboardingSchema';
 
+interface SearchResult {
+    id: string;
+    name: string;
+    industry?: string;
+}
+
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast } = useStore();
     const { refreshSession } = useAuth();
@@ -41,7 +47,7 @@ export const Onboarding: React.FC = () => {
 
     // Join Flow States
     const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [joinRequestSent, setJoinRequestSent] = useState(false);
 
     // Auto-detect step based on user state or REDIRECT if finished
@@ -75,9 +81,9 @@ export const Onboarding: React.FC = () => {
                 where('name', '<=', searchQuery + '\uf8ff')
             );
             const snap = await getDocs(q);
-            setSearchResults(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        } catch (_e) {
-            ErrorLogger.handleErrorWithToast(e, 'Onboarding.handleSearchOrg', 'FETCH_FAILED');
+            setSearchResults(snap.docs.map(d => ({ id: d.id, ...d.data() } as SearchResult)));
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleSearchOrg', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -98,8 +104,8 @@ export const Onboarding: React.FC = () => {
             });
             setJoinRequestSent(true);
             addToast("Demande envoyée avec succès", "success");
-        } catch (_e) {
-            ErrorLogger.handleErrorWithToast(e, 'Onboarding.handleJoinRequest', 'CREATE_FAILED');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleJoinRequest', 'CREATE_FAILED');
         } finally {
             setLoading(false);
         }
@@ -139,7 +145,7 @@ export const Onboarding: React.FC = () => {
         try {
             // Generate a NEW organization ID
             const newOrgId = generateUUID();
-            const orgName = data.organizationName || (user as any)?.organizationName || 'Mon Organisation';
+            const orgName = data.organizationName || (user as unknown as { organizationName?: string })?.organizationName || 'Mon Organisation';
 
 
 
@@ -208,7 +214,7 @@ export const Onboarding: React.FC = () => {
             if (user) {
                 setUser({ ...user, ...userUpdates });
             } else {
-                setUser(userUpdates as any);
+                setUser(userUpdates as UserProfile);
             }
 
 
@@ -242,9 +248,10 @@ export const Onboarding: React.FC = () => {
             setStep(2);
             addToast("Profil créé ! Choisissez votre offre.", "success");
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleStep1', 'CREATE_FAILED');
-            setError(error.message || "Une erreur est survenue.");
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            setError(errorMessage || "Une erreur est survenue.");
         } finally {
             setLoading(false);
         }
@@ -274,8 +281,8 @@ export const Onboarding: React.FC = () => {
                 // Paid plan: Redirect to Stripe
                 await SubscriptionService.startSubscription(user.organizationId, selectedPlan, 'month'); // Default to monthly for onboarding
             }
-        } catch (_e) {
-            ErrorLogger.handleErrorWithToast(e, 'Onboarding.handleFinalize', 'UPDATE_FAILED');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleFinalize', 'UPDATE_FAILED');
             setLoading(false);
         }
     };
