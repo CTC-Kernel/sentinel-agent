@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NotificationService } from '../services/notificationService';
 import { collection, doc, getDocs, query, where, orderBy, limit, updateDoc, addDoc } from 'firebase/firestore';
@@ -182,12 +183,12 @@ describe('NotificationService', () => {
   describe('createForOrganization', () => {
     it('should create notifications for all users in organization', async () => {
       const mockUsers = [
-        { 
-          id: 'u1', 
+        {
+          id: 'u1',
           data: () => ({ uid: 'u1', displayName: 'User 1', email: 'u1@example.com' })
         },
-        { 
-          id: 'u2', 
+        {
+          id: 'u2',
           data: () => ({ uid: 'u2', displayName: 'User 2', email: 'u2@example.com' })
         }
       ];

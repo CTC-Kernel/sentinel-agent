@@ -45,7 +45,8 @@ export const useFirestoreCollection = <T = DocumentData>(
     // Memoize constraints to prevent infinite loops if passed as a new array every render
     // We stringify the entire constraints array to capture values (e.g. where clauses)
     const constraintsKey = JSON.stringify(constraints);
-    const isEnabled = options.enabled !== false;
+    const { realtime, logError, enabled } = options;
+    const isEnabled = enabled !== false;
 
     const fetchData = useCallback(async () => {
         if (!isEnabled) {
@@ -64,13 +65,13 @@ export const useFirestoreCollection = <T = DocumentData>(
         } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             setError(errorObj);
-            if (options.logError) {
+            if (logError) {
                 ErrorLogger.error(errorObj, `useFirestoreCollection.fetchData.${collectionName}`);
             }
         } finally {
             setLoading(false);
         }
-    }, [collectionName, constraintsKey, options.logError, isEnabled]);
+    }, [collectionName, constraintsKey, logError, isEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (!isEnabled) {
@@ -78,7 +79,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             return;
         }
 
-        if (options.realtime) {
+        if (realtime) {
             setLoading(true);
             const q = query(collection(db, collectionName), ...constraints);
             const unsubscribe = onSnapshot(q,
@@ -90,7 +91,7 @@ export const useFirestoreCollection = <T = DocumentData>(
                 (err: unknown) => {
                     const errorObj = err instanceof Error ? err : new Error(String(err));
                     setError(errorObj);
-                    if (options.logError) {
+                    if (logError) {
                         ErrorLogger.error(errorObj, `useFirestoreCollection.onSnapshot.${collectionName}`);
                     }
                     setLoading(false);
@@ -100,7 +101,7 @@ export const useFirestoreCollection = <T = DocumentData>(
         } else {
             fetchData();
         }
-    }, [collectionName, constraintsKey, options.realtime, fetchData, isEnabled]);
+    }, [collectionName, constraintsKey, realtime, fetchData, isEnabled, logError]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const add = async (newData: WithFieldValue<DocumentData>) => {
         try {
@@ -149,6 +150,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
     const [data, setData] = useState<T | null>(null);
     const [loading, setLoading] = useState(!!docId);
     const [error, setError] = useState<Error | null>(null);
+    const { realtime, logError } = options;
 
     const fetchData = useCallback(async () => {
         if (!docId) return;
@@ -165,13 +167,15 @@ export const useFirestoreDocument = <T extends { id: string }>(
         } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             setError(errorObj);
-            if (options.logError) {
+            if (logError) {
                 ErrorLogger.error(errorObj, `useFirestoreDocument.fetchData.${collectionName}.${docId}`);
             }
         } finally {
             setLoading(false);
         }
-    }, [collectionName, docId, options.logError]);
+    }, [collectionName, docId, logError]);
+
+
 
     useEffect(() => {
         if (!docId) {
@@ -180,7 +184,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
             return;
         }
 
-        if (options.realtime) {
+        if (realtime) {
             setLoading(true);
             const docRef = doc(db, collectionName, docId);
             const unsubscribe = onSnapshot(docRef,
@@ -195,7 +199,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
                 (err: unknown) => {
                     const errorObj = err instanceof Error ? err : new Error(String(err));
                     setError(errorObj);
-                    if (options.logError) {
+                    if (logError) {
                         ErrorLogger.error(errorObj, `useFirestoreDocument.onSnapshot.${collectionName}.${docId}`);
                     }
                     setLoading(false);
@@ -205,7 +209,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
         } else {
             fetchData();
         }
-    }, [collectionName, docId, options.realtime, fetchData]);
+    }, [collectionName, docId, realtime, fetchData, logError]);
 
     return { data, loading, error, refresh: fetchData };
 };

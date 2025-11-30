@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useForm, SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { documentSchema, DocumentFormData } from '../schemas/documentSchema';
+import { z } from 'zod';
 import { createPortal } from 'react-dom';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -210,15 +211,18 @@ export const Documents: React.FC = () => {
         if (!user?.organizationId) return;
 
         try {
+            // Validate data with Zod
+            const validatedData = documentSchema.parse(data);
+
             await addDoc(collection(db, 'documents'), {
-                ...data,
+                ...validatedData,
                 url: uploadedFileUrl || '',
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             });
 
-            await logAction(user, 'CREATE', 'Document', `Nouveau document: ${data.title}`);
+            await logAction(user, 'CREATE', 'Document', `Nouveau document: ${validatedData.title}`);
             addToast("Document ajouté", "success");
             setShowCreateModal(false);
             setUploadedFileUrl('');
@@ -227,34 +231,38 @@ export const Documents: React.FC = () => {
                 owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
                 relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
             });
-            createForm.reset({
-                title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
-                owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
-                relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
-            });
         } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
-            addToast("Erreur lors de la création", "error");
+            if (e instanceof z.ZodError) {
+                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+            } else {
+                ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
+                addToast("Erreur lors de la création", "error");
+            }
         }
     };
 
     const handleUpdate: SubmitHandler<DocumentFormData> = async (data) => {
         if (!canEditResource(user, 'Document', selectedDocument?.ownerId || selectedDocument?.owner) || !selectedDocument) return;
         try {
+            // Validate data with Zod
+            const validatedData = documentSchema.parse(data);
+
             await updateDoc(doc(db, 'documents', selectedDocument.id), {
-                ...data,
+                ...validatedData,
                 updatedAt: new Date().toISOString()
             });
 
-            await logAction(user, 'UPDATE', 'Document', `MAJ document: ${data.title}`);
-
-            await logAction(user, 'UPDATE', 'Document', `MAJ document: ${data.title}`);
-            setSelectedDocument({ ...selectedDocument, ...data, updatedAt: new Date().toISOString() });
+            await logAction(user, 'UPDATE', 'Document', `MAJ document: ${validatedData.title}`);
+            setSelectedDocument({ ...selectedDocument, ...validatedData, updatedAt: new Date().toISOString() });
             setIsEditing(false);
             addToast("Document mis à jour", "success");
         } catch (error) {
-            ErrorLogger.error(error, 'Documents.handleUpdate');
-            addToast("Erreur lors de la modification", "error");
+            if (error instanceof z.ZodError) {
+                addToast((error as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+            } else {
+                ErrorLogger.error(error, 'Documents.handleUpdate');
+                addToast("Erreur lors de la modification", "error");
+            }
         }
     };
 
