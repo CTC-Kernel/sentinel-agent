@@ -8,17 +8,6 @@ import { PlanType } from '../types';
 import { Tooltip } from '../components/ui/Tooltip';
 import { ContactModal } from '../components/ui/ContactModal';
 
-const ANNUAL_DISCOUNT = 0.2;
-
-const computeAnnualBilling = (monthlyPrice: number) => {
-  if (monthlyPrice <= 0) {
-    return { yearly: 0, monthlyEquivalent: 0 };
-  }
-  const yearly = Math.round(monthlyPrice * 12 * (1 - ANNUAL_DISCOUNT));
-  const monthlyEquivalent = Math.round(yearly / 12);
-  return { yearly, monthlyEquivalent };
-};
-
 const Pricing = () => {
   const { user, addToast } = useStore();
   const [isAnnual, setIsAnnual] = useState(true);
@@ -124,9 +113,7 @@ const Pricing = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {plans.map(({ id, name, icon: Icon, popular }) => {
           const plan = PLANS[id];
-          const monthlyPrice = plan.priceMonthly;
-          const { yearly, monthlyEquivalent } = computeAnnualBilling(monthlyPrice);
-          const price = isAnnual ? monthlyEquivalent : monthlyPrice;
+          const price = plan.priceMonthly;
 
           return (
             <div
@@ -166,7 +153,7 @@ const Pricing = () => {
                   </div>
                   {isAnnual && price > 0 && (
                     <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-2">
-                      Facturé {yearly}€ par an
+                      Facturé {plan.priceYearly}€ par an
                     </p>
                   )}
                 </div>

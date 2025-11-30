@@ -6,6 +6,7 @@ const OVH_API_BASE_URL = import.meta.env.VITE_OVH_API_BASE_URL || '/api/v1';
 
 interface HybridRequestOptions extends RequestInit {
     requiresAuth?: boolean;
+    silent?: boolean;
 }
 
 interface HybridResponse<T = unknown> {
@@ -60,7 +61,9 @@ class HybridService {
             const data = await response.json();
             return { success: true, data };
         } catch (error) {
-            ErrorLogger.error(error, 'HybridService.request');
+            if (!options.silent) {
+                ErrorLogger.error(error, 'HybridService.request');
+            }
             const message = error instanceof Error ? error.message : 'Unknown error occurred';
             return { success: false, error: message };
         }
@@ -92,6 +95,7 @@ class HybridService {
         return this.request('/audit/log', {
             method: 'POST',
             body: JSON.stringify(event),
+            silent: true // Background logging should not block or spam errors
         });
     }
 
@@ -106,6 +110,7 @@ class HybridService {
                 accepted,
                 version: '1.0' // Should be dynamic in production
             }),
+            silent: true // Background logging should not block or spam errors
         });
     }
 
