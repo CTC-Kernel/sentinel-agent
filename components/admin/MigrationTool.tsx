@@ -71,7 +71,7 @@ export const MigrationTool: React.FC = () => {
                                 if (userSnap.exists() && userSnap.data().organizationId) {
                                     targetOrgId = userSnap.data().organizationId;
                                 }
-                            } catch (e) {
+                            } catch (_e) {
                                 // Ignore error
                             }
                         }

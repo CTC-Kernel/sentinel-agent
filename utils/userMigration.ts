@@ -21,8 +21,17 @@ export const fixAllUsers = async (): Promise<{
         const fixAllUsersFunc = httpsCallable(functions, 'fixAllUsers');
 
         const result = await fixAllUsersFunc();
-        return result.data as any;
-    } catch (_error) {
+        return result.data as {
+            success: boolean;
+            results?: {
+                total: number;
+                fixed: number;
+                alreadyOk: number;
+                errors: Array<{ userId: string; error: string }>;
+            };
+            error?: string;
+        };
+    } catch (error) {
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error'

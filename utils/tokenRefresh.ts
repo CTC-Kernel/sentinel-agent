@@ -18,7 +18,7 @@ export const refreshUserToken = async (): Promise<boolean> => {
         const refreshToken = httpsCallable(functions, 'refreshUserToken');
 
         const result = await refreshToken();
-        const data = result.data as any;
+        const data = result.data as { success: boolean };
 
         if (!data.success) {
             return false;

@@ -119,7 +119,7 @@ export class IncidentPlaybookService {
       }, 'CREATE', 'IncidentPlaybook', `Playbook créé: ${playbook.title}`);
 
       return docRef.id;
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.createPlaybook');
       throw error;
     }
@@ -143,7 +143,7 @@ export class IncidentPlaybookService {
         id: doc.id,
         ...doc.data()
       } as IncidentPlaybook));
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.getPlaybooks');
       return [];
     }
@@ -162,7 +162,7 @@ export class IncidentPlaybookService {
       }
 
       return null;
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.getPlaybook');
       return null;
     }
@@ -181,7 +181,7 @@ export class IncidentPlaybookService {
         email: 'system@sentinel-grc.com',
         organizationId: 'system'
       }, 'UPDATE', 'IncidentPlaybook', `Playbook mis à jour: ${id}`);
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.updatePlaybook');
       throw error;
     }
@@ -196,7 +196,7 @@ export class IncidentPlaybookService {
         email: 'system@sentinel-grc.com',
         organizationId: 'system'
       }, 'DELETE', 'IncidentPlaybook', `Playbook supprimé: ${id}`);
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.deletePlaybook');
       throw error;
     }
@@ -248,7 +248,7 @@ export class IncidentPlaybookService {
       }, 'CREATE', 'IncidentResponse', `Response initiée: ${incidentId}`);
 
       return docRef.id;
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.initiateResponse');
       throw error;
     }
@@ -271,7 +271,7 @@ export class IncidentPlaybookService {
       }
 
       return null;
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.getResponse');
       return null;
     }
@@ -333,7 +333,7 @@ export class IncidentPlaybookService {
         playbookStepsCompleted: updates.completedSteps || response.completedSteps
       });
 
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.updateStepProgress');
       throw error;
     }
@@ -369,7 +369,7 @@ export class IncidentPlaybookService {
         status: 'Contenu'
       });
 
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.escalateIncident');
       throw error;
     }
@@ -405,7 +405,7 @@ export class IncidentPlaybookService {
         lessonsLearned
       });
 
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.completeResponse');
       throw error;
     }
@@ -559,7 +559,7 @@ export class IncidentPlaybookService {
       }
 
       return null;
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.getResponseByDocId');
       return null;
     }
@@ -599,7 +599,7 @@ export class IncidentPlaybookService {
         commonCategories: await this.getCommonCategories(responses),
         escalationRate: this.calculateEscalationRate(responses)
       };
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.getResponseStats');
       return null;
     }

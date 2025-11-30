@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { aiService } from '../../services/aiService';
 import { Sparkles, X, Send, User, Bot, Loader2, Maximize2, Minimize2 } from '../ui/Icons';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface Message {
     id: string;
@@ -67,6 +68,7 @@ export const GeminiAssistant: React.FC = () => {
 
             setMessages(prev => [...prev, aiMsg]);
         } catch (error) {
+            ErrorLogger.error(error, 'GeminiAssistant.handleSend');
             const errorMsg: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',

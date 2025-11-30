@@ -91,11 +91,12 @@ export const SubscriptionService = {
       if (data.url) {
         window.location.href = data.url;
       }
-    } catch (error: any) {
+    } catch (error) {
       ErrorLogger.error(error, 'SubscriptionService.manageSubscription');
 
       // Fallback: Si les Cloud Functions ne sont pas déployées, rediriger vers Stripe directement
-      if (error.code === 'functions/not-found' || error.message?.includes('404')) {
+      const err = error as { code?: string; message?: string };
+      if (err.code === 'functions/not-found' || err.message?.includes('404')) {
         throw new Error('La gestion des abonnements n\'est pas encore configurée. Veuillez contacter le support ou déployer les Cloud Functions.');
       }
       throw error;

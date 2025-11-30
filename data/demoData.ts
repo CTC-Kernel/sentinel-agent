@@ -2,7 +2,7 @@ import {
     Asset, Risk, Control, Project, Audit, Incident, Supplier,
     ProcessingActivity, BusinessProcess, BcpDrill, UserProfile,
     Criticality, SystemLog, Document, SupplierAssessment, SupplierIncident,
-    Finding
+    Finding, NotificationRecord, Comment
 } from '../types';
 
 const DEMO_ORG_ID = 'demo-org-123';
@@ -399,7 +399,7 @@ export const demoProcessingActivities: ProcessingActivity[] = [
     }
 ];
 
-export const demoNotifications: any[] = [
+export const demoNotifications: NotificationRecord[] = [
     {
         id: 'notif-1',
         organizationId: DEMO_ORG_ID,
@@ -446,7 +446,7 @@ export const demoNotifications: any[] = [
     }
 ];
 
-export const demoComments: any[] = [
+export const demoComments: Comment[] = [
     {
         id: 'com-1',
         userId: 'user-2',

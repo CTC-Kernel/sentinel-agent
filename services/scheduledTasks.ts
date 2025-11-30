@@ -27,6 +27,7 @@ export const scheduledNotificationChecks = async () => {
         );
 
         await Promise.allSettled(promises);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_error) {
         // Error handled silently
     }

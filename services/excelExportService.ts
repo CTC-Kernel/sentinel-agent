@@ -5,7 +5,7 @@ interface ExportOptions {
     filename: string;
     sheets: {
         name: string;
-        data: any[];
+        data: Record<string, unknown>[];
         columns: { header: string; key: string; width?: number }[];
     }[];
     includeCharts?: boolean;
@@ -178,7 +178,7 @@ export class ExcelExportService {
                         confidentiality: a.confidentiality,
                         integrity: a.integrity,
                         availability: a.availability,
-                        status: (a as any).status || 'Actif'
+                        status: (a as unknown as { status?: string }).status || 'Actif'
                     }))
                 },
                 {
@@ -227,7 +227,7 @@ export class ExcelExportService {
                         severity: i.severity,
                         status: i.status,
                         dateReported: i.dateReported,
-                        responseOwner: (i as any).responseOwner || '-'
+                        responseOwner: (i as unknown as { responseOwner?: string }).responseOwner || '-'
                     }))
                 },
                 {
@@ -243,8 +243,8 @@ export class ExcelExportService {
                         name: p.name,
                         status: p.status,
                         manager: p.manager,
-                        startDate: (p as any).startDate || '-',
-                        endDate: (p as any).endDate || '-'
+                        startDate: (p as unknown as { startDate?: string }).startDate || '-',
+                        endDate: (p as unknown as { endDate?: string }).endDate || '-'
                     }))
                 }
             ]

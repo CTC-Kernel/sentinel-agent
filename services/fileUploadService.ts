@@ -59,6 +59,7 @@ export const uploadFile = async (
                 try {
                     const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                     resolve(downloadURL);
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 } catch (_error) {
                     reject(new Error('Failed to get download URL.'));
                 }
@@ -75,7 +76,7 @@ export const deleteFile = async (path: string): Promise<void> => {
     try {
         const storageRef = ref(storage, path);
         await deleteObject(storageRef);
-    } catch (_error) {
+    } catch (error) {
         ErrorLogger.error(error, 'FileUploadService.deleteFile');
         throw new Error('Failed to delete file.');
     }
@@ -91,7 +92,7 @@ export const listFiles = async (path: string) => {
         const storageRef = ref(storage, path);
         const result = await listAll(storageRef);
         return result.items;
-    } catch (_error) {
+    } catch (error) {
         ErrorLogger.error(error, 'FileUploadService.listFiles');
         throw new Error('Failed to list files.');
     }
