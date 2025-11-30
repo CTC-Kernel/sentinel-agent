@@ -87,7 +87,8 @@ export const AnalyticsDashboard: React.FC = () => {
                 setProjects(projectsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
 
                 setLoading(false);
-            } catch (_error) {
+            } catch (error) {
+                // ErrorLogger.error(error, 'AnalyticsDashboard.fetchData'); // Optional: log error
                 setLoading(false);
             }
         };
@@ -174,7 +175,7 @@ export const AnalyticsDashboard: React.FC = () => {
         const categories: Record<string, number> = {};
 
         risks.forEach(risk => {
-            const category = (risk as any).category || 'Autre';
+            const category = (risk as unknown as { category?: string }).category || 'Autre';
             categories[category] = (categories[category] || 0) + 1;
         });
 

@@ -13,7 +13,7 @@ export const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ child
 
     if (firebaseUser) {
         // Rediriger vers la page d'origine ou le dashboard
-        const from = (location.state as any)?.from?.pathname || '/';
+        const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
         return <Navigate to={from} replace />;
     }
 

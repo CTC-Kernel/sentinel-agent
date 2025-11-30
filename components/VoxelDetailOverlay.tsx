@@ -1,13 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { XCircle, Maximize2, Minimize2, Move, Flame } from './ui/Icons';
 
+interface NodeDetails {
+  id: string;
+  gradient: string;
+  badge: string;
+  title: string;
+  owner?: string;
+  stats: { label: string; value: string }[];
+  meta: { label: string; value: string }[];
+}
+
+interface RelatedElement {
+  id: string;
+  type: 'risk' | 'asset' | 'incident' | 'project' | string;
+  label: string;
+  meta?: string;
+}
+
 interface VoxelDetailOverlayProps {
-  selectedNodeDetails: any;
+  selectedNodeDetails: NodeDetails;
   isDetailMinimized: boolean;
   setIsDetailMinimized: (v: boolean | ((prev: boolean) => boolean)) => void;
   handleSelectionClear: () => void;
-  relatedElements: any[];
-  applyFocus: (id: string, type: any) => void;
+  relatedElements: RelatedElement[];
+  applyFocus: (id: string, type: string) => void;
   handleOpenSelected: () => void;
   onPositionChange?: (x: number, y: number) => void;
   onRequestFocus?: () => void;
@@ -181,7 +198,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
             <div className="space-y-5 pt-2 animate-[fadeIn_0.3s_ease-out]">
               {/* Stats Grid */}
               <div className="grid grid-cols-3 gap-2">
-                {selectedNodeDetails.stats.map((item: any) => (
+                {selectedNodeDetails.stats.map((item) => (
                   <div key={item.label} className="group relative overflow-hidden rounded-2xl bg-black/10 hover:bg-black/20 border border-white/5 p-2.5 transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <p className="text-[9px] uppercase tracking-wider text-white/60 truncate mb-0.5">{item.label}</p>
@@ -192,7 +209,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
 
               {/* Meta Info */}
               <div className="space-y-2.5 bg-black/10 rounded-2xl p-3 border border-white/5">
-                {selectedNodeDetails.meta.map((meta: any) => (
+                {selectedNodeDetails.meta.map((meta) => (
                   <div key={meta.label} className="flex items-center justify-between text-xs gap-3 group">
                     <span className="text-white/60 font-medium shrink-0 group-hover:text-white/80 transition-colors">{meta.label}</span>
                     <span className="font-semibold text-right break-words line-clamp-1 text-white/90">{meta.value || '—'}</span>
@@ -209,7 +226,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                   </div>
                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto custom-scrollbar pr-1">
-                    {relatedElements.map((related: any) => (
+                    {relatedElements.map((related) => (
                       <button
                         key={related.id}
                         onClick={(e) => { e.stopPropagation(); applyFocus(related.id, related.type); }}
