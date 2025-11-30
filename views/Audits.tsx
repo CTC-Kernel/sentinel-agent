@@ -554,7 +554,7 @@ export const Audits: React.FC = () => {
                 y += 8;
 
                 const findingsData = findings.map(f => [f.type, f.description, f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-', f.status]) || [];
-                (doc as any).autoTable({
+                (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
                     startY: y,
                     head: [['Type', 'Description', 'Contrôle', 'Statut']],
                     body: findingsData,

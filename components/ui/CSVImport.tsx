@@ -130,7 +130,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
             setImportedCount(parsedData.length);
             setStep('complete');
             addToast(`${parsedData.length} éléments importés avec succès`, 'success');
-        } catch (error) {
+        } catch {
             addToast('Erreur lors de l\'importation', 'error');
             setStep('preview');
         } finally {

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Calendar, User, Clock, Target, AlertCircle } from 'lucide-react';
 import { ProjectTask, UserProfile } from '../../types';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectTaskSchema, ProjectTaskFormData } from '../../schemas/projectSchema';
 
@@ -27,8 +27,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         register,
         handleSubmit,
         reset,
-        watch,
         setValue,
+        control,
         formState: { errors }
     } = useForm<ProjectTaskFormData>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,7 +73,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         onClose();
     };
 
-    const watchedDependencies = watch('dependencies') || [];
+    const watchedDependencies = useWatch({ control, name: 'dependencies' }) || [];
+    const progress = useWatch({ control, name: 'progress' });
 
     if (!isOpen) return null;
 
@@ -255,7 +256,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
                             <Target className="h-3.5 w-3.5" />
-                            Progression ({watch('progress')}%)
+                            Progression ({progress}%)
                         </label>
                         <input
                             type="range"

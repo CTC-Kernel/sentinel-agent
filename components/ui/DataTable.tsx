@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
     useReactTable,
     getCoreRowModel,
@@ -36,7 +36,7 @@ export function DataTable<TData, TValue>({
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
 
-    const table = useReactTable({
+    const tableOptions = useMemo(() => ({
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
@@ -54,7 +54,9 @@ export function DataTable<TData, TValue>({
                 pageSize,
             },
         },
-    });
+    }), [data, columns, sorting, globalFilter, pageSize]);
+
+    const table = useReactTable(tableOptions);
 
     const handleExport = () => {
         const headers = columns.map((col) => (col.header as string) || '').join(',');

@@ -34,7 +34,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
 
     // Risk distribution by category
     const categoryData = risks.reduce((acc, risk) => {
-        const cat = (risk as any).category || 'Autre';
+        const cat = risk.category || 'Autre';
         acc[cat] = (acc[cat] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);
@@ -301,7 +301,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                 <div key={index} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-800">
                                     <div className="flex-1">
                                         <p className="font-bold text-sm text-slate-900 dark:text-white">{risk.threat}</p>
-                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{(risk as any).category || 'Non catégorisé'}</p>
+                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{risk.category || 'Non catégorisé'}</p>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <div className="text-right">

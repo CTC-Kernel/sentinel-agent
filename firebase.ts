@@ -85,7 +85,7 @@ try {
   if (isMessagingSupported()) {
     messaging = getMessaging(app);
   }
-} catch (err) {
+} catch {
   // Silence 'messaging/unsupported-browser' errors in preview/dev environments
   // console.debug('Firebase Messaging initialization skipped.');
 }

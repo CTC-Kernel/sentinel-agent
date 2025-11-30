@@ -3,7 +3,7 @@ import { Project, Risk, Control, Asset } from '../../types';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { CustomSelect } from '../ui/CustomSelect';
 import { CustomDatePicker } from '../ui/CustomDatePicker';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectSchema, ProjectFormData } from '../../schemas/projectSchema';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -36,7 +36,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
         control,
         reset,
         setValue,
-        watch,
         formState: { errors }
     } = useForm<ProjectFormData>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -87,7 +86,8 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     };
 
     // Watch values for AI context
-    const watchedName = watch('name');
+    const watchedName = useWatch({ control, name: 'name' });
+    const relatedRiskIds = useWatch({ control, name: 'relatedRiskIds' });
 
     return (
         <form onSubmit={handleSubmit(onFormSubmit)} className="p-8 space-y-8 overflow-y-auto custom-scrollbar h-full">
@@ -101,7 +101,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                         />
                         <div className="absolute right-2 top-2 z-10">
                             <AIAssistButton
-                                context={{ relatedRisks: availableRisks.filter(r => watch('relatedRiskIds')?.includes(r.id)) }}
+                                context={{ relatedRisks: availableRisks.filter(r => relatedRiskIds?.includes(r.id)) }}
                                 fieldName="Nom du projet"
                                 prompt="Suggère un nom de projet professionnel pour traiter ces risques. Sois concis."
                                 onSuggest={(val: string) => setValue('name', val, { shouldDirty: true })}

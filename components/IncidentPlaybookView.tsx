@@ -50,7 +50,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
     } finally {
       setLoading(false);
     }
-  }, [incident.category, addToast]);
+  }, [incident.category]);
 
   const loadResponse = useCallback(async () => {
     try {

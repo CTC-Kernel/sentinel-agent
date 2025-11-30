@@ -49,7 +49,7 @@ export const Drawer: React.FC<DrawerProps> = ({
             // Ensure we reset overflow if unmounting while open
             if (isOpen) document.body.style.overflow = 'unset';
         };
-    }, [isOpen, onClose]);
+    }, [isOpen, onClose, isVisible]);
 
     if (!isVisible && !isOpen) return null;
 

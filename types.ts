@@ -64,6 +64,7 @@ export interface Risk {
   history?: RiskHistory[];
   treatment?: RiskTreatment;
   isSecureStorage?: boolean;
+  category?: string;
   updatedAt?: string;
 }
 

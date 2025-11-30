@@ -110,7 +110,7 @@ export const aiService = {
                             suggestions: parsed.suggestions.map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
                             insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
                         };
-                    } catch (_e) {
+                    } catch {
                         console.warn(`Fallback ${modelName} failed`);
                         continue;
                     }
@@ -299,7 +299,7 @@ async function generateContentSafe(prompt: string): Promise<string> {
                     const fallbackModel = genAI.getGenerativeModel({ model: modelName });
                     const result = await fallbackModel.generateContent(prompt);
                     return (await result.response).text();
-                } catch (_e) {
+                } catch {
                     console.warn(`Fallback ${modelName} failed`);
                     continue;
                 }
