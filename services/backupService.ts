@@ -38,6 +38,13 @@ export interface RestoreConfig {
   dryRun: boolean;
 }
 
+export interface RestoreSummary {
+  restored: number;
+  skipped: number;
+  errors: string[];
+  collections: Record<string, { total: number; restored: number; skipped: number }>;
+}
+
 export class BackupService {
   private static readonly BACKUP_COLLECTION = 'backups';
 
@@ -61,7 +68,7 @@ export class BackupService {
       await setDoc(doc(db, this.BACKUP_COLLECTION, backupId), metadata);
 
       // Collecter les données
-      const backupData: any = {};
+      const backupData: Record<string, unknown[]> = {};
       let totalSize = 0;
 
       for (const collectionName of metadata.collections) {
@@ -70,6 +77,7 @@ export class BackupService {
           const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           backupData[collectionName] = data;
           totalSize += JSON.stringify(data).length;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_error) {
           // Silently skip collections that cannot be backed up
           // Skip
@@ -95,7 +103,7 @@ export class BackupService {
       await logAction(user, 'CREATE', 'Backup', `Backup créé: ${backupId}`);
       return backupId;
 
-    } catch (_error) {
+    } catch (error) {
       await updateDoc(doc(db, this.BACKUP_COLLECTION, backupId), {
         status: 'failed',
         error: error instanceof Error ? error.message : 'Erreur inconnue'
@@ -104,7 +112,7 @@ export class BackupService {
     }
   }
 
-  static async restoreBackup(user: UserProfile, config: RestoreConfig): Promise<{ success: boolean; summary: any }> {
+  static async restoreBackup(user: UserProfile, config: RestoreConfig): Promise<{ success: boolean; summary: RestoreSummary }> {
     if (!user.organizationId) throw new Error('Organisation non définie');
 
     // Récupérer les métadonnées du backup
@@ -123,7 +131,7 @@ export class BackupService {
       const response = await fetch(downloadUrl);
       const backupData = await response.json();
 
-      const summary: any = {
+      const summary: RestoreSummary = {
         restored: 0,
         skipped: 0,
         errors: [],
@@ -179,7 +187,7 @@ export class BackupService {
           summary.collections[collectionName].restored = documents.length - summary.collections[collectionName].skipped;
           summary.restored += summary.collections[collectionName].restored;
 
-        } catch (_error) {
+        } catch (error) {
           const errorMsg = `Erreur lors de la restauration de ${collectionName}: ${error}`;
           summary.errors.push(errorMsg);
         }
@@ -188,7 +196,7 @@ export class BackupService {
       await logAction(user, 'RESTORE', 'Backup', `Backup restauré: ${config.backupId}`);
       return { success: summary.errors.length === 0, summary };
 
-    } catch (_error) {
+    } catch (error) {
       await logAction(user, 'ERROR', 'Backup', `Erreur restauration: ${error}`);
       throw error;
     }
@@ -202,6 +210,7 @@ export class BackupService {
         query(collection(db, this.BACKUP_COLLECTION), where('organizationId', '==', organizationId))
       );
       return snapshot.docs.map(doc => doc.data() as BackupMetadata);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_error) {
       return [];
     }
@@ -219,7 +228,7 @@ export class BackupService {
       await deleteObject(backupRef);
 
       await logAction(user, 'DELETE', 'Backup', `Backup supprimé: ${backupId}`);
-    } catch (_error) {
+    } catch (error) {
       await logAction(user, 'ERROR', 'Backup', `Erreur suppression backup: ${error}`);
       throw error;
     }
@@ -261,6 +270,7 @@ export class BackupService {
         : undefined;
 
       return { totalBackups, totalSize, lastBackup };
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_error) {
       return { totalBackups: 0, totalSize: 0 };
     }
@@ -314,7 +324,7 @@ export class BackupService {
           nextBackup: this.calculateNextBackup(schedule.frequency).toISOString()
         });
       }
-    } catch (_error) {
+    } catch (error) {
       ErrorLogger.error(error, 'BackupService.checkScheduledBackups');
     }
   }

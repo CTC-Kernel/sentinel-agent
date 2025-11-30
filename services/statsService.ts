@@ -1,6 +1,6 @@
 import { collection, doc, getDoc, setDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Risk, Incident, Control, Asset } from '../types';
+import { Risk, Incident, Control, Asset, Project } from '../types';
 import { ErrorLogger } from './errorLogger';
 
 export interface DailyStats {
@@ -49,7 +49,7 @@ export class StatsService {
             const incidents = incidentsSnap.docs.map(d => d.data() as Incident);
             const controls = controlsSnap.docs.map(d => d.data() as Control);
             const assets = assetsSnap.docs.map(d => d.data() as Asset);
-            const projects = projectsSnap.docs.map(d => d.data() as any); // Project type might need to be imported or cast
+            const projects = projectsSnap.docs.map(d => d.data() as Project);
 
             // Calculate metrics
             const criticalRisks = risks.filter(r => (r.score || 0) >= 15).length;
@@ -77,7 +77,7 @@ export class StatsService {
             await setDoc(docRef, { ...stats, organizationId });
             console.log('Daily stats snapshot created for', today);
 
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'StatsService.snapshotDailyStats');
         }
     }
@@ -102,7 +102,7 @@ export class StatsService {
             return snapshot.docs
                 .map(d => d.data() as DailyStats)
                 .reverse(); // Return chronological order (oldest to newest)
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'StatsService.getHistory');
             return [];
         }

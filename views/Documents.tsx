@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { documentSchema, DocumentFormData } from '../schemas/documentSchema';
 import { createPortal } from 'react-dom';
@@ -109,13 +109,13 @@ export const Documents: React.FC = () => {
     const [previewFile, setPreviewFile] = useState<{ url: string; name: string; type: string } | null>(null);
 
     // Watch ownerId to update owner name
-    const createOwnerId = createForm.watch('ownerId');
+    const createOwnerId = useWatch({ control: createForm.control, name: 'ownerId' });
     useEffect(() => {
         const u = usersList.find(u => u.uid === createOwnerId);
         if (u) createForm.setValue('owner', u.displayName);
     }, [createOwnerId, usersList, createForm]);
 
-    const editOwnerId = editForm.watch('ownerId');
+    const editOwnerId = useWatch({ control: editForm.control, name: 'ownerId' });
     useEffect(() => {
         const u = usersList.find(u => u.uid === editOwnerId);
         if (u) editForm.setValue('owner', u.displayName);
@@ -199,7 +199,7 @@ export const Documents: React.FC = () => {
             await logAction(user, 'WORKFLOW', 'Document', `${logMsg}: ${selectedDocument.title}`);
             setSelectedDocument({ ...selectedDocument, ...updates });
             addToast(logMsg, "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'Documents.handleWorkflowAction');
             addToast("Erreur workflow", "error");
         }
@@ -231,7 +231,7 @@ export const Documents: React.FC = () => {
                 owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
                 relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
             });
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
             addToast("Erreur lors de la création", "error");
         }
@@ -251,7 +251,7 @@ export const Documents: React.FC = () => {
             setSelectedDocument({ ...selectedDocument, ...data, updatedAt: new Date().toISOString() });
             setIsEditing(false);
             addToast("Document mis à jour", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'Documents.handleUpdate');
             addToast("Erreur lors de la modification", "error");
         }
@@ -302,7 +302,7 @@ export const Documents: React.FC = () => {
                 message: "Cette action est définitive.",
                 onConfirm: () => handleDelete(id, title)
             });
-        } catch (_e) {
+        } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Documents.initiateDelete');
             addToast("Erreur lors de la vérification des dépendances", "error");
         }
@@ -314,7 +314,7 @@ export const Documents: React.FC = () => {
             setSelectedDocument(null);
             await logAction(user, 'DELETE', 'Document', `Suppression: ${title}`);
             addToast("Document supprimé", "info");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'Documents.handleDelete');
             addToast("Erreur lors de la suppression", "error");
         }
@@ -333,7 +333,7 @@ export const Documents: React.FC = () => {
                 html
             });
             addToast("Rappel envoyé au propriétaire", "success");
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'Documents.sendReminder');
             addToast("Erreur envoi rappel", "error");
         }

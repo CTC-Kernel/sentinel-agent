@@ -89,7 +89,8 @@ export const Login: React.FC = () => {
         try {
             await sendPasswordResetEmail(auth, data.email);
             setResetSent(true);
-        } catch (error) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_error) {
             addToast("Erreur envoi email de réinitialisation", "error");
         } finally {
             setLoading(false);

@@ -4,7 +4,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { initializeFirestore, persistentLocalCache, persistentSingleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { getMessaging } from 'firebase/messaging';
+import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics } from 'firebase/analytics';
 // import { initializeAppCheck } from 'firebase/app-check';
@@ -68,7 +68,7 @@ export const functions = getFunctions(app);
 export const analytics = getAnalytics(app);
 
 // Initialisation de la messagerie (Sécurisée avec détection de fonctionnalités)
-let messaging: any = null;
+let messaging: Messaging | null = null;
 
 const isMessagingSupported = () => {
   if (typeof window === 'undefined') return false;
@@ -85,7 +85,7 @@ try {
   if (isMessagingSupported()) {
     messaging = getMessaging(app);
   }
-} catch (_err) {
+} catch (err) {
   // Silence 'messaging/unsupported-browser' errors in preview/dev environments
   // console.debug('Firebase Messaging initialization skipped.');
 }

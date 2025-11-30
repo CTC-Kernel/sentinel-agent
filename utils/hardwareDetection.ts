@@ -30,8 +30,8 @@ export const detectHardware = async (): Promise<HardwareInfo> => {
                 info.gpu = (gl as WebGLRenderingContext).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
             }
         }
-    } catch (_e) {
-        console.warn('GPU detection failed', e);
+    } catch (error) {
+        console.warn('GPU detection failed', error);
     }
 
     // 2. CPU Cores
@@ -41,8 +41,10 @@ export const detectHardware = async (): Promise<HardwareInfo> => {
 
     // 3. RAM (Chrome/Edge only)
     // navigator.deviceMemory is not standard yet
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const deviceMemory = (navigator as any).deviceMemory || 4;
+    interface NavigatorWithMemory extends Navigator {
+        deviceMemory?: number;
+    }
+    const deviceMemory = (navigator as NavigatorWithMemory).deviceMemory || 4;
 
     if (deviceMemory) {
         info.ram = `${deviceMemory} GB`;

@@ -89,7 +89,7 @@ export class OnboardingService {
                             onboardingCompleted: true
                         });
                     }
-                } catch (_error) {
+                } catch (error) {
                     ErrorLogger.error(error, 'OnboardingService.startMainTour.onDestroyStarted');
                 }
             }

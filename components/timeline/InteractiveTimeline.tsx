@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Timeline } from 'vis-timeline/standalone';
 import { DataSet } from 'vis-data';
@@ -25,7 +25,7 @@ interface TimelineEvent {
     type: 'incident' | 'audit' | 'project' | 'risk' | 'document';
     className: string;
     title: string;
-    metadata: any;
+    metadata: Record<string, unknown>;
 }
 
 export const InteractiveTimeline: React.FC = () => {
@@ -99,8 +99,8 @@ export const InteractiveTimeline: React.FC = () => {
                 );
                 projectsSnap.forEach(doc => {
                     const data = doc.data() as Project;
-                    const startDate = (data as any).startDate;
-                    const endDate = (data as any).endDate;
+                    const startDate = data.startDate;
+                    const endDate = data.dueDate;
 
                     if (startDate) {
                         allEvents.push({
@@ -141,11 +141,11 @@ export const InteractiveTimeline: React.FC = () => {
                 );
                 docsSnap.forEach(doc => {
                     const data = doc.data() as Document;
-                    if ((data as any).publishedDate) {
+                    if (data.createdAt) {
                         allEvents.push({
                             id: `document-${doc.id}`,
                             content: `📄 ${data.title}`,
-                            start: new Date((data as any).publishedDate),
+                            start: new Date(data.createdAt),
                             type: 'document',
                             className: 'timeline-document',
                             title: `Document: ${data.title} (v${data.version})`,
@@ -155,7 +155,7 @@ export const InteractiveTimeline: React.FC = () => {
                 });
 
                 setEvents(allEvents);
-            } catch (_error) {
+            } catch (error) {
                 ErrorLogger.error(error, 'InteractiveTimeline.fetchEvents');
             } finally {
                 setLoading(false);
@@ -169,6 +169,47 @@ export const InteractiveTimeline: React.FC = () => {
     const filteredEvents = useMemo(() => {
         return events.filter(event => filters[event.type + 's' as keyof typeof filters] !== false);
     }, [events, filters]);
+
+    const handleEventClick = useCallback((event: TimelineEvent) => {
+        const routes: Record<string, string> = {
+            incident: '/incidents',
+            audit: '/audits',
+            project: '/projects',
+            risk: '/risks',
+            document: '/documents'
+        };
+
+        navigate(`${routes[event.type]}?id=${event.metadata.docId}`);
+    }, [navigate]);
+
+    const applyZoom = useCallback((level: 'day' | 'week' | 'month' | 'year') => {
+        if (!timelineInstance.current) return;
+
+        const now = new Date();
+        let start: Date, end: Date;
+
+        switch (level) {
+            case 'day':
+                start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                end = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+                break;
+            case 'week':
+                start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+                break;
+            case 'month':
+                start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+                end = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+                break;
+            case 'year':
+                start = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+                end = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+                break;
+        }
+
+        timelineInstance.current.setWindow(start, end);
+        setZoomLevel(level);
+    }, []);
 
     // Initialize timeline
     useEffect(() => {
@@ -223,48 +264,9 @@ export const InteractiveTimeline: React.FC = () => {
                 timelineInstance.current.destroy();
             }
         };
-    }, [filteredEvents]);
+    }, [filteredEvents, handleEventClick, zoomLevel, applyZoom]);
 
-    const handleEventClick = (event: TimelineEvent) => {
-        const routes: Record<string, string> = {
-            incident: '/incidents',
-            audit: '/audits',
-            project: '/projects',
-            risk: '/risks',
-            document: '/documents'
-        };
 
-        navigate(`${routes[event.type]}?id=${event.metadata.docId}`);
-    };
-
-    const applyZoom = (level: 'day' | 'week' | 'month' | 'year') => {
-        if (!timelineInstance.current) return;
-
-        const now = new Date();
-        let start: Date, end: Date;
-
-        switch (level) {
-            case 'day':
-                start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                end = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-                break;
-            case 'week':
-                start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-                break;
-            case 'month':
-                start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-                end = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-                break;
-            case 'year':
-                start = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-                end = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
-                break;
-        }
-
-        timelineInstance.current.setWindow(start, end);
-        setZoomLevel(level);
-    };
 
     const handleExportPNG = async () => {
         if (!timelineRef.current) return;
@@ -278,7 +280,7 @@ export const InteractiveTimeline: React.FC = () => {
             link.href = image;
             link.download = `timeline-export-${new Date().toISOString().split('T')[0]}.png`;
             link.click();
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'InteractiveTimeline.handleExportPNG');
             alert('Erreur lors de l\'exportation de la timeline');
         }

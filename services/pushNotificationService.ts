@@ -53,7 +53,7 @@ export class PushNotificationService {
                 return true;
             }
             return false;
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'PushNotificationService.initialize');
             return false;
         }
@@ -80,7 +80,7 @@ export class PushNotificationService {
             await setDoc(userRef, {
                 fcmTokens: arrayUnion(token)
             }, { merge: true });
-        } catch (_error) {
+        } catch (error) {
             ErrorLogger.error(error, 'PushNotificationService.saveTokenToDatabase');
         }
     }
