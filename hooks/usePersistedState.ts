@@ -12,7 +12,7 @@ export function usePersistedState<T>(key: string, initialValue: T): [T, (value: 
         try {
             const item = localStorage.getItem(key);
             return item ? JSON.parse(item) : initialValue;
-        } catch (_error) {
+        } catch (error) {
             console.warn(`Error reading localStorage key "${key}":`, error);
             return initialValue;
         }
@@ -22,7 +22,7 @@ export function usePersistedState<T>(key: string, initialValue: T): [T, (value: 
     useEffect(() => {
         try {
             localStorage.setItem(key, JSON.stringify(state));
-        } catch (_error) {
+        } catch (error) {
             console.warn(`Error writing localStorage key "${key}":`, error);
         }
     }, [key, state]);

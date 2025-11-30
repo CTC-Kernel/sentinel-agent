@@ -50,7 +50,7 @@ class ErrorLoggerService {
             extra: additionalContext
           });
         }
-      } catch (sentryError) {
+      } catch {
         // Fail silently si Sentry n'est pas disponible
       }
     }
@@ -140,7 +140,7 @@ class ErrorLoggerService {
       if (addToast) {
         addToast(ERROR_MESSAGES[messageKey], 'error');
       }
-    } catch (_e) {
+    } catch {
       // Ignore toast errors if store is not ready
     }
 

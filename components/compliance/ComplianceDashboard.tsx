@@ -45,7 +45,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     const previous = history[0].metrics.complianceRate; // Compare with 30 days ago (or oldest available)
                     setTrend(Math.round(current - previous));
                 }
-            } catch (_error) {
+            } catch (error) {
                 ErrorLogger.error(error, 'ComplianceDashboard.fetchTrend');
             }
         };

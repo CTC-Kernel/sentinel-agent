@@ -81,10 +81,11 @@ export const Documents: React.FC = () => {
         if (!state.fromVoxel || !state.voxelSelectedId) return;
         if (loading || documents.length === 0) return;
         const doc = documents.find(d => d.id === state.voxelSelectedId);
-        if (doc) {
+        if (doc && selectedDocument?.id !== doc.id) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedDocument(doc);
         }
-    }, [location.state, loading, documents]);
+    }, [location.state, loading, documents, selectedDocument]);
 
     const [isEditing, setIsEditing] = useState(false);
 

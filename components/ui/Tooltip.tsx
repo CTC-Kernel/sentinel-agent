@@ -21,7 +21,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
     const triggerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const updatePosition = () => {
+    const updatePosition = React.useCallback(() => {
         if (triggerRef.current) {
             const rect = triggerRef.current.getBoundingClientRect();
             const scrollX = window.scrollX;
@@ -50,7 +50,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
             }
             setCoords({ top, left });
         }
-    };
+    }, [position]);
 
     const showTooltip = () => {
         updatePosition();
@@ -70,7 +70,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
             window.removeEventListener('resize', updatePosition);
             window.removeEventListener('scroll', updatePosition);
         };
-    }, []);
+    }, [updatePosition]);
 
     return (
         <div

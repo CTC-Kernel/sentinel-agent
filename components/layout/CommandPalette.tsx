@@ -46,13 +46,14 @@ export const CommandPalette: React.FC = () => {
     const { user } = useStore();
 
     // Define Quick Actions
-    const ACTION_ITEMS: CommandItem[] = [
+    // Define Quick Actions
+    const ACTION_ITEMS: CommandItem[] = React.useMemo(() => [
         { id: 'act-inc', title: 'Déclarer un Incident', subtitle: 'Créer une nouvelle alerte de sécurité', icon: Siren, category: 'Actions', action: () => navigate('/incidents') },
         { id: 'act-asset', title: 'Ajouter un Actif', subtitle: 'Enregistrer un nouvel équipement ou logiciel', icon: Plus, category: 'Actions', action: () => navigate('/assets') },
         { id: 'act-risk', title: 'Nouveau Risque', subtitle: 'Identifier une nouvelle menace', icon: ShieldAlert, category: 'Actions', action: () => navigate('/risks') },
         { id: 'act-user', title: 'Inviter Utilisateur', subtitle: 'Ajouter un membre à l\'équipe', icon: Users, category: 'Actions', action: () => navigate('/team') },
         { id: 'act-audit', title: 'Planifier Audit', subtitle: 'Créer un nouvel audit de conformité', icon: Activity, category: 'Actions', action: () => navigate('/audits') },
-    ];
+    ], [navigate]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -74,14 +75,21 @@ export const CommandPalette: React.FC = () => {
                 }
                 if (e.key === 'Enter' && filteredItems.length > 0) {
                     e.preventDefault();
-                    handleSelect(filteredItems[selectedIndex]);
+                    const item = filteredItems[selectedIndex];
+                    if (item.action) {
+                        item.action();
+                    } else if (item.path) {
+                        navigate(item.path);
+                    }
+                    setIsOpen(false);
+                    setQueryStr('');
                 }
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, filteredItems, selectedIndex]);
+    }, [isOpen, filteredItems, selectedIndex, navigate]);
 
     useEffect(() => {
         setSelectedIndex(0);
@@ -171,7 +179,7 @@ export const CommandPalette: React.FC = () => {
             };
             fetchSearchableItems();
         }
-    }, [isOpen, user?.organizationId]);
+    }, [isOpen, user?.organizationId, dbItems.length]);
 
     useEffect(() => {
         if (!queryStr) {
@@ -208,7 +216,7 @@ export const CommandPalette: React.FC = () => {
         }
 
         setFilteredItems(allResults);
-    }, [queryStr, dbItems, navigate]);
+    }, [queryStr, dbItems, navigate, ACTION_ITEMS]);
 
     const handleSelect = (item: CommandItem) => {
         if (item.action) {
