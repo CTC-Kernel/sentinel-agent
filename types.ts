@@ -78,6 +78,14 @@ export interface RiskTreatment {
   estimatedCost?: number;
 }
 
+export interface RiskRecommendation {
+  title: string;
+  description: string;
+  priority: 'urgent' | 'high' | 'medium' | 'low';
+  suggested_actions: { action: string; priority: string }[];
+  confidence_score: number;
+}
+
 export interface Control {
   id: string;
   organizationId: string;
