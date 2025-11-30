@@ -23,7 +23,7 @@ import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { UserProfile, Invitation } from '../types';
 import { httpsCallable, getFunctions } from 'firebase/functions';
-import { demoUsers } from '../data/demoData';
+
 
 interface AuthContextType {
     user: UserProfile | null;
@@ -92,41 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Gestionnaire principal d'état d'authentification
     useEffect(() => {
-        const { demoMode } = useStore.getState(); // Access directly to avoid dependency loop if possible, or add to dependency
 
-        if (demoMode) {
-            console.log("Demo Mode active: Injecting mock user session");
-            const mockUser = demoUsers[0]; // Admin user
-            setUser(mockUser);
-            // Mock minimal Firebase User
-            setFirebaseUser({
-                uid: mockUser.uid,
-                email: mockUser.email,
-                displayName: mockUser.displayName,
-                emailVerified: true,
-                isAnonymous: false,
-                metadata: {},
-                providerData: [],
-                refreshToken: '',
-                tenantId: null,
-                delete: async () => { },
-                getIdToken: async () => 'demo-token',
-                getIdTokenResult: async () => ({
-                    token: 'demo-token',
-                    signInProvider: 'password',
-                    claims: { organizationId: mockUser.organizationId, role: mockUser.role },
-                    authTime: new Date().toISOString(),
-                    issuedAtTime: new Date().toISOString(),
-                    expirationTime: new Date(Date.now() + 3600000).toISOString(),
-                }),
-                reload: async () => { },
-                toJSON: () => ({}),
-                phoneNumber: null,
-                photoURL: null,
-            } as unknown as User);
-            setLoading(false);
-            return;
-        }
 
         let unsubscribeProfile: (() => void) | undefined;
 

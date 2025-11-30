@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import QRCode from 'qrcode';
 
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -337,46 +338,72 @@ export const Assets: React.FC = () => {
         const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `assets_export.csv`; link.click();
     };
 
-    const generateLabels = (targetAsset?: Asset) => {
+    const generateLabels = async (targetAsset?: Asset) => {
         const assetsToPrint = targetAsset ? [targetAsset] : assets;
 
-        PdfService.generateCustomReport(
-            {
-                title: 'Étiquettes d\'Actifs',
-                orientation: 'landscape',
-                filename: targetAsset ? `etiquette-${targetAsset.name}.pdf` : 'etiquettes-actifs.pdf'
-            },
-            (doc) => {
-                let x = 10, y = 10;
-                assetsToPrint.forEach((asset, index) => {
-                    if (index > 0 && index % 8 === 0) {
-                        doc.addPage();
-                        x = 10; y = 10;
-                    }
+        try {
+            // Pre-generate QR codes
+            const qrCodes: Record<string, string> = {};
+            await Promise.all(assetsToPrint.map(async (asset) => {
+                try {
+                    // Generate QR code with asset ID and URL to view it
+                    const url = `${window.location.origin}/#/assets?id=${asset.id}`;
+                    qrCodes[asset.id] = await QRCode.toDataURL(url, { width: 100, margin: 0 });
+                } catch (e) {
+                    ErrorLogger.error(e, 'Assets.generateLabels', { metadata: { assetId: asset.id, code: 'QR_GEN_FAILED' } });
+                }
+            }));
 
-                    doc.setDrawColor(200);
-                    doc.rect(x, y, 90, 50);
+            PdfService.generateCustomReport(
+                {
+                    title: 'Étiquettes d\'Actifs',
+                    orientation: 'landscape',
+                    filename: targetAsset ? `etiquette-${targetAsset.name}.pdf` : 'etiquettes-actifs.pdf'
+                },
+                (doc) => {
+                    let x = 10, y = 10;
+                    assetsToPrint.forEach((asset, index) => {
+                        if (index > 0 && index % 8 === 0) {
+                            doc.addPage();
+                            x = 10; y = 10;
+                        }
 
-                    doc.setFontSize(12);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(asset.name, x + 5, y + 10);
+                        doc.setDrawColor(200);
+                        doc.rect(x, y, 90, 50);
 
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(`ID: ${asset.id.substring(0, 8)}`, x + 5, y + 20);
-                    doc.text(`Type: ${asset.type}`, x + 5, y + 27);
-                    doc.text(`Propriétaire: ${asset.owner || 'N/A'}`, x + 5, y + 34);
+                        doc.setFontSize(12);
+                        doc.setFont('helvetica', 'bold');
+                        // Truncate name if too long
+                        const name = asset.name.length > 25 ? asset.name.substring(0, 25) + '...' : asset.name;
+                        doc.text(name, x + 5, y + 10);
 
-                    // QR Code placeholder
-                    doc.rect(x + 65, y + 5, 20, 20);
-                    doc.setFontSize(6);
-                    doc.text('QR', x + 72, y + 17);
+                        doc.setFontSize(10);
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(`ID: ${asset.id.substring(0, 8)}`, x + 5, y + 20);
+                        doc.text(`Type: ${asset.type}`, x + 5, y + 27);
+                        doc.text(`Propriétaire: ${asset.owner || 'N/A'}`, x + 5, y + 34);
+                        doc.text(`Statut: ${asset.lifecycleStatus || 'N/A'}`, x + 5, y + 41);
 
-                    x += 95;
-                    if (x > 200) { x = 10; y += 55; }
-                });
-            }
-        );
+                        // QR Code
+                        const qr = qrCodes[asset.id];
+                        if (qr) {
+                            doc.addImage(qr, 'PNG', x + 65, y + 5, 20, 20);
+                        } else {
+                            // Fallback if generation failed
+                            doc.rect(x + 65, y + 5, 20, 20);
+                            doc.setFontSize(6);
+                            doc.text('Err', x + 72, y + 17);
+                        }
+
+                        x += 95;
+                        if (x > 200) { x = 10; y += 55; }
+                    });
+                }
+            );
+            addToast("Étiquettes générées avec succès", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Assets.generateLabels', 'CREATE_FAILED');
+        }
     };
 
     const generateIntakeLink = () => {
