@@ -23,3 +23,5 @@ env:
     value: G-2MLLGDZ6GP
   - variable: VITE_OVH_API_BASE_URL
     value: https://us-central1-sentinel-grc-a8701.cloudfunctions.net/api
+  - variable: VITE_GEMINI_API_KEY
+    value: ***REDACTED***
