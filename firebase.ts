@@ -1,14 +1,12 @@
 
-
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { initializeFirestore, persistentLocalCache, persistentSingleTabManager } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics } from 'firebase/analytics';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
-// import { initializeAppCheck } from 'firebase/app-check';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -24,7 +22,6 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize App Check with ReCAPTCHA Enterprise
 if (typeof window !== 'undefined') {
-  // Enable debug token ONLY for localhost (prevents it from breaking production if env var leaks)
   // Enable debug token for localhost OR if explicitly enabled via localStorage OR for the specific app domain
   const isDebugMode = localStorage.getItem('debug_app_check') === 'true';
   const isLocal = window.location.hostname === 'localhost' ||
@@ -54,9 +51,7 @@ export const auth = getAuth(app);
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({
-    tabManager: persistentSingleTabManager({
-      forceOwnership: false
-    })
+    tabManager: persistentMultipleTabManager()
   })
 });
 
