@@ -70,6 +70,40 @@ export default {
           800: '#1e40af',
           900: '#1e3a8a',
           950: '#172554',
+        },
+        // Semantic Colors mapped to CSS variables
+        primary: {
+          50: 'var(--primary-50)',
+          100: 'var(--primary-100)',
+          200: 'var(--primary-200)',
+          300: 'var(--primary-300)',
+          400: 'var(--primary-400)',
+          500: 'var(--primary-500)',
+          600: 'var(--primary-600)',
+          700: 'var(--primary-700)',
+          800: 'var(--primary-800)',
+          900: 'var(--primary-900)',
+          950: 'var(--primary-950)',
+        },
+        success: {
+          bg: 'var(--success-bg)',
+          text: 'var(--success-text)',
+          border: 'var(--success-border)',
+        },
+        warning: {
+          bg: 'var(--warning-bg)',
+          text: 'var(--warning-text)',
+          border: 'var(--warning-border)',
+        },
+        error: {
+          bg: 'var(--error-bg)',
+          text: 'var(--error-text)',
+          border: 'var(--error-border)',
+        },
+        info: {
+          bg: 'var(--info-bg)',
+          text: 'var(--info-text)',
+          border: 'var(--info-border)',
         }
       },
       boxShadow: {
@@ -87,6 +121,7 @@ export default {
         'float': 'float 8s ease-in-out infinite',
         'shimmer': 'shimmer 2s linear infinite',
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'badge-in': 'badgeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
       },
       keyframes: {
         fadeIn: {
@@ -108,6 +143,10 @@ export default {
         shimmer: {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(100%)' },
+        },
+        badgeIn: {
+          '0%': { transform: 'scale(0.9)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
         }
       }
     },

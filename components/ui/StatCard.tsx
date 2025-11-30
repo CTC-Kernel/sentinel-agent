@@ -34,9 +34,9 @@ export const StatCard: React.FC<StatCardProps> = ({
 
     const getTrendColor = () => {
         if (!trend) return '';
-        if (trend.value > 0) return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 ring-emerald-500/20';
-        if (trend.value < 0) return 'text-red-600 dark:text-red-400 bg-red-500/10 ring-red-500/20';
-        return 'text-slate-600 dark:text-slate-400 bg-slate-500/10 ring-slate-500/20';
+        if (trend.value > 0) return 'text-success-text bg-success-bg ring-success-border/50';
+        if (trend.value < 0) return 'text-error-text bg-error-bg ring-error-border/50';
+        return 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 ring-slate-200 dark:ring-slate-700';
     };
 
     return (
