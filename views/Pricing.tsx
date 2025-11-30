@@ -8,6 +8,17 @@ import { PlanType } from '../types';
 import { Tooltip } from '../components/ui/Tooltip';
 import { ContactModal } from '../components/ui/ContactModal';
 
+const ANNUAL_DISCOUNT = 0.2;
+
+const computeAnnualBilling = (monthlyPrice: number) => {
+  if (monthlyPrice <= 0) {
+    return { yearly: 0, monthlyEquivalent: 0 };
+  }
+  const yearly = Math.round(monthlyPrice * 12 * (1 - ANNUAL_DISCOUNT));
+  const monthlyEquivalent = Math.round(yearly / 12);
+  return { yearly, monthlyEquivalent };
+};
+
 const Pricing = () => {
   const { user, addToast } = useStore();
   const [isAnnual, setIsAnnual] = useState(true);
@@ -113,7 +124,9 @@ const Pricing = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {plans.map(({ id, name, icon: Icon, popular }) => {
           const plan = PLANS[id];
-          const price = isAnnual ? Math.round(plan.priceYearly / 12) : plan.priceMonthly;
+          const monthlyPrice = plan.priceMonthly;
+          const { yearly, monthlyEquivalent } = computeAnnualBilling(monthlyPrice);
+          const price = isAnnual ? monthlyEquivalent : monthlyPrice;
 
           return (
             <div
@@ -153,17 +166,17 @@ const Pricing = () => {
                   </div>
                   {isAnnual && price > 0 && (
                     <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-2">
-                      Facturé {plan.priceYearly}€ par an
+                      Facturé {yearly}€ par an
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-4 mb-8 flex-1">
                   {plan.featuresList.map((feature, i) => (
-                    <div key={i} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300 font-medium group/item">
-                      <div className={`mt-1.5 p-0.5 rounded-full ${popular ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
-                        <Check className="w-3 h-3" strokeWidth={3} />
-                      </div>
+                    <div
+                      key={i}
+                      className="text-sm text-slate-700 dark:text-slate-300 font-medium"
+                    >
                       <span className="leading-relaxed">{feature}</span>
                     </div>
                   ))}
