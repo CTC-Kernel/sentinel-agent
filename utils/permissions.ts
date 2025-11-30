@@ -121,6 +121,7 @@ export const hasPermission = (user: UserProfile | null, resource: ResourceType, 
     if (userRole === 'admin') return true;
 
     const allowed = getAllowedActions(userRole, resource);
+    console.log(`Checking permission for ${userRole} on ${resource} action ${action}. Allowed: ${allowed}`);
     if (allowed.includes(action)) return true;
 
     // RSSI acts as super-user when not already covered by matrix wildcard

@@ -71,7 +71,7 @@ export const BackupRestore: React.FC = () => {
     try {
       const list = await BackupService.listBackups(user.organizationId);
       setBackups(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    } catch (error) {
+    } catch (_error) {
       addToast("Erreur lors du chargement des sauvegardes", "error");
     }
   };
@@ -81,7 +81,7 @@ export const BackupRestore: React.FC = () => {
     try {
       const backupStats = await BackupService.getBackupStats(user.organizationId);
       setStats(backupStats);
-    } catch (error) {
+    } catch (_error) {
       console.error(error);
     }
   };
@@ -94,7 +94,7 @@ export const BackupRestore: React.FC = () => {
       addToast(`Sauvegarde créée avec succès`, "success");
       loadBackups();
       loadStats();
-    } catch (error) {
+    } catch (_error) {
       addToast("Erreur lors de la création de la sauvegarde", "error");
     } finally {
       setLoading(false);
@@ -106,7 +106,7 @@ export const BackupRestore: React.FC = () => {
     try {
       await BackupService.scheduleBackup(user, backupForm.getValues(), frequency);
       addToast(`Backup programmé (${frequency})`, 'success');
-    } catch (error) {
+    } catch (_error) {
       addToast('Erreur lors de la programmation', 'error');
     }
   };
@@ -134,7 +134,7 @@ export const BackupRestore: React.FC = () => {
       } else {
         addToast("Erreur lors de la restauration", "error");
       }
-    } catch (error) {
+    } catch (_error) {
       ErrorLogger.handleErrorWithToast(error, 'BackupRestore.handleRestore', 'UNKNOWN_ERROR');
       addToast("Erreur lors de la restauration", "error");
     } finally {
@@ -153,7 +153,7 @@ export const BackupRestore: React.FC = () => {
         setSelectedBackup(null);
         restoreForm.setValue('backupId', '');
       }
-    } catch (error) {
+    } catch (_error) {
       addToast("Erreur lors de la suppression", "error");
     }
   };
@@ -168,7 +168,7 @@ export const BackupRestore: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (error) {
+    } catch (_error) {
       addToast('Erreur lors du téléchargement', 'error');
     }
   };

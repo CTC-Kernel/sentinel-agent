@@ -200,7 +200,7 @@ export function validateData<T>(
   try {
     const validatedData = schema.parse(data);
     return { success: true, data: validatedData };
-  } catch (error) {
+  } catch (_error) {
     if (error instanceof z.ZodError) {
       const errors = error.issues.map(err => 
         `${err.path.join('.')}: ${err.message}`
@@ -221,7 +221,7 @@ export function getValidationError<T>(
   try {
     schema.parse(data);
     return null;
-  } catch (error) {
+  } catch (_error) {
     if (error instanceof z.ZodError) {
       return error.issues[0]?.message || "Données invalides";
     }

@@ -88,7 +88,7 @@ export const Dashboard: React.FC = () => {
                     const orgSnap = await getDoc(doc(db, 'organizations', orgId));
                     if (orgSnap.exists()) setOrganizationName(orgSnap.data().name || '');
                     else if (user.organizationName) setOrganizationName(user.organizationName);
-                } catch (e) { if (user.organizationName) setOrganizationName(user.organizationName); }
+                } catch (_e) { if (user.organizationName) setOrganizationName(user.organizationName); }
 
                 // Counts
                 const [userCount, incCount, auditCount] = await Promise.all([
@@ -101,7 +101,7 @@ export const Dashboard: React.FC = () => {
                 setActiveIncidentsCount(incCount.data().count);
                 setOpenAuditsCount(auditCount.data().count);
                 setError(null);
-            } catch (error) {
+            } catch (_error) {
                 ErrorLogger.handleErrorWithToast(error, 'Dashboard.fetchCounts', 'FETCH_FAILED');
                 if ((error as any)?.code === 'permission-denied') setError('permission-denied');
             } finally {
@@ -271,7 +271,7 @@ export const Dashboard: React.FC = () => {
             projectsSnap.forEach(doc => { const d = doc.data(); const date = d.dueDate ? d.dueDate.replace(/-/g, '') : ''; if (date) icsContent += `BEGIN:VEVENT\nSUMMARY:Projet: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:Manager: ${d.manager}\nEND:VEVENT\n`; });
             icsContent += "END:VCALENDAR";
             const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })); link.download = 'sentinel_calendar.ics'; link.click(); addToast("Calendrier exporté (.ics)", "success");
-        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Dashboard.generateICal', 'UNKNOWN_ERROR'); }
+        } catch (_error) { ErrorLogger.handleErrorWithToast(error, 'Dashboard.generateICal', 'UNKNOWN_ERROR'); }
     };
 
     const generateExecutiveReport = () => {

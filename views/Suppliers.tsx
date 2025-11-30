@@ -236,7 +236,7 @@ export const Suppliers: React.FC = () => {
             await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${data.name}`);
             addToast("Fournisseur ajouté", "success");
             setCreationMode(false);
-        } catch (e) { addToast("Erreur enregistrement", "error"); }
+        } catch (_e) { addToast("Erreur enregistrement", "error"); }
     };
 
     const handleUpdate: SubmitHandler<SupplierFormData> = async (data) => {
@@ -282,7 +282,7 @@ export const Suppliers: React.FC = () => {
 
             addToast('Fournisseur et données associées supprimés', 'success');
             if (selectedSupplier?.id === id) setSelectedSupplier(null);
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleDelete');
             addToast('Erreur lors de la suppression', 'error');
         }

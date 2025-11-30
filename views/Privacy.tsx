@@ -104,7 +104,7 @@ export const Privacy: React.FC = () => {
 
             setStats({ total, sensitive, dpiaMissing, review });
 
-        } catch (error) {
+        } catch (_error) {
             console.error(error);
             addToast("Erreur chargement traitements", "error");
         } finally {
@@ -138,7 +138,7 @@ export const Privacy: React.FC = () => {
             const filteredLogs = logs.filter(l => l.resource === 'Privacy' && l.details?.includes(activity.name));
             filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setActivityHistory(filteredLogs);
-        } catch (e) {
+        } catch (_e) {
             console.error(e);
             ErrorLogger.handleErrorWithToast(e, 'Privacy.handleSelectActivity');
         }
@@ -153,7 +153,7 @@ export const Privacy: React.FC = () => {
             setShowCreateModal(false);
             createActivityForm.reset();
             fetchActivities();
-        } catch (e) {
+        } catch (_e) {
             console.error(e);
             addToast("Erreur enregistrement", "error");
         }
@@ -169,7 +169,7 @@ export const Privacy: React.FC = () => {
             setIsEditing(false);
             addToast("Traitement mis à jour", "success");
             fetchActivities();
-        } catch (e) {
+        } catch (_e) {
             console.error(e);
             addToast("Erreur mise à jour", "error");
         }
@@ -193,7 +193,7 @@ export const Privacy: React.FC = () => {
             await logAction(user, 'DELETE', 'Privacy', `Suppression: ${name}`);
             addToast("Traitement supprimé", "info");
             fetchActivities();
-        } catch (e) {
+        } catch (_e) {
             console.error(e);
             addToast("Erreur suppression", "error");
         }
@@ -258,7 +258,7 @@ export const Privacy: React.FC = () => {
                 await logAction(user, 'IMPORT', 'Privacy', `Import CSV de ${count} traitements`);
                 addToast(`${count} traitements importés`, "success");
                 fetchActivities();
-            } catch (error) {
+            } catch (_error) {
                 ErrorLogger.handleErrorWithToast(error, 'Privacy.handleFileUpload', 'FILE_UPLOAD_FAILED');
                 addToast("Erreur import CSV", "error");
             } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }

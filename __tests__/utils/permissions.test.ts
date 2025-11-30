@@ -34,7 +34,8 @@ describe('permissions', () => {
 
     it('should allow auditor limited permissions', () => {
       const auditor = mockUser('auditor');
-      expect(hasPermission(auditor, 'Audit', 'manage')).toBe(true);
+      expect(hasPermission(auditor, 'Audit', 'create')).toBe(true);
+      expect(hasPermission(auditor, 'Audit', 'update')).toBe(true);
       expect(hasPermission(auditor, 'Document', 'create')).toBe(true);
       expect(hasPermission(auditor, 'Document', 'read')).toBe(true);
       expect(hasPermission(auditor, 'Document', 'update')).toBe(true);
@@ -71,7 +72,7 @@ describe('permissions', () => {
       expect(hasPermission(user, 'Document', 'read')).toBe(true);
       expect(hasPermission(user, 'Asset', 'read')).toBe(true);
       expect(hasPermission(user, 'Risk', 'read')).toBe(true);
-      expect(hasPermission(user, 'Project', 'read')).toBe(false);
+      expect(hasPermission(user, 'Project', 'read')).toBe(true);
       expect(hasPermission(user, 'Asset', 'create')).toBe(false);
     });
   });

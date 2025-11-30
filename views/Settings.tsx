@@ -256,7 +256,7 @@ export const Settings: React.FC = () => {
                 setUser({ ...user, photoURL: downloadURL });
                 addToast("Photo de profil mise à jour", "success");
             }
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Settings.handlePhotoUpload', 'FILE_UPLOAD_FAILED');
         } finally {
             setUploadingPhoto(false);
@@ -289,7 +289,7 @@ export const Settings: React.FC = () => {
 
             setUser(userData);
             addToast("Profil mis à jour avec succès.", "success");
-        } catch (err) {
+        } catch (_err) {
             ErrorLogger.handleErrorWithToast(err, 'Settings.handleUpdateProfile', 'UPDATE_FAILED');
         } finally {
             setSavingProfile(false);
@@ -324,7 +324,7 @@ export const Settings: React.FC = () => {
 
             setCurrentOrg(prev => prev ? { ...prev, name: data.orgName, address: data.address, vatNumber: data.vatNumber, contactEmail: data.contactEmail } : null);
             addToast("Informations de l'organisation mises à jour", "success");
-        } catch (e) {
+        } catch (_e) {
             ErrorLogger.handleErrorWithToast(e, 'Settings.handleUpdateOrg', 'UPDATE_FAILED');
         } finally {
             setSavingOrg(false);
@@ -339,7 +339,7 @@ export const Settings: React.FC = () => {
                 await updatePassword(currentUser, data.newPassword);
                 addToast("Mot de passe modifié avec succès", "success");
                 passwordForm.reset();
-            } catch (error) {
+            } catch (_error) {
                 if ((error as any).code === 'auth/requires-recent-login') {
                     addToast("Veuillez vous reconnecter pour changer le mot de passe", "error");
                 } else {
@@ -383,7 +383,7 @@ export const Settings: React.FC = () => {
                 if (response.success && response.data) {
                     exportData['secure_risk_data'] = response.data.secure_data || [];
                 }
-            } catch (e) {
+            } catch (_e) {
                 console.warn('Failed to fetch secure data for export', e);
                 exportData['secure_risk_data_error'] = 'Failed to retrieve secure data';
             }
@@ -403,7 +403,7 @@ export const Settings: React.FC = () => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             addToast("Sauvegarde complète téléchargée", "success");
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Settings.handleExport', 'FETCH_FAILED');
         } finally {
             setExporting(false);
@@ -437,7 +437,7 @@ export const Settings: React.FC = () => {
             link.download = `audit_logs_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
             addToast("Logs d'audit exportés (CSV)", "success");
-        } catch (e) {
+        } catch (_e) {
             ErrorLogger.handleErrorWithToast(e, 'Settings.handleExportLogsCSV', 'FETCH_FAILED');
         } finally {
             setExportingLogs(false);
@@ -511,7 +511,7 @@ export const Settings: React.FC = () => {
             // Local state update handled by onSnapshot in App.tsx, forcing redirect to Onboarding
             // Local state update handled by onSnapshot in App.tsx, forcing redirect to Onboarding
             window.location.reload();
-        } catch (e) {
+        } catch (_e) {
             ErrorLogger.handleErrorWithToast(e, 'Settings.handleLeaveOrg', 'UPDATE_FAILED');
         }
     };
@@ -532,7 +532,7 @@ export const Settings: React.FC = () => {
             } else {
                 await SubscriptionService.manageSubscription(user.organizationId);
             }
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Settings.handleManageSubscription', 'UNKNOWN_ERROR');
         } finally {
             setSubLoading(false);
@@ -550,7 +550,7 @@ export const Settings: React.FC = () => {
                     await AccountService.deleteAccount(user, auth.currentUser);
                     addToast("Compte supprimé avec succès", "success");
                     // Redirect handled by auth state change in App.tsx
-                } catch (e) {
+                } catch (_e) {
                     ErrorLogger.handleErrorWithToast(e, 'Settings.handleDeleteAccount', 'DELETE_FAILED');
                     if ((e as any).code === 'auth/requires-recent-login') {
                         addToast("Veuillez vous reconnecter pour supprimer votre compte", "error");

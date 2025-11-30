@@ -45,7 +45,7 @@ export const RoleManagement: React.FC = () => {
             })) as UserProfile[];
 
             setUsers(usersData);
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.error(error, 'RoleManagement.fetchUsers');
         } finally {
             setLoading(false);
@@ -62,7 +62,7 @@ export const RoleManagement: React.FC = () => {
                 prev.map((u) => (u.uid === userId ? { ...u, role: newRole } : u))
             );
             setEditingUser(null);
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.error(error, 'RoleManagement.handleUpdateRole');
             alert('Erreur lors de la mise à jour du rôle');
         }

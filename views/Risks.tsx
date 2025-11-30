@@ -221,7 +221,7 @@ export const Risks: React.FC = () => {
             addToast("Risque ajouté", "success");
             setCreationMode(false);
             refreshRisks();
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Risks.onSubmit', 'CREATE_FAILED');
         }
     };
@@ -278,7 +278,7 @@ export const Risks: React.FC = () => {
             setSelectedRisk({ ...selectedRisk, ...riskData, score, history: updatedHistory } as Risk);
             setIsEditing(false);
             refreshRisks();
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Risks.handleUpdate', 'UPDATE_FAILED');
         }
     };
@@ -408,7 +408,7 @@ export const Risks: React.FC = () => {
             addToast(`${risksToImport.length} risques importés avec succès`, "success");
             setShowTemplateModal(false);
             refreshRisks();
-        } catch (e) {
+        } catch (_e) {
             ErrorLogger.handleErrorWithToast(e, 'Risks.handleImportTemplate', 'CREATE_FAILED');
         }
     };
@@ -512,7 +512,7 @@ export const Risks: React.FC = () => {
                 addToast(`${count} risques importés`, "success");
                 refreshRisks();
 
-            } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Risks.handleFileUpload', 'FILE_UPLOAD_FAILED'); } finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+            } catch (_error) { ErrorLogger.handleErrorWithToast(error, 'Risks.handleFileUpload', 'FILE_UPLOAD_FAILED'); } finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
         };
         reader.readAsText(file);
     };
@@ -556,7 +556,7 @@ export const Risks: React.FC = () => {
             } else {
                 throw new Error("Erreur lors de la génération du rapport");
             }
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Risks.handleGenerateReport', 'UNKNOWN_ERROR');
         }
     };
@@ -571,7 +571,7 @@ export const Risks: React.FC = () => {
             } else {
                 throw new Error(response.error || "Erreur lors de l'analyse");
             }
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Risks.handleAIAnalysis', 'UNKNOWN_ERROR');
             setShowRecommendations(false);
         } finally {
@@ -976,7 +976,7 @@ export const Risks: React.FC = () => {
                                                                         setSelectedRisk({ ...selectedRisk, treatment });
                                                                         refreshRisks();
                                                                         addToast("Échéance mise à jour", "success");
-                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateDueDate', 'UPDATE_FAILED'); }
+                                                                    } catch (_err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateDueDate', 'UPDATE_FAILED'); }
                                                                 }}
                                                                 disabled={!canEdit}
                                                             />
@@ -994,7 +994,7 @@ export const Risks: React.FC = () => {
                                                                         setSelectedRisk({ ...selectedRisk, treatment });
                                                                         refreshRisks();
                                                                         addToast("Responsable mis à jour", "success");
-                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateOwner', 'UPDATE_FAILED'); }
+                                                                    } catch (_err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateOwner', 'UPDATE_FAILED'); }
                                                                 }}
                                                                 placeholder="Sélectionner un responsable..."
                                                                 disabled={!canEdit}
@@ -1021,7 +1021,7 @@ export const Risks: React.FC = () => {
                                                                         setSelectedRisk({ ...selectedRisk, treatment });
                                                                         refreshRisks();
                                                                         addToast("Statut d'avancement mis à jour", "success");
-                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateTreatmentStatus', 'UPDATE_FAILED'); }
+                                                                    } catch (_err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateTreatmentStatus', 'UPDATE_FAILED'); }
                                                                 }}
                                                                 disabled={!canEdit}
                                                             >

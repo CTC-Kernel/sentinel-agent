@@ -30,7 +30,7 @@ export const detectHardware = async (): Promise<HardwareInfo> => {
                 info.gpu = (gl as WebGLRenderingContext).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
             }
         }
-    } catch (e) {
+    } catch (_e) {
         console.warn('GPU detection failed', e);
     }
 

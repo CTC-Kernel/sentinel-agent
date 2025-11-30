@@ -83,7 +83,7 @@ export const Incidents: React.FC = () => {
         if (loading || incidents.length === 0) return;
         const incident = incidents.find(i => i.id === state.voxelSelectedId);
         if (incident) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+             
             setSelectedIncident(incident);
         }
     }, [location.state, loading, incidents]);
@@ -123,7 +123,7 @@ export const Incidents: React.FC = () => {
 
             addToast("Incident déclaré (Alerte envoyée)", "success");
             setCreationMode(false);
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.handleCreate', 'CREATE_FAILED');
         }
     };
@@ -155,7 +155,7 @@ export const Incidents: React.FC = () => {
             addToast("Incident mis à jour", "success");
             setSelectedIncident({ ...selectedIncident, ...incidentData } as Incident);
             setIsEditing(false);
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.handleUpdate', 'UPDATE_FAILED');
         }
     };
@@ -175,7 +175,7 @@ export const Incidents: React.FC = () => {
 
             if (selectedIncident?.id === id) setSelectedIncident(null);
             addToast("Incident supprimé", "info");
-        } catch (error) {
+        } catch (_error) {
             addToast("Erreur suppression", "error");
         }
     };
@@ -217,7 +217,7 @@ export const Incidents: React.FC = () => {
             `;
             const response = await aiService.chatWithAI(prompt);
             setAiAnalysis(response);
-        } catch (error) {
+        } catch (_error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.analyze', 'UNKNOWN_ERROR');
         } finally {
             setAnalyzing(false);
@@ -381,7 +381,7 @@ export const Incidents: React.FC = () => {
                                                         });
                                                         setSelectedIncident({ ...selectedIncident, playbookStepsCompleted: newSteps });
                                                         addToast("Playbook mis à jour", "success");
-                                                    } catch (error) {
+                                                    } catch (_error) {
                                                         ErrorLogger.handleErrorWithToast(error, 'Incidents.togglePlaybookStep', 'UPDATE_FAILED');
                                                     }
                                                 }}

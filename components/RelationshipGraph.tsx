@@ -107,7 +107,7 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
 
                 setNodes(newNodes);
                 setLinks(newLinks);
-            } catch (e) {
+            } catch (_e) {
                 ErrorLogger.error(e, 'RelationshipGraph.fetchData');
             } finally {
                 setLoading(false);
