@@ -1,14 +1,18 @@
+import { useStore } from "../store";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIInsight } from "../types";
 import { ErrorLogger } from "./errorLogger";
 
 // Initialize Gemini API
-// Note: In a real production app, this should be proxied through a backend to hide the key.
-// For this "production-ready" frontend demo, we use the env var directly.
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
-const genAI = new GoogleGenerativeAI(API_KEY);
+const ENV_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
-const MODEL_NAME = "gemini-3-pro-preview";
+const getGenAI = () => {
+    const userKey = useStore.getState().user?.geminiApiKey;
+    const key = userKey || ENV_API_KEY;
+    return { genAI: new GoogleGenerativeAI(key), hasKey: !!key };
+};
+
+const MODEL_NAME = "gemini-1.5-flash";
 
 interface GraphData {
     assets: Asset[];
@@ -24,9 +28,10 @@ export const aiService = {
      * Analyzes the graph data to find hidden relationships and generate insights.
      */
     async analyzeGraph(data: GraphData): Promise<{ suggestions: AISuggestedLink[]; insights: AIInsight[] }> {
-        if (!API_KEY) {
+        const { genAI, hasKey } = getGenAI();
+        if (!hasKey) {
             ErrorLogger.warn("Gemini API Key is missing. AI features disabled.", 'aiService.analyzeGraph');
-            throw new Error("L'analyse IA nécessite une clé API Gemini valide. Veuillez configurer VITE_GEMINI_API_KEY.");
+            throw new Error("L'analyse IA nécessite une clé API Gemini valide. Veuillez configurer VITE_GEMINI_API_KEY ou ajouter votre clé dans les paramètres.");
         }
 
         try {
@@ -129,7 +134,8 @@ export const aiService = {
      * Analyzes CSV import data to map columns and identify anomalies.
      */
     async analyzeImportData(csvPreview: string): Promise<{ mappings: Record<string, string>; confidence: number }> {
-        if (!API_KEY) return { mappings: {}, confidence: 0 };
+        const { hasKey } = getGenAI();
+        if (!hasKey) return { mappings: {}, confidence: 0 };
 
         try {
             const prompt = `
@@ -160,7 +166,8 @@ export const aiService = {
      * Suggests a value for a specific field based on context.
      */
     async suggestField(context: Record<string, unknown>, fieldName: string): Promise<{ value: string; reasoning: string }> {
-        if (!API_KEY) return { value: '', reasoning: 'AI Key missing' };
+        const { hasKey } = getGenAI();
+        if (!hasKey) return { value: '', reasoning: 'AI Key missing' };
 
         try {
             const prompt = `
@@ -182,7 +189,8 @@ export const aiService = {
      * General chat with the AI assistant.
      */
     async chatWithAI(message: string, context?: Record<string, unknown>): Promise<string> {
-        if (!API_KEY) return "Je ne peux pas répondre car la clé API Gemini est manquante.";
+        const { hasKey } = getGenAI();
+        if (!hasKey) return "Je ne peux pas répondre car la clé API Gemini est manquante.";
 
         const systemPrompt = `Tu es Sentinel AI, un assistant expert en cybersécurité et GRC (Gouvernance, Risque, Conformité).
             Ton rôle est d'aider les utilisateurs à gérer leur sécurité, comprendre les normes (ISO 27001, RGPD) et rédiger des documents.
@@ -200,7 +208,8 @@ export const aiService = {
      * Generates a policy document based on parameters.
      */
     async generatePolicy(type: string, topic: string, details: string): Promise<string> {
-        if (!API_KEY) return "Clé API manquante.";
+        const { hasKey } = getGenAI();
+        if (!hasKey) return "Clé API manquante.";
 
         try {
             const prompt = `
@@ -229,8 +238,9 @@ export const aiService = {
     /**
      * Generates a specific audit checklist for a list of controls.
      */
-    async generateAuditChecklist(controls: { code: string; name: string; description: string }[], auditContext: string): Promise<{ controlCode: string; questions: string[] }[]> {
-        if (!API_KEY) return controls.map(c => ({ controlCode: c.code, questions: [`Le contrôle ${c.code} est-il implémenté ?`] }));
+    async generateAuditChecklist(auditContext: string, controls: { code: string; description: string }[]): Promise<{ controlCode: string; questions: string[] }[]> {
+        const { hasKey } = getGenAI();
+        if (!hasKey) return []; controls.map(c => ({ controlCode: c.code, questions: [`Le contrôle ${c.code} est-il implémenté ?`] }));
 
         try {
             // Batch controls to avoid token limits if too many
@@ -245,7 +255,7 @@ export const aiService = {
                 Questions must be in French.
 
                 Controls:
-                ${JSON.stringify(controlsToProcess.map(c => ({ code: c.code, name: c.name, description: c.description })))}
+                ${JSON.stringify(controlsToProcess.map(c => ({ code: c.code, description: c.description })))}
 
                 Return strictly a JSON array:
                 [
@@ -267,10 +277,75 @@ export const aiService = {
     },
 
     /**
+     * Generates an executive summary for an audit report.
+     */
+    async generateAuditExecutiveSummary(auditName: string, findings: { type: string, description: string }[], risks: { threat: string, score: number }[]): Promise<string> {
+        const { hasKey } = getGenAI();
+        if (!hasKey) return "Résumé non disponible (Clé API manquante).";
+
+        try {
+            const prompt = `
+                You are a Cybersecurity Auditor writing an Executive Summary for an audit report.
+                Audit Name: ${auditName}
+
+                Findings:
+                ${JSON.stringify(findings)}
+
+                Top Risks:
+                ${JSON.stringify(risks.slice(0, 5))}
+
+                Write a professional Executive Summary (in French) of 2-3 paragraphs.
+                - Summarize the overall compliance posture.
+                - Highlight critical issues (findings).
+                - Mention key risks identified.
+                - Conclude with a general recommendation.
+                
+                Do not use markdown formatting (bold, italic) as this will be put in a PDF. Just plain text with paragraphs.
+            `;
+
+            return await generateContentSafe(prompt);
+        } catch (error) {
+            ErrorLogger.error(error, 'aiService.generateAuditExecutiveSummary');
+            return "Impossible de générer le résumé exécutif.";
+        }
+    },
+
+    /**
+     * Generates an executive summary for the Risk Treatment Plan (RTP).
+     */
+    async generateRTPSummary(risks: { threat: string; score: number; strategy: string; status: string }[]): Promise<string> {
+        const { hasKey } = getGenAI();
+        if (!hasKey) return "Résumé non disponible (Clé API manquante).";
+
+        try {
+            const prompt = `
+                You are a CISO writing an Executive Summary for the Risk Treatment Plan (RTP).
+                
+                Risks Overview:
+                ${JSON.stringify(risks.slice(0, 20))} (Top 20 risks shown)
+                Total Risks: ${risks.length}
+
+                Write a professional Executive Summary (in French) of 2 paragraphs.
+                - Summarize the overall risk landscape.
+                - Highlight the progress of risk treatment (Accepted vs Mitigated).
+                - Mention the most critical risks being addressed.
+                
+                Do not use markdown formatting. Just plain text.
+            `;
+
+            return await generateContentSafe(prompt);
+        } catch (error) {
+            ErrorLogger.error(error, 'aiService.generateRTPSummary');
+            return "Impossible de générer le résumé RTP.";
+        }
+    },
+
+    /**
      * Generates text based on a prompt.
      */
     async generateText(prompt: string): Promise<string> {
-        if (!API_KEY) return "";
+        const { hasKey } = getGenAI();
+        if (!hasKey) return "IA non disponible.";
         try {
             return await generateContentSafe(prompt);
         } catch (error) {
@@ -283,6 +358,7 @@ export const aiService = {
 // --- Helpers ---
 
 async function generateContentSafe(prompt: string): Promise<string> {
+    const { genAI } = getGenAI();
     try {
         const model = genAI.getGenerativeModel({ model: MODEL_NAME });
         const result = await model.generateContent(prompt);
@@ -310,6 +386,7 @@ async function generateContentSafe(prompt: string): Promise<string> {
 }
 
 async function runChatSafe(systemPrompt: string, message: string): Promise<string> {
+    const { genAI } = getGenAI();
     const runChat = async (modelName: string) => {
         const model = genAI.getGenerativeModel({ model: modelName });
         const chat = model.startChat({

@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, File, CheckCircle2, AlertTriangle } from '../ui/Icons';
+import { Upload, X, File, CheckCircle2, AlertTriangle, ShieldCheck } from '../ui/Icons';
 import { uploadFile, validateFile, formatFileSize, generateFilePath } from '../../services/fileUploadService';
 import { useStore } from '../../store';
+import CryptoJS from 'crypto-js';
 
 interface FileUploaderProps {
-    onUploadComplete: (url: string, fileName: string) => void;
+    onUploadComplete: (url: string, fileName: string, hash?: string, isSecure?: boolean) => void;
     category: string;
     maxSizeMB?: number;
     allowedTypes?: string[];
@@ -23,6 +24,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     const [progress, setProgress] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isSecure, setIsSecure] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,6 +42,24 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         setSelectedFile(file);
     };
 
+    const calculateHash = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const binary = e.target?.result;
+                if (binary) {
+                    const wordArray = CryptoJS.lib.WordArray.create(binary as any);
+                    const hash = CryptoJS.SHA256(wordArray).toString();
+                    resolve(hash);
+                } else {
+                    reject(new Error("Failed to read file"));
+                }
+            };
+            reader.onerror = () => reject(new Error("File read error"));
+            reader.readAsArrayBuffer(file);
+        });
+    };
+
     const handleUpload = async () => {
         if (!selectedFile || !user) return;
 
@@ -48,6 +68,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         setProgress(0);
 
         try {
+            // Calculate hash if secure mode is enabled or always for integrity
+            const hash = await calculateHash(selectedFile);
+
             const path = generateFilePath(user.organizationId || 'default', category, selectedFile.name);
 
             // Use uploadBytesResumable for real progress
@@ -57,6 +80,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 type: selectedFile.type,
                 uploadedBy: user.uid,
                 organizationId: user.organizationId,
+                hash: hash,
+                isSecure: isSecure.toString()
             }, (progress) => {
                 setProgress(progress);
             });
@@ -64,10 +89,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             setProgress(100);
 
             setTimeout(() => {
-                onUploadComplete(downloadURL, selectedFile.name);
+                onUploadComplete(downloadURL, selectedFile.name, hash, isSecure);
                 setSelectedFile(null);
                 setProgress(0);
                 setUploading(false);
+                setIsSecure(false);
                 if (fileInputRef.current) fileInputRef.current.value = '';
             }, 500);
         } catch (err) {
@@ -114,7 +140,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             {/* Selected File */}
             {selectedFile && (
                 <div className="glass-panel p-4 rounded-xl">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
                             <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                                 <File className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -137,6 +163,25 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                             </button>
                         )}
                     </div>
+
+                    {/* Security Toggle */}
+                    {!uploading && (
+                        <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 mb-4">
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck className={`h-5 w-5 ${isSecure ? 'text-emerald-500' : 'text-slate-400'}`} />
+                                <div>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">Document Stratégique</p>
+                                    <p className="text-[10px] text-slate-500">Active le filigrane et la vérification d'intégrité</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsSecure(!isSecure)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isSecure ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`}
+                            >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${isSecure ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                        </div>
+                    )}
 
                     {/* Progress Bar */}
                     {uploading && (

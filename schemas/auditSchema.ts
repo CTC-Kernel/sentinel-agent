@@ -6,6 +6,7 @@ export const auditSchema = z.object({
     auditor: z.string().min(1, "L'auditeur est requis"),
     dateScheduled: z.string().min(1, "La date est requise"),
     status: z.enum(['Planifié', 'En cours', 'Terminé', 'Validé']),
+    scope: z.string().optional(),
     relatedAssetIds: z.array(z.string()).optional(),
     relatedRiskIds: z.array(z.string()).optional(),
     relatedControlIds: z.array(z.string()).optional(),

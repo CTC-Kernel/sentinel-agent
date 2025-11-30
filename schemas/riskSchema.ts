@@ -6,8 +6,14 @@ export const riskSchema = z.object({
     vulnerability: z.string().min(3, "La vulnérabilité doit contenir au moins 3 caractères"),
     probability: z.number().min(1).max(5),
     impact: z.number().min(1).max(5),
-    residualProbability: z.number().min(1).max(5).optional(),
-    residualImpact: z.number().min(1).max(5).optional(),
+    residualProbability: z.number().optional(),
+    residualImpact: z.number().optional(),
+    residualScore: z.number().optional(),
+    mitreTechniques: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        description: z.string()
+    })).optional(),
     strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter']),
     status: z.enum(['Ouvert', 'En cours', 'Fermé']),
     owner: z.string().optional(),

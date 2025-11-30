@@ -7,6 +7,7 @@ export const supplierSchema = z.object({
     criticality: z.nativeEnum(Criticality),
     contactName: z.string().optional(),
     contactEmail: z.string().email("Email invalide").optional().or(z.literal('')),
+    vatNumber: z.string().optional(),
     status: z.enum(['Actif', 'En cours', 'Terminé']),
     owner: z.string().optional(),
     ownerId: z.string().optional(),
