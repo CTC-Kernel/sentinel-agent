@@ -4,11 +4,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { supplierSchema, SupplierFormData } from '../../schemas/supplierSchema';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
-import { Criticality, UserProfile, BusinessProcess, Asset, Risk, Project, Document } from '../../types';
+import { Criticality, UserProfile, BusinessProcess, Asset, Risk, Document } from '../../types';
 import { ShieldAlert, Building2, Wand2, Link as LinkIcon, FileText } from 'lucide-react';
 import { aiService } from '../../services/aiService';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
+import { integrationService, CompanySearchResult } from '../../services/integrationService';
+import { Search, Loader2 } from 'lucide-react';
 
 interface SupplierFormProps {
     onSubmit: SubmitHandler<SupplierFormData>;
@@ -19,7 +21,6 @@ interface SupplierFormProps {
     processes: BusinessProcess[];
     assets: Asset[];
     risks: Risk[];
-    projects: Project[];
     documents: Document[];
 }
 
@@ -39,12 +40,62 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         resolver: zodResolver(supplierSchema),
         defaultValues: initialData || {
             name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
-            owner: '', ownerId: '',
+            owner: '', ownerId: '', vatNumber: '',
             assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false },
             isICTProvider: false, supportsCriticalFunction: false, doraCriticality: 'None', serviceType: 'SaaS',
             relatedAssetIds: [], relatedRiskIds: [], relatedProjectIds: [], supportedProcessIds: []
         }
     });
+
+    const [searchResults, setSearchResults] = React.useState<CompanySearchResult[]>([]);
+    const [searching, setSearching] = React.useState(false);
+    const [logoUrl, setLogoUrl] = React.useState<string>('');
+
+    const handleCompanySearch = async (query: string) => {
+        if (query.length < 3) {
+            setSearchResults([]);
+            return;
+        }
+        setSearching(true);
+        try {
+            const results = await integrationService.searchCompany(query);
+            setSearchResults(results);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setSearching(false);
+        }
+    };
+
+    const selectCompany = (company: CompanySearchResult) => {
+        setValue('name', company.name);
+        // Assuming we might want to store address/siren in description or custom fields later
+        // For now, let's append to description if empty
+        const currentDesc = getValues('description') || '';
+        if (!currentDesc.includes(company.siren)) {
+            setValue('description', `${currentDesc}\n\n[Auto-Import]\nSIREN: ${company.siren}\nAdresse: ${company.address}\nActivité: ${company.activity}`.trim());
+        }
+
+        // Try to fetch logo based on name (approximation of domain)
+        // In a real app, we'd ask for domain or use a search API for domain
+        // const domainGuess = company.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com'; // Naive guess
+        // Better: just use the name for clearbit if domain unknown, but clearbit needs domain.
+        // Let's try to search for domain or just skip logo if no domain.
+        // Actually, let's just use the name as a placeholder or try a google favicon service
+        // setLogoUrl(integrationService.getLogoUrl(domainGuess));
+
+        setSearchResults([]);
+    };
+
+    // Watch name to fetch logo if it looks like a domain
+    const nameValue = useWatch({ control, name: 'name' });
+    useEffect(() => {
+        if (nameValue && (nameValue.includes('.') || nameValue.includes('http'))) {
+            // Extract domain
+            const domain = nameValue.replace(/^https?:\/\//, '').split('/')[0];
+            setLogoUrl(integrationService.getLogoUrl(domain));
+        }
+    }, [nameValue]);
 
     const selectedOwnerId = useWatch({ control, name: 'ownerId' });
 
@@ -82,6 +133,17 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         }
     };
 
+    const handleVatValidation = async () => {
+        const vat = getValues('vatNumber');
+        if (!vat) return;
+        try {
+            const result = await integrationService.validateVat(vat);
+            addToast(result.message, result.valid ? 'success' : 'error');
+        } catch {
+            addToast('Erreur de validation VIES', 'error');
+        }
+    };
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             {/* General Info Card */}
@@ -114,6 +176,71 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             <Wand2 className="w-4 h-4" />
                         </button>
                     </div>
+
+                    {/* Company Search Results */}
+                    {searchResults.length > 0 && (
+                        <div className="col-span-1 md:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 max-h-60 overflow-y-auto">
+                            {searchResults.map((company) => (
+                                <button
+                                    key={company.siren}
+                                    type="button"
+                                    onClick={() => selectCompany(company)}
+                                    className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"
+                                >
+                                    <div>
+                                        <div className="font-bold text-slate-900 dark:text-white text-sm">{company.name}</div>
+                                        <div className="text-xs text-slate-500">{company.address}</div>
+                                    </div>
+                                    <div className="text-xs font-mono bg-slate-100 dark:bg-black/30 px-2 py-1 rounded text-slate-500">
+                                        {company.siren}
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="col-span-1 md:col-span-2">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Rechercher une entreprise (Sirene/Pappers)..."
+                                className="w-full px-4 py-2 bg-transparent border-b border-slate-200 dark:border-white/10 text-sm focus:border-indigo-500 outline-none transition-colors"
+                                onChange={(e) => handleCompanySearch(e.target.value)}
+                            />
+                            <div className="absolute right-0 top-2 text-slate-400">
+                                {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2">
+                        <div className="relative">
+                            <Controller
+                                name="vatNumber"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Numéro de TVA (VIES)"
+                                        {...field}
+                                        value={field.value || ''}
+                                    />
+                                )}
+                            />
+                            <button
+                                type="button"
+                                onClick={handleVatValidation}
+                                className="absolute right-3 top-3.5 text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors text-xs font-bold uppercase tracking-wider"
+                            >
+                                Vérifier
+                            </button>
+                        </div>
+                    </div>
+
+                    {logoUrl && (
+                        <div className="col-span-1 md:col-span-2 flex justify-center py-4">
+                            <img src={logoUrl} alt="Logo" className="h-16 w-16 object-contain rounded-xl bg-white p-2 shadow-sm border border-slate-100" onError={(e) => e.currentTarget.style.display = 'none'} />
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Catégorie</label>

@@ -35,6 +35,7 @@ import { AssetFormData, assetSchema } from '../schemas/assetSchema';
 import { z } from 'zod';
 
 import { Edit } from '../components/ui/Icons';
+import { integrationService, Vulnerability } from '../services/integrationService';
 
 export const Assets: React.FC = () => {
     const { user, addToast } = useStore();
@@ -98,6 +99,11 @@ export const Assets: React.FC = () => {
     const [linkedIncidents, setLinkedIncidents] = useState<Incident[]>([]);
     const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
     const [linkedAudits, setLinkedAudits] = useState<Audit[]>([]);
+
+    // Security Scan State
+    const [shodanResult, setShodanResult] = useState<any>(null);
+    const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
+    const [scanning, setScanning] = useState(false);
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
     const [activeFilters, setActiveFilters] = useState<SearchFilters>({ query: '', type: 'all' });
     const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
@@ -344,6 +350,59 @@ export const Assets: React.FC = () => {
             setSelectedAsset(null);
             addToast("Actif supprimé", "info");
         } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Assets.handleDeleteAsset', 'DELETE_FAILED'); }
+    };
+
+    const handleScanAsset = async () => {
+        if (!selectedAsset || !user?.shodanApiKey) {
+            if (!user?.shodanApiKey) addToast("Clé API Shodan manquante dans les paramètres", "info");
+            return;
+        }
+
+        // Extract IP or Domain from location or description (naive approach)
+        // Ideally we should have a dedicated field. Let's check 'location' first if it looks like an IP.
+        // Or assume the user enters it in a prompt? For now let's try to parse 'location'.
+        const target = selectedAsset.location; // Assuming location might hold IP/Domain for IT assets
+        if (!target || (!target.includes('.') && !target.includes(':'))) {
+            addToast("Aucune adresse IP ou domaine valide trouvé dans le champ 'Localisation'", "info");
+            return;
+        }
+
+        setScanning(true);
+        try {
+            const result = await integrationService.scanAsset(target, user.shodanApiKey);
+            if (result.error) {
+                addToast(result.error, "error");
+            } else {
+                setShodanResult(result);
+                setInspectorTab('security');
+                addToast("Scan Shodan terminé", "success");
+            }
+        } catch (e) {
+            addToast("Erreur lors du scan", "error");
+        } finally {
+            setScanning(false);
+        }
+    };
+
+    const handleCheckCVEs = async () => {
+        if (!selectedAsset) return;
+        setScanning(true);
+        try {
+            // Use asset name or type as CPE query
+            // Ideally we need a CPE field. Let's use name.
+            const vulns = await integrationService.checkVulnerabilities(selectedAsset.name);
+            setVulnerabilities(vulns);
+            if (vulns.length > 0) {
+                setInspectorTab('security');
+                addToast(`${vulns.length} vulnérabilités trouvées`, "info");
+            } else {
+                addToast("Aucune vulnérabilité connue trouvée (NVD)", "success");
+            }
+        } catch (e) {
+            addToast("Erreur lors de la recherche CVE", "error");
+        } finally {
+            setScanning(false);
+        }
     };
 
     const handleExportCSV = () => {
@@ -761,7 +820,65 @@ export const Assets: React.FC = () => {
                                     <div><div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500" /> Historique Maintenance</h3></div>{canEdit && (<div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm"><div className="grid grid-cols-2 gap-4 mb-4"><input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({ ...newMaintenance, date: e.target.value })} /><select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({ ...newMaintenance, type: e.target.value as MaintenanceRecord['type'] })}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select></div><div className="flex gap-4 mb-4"><input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })} /><input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })} /></div><button onClick={handleAddMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform">Ajouter Intervention</button></div>)}<div className="space-y-3">{maintenanceRecords.length === 0 ? <p className="text-sm text-gray-400 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (<div key={rec.id} className="flex items-start p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all"><div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div><div className="flex-1"><div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-gray-300 font-bold">{rec.type}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p><div className="flex justify-between mt-2"><span className="text-[10px] text-gray-400 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[10px] font-bold text-slate-500">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div></div></div>))}</div></div>
                                 </div>
                             )}
-                            {inspectorTab === 'security' && (<div className="space-y-8"><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})</h3>{linkedRisks.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>) : (<div className="grid gap-4">{linkedRisks.map(risk => (<div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span><span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{risk.vulnerability}</p>{risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}</div>))}</div>)}</div><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})</h3>{linkedIncidents.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>) : (<div className="grid gap-4">{linkedIncidents.map(inc => (<div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span><span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p></div>))}</div>)}</div></div>)}
+                            {inspectorTab === 'security' && (
+                                <div className="space-y-8">
+                                    {/* Scan Actions */}
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={handleScanAsset}
+                                            disabled={scanning}
+                                            className="flex-1 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center disabled:opacity-50"
+                                        >
+                                            {scanning ? <span className="animate-spin mr-2">⏳</span> : <Search className="w-4 h-4 mr-2" />}
+                                            Scan Shodan
+                                        </button>
+                                        <button
+                                            onClick={handleCheckCVEs}
+                                            disabled={scanning}
+                                            className="flex-1 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-xl text-sm font-bold shadow-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:opacity-50"
+                                        >
+                                            {scanning ? <span className="animate-spin mr-2">⏳</span> : <ShieldAlert className="w-4 h-4 mr-2" />}
+                                            Check CVEs (NVD)
+                                        </button>
+                                    </div>
+
+                                    {/* Shodan Results */}
+                                    {shodanResult && (
+                                        <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-lg">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-4 flex items-center">
+                                                <Server className="h-4 w-4 mr-2" /> Résultat Shodan
+                                            </h3>
+                                            <div className="space-y-2 text-sm font-mono">
+                                                <p><span className="text-slate-400">IP:</span> {shodanResult.ip_str}</p>
+                                                <p><span className="text-slate-400">OS:</span> {shodanResult.os || 'N/A'}</p>
+                                                <p><span className="text-slate-400">Ports:</span> {shodanResult.ports?.join(', ') || 'None'}</p>
+                                                <p><span className="text-slate-400">Org:</span> {shodanResult.org || 'N/A'}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* NVD Results */}
+                                    {vulnerabilities.length > 0 && (
+                                        <div className="bg-red-50 dark:bg-red-900/10 p-6 rounded-3xl border border-red-100 dark:border-red-900/30">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-red-600 mb-4 flex items-center">
+                                                <ShieldAlert className="h-4 w-4 mr-2" /> Vulnérabilités NVD ({vulnerabilities.length})
+                                            </h3>
+                                            <div className="space-y-3">
+                                                {vulnerabilities.map(vuln => (
+                                                    <div key={vuln.cveId} className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-red-100 dark:border-red-900/20 shadow-sm">
+                                                        <div className="flex justify-between items-start mb-1">
+                                                            <span className="text-sm font-bold text-red-700 dark:text-red-400">{vuln.cveId}</span>
+                                                            <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-800 rounded">{vuln.severity} ({vuln.score})</span>
+                                                        </div>
+                                                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2" title={vuln.description}>{vuln.description}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})</h3>{linkedRisks.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>) : (<div className="grid gap-4">{linkedRisks.map(risk => (<div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span><span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{risk.vulnerability}</p>{risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}</div>))}</div>)}</div><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})</h3>{linkedIncidents.length === 0 ? (<p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>) : (<div className="grid gap-4">{linkedIncidents.map(inc => (<div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span><span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p></div>))}</div>)}</div></div>
+                            )}
                             {inspectorTab === 'projects' && (
                                 <div className="space-y-8">
                                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Liés ({linkedProjects.length})</h3>

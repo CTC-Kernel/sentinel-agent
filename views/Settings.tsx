@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../store';
-import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, WifiOff, ArrowRight, FileSpreadsheet } from '../components/ui/Icons';
+import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, WifiOff, ArrowRight, FileSpreadsheet, BrainCircuit } from '../components/ui/Icons';
 import { collection, getDocs, query, orderBy, limit, where, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, enableNetwork, disableNetwork, getDoc, QueryDocumentSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, auth } from '../firebase';
@@ -21,6 +21,7 @@ import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, ProfileFormData, passwordSchema, PasswordFormData, organizationSchema, OrganizationFormData } from '../schemas/settingsSchema';
+import { integrationService } from '../services/integrationService';
 
 export const Settings: React.FC = () => {
     const { theme, toggleTheme, user, setUser, addToast, demoMode, toggleDemoMode, language, setLanguage, t } = useStore();
@@ -47,9 +48,40 @@ export const Settings: React.FC = () => {
     // Password State
     const [changingPassword, setChangingPassword] = useState(false);
 
+    // Breach Check State
+    const [breachCheckLoading, setBreachCheckLoading] = useState(false);
+
+    const handleCheckBreach = async () => {
+        if (!user?.email) return;
+        // HIBP now requires an API key for all checks.
+        // We use the one from settings if available, or warn the user.
+        // Actually, let's check if the user has provided one.
+        const apiKey = profileForm.getValues('hibpApiKey') || user.hibpApiKey;
+
+        if (!apiKey) {
+            addToast("Clé API Have I Been Pwned requise (voir Paramètres)", "info");
+            return;
+        }
+
+        setBreachCheckLoading(true);
+        try {
+            const breaches = await integrationService.checkBreach(user.email, apiKey);
+            if (breaches.length === 0) {
+                addToast("Aucune fuite de données détectée pour cet email", "success");
+            } else {
+                addToast(`Attention : ${breaches.length} fuite(s) de données détectée(s) !`, "error");
+                // Could display details in a modal or alert
+            }
+        } catch (e) {
+            addToast("Erreur lors de la vérification HIBP", "error");
+        } finally {
+            setBreachCheckLoading(false);
+        }
+    };
+
     const profileForm = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
-        defaultValues: { displayName: '', department: '', role: 'user' }
+        defaultValues: { displayName: '', department: '', role: 'user', geminiApiKey: '', shodanApiKey: '', hibpApiKey: '' }
     });
 
     const passwordForm = useForm<PasswordFormData>({
@@ -215,7 +247,10 @@ export const Settings: React.FC = () => {
             profileForm.reset({
                 displayName: user.displayName || '',
                 department: user.department || '',
-                role: (user.role as UserProfile['role']) || 'user'
+                role: (user.role as UserProfile['role']) || 'user',
+                geminiApiKey: user.geminiApiKey || '',
+                shodanApiKey: user.shodanApiKey || '',
+                hibpApiKey: user.hibpApiKey || ''
             });
             fetchOrgDetails();
         }
@@ -277,7 +312,11 @@ export const Settings: React.FC = () => {
                 ...user,
                 displayName: data.displayName,
                 department: data.department || '',
-                role: data.role
+                role: data.role,
+                geminiApiKey: data.geminiApiKey,
+                shodanApiKey: data.shodanApiKey,
+                hibpApiKey: data.hibpApiKey,
+                safeBrowsingApiKey: data.safeBrowsingApiKey
             };
 
             if (!querySnapshot.empty) {
@@ -285,7 +324,11 @@ export const Settings: React.FC = () => {
                 await updateDoc(doc(db, 'users', docId), {
                     displayName: data.displayName,
                     department: data.department || '',
-                    role: data.role
+                    role: data.role,
+                    geminiApiKey: data.geminiApiKey || '',
+                    shodanApiKey: data.shodanApiKey || '',
+                    hibpApiKey: data.hibpApiKey || '',
+                    safeBrowsingApiKey: data.safeBrowsingApiKey || ''
                 });
             }
 
@@ -661,6 +704,17 @@ export const Settings: React.FC = () => {
                         <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wide mt-2 border border-slate-200 dark:border-slate-700">
                             {user?.role}
                         </span>
+                        <div className="flex items-center gap-2 mt-2">
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{user?.email}</p>
+                            <button
+                                onClick={handleCheckBreach}
+                                disabled={breachCheckLoading}
+                                className="p-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                                title="Vérifier si cet email a été compromis (Have I Been Pwned)"
+                            >
+                                {breachCheckLoading ? <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <ShieldAlert className="w-3 h-3" />}
+                            </button>
+                        </div>
                     </div>
 
                     <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="space-y-5 max-w-sm mx-auto">
@@ -750,6 +804,99 @@ export const Settings: React.FC = () => {
                                 {changingPassword ? '...' : t('settings.changePassword')}
                             </button>
                         </form>
+                    </div>
+
+                    {/* AI Settings */}
+                    <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm flex flex-col h-full">
+                        <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><BrainCircuit className="h-5 w-5 mr-3 text-purple-500" />Intelligence Artificielle</h3>
+                        </div>
+                        <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                            <div>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                    Configurez votre propre clé API pour utiliser les fonctionnalités d'IA générative (Gemini).
+                                </p>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Clé API Gemini (Optionnel)</label>
+                                    <div className="relative">
+                                        <input
+                                            type="password"
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-sm dark:text-white pr-10"
+                                            placeholder="AIzaSy..."
+                                            {...profileForm.register('geminiApiKey')}
+                                        />
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <Key className="h-4 w-4 text-slate-400" />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+                                        Laissez vide pour utiliser la clé par défaut du système (si disponible).
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 border-t border-white/5">
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Clé API Shodan (Optionnel)</label>
+                                    <div className="relative">
+                                        <input
+                                            type="password"
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-sm dark:text-white pr-10"
+                                            placeholder="Clé Shodan..."
+                                            {...profileForm.register('shodanApiKey')}
+                                        />
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <Activity className="h-4 w-4 text-slate-400" />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+                                        Pour la découverte d'actifs et la détection de vulnérabilités.
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 border-t border-white/5">
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Clé API Have I Been Pwned (Optionnel)</label>
+                                    <div className="relative">
+                                        <input
+                                            type="password"
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-sm dark:text-white pr-10"
+                                            placeholder="Clé HIBP..."
+                                            {...profileForm.register('hibpApiKey')}
+                                        />
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <ShieldAlert className="h-4 w-4 text-slate-400" />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+                                        Pour vérifier les fuites de données (emails).
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 border-t border-white/5">
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Clé API Google Safe Browsing (Optionnel)</label>
+                                    <div className="relative">
+                                        <input
+                                            type="password"
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-sm dark:text-white pr-10"
+                                            placeholder="Clé Safe Browsing..."
+                                            {...profileForm.register('safeBrowsingApiKey')}
+                                        />
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <ShieldAlert className="h-4 w-4 text-slate-400" />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+                                        Pour vérifier la réputation des URL (phishing, malware).
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={profileForm.handleSubmit(handleUpdateProfile)}
+                                disabled={savingProfile}
+                                className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-slate-900/10 dark:shadow-white/10 flex items-center justify-center mt-4"
+                            >
+                                {savingProfile ? '...' : 'Enregistrer la clé API'}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Data Sovereignty - Pro/Enterprise Only */}
