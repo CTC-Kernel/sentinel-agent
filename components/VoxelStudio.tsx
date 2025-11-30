@@ -8,6 +8,7 @@ import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, Voxel
 import { VoxelDetailOverlay } from './VoxelDetailOverlay';
 
 export interface VoxelDetail {
+  id: string;
   title: string;
   type: string;
   owner: string;
@@ -265,7 +266,7 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
       let magnitude = Math.max(4, target.size * 5);
       let verticalFactor = 0.6;
       if (focusOnCardRef.current) {
-        magnitude = 8;
+        magnitude = 12;
         verticalFactor = 0.2;
       }
       const horizontalDir = focusVec.current.clone().setY(0);
@@ -970,7 +971,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     setIsDetailMinimized: setIsDetailMinimized ?? (() => { }),
     handleSelectionClear: handleSelectionClear ?? (() => { }),
     relatedElements: relatedElements ?? [],
-    applyFocus: applyFocus ?? (() => { }),
+    applyFocus: (id: string, type: string) => applyFocus?.(id, type as VoxelNode['type']),
     handleOpenSelected: handleOpenSelected ?? (() => { }),
     onPositionChange: handleOverlayPositionChange,
     onRequestFocus: handleOverlayFocusRequest,
