@@ -5,6 +5,8 @@ import 'jspdf-autotable';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, limit, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, ProjectMilestone, ProjectTemplate, Audit, Supplier } from '../types';
+import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
+import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, X, History, MessageSquare, LayoutDashboard, Download, Copy, Zap } from '../components/ui/Icons';
 
@@ -202,35 +204,42 @@ export const Projects: React.FC = () => {
         if (!canEdit || !user?.organizationId) return;
 
         try {
+            // Validate data
+            const validatedData = projectSchema.parse(projectData);
+
             if (editingProject) {
                 // Update existing project
                 await updateDoc(doc(db, 'projects', editingProject.id), {
-                    ...projectData
+                    ...validatedData
                 });
-                await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${projectData.name}`);
+                await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${validatedData.name}`);
 
                 // Update local state - No longer needed with useFirestoreCollection
-                const updatedProject = { ...editingProject, ...projectData } as Project;
+                const updatedProject = { ...editingProject, ...validatedData } as Project;
                 if (selectedProject?.id === editingProject.id) {
                     setSelectedProject(updatedProject);
                 }
             } else {
                 // Create new project
                 await addDoc(collection(db, 'projects'), {
-                    ...projectData,
+                    ...validatedData,
                     organizationId: user.organizationId,
                     progress: 0,
                     tasks: [],
                     createdAt: new Date().toISOString()
                 });
-                await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${projectData.name}`);
+                await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${validatedData.name}`);
                 addToast("Projet créé avec succès", "success");
             }
             setCreationMode(false);
             setEditingProject(null);
             // setIsEditing(false); // Removed unused
         } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Projects.handleProjectFormSubmit', 'UPDATE_FAILED');
+            if (e instanceof z.ZodError) {
+                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+            } else {
+                ErrorLogger.handleErrorWithToast(e, 'Projects.handleProjectFormSubmit', 'UPDATE_FAILED');
+            }
         }
     };
 
@@ -247,6 +256,9 @@ export const Projects: React.FC = () => {
         }
 
         try {
+            // Validate template inputs
+            templateFormSchema.parse({ projectName, startDate: startDate.toISOString(), manager });
+
             const { project, milestones } = createProjectFromTemplate(template, projectName, startDate, manager, user.organizationId);
 
             // Create project
@@ -265,7 +277,11 @@ export const Projects: React.FC = () => {
             addToast(`Projet créé avec ${project.tasks.length} tâches et ${milestones.length} jalons`, "success");
             setShowTemplateModal(false);
         } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Projects.handleCreateFromTemplate', 'CREATE_FAILED');
+            if (e instanceof z.ZodError) {
+                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+            } else {
+                ErrorLogger.handleErrorWithToast(e, 'Projects.handleCreateFromTemplate', 'CREATE_FAILED');
+            }
         }
     };
 

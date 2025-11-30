@@ -31,7 +31,8 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { AssetForm } from '../components/assets/AssetForm';
-import { AssetFormData } from '../schemas/assetSchema';
+import { AssetFormData, assetSchema } from '../schemas/assetSchema';
+import { z } from 'zod';
 
 import { Edit } from '../components/ui/Icons';
 
@@ -209,7 +210,8 @@ export const Assets: React.FC = () => {
     const handleCreate = async (data: AssetFormData) => {
         if (!user?.organizationId) return;
         try {
-            const cleanData = sanitizeData(data);
+            const validatedData = assetSchema.parse(data);
+            const cleanData = sanitizeData(validatedData);
             const newDoc = { ...cleanData, organizationId: user.organizationId, createdAt: new Date().toISOString() };
             await addDoc(collection(db, 'assets'), newDoc);
 
@@ -220,13 +222,20 @@ export const Assets: React.FC = () => {
             refreshAssets();
             setCreationMode(false);
             setShowInspector(false);
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.handleCreate', 'CREATE_FAILED'); }
+        } catch (e) {
+            if (e instanceof z.ZodError) {
+                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+            } else {
+                ErrorLogger.handleErrorWithToast(e, 'Assets.handleCreate', 'CREATE_FAILED');
+            }
+        }
     };
 
     const handleUpdate = async (data: AssetFormData) => {
         if (!selectedAsset || !user?.organizationId) return;
         try {
-            const cleanData = sanitizeData(data);
+            const validatedData = assetSchema.parse(data);
+            const cleanData = sanitizeData(validatedData);
             await updateDoc(doc(db, 'assets', selectedAsset.id), cleanData);
             await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${cleanData.name}`);
 
@@ -236,7 +245,13 @@ export const Assets: React.FC = () => {
 
             refreshAssets();
             setIsEditing(false);
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.handleUpdate', 'UPDATE_FAILED'); }
+        } catch (e) {
+            if (e instanceof z.ZodError) {
+                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+            } else {
+                ErrorLogger.handleErrorWithToast(e, 'Assets.handleUpdate', 'UPDATE_FAILED');
+            }
+        }
     };
 
     const handleDuplicate = () => {

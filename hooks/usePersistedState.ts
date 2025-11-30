@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ErrorLogger } from '../services/errorLogger';
 
 /**
  * A hook that syncs state with localStorage.
@@ -13,7 +14,7 @@ export function usePersistedState<T>(key: string, initialValue: T): [T, (value: 
             const item = localStorage.getItem(key);
             return item ? JSON.parse(item) : initialValue;
         } catch (error) {
-            console.warn(`Error reading localStorage key "${key}":`, error);
+            ErrorLogger.warn(`Error reading localStorage key "${key}":`, 'usePersistedState', { metadata: { error } });
             return initialValue;
         }
     });
@@ -23,7 +24,7 @@ export function usePersistedState<T>(key: string, initialValue: T): [T, (value: 
         try {
             localStorage.setItem(key, JSON.stringify(state));
         } catch (error) {
-            console.warn(`Error writing localStorage key "${key}":`, error);
+            ErrorLogger.warn(`Error writing localStorage key "${key}":`, 'usePersistedState', { metadata: { error } });
         }
     }, [key, state]);
 

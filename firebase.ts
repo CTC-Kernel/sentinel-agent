@@ -7,6 +7,7 @@ import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics } from 'firebase/analytics';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
+import { ErrorLogger } from './services/errorLogger';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -42,7 +43,7 @@ if (typeof window !== 'undefined') {
       isTokenAutoRefreshEnabled: true
     });
   } catch (error) {
-    console.warn('App Check initialization failed:', error);
+    ErrorLogger.warn('App Check initialization failed', 'firebase.ts', { metadata: { error } });
   }
 }
 

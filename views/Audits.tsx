@@ -35,7 +35,8 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AuditFormData, findingSchema, FindingFormData } from '../schemas/auditSchema';
+import { AuditFormData, findingSchema, FindingFormData, auditSchema } from '../schemas/auditSchema';
+import { z } from 'zod';
 
 export const Audits: React.FC = () => {
     const { user, addToast } = useStore();
@@ -219,39 +220,44 @@ export const Audits: React.FC = () => {
         if (editingAudit) {
             // Update existing audit
             try {
-                await updateDoc(doc(db, 'audits', editingAudit.id), { ...data });
-                await logAction(user, 'UPDATE', 'Audit', `Mise à jour audit: ${data.name}`);
+                const validatedData = auditSchema.parse(data);
+                await updateDoc(doc(db, 'audits', editingAudit.id), { ...validatedData });
+                await logAction(user, 'UPDATE', 'Audit', `Mise à jour audit: ${validatedData.name}`);
                 addToast("Audit mis à jour", "success");
                 setEditingAudit(null);
                 refreshAudits();
             } catch (e) {
-                ErrorLogger.error(e, 'Audits.handleAuditFormSubmit.update');
-                addToast("Erreur mise à jour audit", "error");
+                if (e instanceof z.ZodError) {
+                    addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+                } else {
+                    ErrorLogger.handleErrorWithToast(e, 'Audits.handleAuditFormSubmit.update', 'UPDATE_FAILED');
+                }
             }
         } else {
             // Create new audit
             try {
+                const validatedData = auditSchema.parse(data);
                 await addDoc(collection(db, 'audits'), {
-                    ...data,
+                    ...validatedData,
                     organizationId: user.organizationId,
                     findingsCount: 0,
                     createdBy: user.uid // Track creator for Segregation of Duties
                 });
-                await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${data.name}`);
+                await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${validatedData.name}`);
 
                 // Send notification
-                if (data.auditor) {
-                    const auditorUser = usersList.find(u => u.displayName === data.auditor);
+                if (validatedData.auditor) {
+                    const auditorUser = usersList.find(u => u.displayName === validatedData.auditor);
                     if (auditorUser) {
                         const emailContent = getAuditReminderTemplate(
-                            data.name || 'Audit',
+                            validatedData.name || 'Audit',
                             auditorUser.displayName || 'Auditeur',
-                            data.dateScheduled || '',
+                            validatedData.dateScheduled || '',
                             'https://sentinel-grc.web.app/audits'
                         );
                         await sendEmail(user, {
                             to: auditorUser.email,
-                            subject: `[Sentinel] Nouvel audit assigné: ${data.name}`,
+                            subject: `[Sentinel] Nouvel audit assigné: ${validatedData.name}`,
                             html: emailContent,
                             type: 'AUDIT_REMINDER'
                         });
@@ -263,8 +269,11 @@ export const Audits: React.FC = () => {
                 refreshAudits();
                 refreshAudits();
             } catch (error) {
-                ErrorLogger.handleErrorWithToast(error, 'Audits.handleAuditFormSubmit', 'CREATE_FAILED');
-                addToast("Erreur création audit", "error");
+                if (error instanceof z.ZodError) {
+                    addToast((error as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+                } else {
+                    ErrorLogger.handleErrorWithToast(error, 'Audits.handleAuditFormSubmit', 'CREATE_FAILED');
+                }
             }
         }
     };

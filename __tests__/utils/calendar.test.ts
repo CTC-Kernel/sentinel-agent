@@ -28,9 +28,9 @@ describe('calendar', () => {
       click: vi.fn(),
       removeAttribute: vi.fn()
     };
-    vi.spyOn(document, 'createElement').mockImplementation(() => mockLink as any);
-    vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as any);
-    vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as any);
+    vi.spyOn(document, 'createElement').mockImplementation(() => mockLink as unknown as HTMLElement);
+    vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as unknown as Node);
+    vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as unknown as Node);
   });
 
   describe('generateICS', () => {
@@ -63,7 +63,7 @@ describe('calendar', () => {
       expect(document.body.appendChild).toHaveBeenCalled();
       expect(document.body.removeChild).toHaveBeenCalled();
 
-      const mockLink = (document.createElement as any).mock.results[0].value;
+      const mockLink = (document.createElement as unknown as { mock: { results: { value: { setAttribute: (k: string, v: string) => void } }[] } }).mock.results[0].value;
       expect(mockLink.setAttribute).toHaveBeenCalledWith('download', 'test.ics');
     });
   });

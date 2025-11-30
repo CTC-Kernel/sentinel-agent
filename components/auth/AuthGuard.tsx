@@ -1,7 +1,8 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface AuthGuardProps {
     children: React.ReactNode;
@@ -33,7 +34,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
     }
 
     if (firebaseUser && !user && !loading && requireOnboarding) {
-        console.warn("AuthGuard: Firebase user exists but Firestore profile is missing. Redirecting to Onboarding.");
+        ErrorLogger.warn("AuthGuard: Firebase user exists but Firestore profile is missing. Redirecting to Onboarding.", 'AuthGuard');
         return <Navigate to="/onboarding" replace />;
     }
 
