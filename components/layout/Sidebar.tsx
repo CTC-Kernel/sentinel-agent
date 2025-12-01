@@ -3,45 +3,6 @@ import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar } from '../ui/Icons';
-
-const navGroups = [
-  {
-    title: 'Pilotage',
-    items: [
-      { name: 'Tableau de bord', to: '/', icon: LayoutDashboard },
-      { name: 'Calendrier', to: '/calendar', icon: Calendar },
-      { name: 'CTC Engine', to: '/voxel', icon: Settings3D },
-      { name: 'Incidents', to: '/incidents', icon: Siren },
-      { name: 'Projets SSI', to: '/projects', icon: FolderKanban },
-    ]
-  },
-  {
-    title: 'Gouvernance',
-    items: [
-      { name: 'Gestion des Risques', to: '/risks', icon: ShieldAlert },
-      { name: 'Continuité (PCA)', to: '/continuity', icon: HeartPulse },
-      { name: 'Conformité DdA', to: '/compliance', icon: FileText },
-      { name: 'Audits', to: '/audits', icon: Activity },
-    ]
-  },
-  {
-    title: 'Référentiel',
-    items: [
-      { name: 'Actifs', to: '/assets', icon: Server },
-      { name: 'Fournisseurs', to: '/suppliers', icon: Building },
-      { name: 'Documents', to: '/documents', icon: Briefcase },
-      { name: 'Confidentialité (RGPD)', to: '/privacy', icon: Fingerprint },
-    ]
-  },
-  {
-    title: 'Administration',
-    items: [
-      { name: 'Équipe', to: '/team', icon: Users },
-      { name: 'Sauvegarde', to: '/backup', icon: Database },
-    ]
-  }
-];
-
 import { LegalModal } from '../ui/LegalModal';
 import { Scale } from 'lucide-react';
 import { hasPermission } from '../../utils/permissions';
@@ -49,34 +10,82 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 
 export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean) => void }> = ({ mobileOpen, setMobileOpen }) => {
-  const { user } = useStore();
+  const { user, t } = useStore();
   const [showLegalModal, setShowLegalModal] = useState(false);
+
+  const navGroups = [
+    {
+      title: t('common.pilotage'),
+      items: [
+        { name: t('sidebar.dashboard'), to: '/', icon: LayoutDashboard },
+        { name: t('common.calendar'), to: '/calendar', icon: Calendar },
+        { name: t('common.ctcEngine'), to: '/voxel', icon: Settings3D },
+        { name: t('sidebar.incidents'), to: '/incidents', icon: Siren },
+        { name: t('sidebar.projects'), to: '/projects', icon: FolderKanban },
+      ]
+    },
+    {
+      title: t('common.governance'),
+      items: [
+        { name: t('common.riskManagement'), to: '/risks', icon: ShieldAlert },
+        { name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse },
+        { name: t('common.complianceDda'), to: '/compliance', icon: FileText },
+        { name: t('sidebar.audits'), to: '/audits', icon: Activity },
+      ]
+    },
+    {
+      title: t('common.repository'),
+      items: [
+        { name: t('sidebar.assets'), to: '/assets', icon: Server },
+        { name: t('sidebar.suppliers'), to: '/suppliers', icon: Building },
+        { name: t('sidebar.documents'), to: '/documents', icon: Briefcase },
+        { name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint },
+      ]
+    },
+    {
+      title: t('common.administration'),
+      items: [
+        { name: t('sidebar.team'), to: '/team', icon: Users },
+        { name: t('common.backup'), to: '/backup', icon: Database },
+      ]
+    }
+  ];
 
   const filterItem = (item: { name: string }) => {
     if (!user) return false;
 
     // ALWAYS SHOW Dashboard to avoid empty menu confusion
-    if (item.name === 'Tableau de bord') return true;
+    if (item.name === t('sidebar.dashboard')) return true;
 
     // If user is admin or owner -> Show All
     if (user.role === 'admin' || user.role === 'rssi') return true;
 
     // STRICT RBAC FILTERING
+    // Note: We need to match against translated names or use keys. 
+    // Ideally, we should refactor filterItem to use keys, but for now we match the translated strings.
+    // However, since t() returns the string based on current language, this logic might break if language changes.
+    // BETTER APPROACH: Use keys in navGroups and translate in render.
+    // But to minimize refactor risk, I will keep using names but I need to be careful.
+    // Actually, the cleanest way is to use the keys in the switch.
+
+    // Let's check what the item.name is. It is now the result of t().
+    // So we need to compare against t('key').
+
     switch (item.name) {
-      case 'Incidents': return hasPermission(user, 'Incident', 'read');
-      case 'Projets SSI': return hasPermission(user, 'Project', 'read');
-      case 'Gestion des Risques': return hasPermission(user, 'Risk', 'read');
-      case 'Audits': return hasPermission(user, 'Audit', 'read');
-      case 'Documents': return hasPermission(user, 'Document', 'read');
-      case 'Actifs': return hasPermission(user, 'Asset', 'read');
-      case 'Équipe': return hasPermission(user, 'User', 'read');
-      case 'Sauvegarde': return hasPermission(user, 'Settings', 'manage');
-      case 'Continuité (PCA)': return hasPermission(user, 'Risk', 'read'); // PCA lié au risque
-      case 'Conformité DdA': return hasPermission(user, 'Audit', 'read'); // DdA lié audit/compliance
-      case 'Fournisseurs': return hasPermission(user, 'Asset', 'read'); // Fournisseurs = actifs externes
-      case 'Confidentialité (RGPD)': return hasPermission(user, 'Document', 'read');
-      case 'CTC Engine': return false; // Caché pour les non-admins par défaut sauf si permission explicite (future)
-      default: return true; // Pages neutres (Help, etc.)
+      case t('sidebar.incidents'): return hasPermission(user, 'Incident', 'read');
+      case t('sidebar.projects'): return hasPermission(user, 'Project', 'read');
+      case t('common.riskManagement'): return hasPermission(user, 'Risk', 'read');
+      case t('sidebar.audits'): return hasPermission(user, 'Audit', 'read');
+      case t('sidebar.documents'): return hasPermission(user, 'Document', 'read');
+      case t('sidebar.assets'): return hasPermission(user, 'Asset', 'read');
+      case t('sidebar.team'): return hasPermission(user, 'User', 'read');
+      case t('common.backup'): return hasPermission(user, 'Settings', 'manage');
+      case t('sidebar.continuity'): return hasPermission(user, 'Risk', 'read');
+      case t('common.complianceDda'): return hasPermission(user, 'Audit', 'read');
+      case t('sidebar.suppliers'): return hasPermission(user, 'Asset', 'read');
+      case t('common.privacyGdpr'): return hasPermission(user, 'Document', 'read');
+      case t('common.ctcEngine'): return false;
+      default: return true;
     }
   };
 
@@ -135,7 +144,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                 <div className="space-y-1">
                   {visibleItems.map((item) => (
                     <NavLink
-                      key={item.name}
+                      key={item.to} // Changed key to 'to' because 'name' is now dynamic
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) => `
@@ -162,7 +171,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
           })}
 
           <div className="px-1 mb-2 mt-6">
-            <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em]">Support</p>
+            <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em]">{t('common.support')}</p>
           </div>
           <NavLink
             to="/help"
@@ -179,7 +188,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                 <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? 'bg-slate-200 text-slate-900 dark:bg-white/20 dark:text-white' : 'bg-slate-100/70 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
                   <HelpCircle className="h-4 w-4" strokeWidth={2} />
                 </span>
-                <span className="flex-1 truncate">Centre d'aide</span>
+                <span className="flex-1 truncate">{t('common.helpCenter')}</span>
               </>
             )}
           </NavLink>
@@ -199,7 +208,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                 <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${isActive ? 'bg-slate-900/90 text-white dark:bg-white/20 dark:text-white' : 'bg-slate-100/80 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
                   <Settings className="h-4.5 w-4.5" strokeWidth={2} />
                 </span>
-                <span className="flex-1">Paramètres</span>
+                <span className="flex-1">{t('sidebar.settings')}</span>
                 <ChevronRight className={`h-3.5 w-3.5 transition-opacity duration-200 ${isActive ? 'opacity-80 text-slate-900 dark:text-white' : 'opacity-0 text-slate-400 dark:text-slate-500 group-hover:opacity-70'}`} />
               </>
             )}
@@ -211,7 +220,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-300 group-hover:bg-red-100 group-hover:text-red-600">
               <LogOut className="h-4.5 w-4.5" strokeWidth={2} />
             </span>
-            <span className="flex-1 text-left">Déconnexion</span>
+            <span className="flex-1 text-left">{t('common.logout')}</span>
           </button>
 
           <button
@@ -219,7 +228,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             className="w-full flex items-center justify-center gap-2 px-4 py-2 mt-2 text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
           >
             <Scale className="h-3 w-3" />
-            <span>Mentions Légales</span>
+            <span>{t('settings.mentionsLegales')}</span>
           </button>
         </div>
       </aside>

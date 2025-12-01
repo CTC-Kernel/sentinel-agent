@@ -64,7 +64,7 @@ export const Settings: React.FC = () => {
         const apiKey = profileForm.getValues('hibpApiKey') || user.hibpApiKey;
 
         if (!apiKey) {
-            addToast("Clé API Have I Been Pwned requise (voir Paramètres)", "info");
+            addToast(t('settings.hibpKeyRequired'), "info");
             return;
         }
 
@@ -72,13 +72,13 @@ export const Settings: React.FC = () => {
         try {
             const breaches = await integrationService.checkBreach(user.email, apiKey);
             if (breaches.length === 0) {
-                addToast("Aucune fuite de données détectée pour cet email", "success");
+                addToast(t('settings.noBreachesFound'), "success");
             } else {
-                addToast(`Attention: ${breaches.length} fuite(s) de données détectée(s)!`, "error");
+                addToast(t('settings.breachesFound').replace('{count}', breaches.length.toString()), "error");
                 // Could display details in a modal or alert
             }
         } catch (e) {
-            addToast("Erreur lors de la vérification HIBP", "error");
+            addToast(t('settings.hibpError'), "error");
         } finally {
             setBreachCheckLoading(false);
         }
@@ -120,7 +120,7 @@ export const Settings: React.FC = () => {
     const loginToGoogle = useGoogleLogin({
         onSuccess: tokenResponse => {
             localStorage.setItem('google_access_token', tokenResponse.access_token);
-            addToast("Connecté à Google Calendar", "success");
+            addToast(t('settings.googleCalendarConnected'), "success");
             // Force re-render to update UI
             setSavingProfile(prev => !prev);
         },
@@ -129,7 +129,7 @@ export const Settings: React.FC = () => {
 
     const handleTransferOwnership = async () => {
         if (!transferTargetId) {
-            addToast('Veuillez sélectionner un membre.', 'error');
+            addToast(t('settings.selectMember'), 'error');
             return;
         }
 
@@ -145,14 +145,14 @@ export const Settings: React.FC = () => {
                 newOwnerId: transferTargetId
             });
 
-            addToast('Propriété transférée avec succès.', 'success');
+            addToast(t('settings.transferSuccess'), 'success');
             setShowTransferModal(false);
 
             // Force reload to reflect changes (permissions, etc.)
             window.location.reload();
         } catch (error: any) {
             console.error('Transfer failed:', error);
-            addToast('Erreur lors du transfert : ' + error.message, 'error');
+            addToast(t('settings.transferError') + error.message, 'error');
         } finally {
             setIsTransferring(false);
         }
@@ -184,22 +184,22 @@ export const Settings: React.FC = () => {
         try {
             await updateDoc(doc(db, 'users', targetUserId), { role: newRole });
             setUsersList(prev => prev.map(u => u.uid === targetUserId ? { ...u, role: newRole } : u));
-            addToast("Rôle mis à jour", "success");
+            addToast(t('settings.roleUpdated'), "success");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.handleUpdateUserRole', 'UPDATE_FAILED'); }
     };
 
     const handleRemoveUser = async (targetUserId: string) => {
         if (!hasPermission(user, 'User', 'manage')) return;
         if (targetUserId === user!.uid) {
-            addToast("Vous ne pouvez pas vous supprimer vous-même", "error");
+            addToast(t('settings.cannotDeleteSelf'), "error");
             return;
         }
-        if (!confirm("Êtes-vous sûr de vouloir retirer cet utilisateur de l'organisation ?")) return;
+        if (!confirm(t('settings.confirmRemoveUser'))) return;
 
         try {
             await updateDoc(doc(db, 'users', targetUserId), { organizationId: '', organizationName: '', role: '' });
             setUsersList(prev => prev.filter(u => u.uid !== targetUserId));
-            addToast("Utilisateur retiré", "success");
+            addToast(t('settings.userRemoved'), "success");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.handleRemoveUser', 'DELETE_FAILED'); }
     };
 
@@ -341,7 +341,7 @@ export const Settings: React.FC = () => {
                 const docId = querySnapshot.docs[0].id;
                 await updateDoc(doc(db, 'users', docId), { photoURL: downloadURL });
                 setUser({ ...user, photoURL: downloadURL });
-                addToast("Photo de profil mise à jour", "success");
+                addToast(t('settings.photoUpdated'), "success");
             }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Settings.handlePhotoUpload', 'FILE_UPLOAD_FAILED');
@@ -385,7 +385,7 @@ export const Settings: React.FC = () => {
             }
 
             setUser(userData);
-            addToast("Profil mis à jour avec succès.", "success");
+            addToast(t('settings.profileUpdated'), "success");
         } catch (err) {
             ErrorLogger.handleErrorWithToast(err, 'Settings.handleUpdateProfile', 'UPDATE_FAILED');
         } finally {
@@ -420,7 +420,7 @@ export const Settings: React.FC = () => {
             }
 
             setCurrentOrg(prev => prev ? { ...prev, name: data.orgName, address: data.address, vatNumber: data.vatNumber, contactEmail: data.contactEmail } : null);
-            addToast("Informations de l'organisation mises à jour", "success");
+            addToast(t('settings.orgUpdated'), "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Settings.handleUpdateOrg', 'UPDATE_FAILED');
         } finally {
@@ -434,11 +434,11 @@ export const Settings: React.FC = () => {
         if (currentUser) {
             try {
                 await updatePassword(currentUser, data.newPassword);
-                addToast("Mot de passe modifié avec succès", "success");
+                addToast(t('settings.passwordChanged'), "success");
                 passwordForm.reset();
             } catch (error) {
                 if ((error as { code?: string }).code === 'auth/requires-recent-login') {
-                    addToast("Veuillez vous reconnecter pour changer le mot de passe", "error");
+                    addToast(t('settings.reloginRequired'), "error");
                 } else {
                     ErrorLogger.handleErrorWithToast(error, 'Settings.handleChangePassword', 'UPDATE_FAILED');
                 }
@@ -500,7 +500,7 @@ export const Settings: React.FC = () => {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            addToast("Sauvegarde complète téléchargée", "success");
+            addToast(t('settings.backupDownloaded'), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Settings.handleExport', 'FETCH_FAILED');
         } finally {
@@ -517,7 +517,7 @@ export const Settings: React.FC = () => {
             const logData = snap.docs.map(d => d.data() as SystemLog);
             logData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-            const headers = ["Date", "Utilisateur", "Email", "Action", "Ressource", "Détails"];
+            const headers = [t('common.date'), t('common.user'), t('common.email'), t('common.action'), t('common.resource'), t('common.details')];
             const rows = logData.map(l => [
                 new Date(l.timestamp).toLocaleString(),
                 l.userId,
@@ -534,7 +534,7 @@ export const Settings: React.FC = () => {
             link.href = url;
             link.download = `audit_logs_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
-            addToast("Logs d'audit exportés (CSV)", "success");
+            addToast(t('settings.logsExported'), "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Settings.handleExportLogsCSV', 'FETCH_FAILED');
         } finally {
@@ -545,8 +545,8 @@ export const Settings: React.FC = () => {
     const initiatePurgeLogs = () => {
         setConfirmData({
             isOpen: true,
-            title: "Purger les journaux ?",
-            message: "Tous les logs datant de plus de 90 jours seront supprimés. Irréversible.",
+            title: t('settings.purgeLogsTitle'),
+            message: t('settings.purgeLogsMessage'),
             onConfirm: handlePurgeLogs
         });
     };
@@ -562,7 +562,7 @@ export const Settings: React.FC = () => {
             const toDelete = snap.docs.filter(d => new Date(d.data().timestamp) < ninetyDaysAgo);
 
             if (toDelete.length === 0) {
-                addToast("Aucun log ancien à purger.", "info");
+                addToast(t('settings.noLogsToPurgeInfo'), "info");
             } else {
                 // Use deleteDoc for individual deletions or batch for multiple
                 if (toDelete.length < 10) {
@@ -576,7 +576,7 @@ export const Settings: React.FC = () => {
                 // Log the purge action
                 await logAction(user, 'Purge Logs', 'SystemLogs', `${toDelete.length} logs supprimés (>90 jours)`);
 
-                addToast(`${toDelete.length} logs anciens supprimés.`, "success");
+                addToast(t('settings.logsPurged').replace('{count}', toDelete.length.toString()), "success");
                 fetchLogs(true);
                 fetchSystemStats();
             }
@@ -589,8 +589,8 @@ export const Settings: React.FC = () => {
     const initiateLeaveOrg = () => {
         setConfirmData({
             isOpen: true,
-            title: "Quitter l'organisation ?",
-            message: "Vous perdrez accès à toutes les données de cette organisation. Cette action est irréversible.",
+            title: t('settings.leaveOrgTitle'),
+            message: t('settings.leaveOrgMessage'),
             onConfirm: handleLeaveOrg
         });
     };
@@ -620,7 +620,7 @@ export const Settings: React.FC = () => {
 
     const handleManageSubscription = async () => {
         if (!user?.organizationId || !hasPermission(user, 'Settings', 'manage')) {
-            addToast("Vous n'avez pas les permissions nécessaires", "error");
+            addToast(t('settings.noPermission'), "error");
             return;
         }
         setSubLoading(true);
@@ -640,18 +640,18 @@ export const Settings: React.FC = () => {
     const handleDeleteAccount = () => {
         setConfirmData({
             isOpen: true,
-            title: "Supprimer mon compte ?",
-            message: "Cette action est irréversible. Toutes vos données personnelles seront supprimées.",
+            title: t('settings.deleteAccountTitle'),
+            message: t('settings.deleteAccountMessage'),
             onConfirm: async () => {
                 if (!user || !auth.currentUser) return;
                 try {
                     await AccountService.deleteAccount(user, auth.currentUser);
-                    addToast("Compte supprimé avec succès", "success");
+                    addToast(t('settings.accountDeleted'), "success");
                     // Redirect handled by auth state change in App.tsx
                 } catch (e) {
                     ErrorLogger.handleErrorWithToast(e, 'Settings.handleDeleteAccount', 'DELETE_FAILED');
                     if ((e as { code?: string }).code === 'auth/requires-recent-login') {
-                        addToast("Veuillez vous reconnecter pour supprimer votre compte", "error");
+                        addToast(t('settings.reloginRequired'), "error");
                     } else {
                         ErrorLogger.handleErrorWithToast(e, 'Settings.handleDeleteAccount', 'DELETE_FAILED');
                     }
@@ -662,13 +662,13 @@ export const Settings: React.FC = () => {
 
     const handleDeleteOrganization = () => {
         const confirmationWord = "SUPPRIMER";
-        const input = prompt(`Pour confirmer la suppression DÉFINITIVE de l'organisation et de TOUTES ses données, tapez "${confirmationWord}" :`);
+        const input = prompt(t('settings.deleteOrgPrompt').replace('{word}', confirmationWord));
 
         if (input === confirmationWord && user?.organizationId && currentOrg?.ownerId === user?.uid) {
             setMaintenanceLoading(true);
             AccountService.deleteOrganization(user.organizationId)
                 .then(async () => {
-                    addToast("Organisation supprimée avec succès", "success");
+                    addToast(t('settings.orgDeleted'), "success");
                     // Force logout and reload
                     await signOut(auth);
                     window.location.reload();
@@ -679,7 +679,7 @@ export const Settings: React.FC = () => {
                 })
                 .finally(() => setMaintenanceLoading(false));
         } else if (input !== null) {
-            addToast("Code de confirmation incorrect", "error");
+            addToast(t('settings.incorrectConfirmation'), "error");
         }
     };
 
@@ -711,13 +711,13 @@ export const Settings: React.FC = () => {
                             <FileSpreadsheet className="h-6 w-6" />
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Abonnement {currentOrg?.subscription?.planId === 'professional' ? 'Professional' : currentOrg?.subscription?.planId === 'enterprise' ? 'Enterprise' : 'Discovery'}</h4>
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.subscription')} {currentOrg?.subscription?.planId === 'professional' ? 'Professional' : currentOrg?.subscription?.planId === 'enterprise' ? 'Enterprise' : 'Discovery'}</h4>
                             <div className="flex items-center gap-2 mt-1">
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                                    {currentOrg?.subscription?.status === 'active' ? 'Actif' : 'Gratuit'}
+                                    {currentOrg?.subscription?.status === 'active' ? t('settings.active') : t('settings.free')}
                                 </span>
                                 {currentOrg?.subscription?.currentPeriodEnd && (
-                                    <span className="text-xs text-slate-500">Renouvellement le {new Date((currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds ? (currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds * 1000 : (currentOrg.subscription.currentPeriodEnd as string | number)).toLocaleDateString()}</span>
+                                    <span className="text-xs text-slate-500">{t('settings.renewalDate').replace('{date}', new Date((currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds ? (currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds * 1000 : (currentOrg.subscription.currentPeriodEnd as string | number)).toLocaleDateString())}</span>
                                 )}
                             </div>
                         </div>
@@ -728,7 +728,7 @@ export const Settings: React.FC = () => {
                         className="px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-bold rounded-xl hover:shadow-md transition-all border border-slate-200 dark:border-white/10 flex items-center"
                     >
                         {subLoading ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div> : null}
-                        {currentOrg?.subscription?.planId === 'discovery' ? 'Mettre à niveau' : 'Gérer'}
+                        {currentOrg?.subscription?.planId === 'discovery' ? t('settings.upgradeSub') : t('settings.manage')}
                     </button>
                 </div>
             )}
@@ -741,23 +741,23 @@ export const Settings: React.FC = () => {
                             <BrainCircuit className="h-6 w-6" />
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Mode Démonstration</h4>
-                            <p className="text-xs text-slate-500 mt-1">Générez des données fictives pour tester l'application.</p>
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.demoMode')}</h4>
+                            <p className="text-xs text-slate-500 mt-1">{t('settings.demoModeDesc')}</p>
                         </div>
                     </div>
                     <button
                         onClick={() => {
                             setConfirmData({
                                 isOpen: true,
-                                title: "Générer les données de démo ?",
-                                message: "Cela va ajouter un ensemble complet de données fictives (Actifs, Risques, Projets, etc.) à votre organisation actuelle. Cette action est irréversible (sauf suppression manuelle).",
+                                title: t('settings.generateDemoDataTitle'),
+                                message: t('settings.generateDemoDataMessage'),
                                 onConfirm: async () => {
                                     if (!user?.organizationId) return;
                                     setMaintenanceLoading(true);
                                     try {
                                         const { DemoDataService } = await import('../services/demoDataService');
                                         await DemoDataService.populateDemoData(user.organizationId, user.uid);
-                                        addToast("Données de démo générées avec succès !", "success");
+                                        addToast(t('settings.demoDataGenerated'), "success");
                                         // Force reload to see data
                                         setTimeout(() => window.location.reload(), 1500);
                                     } catch (e) {
@@ -772,7 +772,7 @@ export const Settings: React.FC = () => {
                         className="px-5 py-2.5 bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-400 text-sm font-bold rounded-xl hover:shadow-md transition-all border border-purple-200 dark:border-purple-900/30 flex items-center"
                     >
                         {maintenanceLoading ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div> : <Database className="w-4 h-4 mr-2" />}
-                        Générer Données
+                        {t('settings.generateData')}
                     </button>
                 </div>
             )}
@@ -815,19 +815,19 @@ export const Settings: React.FC = () => {
 
                     <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="space-y-5 max-w-sm mx-auto">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom d'affichage</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.displayName')}</label>
                             <input type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
                                 {...profileForm.register('displayName')} />
                             {profileForm.formState.errors.displayName && <p className="text-red-500 text-xs mt-1">{profileForm.formState.errors.displayName.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Département</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.department')}</label>
                             <input type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
                                 {...profileForm.register('department')} />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Rôle</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.role')}</label>
                             <div className="relative">
                                 <Controller
                                     control={profileForm.control}
@@ -851,12 +851,12 @@ export const Settings: React.FC = () => {
                                 />
                             </div>
                             {!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) && (
-                                <p className="text-[10px] text-slate-400 mt-1.5 ml-1">Contactez un administrateur pour changer de rôle.</p>
+                                <p className="text-[10px] text-slate-400 mt-1.5 ml-1">{t('settings.contactAdmin')}</p>
                             )}
                         </div>
 
                         <button type="submit" disabled={savingProfile} className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-500/20 disabled:opacity-70 flex justify-center items-center mt-4">
-                            {savingProfile ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : 'Enregistrer'}
+                            {savingProfile ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : t('settings.saveProfile')}
                         </button>
                     </form>
                 </div>
@@ -905,15 +905,15 @@ export const Settings: React.FC = () => {
                     {/* AI Settings */}
                     <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm flex flex-col h-full">
                         <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><BrainCircuit className="h-5 w-5 mr-3 text-purple-500" />Intelligence Artificielle</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><BrainCircuit className="h-5 w-5 mr-3 text-purple-500" />{t('settings.aiSettings')}</h3>
                         </div>
                         <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                             <div>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                                    Configurez votre propre clé API pour utiliser les fonctionnalités d'IA générative (Gemini).
+                                    {t('settings.aiDescription')}
                                 </p>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Clé API Gemini (Optionnel)</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.geminiApiKey')}</label>
                                     <div className="relative">
                                         <input
                                             type="password"
@@ -926,12 +926,12 @@ export const Settings: React.FC = () => {
                                         </div>
                                     </div>
                                     <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
-                                        Laissez vide pour utiliser la clé par défaut du système (si disponible).
+                                        {t('settings.geminiPlaceholder')}
                                     </p>
                                 </div>
 
                                 <div className="pt-4 border-t border-white/5">
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Clé API Shodan (Optionnel)</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.shodanApiKey')}</label>
                                     <div className="relative">
                                         <input
                                             type="password"
@@ -944,12 +944,12 @@ export const Settings: React.FC = () => {
                                         </div>
                                     </div>
                                     <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
-                                        Pour la découverte d'actifs et la détection de vulnérabilités.
+                                        {t('settings.shodanDescription')}
                                     </p>
                                 </div>
 
                                 <div className="pt-4 border-t border-white/5">
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Clé API Have I Been Pwned (Optionnel)</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.hibpApiKey')}</label>
                                     <div className="relative">
                                         <input
                                             type="password"
@@ -962,12 +962,12 @@ export const Settings: React.FC = () => {
                                         </div>
                                     </div>
                                     <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
-                                        Pour vérifier les fuites de données (emails).
+                                        {t('settings.hibpDescription')}
                                     </p>
                                 </div>
 
                                 <div className="pt-4 border-t border-white/5">
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Clé API Google Safe Browsing (Optionnel)</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.safeBrowsingApiKey')}</label>
                                     <div className="relative">
                                         <input
                                             type="password"
@@ -980,35 +980,35 @@ export const Settings: React.FC = () => {
                                         </div>
                                     </div>
                                     <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
-                                        Pour vérifier la réputation des URL (phishing, malware).
+                                        {t('settings.safeBrowsingDescription')}
                                     </p>
                                 </div>
 
                                 <div className="pt-4 border-t border-white/5">
                                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 ml-1 flex items-center">
                                         <Calendar className="h-3 w-3 mr-2" />
-                                        Google Calendar
+                                        {t('settings.googleCalendar')}
                                     </h3>
                                     <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-4 border border-gray-200 dark:border-white/10">
                                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                                            Connectez votre compte Google pour synchroniser vos événements Sentinel avec votre agenda personnel.
+                                            {t('settings.googleCalendarDescription')}
                                         </p>
                                         {localStorage.getItem('google_access_token') ? (
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm font-medium text-green-600 dark:text-green-400 flex items-center">
                                                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                                                    Compte connecté
+                                                    {t('settings.accountConnected')}
                                                 </span>
                                                 <button
                                                     type="button"
                                                     onClick={() => {
                                                         localStorage.removeItem('google_access_token');
-                                                        addToast("Déconnecté de Google Calendar", "info");
+                                                        addToast(t('settings.disconnectGoogle'), "info");
                                                         setSavingProfile(prev => !prev); // Force re-render
                                                     }}
                                                     className="text-xs text-red-500 hover:text-red-600 font-medium"
                                                 >
-                                                    Déconnecter
+                                                    {t('settings.disconnectGoogle')}
                                                 </button>
                                             </div>
                                         ) : (
@@ -1018,7 +1018,7 @@ export const Settings: React.FC = () => {
                                                 className="w-full py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-all flex items-center justify-center shadow-sm"
                                             >
                                                 <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 mr-2" />
-                                                Connecter Google Calendar
+                                                {t('settings.connectGoogle')}
                                             </button>
                                         )}
                                     </div>
@@ -1030,7 +1030,7 @@ export const Settings: React.FC = () => {
                                 disabled={savingProfile}
                                 className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-slate-900/10 dark:shadow-white/10 flex items-center justify-center mt-4"
                             >
-                                {savingProfile ? '...' : 'Enregistrer la clé API'}
+                                {savingProfile ? '...' : t('settings.saveProfile')}
                             </button>
                         </div>
                     </div>
@@ -1040,14 +1040,14 @@ export const Settings: React.FC = () => {
                         <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                                 <Database className="h-5 w-5 mr-3 text-emerald-500" />
-                                Stockage & Souveraineté
+                                {t('settings.storageSovereignty')}
                             </h3>
                         </div>
                         <div className="p-6 flex-1 flex flex-col space-y-6">
                             {/* Storage Usage */}
                             <div>
                                 <div className="flex justify-between items-end mb-2">
-                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Espace utilisé</span>
+                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{t('settings.storageUsage')}</span>
                                     <span className="text-xs font-medium text-slate-500">
                                         {formatFileSize(currentOrg?.storageUsed || 0)} / {formatFileSize(1024 * 1024 * 1024)}
                                     </span>
@@ -1061,27 +1061,27 @@ export const Settings: React.FC = () => {
                                     ></div>
                                 </div>
                                 <p className="text-xs text-slate-400 mt-2">
-                                    Quota de 1 Go (Discovery). Passez à Pro pour 10 Go.
+                                    {t('settings.quotaInfo')}
                                 </p>
                             </div>
 
                             <div className="pt-6 border-t border-slate-100 dark:border-white/5">
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                                    Activez le stockage de vos données critiques sur des serveurs certifiés SecNumCloud (OVHcloud) pour une souveraineté totale.
+                                    {t('settings.secNumCloudInfo')}
                                 </p>
                                 <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                                     <div className="flex items-center gap-3">
                                         <Database className="h-5 w-5 text-slate-400" />
                                         <div>
-                                            <span className="block text-sm font-bold text-slate-900 dark:text-white">Stockage SecNumCloud</span>
-                                            <span className="text-xs text-slate-500">Hébergement souverain OVH</span>
+                                            <span className="block text-sm font-bold text-slate-900 dark:text-white">{t('settings.secNumCloudStorage')}</span>
+                                            <span className="text-xs text-slate-500">{t('settings.ovhHosting')}</span>
                                         </div>
                                     </div>
                                     <button
                                         onClick={async () => {
                                             if (!user?.organizationId || !hasPermission(user, 'Settings', 'manage')) return;
                                             if (currentOrg?.subscription?.planId === 'discovery') {
-                                                addToast("Cette fonctionnalité nécessite un plan Professional ou Enterprise", "info");
+                                                addToast(t('settings.proFeature'), "info");
                                                 return;
                                             }
                                             try {
@@ -1094,7 +1094,7 @@ export const Settings: React.FC = () => {
                                                     ...prev,
                                                     settings: { ...prev.settings, enableSecNumCloudStorage: newValue }
                                                 } : null);
-                                                addToast(`Stockage SecNumCloud ${newValue ? 'activé' : 'désactivé'}`, "success");
+                                                addToast(newValue ? t('settings.secNumCloudActivated') : t('settings.secNumCloudDeactivated'), "success");
                                             } catch (e) {
                                                 ErrorLogger.handleErrorWithToast(e, 'Settings.toggleSecNumCloud', 'UPDATE_FAILED');
                                             }
@@ -1107,9 +1107,9 @@ export const Settings: React.FC = () => {
                             </div>
                             {currentOrg?.subscription?.planId === 'discovery' && (
                                 <div className="text-center">
-                                    <p className="text-xs text-slate-400 mb-2">Disponible uniquement sur les plans Pro & Enterprise</p>
+                                    <p className="text-xs text-slate-400 mb-2">{t('settings.proFeature')}</p>
                                     <button onClick={() => window.location.href = '#/pricing'} className="text-xs font-bold text-brand-600 hover:text-brand-700 dark:text-brand-400">
-                                        Mettre à niveau
+                                        {t('settings.upgradeSub')}
                                     </button>
                                 </div>
                             )}
@@ -1195,8 +1195,8 @@ export const Settings: React.FC = () => {
                                     <Server className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Administration</h3>
-                                    <p className="text-xs text-slate-500 font-medium">Gestion de l'organisation {orgForm.watch('orgName')}</p>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.admin')}</h3>
+                                    <p className="text-xs text-slate-500 font-medium">{t('settings.orgAdmin')} {orgForm.watch('orgName')}</p>
                                 </div>
                             </div>
 
@@ -1204,13 +1204,13 @@ export const Settings: React.FC = () => {
                                 <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom de l'organisation</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.orgName')}</label>
                                             <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
                                                 {...orgForm.register('orgName')} />
                                             {orgForm.formState.errors.orgName && <p className="text-red-500 text-xs mt-1">{orgForm.formState.errors.orgName.message}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Email de contact</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.contactEmail')}</label>
                                             <input type="email" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
                                                 {...orgForm.register('contactEmail')} />
                                             {orgForm.formState.errors.contactEmail && <p className="text-red-500 text-xs mt-1">{orgForm.formState.errors.contactEmail.message}</p>}
@@ -1218,19 +1218,19 @@ export const Settings: React.FC = () => {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Adresse</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('common.address')}</label>
                                             <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
                                                 {...orgForm.register('address')} />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Numéro de TVA</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.vatNumber')}</label>
                                             <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
                                                 {...orgForm.register('vatNumber')} />
                                         </div>
                                     </div>
                                     <div className="flex justify-end">
                                         <button type="submit" disabled={savingOrg} className="px-6 py-3 bg-brand-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50">
-                                            {savingOrg ? '...' : 'Enregistrer les modifications'}
+                                            {savingOrg ? '...' : t('settings.saveChanges')}
                                         </button>
                                     </div>
                                 </form>
@@ -1241,13 +1241,13 @@ export const Settings: React.FC = () => {
                                     <Trash2 className="h-6 w-6 text-orange-500 group-hover:scale-110 transition-transform" />
                                     {maintenanceLoading && <div className="animate-spin h-4 w-4 border-2 border-orange-500 border-t-transparent rounded-full"></div>}
                                 </div>
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Purger les Logs</h4>
-                                <p className="text-xs text-slate-500 mt-1">Nettoyer l&apos;historique &gt; 90 jours.</p>
+                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.purgeLogs')}</h4>
+                                <p className="text-xs text-slate-500 mt-1">{t('settings.purgeLogsDesc')}</p>
                             </div>
 
                             <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-slate-50/30 dark:bg-black/20">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">État du Système</h4>
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">{t('settings.systemStatus')}</h4>
                                     <div className="flex items-center gap-2">
                                         <Database className="h-4 w-4 text-green-500" />
                                         <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -1263,7 +1263,7 @@ export const Settings: React.FC = () => {
                                 <div className="mt-4 flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
                                     <div className="flex items-center gap-2">
                                         <Building className="h-4 w-4 text-blue-500" />
-                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Organisation</span>
+                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('common.administration')}</span>
                                     </div>
                                     <span className="text-xs font-mono text-slate-900 dark:text-white">{orgForm.watch('orgName')}</span>
                                 </div>
@@ -1281,8 +1281,8 @@ export const Settings: React.FC = () => {
                                     <Users className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Utilisateurs</h3>
-                                    <p className="text-xs text-slate-500 font-medium">Gestion des accès ({usersList.length} membres)</p>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.users')}</h3>
+                                    <p className="text-xs text-slate-500 font-medium">{t('settings.accessManagement')} ({usersList.length} membres)</p>
                                 </div>
                             </div>
                             <div className="space-y-4">
@@ -1300,11 +1300,11 @@ export const Settings: React.FC = () => {
                                                     {currentOrg?.ownerId === u.uid && (
                                                         <span className="px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full flex items-center gap-1">
                                                             <Crown size={10} />
-                                                            Propriétaire
+                                                            {t('settings.owner')}
                                                         </span>
                                                     )}
                                                     {u.uid === user?.uid && (
-                                                        <span className="text-xs text-slate-500 dark:text-slate-400">(Vous)</span>
+                                                        <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.you')}</span>
                                                     )}
                                                 </div>
                                                 <p className="text-xs text-slate-500">{u.email}</p>
@@ -1333,7 +1333,7 @@ export const Settings: React.FC = () => {
                                                             setShowTransferModal(true);
                                                         }}
                                                         className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
-                                                        title="Transférer la propriété"
+                                                        title={t('settings.transferOwnership')}
                                                     >
                                                         <ArrowRightLeft size={18} />
                                                     </button>
@@ -1344,7 +1344,7 @@ export const Settings: React.FC = () => {
                                                     <button
                                                         onClick={() => handleRemoveUser(u.uid)}
                                                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                        title="Retirer le membre"
+                                                        title={t('settings.removeMember')}
                                                     >
                                                         <Trash2 size={18} />
                                                     </button>
@@ -1368,18 +1368,18 @@ export const Settings: React.FC = () => {
                                         <History className="h-5 w-5" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Journal d'audit</h3>
-                                        <p className="text-xs text-slate-500 font-medium">Traçabilité des actions ({logs.length} entrées)</p>
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.auditLog')}</h3>
+                                        <p className="text-xs text-slate-500 font-medium">{t('settings.traceability')} ({logs.length} entrées)</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {hasMoreLogs && (
                                         <button onClick={() => fetchLogs(false)} disabled={loadingLogs} className="flex items-center px-3 py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
-                                            {loadingLogs ? '...' : <><ArrowRight className="h-3.5 w-3.5 mr-1" /> Plus</>}
+                                            {loadingLogs ? '...' : <><ArrowRight className="h-3.5 w-3.5 mr-1" /> {t('common.view')} +</>}
                                         </button>
                                     )}
                                     <button onClick={() => setLogsExpanded(prev => !prev)} className="px-3 py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
-                                        {logsExpanded ? 'Réduire' : 'Agrandir'}
+                                        {logsExpanded ? t('settings.collapse') : t('settings.expand')}
                                     </button>
                                     <button onClick={handleExportLogsCSV} disabled={exportingLogs} className="flex items-center px-3 py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
                                         <FileSpreadsheet className="h-3.5 w-3.5 mr-1.5" /> {exportingLogs ? 'Export...' : 'CSV'}
@@ -1409,12 +1409,12 @@ export const Settings: React.FC = () => {
                                     </div>
                                 ))}
                                 {logs.length === 0 && !loadingLogs && (
-                                    <p className="text-sm text-slate-400 italic">Aucun log disponible.</p>
+                                    <p className="text-sm text-slate-400 italic">{t('settings.noLogsToPurge')}</p>
                                 )}
                             </div>
                             {hasMoreLogs && (
                                 <button onClick={() => fetchLogs(false)} disabled={loadingLogs} className="w-full mt-8 py-3 text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors border border-dashed border-slate-200 dark:border-white/10">
-                                    {loadingLogs ? 'Chargement...' : 'Charger plus'}
+                                    {loadingLogs ? t('common.loading') : t('settings.loadMore')}
                                 </button>
                             )}
                         </div>
@@ -1426,7 +1426,7 @@ export const Settings: React.FC = () => {
                     <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                             <Scale className="h-5 w-5 mr-3 text-slate-500" />
-                            Informations Légales
+                            {t('settings.legalInfo')}
                         </h3>
                     </div>
                     <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1434,60 +1434,60 @@ export const Settings: React.FC = () => {
                             onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }}
                             className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left border border-slate-100 dark:border-white/5"
                         >
-                            <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">Mentions Légales</span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400">Éditeur et hébergement</span>
+                            <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">{t('settings.mentionsLegales')}</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.editorHosting')}</span>
                         </button>
                         <button
                             onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }}
                             className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left border border-slate-100 dark:border-white/5"
                         >
-                            <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">Confidentialité</span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400">Protection des données</span>
+                            <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">{t('settings.privacyData')}</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.dataProtection')}</span>
                         </button>
                         <button
                             onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }}
                             className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left border border-slate-100 dark:border-white/5"
                         >
-                            <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">CGU</span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400">Conditions d'utilisation</span>
+                            <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">{t('settings.cgu')}</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.termsOfUse')}</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Danger Zone - For everyone */}
                 <div className="glass-panel rounded-[2.5rem] p-6 border border-red-100 dark:border-red-900/30 shadow-sm">
-                    <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-4 flex items-center"><AlertTriangle className="h-5 w-5 mr-2" /> Zone de Danger</h3>
+                    <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-4 flex items-center"><AlertTriangle className="h-5 w-5 mr-2" /> {t('settings.dangerZone')}</h3>
                     <div className="space-y-4">
                         {!hasPermission(user, 'Settings', 'manage') && (
                             <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
                                 <div>
-                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Quitter l'organisation</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Vous perdrez l'accès à toutes les données partagées.</p>
+                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.leaveOrg')}</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('settings.leaveOrgDesc')}</p>
                                 </div>
                                 <button onClick={initiateLeaveOrg} className="px-4 py-2 bg-white dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl text-xs hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30 shadow-sm">
-                                    Quitter
+                                    {t('common.leave')}
                                 </button>
                             </div>
                         )}
 
                         <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
                             <div>
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Supprimer mon compte</h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Action irréversible.</p>
+                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.deleteAccount')}</h4>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('settings.deleteAccountDesc')}</p>
                             </div>
                             <button onClick={handleDeleteAccount} className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
-                                Supprimer
+                                {t('common.delete')}
                             </button>
                         </div>
 
                         {hasPermission(user, 'Settings', 'manage') && (
                             <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
                                 <div>
-                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Supprimer l'organisation</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Supprime définitivement toutes les données.</p>
+                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.deleteOrg')}</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('settings.deleteOrgDesc')}</p>
                                 </div>
                                 <button onClick={handleDeleteOrganization} className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
-                                    Détruire
+                                    {t('settings.destroy')}
                                 </button>
                             </div>
                         )}
@@ -1499,10 +1499,10 @@ export const Settings: React.FC = () => {
                 isOpen={showTransferModal}
                 onClose={() => setShowTransferModal(false)}
                 onConfirm={handleTransferOwnership}
-                title="Transférer la propriété"
-                message="Êtes-vous sûr de vouloir transférer la propriété de l'organisation à cet utilisateur ? Cette action est irréversible et vous perdrez votre statut de propriétaire."
-                confirmText="Transférer"
-                cancelText="Annuler"
+                title={t('settings.transferOwnership')}
+                message={t('settings.transferOwnershipDesc')}
+                confirmText={t('settings.transfer')}
+                cancelText={t('common.cancel')}
                 type="danger"
                 loading={isTransferring}
             />
@@ -1514,7 +1514,7 @@ export const Settings: React.FC = () => {
             />
             <div className="flex justify-center pb-6 flex-col items-center gap-4">
                 <button onClick={handleLogout} className="flex items-center text-red-500 hover:text-red-600 text-sm font-bold px-6 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
-                    <LogOut className="h-4 w-4 mr-2" /> Déconnexion
+                    <LogOut className="h-4 w-4 mr-2" /> {t('common.logout')}
                 </button>
                 <div className="text-center">
                     <p className="text-[10px] text-slate-400 font-mono opacity-60">
