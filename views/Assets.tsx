@@ -1,11 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
+import { Helmet } from 'react-helmet-async';
 
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit, Supplier, BusinessProcess } from '../types';
-import { canEditResource } from '../utils/permissions';
+import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Clock, Copy, Euro, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse } from '../components/ui/Icons';
 import { RelationshipGraph } from '../components/RelationshipGraph';
@@ -214,7 +215,7 @@ export const Assets: React.FC = () => {
     }, [location.state, loading, assets]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleCreate = async (data: AssetFormData) => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || !canEdit) return;
         try {
             const validatedData = assetSchema.parse(data);
             const cleanData = sanitizeData(validatedData);
@@ -238,7 +239,7 @@ export const Assets: React.FC = () => {
     };
 
     const handleUpdate = async (data: AssetFormData) => {
-        if (!selectedAsset || !user?.organizationId) return;
+        if (!selectedAsset || !user?.organizationId || !canEdit) return;
         try {
             const validatedData = assetSchema.parse(data);
             const cleanData = sanitizeData(validatedData);
@@ -261,7 +262,7 @@ export const Assets: React.FC = () => {
     };
 
     const handleDuplicate = () => {
-        if (!selectedAsset) return;
+        if (!selectedAsset || !canEdit) return;
         const copy = { ...selectedAsset, name: `${selectedAsset.name} (Copie)` };
         setSelectedAsset(copy);
         setCreationMode(true);
@@ -296,7 +297,7 @@ export const Assets: React.FC = () => {
     const { currentPage, paginatedItems, setCurrentPage, setItemsPerPage, totalItems, itemsPerPage } = usePagination(filteredAssets, 20);
 
     const handleAddMaintenance = async () => {
-        if (!selectedAsset || !newMaintenance.description) return;
+        if (!selectedAsset || !newMaintenance.description || !canEdit) return;
         try {
             await addDoc(collection(db, 'assets', selectedAsset.id, 'maintenance'), newMaintenance);
             if (newMaintenance.type === 'Préventive') {
@@ -314,7 +315,7 @@ export const Assets: React.FC = () => {
     };
 
     const initiateDelete = async (id: string, name: string) => {
-        if (!canEdit) return;
+        if (!canDeleteResource(user, 'Asset')) return;
         const risksQ = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('assetId', '==', id));
         const incQ = query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId), where('affectedAssetId', '==', id));
         const projQ = query(collection(db, 'projects'), where('organizationId', '==', user?.organizationId), where('relatedAssetIds', 'array-contains', id));
@@ -343,6 +344,7 @@ export const Assets: React.FC = () => {
     };
 
     const handleDeleteAsset = async (id: string, name: string) => {
+        if (!canDeleteResource(user, 'Asset')) return;
         try {
             await deleteDoc(doc(db, 'assets', id));
             await logAction(user, 'DELETE', 'Asset', `Suppression actif: ${name}`);
@@ -487,8 +489,29 @@ export const Assets: React.FC = () => {
         addToast("Lien kiosque copié !", "success");
     };
 
+    const getBreadcrumbs = () => {
+        const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Actifs', onClick: () => { setShowInspector(false); setSelectedAsset(null); } }];
+
+        if (creationMode) {
+            crumbs.push({ label: 'Création' });
+            return crumbs;
+        }
+
+        if (selectedAsset) {
+            if (selectedAsset.type) {
+                crumbs.push({ label: selectedAsset.type });
+            }
+            crumbs.push({ label: selectedAsset.name });
+        }
+
+        return crumbs;
+    };
+
     return (
         <div className="space-y-8 animate-fade-in relative pb-10">
+            <Helmet>
+                <title>{selectedAsset ? `${selectedAsset.name} - Actifs` : 'Inventaire des Actifs - Sentinel GRC'}</title>
+            </Helmet>
             {/* Confirm Modal */}
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
@@ -587,7 +610,7 @@ export const Assets: React.FC = () => {
                                             <td className="px-6 py-5"><span className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wide border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span></td>
                                             <td className="px-6 py-5"><span className={`flex items-center w-fit px-2.5 py-1 rounded-full text-[11px] font-bold border ${asset.lifecycleStatus === 'En service' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}><span className={`w-1.5 h-1.5 rounded-full mr-2 ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>{asset.lifecycleStatus || 'Neuf'}</span></td>
                                             <td className="px-6 py-5 text-slate-500 dark:text-slate-400 font-medium text-xs">{asset.location}</td>
-                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}><button onClick={() => generateLabels(asset)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>{canEdit && (<button onClick={() => initiateDelete(asset.id, asset.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer"><Trash2 className="h-4 w-4" /></button>)}</td>
+                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}><button onClick={() => generateLabels(asset)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>{canDeleteResource(user, 'Asset') && (<button onClick={() => initiateDelete(asset.id, asset.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer"><Trash2 className="h-4 w-4" /></button>)}</td>
                                         </tr>
                                     )
                                 })
@@ -614,21 +637,28 @@ export const Assets: React.FC = () => {
                 isOpen={showInspector}
                 onClose={() => { setShowInspector(false); setSelectedAsset(null); }}
                 title={selectedAsset ? selectedAsset.name : 'Nouvel Actif'}
+                breadcrumbs={getBreadcrumbs()}
                 width={creationMode ? "max-w-4xl" : "max-w-6xl"}
                 subtitle={
                     <div className="flex items-center gap-2">
                         <>
                             {!creationMode && !isEditing && (
                                 <>
-                                    <button onClick={() => setIsEditing(true)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-brand-500">
-                                        <Edit className="h-5 w-5" />
-                                    </button>
-                                    <button onClick={() => handleDuplicate()} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-blue-500">
-                                        <Copy className="h-5 w-5" />
-                                    </button>
-                                    <button onClick={() => selectedAsset && initiateDelete(selectedAsset.id, selectedAsset.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-red-500">
-                                        <Trash2 className="h-5 w-5" />
-                                    </button>
+                                    {canEdit && (
+                                        <>
+                                            <button onClick={() => setIsEditing(true)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-brand-500">
+                                                <Edit className="h-5 w-5" />
+                                            </button>
+                                            <button onClick={() => handleDuplicate()} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-blue-500">
+                                                <Copy className="h-5 w-5" />
+                                            </button>
+                                        </>
+                                    )}
+                                    {canDeleteResource(user, 'Asset') && (
+                                        <button onClick={() => selectedAsset && initiateDelete(selectedAsset.id, selectedAsset.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-red-500">
+                                            <Trash2 className="h-5 w-5" />
+                                        </button>
+                                    )}
                                 </>
                             )}
                         </>
@@ -704,6 +734,61 @@ export const Assets: React.FC = () => {
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* Specific Details based on Type */}
+                                    {(selectedAsset.type === 'Matériel' || selectedAsset.type === 'Logiciel' || selectedAsset.type === 'Humain') && (
+                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">
+                                                Détails {selectedAsset.type}
+                                            </h3>
+                                            <div className="grid grid-cols-2 gap-6">
+                                                {selectedAsset.type === 'Matériel' && selectedAsset.ipAddress && (
+                                                    <div>
+                                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Adresse IP</label>
+                                                        <div className="text-base text-slate-900 dark:text-white font-mono bg-slate-100 dark:bg-black/30 px-2 py-1 rounded inline-block">{selectedAsset.ipAddress}</div>
+                                                    </div>
+                                                )}
+                                                {selectedAsset.type === 'Logiciel' && (
+                                                    <>
+                                                        {selectedAsset.version && (
+                                                            <div>
+                                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Version</label>
+                                                                <div className="text-base text-slate-900 dark:text-white">{selectedAsset.version}</div>
+                                                            </div>
+                                                        )}
+                                                        {selectedAsset.licenseExpiry && (
+                                                            <div>
+                                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Expiration Licence</label>
+                                                                <div className="text-base text-slate-900 dark:text-white">{new Date(selectedAsset.licenseExpiry).toLocaleDateString()}</div>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+                                                {selectedAsset.type === 'Humain' && (
+                                                    <>
+                                                        {selectedAsset.email && (
+                                                            <div className="col-span-2">
+                                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Email</label>
+                                                                <div className="text-base text-slate-900 dark:text-white">{selectedAsset.email}</div>
+                                                            </div>
+                                                        )}
+                                                        {selectedAsset.role && (
+                                                            <div>
+                                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Fonction</label>
+                                                                <div className="text-base text-slate-900 dark:text-white">{selectedAsset.role}</div>
+                                                            </div>
+                                                        )}
+                                                        {selectedAsset.department && (
+                                                            <div>
+                                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Département</label>
+                                                                <div className="text-base text-slate-900 dark:text-white">{selectedAsset.department}</div>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                                         <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center">

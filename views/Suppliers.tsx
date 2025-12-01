@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { canEditResource } from '../utils/permissions';
 
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
@@ -264,6 +265,7 @@ export const Suppliers: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
+        if (!canEdit) return;
         if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ? Cette action supprimera également les évaluations et incidents associés.')) return;
 
         try {
@@ -411,8 +413,30 @@ export const Suppliers: React.FC = () => {
 
     const filteredSuppliers = suppliers.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()));
 
+    const getBreadcrumbs = () => {
+        const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Fournisseurs', onClick: () => { setSelectedSupplier(null); setCreationMode(false); setIsEditing(false); } }];
+
+        if (creationMode) {
+            crumbs.push({ label: 'Création' });
+            return crumbs;
+        }
+
+        if (selectedSupplier) {
+            if (selectedSupplier.category) {
+                crumbs.push({ label: selectedSupplier.category });
+            }
+            crumbs.push({ label: selectedSupplier.name });
+        }
+
+        return crumbs;
+    };
+
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
+            <Helmet>
+                <title>Gestion des Fournisseurs - Sentinel GRC</title>
+                <meta name="description" content="Gérez vos fournisseurs, évaluez leur conformité DORA et suivez les contrats." />
+            </Helmet>
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -574,6 +598,7 @@ export const Suppliers: React.FC = () => {
                 title={selectedSupplier?.name || ''}
                 subtitle={selectedSupplier ? `${selectedSupplier.category} • ${selectedSupplier.status}` : ''}
                 width="max-w-6xl"
+                breadcrumbs={getBreadcrumbs()}
                 actions={
                     <div className="flex gap-2">
                         {canEdit && !isEditing && (

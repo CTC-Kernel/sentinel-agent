@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { RiskFormData, riskSchema } from '../schemas/riskSchema';
 import { z } from 'zod';
 
@@ -243,7 +244,7 @@ export const Risks: React.FC = () => {
     };
 
     const handleUpdate = async (data: RiskFormData) => {
-        if (!user?.organizationId || !selectedRisk) return;
+        if (!user?.organizationId || !selectedRisk || !canEdit) return;
         try {
             // Validate data with Zod
             const validatedData = riskSchema.parse(data);
@@ -643,8 +644,31 @@ export const Risks: React.FC = () => {
         }
     };
 
+    const getBreadcrumbs = () => {
+        const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Risques', onClick: () => { setSelectedRisk(null); setCreationMode(false); setIsEditing(false); } }];
+
+        if (creationMode) {
+            crumbs.push({ label: 'Création' });
+            return crumbs;
+        }
+
+        if (selectedRisk) {
+            const assetName = getAssetName(selectedRisk.assetId);
+            if (assetName) {
+                crumbs.push({ label: assetName });
+            }
+            crumbs.push({ label: selectedRisk.threat });
+        }
+
+        return crumbs;
+    };
+
     return (
         <div className="space-y-6 relative">
+            <Helmet>
+                <title>Gestion des Risques - Sentinel GRC</title>
+                <meta name="description" content="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005." />
+            </Helmet>
             <RiskTemplateModal
                 isOpen={showTemplateModal}
                 onClose={() => setShowTemplateModal(false)}
@@ -873,6 +897,7 @@ export const Risks: React.FC = () => {
                     )
                 }
                 width={creationMode || isEditing ? "max-w-4xl" : "max-w-6xl"}
+                breadcrumbs={getBreadcrumbs()}
                 actions={
                     !creationMode && (
                         <>
@@ -1001,11 +1026,13 @@ export const Risks: React.FC = () => {
                                                             key={s}
                                                             type="button"
                                                             onClick={() => handleStrategyChange(selectedRisk, s as Risk['strategy'])}
+                                                            disabled={!canEdit}
                                                             className={`
                                                         px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
                                                         ${selectedRisk.strategy === s
                                                                     ? 'bg-brand-500 text-white border-brand-500 shadow-lg shadow-brand-500/20'
                                                                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-50 dark:hover:bg-brand-900/10'}
+                                                        ${!canEdit ? 'opacity-50 cursor-not-allowed' : ''}
                                                     `}
                                                         >
                                                             {s}

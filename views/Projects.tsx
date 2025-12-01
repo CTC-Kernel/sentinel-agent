@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { createPortal } from 'react-dom';
 import 'jspdf-autotable';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, limit, where } from 'firebase/firestore';
@@ -329,6 +330,7 @@ export const Projects: React.FC = () => {
     };
 
     const handleDeleteProject = async (id: string) => {
+        if (!canDeleteResource(user, 'Project')) return;
         try {
             await deleteDoc(doc(db, 'projects', id));
             setSelectedProject(null);
@@ -499,6 +501,10 @@ export const Projects: React.FC = () => {
 
     return (
         <div className="space-y-6 relative">
+            <Helmet>
+                <title>Gestion de Projets - Sentinel GRC</title>
+                <meta name="description" content="Suivez vos projets de mise en conformité et d'amélioration continue." />
+            </Helmet>
             {/* Task Form Modal */}
             <TaskFormModal
                 isOpen={showTaskModal}
@@ -507,6 +513,7 @@ export const Projects: React.FC = () => {
                     setEditingTask(undefined);
                 }}
                 onSubmit={async (taskData) => {
+                    if (!canEdit) return;
                     // Sanitize data: Firestore doesn't support 'undefined'
                     const cleanTaskData = sanitizeData(taskData);
 
@@ -706,7 +713,7 @@ export const Projects: React.FC = () => {
                                         {canEdit && (
                                             <button onClick={() => openEditDrawer(selectedProject)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                         )}
-                                        {canEdit && (
+                                        {canDeleteResource(user, 'Project') && (
                                             <button onClick={() => initiateDelete(selectedProject.id, selectedProject.name)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
                                         )}
                                         <button onClick={() => setSelectedProject(null)} className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>

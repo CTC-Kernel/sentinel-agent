@@ -1,4 +1,5 @@
 import React, { useEffect, useState, Suspense } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { AuthGuard } from './components/auth/AuthGuard';
@@ -9,7 +10,7 @@ import { Toaster } from 'sonner';
 import { Login } from './views/Login';
 import { Onboarding } from './views/Onboarding';
 import { WifiOff, AlertTriangle } from './components/ui/Icons'; // Lock supprimé car dans LoadingScreen
-import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { TopBar } from './components/layout/TopBar';
 import { NotificationService } from './services/notificationService';
@@ -49,6 +50,7 @@ const BackupRestore = React.lazy(() => import('./views/BackupRestore').then(modu
 const AnalyticsDashboard = React.lazy(() => import('./components/dashboard/AnalyticsDashboard').then(module => ({ default: module.AnalyticsDashboard })));
 const InteractiveTimeline = React.lazy(() => import('./components/timeline/InteractiveTimeline').then(module => ({ default: module.InteractiveTimeline })));
 const AuditTrailViewer = React.lazy(() => import('./components/audit/AuditTrailViewer').then(module => ({ default: module.AuditTrailViewer })));
+const CalendarView = React.lazy(() => import('./views/CalendarView').then(module => ({ default: module.CalendarView })));
 const Pricing = React.lazy(() => import('./views/Pricing'));
 
 const NotFound = () => (
@@ -135,6 +137,11 @@ const AppLayout: React.FC = () => {
             </div>
 
             <Toaster richColors position="bottom-right" theme={theme === 'dark' ? 'dark' : 'light'} />
+            <Helmet>
+                <title>Sentinel GRC - Gouvernance, Risques et Conformité</title>
+                <meta name="description" content="Plateforme de gouvernance, risques et conformité (GRC) pour piloter votre cybersécurité." />
+                <meta name="theme-color" content={theme === 'dark' ? '#0f172a' : '#fafafa'} />
+            </Helmet>
             <CommandPalette />
             <GeminiAssistant />
 
@@ -181,6 +188,7 @@ const AppLayout: React.FC = () => {
                                 <Route path="/search" element={<Search />} />
                                 <Route path="/help" element={<Help />} />
                                 <Route path="/intake" element={<KioskPage />} />
+                                <Route path="/calendar" element={<CalendarView />} />
                                 <Route path="/pricing" element={<Pricing />} />
                                 <Route path="*" element={<NotFound />} />
                             </Routes>

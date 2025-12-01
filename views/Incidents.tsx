@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { collection, where, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
@@ -22,7 +23,7 @@ import { IncidentForm } from '../components/incidents/IncidentForm';
 import { IncidentFormData } from '../schemas/incidentSchema';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { canEditResource, hasPermission } from '../utils/permissions';
+import { canEditResource, hasPermission, canDeleteResource } from '../utils/permissions';
 import { aiService } from '../services/aiService';
 import { hybridService } from '../services/hybridService';
 import { integrationService } from '../services/integrationService';
@@ -101,7 +102,7 @@ export const Incidents: React.FC = () => {
     }, [selectedIncident]);
 
     const handleCreate = async (data: IncidentFormData) => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || (!canEdit && !hasPermission(user, 'Incident', 'create'))) return;
         try {
             const incidentData = sanitizeData({ ...data });
             const now = new Date().toISOString();
@@ -137,7 +138,7 @@ export const Incidents: React.FC = () => {
     };
 
     const handleUpdate = async (data: IncidentFormData) => {
-        if (!user?.organizationId || !selectedIncident) return;
+        if (!user?.organizationId || !selectedIncident || !canEdit) return;
         try {
             const incidentData = sanitizeData({ ...data });
             const now = new Date().toISOString();
@@ -168,8 +169,12 @@ export const Incidents: React.FC = () => {
         }
     };
 
-    const initiateDelete = (id: string) => { setConfirmData({ isOpen: true, title: "Supprimer l'incident ?", message: "Cette action est définitive.", onConfirm: () => handleDelete(id) }); };
+    const initiateDelete = (id: string) => {
+        if (!canDeleteResource(user, 'Incident')) return;
+        setConfirmData({ isOpen: true, title: "Supprimer l'incident ?", message: "Cette action est définitive.", onConfirm: () => handleDelete(id) });
+    };
     const handleDelete = async (id: string) => {
+        if (!canDeleteResource(user, 'Incident')) return;
         try {
             await deleteDoc(doc(db, 'incidents', id));
 
@@ -234,6 +239,10 @@ export const Incidents: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
+            <Helmet>
+                <title>Gestion des Incidents - Sentinel GRC</title>
+                <meta name="description" content="Déclarez et gérez les incidents de sécurité, suivez les playbooks et générez des rapports." />
+            </Helmet>
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
             <PageHeader
@@ -483,21 +492,21 @@ export const Incidents: React.FC = () => {
 
                                             <div className="flex gap-3 pt-4">
                                                 {canEdit && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => setIsEditing(true)}
-                                                            className="flex-1 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                            Modifier
-                                                        </button>
-                                                        <button
-                                                            onClick={() => initiateDelete(selectedIncident.id)}
-                                                            className="p-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                                                        >
-                                                            <Trash2 className="h-5 w-5" />
-                                                        </button>
-                                                    </>
+                                                    <button
+                                                        onClick={() => setIsEditing(true)}
+                                                        className="flex-1 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                        Modifier
+                                                    </button>
+                                                )}
+                                                {canDeleteResource(user, 'Incident') && (
+                                                    <button
+                                                        onClick={() => initiateDelete(selectedIncident.id)}
+                                                        className="p-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                                                    >
+                                                        <Trash2 className="h-5 w-5" />
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>
@@ -508,7 +517,7 @@ export const Incidents: React.FC = () => {
                                             <IncidentPlaybook
                                                 incident={selectedIncident}
                                                 onToggleStep={async (step) => {
-                                                    if (!selectedIncident || !user?.organizationId) return;
+                                                    if (!selectedIncident || !user?.organizationId || !canEdit) return;
                                                     const currentSteps = selectedIncident.playbookStepsCompleted || [];
                                                     const newSteps = currentSteps.includes(step)
                                                         ? currentSteps.filter(s => s !== step)
