@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ShieldAlert, CalendarDays, Activity, AlertTriangle, Clock, Search, FileSpreadsheet, Siren, Trash2, LayoutGrid, List } from '../ui/Icons';
+import { ShieldAlert, CalendarDays, Search, FileSpreadsheet, Siren, Trash2, LayoutGrid, List } from '../ui/Icons';
 import { Incident, Criticality } from '../../types';
 import { useStore } from '../../store';
 import { EmptyState } from '../ui/EmptyState';
@@ -19,16 +19,6 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
     const canEdit = user?.role === 'admin' || user?.role === 'auditor';
     const [filter, setFilter] = useState('');
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('incidents_view_mode', 'grid');
-
-    const stats = useMemo(() => {
-        const lastMonth = new Date();
-        lastMonth.setMonth(lastMonth.getMonth() - 1);
-        return {
-            open: incidents.filter(i => i.status !== 'Fermé' && i.status !== 'Résolu').length,
-            critical: incidents.filter(i => i.severity === Criticality.CRITICAL).length,
-            recent: incidents.filter(i => new Date(i.dateReported) > lastMonth).length
-        };
-    }, [incidents]);
 
     const filteredIncidents = useMemo(() => {
         return incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()));
@@ -81,36 +71,6 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
 
     return (
         <div className="space-y-8 animate-fade-in pb-10">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Incidents Ouverts</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.open}</p>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600">
-                        <Activity className="h-6 w-6" />
-                    </div>
-                </div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">Incidents Critiques</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.critical}</p>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600">
-                        <AlertTriangle className="h-6 w-6" />
-                    </div>
-                </div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">30 derniers jours</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.recent}</p>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600">
-                        <Clock className="h-6 w-6" />
-                    </div>
-                </div>
-            </div>
 
             {/* Search Bar */}
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5">
