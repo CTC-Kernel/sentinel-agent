@@ -28,6 +28,13 @@ export interface Asset {
   scope?: ('NIS2' | 'DORA' | 'PCI_DSS' | 'HDS' | 'ISO27001' | 'SOC2')[];
   supplierId?: string;
   updatedAt?: string;
+  // Specialized fields
+  ipAddress?: string;
+  version?: string;
+  licenseExpiry?: string;
+  email?: string;
+  role?: string;
+  department?: string;
 }
 
 export interface MaintenanceRecord {
@@ -130,6 +137,9 @@ export interface Document {
   isSecure?: boolean;
   hash?: string; // SHA-256
   watermarkEnabled?: boolean;
+  storageProvider?: 'firebase' | 'google_drive' | 'onedrive' | 'sharepoint';
+  externalUrl?: string;
+  externalId?: string; // ID of the file in the external provider
 }
 
 export interface Audit {
@@ -606,6 +616,7 @@ export interface Organization {
   contactEmail?: string;
   createdAt: string;
   updatedAt: string;
+  storageUsed?: number; // in bytes
   settings?: {
     theme?: 'light' | 'dark' | 'system';
     language?: 'fr' | 'en';

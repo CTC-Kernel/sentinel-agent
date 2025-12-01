@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, limit, addDoc } from 'firebase/firestore';
 import { RiskFormData } from '../schemas/riskSchema';
 import { ProjectFormData } from '../schemas/projectSchema';
@@ -337,7 +338,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleAssign = async (assigneeId: string) => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !canEdit) return;
         try {
             await updateDoc(doc(db, 'controls', selectedControl.id), { assigneeId });
 
@@ -362,7 +363,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleStatusChange = async (control: Control, newStatus: Control['status']) => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || !canEdit) return;
         try {
             await updateDoc(doc(db, 'controls', control.id), {
                 status: newStatus,
@@ -381,7 +382,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleJustificationSave = async () => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !canEdit) return;
         try {
             await updateDoc(doc(db, 'controls', selectedControl.id), {
                 justification: editJustification,
@@ -400,7 +401,7 @@ export const Compliance: React.FC = () => {
     };
 
     const linkDocument = async (docId: string) => {
-        if (!selectedControl) return;
+        if (!selectedControl || !canEdit) return;
         try {
             if (selectedControl.evidenceIds?.includes(docId)) return;
             await updateDoc(doc(db, 'controls', selectedControl.id), { evidenceIds: arrayUnion(docId) });
@@ -416,7 +417,7 @@ export const Compliance: React.FC = () => {
     };
 
     const initiateUnlinkDocument = (docId: string) => {
-        if (!selectedControl) return;
+        if (!selectedControl || !canEdit) return;
         setConfirmData({
             isOpen: true,
             title: "Retirer la preuve ?",
@@ -426,7 +427,7 @@ export const Compliance: React.FC = () => {
     };
 
     const unlinkDocument = async (docId: string) => {
-        if (!selectedControl) return;
+        if (!selectedControl || !canEdit) return;
         try {
             const newEvidence = (selectedControl.evidenceIds || []).filter(id => id !== docId);
             await updateDoc(doc(db, 'controls', selectedControl.id), { evidenceIds: newEvidence });
@@ -440,7 +441,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleLinkAsset = async (assetId: string) => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !canEdit) return;
         try {
             if (selectedControl.relatedAssetIds?.includes(assetId)) return;
             await updateDoc(doc(db, 'controls', selectedControl.id), { relatedAssetIds: arrayUnion(assetId) });
@@ -453,7 +454,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleUnlinkAsset = async (assetId: string) => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !canEdit) return;
         try {
             const newAssets = (selectedControl.relatedAssetIds || []).filter(id => id !== assetId);
             await updateDoc(doc(db, 'controls', selectedControl.id), { relatedAssetIds: newAssets });
@@ -464,7 +465,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleLinkSupplier = async (supplierId: string) => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !canEdit) return;
         try {
             if (selectedControl.relatedSupplierIds?.includes(supplierId)) return;
             await updateDoc(doc(db, 'controls', selectedControl.id), { relatedSupplierIds: arrayUnion(supplierId) });
@@ -477,7 +478,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleUnlinkSupplier = async (supplierId: string) => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !canEdit) return;
         try {
             const newSuppliers = (selectedControl.relatedSupplierIds || []).filter(id => id !== supplierId);
             await updateDoc(doc(db, 'controls', selectedControl.id), { relatedSupplierIds: newSuppliers });
@@ -489,7 +490,7 @@ export const Compliance: React.FC = () => {
 
 
     const handleLinkRisk = async (riskId: string) => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !canEditResource(user, 'Risk')) return;
         try {
             await updateDoc(doc(db, 'risks', riskId), {
                 mitigationControlIds: arrayUnion(selectedControl.id)
@@ -501,7 +502,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleCreateRisk = async (data: RiskFormData) => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !hasPermission(user, 'Risk', 'create')) return;
         try {
             await addDoc(collection(db, 'risks'), {
                 ...data,
@@ -519,7 +520,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleLinkProject = async (projectId: string) => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !canEditResource(user, 'Project')) return;
         try {
             await updateDoc(doc(db, 'projects', projectId), {
                 relatedControlIds: arrayUnion(selectedControl.id)
@@ -531,7 +532,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleCreateProject = async (data: ProjectFormData) => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !hasPermission(user, 'Project', 'create')) return;
         try {
             await addDoc(collection(db, 'projects'), {
                 ...data,
@@ -549,7 +550,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleLinkAudit = async (auditId: string) => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !canEditResource(user, 'Audit')) return;
         try {
             await updateDoc(doc(db, 'audits', auditId), {
                 relatedControlIds: arrayUnion(selectedControl.id)
@@ -561,7 +562,7 @@ export const Compliance: React.FC = () => {
     };
 
     const handleCreateAudit = async (data: AuditFormData) => {
-        if (!selectedControl || !user?.organizationId) return;
+        if (!selectedControl || !user?.organizationId || !hasPermission(user, 'Audit', 'create')) return;
         try {
             await addDoc(collection(db, 'audits'), {
                 ...data,
@@ -611,8 +612,43 @@ export const Compliance: React.FC = () => {
         return matchesSearch && matchesMissing && matchesStatus;
     });
 
+    const getBreadcrumbs = () => {
+        const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Conformité', onClick: () => { setIsDrawerOpen(false); setCreationMode(null); } }];
+
+        if (creationMode) {
+            crumbs.push({ label: 'Création' });
+            return crumbs;
+        }
+
+        if (selectedControl) {
+            crumbs.push({ label: currentFramework, onClick: () => { setIsDrawerOpen(false); } });
+
+            const domains = currentFramework === 'ISO27001' ? ISO_DOMAINS :
+                currentFramework === 'NIS2' ? NIS2_DOMAINS :
+                    currentFramework === 'DORA' ? DORA_DOMAINS :
+                        currentFramework === 'GDPR' ? GDPR_DOMAINS :
+                            currentFramework === 'SOC2' ? SOC2_DOMAINS :
+                                currentFramework === 'HDS' ? HDS_DOMAINS :
+                                    currentFramework === 'PCI_DSS' ? PCI_DSS_DOMAINS :
+                                        NIST_CSF_DOMAINS;
+
+            const domain = domains.find(d => selectedControl.code.startsWith(d.id));
+            if (domain) {
+                crumbs.push({ label: domain.title.length > 30 ? domain.title.substring(0, 30) + '...' : domain.title });
+            }
+
+            crumbs.push({ label: selectedControl.code });
+        }
+
+        return crumbs;
+    };
+
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative">
+        <div className="space-y-8 animate-fade-in relative pb-10">
+            <Helmet>
+                <title>{selectedControl ? `${selectedControl.code} - Conformité` : 'Conformité & Standards - Sentinel GRC'}</title>
+            </Helmet>
+            {/* Confirm Modal */}
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
             <PageHeader
@@ -891,6 +927,7 @@ export const Compliance: React.FC = () => {
                 isOpen={isDrawerOpen}
                 onClose={() => { setIsDrawerOpen(false); setCreationMode(null); }}
                 title={creationMode ? (creationMode === 'risk' ? 'Nouveau Risque' : creationMode === 'project' ? 'Nouveau Projet' : 'Nouvel Audit') : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : '')}
+                breadcrumbs={getBreadcrumbs()}
                 subtitle={creationMode ? 'Création' : (selectedControl?.framework || currentFramework)}
                 width={creationMode ? "max-w-4xl" : "max-w-6xl"}
             >

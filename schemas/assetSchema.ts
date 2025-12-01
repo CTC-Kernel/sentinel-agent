@@ -21,6 +21,14 @@ export const assetSchema = z.object({
     relatedProjectIds: z.array(z.string()).optional(),
     scope: z.array(z.enum(['NIS2', 'DORA', 'PCI_DSS', 'HDS', 'ISO27001', 'SOC2'])).optional(),
     supplierId: z.string().optional(),
+    ipAddress: z.string().regex(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/, "Adresse IP invalide").or(z.literal('')).optional(),
+    // Software specific
+    version: z.string().optional(),
+    licenseExpiry: z.string().optional(),
+    // People specific
+    email: z.string().email("Email invalide").or(z.literal('')).optional(),
+    role: z.string().optional(),
+    department: z.string().optional(),
 });
 
 export type AssetFormData = z.infer<typeof assetSchema>;

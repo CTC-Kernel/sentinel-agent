@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartsRadar, ResponsiveContainer, Tooltip, AreaChart, Area, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { ShieldAlert, CheckCircle2, AlertTriangle, Download, Siren, TrendingUp, Stethoscope, History, Server, Flame, CalendarDays, User, Zap, ArrowRight, Euro, Settings as Settings3D, FileText, ClipboardCheck } from '../components/ui/Icons';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
@@ -349,6 +350,10 @@ export const Dashboard: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in pb-10">
+            <Helmet>
+                <title>Tableau de Bord - Sentinel GRC</title>
+                <meta name="description" content="Vue d'ensemble de votre posture de sécurité, conformité ISO 27001 et risques critiques." />
+            </Helmet>
 
             <div className="relative overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-2xl ring-1 ring-slate-200/60 dark:ring-white/5 transition-all duration-500 group">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/5 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10 opacity-100"></div>

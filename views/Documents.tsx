@@ -1,22 +1,24 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { useForm, SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { documentSchema, DocumentFormData } from '../schemas/documentSchema';
 import { z } from 'zod';
 import { createPortal } from 'react-dom';
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, limit, increment } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Document, UserProfile, SystemLog, Control, Asset, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Save, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, CalendarDays } from '../components/ui/Icons';
+import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Save, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2 } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { sendEmail } from '../services/emailService';
 import { getDocumentReviewTemplate } from '../services/emailTemplates';
-import { generateICS } from '../utils/calendar';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Comments } from '../components/ui/Comments';
+import { AddToCalendar } from '../components/ui/AddToCalendar';
+import { externalStorageService } from '../services/externalStorageService';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FileUploader } from '../components/ui/FileUploader';
@@ -30,7 +32,7 @@ import CryptoJS from 'crypto-js';
 import SignatureCanvas from 'react-signature-canvas';
 
 export const Documents: React.FC = () => {
-    const { user, addToast } = useStore();
+    const { user, organization, addToast } = useStore();
     const location = useLocation();
     const canCreate = canEditResource(user, 'Document');
 
@@ -73,6 +75,10 @@ export const Documents: React.FC = () => {
 
     const loading = loadingDocuments || loadingUsers || loadingControls || loadingAssets || loadingAudits;
 
+    const storageLimitBytes = 1024 * 1024 * 1024; // 1GB default
+    const storageUsed = organization?.storageUsed || 0;
+    const isStorageFull = storageUsed >= storageLimitBytes;
+
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [filter, setFilter] = useState('');
 
@@ -94,20 +100,22 @@ export const Documents: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
 
     const createForm = useForm<DocumentFormData>({
-        resolver: zodResolver(documentSchema),
+        resolver: zodResolver(documentSchema) as any,
         defaultValues: {
             title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
             owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
-            relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+            relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: [],
+            storageProvider: 'firebase', externalUrl: ''
         }
     });
 
     const editForm = useForm<DocumentFormData>({
-        resolver: zodResolver(documentSchema),
+        resolver: zodResolver(documentSchema) as any,
         defaultValues: {
             title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
             owner: '', ownerId: '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
-            relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+            relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: [],
+            storageProvider: 'firebase', externalUrl: ''
         }
     });
     const [uploadedFileUrl, setUploadedFileUrl] = useState<string>('');
@@ -127,6 +135,9 @@ export const Documents: React.FC = () => {
         const u = usersList.find(u => u.uid === editOwnerId);
         if (u) editForm.setValue('owner', u.displayName);
     }, [editOwnerId, usersList, editForm]);
+
+    const createStorageProvider = useWatch({ control: createForm.control, name: 'storageProvider' });
+    const editStorageProvider = useWatch({ control: editForm.control, name: 'storageProvider' });
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -169,7 +180,9 @@ export const Documents: React.FC = () => {
             url: docItem.url,
             isSecure: docItem.isSecure,
             hash: docItem.hash,
-            watermarkEnabled: docItem.watermarkEnabled
+            watermarkEnabled: docItem.watermarkEnabled,
+            storageProvider: docItem.storageProvider || 'firebase',
+            externalUrl: docItem.externalUrl || ''
         });
         setIsEditing(false);
 
@@ -187,15 +200,29 @@ export const Documents: React.FC = () => {
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Documents.handleSelectDocument'); }
     };
 
-    const handleFileUploadComplete = (url: string, fileName: string, hash?: string, isSecure?: boolean) => {
+    const handleFileUploadComplete = async (url: string, fileName: string, hash?: string, isSecure?: boolean, size?: number) => {
         setUploadedFileUrl(url);
-        if (hash) setUploadedFileHash(hash);
-        if (isSecure !== undefined) setUploadedFileSecure(isSecure);
+        setUploadedFileHash(hash || '');
+        setUploadedFileSecure(isSecure || false);
+
+        if (size && user?.organizationId) {
+            const orgRef = doc(db, 'organizations', user.organizationId);
+            updateDoc(orgRef, {
+                storageUsed: increment(size)
+            }).catch(e => console.error("Failed to update storage usage", e));
+        }
         addToast(`Fichier ${fileName} téléversé avec succès`, 'success');
     };
 
     const handleWorkflowAction = async (action: 'submit' | 'approve' | 'reject' | 'sign', signatureImage?: string) => {
         if (!selectedDocument || !user) return;
+
+        const isOwnerOrAdmin = canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner);
+        const isApprover = selectedDocument.approvers?.includes(user.uid);
+
+        if (action === 'submit' && !isOwnerOrAdmin) return;
+        if ((action === 'approve' || action === 'reject') && (!isApprover && !isOwnerOrAdmin)) return;
+        if (action === 'sign' && (!isApprover && !isOwnerOrAdmin)) return;
 
         // If signing and no image, open modal
         if (action === 'sign' && !signatureImage) {
@@ -346,7 +373,7 @@ export const Documents: React.FC = () => {
     };
 
     const handleCreate: SubmitHandler<DocumentFormData> = async (data) => {
-        if (!user?.organizationId) return;
+        if (!canCreate || !user?.organizationId) return;
 
         try {
             // Validate data with Zod
@@ -354,7 +381,7 @@ export const Documents: React.FC = () => {
 
             await addDoc(collection(db, 'documents'), {
                 ...validatedData,
-                url: uploadedFileUrl || '',
+                url: validatedData.storageProvider !== 'firebase' ? validatedData.externalUrl : (uploadedFileUrl || ''),
                 hash: uploadedFileHash || '',
                 isSecure: uploadedFileSecure || false,
                 watermarkEnabled: uploadedFileSecure || false, // Enable watermark by default if secure
@@ -372,7 +399,8 @@ export const Documents: React.FC = () => {
             createForm.reset({
                 title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
                 owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
-                relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+                relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: [],
+                storageProvider: 'firebase', externalUrl: ''
             });
         } catch (e) {
             if (e instanceof z.ZodError) {
@@ -406,6 +434,20 @@ export const Documents: React.FC = () => {
                 ErrorLogger.error(error, 'Documents.handleUpdate');
                 addToast("Erreur lors de la modification", "error");
             }
+        }
+    };
+
+    const handleConnectProvider = async (provider: 'google_drive' | 'onedrive' | 'sharepoint') => {
+        try {
+            if (provider === 'google_drive') {
+                await externalStorageService.connectGoogleDrive();
+            } else if (provider === 'onedrive' || provider === 'sharepoint') {
+                await externalStorageService.connectOneDrive();
+            }
+            addToast("Connexion réussie (Simulation)", "success");
+        } catch (e) {
+            addToast("Configuration OAuth manquante ou annulée", "error");
+            console.error(e);
         }
     };
 
@@ -461,6 +503,7 @@ export const Documents: React.FC = () => {
     };
 
     const handleDelete = async (id: string, title: string) => {
+        if (!canEditResource(user, 'Document', selectedDocument?.ownerId || selectedDocument?.owner)) return;
         try {
             await deleteDoc(doc(db, 'documents', id));
             setSelectedDocument(null);
@@ -524,6 +567,10 @@ export const Documents: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
+            <Helmet>
+                <title>Gestion Documentaire - Sentinel GRC</title>
+                <meta name="description" content="Centralisez et gérez le cycle de vie de vos politiques et procédures de sécurité." />
+            </Helmet>
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -545,7 +592,8 @@ export const Documents: React.FC = () => {
                             createForm.reset({
                                 title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
                                 owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
-                                relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+                                relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: [],
+                                storageProvider: 'firebase', externalUrl: ''
                             });
                             setShowCreateModal(true);
                         }}
@@ -579,7 +627,8 @@ export const Documents: React.FC = () => {
                                 createForm.reset({
                                     title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
                                     owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
-                                    relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: []
+                                    relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: [],
+                                    storageProvider: 'firebase', externalUrl: ''
                                 });
                                 setShowCreateModal(true);
                             }}
@@ -658,7 +707,7 @@ export const Documents: React.FC = () => {
                                             <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                         )}
                                         {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && isEditing && (
-                                            <button onClick={editForm.handleSubmit(handleUpdate)} className="p-2.5 text-blue-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+                                            <button onClick={editForm.handleSubmit(handleUpdate as any)} className="p-2.5 text-blue-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
                                         )}
                                         {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
                                             <button onClick={() => initiateDelete(selectedDocument.id, selectedDocument.title)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
@@ -712,6 +761,38 @@ export const Documents: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Prochaine révision</label><input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium" {...editForm.register('nextReviewDate')} /></div>
+
+                                                    <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Stockage</label>
+                                                        <div className="mb-4">
+                                                            <select
+                                                                {...editForm.register('storageProvider')}
+                                                                className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none"
+                                                            >
+                                                                <option value="firebase">Interne (Upload)</option>
+                                                                <option value="google_drive">Google Drive</option>
+                                                                <option value="onedrive">OneDrive</option>
+                                                                <option value="sharepoint">SharePoint</option>
+                                                            </select>
+                                                        </div>
+                                                        {editStorageProvider !== 'firebase' && (
+                                                            <div className="space-y-3">
+                                                                <div className="flex gap-2">
+                                                                    <input className="flex-1 px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                                                                        {...editForm.register('externalUrl')}
+                                                                        placeholder={editStorageProvider === 'google_drive' ? "Lien Google Drive..." : "Lien SharePoint/OneDrive..."}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleConnectProvider(editStorageProvider as any)}
+                                                                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                                                                    >
+                                                                        Parcourir
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <>
@@ -755,16 +836,16 @@ export const Documents: React.FC = () => {
                                                             )}
                                                             {selectedDocument.status === 'En revue' && (
                                                                 <>
-                                                                    <button onClick={() => handleWorkflowAction('approve')} className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20 flex items-center justify-center">
+                                                                    <button onClick={() => handleWorkflowAction('approve')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
                                                                         <CheckCircle2 className="h-4 w-4 mr-2" /> Approuver
                                                                     </button>
-                                                                    <button onClick={() => handleWorkflowAction('reject')} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20 flex items-center justify-center">
+                                                                    <button onClick={() => handleWorkflowAction('reject')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
                                                                         <X className="h-4 w-4 mr-2" /> Rejeter
                                                                     </button>
                                                                 </>
                                                             )}
                                                             {selectedDocument.status === 'Approuvé' && (
-                                                                <button onClick={() => handleWorkflowAction('sign')} className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20 flex items-center justify-center">
+                                                                <button onClick={() => handleWorkflowAction('sign')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
                                                                     <ShieldCheck className="h-4 w-4 mr-2" /> Signer & Publier
                                                                 </button>
                                                             )}
@@ -802,13 +883,20 @@ export const Documents: React.FC = () => {
                                                         <button onClick={sendReviewReminder} className="w-full py-3 bg-slate-50 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center border border-slate-200 dark:border-white/5">
                                                             <Bell className="h-3.5 w-3.5 mr-2" /> Envoyer rappel de révision
                                                         </button>
-                                                        <button onClick={() => selectedDocument.nextReviewDate && generateICS([{
-                                                            title: `Révision : ${selectedDocument.title}`,
-                                                            description: `Révision du document ${selectedDocument.title} (v${selectedDocument.version})`,
-                                                            startDate: new Date(selectedDocument.nextReviewDate)
-                                                        }])} className="w-full mt-2 py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-center border border-slate-200 dark:border-white/5">
-                                                            <CalendarDays className="h-3.5 w-3.5 mr-2" /> Ajouter au calendrier
-                                                        </button>
+                                                        <div className="w-full mt-2">
+                                                            {selectedDocument.nextReviewDate && (
+                                                                <AddToCalendar
+                                                                    event={{
+                                                                        title: `Révision : ${selectedDocument.title}`,
+                                                                        description: `Révision du document ${selectedDocument.title} (v${selectedDocument.version})`,
+                                                                        startTime: new Date(selectedDocument.nextReviewDate),
+                                                                        endTime: new Date(selectedDocument.nextReviewDate),
+                                                                        location: 'Sentinel GRC'
+                                                                    }}
+                                                                    className="w-full [&>button]:w-full [&>button]:justify-center"
+                                                                />
+                                                            )}
+                                                        </div>
                                                     </div>
 
                                                     <div className="p-6 bg-blue-50/50 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm flex items-center justify-between">
@@ -889,158 +977,205 @@ export const Documents: React.FC = () => {
                     </div>
                 </div>,
                 document.body
-            )}
+            )
+            }
 
             {/* Create Modal */}
-            {showCreateModal && createPortal(
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-4xl border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-blue-50/30 dark:bg-blue-900/10">
-                            <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-100 tracking-tight">Nouveau Document</h2>
-                        </div>
-                        <form onSubmit={createForm.handleSubmit(handleCreate)} className="p-8 space-y-5 overflow-y-auto custom-scrollbar">
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Titre</label>
-                                <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                                    {...createForm.register('title')} placeholder="Ex: PSSI" />
-                                {createForm.formState.errors.title && <p className="text-red-500 text-xs mt-1">{createForm.formState.errors.title.message}</p>}
+            {
+                showCreateModal && createPortal(
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+                        <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-4xl border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
+                            <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-blue-50/30 dark:bg-blue-900/10">
+                                <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-100 tracking-tight">Nouveau Document</h2>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <form onSubmit={createForm.handleSubmit(handleCreate as any)} className="p-8 space-y-5 overflow-y-auto custom-scrollbar">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
-                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none"
-                                        {...createForm.register('type')}>
-                                        {['Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(t => <option key={t} value={t}>{t}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Version</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Titre</label>
                                     <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                                        {...createForm.register('version')} />
+                                        {...createForm.register('title')} placeholder="Ex: PSSI" />
+                                    {createForm.formState.errors.title && <p className="text-red-500 text-xs mt-1">{createForm.formState.errors.title.message}</p>}
                                 </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Propriétaire</label>
-                                <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none"
-                                    {...createForm.register('ownerId')}>
-                                    <option value="">Sélectionner...</option>
-                                    {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
-                                </select>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
+                                        <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none"
+                                            {...createForm.register('type')}>
+                                            {['Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(t => <option key={t} value={t}>{t}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Version</label>
+                                        <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                                            {...createForm.register('version')} />
+                                    </div>
+                                </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Reviewers</label>
-                                    <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
-                                        {...createForm.register('reviewers')}>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Propriétaire</label>
+                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none"
+                                        {...createForm.register('ownerId')}>
+                                        <option value="">Sélectionner...</option>
                                         {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Approbateurs</label>
-                                    <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
-                                        {...createForm.register('approvers')}>
-                                        {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
-                                    </select>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Reviewers</label>
+                                        <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
+                                            {...createForm.register('reviewers')}>
+                                            {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Approbateurs</label>
+                                        <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
+                                            {...createForm.register('approvers')}>
+                                            {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Prochaine révision</label>
-                                <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                                    {...createForm.register('nextReviewDate')} />
-                            </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Prochaine révision</label>
+                                    <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                                        {...createForm.register('nextReviewDate')} />
+                                </div>
 
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contrôles</label>
-                                    <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
-                                        {...createForm.register('relatedControlIds')}>
-                                        {controls.map(c => <option key={c.id} value={c.id}>{c.code} {c.name.substring(0, 20)}...</option>)}
-                                    </select>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Contrôles</label>
+                                        <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
+                                            {...createForm.register('relatedControlIds')}>
+                                            {controls.map(c => <option key={c.id} value={c.id}>{c.code} {c.name.substring(0, 20)}...</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Actifs</label>
+                                        <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
+                                            {...createForm.register('relatedAssetIds')}>
+                                            {assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Audits</label>
+                                        <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
+                                            {...createForm.register('relatedAuditIds')}>
+                                            {audits.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                        </select>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Actifs</label>
-                                    <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
-                                        {...createForm.register('relatedAssetIds')}>
-                                        {assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Audits</label>
-                                    <select multiple className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium custom-scrollbar h-24"
-                                        {...createForm.register('relatedAuditIds')}>
-                                        {audits.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                                    </select>
-                                </div>
-                            </div>
 
-                            <div className="pt-2">
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Fichier</label>
-                                <FileUploader
-                                    onUploadComplete={handleFileUploadComplete}
-                                    category="documents"
-                                    maxSizeMB={10}
-                                    allowedTypes={['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/*']}
-                                />
-                                <div className="mt-2 flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                    <span className="text-sm text-green-600 dark:text-green-400">✓ Fichier téléversé</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setPreviewFile({ url: uploadedFileUrl, name: createForm.getValues('title') || 'Document', type: 'application/pdf' })}
-                                        className="text-sm text-blue-600 hover:underline"
-                                    >
-                                        Prévisualiser
+                                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Stockage du Document</label>
+
+                                    <div className="mb-6">
+                                        <select
+                                            {...createForm.register('storageProvider')}
+                                            className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium appearance-none"
+                                        >
+                                            <option value="firebase">Interne (Upload)</option>
+                                            <option value="google_drive">Google Drive</option>
+                                            <option value="onedrive">OneDrive</option>
+                                            <option value="sharepoint">SharePoint</option>
+                                        </select>
+                                    </div>
+
+                                    {createStorageProvider === 'firebase' ? (
+                                        <div>
+                                            <FileUploader
+                                                onUploadComplete={handleFileUploadComplete}
+                                                category="documents"
+                                                maxSizeMB={10}
+                                                allowedTypes={['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/*']}
+                                                disabled={isStorageFull}
+                                                disabledMessage="Espace de stockage plein (1GB max)"
+                                            />
+                                            {uploadedFileUrl && (
+                                                <div className="mt-2 flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                                    <span className="text-xs text-green-700 dark:text-green-400 font-medium truncate flex-1">{uploadedFileUrl.split('/').pop()}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <label className="flex items-center gap-1 cursor-pointer">
+                                                            <input type="checkbox" checked={uploadedFileSecure} onChange={e => setUploadedFileSecure(e.target.checked)} className="rounded text-blue-600 focus:ring-blue-500" />
+                                                            <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">Sécurisé</span>
+                                                        </label>
+                                                        <button type="button" onClick={() => { setUploadedFileUrl(''); setUploadedFileHash(''); }} className="text-red-500 hover:text-red-700"><Trash2 className="h-4 w-4" /></button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="flex gap-2">
+                                                <input className="flex-1 px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                                                    {...createForm.register('externalUrl')}
+                                                    placeholder={createStorageProvider === 'google_drive' ? "Lien Google Drive..." : "Lien SharePoint/OneDrive..."}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleConnectProvider(createStorageProvider as any)}
+                                                    className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                                                >
+                                                    Parcourir
+                                                </button>
+                                            </div>
+                                            <p className="text-xs text-slate-400">
+                                                {createStorageProvider === 'google_drive' ? 'Le document restera hébergé sur Google Drive.' : 'Le document restera hébergé sur Microsoft 365.'}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
+                                    <button type="button" onClick={() => { setShowCreateModal(false); setUploadedFileUrl(''); }} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                                    <button type="submit" className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg shadow-blue-500/20 flex items-center">
+                                        Créer
                                     </button>
                                 </div>
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                                <button type="button" onClick={() => { setShowCreateModal(false); setUploadedFileUrl(''); }} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                                <button type="submit" className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg shadow-blue-500/20 flex items-center">
-                                    Créer
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>,
-                document.body
-            )}
+                            </form>
+                        </div>
+                    </div >,
+                    document.body
+                )
+            }
 
             {/* File Preview Modal */}
-            {previewFile && (
-                <FilePreview
-                    url={previewFile.url}
-                    fileName={previewFile.name}
-                    fileType={previewFile.type}
-                    onClose={() => setPreviewFile(null)}
-                    onDownload={() => {
-                        const link = document.createElement('a');
-                        link.href = previewFile.url;
-                        link.download = previewFile.name;
-                        link.click();
-                    }}
-                />
-            )}
+            {
+                previewFile && (
+                    <FilePreview
+                        url={previewFile.url}
+                        fileName={previewFile.name}
+                        fileType={previewFile.type}
+                        onClose={() => setPreviewFile(null)}
+                        onDownload={() => {
+                            const link = document.createElement('a');
+                            link.href = previewFile.url;
+                            link.download = previewFile.name;
+                            link.click();
+                        }}
+                    />
+                )
+            }
             {/* Signature Modal */}
-            {showSignatureModal && (
-                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-white/10">
-                        <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white">Signature Requise</h3>
-                        <p className="text-sm text-slate-500 mb-4">Veuillez apposer votre signature pour valider ce document.</p>
-                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl mb-6 bg-white overflow-hidden">
-                            <SignatureCanvas
-                                ref={signaturePadRef}
-                                canvasProps={{ className: 'w-full h-48', style: { width: '100%', height: '192px' } }}
-                                velocityFilterWeight={0.7}
-                            />
-                        </div>
-                        <div className="flex justify-end gap-3">
-                            <button onClick={() => signaturePadRef.current?.clear()} className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">Effacer</button>
-                            <button onClick={() => setShowSignatureModal(false)} className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">Annuler</button>
-                            <button onClick={handleSignatureSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">Signer & Valider</button>
+            {
+                showSignatureModal && (
+                    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+                        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-white/10">
+                            <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white">Signature Requise</h3>
+                            <p className="text-sm text-slate-500 mb-4">Veuillez apposer votre signature pour valider ce document.</p>
+                            <div className="border border-slate-200 dark:border-slate-700 rounded-xl mb-6 bg-white overflow-hidden">
+                                <SignatureCanvas
+                                    ref={signaturePadRef}
+                                    canvasProps={{ className: 'w-full h-48', style: { width: '100%', height: '192px' } }}
+                                    velocityFilterWeight={0.7}
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3">
+                                <button onClick={() => signaturePadRef.current?.clear()} className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">Effacer</button>
+                                <button onClick={() => setShowSignatureModal(false)} className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">Annuler</button>
+                                <button onClick={handleSignatureSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">Signer & Valider</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
