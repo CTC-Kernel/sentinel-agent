@@ -10,7 +10,7 @@ import { logAction } from '../services/logger';
 import { NotificationService } from '../services/notificationService';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Server, Activity } from '../components/ui/Icons';
+import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Server, Activity, Clock, AlertTriangle } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -203,6 +203,40 @@ export const Incidents: React.FC = () => {
 
 
 
+    const incidentStats = React.useMemo(() => {
+        const total = incidents.length;
+        const openCount = incidents.filter(i => i.status !== 'Fermé' && i.status !== 'Résolu').length;
+        const resolvedCount = incidents.filter(i => i.status === 'Fermé' || i.status === 'Résolu').length;
+        const criticalCount = incidents.filter(i => i.severity === Criticality.CRITICAL).length;
+
+        let totalResolutionHours = 0;
+        let resolvedWithTimes = 0;
+
+        incidents.forEach(inc => {
+            if (inc.dateReported && inc.dateResolved) {
+                const start = new Date(inc.dateReported).getTime();
+                const end = new Date(inc.dateResolved).getTime();
+                if (!Number.isNaN(start) && !Number.isNaN(end) && end > start) {
+                    const diffHours = (end - start) / (1000 * 60 * 60);
+                    totalResolutionHours += diffHours;
+                    resolvedWithTimes++;
+                }
+            }
+        });
+
+        const avgMttrHours = resolvedWithTimes > 0 ? Math.round(totalResolutionHours / resolvedWithTimes) : null;
+        const criticalRatio = total > 0 ? Math.round((criticalCount / total) * 100) : null;
+
+        return {
+            total,
+            open: openCount,
+            resolved: resolvedCount,
+            avgMttrHours,
+            criticalRatio,
+        };
+    }, [incidents]);
+
+
     const getBreadcrumbs = () => {
         const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Incidents', onClick: () => { setSelectedIncident(null); setCreationMode(false); setIsEditing(false); } }];
 
@@ -246,7 +280,49 @@ export const Incidents: React.FC = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* ... (Stats cards content remains unchanged) ... */}
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Incidents Totaux</p>
+                        <p className="text-3xl font-black text-slate-900 dark:text-white">{incidentStats.total}</p>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/30 text-slate-700 dark:text-slate-200">
+                        <Siren className="h-6 w-6" />
+                    </div>
+                </div>
+
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">Incidents Actifs</p>
+                        <p className="text-3xl font-black text-slate-900 dark:text-white">{incidentStats.open}</p>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600">
+                        <ShieldAlert className="h-6 w-6" />
+                    </div>
+                </div>
+
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">MTTR Moyen</p>
+                        <p className="text-3xl font-black text-slate-900 dark:text-white">
+                            {incidentStats.avgMttrHours !== null ? `${incidentStats.avgMttrHours}h` : '-'}
+                        </p>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600">
+                        <Clock className="h-6 w-6" />
+                    </div>
+                </div>
+
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Incidents Critiques</p>
+                        <p className="text-3xl font-black text-slate-900 dark:text-white">
+                            {incidentStats.criticalRatio !== null ? `${incidentStats.criticalRatio}%` : '-'}
+                        </p>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600">
+                        <AlertTriangle className="h-6 w-6" />
+                    </div>
+                </div>
             </div>
 
             <IncidentDashboard
