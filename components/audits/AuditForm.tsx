@@ -108,8 +108,8 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                                 event={{
                                     title: watchedName,
                                     description: `Audit ${watchedType} - ${watchedScope}`,
-                                    startTime: new Date(watchedDateScheduled),
-                                    endTime: new Date(watchedDateScheduled),
+                                    start: new Date(watchedDateScheduled),
+                                    end: new Date(watchedDateScheduled),
                                     location: 'Sentinel GRC'
                                 }}
                                 className="scale-75 origin-right"

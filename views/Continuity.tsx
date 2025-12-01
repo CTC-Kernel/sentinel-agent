@@ -850,8 +850,8 @@ export const Continuity: React.FC = () => {
                                         event={{
                                             title: `Exercice BCP : ${watchedDrillType || 'Non défini'}`,
                                             description: `Exercice de continuité pour le processus : ${processes.find(p => p.id === watchedDrillProcessId)?.name || 'Inconnu'}`,
-                                            startTime: new Date(watchedDrillDate),
-                                            endTime: new Date(watchedDrillDate),
+                                            start: new Date(watchedDrillDate),
+                                            end: new Date(watchedDrillDate),
                                             location: 'Sentinel GRC'
                                         }}
                                         className="scale-75 origin-right"

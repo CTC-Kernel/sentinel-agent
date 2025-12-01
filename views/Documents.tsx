@@ -103,6 +103,7 @@ export const Documents: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
 
     const createForm = useForm<DocumentFormData>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(documentSchema) as any,
         defaultValues: {
             title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
@@ -113,6 +114,7 @@ export const Documents: React.FC = () => {
     });
 
     const editForm = useForm<DocumentFormData>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(documentSchema) as any,
         defaultValues: {
             title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
@@ -212,7 +214,7 @@ export const Documents: React.FC = () => {
             const orgRef = doc(db, 'organizations', user.organizationId);
             updateDoc(orgRef, {
                 storageUsed: increment(size)
-            }).catch(e => console.error("Failed to update storage usage", e));
+            }).catch(e => ErrorLogger.error(e, "Documents.handleFileUploadComplete"));
         }
         addToast(`Fichier ${fileName} téléversé avec succès`, 'success');
     };
@@ -284,7 +286,7 @@ export const Documents: React.FC = () => {
 
             // 2. Verify Integrity (Hash)
             if (docItem.hash) {
-                const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer as any);
+                const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
                 const currentHash = CryptoJS.SHA256(wordArray).toString();
                 if (currentHash !== docItem.hash) {
                     addToast("ALERTE : L'intégrité du document est compromise ! Le hash ne correspond pas.", "error");
@@ -348,7 +350,7 @@ export const Documents: React.FC = () => {
                                 });
                                 yOffset -= (pngDims.height + 20);
                             } catch (e) {
-                                console.error("Error embedding signature", e);
+                                ErrorLogger.error(e, "Documents.handleSecureView.embedSignature");
                             }
                         }
                         yOffset -= 40;
@@ -358,7 +360,7 @@ export const Documents: React.FC = () => {
                 }
 
                 const pdfBytes = await pdfDoc.save();
-                const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
+                const blob = new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
                 window.open(url, '_blank');
             } else {
@@ -407,7 +409,7 @@ export const Documents: React.FC = () => {
             });
         } catch (e) {
             if (e instanceof z.ZodError) {
-                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+                addToast((e as z.ZodError).issues[0].message, "error");
             } else {
                 ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
                 addToast("Erreur lors de la création", "error");
@@ -432,7 +434,7 @@ export const Documents: React.FC = () => {
             addToast("Document mis à jour", "success");
         } catch (error) {
             if (error instanceof z.ZodError) {
-                addToast((error as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+                addToast((error as z.ZodError).issues[0].message, "error");
             } else {
                 ErrorLogger.error(error, 'Documents.handleUpdate');
                 addToast("Erreur lors de la modification", "error");
@@ -450,7 +452,7 @@ export const Documents: React.FC = () => {
             addToast("Connexion réussie (Simulation)", "success");
         } catch (e) {
             addToast("Configuration OAuth manquante ou annulée", "error");
-            console.error(e);
+            ErrorLogger.error(e, "Documents.handleConnectProvider");
         }
     };
 
@@ -717,7 +719,11 @@ export const Documents: React.FC = () => {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                docItem.isSecure ? handleSecureView(docItem) : window.open(docItem.url, '_blank');
+                                                if (docItem.isSecure) {
+                                                    handleSecureView(docItem);
+                                                } else {
+                                                    window.open(docItem.url, '_blank');
+                                                }
                                             }}
                                             className="p-1 text-slate-300 hover:text-blue-500 transition-colors"
                                         >
@@ -816,7 +822,11 @@ export const Documents: React.FC = () => {
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            docItem.isSecure ? handleSecureView(docItem) : window.open(docItem.url, '_blank');
+                                                            if (docItem.isSecure) {
+                                                                handleSecureView(docItem);
+                                                            } else {
+                                                                window.open(docItem.url, '_blank');
+                                                            }
                                                         }}
                                                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                                                     >
@@ -864,7 +874,7 @@ export const Documents: React.FC = () => {
                                             <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                         )}
                                         {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && isEditing && (
-                                            <button onClick={editForm.handleSubmit(handleUpdate as any)} className="p-2.5 text-blue-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+                                            <button onClick={editForm.handleSubmit(handleUpdate as unknown as SubmitHandler<DocumentFormData>)} className="p-2.5 text-blue-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
                                         )}
                                         {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
                                             <button onClick={() => initiateDelete(selectedDocument.id, selectedDocument.title)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
@@ -941,7 +951,7 @@ export const Documents: React.FC = () => {
                                                                     />
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => handleConnectProvider(editStorageProvider as any)}
+                                                                        onClick={() => handleConnectProvider(editStorageProvider as 'google_drive' | 'onedrive' | 'sharepoint')}
                                                                         className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                                                                     >
                                                                         Parcourir
@@ -1044,13 +1054,10 @@ export const Documents: React.FC = () => {
                                                             {selectedDocument.nextReviewDate && (
                                                                 <AddToCalendar
                                                                     event={{
-                                                                        id: selectedDocument.id,
                                                                         title: `Révision : ${selectedDocument.title}`,
                                                                         description: `Révision du document ${selectedDocument.title} (v${selectedDocument.version})`,
                                                                         start: new Date(selectedDocument.nextReviewDate),
                                                                         end: new Date(new Date(selectedDocument.nextReviewDate).getTime() + 60 * 60 * 1000),
-                                                                        type: 'compliance',
-                                                                        color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
                                                                         location: 'Sentinel GRC'
                                                                     }}
                                                                     className="w-full [&>button]:w-full [&>button]:justify-center"
@@ -1148,7 +1155,7 @@ export const Documents: React.FC = () => {
                             <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-blue-50/30 dark:bg-blue-900/10">
                                 <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-100 tracking-tight">Nouveau Document</h2>
                             </div>
-                            <form onSubmit={createForm.handleSubmit(handleCreate as any)} className="p-8 space-y-5 overflow-y-auto custom-scrollbar">
+                            <form onSubmit={createForm.handleSubmit(handleCreate as unknown as SubmitHandler<DocumentFormData>)} className="p-8 space-y-5 overflow-y-auto custom-scrollbar">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Titre</label>
                                     <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
@@ -1270,7 +1277,7 @@ export const Documents: React.FC = () => {
                                                 />
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleConnectProvider(createStorageProvider as any)}
+                                                    onClick={() => handleConnectProvider(createStorageProvider as 'google_drive' | 'onedrive' | 'sharepoint')}
                                                     className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                                                 >
                                                     Parcourir

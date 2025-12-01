@@ -17,74 +17,64 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
     {
       title: t('common.pilotage'),
       items: [
-        { name: t('sidebar.dashboard'), to: '/', icon: LayoutDashboard },
-        { name: t('common.calendar'), to: '/calendar', icon: Calendar },
-        { name: t('common.ctcEngine'), to: '/voxel', icon: Settings3D },
-        { name: t('sidebar.incidents'), to: '/incidents', icon: Siren },
-        { name: t('sidebar.projects'), to: '/projects', icon: FolderKanban },
+        { key: 'dashboard', name: t('sidebar.dashboard'), to: '/', icon: LayoutDashboard },
+        { key: 'calendar', name: t('common.calendar'), to: '/calendar', icon: Calendar },
+        { key: 'voxel', name: t('common.ctcEngine'), to: '/voxel', icon: Settings3D },
+        { key: 'incidents', name: t('sidebar.incidents'), to: '/incidents', icon: Siren },
+        { key: 'projects', name: t('sidebar.projects'), to: '/projects', icon: FolderKanban },
       ]
     },
     {
       title: t('common.governance'),
       items: [
-        { name: t('common.riskManagement'), to: '/risks', icon: ShieldAlert },
-        { name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse },
-        { name: t('common.complianceDda'), to: '/compliance', icon: FileText },
-        { name: t('sidebar.audits'), to: '/audits', icon: Activity },
+        { key: 'risks', name: t('common.riskManagement'), to: '/risks', icon: ShieldAlert },
+        { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse },
+        { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText },
+        { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity },
       ]
     },
     {
       title: t('common.repository'),
       items: [
-        { name: t('sidebar.assets'), to: '/assets', icon: Server },
-        { name: t('sidebar.suppliers'), to: '/suppliers', icon: Building },
-        { name: t('sidebar.documents'), to: '/documents', icon: Briefcase },
-        { name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint },
+        { key: 'assets', name: t('sidebar.assets'), to: '/assets', icon: Server },
+        { key: 'suppliers', name: t('sidebar.suppliers'), to: '/suppliers', icon: Building },
+        { key: 'documents', name: t('sidebar.documents'), to: '/documents', icon: Briefcase },
+        { key: 'privacy', name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint },
       ]
     },
     {
       title: t('common.administration'),
       items: [
-        { name: t('sidebar.team'), to: '/team', icon: Users },
-        { name: t('common.backup'), to: '/backup', icon: Database },
+        { key: 'team', name: t('sidebar.team'), to: '/team', icon: Users },
+        { key: 'backup', name: t('common.backup'), to: '/backup', icon: Database },
       ]
     }
   ];
 
-  const filterItem = (item: { name: string }) => {
+  const filterItem = (item: { key: string; name: string }) => {
     if (!user) return false;
 
     // ALWAYS SHOW Dashboard to avoid empty menu confusion
-    if (item.name === t('sidebar.dashboard')) return true;
+    if (item.key === 'dashboard') return true;
 
     // If user is admin or owner -> Show All
     if (user.role === 'admin' || user.role === 'rssi') return true;
 
     // STRICT RBAC FILTERING
-    // Note: We need to match against translated names or use keys. 
-    // Ideally, we should refactor filterItem to use keys, but for now we match the translated strings.
-    // However, since t() returns the string based on current language, this logic might break if language changes.
-    // BETTER APPROACH: Use keys in navGroups and translate in render.
-    // But to minimize refactor risk, I will keep using names but I need to be careful.
-    // Actually, the cleanest way is to use the keys in the switch.
-
-    // Let's check what the item.name is. It is now the result of t().
-    // So we need to compare against t('key').
-
-    switch (item.name) {
-      case t('sidebar.incidents'): return hasPermission(user, 'Incident', 'read');
-      case t('sidebar.projects'): return hasPermission(user, 'Project', 'read');
-      case t('common.riskManagement'): return hasPermission(user, 'Risk', 'read');
-      case t('sidebar.audits'): return hasPermission(user, 'Audit', 'read');
-      case t('sidebar.documents'): return hasPermission(user, 'Document', 'read');
-      case t('sidebar.assets'): return hasPermission(user, 'Asset', 'read');
-      case t('sidebar.team'): return hasPermission(user, 'User', 'read');
-      case t('common.backup'): return hasPermission(user, 'Settings', 'manage');
-      case t('sidebar.continuity'): return hasPermission(user, 'Risk', 'read');
-      case t('common.complianceDda'): return hasPermission(user, 'Audit', 'read');
-      case t('sidebar.suppliers'): return hasPermission(user, 'Asset', 'read');
-      case t('common.privacyGdpr'): return hasPermission(user, 'Document', 'read');
-      case t('common.ctcEngine'): return false;
+    switch (item.key) {
+      case 'incidents': return hasPermission(user, 'Incident', 'read');
+      case 'projects': return hasPermission(user, 'Project', 'read');
+      case 'risks': return hasPermission(user, 'Risk', 'read');
+      case 'audits': return hasPermission(user, 'Audit', 'read');
+      case 'documents': return hasPermission(user, 'Document', 'read');
+      case 'assets': return hasPermission(user, 'Asset', 'read');
+      case 'team': return hasPermission(user, 'User', 'read');
+      case 'backup': return hasPermission(user, 'Settings', 'manage');
+      case 'continuity': return hasPermission(user, 'Risk', 'read');
+      case 'compliance': return hasPermission(user, 'Audit', 'read');
+      case 'suppliers': return hasPermission(user, 'Asset', 'read');
+      case 'privacy': return hasPermission(user, 'Document', 'read');
+      case 'voxel': return false;
       default: return true;
     }
   };

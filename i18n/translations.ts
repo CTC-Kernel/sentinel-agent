@@ -235,7 +235,14 @@ export const translations = {
             maturity: 'Maturité',
             cyberNewsTitle: 'Veille Cyber & Réglementaire',
             refresh: 'Actualiser',
-            noNews: 'Aucune actualité disponible.'
+            noNews: 'Aucune actualité disponible.',
+            metaTitle: 'Tableau de Bord - Sentinel GRC',
+            metaDescription: 'Vue d\'ensemble de votre posture de sécurité, conformité ISO 27001 et risques critiques.',
+            icsAudit: 'Audit',
+            icsProject: 'Projet',
+            icsAuditor: 'Auditeur',
+            icsManager: 'Manager',
+            reportFilename: 'rapport-executif.pdf'
         },
         settings: {
             title: 'Paramètres',
@@ -776,7 +783,14 @@ export const translations = {
             maturity: 'Maturity',
             cyberNewsTitle: 'Cyber & Regulatory Watch',
             refresh: 'Refresh',
-            noNews: 'No news available.'
+            noNews: 'No news available.',
+            metaTitle: 'Dashboard - Sentinel GRC',
+            metaDescription: 'Overview of your security posture, ISO 27001 compliance, and critical risks.',
+            icsAudit: 'Audit',
+            icsProject: 'Project',
+            icsAuditor: 'Auditor',
+            icsManager: 'Manager',
+            reportFilename: 'executive-report.pdf'
         }
     }
 };

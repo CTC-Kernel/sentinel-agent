@@ -84,10 +84,17 @@ class ErrorLoggerService {
   /**
    * Log une info (développement uniquement)
    */
-  info(message: string, context?: string): void {
+  info(message: string, context?: string, additionalContext?: ErrorContext): void {
     if (this.isDevelopment) {
-      console.log(`ℹ️ INFO [${context || 'General'}]:`, message);
+      console.log(`ℹ️ INFO [${context || 'General'}]:`, message, additionalContext || '');
     }
+
+    this.logToExternal('info', {
+      timestamp: new Date().toISOString(),
+      context,
+      message,
+      ...additionalContext
+    });
   }
 
   /**

@@ -12,8 +12,8 @@ export interface ExternalFile {
 class ExternalStorageService {
     private googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
     private microsoftClientId = import.meta.env.VITE_MICROSOFT_CLIENT_ID || '';
-    private googleRedirectUri = window.location.origin + '/oauth/google/callback';
-    private microsoftRedirectUri = window.location.origin + '/oauth/microsoft/callback';
+    // private googleRedirectUri = window.location.origin + '/oauth/google/callback';
+    // private microsoftRedirectUri = window.location.origin + '/oauth/microsoft/callback';
 
     // Google Drive
     async connectGoogleDrive(): Promise<string> {
@@ -21,9 +21,7 @@ class ExternalStorageService {
             throw new Error('Google Client ID not configured');
         }
 
-        const scope = 'https://www.googleapis.com/auth/drive.file';
-        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${this.googleClientId}&redirect_uri=${encodeURIComponent(this.googleRedirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}&include_granted_scopes=true&state=pass-through-value`;
-
+        // const scope = 'https://www.googleapis.com/auth/drive.file';
         // In a real app, you might use a popup or redirect. 
         // For this implementation, we'll assume a popup flow or similar.
         // Since we can't easily implement the full callback handler here without routing changes,
@@ -32,7 +30,7 @@ class ExternalStorageService {
         // Ideally, use the Google Identity Services (GIS) library:
         // google.accounts.oauth2.initTokenClient(...)
 
-        return new Promise((resolve, reject) => {
+        return new Promise((_resolve, reject) => {
             // Placeholder for actual OAuth flow
             // window.open(authUrl, '_blank', 'width=500,height=600');
             // Listen for message from popup...
@@ -75,10 +73,10 @@ class ExternalStorageService {
             throw new Error('Microsoft Client ID not configured');
         }
 
-        const scope = 'Files.ReadWrite';
-        const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${this.microsoftClientId}&response_type=token&redirect_uri=${encodeURIComponent(this.microsoftRedirectUri)}&scope=${encodeURIComponent(scope)}`;
+        // const scope = 'Files.ReadWrite';
+        // const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${this.microsoftClientId}&response_type=token&redirect_uri=${encodeURIComponent(this.microsoftRedirectUri)}&scope=${encodeURIComponent(scope)}`;
 
-        return new Promise((resolve, reject) => {
+        return new Promise((_resolve, reject) => {
             // Placeholder for actual OAuth flow
             console.warn('Microsoft OAuth flow not fully implemented without valid Client ID and callback route.');
             reject(new Error('Microsoft OAuth flow requires configuration and callback implementation.'));

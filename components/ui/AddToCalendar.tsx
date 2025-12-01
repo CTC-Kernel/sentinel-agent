@@ -1,9 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, Download, ExternalLink } from 'lucide-react';
-import { CalendarEvent, CalendarService } from '../../services/calendarService';
+import { CalendarService } from '../../services/calendarService';
+
+export interface CalendarEventDetails {
+    title: string;
+    description?: string;
+    start: Date;
+    end: Date;
+    location?: string;
+}
 
 interface AddToCalendarProps {
-    event: CalendarEvent;
+    event: CalendarEventDetails;
     className?: string;
 }
 
