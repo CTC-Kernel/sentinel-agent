@@ -16,12 +16,17 @@ import { useFirestoreCollection } from '../hooks/useFirestore';
 import { CyberNewsWidget } from '../components/dashboard/CyberNewsWidget';
 
 const StatCard: React.FC<{ title: string; value: string | number | null; icon: React.ElementType; trend?: string; colorClass: string; delay?: string; onClick?: () => void }> = ({ title, value, icon: Icon, trend, colorClass, delay, onClick }) => (
-    <div onClick={onClick} className={`relative group glass - panel p - 6 rounded - [2rem] hover: shadow - apple transition - all duration - 500 hover: -translate - y - 1 overflow - hidden ${delay} border border - white / 60 dark: border - white / 5 cursor - pointer`}>
+    <div
+        onClick={onClick}
+        className={`relative group glass-panel p-6 rounded-[2rem] hover:shadow-apple transition-all duration-500 hover:-translate-y-1 overflow-hidden border border-white/60 dark:border-white/5 cursor-pointer ${delay || ''}`}
+    >
         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
         <div className="flex flex-col h-full justify-between relative z-10">
             <div className="flex justify-between items-start mb-6">
-                <div className={`p - 3.5 rounded - [1.2rem] ${colorClass} bg - opacity - 10 ring - 1 ring - inset ring - black / 5 dark: ring - white / 10 shadow - sm group - hover: scale - 110 transition - transform duration - 500`}>
-                    <Icon className={`h - 6 w - 6 ${colorClass.replace('bg-', 'text-')} `} strokeWidth={2} />
+                <div
+                    className={`p-3.5 rounded-[1.2rem] ${colorClass} bg-opacity-10 ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm group-hover:scale-110 transition-transform duration-500`}
+                >
+                    <Icon className={`h-6 w-6 ${colorClass.replace('bg-', 'text-')}`} strokeWidth={2} />
                 </div>
                 {trend && <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20 shadow-sm">
                     {trend}
@@ -47,7 +52,7 @@ export const Dashboard: React.FC = () => {
     const [openAuditsCount, setOpenAuditsCount] = useState(0);
     const [activityExpanded, setActivityExpanded] = useState(false);
 
-    const { user, theme, addToast, demoMode } = useStore();
+    const { user, theme, addToast, demoMode, t } = useStore();
     const navigate = useNavigate();
 
     // Hooks
@@ -68,7 +73,7 @@ export const Dashboard: React.FC = () => {
     // Fetch Counts & Org Name
     useEffect(() => {
         if (demoMode) {
-            setOrganizationName('Cyber Threat Consulting (Demo)');
+            setOrganizationName(t('dashboard.demoOrgName'));
             setTeamSize(12);
             setActiveIncidentsCount(3);
             setOpenAuditsCount(2);
@@ -189,34 +194,34 @@ export const Dashboard: React.FC = () => {
         const actionable = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
 
         if (activeIncidentsCount > 0) {
-            return { text: `${activeIncidentsCount} incident(s) de sécurité actif(s).`, type: 'danger' as const, details: "La réponse aux incidents est la priorité absolue.", action: "Gérer", link: "/incidents" };
+            return { text: t('dashboard.insightIncidents').replace('{count}', activeIncidentsCount.toString()), type: 'danger' as const, details: t('dashboard.insightIncidentsDesc'), action: t('common.manage'), link: "/incidents" };
         } else if (stats.financialRisk > 100000) {
-            return { text: "Exposition financière critique détectée.", type: 'danger' as const, details: `${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)} d'actifs menacés par des risques élevés.`, action: "Voir Risques", link: "/risks" };
+            return { text: t('dashboard.insightFinancial'), type: 'danger' as const, details: t('dashboard.insightFinancialDesc').replace('{amount}', new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)), action: t('common.view') + ' ' + t('dashboard.risks'), link: "/risks" };
         } else if (allRisks.filter(r => r.score >= 15).length > 0) {
-            return { text: "Des risques critiques persistent.", type: 'warning' as const, details: "Vérifiez les plans de traitement pour les risques > 15.", action: "Voir Risques", link: "/risks" };
+            return { text: t('dashboard.insightRisks'), type: 'warning' as const, details: t('dashboard.insightRisksDesc'), action: t('common.view') + ' ' + t('dashboard.risks'), link: "/risks" };
         } else if (complianceScore < 50 && actionable > 0) {
-            return { text: "La conformité ISO 27001 est faible.", type: 'warning' as const, details: "Accélérez l'implémentation des contrôles.", action: "Planifier", link: "/compliance" };
+            return { text: t('dashboard.insightCompliance'), type: 'warning' as const, details: t('dashboard.insightComplianceDesc'), action: "Planifier", link: "/compliance" };
         } else if (expiredDocs > 0) {
-            return { text: `${expiredDocs} document(s) à réviser.`, type: 'warning' as const, details: "Des politiques sont obsolètes.", action: "Réviser", link: "/documents" };
+            return { text: t('dashboard.insightDocs').replace('{count}', expiredDocs.toString()), type: 'warning' as const, details: t('dashboard.insightDocsDesc'), action: "Réviser", link: "/documents" };
         } else if (expiredContracts > 0) {
-            return { text: `${expiredContracts} contrat(s) fournisseur expiré(s).`, type: 'warning' as const, details: "Renouvelez ou archivez les contrats.", action: "Fournisseurs", link: "/suppliers" };
+            return { text: t('dashboard.insightContracts').replace('{count}', expiredContracts.toString()), type: 'warning' as const, details: t('dashboard.insightContractsDesc'), action: t('sidebar.suppliers'), link: "/suppliers" };
         } else if (criticalSuppliersNoScore > 0) {
-            return { text: `${criticalSuppliersNoScore} fournisseurs critiques à évaluer.`, type: 'warning' as const, details: "Score de sécurité faible ou manquant.", action: "Évaluer", link: "/suppliers" };
+            return { text: t('dashboard.insightSuppliers').replace('{count}', criticalSuppliersNoScore.toString()), type: 'warning' as const, details: t('dashboard.insightSuppliersDesc'), action: "Évaluer", link: "/suppliers" };
         } else if (overdueAudits > 0) {
-            return { text: `${overdueAudits} audit(s) en retard.`, type: 'warning' as const, details: "Le planning n'est pas respecté.", action: "Audits", link: "/audits" };
+            return { text: t('dashboard.insightAudits').replace('{count}', overdueAudits.toString()), type: 'warning' as const, details: t('dashboard.insightAuditsDesc'), action: t('sidebar.audits'), link: "/audits" };
         }
-        return { text: "Système stable. Continuez les revues régulières.", type: 'success' as const, details: "", action: "", link: "" };
+        return { text: t('dashboard.insightStable'), type: 'success' as const, details: "", action: "", link: "" };
     }, [activeIncidentsCount, stats.financialRisk, allRisks, complianceScore, controls, myDocs, myAudits, allSuppliers]);
 
     const healthIssues = React.useMemo(() => {
         const issues: HealthIssue[] = [];
         const unmitigatedRisks = allRisks.filter(r => r.score >= 15 && !r.mitigationControlIds?.length).length;
-        if (unmitigatedRisks > 0) issues.push({ id: '1', type: 'danger', message: 'Risques critiques sans contrôle', count: unmitigatedRisks, link: '/risks' });
+        if (unmitigatedRisks > 0) issues.push({ id: '1', type: 'danger', message: t('dashboard.issueRisks'), count: unmitigatedRisks, link: '/risks' });
         const unprovenControls = controls.filter(c => c.status === 'Implémenté' && (!c.evidenceIds || c.evidenceIds.length === 0)).length;
-        if (unprovenControls > 0) issues.push({ id: '2', type: 'warning', message: 'Contrôles sans preuve', count: unprovenControls, link: '/compliance' });
+        if (unprovenControls > 0) issues.push({ id: '2', type: 'warning', message: t('dashboard.issueControls'), count: unprovenControls, link: '/compliance' });
 
         const overdueAudits = myAudits.filter(a => new Date(a.dateScheduled) < new Date() && a.status !== 'Terminé' && a.status !== 'Validé').length;
-        if (overdueAudits > 0) issues.push({ id: '6', type: 'warning', message: 'Audits en retard', count: overdueAudits, link: '/audits' });
+        if (overdueAudits > 0) issues.push({ id: '6', type: 'warning', message: t('dashboard.issueAudits'), count: overdueAudits, link: '/audits' });
         return issues;
     }, [allRisks, controls, myAudits]);
 
@@ -258,7 +263,7 @@ export const Dashboard: React.FC = () => {
         }
     }, [loading, historyStats, user?.organizationId, allRisks.length, complianceScore, activeIncidentsCount]);
 
-    const copyRules = () => { navigator.clipboard.writeText(`rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}`); addToast("Règles copiées !", "success"); };
+    const copyRules = () => { navigator.clipboard.writeText(`rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}`); addToast(t('dashboard.rulesCopied'), "success"); };
     const getActivityIcon = (resource: string) => { switch (resource) { case 'Risk': return <ShieldAlert className="h-3.5 w-3.5 text-orange-500" />; case 'Incident': return <Siren className="h-3.5 w-3.5 text-red-500" />; case 'Asset': return <Server className="h-3.5 w-3.5 text-blue-500" />; default: return <CheckCircle2 className="h-3.5 w-3.5 text-gray-500" />; } };
 
     const generateICal = async () => {
@@ -272,15 +277,15 @@ export const Dashboard: React.FC = () => {
             auditsSnap.forEach(doc => { const d = doc.data(); const date = d.dateScheduled ? d.dateScheduled.replace(/-/g, '') : ''; if (date) icsContent += `BEGIN:VEVENT\nSUMMARY:Audit: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:Auditeur: ${d.auditor}\nEND:VEVENT\n`; });
             projectsSnap.forEach(doc => { const d = doc.data(); const date = d.dueDate ? d.dueDate.replace(/-/g, '') : ''; if (date) icsContent += `BEGIN:VEVENT\nSUMMARY:Projet: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:Manager: ${d.manager}\nEND:VEVENT\n`; });
             icsContent += "END:VCALENDAR";
-            const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })); link.download = 'sentinel_calendar.ics'; link.click(); addToast("Calendrier exporté (.ics)", "success");
+            const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })); link.download = 'sentinel_calendar.ics'; link.click(); addToast(t('dashboard.calendarExported'), "success");
         } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Dashboard.generateICal', 'UNKNOWN_ERROR'); }
     };
 
     const generateExecutiveReport = () => {
         PdfService.generateCustomReport(
             {
-                title: 'Rapport Exécutif',
-                subtitle: `Généré le ${new Date().toLocaleDateString()}`,
+                title: t('dashboard.reportTitle'),
+                subtitle: t('dashboard.generatedOn').replace('{date}', new Date().toLocaleDateString()),
                 filename: 'rapport-executif.pdf'
             },
             (doc, startY) => {
@@ -288,14 +293,14 @@ export const Dashboard: React.FC = () => {
 
                 // Stats Grid
                 doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
-                doc.text('Indicateurs Clés', 14, y);
+                doc.text(t('dashboard.keyIndicators'), 14, y);
                 y += 10;
 
                 const stats = [
-                    { label: 'Score de Conformité', value: `${complianceScore}%` },
-                    { label: 'Risques Critiques', value: topRisks.filter(r => r.score >= 15).length.toString() },
-                    { label: 'Incidents Actifs', value: activeIncidentsCount.toString() },
-                    { label: 'Audits Ouverts', value: openAuditsCount.toString() }
+                    { label: t('dashboard.complianceScore'), value: `${complianceScore}%` },
+                    { label: t('dashboard.criticalRisks'), value: topRisks.filter(r => r.score >= 15).length.toString() },
+                    { label: t('dashboard.activeIncidents'), value: activeIncidentsCount.toString() },
+                    { label: t('dashboard.openAudits'), value: openAuditsCount.toString() }
                 ];
 
                 let x = 14;
@@ -313,13 +318,13 @@ export const Dashboard: React.FC = () => {
 
                 // Top Risks Table
                 doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
-                doc.text('Top 5 Risques Critiques', 14, y);
+                doc.text(t('dashboard.top5Risks'), 14, y);
                 y += 5;
 
                 const riskData = topRisks.map(r => [r.threat, r.score.toString(), r.strategy, r.status]);
                 doc.autoTable({
                     startY: y,
-                    head: [['Menace', 'Score', 'Stratégie', 'Statut']],
+                    head: [[t('dashboard.threat'), t('dashboard.score'), t('dashboard.strategy'), t('dashboard.status')]],
                     body: riskData,
                     theme: 'grid',
                     headStyles: { fillColor: [79, 70, 229] },
@@ -330,13 +335,13 @@ export const Dashboard: React.FC = () => {
 
                 // Compliance Summary
                 doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
-                doc.text('Conformité par Domaine', 14, y);
+                doc.text(t('dashboard.complianceByDomain'), 14, y);
                 y += 5;
 
                 const complianceData = radarData.map(d => [d.subject, `${d.A}%`]);
                 doc.autoTable({
                     startY: y,
-                    head: [['Domaine', 'Score']],
+                    head: [[t('dashboard.domain'), t('dashboard.score')]],
                     body: complianceData,
                     theme: 'grid',
                     headStyles: { fillColor: [79, 70, 229] },
@@ -346,7 +351,7 @@ export const Dashboard: React.FC = () => {
         );
     };
 
-    if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-panel rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Accès Refusé</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">La base de données est verrouillée. Veuillez configurer les règles de sécurité.</p> <button onClick={copyRules} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm">Copier les Règles</button> </div> </div>); }
+    if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-panel rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">{t('dashboard.dbLocked')}</p> <button onClick={copyRules} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm">{t('dashboard.copyRules')}</button> </div> </div>); }
 
     return (
         <div className="space-y-8 animate-fade-in pb-10">
@@ -365,15 +370,15 @@ export const Dashboard: React.FC = () => {
                         <div className="flex flex-col items-center justify-center text-center py-8">
                             <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-900/5 dark:bg-white/10 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-6 backdrop-blur-md shadow-sm">
                                 <span className="w-2 h-2 bg-emerald-500 dark:bg-emerald-400 rounded-full mr-2.5 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
-                                {organizationName || user?.organizationName || 'Système Opérationnel'}
+                                {organizationName || user?.organizationName || t('dashboard.operationalSystem')}
                             </div>
 
                             <h2 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 tracking-tight font-display mb-6">
-                                Bienvenue sur Sentinel GRC
+                                {t('dashboard.welcomeTitle')}
                             </h2>
                             <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mb-10 leading-relaxed font-medium">
-                                La plateforme tout-en-un pour piloter votre conformité ISO 27001.<br />
-                                Commencez par initialiser votre référentiel de sécurité.
+                                {t('dashboard.welcomeSubtitle1')}<br />
+                                {t('dashboard.welcomeSubtitle2')}
                             </p>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl w-full mx-auto">
@@ -387,8 +392,8 @@ export const Dashboard: React.FC = () => {
                                             <Server className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Créer un actif</h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Recensez vos ressources critiques</p>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('dashboard.createAsset')}</h3>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{t('dashboard.createAssetDesc')}</p>
                                         </div>
                                     </div>
                                 </button>
@@ -403,8 +408,8 @@ export const Dashboard: React.FC = () => {
                                             <ClipboardCheck className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Configurer les contrôles</h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Définissez votre périmètre ISO</p>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('dashboard.configureControls')}</h3>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{t('dashboard.configureControlsDesc')}</p>
                                         </div>
                                     </div>
                                 </button>
@@ -419,8 +424,8 @@ export const Dashboard: React.FC = () => {
                                             <FileText className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Ajouter des documents</h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Centralisez vos politiques</p>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('dashboard.addDocuments')}</h3>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{t('dashboard.addDocumentsDesc')}</p>
                                         </div>
                                     </div>
                                 </button>
@@ -438,10 +443,10 @@ export const Dashboard: React.FC = () => {
                                         <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tighter font-display">Sentinel GRC</h1>
                                         <div className="flex items-center gap-3 mt-2">
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-900/5 dark:bg-white/10 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-bold uppercase tracking-widest">
-                                                {organizationName || user?.organizationName || 'Système Opérationnel'}
+                                                {organizationName || user?.organizationName || t('dashboard.operationalSystem')}
                                             </span>
                                             <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                                                <strong className="text-slate-900 dark:text-white">{loading ? '...' : stats.compliance}%</strong> Conformité
+                                                <strong className="text-slate-900 dark:text-white">{loading ? '...' : stats.compliance}%</strong> {t('dashboard.compliance')}
                                             </span>
                                         </div>
                                     </div>
@@ -465,14 +470,14 @@ export const Dashboard: React.FC = () => {
                                 {teamSize !== null && (
                                     <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                         <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-900/3 dark:bg-white/5 border border-slate-900/5 dark:border-white/10">
-                                            Équipe : {teamSize <= 1 ? "vous êtes seul pour le moment" : `${teamSize} membres`}
+                                            {t('dashboard.team')} : {teamSize <= 1 ? t('dashboard.teamAlone') : `${teamSize} ${t('dashboard.teamMembers')}`}
                                         </span>
                                         {teamSize <= 1 && (
                                             <button
                                                 onClick={() => navigate('/team')}
                                                 className="inline-flex items-center px-3 py-1.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[11px] font-bold shadow-sm hover:scale-105 transition-all"
                                             >
-                                                Inviter mon équipe
+                                                {t('dashboard.inviteTeam')}
                                                 <ArrowRight className="h-3 w-3 ml-1" />
                                             </button>
                                         )}
@@ -484,13 +489,13 @@ export const Dashboard: React.FC = () => {
                                         onClick={generateICal}
                                         className="group flex items-center px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-xs font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
                                     >
-                                        <CalendarDays className="h-3.5 w-3.5 mr-2" /> Export iCal
+                                        <CalendarDays className="h-3.5 w-3.5 mr-2" /> {t('dashboard.exportIcal')}
                                     </button>
                                     <button
                                         onClick={generateExecutiveReport}
                                         className="group flex items-center px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-none"
                                     >
-                                        <Download className="h-3.5 w-3.5 mr-2" /> Rapport Exécutif
+                                        <Download className="h-3.5 w-3.5 mr-2" /> {t('dashboard.executiveReport')}
                                     </button>
                                 </div>
                             </div>
@@ -532,7 +537,7 @@ export const Dashboard: React.FC = () => {
                                         />
                                     </RadarChart>
                                 </ResponsiveContainer>
-                                <div className="absolute bottom-0 w-full text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">Maturité ISO 27001</div>
+                                <div className="absolute bottom-0 w-full text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">{t('dashboard.isoMaturity')}</div>
                             </div>
                         </div>
                     )}
@@ -545,51 +550,51 @@ export const Dashboard: React.FC = () => {
                     <div className="p-3 bg-purple-50 dark:bg-purple-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/30">
                         <Settings3D className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Voxel 3D</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{t('dashboard.voxel3d')}</span>
                 </button>
                 <button onClick={() => navigate('/incidents')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-red-300 dark:hover:border-red-500/50 active:scale-95">
                     <div className="p-3 bg-red-50 dark:bg-red-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-red-100 dark:group-hover:bg-red-500/30">
                         <Siren className="h-6 w-6 text-red-600 dark:text-red-400" />
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">Incidents</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">{t('dashboard.incidents')}</span>
                 </button>
                 <button onClick={() => navigate('/risks')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50 active:scale-95">
                     <div className="p-3 bg-orange-50 dark:bg-orange-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/30">
                         <ShieldAlert className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Risques</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{t('dashboard.risks')}</span>
                 </button>
                 <button onClick={() => navigate('/assets')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-blue-300 dark:hover:border-blue-500/50 active:scale-95">
                     <div className="p-3 bg-blue-50 dark:bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30">
                         <Server className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Actifs</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{t('dashboard.assets')}</span>
                 </button>
                 <button onClick={() => navigate('/team')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-emerald-300 dark:hover:border-emerald-500/50 active:scale-95">
                     <div className="p-3 bg-emerald-50 dark:bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/30">
                         <User className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Équipe</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{t('dashboard.team')}</span>
                 </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Incidents Actifs" value={loading ? null : stats.activeIncidents} icon={Siren} colorClass="bg-red-500 text-red-500" trend={stats.activeIncidents > 0 ? "Urgent" : undefined} delay="delay-0" onClick={() => navigate('/incidents')} />
-                <StatCard title="Risques Critiques" value={loading ? null : stats.highRisks} icon={ShieldAlert} colorClass="bg-orange-500 text-orange-500" delay="delay-75" onClick={() => navigate('/risks')} />
-                <StatCard title="Exposition Financière" value={loading ? null : `${new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}`} icon={TrendingUp} colorClass="bg-red-600 text-red-600" trend={stats.financialRisk > 100000 ? "Critique" : undefined} delay="delay-100" onClick={() => navigate('/risks')} />
-                <StatCard title="Valeur du Parc" value={loading ? null : `${new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.assetValue)}`} icon={Euro} colorClass="bg-blue-500 text-blue-500" delay="delay-150" onClick={() => navigate('/assets')} />
+                <StatCard title={t('dashboard.activeIncidents')} value={loading ? null : stats.activeIncidents} icon={Siren} colorClass="bg-red-500 text-red-500" trend={stats.activeIncidents > 0 ? "Urgent" : undefined} delay="delay-0" onClick={() => navigate('/incidents')} />
+                <StatCard title={t('dashboard.criticalRisks')} value={loading ? null : stats.highRisks} icon={ShieldAlert} colorClass="bg-orange-500 text-orange-500" delay="delay-75" onClick={() => navigate('/risks')} />
+                <StatCard title={t('dashboard.financialExposure')} value={loading ? null : `${new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}`} icon={TrendingUp} colorClass="bg-red-600 text-red-600" trend={stats.financialRisk > 100000 ? "Critique" : undefined} delay="delay-100" onClick={() => navigate('/risks')} />
+                <StatCard title={t('dashboard.assetValue')} value={loading ? null : `${new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.assetValue)}`} icon={Euro} colorClass="bg-blue-500 text-blue-500" delay="delay-150" onClick={() => navigate('/assets')} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* My Workspace */}
                 <div className="glass-panel p-0 rounded-[2rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm flex flex-col h-[450px] group hover:shadow-md transition-shadow">
                     <div className="px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 flex justify-between items-center backdrop-blur-sm">
-                        <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Mon Espace</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">À faire cette semaine</p></div>
+                        <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.myWorkspace')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.todoThisWeek')}</p></div>
                         <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm"><User className="w-5 h-5 text-slate-600 dark:text-slate-300" /></div>
                     </div>
                     <div className="flex-1 p-0 overflow-y-auto custom-scrollbar bg-white/40 dark:bg-slate-900/20">
                         {loading ? <Skeleton className="h-full w-full m-4" /> : myActionItems.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full p-8 text-center"><CheckCircle2 className="h-12 w-12 text-emerald-500/30 mb-4" /><p className="text-sm font-bold text-slate-500">Rien à signaler pour le moment.</p></div>
+                            <div className="flex flex-col items-center justify-center h-full p-8 text-center"><CheckCircle2 className="h-12 w-12 text-emerald-500/30 mb-4" /><p className="text-sm font-bold text-slate-500">{t('dashboard.nothingToReport')}</p></div>
                         ) : (
                             <div className="divide-y divide-slate-100 dark:divide-white/5">
                                 {myActionItems.map(item => (
@@ -598,7 +603,7 @@ export const Dashboard: React.FC = () => {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md border ${item.type === 'audit' ? 'bg-blue-50 border-blue-100 text-blue-600 dark:bg-blue-900/20 dark:border-blue-900/30 dark:text-blue-400' : item.type === 'policy' ? 'bg-red-50 border-red-100 text-red-600 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400' : 'bg-orange-50 border-orange-100 text-orange-600 dark:bg-orange-900/20 dark:border-orange-900/30 dark:text-orange-400'}`}>
-                                                    {item.type === 'audit' ? 'Audit' : item.type === 'policy' ? 'Signature' : item.type === 'document' ? 'Revue' : 'Projet'}
+                                                    {item.type === 'audit' ? t('dashboard.typeAudit') : item.type === 'policy' ? t('dashboard.typeSignature') : item.type === 'document' ? t('dashboard.typeReview') : t('dashboard.typeProject')}
                                                 </span>
                                                 <span className="text-xs text-slate-400 font-medium tabular-nums">{new Date(item.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
                                             </div>
@@ -615,7 +620,7 @@ export const Dashboard: React.FC = () => {
 
                 <div className="glass-panel p-0 rounded-[2rem] lg:col-span-2 flex flex-col overflow-hidden border border-white/60 dark:border-white/5 shadow-sm h-[450px] group hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
-                        <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Évolution Conformité</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">30 derniers jours</p></div>
+                        <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.complianceEvolution')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.last30Days')}</p></div>
                         <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20"><TrendingUp className="w-5 h-5 text-emerald-500" /></div>
                     </div>
                     <div className="flex-1 w-full p-6 bg-white/40 dark:bg-transparent">
@@ -642,7 +647,7 @@ export const Dashboard: React.FC = () => {
                                     <Area
                                         type="monotone"
                                         dataKey="compliance"
-                                        name="Conformité"
+                                        name={t('dashboard.compliance')}
                                         stroke="#10b981"
                                         strokeWidth={3}
                                         fillOpacity={1}
@@ -659,17 +664,17 @@ export const Dashboard: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="glass-panel p-0 rounded-[2rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-shadow">
                     <div className="px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 flex justify-between items-center backdrop-blur-sm">
-                        <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Diagnostic Santé</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">Alertes Système</p></div>
-                        <CustomTooltip content={healthIssues.length > 0 ? "Des actions sont requises" : "Système sain"} position="left">
+                        <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.healthCheck')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.systemAlerts')}</p></div>
+                        <CustomTooltip content={healthIssues.length > 0 ? t('dashboard.actionsRequired') : t('dashboard.systemHealthy')} position="left">
                             <div className={`p-2 rounded-xl ${healthIssues.length > 0 ? 'bg-orange-500/10' : 'bg-emerald-500/10'}`}>
                                 <Stethoscope className={`w-5 h-5 ${healthIssues.length > 0 ? 'text-orange-500' : 'text-emerald-500'}`} />
                             </div>
                         </CustomTooltip>
                     </div>
                     <div className="p-6 flex-1 space-y-3 bg-white/40 dark:bg-transparent">
-                        {loading ? <Skeleton className="h-full w-full" /> : healthIssues.length === 0 ? (<div className="flex items-center p-5 bg-emerald-50/80 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30"><CheckCircle2 className="h-6 w-6 text-emerald-500 mr-4 flex-shrink-0" /><div><span className="text-sm font-bold text-emerald-800 dark:text-emerald-300 block">Aucune anomalie</span><span className="text-xs text-emerald-600/80 dark:text-emerald-400">Tous les systèmes sont nominaux</span></div></div>) : (healthIssues.map(issue => (
-                            <CustomTooltip key={issue.id} content="Cliquez pour résoudre" position="top" className="w-full">
-                                <div onClick={() => navigate(issue.link)} className={`flex items-start p-4 rounded-2xl border cursor-pointer hover:scale-[1.02] transition-all w-full ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 hover:shadow-md hover:shadow-red-500/5' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30 hover:shadow-md hover:shadow-orange-500/5'}`}><AlertTriangle className={`h-5 w-5 mr-3 mt-0.5 flex-shrink-0 ${issue.type === 'danger' ? 'text-red-500' : 'text-orange-500'}`} /><div><p className={`text-sm font-bold leading-tight ${issue.type === 'danger' ? 'text-red-800 dark:text-red-200' : 'text-orange-800 dark:text-orange-200'}`}>{issue.message}</p><span className={`text-xs font-bold mt-1 block ${issue.type === 'danger' ? 'text-red-600/70 dark:text-red-400' : 'text-orange-600/70 dark:text-orange-400'}`}>{issue.count} éléments concernés</span></div></div>
+                        {loading ? <Skeleton className="h-full w-full" /> : healthIssues.length === 0 ? (<div className="flex items-center p-5 bg-emerald-50/80 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30"><CheckCircle2 className="h-6 w-6 text-emerald-500 mr-4 flex-shrink-0" /><div><span className="text-sm font-bold text-emerald-800 dark:text-emerald-300 block">{t('dashboard.noAnomalies')}</span><span className="text-xs text-emerald-600/80 dark:text-emerald-400">{t('dashboard.systemsNominal')}</span></div></div>) : (healthIssues.map(issue => (
+                            <CustomTooltip key={issue.id} content={t('dashboard.clickToResolve')} position="top" className="w-full">
+                                <div onClick={() => navigate(issue.link)} className={`flex items-start p-4 rounded-2xl border cursor-pointer hover:scale-[1.02] transition-all w-full ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 hover:shadow-md hover:shadow-red-500/5' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30 hover:shadow-md hover:shadow-orange-500/5'}`}><AlertTriangle className={`h-5 w-5 mr-3 mt-0.5 flex-shrink-0 ${issue.type === 'danger' ? 'text-red-500' : 'text-orange-500'}`} /><div><p className={`text-sm font-bold leading-tight ${issue.type === 'danger' ? 'text-red-800 dark:text-red-200' : 'text-orange-800 dark:text-orange-200'}`}>{issue.message}</p><span className={`text-xs font-bold mt-1 block ${issue.type === 'danger' ? 'text-red-600/70 dark:text-red-400' : 'text-orange-600/70 dark:text-orange-400'}`}>{issue.count} {t('dashboard.itemsAffected')}</span></div></div>
                             </CustomTooltip>
                         )))}
                     </div>
@@ -677,12 +682,12 @@ export const Dashboard: React.FC = () => {
 
                 <div className="glass-panel p-0 rounded-[2rem] lg:col-span-2 overflow-hidden border border-white/60 dark:border-white/5 shadow-sm group hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
-                        <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Risques Prioritaires</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">Top Criticité</p></div>
+                        <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.priorityRisks')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.topCriticality')}</p></div>
                         <div className="p-2 bg-red-500/10 rounded-xl"><Flame className="w-5 h-5 text-red-500" /></div>
                     </div>
                     <div className="p-8 space-y-3 bg-white/40 dark:bg-transparent">
                         {loading ? [1, 2].map(i => <Skeleton key={i} className="h-16 w-full rounded-2xl" />) : topRisks.slice(0, 3).map(risk => (<div key={risk.id} onClick={() => navigate('/risks')} className="p-4 rounded-2xl bg-white/80 dark:bg-white/5 border border-slate-200/80 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 transition-all group flex items-center justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer"><div className="flex items-center"><div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-100 dark:border-red-500/20 flex items-center justify-center mr-4 text-red-600 dark:text-red-400 font-black text-lg shadow-inner">{risk.score}</div><div><h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{risk.threat}</h4><p className="text-xs text-slate-500 font-medium mt-1">{risk.vulnerability}</p></div></div><span className="text-[10px] font-bold bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">{risk.strategy}</span></div>))}
-                        {topRisks.length === 0 && !loading && <div className="flex flex-col items-center justify-center py-8 text-center"><ShieldAlert className="h-10 w-10 text-slate-300 mb-2" /><p className="text-sm text-slate-500 font-medium">Aucun risque critique identifié.</p></div>}
+                        {topRisks.length === 0 && !loading && <div className="flex flex-col items-center justify-center py-8 text-center"><ShieldAlert className="h-10 w-10 text-slate-300 mb-2" /><p className="text-sm text-slate-500 font-medium">{t('dashboard.noCriticalRisks')}</p></div>}
                     </div>
                 </div>
             </div>
@@ -693,11 +698,11 @@ export const Dashboard: React.FC = () => {
                 <div className="lg:col-span-2">
                     <div className="glass-panel p-0 rounded-[2rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm group hover:shadow-md transition-shadow h-full flex flex-col">
                         <div className="flex items-center justify-between px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
-                            <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Flux d'activité récent</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">Temps Réel</p></div>
+                            <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.recentActivity')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.realTime')}</p></div>
                             <div className="flex items-center gap-2">
                                 <div className="p-2 bg-slate-100 dark:bg-white/10 rounded-xl"><History className="w-5 h-5 text-slate-500 dark:text-slate-300" /></div>
                                 <button onClick={() => setActivityExpanded(prev => !prev)} className="px-3 py-1.5 bg-white/80 dark:bg-white/10 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 hover:bg-white dark:hover:bg-white/20 transition-colors">
-                                    {activityExpanded ? 'Réduire' : 'Agrandir'}
+                                    {activityExpanded ? t('common.collapse') : t('common.expand')}
                                 </button>
                             </div>
                         </div>
