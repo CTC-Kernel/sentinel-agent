@@ -6,36 +6,48 @@
 
 const BASE_STYLES = `
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   line-height: 1.6;
-  color: #334155;
-  max-width: 600px;
+  font-size: 15px;
+  color: #0f172a;
+  max-width: 640px;
   margin: 0 auto;
+  background-color: #f5f5f7;
+  padding: 32px 24px;
+  border-radius: 16px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.1);
 `;
 
 const BUTTON_STYLE = `
   display: inline-block;
-  background-color: #2563eb;
+  background-color: #111827;
   color: #ffffff;
   padding: 12px 24px;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 999px;
   font-weight: 600;
   margin-top: 20px;
   font-size: 14px;
+  letter-spacing: -0.01em;
 `;
 
 const HEADER = `
-  <div style="text-align: center; padding: 24px 0; border-bottom: 1px solid #e2e8f0;">
-    <div style="font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
+  <div style="text-align: center; padding: 16px 0 12px 0; border-bottom: 1px solid #e5e7eb;">
+    <div style="font-size: 22px; font-weight: 700; color: #020617; letter-spacing: -0.03em;">
       Sentinel <span style="color: #2563eb;">GRC</span>
+    </div>
+    <div style="margin-top: 4px; font-size: 13px; color: #6b7280;">
+      Plateforme de pilotage de la sécurité et de conformité ISO 27001
     </div>
   </div>
 `;
 
 const FOOTER = `
-  <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
-    <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
-    <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
+  <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e5e7eb; margin-top: 32px;">
+    <p style="margin: 0 0 4px 0;">&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+    <p style="margin: 4px 0;">Vous recevez cet email dans le cadre de l'utilisation de Sentinel GRC pour le suivi de votre programme SSI et de votre conformité ISO 27001.</p>
+    <p style="margin: 4px 0;">Si vous pensez avoir reçu ce message par erreur, contactez votre administrateur Sentinel GRC.</p>
   </div>
 `;
 
@@ -44,14 +56,15 @@ export const getInvitationTemplate = (inviterName: string, role: string, link: s
     <div style="${BASE_STYLES}">
       ${HEADER}
       <div style="padding: 32px 0;">
-        <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">Bienvenue dans l'équipe !</h2>
-        <p>Bonjour,</p>
-        <p><strong>${inviterName}</strong> vous invite à rejoindre la plateforme <strong>Sentinel GRC</strong> en tant que <strong>${role}</strong>.</p>
-        <p>Vous aurez accès aux outils de gestion des risques et de conformité pour collaborer avec l'équipe sécurité.</p>
+        <h2 style="font-size: 22px; color: #020617; margin-bottom: 12px; letter-spacing: -0.02em;">Invitation à rejoindre Sentinel GRC</h2>
+        <p style="margin: 0 0 8px 0; color: #4b5563;">Bonjour,</p>
+        <p style="margin: 0 0 8px 0;"><strong>${inviterName}</strong> vous invite à rejoindre l'espace de travail <strong>Sentinel GRC</strong> en tant que <strong>${role}</strong>.</p>
+        <p style="margin: 0 0 16px 0; color: #4b5563;">En acceptant cette invitation, vous accéderez à une plateforme de pilotage SSI dédiée à la gestion des risques, des contrôles ISO 27001 et des plans d'actions.</p>
         <div style="text-align: center;">
           <a href="${link}" style="${BUTTON_STYLE}">Accepter l'invitation</a>
         </div>
-        <p style="font-size: 13px; color: #64748b; margin-top: 24px;">Si le bouton ne fonctionne pas, copiez ce lien : <br/>${link}</p>
+        <p style="font-size: 12px; color: #94a3b8; margin-top: 24px;">Ce lien est personnel et confidentiel. Si vous n'êtes pas à l'origine de cette invitation, vous pouvez ignorer cet email.</p>
+        <p style="font-size: 12px; color: #94a3b8; margin-top: 8px;">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br/>${link}</p>
       </div>
       ${FOOTER}
     </div>
@@ -233,19 +246,20 @@ export const getPasswordResetTemplate = (userName: string, resetLink: string) =>
     <div style="${BASE_STYLES}">
       ${HEADER}
       <div style="padding: 32px 0;">
-        <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">🔐 Réinitialisation de Mot de Passe</h2>
-        <p>Bonjour ${userName},</p>
-        <p>Vous avez demandé la réinitialisation de votre mot de passe Sentinel GRC.</p>
+        <h2 style="font-size: 22px; color: #020617; margin-bottom: 12px; letter-spacing: -0.02em;">Réinitialisation de votre mot de passe</h2>
+        <p style="margin: 0 0 8px 0;">Bonjour ${userName},</p>
+        <p style="margin: 0 0 16px 0; color: #4b5563;">Nous avons reçu une demande de réinitialisation de votre mot de passe pour votre compte Sentinel GRC.</p>
         
-        <div style="background-color: #fef3c7; padding: 16px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0; font-size: 13px; color: #92400e;">⚠️ Ce lien est valide pendant 1 heure seulement.</p>
+        <div style="background-color: #fef3c7; padding: 16px; border-radius: 12px; margin: 24px 0;">
+          <p style="margin: 0; font-size: 13px; color: #92400e;">Pour des raisons de sécurité, ce lien est valide pendant 1 heure uniquement et ne peut être utilisé qu'une seule fois.</p>
         </div>
 
         <div style="text-align: center;">
-          <a href="${resetLink}" style="${BUTTON_STYLE}">Réinitialiser mon mot de passe</a>
+          <a href="${resetLink}" style="${BUTTON_STYLE}">Choisir un nouveau mot de passe</a>
         </div>
 
-        <p style="font-size: 13px; color: #64748b; margin-top: 24px;">Si vous n'avez pas demandé cette réinitialisation, ignorez cet email. Votre mot de passe actuel reste inchangé.</p>
+        <p style="font-size: 13px; color: #6b7280; margin-top: 24px;">Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email. Votre mot de passe actuel restera inchangé.</p>
+        <p style="font-size: 12px; color: #9ca3af; margin-top: 8px;">Sentinel GRC ne vous demandera jamais votre mot de passe par email.</p>
       </div>
       ${FOOTER}
     </div>
@@ -257,9 +271,10 @@ export const getWelcomeEmailTemplate = (userName: string, organizationName: stri
     <div style="${BASE_STYLES}">
       ${HEADER}
       <div style="padding: 32px 0;">
-        <h2 style="font-size: 24px; color: #0f172a; margin-bottom: 16px; text-align: center;">🎉 Bienvenue sur Sentinel GRC !</h2>
+        <h2 style="font-size: 24px; color: #020617; margin-bottom: 12px; text-align: center; letter-spacing: -0.03em;">Bienvenue sur Sentinel GRC</h2>
+        <p style="text-align: center; margin: 0 0 24px 0; color: #4b5563;">Votre espace de pilotage de la sécurité et de la conformité est prêt.</p>
         <p>Bonjour ${userName},</p>
-        <p>Félicitations ! Votre compte a été créé avec succès.</p>
+        <p style="margin: 0 0 16px 0; color: #4b5563;">Votre compte Sentinel GRC a été créé avec succès. Vous pouvez dès à présent structurer votre programme SSI, suivre vos risques et piloter vos audits ISO 27001.</p>
         
         <div style="background-color: #f1f5f9; padding: 20px; border-radius: 12px; margin: 24px 0;">
           <table style="width: 100%;">
@@ -274,10 +289,10 @@ export const getWelcomeEmailTemplate = (userName: string, organizationName: stri
           </table>
         </div>
 
-        <p>Vous pouvez maintenant accéder à tous les outils de gestion des risques et de conformité ISO 27001.</p>
+        <p style="margin: 0 0 16px 0; color: #4b5563;">Depuis votre tableau de bord, vous accédez aux actifs, aux risques, aux contrôles ISO 27001, aux audits et aux plans d'actions associés.</p>
 
         <div style="text-align: center;">
-          <a href="${dashboardLink}" style="${BUTTON_STYLE}">Accéder au tableau de bord</a>
+          <a href="${dashboardLink}" style="${BUTTON_STYLE}">Ouvrir le tableau de bord</a>
         </div>
       </div>
       ${FOOTER}
@@ -290,9 +305,9 @@ export const getWeeklyDigestTemplate = (userName: string, stats: { newRisks: num
     <div style="${BASE_STYLES}">
       ${HEADER}
       <div style="padding: 32px 0;">
-        <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">📊 Résumé Hebdomadaire</h2>
-        <p>Bonjour ${userName},</p>
-        <p>Voici un résumé de l'activité de cette semaine sur Sentinel GRC :</p>
+        <h2 style="font-size: 20px; color: #020617; margin-bottom: 12px; letter-spacing: -0.02em;">Résumé hebdomadaire de votre programme SSI</h2>
+        <p style="margin: 0 0 8px 0;">Bonjour ${userName},</p>
+        <p style="margin: 0 0 16px 0; color: #4b5563;">Voici les principaux indicateurs de la semaine sur Sentinel GRC :</p>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0;">
           <div style="background-color: #fee2e2; padding: 16px; border-radius: 12px; text-align: center;">
@@ -436,19 +451,19 @@ export const getAuditInvitationTemplate = (inviterName: string, auditName: strin
     <div style="${BASE_STYLES}">
       ${HEADER}
       <div style="padding: 32px 0;">
-        <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">Invitation à un Audit</h2>
-        <p>Bonjour,</p>
-        <p><strong>${inviterName}</strong> vous invite à collaborer sur l'audit <strong>"${auditName}"</strong> en tant que <strong>${role}</strong>.</p>
+        <h2 style="font-size: 20px; color: #020617; margin-bottom: 12px; letter-spacing: -0.02em;">Invitation à collaborer sur un audit</h2>
+        <p style="margin: 0 0 8px 0; color: #4b5563;">Bonjour,</p>
+        <p style="margin: 0 0 16px 0;"><strong>${inviterName}</strong> vous invite à participer à l'audit <strong>"${auditName}"</strong> en tant que <strong>${role}</strong>.</p>
         
         <div style="background-color: #f1f5f9; padding: 16px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0; color: #64748b; font-size: 14px;">Vous aurez accès aux constats, aux preuves et à la checklist de cet audit.</p>
+          <p style="margin: 0; color: #64748b; font-size: 14px;">Vous aurez accès aux constats, aux preuves et à la checklist associée afin de contribuer à l'évaluation et à la conformité ISO 27001.</p>
         </div>
 
         <div style="text-align: center;">
           <a href="${link}" style="${BUTTON_STYLE}">Accéder à l'audit</a>
         </div>
         
-        <p style="font-size: 13px; color: #64748b; margin-top: 24px;">Si vous n'avez pas encore de compte, vous serez invité à en créer un.</p>
+        <p style="font-size: 13px; color: #64748b; margin-top: 24px;">Si vous n'avez pas encore de compte, vous serez invité(e) à en créer un de manière sécurisée avant d'accéder aux informations d'audit.</p>
       </div>
       ${FOOTER}
     </div>
