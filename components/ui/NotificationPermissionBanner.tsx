@@ -14,9 +14,9 @@ export const NotificationPermissionBanner: React.FC = () => {
             return;
         }
 
-        // Si déjà accordé, on initialise pour être sûr d'avoir le token et le listener
+        // Si déjà accordé, on ne fait rien ici pour éviter l'erreur "user gesture"
+        // Le service sera initialisé à la demande ou via un autre flux si nécessaire
         if (permission === 'granted') {
-            PushNotificationService.initialize();
             return;
         }
 

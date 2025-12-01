@@ -200,13 +200,13 @@ export const Dashboard: React.FC = () => {
         } else if (allRisks.filter(r => r.score >= 15).length > 0) {
             return { text: t('dashboard.insightRisks'), type: 'warning' as const, details: t('dashboard.insightRisksDesc'), action: t('common.view') + ' ' + t('dashboard.risks'), link: "/risks" };
         } else if (complianceScore < 50 && actionable > 0) {
-            return { text: t('dashboard.insightCompliance'), type: 'warning' as const, details: t('dashboard.insightComplianceDesc'), action: "Planifier", link: "/compliance" };
+            return { text: t('dashboard.insightCompliance'), type: 'warning' as const, details: t('dashboard.insightComplianceDesc'), action: t('dashboard.plan'), link: "/compliance" };
         } else if (expiredDocs > 0) {
-            return { text: t('dashboard.insightDocs').replace('{count}', expiredDocs.toString()), type: 'warning' as const, details: t('dashboard.insightDocsDesc'), action: "Réviser", link: "/documents" };
+            return { text: t('dashboard.insightDocs').replace('{count}', expiredDocs.toString()), type: 'warning' as const, details: t('dashboard.insightDocsDesc'), action: t('dashboard.review'), link: "/documents" };
         } else if (expiredContracts > 0) {
             return { text: t('dashboard.insightContracts').replace('{count}', expiredContracts.toString()), type: 'warning' as const, details: t('dashboard.insightContractsDesc'), action: t('sidebar.suppliers'), link: "/suppliers" };
         } else if (criticalSuppliersNoScore > 0) {
-            return { text: t('dashboard.insightSuppliers').replace('{count}', criticalSuppliersNoScore.toString()), type: 'warning' as const, details: t('dashboard.insightSuppliersDesc'), action: "Évaluer", link: "/suppliers" };
+            return { text: t('dashboard.insightSuppliers').replace('{count}', criticalSuppliersNoScore.toString()), type: 'warning' as const, details: t('dashboard.insightSuppliersDesc'), action: t('dashboard.assess'), link: "/suppliers" };
         } else if (overdueAudits > 0) {
             return { text: t('dashboard.insightAudits').replace('{count}', overdueAudits.toString()), type: 'warning' as const, details: t('dashboard.insightAuditsDesc'), action: t('sidebar.audits'), link: "/audits" };
         }
@@ -233,10 +233,10 @@ export const Dashboard: React.FC = () => {
         });
         const next30Days = new Date(); next30Days.setDate(next30Days.getDate() + 30);
         myDocs.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < next30Days).forEach(d => {
-            myItems.push({ id: d.id, type: 'document', title: d.title, date: d.nextReviewDate!, status: 'Révision', link: '/documents' });
+            myItems.push({ id: d.id, type: 'document', title: d.title, date: d.nextReviewDate!, status: t('dashboard.statusReview'), link: '/documents' });
         });
         publishedDocs.filter(d => !d.readBy?.includes(user.uid)).forEach(d => {
-            myItems.push({ id: d.id, type: 'policy', title: d.title, date: new Date().toISOString(), status: 'À lire', link: '/documents' });
+            myItems.push({ id: d.id, type: 'policy', title: d.title, date: new Date().toISOString(), status: t('dashboard.statusToRead'), link: '/documents' });
         });
         myProjects.forEach(p => {
             myItems.push({ id: p.id, type: 'project', title: p.name, date: p.dueDate, status: `${p.progress}%`, link: '/projects' });
@@ -524,7 +524,7 @@ export const Dashboard: React.FC = () => {
                                         />
                                         <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                         <RechartsRadar
-                                            name="Maturité"
+                                            name={t('dashboard.maturity')}
                                             dataKey="A"
                                             stroke={theme === 'dark' ? '#60a5fa' : '#0f172a'}
                                             strokeWidth={3}

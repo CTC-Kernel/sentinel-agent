@@ -278,49 +278,54 @@ export const Incidents: React.FC = () => {
                 }
             />
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Incidents Totaux</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{incidentStats.total}</p>
+            {/* Carte de synthèse Incidents */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="space-y-2">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                        <span className="inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                        Vue globale des incidents
+                    </p>
+                    <div className="flex items-baseline gap-3">
+                        <p className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">
+                            {incidentStats.open}
+                        </p>
+                        <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">incidents actifs</span>
                     </div>
-                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/30 text-slate-700 dark:text-slate-200">
-                        <Siren className="h-6 w-6" />
-                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                        sur <span className="font-semibold text-slate-700 dark:text-slate-200">{incidentStats.total}</span> incidents enregistrés au registre
+                    </p>
                 </div>
 
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">Incidents Actifs</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{incidentStats.open}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full md:w-auto">
+                    <div className="min-w-[120px] rounded-2xl bg-red-50/80 dark:bg-red-900/15 border border-red-100 dark:border-red-900/40 px-4 py-3 flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-500">Actifs</span>
+                            <ShieldAlert className="h-4 w-4 text-red-500" />
+                        </div>
+                        <p className="text-xl font-black text-slate-900 dark:text-white leading-none">{incidentStats.open}</p>
+                        <p className="text-[11px] text-red-600/80 dark:text-red-300 mt-1">à traiter</p>
                     </div>
-                    <div className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600">
-                        <ShieldAlert className="h-6 w-6" />
-                    </div>
-                </div>
 
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">MTTR Moyen</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">
+                    <div className="min-w-[120px] rounded-2xl bg-emerald-50/80 dark:bg-emerald-900/15 border border-emerald-100 dark:border-emerald-900/40 px-4 py-3 flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">MTTR</span>
+                            <Clock className="h-4 w-4 text-emerald-500" />
+                        </div>
+                        <p className="text-xl font-black text-slate-900 dark:text-white leading-none">
                             {incidentStats.avgMttrHours !== null ? `${incidentStats.avgMttrHours}h` : '-'}
                         </p>
+                        <p className="text-[11px] text-emerald-600/80 dark:text-emerald-300 mt-1">délai moyen de résolution</p>
                     </div>
-                    <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600">
-                        <Clock className="h-6 w-6" />
-                    </div>
-                </div>
 
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Incidents Critiques</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">
+                    <div className="min-w-[120px] rounded-2xl bg-orange-50/80 dark:bg-orange-900/15 border border-orange-100 dark:border-orange-900/40 px-4 py-3 flex flex-col justify-between col-span-2 sm:col-span-1">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">Critiques</span>
+                            <AlertTriangle className="h-4 w-4 text-orange-500" />
+                        </div>
+                        <p className="text-xl font-black text-slate-900 dark:text-white leading-none">
                             {incidentStats.criticalRatio !== null ? `${incidentStats.criticalRatio}%` : '-'}
                         </p>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600">
-                        <AlertTriangle className="h-6 w-6" />
+                        <p className="text-[11px] text-orange-600/80 dark:text-orange-300 mt-1">du volume total d'incidents</p>
                     </div>
                 </div>
             </div>
