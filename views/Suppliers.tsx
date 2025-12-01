@@ -6,7 +6,7 @@ import { canEditResource } from '../utils/permissions';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
-import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, LayoutGrid, List } from '../components/ui/Icons';
+import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, LayoutGrid, List, BrainCircuit } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
@@ -24,6 +24,8 @@ import { supplierSchema, SupplierFormData } from '../schemas/supplierSchema';
 import { Drawer } from '../components/ui/Drawer';
 import { SupplierForm } from '../components/suppliers/SupplierForm';
 import { usePersistedState } from '../hooks/usePersistedState';
+import { SupplierDashboard } from '../components/suppliers/SupplierDashboard';
+import { SupplierAIAssistant } from '../components/suppliers/SupplierAIAssistant';
 
 export const Suppliers: React.FC = () => {
     const [filter, setFilter] = useState('');
@@ -40,7 +42,7 @@ export const Suppliers: React.FC = () => {
 
 
     // Inspector State
-    const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'incidents' | 'history' | 'comments'>('profile');
+    const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'incidents' | 'history' | 'comments' | 'intelligence'>('profile');
     const [supplierHistory, setSupplierHistory] = useState<SystemLog[]>([]);
 
     const editForm = useForm<SupplierFormData>({
@@ -152,17 +154,7 @@ export const Suppliers: React.FC = () => {
         return resolved.sort((a, b) => a.name.localeCompare(b.name));
     }, [suppliersRaw, usersRaw]);
 
-    const stats = React.useMemo(() => {
-        const total = suppliers.length;
-        const critical = suppliers.filter(s => s.criticality === Criticality.CRITICAL || s.criticality === Criticality.HIGH).length;
-        const avgScore = total > 0 ? Math.round(suppliers.reduce((acc, s) => acc + (s.securityScore || 0), 0) / total) : 0;
-        const today = new Date();
-        const expired = suppliers.filter(s => s.contractEnd && new Date(s.contractEnd) < today).length;
-        const highRisk = suppliers.filter(s => s.criticality === Criticality.HIGH || s.criticality === Criticality.CRITICAL).length;
-        const activeIncidents = incidentsRaw.filter(i => i.status === 'Open' || i.status === 'Investigating').length;
 
-        return { total, critical, avgScore, expired, highRisk, activeIncidents };
-    }, [suppliers, incidentsRaw]);
 
     // Import
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -473,41 +465,16 @@ export const Suppliers: React.FC = () => {
                 )}
             />
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white dark:bg-[#1A1D24] p-6 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-2.5 bg-blue-500/10 rounded-xl"><Building className="h-5 w-5 text-blue-500" /></div>
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-green-500/10 text-green-500">+12%</span>
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{stats.total}</div>
-                    <div className="text-sm text-slate-500">Fournisseurs Actifs</div>
-                </div>
-                <div className="bg-white dark:bg-[#1A1D24] p-6 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-2.5 bg-orange-500/10 rounded-xl"><ShieldAlert className="h-5 w-5 text-orange-500" /></div>
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-500">High Risk</span>
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{stats.critical}</div>
-                    <div className="text-sm text-slate-500">Critiques / Élevés</div>
-                </div>
-                <div className="bg-white dark:bg-[#1A1D24] p-6 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-2.5 bg-purple-500/10 rounded-xl"><Handshake className="h-5 w-5 text-purple-500" /></div>
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-500">Avg</span>
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{stats.avgScore}/100</div>
-                    <div className="text-sm text-slate-500">Score Moyen</div>
-                </div>
-                <div className="bg-white dark:bg-[#1A1D24] p-6 rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-2.5 bg-red-500/10 rounded-xl"><FileText className="h-5 w-5 text-red-500" /></div>
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-red-500/10 text-red-500">Action Req</span>
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{stats.expired}</div>
-                    <div className="text-sm text-slate-500">Contrats Expirés</div>
-                </div>
-            </div>
+            {/* Dashboard */}
+            <SupplierDashboard
+                suppliers={filteredSuppliers}
+                incidents={incidentsRaw}
+                onFilterChange={(filter) => {
+                    if (filter?.type === 'criticality') {
+                        // Implement filter logic if needed, currently just visual
+                    }
+                }}
+            />
 
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5">
                 <Search className="h-5 w-5 text-gray-400" />
@@ -731,6 +698,7 @@ export const Suppliers: React.FC = () => {
                             <ScrollableTabs
                                 tabs={[
                                     { id: 'profile', label: 'Profil', icon: Building },
+                                    { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
                                     { id: 'assessment', label: 'Évaluation Sécurité', icon: ClipboardList },
                                     { id: 'history', label: 'Historique', icon: History },
                                     { id: 'comments', label: 'Discussion', icon: MessageSquare },
@@ -798,6 +766,7 @@ export const Suppliers: React.FC = () => {
                                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                                         <div>
                                                             <span className="block text-xs text-slate-500 mb-1">Type Service</span>
+
                                                             <span className="font-bold text-slate-900 dark:text-white">{selectedSupplier.serviceType || 'N/A'}</span>
                                                         </div>
                                                         <div>
@@ -889,6 +858,15 @@ export const Suppliers: React.FC = () => {
                                         </>
                                     )}
                                 </div >
+                            )}
+
+                            {inspectorTab === 'intelligence' && (
+                                <div className="h-full overflow-y-auto p-6">
+                                    <SupplierAIAssistant
+                                        supplier={selectedSupplier}
+                                        onUpdate={(updates) => handleUpdate(updates as any)}
+                                    />
+                                </div>
                             )}
 
                             {
