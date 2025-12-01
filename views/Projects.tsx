@@ -8,7 +8,7 @@ import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, Pro
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -30,6 +30,7 @@ import { KanbanColumn } from '../components/projects/KanbanColumn';
 
 import { GanttChart } from '../components/projects/GanttChart';
 import { TaskFormModal } from '../components/projects/TaskFormModal';
+import { ProjectAIAssistant } from '../components/projects/ProjectAIAssistant';
 import '../components/projects/gantt.css';
 
 import { SubscriptionService } from '../services/subscriptionService';
@@ -96,7 +97,7 @@ export const Projects: React.FC = () => {
 
     // Inspector State
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt'>('overview');
+    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence'>('overview');
     const [taskViewMode, setTaskViewMode] = useState<'list' | 'board'>('list');
     const [projectHistory, setProjectHistory] = useState<SystemLog[]>([]);
     const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
@@ -845,11 +846,12 @@ export const Projects: React.FC = () => {
                                     { id: 'tasks', label: 'Tâches', icon: CheckSquare },
                                     { id: 'gantt', label: 'Gantt', icon: CalendarDays },
                                     { id: 'dashboard', label: 'Dashboard', icon: FolderKanban },
+                                    { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
                                     { id: 'history', label: 'Historique', icon: History },
                                     { id: 'comments', label: 'Commentaires', icon: MessageSquare }
                                 ]}
                                 activeTab={inspectorTab}
-                                onTabChange={(id) => setInspectorTab(id as 'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt')}
+                                onTabChange={(id) => setInspectorTab(id as any)}
                             />
                         </div>
 
@@ -1189,6 +1191,16 @@ export const Projects: React.FC = () => {
                                             }}
                                         />
                                     </div>
+                                </div>
+                            )}
+
+                            {inspectorTab === 'intelligence' && (
+                                <div className="h-full">
+                                    <ProjectAIAssistant
+                                        project={selectedProject}
+                                        risks={risks}
+                                        controls={controls}
+                                    />
                                 </div>
                             )}
                         </div>

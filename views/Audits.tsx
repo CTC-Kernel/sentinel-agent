@@ -14,10 +14,12 @@ import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
 import { AuditTeam } from '../components/audits/AuditTeam';
 import { Comments } from '../components/ui/Comments';
-import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, LayoutGrid, List } from '../components/ui/Icons';
+import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, LayoutGrid, List, BrainCircuit } from '../components/ui/Icons';
 
 import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
+import { AuditDashboard } from '../components/audits/AuditDashboard';
+import { AuditAIAssistant } from '../components/audits/AuditAIAssistant';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { PdfService } from '../services/PdfService';
@@ -88,6 +90,12 @@ export const Audits: React.FC = () => {
         { logError: true }
     );
 
+    const { data: allFindings, loading: findingsLoading } = useFirestoreCollection<Finding>(
+        'findings',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true }
+    );
+
     // Derived State
     const audits = React.useMemo(() => {
         return [...rawAudits].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime());
@@ -105,7 +113,7 @@ export const Audits: React.FC = () => {
         return [...rawRisks].sort((a, b) => b.score - a.score);
     }, [rawRisks]);
 
-    const loading = auditsLoading || controlsLoading || assetsLoading || risksLoading || usersLoading || docsLoading || projectsLoading;
+    const loading = auditsLoading || controlsLoading || assetsLoading || risksLoading || usersLoading || docsLoading || projectsLoading || findingsLoading;
 
     const [creationMode, setCreationMode] = useState(false);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
@@ -115,7 +123,7 @@ export const Audits: React.FC = () => {
     const [findings, setFindings] = useState<Finding[]>([]);
     const [showFindingsDrawer, setShowFindingsDrawer] = useState(false);
     const [checklist, setChecklist] = useState<AuditChecklist | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist' | 'scope' | 'collaboration' | 'evidence' | 'team'>('findings');
+    const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist' | 'scope' | 'collaboration' | 'evidence' | 'team' | 'intelligence'>('findings');
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -856,6 +864,19 @@ export const Audits: React.FC = () => {
                 )}
             />
 
+            {/* Dashboard */}
+            {!selectedAudit && (
+                <AuditDashboard
+                    audits={filteredAudits}
+                    findings={allFindings}
+                    onFilterChange={(filter) => {
+                        if (filter) {
+                            // Implement filter logic if needed
+                        }
+                    }}
+                />
+            )}
+
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
                 <Search className="h-5 w-5 text-gray-400" />
                 <input type="text" placeholder="Rechercher un audit..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
@@ -1086,7 +1107,8 @@ export const Audits: React.FC = () => {
                             <ScrollableTabs
                                 tabs={[
                                     { id: 'findings', label: 'Constats', icon: AlertOctagon },
-                                    { id: 'checklist', label: 'Checklist', icon: CheckSquare },
+                                    { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
+                                    { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
                                     { id: 'evidence', label: 'Preuves & Demandes', icon: FileText },
                                     { id: 'collaboration', label: 'Collaboration', icon: MessageSquare },
                                     { id: 'team', label: 'Équipe', icon: Users },
@@ -1223,6 +1245,16 @@ export const Audits: React.FC = () => {
                                         )}
                                     </div>
                                 </>
+                            )}
+
+                            {inspectorTab === 'intelligence' && (
+                                <div className="h-full overflow-y-auto p-6">
+                                    <AuditAIAssistant
+                                        audit={selectedAudit}
+                                        findings={findings}
+                                        onUpdate={(updates) => handleAuditFormSubmit({ ...selectedAudit, ...updates } as any)}
+                                    />
+                                </div>
                             )}
 
                             {inspectorTab === 'checklist' && (

@@ -10,7 +10,7 @@ import { logAction } from '../services/logger';
 import { NotificationService } from '../services/notificationService';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Sparkles, Loader2, Server, Activity } from '../components/ui/Icons';
+import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Server, Activity } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -19,12 +19,12 @@ import { Drawer } from '../components/ui/Drawer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { IncidentTimeline } from '../components/incidents/IncidentTimeline';
 import { IncidentPlaybook } from '../components/incidents/IncidentPlaybook';
+import { IncidentAIAssistant } from '../components/incidents/IncidentAIAssistant';
 import { IncidentForm } from '../components/incidents/IncidentForm';
 import { IncidentFormData } from '../schemas/incidentSchema';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { canEditResource, hasPermission, canDeleteResource } from '../utils/permissions';
-import { aiService } from '../services/aiService';
 import { hybridService } from '../services/hybridService';
 import { integrationService } from '../services/integrationService';
 
@@ -81,10 +81,6 @@ export const Incidents: React.FC = () => {
     const [urlReputationResult, setUrlReputationResult] = useState<{ safe: boolean; threatType?: string } | null>(null);
     const [checkingUrl, setCheckingUrl] = useState(false);
 
-    // AI State
-    const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
-    const [analyzing, setAnalyzing] = useState(false);
-
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;
@@ -96,10 +92,7 @@ export const Incidents: React.FC = () => {
         }
     }, [location.state, loading, incidents]);
 
-    // Reset AI analysis when incident changes
-    useEffect(() => {
-        setAiAnalysis(null);
-    }, [selectedIncident]);
+
 
     const handleCreate = async (data: IncidentFormData) => {
         if (!user?.organizationId || (!canEdit && !hasPermission(user, 'Incident', 'create'))) return;
@@ -208,34 +201,7 @@ export const Incidents: React.FC = () => {
 
     const canEdit = canEditResource(user, 'Incident');
 
-    const handleAnalyzeIncident = async () => {
-        if (!selectedIncident) return;
-        setAnalyzing(true);
-        try {
-            const prompt = `
-                Analyse cet incident de sécurité et fournis un rapport structuré :
-                
-                Titre: ${selectedIncident.title}
-                Description: ${selectedIncident.description}
-                Sévérité: ${selectedIncident.severity}
-                Catégorie: ${selectedIncident.category}
-                
-                Structure attendue :
-                1. Analyse de la cause racine probable (Root Cause Analysis)
-                2. Impact potentiel (Business & Technique)
-                3. Recommandations immédiates pour le confinement
-                4. Mesures préventives à long terme
-                
-                Réponds en Markdown.
-            `;
-            const response = await aiService.chatWithAI(prompt);
-            setAiAnalysis(response);
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Incidents.analyze', 'UNKNOWN_ERROR');
-        } finally {
-            setAnalyzing(false);
-        }
-    };
+
 
     const getBreadcrumbs = () => {
         const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Incidents', onClick: () => { setSelectedIncident(null); setCreationMode(false); setIsEditing(false); } }];
@@ -372,40 +338,7 @@ export const Incidents: React.FC = () => {
                                                         </div>
                                                     </div>
 
-                                                    {/* AI Analysis */}
-                                                    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 p-6 rounded-2xl border border-indigo-100 dark:border-white/5 shadow-sm relative overflow-hidden">
-                                                        <div className="absolute top-0 right-0 p-4 opacity-10">
-                                                            <BrainCircuit className="w-24 h-24 text-indigo-600" />
-                                                        </div>
-                                                        <div className="relative z-10">
-                                                            <div className="flex items-center justify-between mb-4">
-                                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                                                    <Sparkles className="h-5 w-5 text-indigo-500" />
-                                                                    Analyse IA & Recommandations
-                                                                </h3>
-                                                                {!aiAnalysis && (
-                                                                    <button
-                                                                        onClick={handleAnalyzeIncident}
-                                                                        disabled={analyzing}
-                                                                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-                                                                    >
-                                                                        {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4" />}
-                                                                        {analyzing ? 'Analyse en cours...' : 'Lancer l\'analyse'}
-                                                                    </button>
-                                                                )}
-                                                            </div>
 
-                                                            {aiAnalysis ? (
-                                                                <div className="prose dark:prose-invert max-w-none text-sm bg-white/60 dark:bg-black/20 p-4 rounded-xl backdrop-blur-sm">
-                                                                    <div dangerouslySetInnerHTML={{ __html: aiAnalysis.replace(/\n/g, '<br/>') }} />
-                                                                </div>
-                                                            ) : (
-                                                                <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                                                                    <p>Lancez l'analyse IA pour obtenir des recommandations de remédiation et une analyse de la cause racine.</p>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
 
                                                     {/* Impact & Assets */}
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -585,46 +518,7 @@ export const Incidents: React.FC = () => {
                                     )}
 
                                     {inspectorTab === 'ai' && (
-                                        <div className="animate-fade-in space-y-6">
-                                            {!aiAnalysis ? (
-                                                <div className="bg-slate-50 dark:bg-white/5 p-8 rounded-3xl border border-dashed border-slate-200 dark:border-white/10 text-center">
-                                                    <BrainCircuit className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                                                    <h3 className="font-bold text-slate-900 dark:text-white mb-2">Analyse IA de l'incident</h3>
-                                                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
-                                                        L'IA peut analyser les détails de l'incident pour identifier la cause racine probable et suggérer des mesures correctives.
-                                                    </p>
-                                                    <button
-                                                        onClick={handleAnalyzeIncident}
-                                                        disabled={analyzing}
-                                                        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2 mx-auto"
-                                                    >
-                                                        {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                                                        {analyzing ? 'Analyse en cours...' : 'Lancer l\'analyse'}
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-4">
-                                                    <div className="flex justify-between items-center">
-                                                        <h3 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
-                                                            <Sparkles className="h-5 w-5 text-indigo-500" /> Rapport d'analyse
-                                                        </h3>
-                                                        <button
-                                                            onClick={handleAnalyzeIncident}
-                                                            disabled={analyzing}
-                                                            className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
-                                                            title="Relancer l'analyse"
-                                                        >
-                                                            <Loader2 className={`h-4 w-4 ${analyzing ? 'animate-spin' : ''}`} />
-                                                        </button>
-                                                    </div>
-                                                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm prose dark:prose-invert max-w-none text-sm">
-                                                        {aiAnalysis.split('\n').map((line, i) => (
-                                                            <p key={i} className="mb-2 last:mb-0">{line}</p>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
+                                        <IncidentAIAssistant incident={selectedIncident} />
                                     )}
                                 </div>
                             </>
