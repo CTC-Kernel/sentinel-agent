@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, WifiOff, ArrowRight, FileSpreadsheet, BrainCircuit } from '../components/ui/Icons';
 import { collection, getDocs, query, orderBy, limit, where, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, enableNetwork, disableNetwork, getDoc, QueryDocumentSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db, storage, auth } from '../firebase';
 import { signOut, updatePassword } from 'firebase/auth';
 import { SystemLog, UserProfile } from '../types';
@@ -16,12 +17,14 @@ import { hybridService } from '../services/hybridService';
 import { Organization } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
 import { LegalModal } from '../components/ui/LegalModal';
-import { Scale } from 'lucide-react';
+import { Scale, Crown, ArrowRightLeft } from 'lucide-react';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, ProfileFormData, passwordSchema, PasswordFormData, organizationSchema, OrganizationFormData } from '../schemas/settingsSchema';
 import { integrationService } from '../services/integrationService';
+import { formatFileSize } from '../services/fileUploadService';
+
 
 export const Settings: React.FC = () => {
     const { theme, toggleTheme, user, setUser, addToast, demoMode, toggleDemoMode, language, setLanguage, t } = useStore();
@@ -69,7 +72,7 @@ export const Settings: React.FC = () => {
             if (breaches.length === 0) {
                 addToast("Aucune fuite de données détectée pour cet email", "success");
             } else {
-                addToast(`Attention : ${breaches.length} fuite(s) de données détectée(s) !`, "error");
+                addToast(`Attention: ${breaches.length} fuite(s) de données détectée(s)!`, "error");
                 // Could display details in a modal or alert
             }
         } catch (e) {
@@ -107,6 +110,42 @@ export const Settings: React.FC = () => {
     // Legal Modal State
     const [showLegalModal, setShowLegalModal] = useState(false);
     const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms'>('mentions');
+
+    // Transfer Ownership State
+    const [showTransferModal, setShowTransferModal] = useState(false);
+    const [transferTargetId, setTransferTargetId] = useState<string>('');
+    const [isTransferring, setIsTransferring] = useState(false);
+
+    const handleTransferOwnership = async () => {
+        if (!transferTargetId) {
+            addToast('Veuillez sélectionner un membre.', 'error');
+            return;
+        }
+
+        if (!currentOrg || !user || currentOrg.ownerId !== user.uid) return;
+
+        setIsTransferring(true);
+        try {
+            const functions = getFunctions();
+            const transferOwnership = httpsCallable(functions, 'transferOwnership');
+
+            await transferOwnership({
+                organizationId: currentOrg.id,
+                newOwnerId: transferTargetId
+            });
+
+            addToast('Propriété transférée avec succès.', 'success');
+            setShowTransferModal(false);
+
+            // Force reload to reflect changes (permissions, etc.)
+            window.location.reload();
+        } catch (error: any) {
+            console.error('Transfer failed:', error);
+            addToast('Erreur lors du transfert : ' + error.message, 'error');
+        } finally {
+            setIsTransferring(false);
+        }
+    };
 
     const fetchOrgDetails = useCallback(async () => {
         if (!user?.organizationId) return;
@@ -160,7 +199,7 @@ export const Settings: React.FC = () => {
         try {
             await getDocs(query(collection(db, 'users'), where('uid', '==', user?.uid)));
             const end = Date.now();
-            setNetworkLatency(`${end - start}ms`);
+            setNetworkLatency(`${end - start} ms`);
         } catch {
             setNetworkLatency('Erreur');
         }
@@ -279,7 +318,7 @@ export const Settings: React.FC = () => {
         setUploadingPhoto(true);
 
         try {
-            const storageRef = ref(storage, `avatars/${user.uid}_${file.name}`);
+            const storageRef = ref(storage, `avatars / ${user.uid}_${file.name} `);
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
 
@@ -312,7 +351,8 @@ export const Settings: React.FC = () => {
                 ...user,
                 displayName: data.displayName,
                 department: data.department || '',
-                role: data.role,
+                // Only allow role change if user has permission
+                role: hasPermission(user, 'User', 'manage') ? data.role : user.role,
                 geminiApiKey: data.geminiApiKey,
                 shodanApiKey: data.shodanApiKey,
                 hibpApiKey: data.hibpApiKey,
@@ -324,7 +364,8 @@ export const Settings: React.FC = () => {
                 await updateDoc(doc(db, 'users', docId), {
                     displayName: data.displayName,
                     department: data.department || '',
-                    role: data.role,
+                    // Only allow role change if user has permission
+                    role: hasPermission(user, 'User', 'manage') ? data.role : user.role,
                     geminiApiKey: data.geminiApiKey || '',
                     shodanApiKey: data.shodanApiKey || '',
                     hibpApiKey: data.hibpApiKey || '',
@@ -410,7 +451,7 @@ export const Settings: React.FC = () => {
     }
 
     const handleExport = async () => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || !hasPermission(user, 'Settings', 'manage')) return;
         setExporting(true);
         try {
             const collectionsToExport = ['assets', 'risks', 'controls', 'audits', 'users', 'documents', 'projects', 'incidents', 'suppliers', 'processing_activities', 'business_processes', 'bcp_drills'];
@@ -457,7 +498,7 @@ export const Settings: React.FC = () => {
     };
 
     const handleExportLogsCSV = async () => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || !hasPermission(user, 'Settings', 'manage')) return;
         setExportingLogs(true);
         try {
             const q = query(collection(db, 'system_logs'), where('organizationId', '==', user.organizationId), limit(1000));
@@ -500,7 +541,7 @@ export const Settings: React.FC = () => {
     };
 
     const handlePurgeLogs = async () => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || !hasPermission(user, 'Settings', 'manage')) return;
         setMaintenanceLoading(true);
         try {
             const q = query(collection(db, 'system_logs'), where('organizationId', '==', user.organizationId), limit(500));
@@ -567,8 +608,8 @@ export const Settings: React.FC = () => {
     };
 
     const handleManageSubscription = async () => {
-        if (!user?.organizationId) {
-            addToast("Aucune organisation associée à votre compte", "error");
+        if (!user?.organizationId || !hasPermission(user, 'Settings', 'manage')) {
+            addToast("Vous n'avez pas les permissions nécessaires", "error");
             return;
         }
         setSubLoading(true);
@@ -612,7 +653,7 @@ export const Settings: React.FC = () => {
         const confirmationWord = "SUPPRIMER";
         const input = prompt(`Pour confirmer la suppression DÉFINITIVE de l'organisation et de TOUTES ses données, tapez "${confirmationWord}" :`);
 
-        if (input === confirmationWord && user?.organizationId) {
+        if (input === confirmationWord && user?.organizationId && currentOrg?.ownerId === user?.uid) {
             setMaintenanceLoading(true);
             AccountService.deleteOrganization(user.organizationId)
                 .then(async () => {
@@ -899,16 +940,37 @@ export const Settings: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Data Sovereignty - Pro/Enterprise Only */}
+                    {/* Data Sovereignty & Storage */}
                     <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm flex flex-col h-full">
                         <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
-                                <ShieldAlert className="h-5 w-5 mr-3 text-emerald-500" />
-                                {t('settings.dataSovereignty') || 'Souveraineté des Données'}
+                                <Database className="h-5 w-5 mr-3 text-emerald-500" />
+                                Stockage & Souveraineté
                             </h3>
                         </div>
-                        <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                        <div className="p-6 flex-1 flex flex-col space-y-6">
+                            {/* Storage Usage */}
                             <div>
+                                <div className="flex justify-between items-end mb-2">
+                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Espace utilisé</span>
+                                    <span className="text-xs font-medium text-slate-500">
+                                        {formatFileSize(currentOrg?.storageUsed || 0)} / {formatFileSize(1024 * 1024 * 1024)}
+                                    </span>
+                                </div>
+                                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-500 ${(currentOrg?.storageUsed || 0) / (1024 * 1024 * 1024) > 0.9 ? 'bg-red-500' :
+                                                (currentOrg?.storageUsed || 0) / (1024 * 1024 * 1024) > 0.7 ? 'bg-orange-500' : 'bg-blue-500'
+                                            }`}
+                                        style={{ width: `${Math.min(100, ((currentOrg?.storageUsed || 0) / (1024 * 1024 * 1024)) * 100)}%` }}
+                                    ></div>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-2">
+                                    Quota de 1 Go (Discovery). Passez à Pro pour 10 Go.
+                                </p>
+                            </div>
+
+                            <div className="pt-6 border-t border-slate-100 dark:border-white/5">
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                                     Activez le stockage de vos données critiques sur des serveurs certifiés SecNumCloud (OVHcloud) pour une souveraineté totale.
                                 </p>
@@ -1097,7 +1159,7 @@ export const Settings: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-5 gap-4 text-center">
-                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.assets}</span><span className="text-[9px] font-bold text-slate-400 uppercase">Actifs</span></div>
+                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.assets}</span><span className="text-[9px] font-bold text-slate-400 uppercase flex justify-center items-center"><FileText className="h-2.5 w-2.5 mr-1" />Docs</span></div>
                                     <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.docs}</span><span className="text-[9px] font-bold text-slate-400 uppercase flex justify-center items-center"><FileText className="h-2.5 w-2.5 mr-1" />Docs</span></div>
                                     <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.risks}</span><span className="text-[9px] font-bold text-slate-400 uppercase flex justify-center items-center"><ShieldAlert className="h-2.5 w-2.5 mr-1" />Risques</span></div>
                                     <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.logs}</span><span className="text-[9px] font-bold text-slate-400 uppercase">Logs</span></div>
@@ -1136,7 +1198,20 @@ export const Settings: React.FC = () => {
                                                 {u.photoURL ? <img src={u.photoURL} className="w-full h-full rounded-full object-cover" /> : u.displayName?.charAt(0)}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-bold text-slate-900 dark:text-white">{u.displayName} {u.uid === user.uid && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded ml-1">Vous</span>}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-medium text-slate-900 dark:text-white">
+                                                        {u.displayName}
+                                                    </p>
+                                                    {currentOrg?.ownerId === u.uid && (
+                                                        <span className="px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full flex items-center gap-1">
+                                                            <Crown size={10} />
+                                                            Propriétaire
+                                                        </span>
+                                                    )}
+                                                    {u.uid === user?.uid && (
+                                                        <span className="text-xs text-slate-500 dark:text-slate-400">(Vous)</span>
+                                                    )}
+                                                </div>
                                                 <p className="text-xs text-slate-500">{u.email}</p>
                                             </div>
                                         </div>
@@ -1144,7 +1219,7 @@ export const Settings: React.FC = () => {
                                             <select
                                                 value={u.role}
                                                 onChange={(e) => handleUpdateUserRole(u.uid, e.target.value as UserProfile['role'])}
-                                                disabled={u.uid === user.uid}
+                                                disabled={u.uid === user.uid || currentOrg?.ownerId === u.uid}
                                                 className="text-xs font-bold bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500"
                                             >
                                                 <option value="admin">Admin</option>
@@ -1154,11 +1229,32 @@ export const Settings: React.FC = () => {
                                                 <option value="direction">Direction</option>
                                                 <option value="user">Utilisateur</option>
                                             </select>
-                                            {u.uid !== user.uid && (
-                                                <button onClick={() => handleRemoveUser(u.uid)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            )}
+                                            <div className="flex items-center gap-2">
+                                                {/* Transfer Ownership Button (Only for Owner) */}
+                                                {currentOrg?.ownerId === user?.uid && u.uid !== user?.uid && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setTransferTargetId(u.uid);
+                                                            setShowTransferModal(true);
+                                                        }}
+                                                        className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+                                                        title="Transférer la propriété"
+                                                    >
+                                                        <ArrowRightLeft size={18} />
+                                                    </button>
+                                                )}
+
+                                                {/* Remove Member Button */}
+                                                {(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) && u.uid !== user?.uid && currentOrg?.ownerId !== u.uid && (
+                                                    <button
+                                                        onClick={() => handleRemoveUser(u.uid)}
+                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                        title="Retirer le membre"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -1303,6 +1399,18 @@ export const Settings: React.FC = () => {
                     </div>
                 </div>
             </div >
+
+            <ConfirmModal
+                isOpen={showTransferModal}
+                onClose={() => setShowTransferModal(false)}
+                onConfirm={handleTransferOwnership}
+                title="Transférer la propriété"
+                message="Êtes-vous sûr de vouloir transférer la propriété de l'organisation à cet utilisateur ? Cette action est irréversible et vous perdrez votre statut de propriétaire."
+                confirmText="Transférer"
+                cancelText="Annuler"
+                type="danger"
+                loading={isTransferring}
+            />
 
             <LegalModal
                 isOpen={showLegalModal}

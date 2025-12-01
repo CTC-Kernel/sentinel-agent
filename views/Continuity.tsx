@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { businessProcessSchema, BusinessProcessFormData, bcpDrillSchema, BcpDrillFormData } from '../schemas/continuitySchema';
 import { canEditResource } from '../utils/permissions';
@@ -18,6 +18,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Comments } from '../components/ui/Comments';
 import { ErrorLogger } from '../services/errorLogger';
 import { CustomSelect } from '../components/ui/CustomSelect';
+import { AddToCalendar } from '../components/ui/AddToCalendar';
 import { Controller } from 'react-hook-form';
 
 export const Continuity: React.FC = () => {
@@ -71,6 +72,10 @@ export const Continuity: React.FC = () => {
             processId: '', date: new Date().toISOString().split('T')[0], type: 'Tabletop', result: 'Succès', notes: ''
         }
     });
+
+    const watchedDrillDate = useWatch({ control: drillForm.control, name: 'date' });
+    const watchedDrillType = useWatch({ control: drillForm.control, name: 'type' });
+    const watchedDrillProcessId = useWatch({ control: drillForm.control, name: 'processId' });
 
     const fetchData = useCallback(async () => {
         if (!user?.organizationId) {
@@ -198,6 +203,7 @@ export const Continuity: React.FC = () => {
     };
 
     const handleDeleteProcess = async (id: string, name: string) => {
+        if (!canEdit) return;
         try {
             await deleteDoc(doc(db, 'business_processes', id));
             setProcesses(prev => prev.filter(p => p.id !== id));
@@ -837,7 +843,21 @@ export const Continuity: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Date</label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Date</label>
+                                {watchedDrillDate && (
+                                    <AddToCalendar
+                                        event={{
+                                            title: `Exercice BCP : ${watchedDrillType || 'Non défini'}`,
+                                            description: `Exercice de continuité pour le processus : ${processes.find(p => p.id === watchedDrillProcessId)?.name || 'Inconnu'}`,
+                                            startTime: new Date(watchedDrillDate),
+                                            endTime: new Date(watchedDrillDate),
+                                            location: 'Sentinel GRC'
+                                        }}
+                                        className="scale-75 origin-right"
+                                    />
+                                )}
+                            </div>
                             <input type="date" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                                 {...drillForm.register('date')} />
                         </div>

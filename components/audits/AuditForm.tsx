@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
+import { AddToCalendar } from '../ui/AddToCalendar';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { auditSchema, AuditFormData } from '../../schemas/auditSchema';
 import { Audit, Control, Asset, Risk, UserProfile, Project } from '../../types';
@@ -47,6 +48,10 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             relatedProjectIds: []
         }
     });
+    const watchedName = useWatch({ control, name: 'name' });
+    const watchedType = useWatch({ control, name: 'type' });
+    const watchedScope = useWatch({ control, name: 'scope' });
+    const watchedDateScheduled = useWatch({ control, name: 'dateScheduled' });
 
     useEffect(() => {
         if (existingAudit) {
@@ -96,7 +101,21 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Date Prévue</label>
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Date Prévue</label>
+                        {watchedDateScheduled && watchedName && (
+                            <AddToCalendar
+                                event={{
+                                    title: watchedName,
+                                    description: `Audit ${watchedType} - ${watchedScope}`,
+                                    startTime: new Date(watchedDateScheduled),
+                                    endTime: new Date(watchedDateScheduled),
+                                    location: 'Sentinel GRC'
+                                }}
+                                className="scale-75 origin-right"
+                            />
+                        )}
+                    </div>
                     <input type="date" required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
                         {...register('dateScheduled')} />
                 </div>

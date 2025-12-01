@@ -41,7 +41,13 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             warrantyEnd: '',
             lifecycleStatus: 'Neuf',
             scope: [],
-            supplierId: ''
+            supplierId: '',
+            ipAddress: '',
+            version: '',
+            licenseExpiry: '',
+            email: '',
+            role: '',
+            department: ''
         }
     });
 
@@ -63,7 +69,12 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 lifecycleStatus: initialData.lifecycleStatus || 'Neuf',
                 scope: initialData.scope || [],
                 supplierId: initialData.supplierId || '',
-                // Preserve other fields if needed, but schema only covers these
+                ipAddress: initialData.ipAddress || '',
+                version: initialData.version || '',
+                licenseExpiry: initialData.licenseExpiry || '',
+                email: initialData.email || '',
+                role: initialData.role || '',
+                department: initialData.department || ''
             });
         }
     }, [initialData, reset]);
@@ -199,6 +210,74 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     </div>
                 </div>
             </div>
+
+            {/* Specialized Fields based on Type */}
+            {watch('type') === 'Matériel' && (
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Détails Matériel</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Controller
+                            name="ipAddress"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="Adresse IP" {...field} error={errors.ipAddress?.message} />
+                            )}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {watch('type') === 'Logiciel' && (
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Détails Logiciel</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Controller
+                            name="version"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="Version" {...field} />
+                            )}
+                        />
+                        <div>
+                            <label className="block text-xs font-bold uppercase text-slate-400 mb-2">Expiration Licence</label>
+                            <input
+                                type="date"
+                                className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium"
+                                {...control.register('licenseExpiry')}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {watch('type') === 'Humain' && (
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Détails Collaborateur</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Controller
+                            name="email"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="Email Professionnel" {...field} error={errors.email?.message} />
+                            )}
+                        />
+                        <Controller
+                            name="role"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="Fonction / Rôle" {...field} />
+                            )}
+                        />
+                        <Controller
+                            name="department"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="Département" {...field} />
+                            )}
+                        />
+                    </div>
+                </div>
+            )}
 
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center justify-between">

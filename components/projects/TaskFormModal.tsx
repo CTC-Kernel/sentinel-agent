@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Calendar, User, Clock, Target, AlertCircle } from 'lucide-react';
 import { ProjectTask, UserProfile } from '../../types';
+import { AddToCalendar } from '../../components/ui/AddToCalendar';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectTaskSchema, ProjectTaskFormData } from '../../schemas/projectSchema';
@@ -75,6 +76,10 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
     const watchedDependencies = useWatch({ control, name: 'dependencies' }) || [];
     const progress = useWatch({ control, name: 'progress' });
+    const watchedTitle = useWatch({ control, name: 'title' });
+    const watchedDescription = useWatch({ control, name: 'description' });
+    const watchedStartDate = useWatch({ control, name: 'startDate' });
+    const watchedDueDate = useWatch({ control, name: 'dueDate' });
 
     if (!isOpen) return null;
 
@@ -205,10 +210,24 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
-                                <Calendar className="h-3.5 w-3.5" />
-                                Date d'échéance
-                            </label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                                    <Calendar className="h-3.5 w-3.5" />
+                                    Date d'échéance
+                                </label>
+                                {watchedDueDate && watchedTitle && (
+                                    <AddToCalendar
+                                        event={{
+                                            title: watchedTitle,
+                                            description: watchedDescription,
+                                            startTime: watchedStartDate ? new Date(watchedStartDate) : new Date(watchedDueDate),
+                                            endTime: new Date(watchedDueDate),
+                                            location: 'Sentinel GRC'
+                                        }}
+                                        className="scale-75 origin-right"
+                                    />
+                                )}
+                            </div>
                             <input
                                 type="date"
                                 {...register('dueDate')}

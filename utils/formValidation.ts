@@ -5,10 +5,23 @@ export interface ValidationError {
     message: string;
 }
 
+type AssetValidationInput = {
+    name?: string;
+    category?: string;
+    criticality?: string;
+    value?: number;
+    owner?: string;
+    location?: string;
+    type?: Asset['type'];
+    confidentiality?: Asset['confidentiality'];
+    integrity?: Asset['integrity'];
+    availability?: Asset['availability'];
+};
+
 /**
  * Validate Asset data
  */
-export const validateAsset = (asset: Partial<Asset>): ValidationError[] => {
+export const validateAsset = (asset: AssetValidationInput): ValidationError[] => {
     const errors: ValidationError[] = [];
 
     if (!asset.name?.trim()) {
@@ -17,19 +30,31 @@ export const validateAsset = (asset: Partial<Asset>): ValidationError[] => {
         errors.push({ field: 'name', message: 'Le nom doit contenir au moins 3 caractères' });
     }
 
-    if (!asset.type) {
+    if (!asset.category?.trim()) {
+        errors.push({ field: 'category', message: 'La catégorie est requise' });
+    }
+
+    if (!asset.criticality?.trim()) {
+        errors.push({ field: 'criticality', message: 'La criticité est requise' });
+    }
+
+    if (asset.value !== undefined && asset.value <= 0) {
+        errors.push({ field: 'value', message: 'La valeur doit être supérieure à 0' });
+    }
+
+    if ('type' in asset && !asset.type) {
         errors.push({ field: 'type', message: 'Le type est requis' });
     }
 
-    if (!asset.confidentiality) {
+    if ('confidentiality' in asset && !asset.confidentiality) {
         errors.push({ field: 'confidentiality', message: 'La confidentialité est requise' });
     }
 
-    if (!asset.integrity) {
+    if ('integrity' in asset && !asset.integrity) {
         errors.push({ field: 'integrity', message: 'L\'intégrité est requise' });
     }
 
-    if (!asset.availability) {
+    if ('availability' in asset && !asset.availability) {
         errors.push({ field: 'availability', message: 'La disponibilité est requise' });
     }
 
@@ -44,6 +69,10 @@ export const validateRisk = (risk: Partial<Risk>): ValidationError[] => {
 
     if (!risk.threat?.trim()) {
         errors.push({ field: 'threat', message: 'La menace est requise' });
+    }
+
+    if (!risk.category?.trim()) {
+        errors.push({ field: 'category', message: 'La catégorie est requise' });
     }
 
     if (risk.probability !== undefined && (risk.probability < 1 || risk.probability > 5)) {

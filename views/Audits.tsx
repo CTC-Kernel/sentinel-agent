@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { Controller } from 'react-hook-form';
@@ -316,7 +317,7 @@ export const Audits: React.FC = () => {
     };
 
     const handleDeleteFinding = async (findingId: string) => {
-        if (!selectedAudit) return;
+        if (!selectedAudit || !canEdit) return;
         try {
             await deleteDoc(doc(db, 'findings', findingId));
             const newCount = Math.max(0, findings.length - 1);
@@ -341,6 +342,7 @@ export const Audits: React.FC = () => {
     };
 
     const handleDeleteAudit = async (id: string, name: string) => {
+        if (!canDeleteResource(user, 'Audit')) return;
         try {
             // Delete findings first (Cascade)
             const findingsQ = query(collection(db, 'findings'), where('auditId', '==', id));
@@ -365,7 +367,7 @@ export const Audits: React.FC = () => {
     };
 
     const generateChecklist = async () => {
-        if (!selectedAudit || !user?.organizationId) return;
+        if (!selectedAudit || !user?.organizationId || !canEdit) return;
 
         // Check if checklist already exists
         if (checklist) {
@@ -387,8 +389,8 @@ export const Audits: React.FC = () => {
 
             // Use AI to generate specific questions
             const aiResponse = await import('../services/aiService').then(m => m.aiService.generateAuditChecklist(
-                controlsToAudit.map(c => ({ code: c.code, name: c.name, description: c.description || '' })),
-                `Audit: ${selectedAudit.name} (${selectedAudit.type})`
+                `Audit: ${selectedAudit.name} (${selectedAudit.type})`,
+                controlsToAudit.map(c => ({ code: c.code, description: c.description || '' }))
             ));
 
             const questions: AuditQuestion[] = [];
@@ -440,7 +442,7 @@ export const Audits: React.FC = () => {
     };
 
     const handleChecklistAnswer = async (questionId: string, response: AuditQuestion['response'], comment?: string) => {
-        if (!checklist) return;
+        if (!checklist || !canEdit) return;
         const updatedQuestions = checklist.questions.map(q => q.id === questionId ? { ...q, response, comment: comment !== undefined ? comment : q.comment } : q);
         setChecklist({ ...checklist, questions: updatedQuestions });
         // Debounced save could be better, but direct update for now
@@ -450,7 +452,7 @@ export const Audits: React.FC = () => {
     };
 
     const markAllConform = async () => {
-        if (!checklist) return;
+        if (!checklist || !canEdit) return;
         const updatedQuestions = checklist.questions.map(q => ({ ...q, response: 'Conforme' as const }));
         setChecklist({ ...checklist, questions: updatedQuestions });
         try {
@@ -805,6 +807,10 @@ export const Audits: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
+            <Helmet>
+                <title>Gestion des Audits - Sentinel GRC</title>
+                <meta name="description" content="Planifiez et réalisez vos audits internes et externes ISO 27001." />
+            </Helmet>
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -909,9 +915,11 @@ export const Audits: React.FC = () => {
                                         </p>
                                     </div>
                                     <div className="flex gap-2 items-center">
-                                        <button onClick={() => selectedAudit && initiateDeleteAudit(selectedAudit.id, selectedAudit.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-red-500">
-                                            <Trash2 className="h-5 w-5" />
-                                        </button>
+                                        {canDeleteResource(user, 'Audit') && (
+                                            <button onClick={() => selectedAudit && initiateDeleteAudit(selectedAudit.id, selectedAudit.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-red-500">
+                                                <Trash2 className="h-5 w-5" />
+                                            </button>
+                                        )}
                                         <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-2"></div>
 
                                         {/* Validation Button (Segregation of Duties) */}
@@ -1107,14 +1115,18 @@ export const Audits: React.FC = () => {
                                                     <ClipboardCheck className="h-16 w-16 mx-auto text-slate-300 mb-4" />
                                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucune checklist générée</h3>
                                                     <p className="text-slate-500 mb-6 max-w-xs mx-auto">Générez une checklist basée sur les contrôles ISO 27001 pour guider votre audit.</p>
-                                                    <button onClick={generateChecklist} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">Générer la Checklist ISO 27001</button>
+                                                    {canEdit && (
+                                                        <button onClick={generateChecklist} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">Générer la Checklist ISO 27001</button>
+                                                    )}
                                                 </div>
                                             ) : (
                                                 <div className="space-y-4">
                                                     <div className="flex justify-between items-center mb-4">
                                                         <h3 className="font-bold text-slate-900 dark:text-white">Checklist de conformité</h3>
                                                         <div className="flex gap-2">
-                                                            <button onClick={markAllConform} className="text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors flex items-center"><CheckCheck className="h-3.5 w-3.5 mr-1" /> Tout Conforme</button>
+                                                            {canEdit && (
+                                                                <button onClick={markAllConform} className="text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors flex items-center"><CheckCheck className="h-3.5 w-3.5 mr-1" /> Tout Conforme</button>
+                                                            )}
                                                             <button onClick={generateSoA} className="text-xs font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors">Générer SoA</button>
                                                             <span className="text-xs font-medium bg-slate-100 dark:bg-white/10 px-2 py-1.5 rounded-lg flex items-center">{checklist.questions.filter(q => q.response === 'Conforme').length} / {checklist.questions.length} Conformes</span>
                                                         </div>
@@ -1127,6 +1139,7 @@ export const Audits: React.FC = () => {
                                                                     className={`text-xs font-bold px-2 py-1 rounded border-none outline-none cursor-pointer ${q.response === 'Conforme' ? 'text-green-600 bg-green-50' : q.response === 'Non-conforme' ? 'text-red-600 bg-red-50' : 'text-slate-500 bg-slate-100'}`}
                                                                     value={q.response}
                                                                     onChange={(e) => handleChecklistAnswer(q.id, e.target.value as AuditQuestion['response'])}
+                                                                    disabled={!canEdit}
                                                                 >
                                                                     <option value="Non-applicable">N/A</option>
                                                                     <option value="Conforme">Conforme</option>
@@ -1138,9 +1151,10 @@ export const Audits: React.FC = () => {
                                                             <input
                                                                 type="text"
                                                                 placeholder="Commentaire ou observation..."
-                                                                className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-black/20 rounded-xl border-none focus:ring-1 focus:ring-indigo-500 outline-none"
+                                                                className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-black/20 rounded-xl border-none focus:ring-1 focus:ring-indigo-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                                                                 value={q.comment || ''}
                                                                 onChange={(e) => handleChecklistAnswer(q.id, q.response, e.target.value)}
+                                                                disabled={!canEdit}
                                                             />
                                                         </div>
                                                     ))}

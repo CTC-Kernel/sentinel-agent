@@ -112,8 +112,11 @@ const getAllowedActions = (role: Role, resource: ResourceType): ActionType[] => 
     return Array.from(new Set([...expandActions(specific), ...expandActions(wildcard)]));
 };
 
-export const hasPermission = (user: UserProfile | null, resource: ResourceType, action: ActionType): boolean => {
+export const hasPermission = (user: UserProfile | null, resource: ResourceType, action: ActionType, orgOwnerId?: string): boolean => {
     if (!user) return false;
+
+    // Organization Owner has full access (effectively Super Admin for their Org)
+    if (orgOwnerId && user.uid === orgOwnerId) return true;
 
     // Fallback role if missing
     const userRole = user.role || 'user';
@@ -121,7 +124,7 @@ export const hasPermission = (user: UserProfile | null, resource: ResourceType, 
     if (userRole === 'admin') return true;
 
     const allowed = getAllowedActions(userRole, resource);
-    console.log(`Checking permission for ${userRole} on ${resource} action ${action}. Allowed: ${allowed}`);
+    // console.log(`Checking permission for ${userRole} on ${resource} action ${action}. Allowed: ${allowed}`);
     if (allowed.includes(action)) return true;
 
     // RSSI acts as super-user when not already covered by matrix wildcard
@@ -188,8 +191,12 @@ export const hasFeatureAccess = (planId: PlanType, feature: keyof PlanConfig['li
     return plan.limits.features[feature] || false;
 };
 
-export const canEditResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string): boolean => {
+export const canEditResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string, orgOwnerId?: string): boolean => {
     if (!user) return false;
+
+    // Owner check
+    if (orgOwnerId && user.uid === orgOwnerId) return true;
+
     if (user.role === 'admin' || user.role === 'rssi') return true;
 
     // Check plan limits for specific resources if needed
@@ -211,11 +218,15 @@ export const canEditResource = (user: UserProfile | null, resource: ResourceType
         if (auditorEditableResources.includes(resource)) return true;
     }
 
-    return hasPermission(user, resource, 'update');
+    return hasPermission(user, resource, 'update', orgOwnerId);
 };
 
-export const canDeleteResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string): boolean => {
+export const canDeleteResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string, orgOwnerId?: string): boolean => {
     if (!user) return false;
+
+    // Owner check
+    if (orgOwnerId && user.uid === orgOwnerId) return true;
+
     if (user.role === 'admin' || user.role === 'rssi') return true;
 
     if (resource === 'Document' && isResourceOwner(user, resourceOwnerId)) {
@@ -233,5 +244,5 @@ export const canDeleteResource = (user: UserProfile | null, resource: ResourceTy
     // Audit Rules: allow delete: if canDelete(orgId); -> Admin/RSSI only.
     // So Auditors CANNOT delete Audits in Firestore rules.
 
-    return hasPermission(user, resource, 'delete');
+    return hasPermission(user, resource, 'delete', orgOwnerId);
 };
