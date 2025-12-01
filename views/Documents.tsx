@@ -10,7 +10,7 @@ import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, l
 import { db } from '../firebase';
 import { Document, UserProfile, SystemLog, Control, Asset, Audit } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Save, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2 } from '../components/ui/Icons';
+import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Save, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, LayoutGrid, List } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { sendEmail } from '../services/emailService';
@@ -81,6 +81,9 @@ export const Documents: React.FC = () => {
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [filter, setFilter] = useState('');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [categoryFilter, setCategoryFilter] = useState<string>('all');
+    const [isDigitalSafeMode, setIsDigitalSafeMode] = useState(false);
 
     const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
     const [inspectorTab, setInspectorTab] = useState<'details' | 'history' | 'comments'>('details');
@@ -552,7 +555,12 @@ export const Documents: React.FC = () => {
         link.click();
     };
 
-    const filteredDocuments = documents.filter(d => d.title.toLowerCase().includes(filter.toLowerCase()));
+    const filteredDocuments = documents.filter(d => {
+        const matchesSearch = d.title.toLowerCase().includes(filter.toLowerCase());
+        const matchesCategory = categoryFilter === 'all' || d.type === categoryFilter;
+        const matchesDigitalSafe = !isDigitalSafeMode || d.isSecure;
+        return matchesSearch && matchesCategory && matchesDigitalSafe;
+    });
 
     const getStatusColor = (s: string) => {
         switch (s) {
@@ -604,77 +612,192 @@ export const Documents: React.FC = () => {
                 )}
             />
 
-            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200 dark:border-white/5">
-                <Search className="h-5 w-5 text-gray-400" />
-                <input type="text" placeholder="Rechercher un document..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
-                    value={filter} onChange={e => setFilter(e.target.value)} />
-                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
-                    <FileSpreadsheet className="h-4 w-4" />
-                </button>
+            <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+                {/* Search & Filters */}
+                <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200 dark:border-white/5">
+                    <Search className="h-5 w-5 text-gray-400" />
+                    <input type="text" placeholder="Rechercher un document..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
+                        value={filter} onChange={e => setFilter(e.target.value)} />
+                    <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
+                        <FileSpreadsheet className="h-4 w-4" />
+                    </button>
+                </div>
+
+                {/* View Toggles & Digital Safe */}
+                <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                    <button
+                        onClick={() => setIsDigitalSafeMode(!isDigitalSafeMode)}
+                        className={`flex items-center px-3 py-2 rounded-xl text-sm font-bold transition-all ${isDigitalSafeMode ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                    >
+                        <ShieldCheck className={`h-4 w-4 mr-2 ${isDigitalSafeMode ? 'text-emerald-600' : ''}`} />
+                        Coffre-fort
+                    </button>
+                    <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
+                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            <LayoutGrid className="h-4 w-4" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            <List className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {loading ? (
-                    <div className="col-span-full"><CardSkeleton count={3} /></div>
-                ) : filteredDocuments.length === 0 ? (
-                    <div className="col-span-full">
-                        <EmptyState
-                            icon={FileText}
-                            title="Aucun document"
-                            description={filter ? "Aucun document ne correspond à votre recherche." : "Centralisez vos politiques et procédures de sécurité."}
-                            actionLabel={filter ? undefined : "Nouveau Document"}
-                            onAction={filter ? undefined : () => {
-                                createForm.reset({
-                                    title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
-                                    owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
-                                    relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: [],
-                                    storageProvider: 'firebase', externalUrl: ''
-                                });
-                                setShowCreateModal(true);
-                            }}
-                        />
-                    </div>
-                ) : (
-                    filteredDocuments.map(docItem => (
-                        <div key={docItem.id} onClick={() => openInspector(docItem)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover cursor-pointer border border-white/50 dark:border-white/5 group flex flex-col">
-                            <div className="flex justify-between items-start mb-5">
-                                <div className="p-3 bg-blue-50 dark:bg-slate-800 rounded-2xl text-blue-600 shadow-inner">
-                                    <FileText className="h-6 w-6" />
-                                </div>
-                                <div className="flex gap-2">
-                                    {docItem.isSecure && (
-                                        <span className="px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50 flex items-center">
-                                            <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
-                                        </span>
-                                    )}
-                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(docItem.status)}`}>{docItem.status}</span>
-                                </div>
-                            </div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight line-clamp-2">{docItem.title}</h3>
-                            <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-6">
-                                <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md mr-2">v{docItem.version}</span>
-                                <span>{docItem.type}</span>
-                            </div>
-                            <div className="mt-auto pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center">
-                                <div className="flex items-center text-xs text-slate-400 font-medium" title="Propriétaire">
-                                    <Users className="h-3.5 w-3.5 mr-1.5" /> {docItem.owner}
-                                </div>
-                                {docItem.url && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            docItem.isSecure ? handleSecureView(docItem) : window.open(docItem.url, '_blank');
-                                        }}
-                                        className="p-1 text-slate-300 hover:text-blue-500 transition-colors"
-                                    >
-                                        {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))
-                )}
+            {/* Categories Tabs */}
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                {['all', 'Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(cat => (
+                    <button
+                        key={cat}
+                        onClick={() => setCategoryFilter(cat)}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${categoryFilter === cat
+                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg'
+                            : 'bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/5'
+                            }`}
+                    >
+                        {cat === 'all' ? 'Tous' : cat}
+                    </button>
+                ))}
             </div>
+
+            {viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {loading ? (
+                        <div className="col-span-full"><CardSkeleton count={3} /></div>
+                    ) : filteredDocuments.length === 0 ? (
+                        <div className="col-span-full">
+                            <EmptyState
+                                icon={FileText}
+                                title="Aucun document"
+                                description={filter ? "Aucun document ne correspond à votre recherche." : "Centralisez vos politiques et procédures de sécurité."}
+                                actionLabel={filter ? undefined : "Nouveau Document"}
+                                onAction={filter ? undefined : () => {
+                                    createForm.reset({
+                                        title: '', type: 'Politique', version: '1.0', status: 'Brouillon', workflowStatus: 'Draft',
+                                        owner: user?.displayName || '', ownerId: user?.uid || '', nextReviewDate: '', readBy: [], reviewers: [], approvers: [],
+                                        relatedControlIds: [], relatedAssetIds: [], relatedAuditIds: [],
+                                        storageProvider: 'firebase', externalUrl: ''
+                                    });
+                                    setShowCreateModal(true);
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        filteredDocuments.map(docItem => (
+                            <div key={docItem.id} onClick={() => openInspector(docItem)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover cursor-pointer border border-white/50 dark:border-white/5 group flex flex-col">
+                                <div className="flex justify-between items-start mb-5">
+                                    <div className="p-3 bg-blue-50 dark:bg-slate-800 rounded-2xl text-blue-600 shadow-inner">
+                                        <FileText className="h-6 w-6" />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        {docItem.isSecure && (
+                                            <span className="px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50 flex items-center">
+                                                <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
+                                            </span>
+                                        )}
+                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(docItem.status)}`}>{docItem.status}</span>
+                                    </div>
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight line-clamp-2">{docItem.title}</h3>
+                                <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-6">
+                                    <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md mr-2">v{docItem.version}</span>
+                                    <span>{docItem.type}</span>
+                                </div>
+                                <div className="mt-auto pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center">
+                                    <div className="flex items-center text-xs text-slate-400 font-medium" title="Propriétaire">
+                                        <Users className="h-3.5 w-3.5 mr-1.5" /> {docItem.owner}
+                                    </div>
+                                    {docItem.url && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                docItem.isSecure ? handleSecureView(docItem) : window.open(docItem.url, '_blank');
+                                            }}
+                                            className="p-1 text-slate-300 hover:text-blue-500 transition-colors"
+                                        >
+                                            {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            ) : (
+                <div className="glass-panel rounded-3xl overflow-hidden border border-slate-200 dark:border-white/5 shadow-sm">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Titre</th>
+                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Type</th>
+                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Version</th>
+                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Statut</th>
+                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Propriétaire</th>
+                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                {loading ? (
+                                    <tr><td colSpan={6} className="p-8 text-center text-slate-500">Chargement...</td></tr>
+                                ) : filteredDocuments.length === 0 ? (
+                                    <tr><td colSpan={6} className="p-8 text-center text-slate-500">Aucun document trouvé.</td></tr>
+                                ) : (
+                                    filteredDocuments.map(docItem => (
+                                        <tr key={docItem.id} onClick={() => openInspector(docItem)} className="hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-colors group">
+                                            <td className="p-4">
+                                                <div className="flex items-center">
+                                                    <div className="p-2 bg-blue-50 dark:bg-slate-800 rounded-lg text-blue-600 mr-3">
+                                                        <FileText className="h-4 w-4" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-slate-900 dark:text-white text-sm">{docItem.title}</div>
+                                                        {docItem.isSecure && (
+                                                            <div className="flex items-center text-[10px] text-emerald-600 font-bold mt-0.5">
+                                                                <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{docItem.type}</td>
+                                            <td className="p-4 text-sm text-slate-600 dark:text-slate-400">v{docItem.version}</td>
+                                            <td className="p-4">
+                                                <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(docItem.status)}`}>{docItem.status}</span>
+                                            </td>
+                                            <td className="p-4 text-sm text-slate-600 dark:text-slate-400">
+                                                <div className="flex items-center">
+                                                    <Users className="h-3 w-3 mr-1.5 text-slate-400" />
+                                                    {docItem.owner}
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-right">
+                                                {docItem.url && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            docItem.isSecure ? handleSecureView(docItem) : window.open(docItem.url, '_blank');
+                                                        }}
+                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                    >
+                                                        {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* Inspector */}
             {selectedDocument && createPortal(

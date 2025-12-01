@@ -26,6 +26,9 @@ import { useHotkeys } from './hooks/useHotkeys';
 import { LoadingScreen } from './components/ui/LoadingScreen';
 import { CookieConsent } from './components/ui/CookieConsent';
 import { ShortcutsHelp } from './components/ui/ShortcutsHelp';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from './firebase';
+import { CustomRole } from './types';
 
 // Lazy Loading des Vues
 const Dashboard = React.lazy(() => import('./views/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -103,6 +106,22 @@ const AppLayout: React.FC = () => {
             window.removeEventListener('offline', handleOffline);
         };
     }, [theme]);
+
+    // Fetch Custom Roles
+    useEffect(() => {
+        if (!user?.organizationId) return;
+        const fetchRoles = async () => {
+            try {
+                const q = query(collection(db, 'custom_roles'), where('organizationId', '==', user.organizationId));
+                const snapshot = await getDocs(q);
+                const roles = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as CustomRole));
+                useStore.getState().setCustomRoles(roles);
+            } catch (error) {
+                console.error("Failed to fetch custom roles", error);
+            }
+        };
+        fetchRoles();
+    }, [user?.organizationId]);
 
     // Notification automation
     useEffect(() => {

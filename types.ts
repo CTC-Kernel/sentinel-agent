@@ -525,6 +525,16 @@ export interface UserProfile {
   safeBrowsingApiKey?: string;
 }
 
+export interface CustomRole {
+  id: string;
+  organizationId: string;
+  name: string;
+  description?: string;
+  permissions: Partial<Record<string, ('create' | 'read' | 'update' | 'delete' | 'manage')[]>>;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Invitation {
   id: string;
   email: string;
