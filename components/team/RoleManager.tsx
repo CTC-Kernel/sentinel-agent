@@ -5,7 +5,7 @@ import { CustomRole, ResourceType, ActionType } from '../../types';
 import { useStore } from '../../store';
 import { Drawer } from '../ui/Drawer';
 import { ConfirmModal } from '../ui/ConfirmModal';
-import { Plus, Edit, Trash2, Shield, Check, X } from '../ui/Icons';
+import { Plus, Edit, Trash2, Shield, Check } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 
 interface RoleManagerProps {

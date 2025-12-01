@@ -138,7 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                         if (!userData.organizationId && !userData.onboardingCompleted) {
                             // Utilisateur sans orga = Nouveau ou Onboarding non fini
-                            console.log('User has no organizationId, ready for onboarding');
+                            ErrorLogger.info('User has no organizationId, ready for onboarding', 'AuthContext.handleUser');
                         }
 
                         setUser(userData);
@@ -170,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         setLoading(false);
                     } else {
                         // PROFIL INEXISTANT -> CRÉATION AUTOMATIQUE
-                        console.log('No user profile found, creating default profile...');
+                        ErrorLogger.info('No user profile found, creating default profile', 'AuthContext.handleUser');
 
                         try {
                             // Vérifier s'il y a une invitation en attente
@@ -189,7 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                             if (!inviteSnap.empty) {
                                 const invite = inviteSnap.docs[0].data() as Invitation;
-                                console.log('Invitation found, linking to organization:', invite.organizationName);
+                                ErrorLogger.info('Invitation found, linking to organization', 'AuthContext.handleUser', { metadata: { organizationName: invite.organizationName } });
                                 initialData = {
                                     ...initialData,
                                     organizationId: invite.organizationId,

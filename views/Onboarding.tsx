@@ -197,7 +197,7 @@ export const Onboarding: React.FC = () => {
                 form.setValue('organizationName', user.organizationName);
             }
         }
-    }, [user, navigate, form]);
+    }, [user, navigate, form, refreshSession, setUser]);
 
     const handleSearchOrg = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -212,7 +212,7 @@ export const CalendarService = {
 
     // --- Export Helpers ---
 
-    google: (event: CalendarEvent): string => {
+    google: (event: { title: string; description?: string; start: Date; end: Date; location?: string }): string => {
         const start = event.start.toISOString().replace(/-|:|\.\d\d\d/g, "");
         const end = event.end.toISOString().replace(/-|:|\.\d\d\d/g, "");
 
@@ -226,7 +226,7 @@ export const CalendarService = {
         return url.toString();
     },
 
-    outlook: (event: CalendarEvent): string => {
+    outlook: (event: { title: string; description?: string; start: Date; end: Date; location?: string }): string => {
         const url = new URL('https://outlook.live.com/calendar/0/deeplink/compose');
         url.searchParams.append('subject', event.title);
         url.searchParams.append('startdt', event.start.toISOString());
@@ -237,7 +237,7 @@ export const CalendarService = {
         return url.toString();
     },
 
-    ics: (event: CalendarEvent): string => {
+    ics: (event: { title: string; description?: string; start: Date; end: Date; location?: string; id?: string }): string => {
         const start = event.start.toISOString().replace(/-|:|\.\d\d\d/g, "");
         const end = event.end.toISOString().replace(/-|:|\.\d\d\d/g, "");
 
@@ -246,7 +246,7 @@ export const CalendarService = {
             'VERSION:2.0',
             'PRODID:-//Sentinel GRC//EN',
             'BEGIN:VEVENT',
-            `UID:${event.id}@sentinel-grc.com`,
+            `UID:${event.id || 'event'}@sentinel-grc.com`,
             `DTSTAMP:${start}`,
             `DTSTART:${start}`,
             `DTEND:${end}`,
@@ -261,7 +261,7 @@ export const CalendarService = {
         return URL.createObjectURL(blob);
     },
 
-    downloadIcs: (event: CalendarEvent) => {
+    downloadIcs: (event: { title: string; description?: string; start: Date; end: Date; location?: string; id?: string }) => {
         const url = CalendarService.ics(event);
         const link = document.createElement('a');
         link.href = url;

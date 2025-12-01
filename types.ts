@@ -6,6 +6,9 @@ export enum Criticality {
   CRITICAL = 'Critique'
 }
 
+export type ResourceType = 'Asset' | 'Risk' | 'Project' | 'Audit' | 'Document' | 'Control' | 'Incident' | 'Supplier' | 'BusinessProcess';
+export type ActionType = 'read' | 'create' | 'update' | 'delete' | 'manage';
+
 export interface Asset {
   id: string;
   organizationId: string;

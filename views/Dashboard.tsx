@@ -274,8 +274,8 @@ export const Dashboard: React.FC = () => {
                 getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId)))
             ]);
             let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Sentinel GRC//FR\n";
-            auditsSnap.forEach(doc => { const d = doc.data(); const date = d.dateScheduled ? d.dateScheduled.replace(/-/g, '') : ''; if (date) icsContent += `BEGIN:VEVENT\nSUMMARY:Audit: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:Auditeur: ${d.auditor}\nEND:VEVENT\n`; });
-            projectsSnap.forEach(doc => { const d = doc.data(); const date = d.dueDate ? d.dueDate.replace(/-/g, '') : ''; if (date) icsContent += `BEGIN:VEVENT\nSUMMARY:Projet: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:Manager: ${d.manager}\nEND:VEVENT\n`; });
+            auditsSnap.forEach(doc => { const d = doc.data(); const date = d.dateScheduled ? d.dateScheduled.replace(/-/g, '') : ''; if (date) icsContent += `BEGIN:VEVENT\nSUMMARY:${t('dashboard.icsAudit')}: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:${t('dashboard.icsAuditor')}: ${d.auditor}\nEND:VEVENT\n`; });
+            projectsSnap.forEach(doc => { const d = doc.data(); const date = d.dueDate ? d.dueDate.replace(/-/g, '') : ''; if (date) icsContent += `BEGIN:VEVENT\nSUMMARY:${t('dashboard.icsProject')}: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:${t('dashboard.icsManager')}: ${d.manager}\nEND:VEVENT\n`; });
             icsContent += "END:VCALENDAR";
             const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })); link.download = 'sentinel_calendar.ics'; link.click(); addToast(t('dashboard.calendarExported'), "success");
         } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Dashboard.generateICal', 'UNKNOWN_ERROR'); }
@@ -286,7 +286,7 @@ export const Dashboard: React.FC = () => {
             {
                 title: t('dashboard.reportTitle'),
                 subtitle: t('dashboard.generatedOn').replace('{date}', new Date().toLocaleDateString()),
-                filename: 'rapport-executif.pdf'
+                filename: t('dashboard.reportFilename')
             },
             (doc, startY) => {
                 let y = startY;
@@ -356,8 +356,8 @@ export const Dashboard: React.FC = () => {
     return (
         <div className="space-y-8 animate-fade-in pb-10">
             <Helmet>
-                <title>Tableau de Bord - Sentinel GRC</title>
-                <meta name="description" content="Vue d'ensemble de votre posture de sécurité, conformité ISO 27001 et risques critiques." />
+                <title>{t('dashboard.metaTitle')}</title>
+                <meta name="description" content={t('dashboard.metaDescription')} />
             </Helmet>
 
             <div className="relative overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-2xl ring-1 ring-slate-200/60 dark:ring-white/5 transition-all duration-500 group">

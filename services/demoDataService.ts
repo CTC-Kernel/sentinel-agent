@@ -3,7 +3,7 @@ import { writeBatch, doc } from 'firebase/firestore';
 import {
     Asset, Risk, Control, Project, Audit, Supplier, Incident,
     Document, SystemLog, Criticality, BusinessProcess, ProcessingActivity,
-    BcpDrill, RiskHistory, RiskTreatment
+    BcpDrill
 } from '../types';
 
 export class DemoDataService {
