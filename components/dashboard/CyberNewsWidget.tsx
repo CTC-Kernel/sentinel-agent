@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { integrationService, CyberNewsItem } from '../../services/integrationService';
 import { Shield, ExternalLink, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS } from 'date-fns/locale';
+import { useStore } from '../../store';
 
 export const CyberNewsWidget: React.FC = () => {
+    const { t, language } = useStore();
     const [news, setNews] = useState<CyberNewsItem[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -32,17 +34,25 @@ export const CyberNewsWidget: React.FC = () => {
         fetchNews();
     }, []);
 
+    const formatDate = (dateStr: string) => {
+        try {
+            return format(new Date(dateStr), 'dd MMM yyyy', { locale: language === 'fr' ? fr : enUS });
+        } catch {
+            return dateStr;
+        }
+    };
+
     return (
         <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                     <Shield className="w-5 h-5 mr-2 text-indigo-500" />
-                    Veille Cyber & Réglementaire
+                    {t('dashboard.cyberNewsTitle')}
                 </h3>
                 <button
                     onClick={fetchNews}
                     className={`p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors ${loading ? 'animate-spin' : ''}`}
-                    title="Actualiser"
+                    title={t('dashboard.refresh')}
                 >
                     <RefreshCw className="w-4 h-4 text-slate-400" />
                 </button>
@@ -78,25 +88,17 @@ export const CyberNewsWidget: React.FC = () => {
                                     {item.source}
                                 </span>
                                 <span>
-                                    {tryFormatDate(item.pubDate)}
+                                    {formatDate(item.pubDate)}
                                 </span>
                             </div>
                         </a>
                     ))
                 ) : (
                     <div className="text-center text-slate-500 py-8 text-sm">
-                        Aucune actualité disponible.
+                        {t('dashboard.noNews')}
                     </div>
                 )}
             </div>
         </div>
     );
 };
-
-function tryFormatDate(dateStr: string) {
-    try {
-        return format(new Date(dateStr), 'dd MMM yyyy', { locale: fr });
-    } catch {
-        return dateStr;
-    }
-}

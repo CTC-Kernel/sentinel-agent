@@ -19,7 +19,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Comments } from '../components/ui/Comments';
 import { AddToCalendar } from '../components/ui/AddToCalendar';
 import { externalStorageService } from '../services/externalStorageService';
-import { CardSkeleton } from '../components/ui/Skeleton';
+import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FileUploader } from '../components/ui/FileUploader';
 import { FilePreview } from '../components/ui/FilePreview';
@@ -745,9 +745,43 @@ export const Documents: React.FC = () => {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                 {loading ? (
-                                    <tr><td colSpan={6} className="p-8 text-center text-slate-500">Chargement...</td></tr>
+                                    <tr>
+                                        <td colSpan={6}>
+                                            <TableSkeleton rows={5} columns={6} />
+                                        </td>
+                                    </tr>
                                 ) : filteredDocuments.length === 0 ? (
-                                    <tr><td colSpan={6} className="p-8 text-center text-slate-500">Aucun document trouvé.</td></tr>
+                                    <tr>
+                                        <td colSpan={6}>
+                                            <EmptyState
+                                                icon={FileText}
+                                                title="Aucun document"
+                                                description={filter ? "Aucun document ne correspond à votre recherche." : "Centralisez vos politiques et procédures de sécurité."}
+                                                actionLabel={filter ? undefined : "Nouveau Document"}
+                                                onAction={filter ? undefined : () => {
+                                                    createForm.reset({
+                                                        title: '',
+                                                        type: 'Politique',
+                                                        version: '1.0',
+                                                        status: 'Brouillon',
+                                                        workflowStatus: 'Draft',
+                                                        owner: user?.displayName || '',
+                                                        ownerId: user?.uid || '',
+                                                        nextReviewDate: '',
+                                                        readBy: [],
+                                                        reviewers: [],
+                                                        approvers: [],
+                                                        relatedControlIds: [],
+                                                        relatedAssetIds: [],
+                                                        relatedAuditIds: [],
+                                                        storageProvider: 'firebase',
+                                                        externalUrl: ''
+                                                    });
+                                                    setShowCreateModal(true);
+                                                }}
+                                            />
+                                        </td>
+                                    </tr>
                                 ) : (
                                     filteredDocuments.map(docItem => (
                                         <tr key={docItem.id} onClick={() => openInspector(docItem)} className="hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-colors group">
@@ -1010,10 +1044,13 @@ export const Documents: React.FC = () => {
                                                             {selectedDocument.nextReviewDate && (
                                                                 <AddToCalendar
                                                                     event={{
+                                                                        id: selectedDocument.id,
                                                                         title: `Révision : ${selectedDocument.title}`,
                                                                         description: `Révision du document ${selectedDocument.title} (v${selectedDocument.version})`,
-                                                                        startTime: new Date(selectedDocument.nextReviewDate),
-                                                                        endTime: new Date(selectedDocument.nextReviewDate),
+                                                                        start: new Date(selectedDocument.nextReviewDate),
+                                                                        end: new Date(new Date(selectedDocument.nextReviewDate).getTime() + 60 * 60 * 1000),
+                                                                        type: 'compliance',
+                                                                        color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
                                                                         location: 'Sentinel GRC'
                                                                     }}
                                                                     className="w-full [&>button]:w-full [&>button]:justify-center"
