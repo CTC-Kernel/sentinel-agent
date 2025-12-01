@@ -117,7 +117,9 @@ import {
   MonitorPlay,
   HardDrive,
   RotateCcw,
-  Circle
+  Circle,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 
 export {
@@ -238,5 +240,7 @@ export {
   MonitorPlay,
   HardDrive,
   RotateCcw,
-  Circle
+  Circle,
+  LayoutGrid,
+  List
 };

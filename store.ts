@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { UserProfile, Organization } from './types';
+import { UserProfile, Organization, CustomRole } from './types';
 import { toast } from 'sonner';
 
 export interface ToastMessage {
@@ -11,11 +11,13 @@ export interface ToastMessage {
 interface AppState {
   user: UserProfile | null;
   organization: Organization | null;
+  customRoles: CustomRole[];
   theme: 'light' | 'dark';
   isLoading: boolean;
   toasts: ToastMessage[];
   setUser: (user: UserProfile | null) => void;
   setOrganization: (org: Organization | null) => void;
+  setCustomRoles: (roles: CustomRole[]) => void;
   setTheme: (theme: 'light' | 'dark') => void;
   toggleTheme: () => void;
   setLoading: (loading: boolean) => void;
@@ -33,6 +35,7 @@ import { translations } from './i18n/translations';
 export const useStore = create<AppState>((set, get) => ({
   user: null,
   organization: null,
+  customRoles: [],
   theme: (localStorage.getItem('theme') as 'light' | 'dark') || 'light',
   isLoading: true,
   toasts: [],
@@ -40,6 +43,7 @@ export const useStore = create<AppState>((set, get) => ({
   language: (localStorage.getItem('language') as 'fr' | 'en') || 'fr',
   setUser: (user) => set({ user }),
   setOrganization: (organization) => set({ organization }),
+  setCustomRoles: (customRoles) => set({ customRoles }),
   setTheme: (theme) => set(() => {
     localStorage.setItem('theme', theme);
     if (theme === 'dark') {
