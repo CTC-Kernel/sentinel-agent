@@ -7,7 +7,7 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit, LayoutGrid, List } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { Badge } from '../components/ui/Badge';
 
@@ -20,7 +20,7 @@ import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
 import { PdfService } from '../services/PdfService';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { CardSkeleton } from '../components/ui/Skeleton';
+import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { RiskDashboard } from '../components/risks/RiskDashboard';
 import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
@@ -99,7 +99,7 @@ export const Risks: React.FC = () => {
     const [creationMode, setCreationMode] = useState(false);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [filter, setFilter] = usePersistedState<string>('risks_filter', '');
-    const [viewMode, setViewMode] = usePersistedState<'list' | 'matrix'>('risks_view_mode', 'list');
+    const [viewMode, setViewMode] = usePersistedState<'list' | 'grid' | 'matrix'>('risks_view_mode_v2', 'grid');
 
     // Matrix Filter State
     const [matrixFilter, setMatrixFilter] = usePersistedState<{ p: number, i: number } | null>('risks_matrix_filter', null);
@@ -747,7 +747,11 @@ export const Risks: React.FC = () => {
                     <button onClick={exportPDF} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><FileText className="h-4 w-4 mr-2" /> Registre (PDF)</button>
                     <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>
                     <button onClick={handleExportCSV} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"><FileSpreadsheet className="h-4 w-4" /></button>
-                    <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm ml-2"><button onClick={() => setViewMode('list')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'list' ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-700'}`}>Liste</button><button onClick={() => setViewMode('matrix')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center ${viewMode === 'matrix' ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-700'}`}><LayoutDashboard className="h-4 w-4 mr-2" /> Matrice</button></div>
+                    <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm ml-2">
+                        <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
+                        <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                        <button onClick={() => setViewMode('matrix')} className={`p-2 rounded-lg transition-all ${viewMode === 'matrix' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Matrice"><LayoutDashboard className="h-4 w-4" /></button>
+                    </div>
                 </div>
             </div>
 
@@ -815,6 +819,82 @@ export const Risks: React.FC = () => {
                             <div className="w-8"></div>
                             <div className="text-center font-bold text-xs text-slate-400 uppercase tracking-widest">Impact</div>
                         </div>
+                    </div>
+                </div>
+            ) : viewMode === 'list' ? (
+                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
+                                <tr>
+                                    <th className="px-8 py-4">Menace</th>
+                                    <th className="px-6 py-4">Vulnérabilité</th>
+                                    <th className="px-6 py-4">Actif</th>
+                                    <th className="px-6 py-4">Score</th>
+                                    <th className="px-6 py-4">Stratégie</th>
+                                    <th className="px-6 py-4">Statut</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                {loading ? (
+                                    <tr><td colSpan={7}><TableSkeleton rows={5} columns={7} /></td></tr>
+                                ) : filteredRisks.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7}>
+                                            <EmptyState
+                                                icon={ShieldAlert}
+                                                title="Aucun risque identifié"
+                                                description={filter ? "Aucun risque ne correspond à votre recherche." : "Identifiez et évaluez les risques pour protéger votre organisation."}
+                                                actionLabel={filter ? undefined : "Nouveau Risque"}
+                                                onAction={filter ? undefined : openCreationDrawer}
+                                            />
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredRisks.map(risk => (
+                                        <tr key={risk.id} onClick={() => openInspector(risk)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]">
+                                            <td className="px-8 py-5">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300">
+                                                        <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-slate-900 dark:text-white text-[15px]">{risk.threat}</div>
+                                                        <div className="text-xs text-slate-500 font-medium">{risk.owner || 'Non assigné'}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium max-w-xs truncate" title={risk.vulnerability}>{risk.vulnerability}</td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">{getAssetName(risk.assetId)}</td>
+                                            <td className="px-6 py-5">
+                                                <Badge status={getRiskLevel(risk.score).status} variant="soft" size="sm">
+                                                    {risk.score}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">{risk.strategy}</td>
+                                            <td className="px-6 py-5">
+                                                <Badge status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'} variant="outline">
+                                                    {risk.status}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                                                {canEdit && (
+                                                    <>
+                                                        <button onClick={() => { setSelectedRisk(risk); setIsEditing(true); }} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
+                                                            <Edit className="h-4 w-4" />
+                                                        </button>
+                                                        <button onClick={() => initiateDelete(risk.id, risk.threat)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             ) : (

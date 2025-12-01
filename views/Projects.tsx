@@ -8,7 +8,7 @@ import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, Pro
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -20,7 +20,7 @@ import { NotificationService } from '../services/notificationService';
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PdfService } from '../services/PdfService';
-import { CardSkeleton } from '../components/ui/Skeleton';
+import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { generateICS, downloadICS } from '../utils/calendar';
 import { ProjectDashboard } from '../components/projects/ProjectDashboard';
@@ -40,6 +40,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 export const Projects: React.FC = () => {
     const navigate = useNavigate();
@@ -91,6 +92,7 @@ export const Projects: React.FC = () => {
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
     const [filter, setFilter] = useState('');
+    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('projects_view_mode', 'grid');
 
     // Inspector State
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -637,72 +639,161 @@ export const Projects: React.FC = () => {
                 <button onClick={exportPDF} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-gray-500 hover:text-slate-900 dark:hover:text-white ml-2" title="Exporter PDF">
                     <Download className="h-4 w-4" />
                 </button>
+                <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm ml-2">
+                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {loading ? (
-                    <div className="col-span-full"><CardSkeleton count={3} /></div>
-                ) : filteredProjects.length === 0 ? (
-                    <div className="col-span-full">
-                        <EmptyState
-                            icon={FolderKanban}
-                            title="Aucun projet en cours"
-                            description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
-                            actionLabel={filter ? undefined : "Créer un projet"}
-                            onAction={filter ? undefined : openCreationDrawer}
-                        />
+            {viewMode === 'list' ? (
+                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
+                                <tr>
+                                    <th className="px-8 py-4">Projet</th>
+                                    <th className="px-6 py-4">Responsable</th>
+                                    <th className="px-6 py-4">Statut</th>
+                                    <th className="px-6 py-4">Progression</th>
+                                    <th className="px-6 py-4">Échéance</th>
+                                    <th className="px-6 py-4">Tâches</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                {loading ? (
+                                    <tr><td colSpan={7}><TableSkeleton rows={5} columns={7} /></td></tr>
+                                ) : filteredProjects.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7}>
+                                            <EmptyState
+                                                icon={FolderKanban}
+                                                title="Aucun projet en cours"
+                                                description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
+                                                actionLabel={filter ? undefined : "Créer un projet"}
+                                                onAction={filter ? undefined : openCreationDrawer}
+                                            />
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredProjects.map(project => (
+                                        <tr key={project.id} onClick={() => openInspector(project)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]">
+                                            <td className="px-8 py-5">
+                                                <div className="font-bold text-slate-900 dark:text-white text-[15px]">{project.name}</div>
+                                                <div className="text-xs text-slate-500 font-medium line-clamp-1">{project.description}</div>
+                                            </td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400">
+                                                        {project.manager.charAt(0)}
+                                                    </div>
+                                                    {project.manager}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <Badge status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'} variant="soft" size="sm">
+                                                    {project.status}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full w-24">
+                                                        <div className="h-1.5 bg-brand-500 rounded-full" style={{ width: `${project.progress}%` }}></div>
+                                                    </div>
+                                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{project.progress}%</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
+                                                {new Date(project.dueDate).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
+                                                {project.tasks?.length || 0}
+                                            </td>
+                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                                                {canEdit && (
+                                                    <>
+                                                        <button onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
+                                                            <Edit className="h-4 w-4" />
+                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); initiateDelete(project.id, project.name); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                ) : (
-                    filteredProjects.map(project => (
-                        <div key={project.id} onClick={() => openInspector(project)} className="glass-panel rounded-[2.5rem] p-6 card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5">
-                            <div className="flex justify-between items-start mb-4">
-                                <Badge
-                                    status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'}
-                                    variant="soft"
-                                >
-                                    {project.status}
-                                </Badge>
-                                <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {canEdit && (
-                                        <>
-                                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-400 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
-                                                <Edit className="h-4 w-4" />
-                                            </button>
-                                            <button onClick={(e) => { e.stopPropagation(); initiateDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-400 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{project.name}</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>
-
-                            <div className="mb-6">
-                                <div className="flex justify-between text-xs mb-1.5 font-medium">
-                                    <span className="text-slate-600 dark:text-slate-300">Avancement</span>
-                                    <span className="text-brand-600">{project.progress}%</span>
-                                </div>
-                                <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
-                                    <div className="bg-brand-500 h-2 rounded-full transition-all duration-500 shadow-sm" style={{ width: `${project.progress}%` }}></div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center text-xs text-gray-500 mb-4 space-x-4 border-t border-gray-100 dark:border-white/10 pt-4 mt-auto">
-                                <div className="flex items-center font-medium">
-                                    <CalendarDays className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
-                                    {new Date(project.dueDate).toLocaleDateString()}
-                                </div>
-                                <div className="flex items-center font-medium">
-                                    <CheckSquare className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
-                                    {project.tasks?.length || 0} tâches
-                                </div>
-                            </div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {loading ? (
+                        <div className="col-span-full"><CardSkeleton count={3} /></div>
+                    ) : filteredProjects.length === 0 ? (
+                        <div className="col-span-full">
+                            <EmptyState
+                                icon={FolderKanban}
+                                title="Aucun projet en cours"
+                                description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
+                                actionLabel={filter ? undefined : "Créer un projet"}
+                                onAction={filter ? undefined : openCreationDrawer}
+                            />
                         </div>
-                    ))
-                )}
-            </div>
+                    ) : (
+                        filteredProjects.map(project => (
+                            <div key={project.id} onClick={() => openInspector(project)} className="glass-panel rounded-[2.5rem] p-6 card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5">
+                                <div className="flex justify-between items-start mb-4">
+                                    <Badge
+                                        status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'}
+                                        variant="soft"
+                                    >
+                                        {project.status}
+                                    </Badge>
+                                    <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {canEdit && (
+                                            <>
+                                                <button onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-400 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                    <Edit className="h-4 w-4" />
+                                                </button>
+                                                <button onClick={(e) => { e.stopPropagation(); initiateDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-400 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{project.name}</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>
+
+                                <div className="mb-6">
+                                    <div className="flex justify-between text-xs mb-1.5 font-medium">
+                                        <span className="text-slate-600 dark:text-slate-300">Avancement</span>
+                                        <span className="text-brand-600">{project.progress}%</span>
+                                    </div>
+                                    <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
+                                        <div className="bg-brand-500 h-2 rounded-full transition-all duration-500 shadow-sm" style={{ width: `${project.progress}%` }}></div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center text-xs text-gray-500 mb-4 space-x-4 border-t border-gray-100 dark:border-white/10 pt-4 mt-auto">
+                                    <div className="flex items-center font-medium">
+                                        <CalendarDays className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
+                                        {new Date(project.dueDate).toLocaleDateString()}
+                                    </div>
+                                    <div className="flex items-center font-medium">
+                                        <CheckSquare className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
+                                        {project.tasks?.length || 0} tâches
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
 
             {/* Inspector Drawer - Glassmorphism */}
             {/* Inspector Drawer */}

@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { ShieldAlert, CalendarDays, Activity, AlertTriangle, Clock, Search, FileSpreadsheet, Siren, Trash2 } from '../ui/Icons';
+import { ShieldAlert, CalendarDays, Activity, AlertTriangle, Clock, Search, FileSpreadsheet, Siren, Trash2, LayoutGrid, List } from '../ui/Icons';
 import { Incident, Criticality } from '../../types';
 import { useStore } from '../../store';
 import { EmptyState } from '../ui/EmptyState';
-import { CardSkeleton } from '../ui/Skeleton';
+import { CardSkeleton, TableSkeleton } from '../ui/Skeleton';
+import { usePersistedState } from '../../hooks/usePersistedState';
 
 interface IncidentDashboardProps {
     incidents: Incident[];
@@ -17,6 +18,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
     const { user } = useStore();
     const canEdit = user?.role === 'admin' || user?.role === 'auditor';
     const [filter, setFilter] = useState('');
+    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('incidents_view_mode', 'grid');
 
     const stats = useMemo(() => {
         const lastMonth = new Date();
@@ -127,90 +129,173 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 >
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
+                <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm ml-2">
+                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                </div>
             </div>
 
             {/* Incident list */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {loading ? (
-                    <div className="col-span-full"><CardSkeleton count={4} /></div>
-                ) : filteredIncidents.length === 0 ? (
-                    <div className="col-span-full">
-                        <EmptyState
-                            icon={Siren}
-                            title="Aucun incident signalé"
-                            description={filter ? "Aucun incident ne correspond à votre recherche." : "Tout est calme. Aucun incident de sécurité n'a été rapporté pour le moment."}
-                            actionLabel={filter ? undefined : "Déclarer un incident"}
-                            onAction={filter ? undefined : onCreate}
-                        />
-                    </div>
-                ) : (
-                    filteredIncidents.map((inc) => (
-                        <div
-                            key={inc.id}
-                            onClick={() => onSelect(inc)}
-                            className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5"
-                        >
-                            {inc.severity === Criticality.CRITICAL && (
-                                <div className="absolute top-6 right-6">
-                                    <span className="relative flex h-3 w-3">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                                    </span>
-                                </div>
-                            )}
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="flex gap-2">
-                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getSeverityColor(inc.severity)}`}>
-                                        {inc.severity}
-                                    </span>
-                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusColor(inc.status)}`}>
-                                        {inc.status}
-                                    </span>
-                                </div>
-                                {canEdit && onDelete && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onDelete(inc.id);
-                                        }}
-                                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
+            {viewMode === 'list' ? (
+                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
+                                <tr>
+                                    <th className="px-8 py-4">Incident</th>
+                                    <th className="px-6 py-4">Sévérité</th>
+                                    <th className="px-6 py-4">Statut</th>
+                                    <th className="px-6 py-4">Date</th>
+                                    <th className="px-6 py-4">Reporter</th>
+                                    <th className="px-6 py-4">Catégorie</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                {loading ? (
+                                    <tr><td colSpan={7}><TableSkeleton rows={5} columns={7} /></td></tr>
+                                ) : filteredIncidents.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7}>
+                                            <EmptyState
+                                                icon={Siren}
+                                                title="Aucun incident signalé"
+                                                description={filter ? "Aucun incident ne correspond à votre recherche." : "Tout est calme. Aucun incident de sécurité n'a été rapporté pour le moment."}
+                                                actionLabel={filter ? undefined : "Déclarer un incident"}
+                                                onAction={filter ? undefined : onCreate}
+                                            />
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredIncidents.map((inc) => (
+                                        <tr key={inc.id} onClick={() => onSelect(inc)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]">
+                                            <td className="px-8 py-5">
+                                                <div className="font-bold text-slate-900 dark:text-white text-[15px]">{inc.title}</div>
+                                                <div className="text-xs text-slate-500 font-medium line-clamp-1">{inc.description}</div>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getSeverityColor(inc.severity)}`}>
+                                                    {inc.severity}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusColor(inc.status)}`}>
+                                                    {inc.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
+                                                {new Date(inc.dateReported).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
+                                                {inc.reporter}
+                                            </td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
+                                                {inc.category || '-'}
+                                            </td>
+                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                                                {canEdit && onDelete && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            onDelete(inc.id);
+                                                        }}
+                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                                                        title="Supprimer"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
                                 )}
-                            </div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand-600 transition-colors leading-tight">
-                                {inc.title}
-                            </h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 leading-relaxed">
-                                {inc.description}
-                            </p>
-                            <div className="flex items-center justify-between pt-5 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
-                                <div className="flex items-center text-xs font-medium text-slate-400">
-                                    <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-                                    {new Date(inc.dateReported).toLocaleDateString()} • {inc.reporter}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    {inc.category && (
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {loading ? (
+                        <div className="col-span-full"><CardSkeleton count={4} /></div>
+                    ) : filteredIncidents.length === 0 ? (
+                        <div className="col-span-full">
+                            <EmptyState
+                                icon={Siren}
+                                title="Aucun incident signalé"
+                                description={filter ? "Aucun incident ne correspond à votre recherche." : "Tout est calme. Aucun incident de sécurité n'a été rapporté pour le moment."}
+                                actionLabel={filter ? undefined : "Déclarer un incident"}
+                                onAction={filter ? undefined : onCreate}
+                            />
+                        </div>
+                    ) : (
+                        filteredIncidents.map((inc) => (
+                            <div
+                                key={inc.id}
+                                onClick={() => onSelect(inc)}
+                                className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5"
+                            >
+                                {inc.severity === Criticality.CRITICAL && (
+                                    <div className="absolute top-6 right-6">
+                                        <span className="relative flex h-3 w-3">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex gap-2">
+                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getSeverityColor(inc.severity)}`}>
+                                            {inc.severity}
+                                        </span>
+                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusColor(inc.status)}`}>
+                                            {inc.status}
+                                        </span>
+                                    </div>
+                                    {canEdit && onDelete && (
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                onSelect(inc);
+                                                onDelete(inc.id);
                                             }}
-                                            className="text-xs px-2 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg hover:scale-105 transition-transform font-bold"
+                                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                         >
-                                            Playbook
+                                            <Trash2 className="h-4 w-4" />
                                         </button>
                                     )}
-                                    <div className="text-xs text-brand-600 font-bold flex items-center group-hover:translate-x-1 transition-transform">
-                                        Ouvrir <ShieldAlert className="ml-1.5 h-3.5 w-3.5" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand-600 transition-colors leading-tight">
+                                    {inc.title}
+                                </h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 leading-relaxed">
+                                    {inc.description}
+                                </p>
+                                <div className="flex items-center justify-between pt-5 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
+                                    <div className="flex items-center text-xs font-medium text-slate-400">
+                                        <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
+                                        {new Date(inc.dateReported).toLocaleDateString()} • {inc.reporter}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {inc.category && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onSelect(inc);
+                                                }}
+                                                className="text-xs px-2 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg hover:scale-105 transition-transform font-bold"
+                                            >
+                                                Playbook
+                                            </button>
+                                        )}
+                                        <div className="text-xs text-brand-600 font-bold flex items-center group-hover:translate-x-1 transition-transform">
+                                            Ouvrir <ShieldAlert className="ml-1.5 h-3.5 w-3.5" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))
-                )}
-            </div>
+                        ))
+                    )}
+                </div>
+            )}
         </div>
     );
 };
