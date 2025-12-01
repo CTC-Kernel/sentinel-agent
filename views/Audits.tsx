@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { Controller } from 'react-hook-form';
 import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
@@ -15,7 +14,7 @@ import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
 import { AuditTeam } from '../components/audits/AuditTeam';
 import { Comments } from '../components/ui/Comments';
-import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, X, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare } from '../components/ui/Icons';
+import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare } from '../components/ui/Icons';
 
 import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
@@ -805,6 +804,27 @@ export const Audits: React.FC = () => {
 
     const filteredAudits = audits.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
 
+    const getBreadcrumbs = () => {
+        const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Audits', onClick: () => { setSelectedAudit(null); setCreationMode(false); setShowFindingsDrawer(false); setEditingAudit(null); } }];
+
+        if (creationMode) {
+            crumbs.push({ label: 'Nouvel Audit' });
+            return crumbs;
+        }
+
+        if (editingAudit) {
+            crumbs.push({ label: editingAudit.name });
+            crumbs.push({ label: 'Modification' });
+            return crumbs;
+        }
+
+        if (selectedAudit) {
+            crumbs.push({ label: selectedAudit.name });
+        }
+
+        return crumbs;
+    };
+
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
             <Helmet>
@@ -901,368 +921,364 @@ export const Audits: React.FC = () => {
             </div>
 
             {/* Findings Drawer */}
-            {showFindingsDrawer && selectedAudit && createPortal(
-                <div className="fixed inset-0 z-[9999] overflow-hidden">
-                    <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setShowFindingsDrawer(false)} />
-                    <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
-                        <div className="w-screen max-w-6xl pointer-events-auto">
-                            <div className="h-full flex flex-col bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
-                                <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedAudit.name}</h2>
-                                        <p className="text-sm text-slate-500 mt-1 flex items-center gap-2">
-                                            {selectedAudit.type} • {new Date(selectedAudit.dateScheduled).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                    <div className="flex gap-2 items-center">
-                                        {canDeleteResource(user, 'Audit') && (
-                                            <button onClick={() => selectedAudit && initiateDeleteAudit(selectedAudit.id, selectedAudit.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-red-500">
-                                                <Trash2 className="h-5 w-5" />
-                                            </button>
-                                        )}
-                                        <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-2"></div>
+            {/* Findings Drawer */}
+            <Drawer
+                isOpen={showFindingsDrawer && !!selectedAudit}
+                onClose={() => setShowFindingsDrawer(false)}
+                title={selectedAudit?.name || 'Détails de l\'audit'}
+                subtitle={`${selectedAudit?.type} • ${selectedAudit ? new Date(selectedAudit.dateScheduled).toLocaleDateString() : ''}`}
+                width="max-w-6xl"
+                breadcrumbs={getBreadcrumbs()}
+                actions={
+                    selectedAudit && (
+                        <>
+                            {canDeleteResource(user, 'Audit') && (
+                                <button onClick={() => selectedAudit && initiateDeleteAudit(selectedAudit.id, selectedAudit.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-red-500">
+                                    <Trash2 className="h-5 w-5" />
+                                </button>
+                            )}
+                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-2"></div>
 
-                                        {/* Validation Button (Segregation of Duties) */}
-                                        {selectedAudit.status !== 'Validé' && canEdit && (
-                                            <button
-                                                onClick={async () => {
-                                                    if (selectedAudit.createdBy === user?.uid) {
-                                                        addToast("Ségrégation des tâches : Vous ne pouvez pas valider un audit que vous avez créé.", "error");
-                                                        return;
-                                                    }
-                                                    try {
-                                                        await updateDoc(doc(db, 'audits', selectedAudit.id), { status: 'Validé' });
-                                                        await logAction(user, 'VALIDATE', 'Audit', `Audit validé: ${selectedAudit.name}`);
-                                                        addToast("Audit validé avec succès", "success");
-                                                        refreshAudits();
-                                                        setSelectedAudit({ ...selectedAudit, status: 'Validé' });
-                                                    } catch (e) {
-                                                        ErrorLogger.handleErrorWithToast(e, 'Audits.validate', 'UPDATE_FAILED');
-                                                    }
-                                                }}
-                                                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-colors shadow-lg shadow-indigo-500/20 flex items-center gap-2"
-                                                title={selectedAudit.createdBy === user?.uid ? "Vous ne pouvez pas valider votre propre audit" : "Valider l'audit"}
-                                            >
-                                                <CheckCheck className="h-4 w-4" />
-                                                <span className="hidden sm:inline">Valider</span>
-                                            </button>
-                                        )}
+                            {/* Validation Button (Segregation of Duties) */}
+                            {selectedAudit.status !== 'Validé' && canEdit && (
+                                <button
+                                    onClick={async () => {
+                                        if (selectedAudit.createdBy === user?.uid) {
+                                            addToast("Ségrégation des tâches : Vous ne pouvez pas valider un audit que vous avez créé.", "error");
+                                            return;
+                                        }
+                                        try {
+                                            await updateDoc(doc(db, 'audits', selectedAudit.id), { status: 'Validé' });
+                                            await logAction(user, 'VALIDATE', 'Audit', `Audit validé: ${selectedAudit.name}`);
+                                            addToast("Audit validé avec succès", "success");
+                                            refreshAudits();
+                                            setSelectedAudit({ ...selectedAudit, status: 'Validé' });
+                                        } catch (e) {
+                                            ErrorLogger.handleErrorWithToast(e, 'Audits.validate', 'UPDATE_FAILED');
+                                        }
+                                    }}
+                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-colors shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+                                    title={selectedAudit.createdBy === user?.uid ? "Vous ne pouvez pas valider votre propre audit" : "Valider l'audit"}
+                                >
+                                    <CheckCheck className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Valider</span>
+                                </button>
+                            )}
 
-                                        <button onClick={generateAuditReport} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-blue-500" title="Rapport d'Audit">
-                                            <FileText className="h-5 w-5" />
-                                        </button>
-                                        <button onClick={generateAuditPlan} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-purple-500" title="Plan d'Audit">
-                                            <Calendar className="h-5 w-5" />
-                                        </button>
-                                        <button onClick={generateNonConformityReport} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-orange-500" title="Rapport Non-Conformités">
-                                            <AlertTriangle className="h-5 w-5" />
-                                        </button>
-                                        <button onClick={handleExportPack} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-emerald-500" title="Pack Complet (ZIP)">
-                                            <Download className="h-5 w-5" />
-                                        </button>
-                                        <button onClick={() => setShowFindingsDrawer(false)} className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
-                                    </div>
-                                </div>
+                            <button onClick={generateAuditReport} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-blue-500" title="Rapport d'Audit">
+                                <FileText className="h-5 w-5" />
+                            </button>
+                            <button onClick={generateAuditPlan} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-purple-500" title="Plan d'Audit">
+                                <Calendar className="h-5 w-5" />
+                            </button>
+                            <button onClick={generateNonConformityReport} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-orange-500" title="Rapport Non-Conformités">
+                                <AlertTriangle className="h-5 w-5" />
+                            </button>
+                            <button onClick={handleExportPack} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-emerald-500" title="Pack Complet (ZIP)">
+                                <Download className="h-5 w-5" />
+                            </button>
+                        </>
+                    )
+                }
+            >
+                {selectedAudit && (
+                    <div className="flex flex-col h-full">
+                        {/* Tabs */}
+                        <div className="px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                            <ScrollableTabs
+                                tabs={[
+                                    { id: 'findings', label: 'Constats', icon: AlertOctagon },
+                                    { id: 'checklist', label: 'Checklist', icon: CheckSquare },
+                                    { id: 'evidence', label: 'Preuves & Demandes', icon: FileText },
+                                    { id: 'collaboration', label: 'Collaboration', icon: MessageSquare },
+                                    { id: 'team', label: 'Équipe', icon: Users },
+                                    { id: 'scope', label: 'Périmètre', icon: Target }
+                                ]}
+                                activeTab={inspectorTab}
+                                onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
+                            />
+                        </div>
 
-                                {/* Tabs */}
-                                <div className="px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
-                                    <ScrollableTabs
-                                        tabs={[
-                                            { id: 'findings', label: 'Constats', icon: AlertOctagon },
-                                            { id: 'checklist', label: 'Checklist', icon: CheckSquare },
-                                            { id: 'evidence', label: 'Preuves & Demandes', icon: FileText },
-                                            { id: 'collaboration', label: 'Collaboration', icon: MessageSquare },
-                                            { id: 'team', label: 'Équipe', icon: Users },
-                                            { id: 'scope', label: 'Périmètre', icon: Target }
-                                        ]}
-                                        activeTab={inspectorTab}
-                                        onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
-                                    />
-                                </div>
+                        <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar space-y-8">
+                            {inspectorTab === 'findings' && (
+                                <>
+                                    {canEdit && (
+                                        <form onSubmit={findingForm.handleSubmit(handleAddFinding)} className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm mb-8">
+                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest flex items-center"><Plus className="h-3.5 w-3.5 mr-2" /> Ajouter un constat</h3>
+                                            <div className="space-y-6">
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex justify-end">
+                                                        {(() => {
+                                                            const findingType = findingForm.watch('type');
+                                                            const relatedControlId = findingForm.watch('relatedControlId');
+                                                            const controlCode = relatedControlId ? controls.find(c => c.id === relatedControlId)?.code : 'Non spécifié';
 
-                                <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar space-y-8">
-                                    {inspectorTab === 'findings' && (
-                                        <>
-                                            {canEdit && (
-                                                <form onSubmit={findingForm.handleSubmit(handleAddFinding)} className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm mb-8">
-                                                    <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest flex items-center"><Plus className="h-3.5 w-3.5 mr-2" /> Ajouter un constat</h3>
-                                                    <div className="space-y-6">
-                                                        <div className="flex flex-col gap-1">
-                                                            <div className="flex justify-end">
-                                                                {(() => {
-                                                                    const findingType = findingForm.watch('type');
-                                                                    const relatedControlId = findingForm.watch('relatedControlId');
-                                                                    const controlCode = relatedControlId ? controls.find(c => c.id === relatedControlId)?.code : 'Non spécifié';
-
-                                                                    return (
-                                                                        <AIAssistButton
-                                                                            context={{
-                                                                                auditName: selectedAudit.name,
-                                                                                auditType: selectedAudit.type,
-                                                                                findingType: findingType,
-                                                                                control: controlCode
-                                                                            }}
-                                                                            fieldName="description"
-                                                                            onSuggest={(val: string) => findingForm.setValue('description', val)}
-                                                                            prompt="Rédige un constat d'audit (écart) clair, factuel et professionnel. Précise le problème observé et l'impact potentiel."
-                                                                        />
-                                                                    );
-                                                                })()}
-                                                            </div>
-                                                            <FloatingLabelTextarea
-                                                                label="Description de l'écart"
-                                                                {...findingForm.register('description')}
-                                                                required
-                                                                rows={2}
-                                                            />
-                                                        </div>
-
-                                                        <Controller
-                                                            control={findingForm.control}
-                                                            name="type"
-                                                            render={({ field }) => (
-                                                                <SeveritySelector
-                                                                    value={field.value}
-                                                                    onChange={field.onChange}
+                                                            return (
+                                                                <AIAssistButton
+                                                                    context={{
+                                                                        auditName: selectedAudit.name,
+                                                                        auditType: selectedAudit.type,
+                                                                        findingType: findingType,
+                                                                        control: controlCode
+                                                                    }}
+                                                                    fieldName="description"
+                                                                    onSuggest={(val: string) => findingForm.setValue('description', val)}
+                                                                    prompt="Rédige un constat d'audit (écart) clair, factuel et professionnel. Précise le problème observé et l'impact potentiel."
                                                                 />
-                                                            )}
-                                                        />
-
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                            <Controller
-                                                                control={findingForm.control}
-                                                                name="relatedControlId"
-                                                                render={({ field }) => (
-                                                                    <FloatingLabelSelect
-                                                                        label="Contrôle Lié (Optionnel)"
-                                                                        value={field.value || ''}
-                                                                        onChange={field.onChange}
-                                                                        options={controls.map(c => ({ value: c.id, label: `${c.code} ${c.name.substring(0, 30)}...` }))}
-                                                                    />
-                                                                )}
-                                                            />
-                                                            <Controller
-                                                                control={findingForm.control}
-                                                                name="evidenceIds"
-                                                                render={({ field }) => (
-                                                                    <FloatingLabelSelect
-                                                                        label="Lier une preuve existante"
-                                                                        value={field.value?.[0] || ''}
-                                                                        onChange={e => field.onChange(e.target.value ? [e.target.value] : [])}
-                                                                        options={documents.map(d => ({ value: d.id, label: `${d.title} (v${d.version})` }))}
-                                                                    />
-                                                                )}
-                                                            />
-                                                        </div>
-
-                                                        <div>
-                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Ou téléverser une nouvelle preuve</label>
-                                                            <FileUploader
-                                                                onUploadComplete={handleEvidenceUpload}
-                                                                category="evidence"
-                                                                maxSizeMB={10}
-                                                                allowedTypes={['application/pdf', 'image/*']}
-                                                            />
-                                                        </div>
-                                                        <div className="flex justify-end">
-                                                            <button type="submit" className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20">Ajouter</button>
-                                                        </div>
+                                                            );
+                                                        })()}
                                                     </div>
-                                                </form>
-                                            )}
+                                                    <FloatingLabelTextarea
+                                                        label="Description de l'écart"
+                                                        {...findingForm.register('description')}
+                                                        required
+                                                        rows={2}
+                                                    />
+                                                </div>
 
-                                            <div className="space-y-4">
-                                                <h3 className="text-xs font-bold uppercase text-slate-400 mb-2 tracking-widest px-2">Constats ({findings.length})</h3>
-                                                {findings.length === 0 ? (
-                                                    <div className="text-center py-8 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic text-sm">Aucun écart relevé pour le moment.</div>
-                                                ) : (
-                                                    findings.map(finding => (
-                                                        <div key={finding.id} className="p-5 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm card-hover group relative">
-                                                            <div className="flex justify-between items-start mb-2">
-                                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${finding.type === 'Majeure' ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400' : finding.type === 'Mineure' ? 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400'}`}>
-                                                                    {finding.type}
-                                                                </span>
-                                                                {canEdit && (
-                                                                    <button onClick={() => initiateDeleteFinding(finding.id)} className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                                                        <Trash2 className="h-4 w-4" />
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3 leading-relaxed">{finding.description}</p>
-                                                            {finding.relatedControlId && (
-                                                                <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-black/20 px-3 py-1.5 rounded-lg w-fit">
-                                                                    <ShieldAlert className="h-3 w-3 mr-1.5" />
-                                                                    {controls.find(c => c.id === finding.relatedControlId)?.code || 'Contrôle Inconnu'}
-                                                                </div>
-                                                            )}
-                                                            {finding.evidenceIds && finding.evidenceIds.length > 0 && (
-                                                                <div className="mt-2 flex items-center text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-lg w-fit">
-                                                                    <Link className="h-3 w-3 mr-1.5" />
-                                                                    {documents.find(d => d.id === finding.evidenceIds![0])?.title || 'Preuve liée'}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ))
-                                                )}
+                                                <Controller
+                                                    control={findingForm.control}
+                                                    name="type"
+                                                    render={({ field }) => (
+                                                        <SeveritySelector
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                        />
+                                                    )}
+                                                />
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <Controller
+                                                        control={findingForm.control}
+                                                        name="relatedControlId"
+                                                        render={({ field }) => (
+                                                            <FloatingLabelSelect
+                                                                label="Contrôle Lié (Optionnel)"
+                                                                value={field.value || ''}
+                                                                onChange={field.onChange}
+                                                                options={controls.map(c => ({ value: c.id, label: `${c.code} ${c.name.substring(0, 30)}...` }))}
+                                                            />
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        control={findingForm.control}
+                                                        name="evidenceIds"
+                                                        render={({ field }) => (
+                                                            <FloatingLabelSelect
+                                                                label="Lier une preuve existante"
+                                                                value={field.value?.[0] || ''}
+                                                                onChange={e => field.onChange(e.target.value ? [e.target.value] : [])}
+                                                                options={documents.map(d => ({ value: d.id, label: `${d.title} (v${d.version})` }))}
+                                                            />
+                                                        )}
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Ou téléverser une nouvelle preuve</label>
+                                                    <FileUploader
+                                                        onUploadComplete={handleEvidenceUpload}
+                                                        category="evidence"
+                                                        maxSizeMB={10}
+                                                        allowedTypes={['application/pdf', 'image/*']}
+                                                    />
+                                                </div>
+                                                <div className="flex justify-end">
+                                                    <button type="submit" className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20">Ajouter</button>
+                                                </div>
                                             </div>
-                                        </>
+                                        </form>
                                     )}
 
-                                    {inspectorTab === 'checklist' && (
-                                        <div className="space-y-6">
-                                            {!checklist ? (
-                                                <div className="text-center py-12">
-                                                    <ClipboardCheck className="h-16 w-16 mx-auto text-slate-300 mb-4" />
-                                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucune checklist générée</h3>
-                                                    <p className="text-slate-500 mb-6 max-w-xs mx-auto">Générez une checklist basée sur les contrôles ISO 27001 pour guider votre audit.</p>
-                                                    {canEdit && (
-                                                        <button onClick={generateChecklist} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">Générer la Checklist ISO 27001</button>
+                                    <div className="space-y-4">
+                                        <h3 className="text-xs font-bold uppercase text-slate-400 mb-2 tracking-widest px-2">Constats ({findings.length})</h3>
+                                        {findings.length === 0 ? (
+                                            <div className="text-center py-8 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic text-sm">Aucun écart relevé pour le moment.</div>
+                                        ) : (
+                                            findings.map(finding => (
+                                                <div key={finding.id} className="p-5 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm card-hover group relative">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${finding.type === 'Majeure' ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400' : finding.type === 'Mineure' ? 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400'}`}>
+                                                            {finding.type}
+                                                        </span>
+                                                        {canEdit && (
+                                                            <button onClick={() => initiateDeleteFinding(finding.id)} className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3 leading-relaxed">{finding.description}</p>
+                                                    {finding.relatedControlId && (
+                                                        <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-black/20 px-3 py-1.5 rounded-lg w-fit">
+                                                            <ShieldAlert className="h-3 w-3 mr-1.5" />
+                                                            {controls.find(c => c.id === finding.relatedControlId)?.code || 'Contrôle Inconnu'}
+                                                        </div>
+                                                    )}
+                                                    {finding.evidenceIds && finding.evidenceIds.length > 0 && (
+                                                        <div className="mt-2 flex items-center text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-lg w-fit">
+                                                            <Link className="h-3 w-3 mr-1.5" />
+                                                            {documents.find(d => d.id === finding.evidenceIds![0])?.title || 'Preuve liée'}
+                                                        </div>
                                                     )}
                                                 </div>
-                                            ) : (
-                                                <div className="space-y-4">
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <h3 className="font-bold text-slate-900 dark:text-white">Checklist de conformité</h3>
-                                                        <div className="flex gap-2">
-                                                            {canEdit && (
-                                                                <button onClick={markAllConform} className="text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors flex items-center"><CheckCheck className="h-3.5 w-3.5 mr-1" /> Tout Conforme</button>
-                                                            )}
-                                                            <button onClick={generateSoA} className="text-xs font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors">Générer SoA</button>
-                                                            <span className="text-xs font-medium bg-slate-100 dark:bg-white/10 px-2 py-1.5 rounded-lg flex items-center">{checklist.questions.filter(q => q.response === 'Conforme').length} / {checklist.questions.length} Conformes</span>
-                                                        </div>
-                                                    </div>
-                                                    {checklist.questions.map(q => (
-                                                        <div key={q.id} className="p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            <div className="flex justify-between items-start mb-3">
-                                                                <span className="text-xs font-bold bg-slate-100 dark:bg-white/10 px-2 py-1 rounded text-slate-600 dark:text-slate-300">{q.controlCode}</span>
-                                                                <select
-                                                                    className={`text-xs font-bold px-2 py-1 rounded border-none outline-none cursor-pointer ${q.response === 'Conforme' ? 'text-green-600 bg-green-50' : q.response === 'Non-conforme' ? 'text-red-600 bg-red-50' : 'text-slate-500 bg-slate-100'}`}
-                                                                    value={q.response}
-                                                                    onChange={(e) => handleChecklistAnswer(q.id, e.target.value as AuditQuestion['response'])}
-                                                                    disabled={!canEdit}
-                                                                >
-                                                                    <option value="Non-applicable">N/A</option>
-                                                                    <option value="Conforme">Conforme</option>
-                                                                    <option value="Non-conforme">Non-conforme</option>
-                                                                    <option value="Observation">Observation</option>
-                                                                </select>
-                                                            </div>
-                                                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 mb-3">{q.question}</p>
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Commentaire ou observation..."
-                                                                className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-black/20 rounded-xl border-none focus:ring-1 focus:ring-indigo-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                                                                value={q.comment || ''}
-                                                                onChange={(e) => handleChecklistAnswer(q.id, q.response, e.target.value)}
-                                                                disabled={!canEdit}
-                                                            />
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </>
+                            )}
+
+                            {inspectorTab === 'checklist' && (
+                                <div className="space-y-6">
+                                    {!checklist ? (
+                                        <div className="text-center py-12">
+                                            <ClipboardCheck className="h-16 w-16 mx-auto text-slate-300 mb-4" />
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucune checklist générée</h3>
+                                            <p className="text-slate-500 mb-6 max-w-xs mx-auto">Générez une checklist basée sur les contrôles ISO 27001 pour guider votre audit.</p>
+                                            {canEdit && (
+                                                <button onClick={generateChecklist} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">Générer la Checklist ISO 27001</button>
                                             )}
                                         </div>
-                                    )}
-
-                                    {inspectorTab === 'evidence' && (
-                                        <EvidenceRequestList
-                                            auditId={selectedAudit.id}
-                                            organizationId={user?.organizationId || ''}
-                                            users={usersList}
-                                            controls={controls}
-                                            canEdit={canEdit}
-                                        />
-                                    )}
-
-                                    {inspectorTab === 'collaboration' && (
-                                        <div className="max-w-3xl mx-auto">
-                                            <Comments
-                                                collectionName="audits"
-                                                documentId={selectedAudit.id}
-                                            />
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'team' && (
-                                        <AuditTeam
-                                            audit={selectedAudit}
-                                            users={usersList}
-                                            canEdit={canEdit}
-                                        />
-                                    )}
-
-                                    {inspectorTab === 'scope' && (
-                                        <div className="space-y-8">
-                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Server className="h-4 w-4 mr-2" /> Actifs Audités ({selectedAudit.relatedAssetIds?.length || 0})</h4>
-                                                <div className="space-y-2">
-                                                    {selectedAudit.relatedAssetIds?.map(aid => {
-                                                        const asset = assets.find(a => a.id === aid);
-                                                        return asset ? (
-                                                            <div key={aid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
-                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{asset.name}</span>
-                                                                <span className="text-xs text-slate-500">{asset.type}</span>
-                                                            </div>
-                                                        ) : null;
-                                                    })}
-                                                    {(!selectedAudit.relatedAssetIds || selectedAudit.relatedAssetIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun actif lié.</p>}
+                                    ) : (
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="font-bold text-slate-900 dark:text-white">Checklist de conformité</h3>
+                                                <div className="flex gap-2">
+                                                    {canEdit && (
+                                                        <button onClick={markAllConform} className="text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors flex items-center"><CheckCheck className="h-3.5 w-3.5 mr-1" /> Tout Conforme</button>
+                                                    )}
+                                                    <button onClick={generateSoA} className="text-xs font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors">Générer SoA</button>
+                                                    <span className="text-xs font-medium bg-slate-100 dark:bg-white/10 px-2 py-1.5 rounded-lg flex items-center">{checklist.questions.filter(q => q.response === 'Conforme').length} / {checklist.questions.length} Conformes</span>
                                                 </div>
                                             </div>
-                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Flame className="h-4 w-4 mr-2" /> Risques Audités ({selectedAudit.relatedRiskIds?.length || 0})</h4>
-                                                <div className="space-y-2">
-                                                    {selectedAudit.relatedRiskIds?.map(rid => {
-                                                        const risk = risks.find(r => r.id === rid);
-                                                        return risk ? (
-                                                            <div key={rid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
-                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{risk.threat}</span>
-                                                                <span className="text-xs font-bold text-red-500">Score: {risk.score}</span>
-                                                            </div>
-                                                        ) : null;
-                                                    })}
-                                                    {(!selectedAudit.relatedRiskIds || selectedAudit.relatedRiskIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun risque lié.</p>}
+                                            {checklist.questions.map(q => (
+                                                <div key={q.id} className="p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <span className="text-xs font-bold bg-slate-100 dark:bg-white/10 px-2 py-1 rounded text-slate-600 dark:text-slate-300">{q.controlCode}</span>
+                                                        <select
+                                                            className={`text-xs font-bold px-2 py-1 rounded border-none outline-none cursor-pointer ${q.response === 'Conforme' ? 'text-green-600 bg-green-50' : q.response === 'Non-conforme' ? 'text-red-600 bg-red-50' : 'text-slate-500 bg-slate-100'}`}
+                                                            value={q.response}
+                                                            onChange={(e) => handleChecklistAnswer(q.id, e.target.value as AuditQuestion['response'])}
+                                                            disabled={!canEdit}
+                                                        >
+                                                            <option value="Non-applicable">N/A</option>
+                                                            <option value="Conforme">Conforme</option>
+                                                            <option value="Non-conforme">Non-conforme</option>
+                                                            <option value="Observation">Observation</option>
+                                                        </select>
+                                                    </div>
+                                                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200 mb-3">{q.question}</p>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Commentaire ou observation..."
+                                                        className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-black/20 rounded-xl border-none focus:ring-1 focus:ring-indigo-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        value={q.comment || ''}
+                                                        onChange={(e) => handleChecklistAnswer(q.id, q.response, e.target.value)}
+                                                        disabled={!canEdit}
+                                                    />
                                                 </div>
-                                            </div>
-
-                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Contrôles Audités ({selectedAudit.relatedControlIds?.length || 0})</h4>
-                                                <div className="space-y-2">
-                                                    {selectedAudit.relatedControlIds?.map(cid => {
-                                                        const control = controls.find(c => c.id === cid);
-                                                        return control ? (
-                                                            <div key={cid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
-                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{control.code} - {control.name}</span>
-                                                                <span className="text-xs px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300">{control.status}</span>
-                                                            </div>
-                                                        ) : null;
-                                                    })}
-                                                    {(!selectedAudit.relatedControlIds || selectedAudit.relatedControlIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun contrôle lié.</p>}
-                                                </div>
-                                            </div>
-
-                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Audités ({selectedAudit.relatedProjectIds?.length || 0})</h4>
-                                                <div className="space-y-2">
-                                                    {selectedAudit.relatedProjectIds?.map(pid => {
-                                                        const project = rawProjects.find(p => p.id === pid);
-                                                        return project ? (
-                                                            <div key={pid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
-                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{project.name}</span>
-                                                                <span className={`text-xs px-2 py-1 rounded-lg font-bold uppercase ${project.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>{project.status}</span>
-                                                            </div>
-                                                        ) : null;
-                                                    })}
-                                                    {(!selectedAudit.relatedProjectIds || selectedAudit.relatedProjectIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun projet lié.</p>}
-                                                </div>
-                                            </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            )}
+
+                            {inspectorTab === 'evidence' && (
+                                <EvidenceRequestList
+                                    auditId={selectedAudit.id}
+                                    organizationId={user?.organizationId || ''}
+                                    users={usersList}
+                                    controls={controls}
+                                    canEdit={canEdit}
+                                />
+                            )}
+
+                            {inspectorTab === 'collaboration' && (
+                                <div className="max-w-3xl mx-auto">
+                                    <Comments
+                                        collectionName="audits"
+                                        documentId={selectedAudit.id}
+                                    />
+                                </div>
+                            )}
+
+                            {inspectorTab === 'team' && (
+                                <AuditTeam
+                                    audit={selectedAudit}
+                                    users={usersList}
+                                    canEdit={canEdit}
+                                />
+                            )}
+
+                            {inspectorTab === 'scope' && (
+                                <div className="space-y-8">
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Server className="h-4 w-4 mr-2" /> Actifs Audités ({selectedAudit.relatedAssetIds?.length || 0})</h4>
+                                        <div className="space-y-2">
+                                            {selectedAudit.relatedAssetIds?.map(aid => {
+                                                const asset = assets.find(a => a.id === aid);
+                                                return asset ? (
+                                                    <div key={aid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
+                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{asset.name}</span>
+                                                        <span className="text-xs text-slate-500">{asset.type}</span>
+                                                    </div>
+                                                ) : null;
+                                            })}
+                                            {(!selectedAudit.relatedAssetIds || selectedAudit.relatedAssetIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun actif lié.</p>}
+                                        </div>
+                                    </div>
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Flame className="h-4 w-4 mr-2" /> Risques Audités ({selectedAudit.relatedRiskIds?.length || 0})</h4>
+                                        <div className="space-y-2">
+                                            {selectedAudit.relatedRiskIds?.map(rid => {
+                                                const risk = risks.find(r => r.id === rid);
+                                                return risk ? (
+                                                    <div key={rid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
+                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{risk.threat}</span>
+                                                        <span className="text-xs font-bold text-red-500">Score: {risk.score}</span>
+                                                    </div>
+                                                ) : null;
+                                            })}
+                                            {(!selectedAudit.relatedRiskIds || selectedAudit.relatedRiskIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun risque lié.</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Contrôles Audités ({selectedAudit.relatedControlIds?.length || 0})</h4>
+                                        <div className="space-y-2">
+                                            {selectedAudit.relatedControlIds?.map(cid => {
+                                                const control = controls.find(c => c.id === cid);
+                                                return control ? (
+                                                    <div key={cid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
+                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{control.code} - {control.name}</span>
+                                                        <span className="text-xs px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300">{control.status}</span>
+                                                    </div>
+                                                ) : null;
+                                            })}
+                                            {(!selectedAudit.relatedControlIds || selectedAudit.relatedControlIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun contrôle lié.</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Audités ({selectedAudit.relatedProjectIds?.length || 0})</h4>
+                                        <div className="space-y-2">
+                                            {selectedAudit.relatedProjectIds?.map(pid => {
+                                                const project = rawProjects.find(p => p.id === pid);
+                                                return project ? (
+                                                    <div key={pid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
+                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{project.name}</span>
+                                                        <span className={`text-xs px-2 py-1 rounded-lg font-bold uppercase ${project.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>{project.status}</span>
+                                                    </div>
+                                                ) : null;
+                                            })}
+                                            {(!selectedAudit.relatedProjectIds || selectedAudit.relatedProjectIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun projet lié.</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
-                </div>,
-                document.body
-            )}
+                )}
+            </Drawer>
 
             {/* Create/Edit Modal */}
             {/* Create/Edit Drawer */}
@@ -1272,6 +1288,7 @@ export const Audits: React.FC = () => {
                 title={editingAudit ? "Modifier l'Audit" : "Nouvel Audit"}
                 subtitle={editingAudit ? editingAudit.name : "Planification"}
                 width="max-w-6xl"
+                breadcrumbs={getBreadcrumbs()}
             >
                 <AuditForm
                     onCancel={() => { setCreationMode(false); setEditingAudit(null); }}
