@@ -61,7 +61,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
             const results = await integrationService.searchCompany(query);
             setSearchResults(results);
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, "SupplierForm.handleCompanySearch");
         } finally {
             setSearching(false);
         }

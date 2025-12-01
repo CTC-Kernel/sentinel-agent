@@ -4,6 +4,7 @@ import { Shield, ExternalLink, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 
 export const CyberNewsWidget: React.FC = () => {
     const { t, language } = useStore();
@@ -24,7 +25,7 @@ export const CyberNewsWidget: React.FC = () => {
 
             setNews(allNews);
         } catch (error) {
-            console.error('Failed to fetch news', error);
+            ErrorLogger.error(error, "CyberNewsWidget.fetchNews");
         } finally {
             setLoading(false);
         }

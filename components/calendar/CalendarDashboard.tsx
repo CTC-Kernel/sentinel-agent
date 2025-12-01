@@ -10,6 +10,7 @@ import { AddToCalendar } from '../ui/AddToCalendar';
 import { Drawer } from '../ui/Drawer';
 import { CreateEventModal } from './CreateEventModal';
 import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ErrorLogger } from '../../services/errorLogger';
 
 const locales = {
     'fr': fr,
@@ -42,7 +43,7 @@ const messages = {
 export const CalendarDashboard: React.FC = () => {
     const { user } = useStore();
     const [events, setEvents] = useState<CalendarEvent[]>([]);
-    const [filteredEvents, setFilteredEvents] = useState<CalendarEvent[]>([]);
+    // const [filteredEvents, setFilteredEvents] = useState<CalendarEvent[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -80,15 +81,15 @@ export const CalendarDashboard: React.FC = () => {
 
                     setEvents([...internalEvents, ...googleEvents]);
                 } catch (error) {
-                    console.error("Failed to load events", error);
+                    ErrorLogger.error(error, "CalendarDashboard.loadEvents");
                 }
             }
         };
         loadEvents();
     }, [user?.organizationId, filters.google]); // Reload when google filter changes
 
-    useEffect(() => {
-        setFilteredEvents(events.filter(e => filters[e.type as keyof typeof filters]));
+    const filteredEvents = React.useMemo(() => {
+        return events.filter(e => filters[e.type as keyof typeof filters]);
     }, [events, filters]);
 
     const handleSelectEvent = (event: CalendarEvent) => {
@@ -174,8 +175,8 @@ export const CalendarDashboard: React.FC = () => {
                         <button
                             onClick={() => setFilters(prev => ({ ...prev, google: !prev.google }))}
                             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${filters.google
-                                    ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                 }`}
                         >
                             <div className={`w-2 h-2 rounded-full bg-slate-400`} />
@@ -268,14 +269,11 @@ export const CalendarDashboard: React.FC = () => {
                             </div>
                             <AddToCalendar
                                 event={{
-                                    id: selectedEvent.id,
                                     title: selectedEvent.title,
                                     description: selectedEvent.description,
                                     location: selectedEvent.location,
                                     start: selectedEvent.start,
-                                    end: selectedEvent.end,
-                                    color: selectedEvent.color,
-                                    type: selectedEvent.type
+                                    end: selectedEvent.end
                                 }}
                             />
                         </div>

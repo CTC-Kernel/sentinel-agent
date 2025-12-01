@@ -77,7 +77,7 @@ export const Settings: React.FC = () => {
                 addToast(t('settings.breachesFound').replace('{count}', breaches.length.toString()), "error");
                 // Could display details in a modal or alert
             }
-        } catch (e) {
+        } catch {
             addToast(t('settings.hibpError'), "error");
         } finally {
             setBreachCheckLoading(false);
@@ -150,9 +150,10 @@ export const Settings: React.FC = () => {
 
             // Force reload to reflect changes (permissions, etc.)
             window.location.reload();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Transfer failed:', error);
-            addToast(t('settings.transferError') + error.message, 'error');
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            addToast(t('settings.transferError') + errorMessage, 'error');
         } finally {
             setIsTransferring(false);
         }

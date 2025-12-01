@@ -10,6 +10,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Asset, Risk } from '../../types';
 import { toast } from 'sonner';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface CreateEventModalProps {
     isOpen: boolean;
@@ -73,7 +74,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                 setAssets(assetsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Asset)));
                 setRisks(risksSnap.docs.map(d => ({ id: d.id, ...d.data() } as Risk)));
             } catch (error) {
-                console.error("Error fetching linkable items:", error);
+                ErrorLogger.error(error, "CreateEventModal.fetchData");
             }
         };
 
@@ -122,7 +123,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
             onClose();
             reset();
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, "CreateEventModal.onSubmit");
             toast.error("Erreur lors de la création de l'événement");
         } finally {
             setIsSubmitting(false);

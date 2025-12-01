@@ -1,5 +1,5 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { ShieldAlert, RefreshCw, Home } from 'lucide-react';
+import { Component, ErrorInfo, ReactNode } from 'react';
+import { Shield, RefreshCw, Home } from 'lucide-react';
 
 interface Props {
     children: ReactNode;
@@ -34,7 +34,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center border border-slate-200 dark:border-slate-700">
                         <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${isPermissionError ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
                             }`}>
-                            <ShieldAlert size={32} />
+                            <Shield size={32} />
                         </div>
 
                         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
