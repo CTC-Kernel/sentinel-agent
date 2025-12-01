@@ -479,7 +479,7 @@ export const translations = {
             backupDownloaded: 'Full backup downloaded',
             logsExported: 'Audit logs exported (CSV)',
             noLogsToPurge: 'No old logs to purge.',
-            logsPurged: 'old logs deleted.',
+
             testLogCreated: 'Test log created',
             orgLeft: 'You have left the organization',
             accountDeleted: 'Account deleted successfully',
