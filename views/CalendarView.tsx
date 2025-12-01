@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarManager } from '../components/ui/CalendarManager';
+import { CalendarDashboard } from '../components/calendar/CalendarDashboard';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
@@ -17,7 +17,7 @@ export const CalendarView: React.FC = () => {
                 icon={<CalendarIcon className="h-6 w-6 text-white" />}
             />
             <div className="flex-1 min-h-0">
-                <CalendarManager />
+                <CalendarDashboard />
             </div>
         </div>
     );

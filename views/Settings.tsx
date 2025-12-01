@@ -24,6 +24,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, ProfileFormData, passwordSchema, PasswordFormData, organizationSchema, OrganizationFormData } from '../schemas/settingsSchema';
 import { integrationService } from '../services/integrationService';
 import { formatFileSize } from '../services/fileUploadService';
+import { useGoogleLogin } from '@react-oauth/google';
+import { Calendar } from 'lucide-react';
 
 
 export const Settings: React.FC = () => {
@@ -111,10 +113,19 @@ export const Settings: React.FC = () => {
     const [showLegalModal, setShowLegalModal] = useState(false);
     const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms'>('mentions');
 
-    // Transfer Ownership State
     const [showTransferModal, setShowTransferModal] = useState(false);
     const [transferTargetId, setTransferTargetId] = useState<string>('');
     const [isTransferring, setIsTransferring] = useState(false);
+
+    const loginToGoogle = useGoogleLogin({
+        onSuccess: tokenResponse => {
+            localStorage.setItem('google_access_token', tokenResponse.access_token);
+            addToast("Connecté à Google Calendar", "success");
+            // Force re-render to update UI
+            setSavingProfile(prev => !prev);
+        },
+        scope: 'https://www.googleapis.com/auth/calendar'
+    });
 
     const handleTransferOwnership = async () => {
         if (!transferTargetId) {
@@ -928,6 +939,46 @@ export const Settings: React.FC = () => {
                                         Pour vérifier la réputation des URL (phishing, malware).
                                     </p>
                                 </div>
+
+                                <div className="pt-4 border-t border-white/5">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 ml-1 flex items-center">
+                                        <Calendar className="h-3 w-3 mr-2" />
+                                        Google Calendar
+                                    </h3>
+                                    <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-4 border border-gray-200 dark:border-white/10">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+                                            Connectez votre compte Google pour synchroniser vos événements Sentinel avec votre agenda personnel.
+                                        </p>
+                                        {localStorage.getItem('google_access_token') ? (
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm font-medium text-green-600 dark:text-green-400 flex items-center">
+                                                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                                                    Compte connecté
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        localStorage.removeItem('google_access_token');
+                                                        addToast("Déconnecté de Google Calendar", "info");
+                                                        setSavingProfile(prev => !prev); // Force re-render
+                                                    }}
+                                                    className="text-xs text-red-500 hover:text-red-600 font-medium"
+                                                >
+                                                    Déconnecter
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => loginToGoogle()}
+                                                className="w-full py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-all flex items-center justify-center shadow-sm"
+                                            >
+                                                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 mr-2" />
+                                                Connecter Google Calendar
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                             <button
                                 type="button"
@@ -960,7 +1011,7 @@ export const Settings: React.FC = () => {
                                 <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
                                     <div
                                         className={`h-full rounded-full transition-all duration-500 ${(currentOrg?.storageUsed || 0) / (1024 * 1024 * 1024) > 0.9 ? 'bg-red-500' :
-                                                (currentOrg?.storageUsed || 0) / (1024 * 1024 * 1024) > 0.7 ? 'bg-orange-500' : 'bg-blue-500'
+                                            (currentOrg?.storageUsed || 0) / (1024 * 1024 * 1024) > 0.7 ? 'bg-orange-500' : 'bg-blue-500'
                                             }`}
                                         style={{ width: `${Math.min(100, ((currentOrg?.storageUsed || 0) / (1024 * 1024 * 1024)) * 100)}%` }}
                                     ></div>

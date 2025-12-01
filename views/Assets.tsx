@@ -8,7 +8,7 @@ import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit, Supplier, BusinessProcess } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Wrench, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Database, Clock, Copy, Euro, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, LayoutGrid, List } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, LayoutGrid, List, BrainCircuit } from '../components/ui/Icons';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -32,6 +32,8 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { AssetForm } from '../components/assets/AssetForm';
+import { AssetDashboard } from '../components/assets/AssetDashboard';
+import { AssetAIAssistant } from '../components/assets/AssetAIAssistant';
 import { AssetFormData, assetSchema } from '../schemas/assetSchema';
 import { z } from 'zod';
 
@@ -94,7 +96,7 @@ export const Assets: React.FC = () => {
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const [creationMode, setCreationMode] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'projects' | 'audits' | 'history' | 'comments' | 'graph'>('details');
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'projects' | 'audits' | 'history' | 'comments' | 'graph' | 'intelligence'>('details');
     const [assetHistory, setAssetHistory] = useState<SystemLog[]>([]);
     const [linkedRisks, setLinkedRisks] = useState<Risk[]>([]);
     const [linkedIncidents, setLinkedIncidents] = useState<Incident[]>([]);
@@ -111,16 +113,7 @@ export const Assets: React.FC = () => {
     const [newMaintenance, setNewMaintenance] = useState<Partial<MaintenanceRecord>>({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
 
 
-    const stats = React.useMemo(() => {
-        const nextMonth = new Date();
-        nextMonth.setDate(nextMonth.getDate() + 30);
-        return {
-            total: assets.length,
-            critical: assets.filter(a => a.confidentiality === Criticality.CRITICAL || a.integrity === Criticality.CRITICAL || a.availability === Criticality.CRITICAL).length,
-            maintenanceDue: assets.filter(a => a.nextMaintenance && new Date(a.nextMaintenance) < nextMonth).length,
-            totalValue: assets.reduce((acc, a) => acc + (a.currentValue || 0), 0)
-        };
-    }, [assets]);
+
     const [showInspector, setShowInspector] = useState(false);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -545,12 +538,17 @@ export const Assets: React.FC = () => {
             />
 
             {/* KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-apple cursor-default"><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Actifs</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p></div><div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600"><Database className="h-6 w-6" /></div></div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-apple cursor-default"><div><p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">Critiques (DIC)</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.critical}</p></div><div className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600"><ShieldAlert className="h-6 w-6" /></div></div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-apple cursor-default"><div><p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Valorisation Parc</p><p className="text-3xl font-black text-slate-900 dark:text-white">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(stats.totalValue)}</p></div><div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600"><Euro className="h-6 w-6" /></div></div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-apple cursor-default"><div><p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Maintenance &lt; 30j</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.maintenanceDue}</p></div><div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><Wrench className="h-6 w-6" /></div></div>
-            </div>
+            {/* Dashboard */}
+            <AssetDashboard
+                assets={filteredAssets}
+                onFilterChange={(filter) => {
+                    if (filter?.type === 'criticality') {
+                        setActiveFilters(prev => ({ ...prev, criticality: filter.value as any }));
+                    } else if (filter === null) {
+                        setActiveFilters(prev => ({ ...prev, criticality: undefined }));
+                    }
+                }}
+            />
 
             {showAdvancedSearch && (
                 <AdvancedSearch
@@ -751,6 +749,7 @@ export const Assets: React.FC = () => {
                             <ScrollableTabs
                                 tabs={[
                                     { id: 'details', label: 'Général', icon: Tag },
+                                    { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
                                     { id: 'lifecycle', label: 'Cycle de Vie', icon: CalendarClock },
                                     { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert },
                                     { id: 'projects', label: 'Projets', icon: FolderKanban },
@@ -1090,6 +1089,14 @@ export const Assets: React.FC = () => {
                             {inspectorTab === 'graph' && selectedAsset && (
                                 <div className="h-[500px]">
                                     <RelationshipGraph rootId={selectedAsset.id} rootType="Asset" />
+                                </div>
+                            )}
+                            {inspectorTab === 'intelligence' && selectedAsset && (
+                                <div className="h-full overflow-y-auto p-6">
+                                    <AssetAIAssistant
+                                        asset={selectedAsset}
+                                        onUpdate={(updates) => handleUpdate({ ...selectedAsset, ...updates } as any)}
+                                    />
                                 </div>
                             )}
                             {inspectorTab === 'comments' && selectedAsset && (<div className="h-full flex flex-col"><Comments collectionName="assets" documentId={selectedAsset.id} /></div>)}

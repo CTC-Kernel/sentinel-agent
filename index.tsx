@@ -9,6 +9,8 @@ import { HelmetProvider } from 'react-helmet-async';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 // Initialize Capacitor plugins
 const initializeApp = async () => {
   try {
@@ -26,14 +28,18 @@ const initializeApp = async () => {
   }
 };
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_CLIENT_ID_HERE";
+
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <HelmetProvider>
-      <App />
-    </HelmetProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <HelmetProvider>
+        <App />
+      </HelmetProvider>
+    </GoogleOAuthProvider>
   </React.StrictMode>
 );
 
