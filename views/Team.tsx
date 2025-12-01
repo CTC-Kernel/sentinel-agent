@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import { UserProfile, Invitation, JoinRequest } from '../types';
+import { UserProfile, Invitation, JoinRequest, CustomRole } from '../types';
 import { Users, Mail, Plus, Building, User, Trash2, Edit, Clock, Timer, FileSpreadsheet, Check, XCircle, UserPlus } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { sendEmail } from '../services/emailService';
@@ -20,6 +20,7 @@ import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userSchema, UserFormData } from '../schemas/userSchema';
+import { RoleManager } from '../components/team/RoleManager';
 
 import { hasPermission } from '../utils/permissions';
 
@@ -338,6 +339,24 @@ export const Team: React.FC = () => {
         }
     };
 
+    const [activeTab, setActiveTab] = useState<'members' | 'roles'>('members');
+    const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
+
+    const fetchRoles = useCallback(async () => {
+        if (!user?.organizationId) return;
+        try {
+            const q = query(collection(db, 'custom_roles'), where('organizationId', '==', user.organizationId));
+            const snapshot = await getDocs(q);
+            setCustomRoles(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as CustomRole)));
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Team.fetchRoles');
+        }
+    }, [user?.organizationId]);
+
+    useEffect(() => {
+        fetchRoles();
+    }, [fetchRoles]);
+
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
             <ConfirmModal
@@ -355,7 +374,7 @@ export const Team: React.FC = () => {
                     { label: 'Équipe' }
                 ]}
                 icon={<Users className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                actions={canAdmin && (
+                actions={canAdmin && activeTab === 'members' && (
                     <>
                         <button
                             onClick={handleExportCSV}
@@ -374,118 +393,144 @@ export const Team: React.FC = () => {
                 )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {/* Pending Join Requests Section */}
-                {joinRequests.length > 0 && (
-                    <div className="col-span-full mb-4">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center">
-                            <UserPlus className="h-5 w-5 mr-2 text-blue-500" />
-                            Demandes d'accès ({joinRequests.length})
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {joinRequests.map(req => (
-                                <div key={req.id} className="bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-900/30 p-5 rounded-2xl shadow-sm flex flex-col">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
-                                            {req.displayName.charAt(0).toUpperCase()}
+            <div className="flex space-x-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl w-fit">
+                <button
+                    onClick={() => setActiveTab('members')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'members'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                >
+                    Membres
+                </button>
+                <button
+                    onClick={() => setActiveTab('roles')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'roles'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                >
+                    Rôles & Permissions
+                </button>
+            </div>
+
+            {activeTab === 'roles' ? (
+                <RoleManager roles={customRoles} onRefresh={fetchRoles} />
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {/* Pending Join Requests Section */}
+                    {joinRequests.length > 0 && (
+                        <div className="col-span-full mb-4">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center">
+                                <UserPlus className="h-5 w-5 mr-2 text-blue-500" />
+                                Demandes d'accès ({joinRequests.length})
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {joinRequests.map(req => (
+                                    <div key={req.id} className="bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-900/30 p-5 rounded-2xl shadow-sm flex flex-col">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                                                {req.displayName.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-900 dark:text-white">{req.displayName}</p>
+                                                <p className="text-xs text-slate-500">{req.userEmail}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-bold text-slate-900 dark:text-white">{req.displayName}</p>
-                                            <p className="text-xs text-slate-500">{req.userEmail}</p>
+                                        <div className="mt-auto flex gap-2 pt-3">
+                                            <button
+                                                onClick={() => handleRejectRequest(req)}
+                                                className="flex-1 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl text-xs font-bold hover:bg-red-100 hover:text-red-600 transition-colors flex items-center justify-center gap-1"
+                                            >
+                                                <XCircle className="h-3.5 w-3.5" /> Refuser
+                                            </button>
+                                            <button
+                                                onClick={() => handleApproveRequest(req)}
+                                                className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+                                            >
+                                                <Check className="h-3.5 w-3.5" /> Approuver
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="mt-auto flex gap-2 pt-3">
-                                        <button
-                                            onClick={() => handleRejectRequest(req)}
-                                            className="flex-1 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl text-xs font-bold hover:bg-red-100 hover:text-red-600 transition-colors flex items-center justify-center gap-1"
-                                        >
-                                            <XCircle className="h-3.5 w-3.5" /> Refuser
-                                        </button>
-                                        <button
-                                            onClick={() => handleApproveRequest(req)}
-                                            className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
-                                        >
-                                            <Check className="h-3.5 w-3.5" /> Approuver
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+                            <div className="h-px bg-slate-200 dark:bg-white/10 my-6" />
                         </div>
-                        <div className="h-px bg-slate-200 dark:bg-white/10 my-6" />
-                    </div>
-                )}
+                    )}
 
-                {loading ? (
-                    <div className="col-span-full"><CardSkeleton count={3} /></div>
-                ) : users.length === 0 ? (
-                    <div className="col-span-full">
-                        <EmptyState
-                            icon={Users}
-                            title="Aucun membre"
-                            description="Invitez des collaborateurs pour travailler ensemble."
-                            actionLabel={canAdmin ? "Inviter un membre" : undefined}
-                            onAction={canAdmin ? handleOpenInviteModal : undefined}
-                        />
-                    </div>
-                ) : (
-                    users.map((u, i) => (
-                        <div key={i} className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${u.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
-                            {canAdmin && (
-                                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {!u.isPending && (
-                                        <button onClick={() => openEditModal(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all">
-                                            <Edit className="h-4 w-4" />
+                    {loading ? (
+                        <div className="col-span-full"><CardSkeleton count={3} /></div>
+                    ) : users.length === 0 ? (
+                        <div className="col-span-full">
+                            <EmptyState
+                                icon={Users}
+                                title="Aucun membre"
+                                description="Invitez des collaborateurs pour travailler ensemble."
+                                actionLabel={canAdmin ? "Inviter un membre" : undefined}
+                                onAction={canAdmin ? handleOpenInviteModal : undefined}
+                            />
+                        </div>
+                    ) : (
+                        users.map((u, i) => (
+                            <div key={i} className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${u.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
+                                {canAdmin && (
+                                    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {!u.isPending && (
+                                            <button onClick={() => openEditModal(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all">
+                                                <Edit className="h-4 w-4" />
+                                            </button>
+                                        )}
+                                        <button onClick={() => initiateDelete(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-400 hover:text-red-500 shadow-sm hover:scale-105 transition-all">
+                                            <Trash2 className="h-4 w-4" />
                                         </button>
-                                    )}
-                                    <button onClick={() => initiateDelete(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-400 hover:text-red-500 shadow-sm hover:scale-105 transition-all">
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
-                                </div>
-                            )}
-
-                            <div className="relative mb-4 mt-2">
-                                {u.photoURL ? (
-                                    <img src={u.photoURL} alt={u.displayName} className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50 grayscale' : ''}`} />
-                                ) : (
-                                    <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-3xl font-bold text-slate-500 dark:text-slate-300 shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50' : ''}`}>
-                                        {u.displayName ? u.displayName.charAt(0).toUpperCase() : 'U'}
                                     </div>
                                 )}
-                                <div className="absolute bottom-0 right-0 transform translate-x-2 translate-y-1">
-                                    {getRoleBadge(u.role)}
-                                </div>
-                            </div>
 
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{u.displayName}</h3>
-                            <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
-                                <Mail className="h-3 w-3 mr-1.5 opacity-70" /> {u.email}
-                            </div>
-
-                            {u.isPending ? (
-                                <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-center items-center text-xs mt-auto">
-                                    <div className="flex items-center text-amber-500 font-bold bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg">
-                                        <Timer className="h-3.5 w-3.5 mr-1.5" />
-                                        Invitation en attente
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center text-xs mt-auto">
-                                    <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
-                                        <Building className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
-                                        {u.department || 'Général'}
-                                    </div>
-                                    {u.lastLogin && (
-                                        <div className="flex items-center text-slate-400 font-medium" title="Dernière connexion">
-                                            <Clock className="h-3.5 w-3.5 mr-1.5" />
-                                            {new Date(u.lastLogin).toLocaleDateString()}
+                                <div className="relative mb-4 mt-2">
+                                    {u.photoURL ? (
+                                        <img src={u.photoURL} alt={u.displayName} className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50 grayscale' : ''}`} />
+                                    ) : (
+                                        <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-3xl font-bold text-slate-500 dark:text-slate-300 shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50' : ''}`}>
+                                            {u.displayName ? u.displayName.charAt(0).toUpperCase() : 'U'}
                                         </div>
                                     )}
+                                    <div className="absolute bottom-0 right-0 transform translate-x-2 translate-y-1">
+                                        {getRoleBadge(u.role)}
+                                    </div>
                                 </div>
-                            )}
-                        </div>
-                    ))
-                )}
-            </div>
+
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{u.displayName}</h3>
+                                <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
+                                    <Mail className="h-3 w-3 mr-1.5 opacity-70" /> {u.email}
+                                </div>
+
+                                {u.isPending ? (
+                                    <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-center items-center text-xs mt-auto">
+                                        <div className="flex items-center text-amber-500 font-bold bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg">
+                                            <Timer className="h-3.5 w-3.5 mr-1.5" />
+                                            Invitation en attente
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center text-xs mt-auto">
+                                        <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
+                                            <Building className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
+                                            {u.department || 'Général'}
+                                        </div>
+                                        {u.lastLogin && (
+                                            <div className="flex items-center text-slate-400 font-medium" title="Dernière connexion">
+                                                <Clock className="h-3.5 w-3.5 mr-1.5" />
+                                                {new Date(u.lastLogin).toLocaleDateString()}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
+
             {/* INVITE DRAWER */}
             <Drawer
                 isOpen={showInviteModal}
@@ -528,7 +573,8 @@ export const Team: React.FC = () => {
                                             { value: 'auditor', label: 'Auditeur' },
                                             { value: 'project_manager', label: 'Chef de Projet' },
                                             { value: 'direction', label: 'Direction' },
-                                            { value: 'admin', label: 'Admin' }
+                                            { value: 'admin', label: 'Admin' },
+                                            ...customRoles.map(r => ({ value: r.id, label: r.name }))
                                         ]}
                                     />
                                 )}
@@ -585,7 +631,8 @@ export const Team: React.FC = () => {
                                                 { value: 'auditor', label: 'Auditeur' },
                                                 { value: 'project_manager', label: 'Chef de Projet' },
                                                 { value: 'direction', label: 'Direction' },
-                                                { value: 'admin', label: 'Admin' }
+                                                { value: 'admin', label: 'Admin' },
+                                                ...customRoles.map(r => ({ value: r.id, label: r.name }))
                                             ]}
                                         />
                                     )}

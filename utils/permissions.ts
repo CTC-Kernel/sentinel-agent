@@ -97,6 +97,9 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
     }
 };
 
+import { useStore } from '../store';
+import { CustomRole } from '../types';
+
 const expandActions = (actions: ActionType[] = []): ActionType[] => {
     if (actions.includes('manage')) {
         return ['create', 'read', 'update', 'delete', 'manage'];
@@ -104,12 +107,26 @@ const expandActions = (actions: ActionType[] = []): ActionType[] => {
     return actions;
 };
 
-const getAllowedActions = (role: Role, resource: ResourceType): ActionType[] => {
-    const matrix = ROLE_PERMISSIONS[role];
-    if (!matrix) return [];
-    const specific = matrix[resource] || [];
-    const wildcard = matrix['*'] || [];
-    return Array.from(new Set([...expandActions(specific), ...expandActions(wildcard)]));
+const getAllowedActions = (role: string, resource: ResourceType, customRoles: CustomRole[] = []): ActionType[] => {
+    // Check standard roles first
+    if (role in ROLE_PERMISSIONS) {
+        const matrix = ROLE_PERMISSIONS[role as Role];
+        if (!matrix) return [];
+        const specific = matrix[resource] || [];
+        const wildcard = matrix['*'] || [];
+        return Array.from(new Set([...expandActions(specific), ...expandActions(wildcard)]));
+    }
+
+    // Check custom roles
+    const customRole = customRoles.find(r => r.id === role);
+    if (customRole) {
+        const specific = customRole.permissions[resource] || [];
+        // Custom roles don't currently support wildcard '*' in the UI, but we can support it in logic if added later
+        const wildcard = customRole.permissions['*'] || [];
+        return Array.from(new Set([...expandActions(specific), ...expandActions(wildcard)]));
+    }
+
+    return [];
 };
 
 export const hasPermission = (user: UserProfile | null, resource: ResourceType, action: ActionType, orgOwnerId?: string): boolean => {
@@ -123,7 +140,10 @@ export const hasPermission = (user: UserProfile | null, resource: ResourceType, 
 
     if (userRole === 'admin') return true;
 
-    const allowed = getAllowedActions(userRole, resource);
+    // Get custom roles from store
+    const customRoles = useStore.getState().customRoles;
+
+    const allowed = getAllowedActions(userRole, resource, customRoles);
     // console.log(`Checking permission for ${userRole} on ${resource} action ${action}. Allowed: ${allowed}`);
     if (allowed.includes(action)) return true;
 
