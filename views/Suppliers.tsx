@@ -6,13 +6,13 @@ import { canEditResource } from '../utils/permissions';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
-import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server } from '../components/ui/Icons';
+import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, LayoutGrid, List } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { CardSkeleton } from '../components/ui/Skeleton';
+import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
@@ -23,12 +23,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { supplierSchema, SupplierFormData } from '../schemas/supplierSchema';
 import { Drawer } from '../components/ui/Drawer';
 import { SupplierForm } from '../components/suppliers/SupplierForm';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 export const Suppliers: React.FC = () => {
     const [filter, setFilter] = useState('');
     const { user, addToast } = useStore();
     const location = useLocation();
     const canEdit = canEditResource(user, 'Supplier');
+    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('suppliers_view_mode', 'grid');
 
     const [creationMode, setCreationMode] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
@@ -517,79 +519,189 @@ export const Suppliers: React.FC = () => {
                 <button onClick={handleExportDORARegister} className="p-2.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors ml-2" title="Exporter Registre DORA">
                     <ShieldAlert className="h-4 w-4" />
                 </button>
+                <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm ml-2">
+                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {loadingSuppliers ? (
-                    <div className="col-span-full"><CardSkeleton count={3} /></div>
-                ) : filteredSuppliers.length === 0 ? (
-                    <div className="col-span-full">
-                        <EmptyState
-                            icon={Building}
-                            title="Aucun fournisseur"
-                            description={filter ? "Aucun fournisseur ne correspond à votre recherche." : "Gérez vos fournisseurs et évaluez leur sécurité."}
-                            actionLabel={filter ? undefined : "Nouveau Fournisseur"}
-                            onAction={filter ? undefined : openCreationDrawer}
-                        />
+            {viewMode === 'list' ? (
+                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
+                                <tr>
+                                    <th className="px-8 py-4">Fournisseur</th>
+                                    <th className="px-6 py-4">Catégorie</th>
+                                    <th className="px-6 py-4">Criticité</th>
+                                    <th className="px-6 py-4">Score Sécurité</th>
+                                    <th className="px-6 py-4">Contact</th>
+                                    <th className="px-6 py-4">Fin Contrat</th>
+                                    <th className="px-6 py-4">Statut</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                {loadingSuppliers ? (
+                                    <tr><td colSpan={8}><TableSkeleton rows={5} columns={8} /></td></tr>
+                                ) : filteredSuppliers.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={8}>
+                                            <EmptyState
+                                                icon={Building}
+                                                title="Aucun fournisseur"
+                                                description={filter ? "Aucun fournisseur ne correspond à votre recherche." : "Gérez vos fournisseurs et évaluez leur sécurité."}
+                                                actionLabel={filter ? undefined : "Nouveau Fournisseur"}
+                                                onAction={filter ? undefined : openCreationDrawer}
+                                            />
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredSuppliers.map((supplier) => {
+                                        const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
+                                        return (
+                                            <tr key={supplier.id} onClick={() => openInspector(supplier)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]">
+                                                <td className="px-8 py-5">
+                                                    <div className="font-bold text-slate-900 dark:text-white text-[15px]">{supplier.name}</div>
+                                                    {supplier.isICTProvider && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 mt-1">
+                                                            DORA ICT
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    <span className="px-2.5 py-1 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                        {supplier.category}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
+                                                        {supplier.criticality}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-16 bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
+                                                            <div className={`h-1.5 rounded-full transition-all duration-500 ${getScoreColor(supplier.securityScore || 0)}`} style={{ width: `${supplier.securityScore || 0}%` }}></div>
+                                                        </div>
+                                                        <span className={`text-xs font-bold ${getScoreColor(supplier.securityScore || 0).replace('bg-', 'text-')}`}>
+                                                            {supplier.securityScore || 0}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{supplier.contactName || '-'}</span>
+                                                        <span className="text-[10px] text-slate-400">{supplier.contactEmail}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    {supplier.contractEnd ? (
+                                                        <span className={`text-sm font-medium ${isExpired ? 'text-red-500' : 'text-slate-600 dark:text-slate-400'}`}>
+                                                            {new Date(supplier.contractEnd).toLocaleDateString()}
+                                                        </span>
+                                                    ) : <span className="text-slate-400">-</span>}
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                                                        {supplier.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                                                    {canEdit && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                initiateDelete(supplier.id, supplier.name);
+                                                            }}
+                                                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                                                            title="Supprimer"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                ) : (
-                    filteredSuppliers.map(supplier => {
-                        const linkedDoc = documentsRaw.find(d => d.id === supplier.contractDocumentId);
-                        const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {loadingSuppliers ? (
+                        <div className="col-span-full"><CardSkeleton count={3} /></div>
+                    ) : filteredSuppliers.length === 0 ? (
+                        <div className="col-span-full">
+                            <EmptyState
+                                icon={Building}
+                                title="Aucun fournisseur"
+                                description={filter ? "Aucun fournisseur ne correspond à votre recherche." : "Gérez vos fournisseurs et évaluez leur sécurité."}
+                                actionLabel={filter ? undefined : "Nouveau Fournisseur"}
+                                onAction={filter ? undefined : openCreationDrawer}
+                            />
+                        </div>
+                    ) : (
+                        filteredSuppliers.map(supplier => {
+                            const linkedDoc = documentsRaw.find(d => d.id === supplier.contractDocumentId);
+                            const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
 
-                        return (
-                            <div key={supplier.id} onClick={() => openInspector(supplier)} className="glass-panel rounded-[2.5rem] border border-white/50 dark:border-white/5 p-7 shadow-sm card-hover relative group cursor-pointer flex flex-col h-full">
-                                <div className="flex justify-between items-start mb-5">
-                                    <div className="p-3 bg-indigo-50 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
-                                        {supplier.category === 'Matériel' ? <Truck className="h-6 w-6" /> : <Building className="h-6 w-6" />}
-                                    </div>
-                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
-                                        {supplier.criticality}
-                                    </span>
-                                </div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{supplier.name}</h3>
-                                <div className="flex flex-wrap gap-2 mb-6">
-                                    <span className="px-2.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">{supplier.category}</span>
-                                    <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-gray-600 border-gray-200'}`}>{supplier.status}</span>
-                                    {supplier.isICTProvider && (
-                                        <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
-                                    )}
-                                </div>
-
-                                <div className="mb-6 bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
-                                    <div className="flex justify-between text-xs mb-2">
-                                        <span className="text-slate-500 dark:text-slate-400 flex items-center font-bold uppercase tracking-wide"><ShieldAlert className="h-3.5 w-3.5 mr-1.5" /> Sécurité</span>
-                                        <span className={`font-black ${getScoreColor(supplier.securityScore || 0).replace('bg-', 'text-')}`}>{supplier.securityScore || 0}/100</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
-                                        <div className={`h-2 rounded-full transition-all duration-500 ${getScoreColor(supplier.securityScore || 0)}`} style={{ width: `${supplier.securityScore || 0}%` }}></div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
-                                    <div className="flex items-center justify-between text-xs">
-                                        <div className="flex items-center font-medium text-slate-600 dark:text-slate-300">
-                                            <Handshake className="h-3.5 w-3.5 mr-2 text-slate-400" /> {supplier.contactName || 'Non spécifié'}
+                            return (
+                                <div key={supplier.id} onClick={() => openInspector(supplier)} className="glass-panel rounded-[2.5rem] border border-white/50 dark:border-white/5 p-7 shadow-sm card-hover relative group cursor-pointer flex flex-col h-full">
+                                    <div className="flex justify-between items-start mb-5">
+                                        <div className="p-3 bg-indigo-50 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
+                                            {supplier.category === 'Matériel' ? <Truck className="h-6 w-6" /> : <Building className="h-6 w-6" />}
                                         </div>
-                                        {supplier.contractEnd && (
-                                            <div className={`flex items-center font-bold ${isExpired ? 'text-red-500' : 'text-slate-400'}`}>
-                                                <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-                                                {new Date(supplier.contractEnd).toLocaleDateString()}
-                                            </div>
+                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
+                                            {supplier.criticality}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{supplier.name}</h3>
+                                    <div className="flex flex-wrap gap-2 mb-6">
+                                        <span className="px-2.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">{supplier.category}</span>
+                                        <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-gray-600 border-gray-200'}`}>{supplier.status}</span>
+                                        {supplier.isICTProvider && (
+                                            <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
                                         )}
                                     </div>
-                                    <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
-                                        <FileText className="h-3.5 w-3.5 mr-2 text-slate-400" />
-                                        {linkedDoc ? (
-                                            <span className="text-brand-600 truncate max-w-[180px] hover:underline">{linkedDoc.title}</span>
-                                        ) : <span className="text-gray-400 italic">Aucun contrat lié</span>}
+
+                                    <div className="mb-6 bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
+                                        <div className="flex justify-between text-xs mb-2">
+                                            <span className="text-slate-500 dark:text-slate-400 flex items-center font-bold uppercase tracking-wide"><ShieldAlert className="h-3.5 w-3.5 mr-1.5" /> Sécurité</span>
+                                            <span className={`font-black ${getScoreColor(supplier.securityScore || 0).replace('bg-', 'text-')}`}>{supplier.securityScore || 0}/100</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                                            <div className={`h-2 rounded-full transition-all duration-500 ${getScoreColor(supplier.securityScore || 0)}`} style={{ width: `${supplier.securityScore || 0}%` }}></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <div className="flex items-center font-medium text-slate-600 dark:text-slate-300">
+                                                <Handshake className="h-3.5 w-3.5 mr-2 text-slate-400" /> {supplier.contactName || 'Non spécifié'}
+                                            </div>
+                                            {supplier.contractEnd && (
+                                                <div className={`flex items-center font-bold ${isExpired ? 'text-red-500' : 'text-slate-400'}`}>
+                                                    <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
+                                                    {new Date(supplier.contractEnd).toLocaleDateString()}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
+                                            <FileText className="h-3.5 w-3.5 mr-2 text-slate-400" />
+                                            {linkedDoc ? (
+                                                <span className="text-brand-600 truncate max-w-[180px] hover:underline">{linkedDoc.title}</span>
+                                            ) : <span className="text-gray-400 italic">Aucun contrat lié</span>}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )
-                    })
-                )}
-            </div>
+                            )
+                        })
+                    )}
+                </div>
+            )}
 
             {/* Inspector Drawer */}
             <Drawer
