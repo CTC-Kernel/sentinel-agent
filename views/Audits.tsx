@@ -14,7 +14,7 @@ import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
 import { AuditTeam } from '../components/audits/AuditTeam';
 import { Comments } from '../components/ui/Comments';
-import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare } from '../components/ui/Icons';
+import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, CheckSquare, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, LayoutGrid, List } from '../components/ui/Icons';
 
 import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
@@ -23,7 +23,7 @@ import { logAction } from '../services/logger';
 import { PdfService } from '../services/PdfService';
 import { jsPDF } from 'jspdf';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { CardSkeleton } from '../components/ui/Skeleton';
+import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { sendEmail } from '../services/emailService';
@@ -38,10 +38,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AuditFormData, findingSchema, FindingFormData, auditSchema } from '../schemas/auditSchema';
 import { z } from 'zod';
 import { aiService } from '../services/aiService';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 export const Audits: React.FC = () => {
     const { user, addToast } = useStore();
     const canEdit = canEditResource(user, 'Audit');
+    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('audits_view_mode', 'grid');
 
     // Data Fetching with Hooks
     const { data: rawAudits, loading: auditsLoading, refresh: refreshAudits } = useFirestoreCollection<Audit>(
@@ -864,61 +866,157 @@ export const Audits: React.FC = () => {
                 <button onClick={handleExportCalendar} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter Calendrier">
                     <CalendarDays className="h-4 w-4" />
                 </button>
+                <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm ml-2">
+                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {loading ? (
-                    <div className="col-span-full"><CardSkeleton count={3} /></div>
-                ) : filteredAudits.length === 0 ? (
-                    <div className="col-span-full">
-                        <EmptyState
-                            icon={Activity}
-                            title="Aucun audit planifié"
-                            description={filter ? "Aucun audit ne correspond à votre recherche." : "Planifiez des audits réguliers pour assurer la conformité continue."}
-                            actionLabel={filter ? undefined : "Planifier un audit"}
-                            onAction={filter ? undefined : () => openCreationDrawer()}
-                        />
+            {viewMode === 'list' ? (
+                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
+                                <tr>
+                                    <th className="px-8 py-4">Audit</th>
+                                    <th className="px-6 py-4">Type</th>
+                                    <th className="px-6 py-4">Auditeur</th>
+                                    <th className="px-6 py-4">Date</th>
+                                    <th className="px-6 py-4">Statut</th>
+                                    <th className="px-6 py-4">Écarts</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                {loading ? (
+                                    <tr><td colSpan={7}><TableSkeleton rows={5} columns={7} /></td></tr>
+                                ) : filteredAudits.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7}>
+                                            <EmptyState
+                                                icon={Activity}
+                                                title="Aucun audit planifié"
+                                                description={filter ? "Aucun audit ne correspond à votre recherche." : "Planifiez des audits réguliers pour assurer la conformité continue."}
+                                                actionLabel={filter ? undefined : "Planifier un audit"}
+                                                onAction={filter ? undefined : () => openCreationDrawer()}
+                                            />
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredAudits.map(audit => (
+                                        <tr key={audit.id} onClick={() => handleOpenAudit(audit)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]">
+                                            <td className="px-8 py-5">
+                                                <div className="font-bold text-slate-900 dark:text-white text-[15px]">{audit.name}</div>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <span className="px-2.5 py-1 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                    {audit.type}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
+                                                <div className="flex items-center">
+                                                    <User className="h-3.5 w-3.5 mr-2 text-slate-400" />
+                                                    {audit.auditor}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
+                                                <div className="flex items-center">
+                                                    <CalendarDays className="h-3.5 w-3.5 mr-2 text-slate-400" />
+                                                    {new Date(audit.dateScheduled).toLocaleDateString() || 'Non planifié'}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${getStatusColor(audit.status)}`}>
+                                                    {audit.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <div className="flex items-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg w-fit">
+                                                    <AlertOctagon className="h-3.5 w-3.5 mr-1.5" /> {audit.findingsCount}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                                                {canEdit && (
+                                                    <>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); openEditDrawer(audit); }}
+                                                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                                                            title="Modifier"
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(audit.id, audit.name) }}
+                                                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                                                            title="Supprimer"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                ) : (
-                    filteredAudits.map(audit => (
-                        <div key={audit.id} onClick={() => handleOpenAudit(audit)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover cursor-pointer group border border-white/50 dark:border-white/5">
-                            <div className="flex justify-between items-start mb-5">
-                                <div className="p-3 bg-indigo-50 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
-                                    <Activity className="h-6 w-6" />
-                                </div>
-                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(audit.status)}`}>
-                                    {audit.status}
-                                </span>
-                            </div>
-
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{audit.name}</h3>
-                            <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mb-4">
-                                <User className="h-3.5 w-3.5 mr-2" /> {audit.auditor}
-                            </div>
-
-                            <div className="flex justify-between items-center pt-4 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
-                                <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400">
-                                    <CalendarDays className="h-3.5 w-3.5 mr-1.5" /> {new Date(audit.dateScheduled).toLocaleDateString() || 'Non planifié'}
-                                </div>
-                                <div className="flex items-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">
-                                    <AlertOctagon className="h-3.5 w-3.5 mr-1.5" /> {audit.findingsCount} écarts
-                                </div>
-                            </div>
-
-                            {canEdit && (
-                                <div className="absolute top-6 right-6 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={(e) => { e.stopPropagation(); openEditDrawer(audit); }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-400 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
-                                        <Edit className="h-4 w-4" />
-                                    </button>
-                                    <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(audit.id, audit.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-400 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
-                                </div>
-                            )}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {loading ? (
+                        <div className="col-span-full"><CardSkeleton count={3} /></div>
+                    ) : filteredAudits.length === 0 ? (
+                        <div className="col-span-full">
+                            <EmptyState
+                                icon={Activity}
+                                title="Aucun audit planifié"
+                                description={filter ? "Aucun audit ne correspond à votre recherche." : "Planifiez des audits réguliers pour assurer la conformité continue."}
+                                actionLabel={filter ? undefined : "Planifier un audit"}
+                                onAction={filter ? undefined : () => openCreationDrawer()}
+                            />
                         </div>
-                    ))
-                )}
-            </div>
+                    ) : (
+                        filteredAudits.map(audit => (
+                            <div key={audit.id} onClick={() => handleOpenAudit(audit)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover cursor-pointer group border border-white/50 dark:border-white/5">
+                                <div className="flex justify-between items-start mb-5">
+                                    <div className="p-3 bg-indigo-50 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
+                                        <Activity className="h-6 w-6" />
+                                    </div>
+                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(audit.status)}`}>
+                                        {audit.status}
+                                    </span>
+                                </div>
+
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{audit.name}</h3>
+                                <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                    <User className="h-3.5 w-3.5 mr-2" /> {audit.auditor}
+                                </div>
+
+                                <div className="flex justify-between items-center pt-4 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
+                                    <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400">
+                                        <CalendarDays className="h-3.5 w-3.5 mr-1.5" /> {new Date(audit.dateScheduled).toLocaleDateString() || 'Non planifié'}
+                                    </div>
+                                    <div className="flex items-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">
+                                        <AlertOctagon className="h-3.5 w-3.5 mr-1.5" /> {audit.findingsCount} écarts
+                                    </div>
+                                </div>
+
+                                {canEdit && (
+                                    <div className="absolute top-6 right-6 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onClick={(e) => { e.stopPropagation(); openEditDrawer(audit); }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-400 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
+                                            <Edit className="h-4 w-4" />
+                                        </button>
+                                        <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(audit.id, audit.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-400 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
 
             {/* Findings Drawer */}
             {/* Findings Drawer */}
