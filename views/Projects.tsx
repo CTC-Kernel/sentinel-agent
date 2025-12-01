@@ -240,7 +240,7 @@ export const Projects: React.FC = () => {
             // setIsEditing(false); // Removed unused
         } catch (e) {
             if (e instanceof z.ZodError) {
-                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+                addToast((e as z.ZodError).issues[0].message, "error");
             } else {
                 ErrorLogger.handleErrorWithToast(e, 'Projects.handleProjectFormSubmit', 'UPDATE_FAILED');
             }
@@ -282,7 +282,7 @@ export const Projects: React.FC = () => {
             setShowTemplateModal(false);
         } catch (e) {
             if (e instanceof z.ZodError) {
-                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+                addToast((e as z.ZodError).issues[0].message, "error");
             } else {
                 ErrorLogger.handleErrorWithToast(e, 'Projects.handleCreateFromTemplate', 'CREATE_FAILED');
             }
@@ -851,7 +851,7 @@ export const Projects: React.FC = () => {
                                     { id: 'comments', label: 'Commentaires', icon: MessageSquare }
                                 ]}
                                 activeTab={inspectorTab}
-                                onTabChange={(id) => setInspectorTab(id as any)}
+                                onTabChange={(id) => setInspectorTab(id as 'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence')}
                             />
                         </div>
 

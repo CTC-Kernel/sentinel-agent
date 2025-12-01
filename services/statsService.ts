@@ -75,7 +75,7 @@ export class StatsService {
             };
 
             await setDoc(docRef, { ...stats, organizationId });
-            console.log('Daily stats snapshot created for', today);
+            ErrorLogger.info('Daily stats snapshot created', 'StatsService.snapshotDailyStats', { metadata: { date: today } });
 
         } catch (error) {
             ErrorLogger.error(error, 'StatsService.snapshotDailyStats');

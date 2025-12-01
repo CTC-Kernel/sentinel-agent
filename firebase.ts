@@ -34,7 +34,7 @@ if (typeof window !== 'undefined') {
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string }).FIREBASE_APPCHECK_DEBUG_TOKEN =
       "***REDACTED***";
 
-    console.log("Using Hardcoded App Check Token: ***REDACTED***");
+    ErrorLogger.info("Using Hardcoded App Check Token", 'firebase.ts');
   }
 
   try {

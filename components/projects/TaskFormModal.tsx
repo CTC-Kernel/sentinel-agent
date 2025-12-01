@@ -220,8 +220,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                         event={{
                                             title: watchedTitle,
                                             description: watchedDescription,
-                                            startTime: watchedStartDate ? new Date(watchedStartDate) : new Date(watchedDueDate),
-                                            endTime: new Date(watchedDueDate),
+                                            start: watchedStartDate ? new Date(watchedStartDate) : new Date(watchedDueDate),
+                                            end: new Date(watchedDueDate),
                                             location: 'Sentinel GRC'
                                         }}
                                         className="scale-75 origin-right"

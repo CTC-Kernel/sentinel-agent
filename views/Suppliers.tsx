@@ -864,7 +864,7 @@ export const Suppliers: React.FC = () => {
                                 <div className="h-full overflow-y-auto p-6">
                                     <SupplierAIAssistant
                                         supplier={selectedSupplier}
-                                        onUpdate={(updates) => handleUpdate(updates as any)}
+                                        onUpdate={(updates) => handleUpdate(updates as unknown as SupplierFormData)}
                                     />
                                 </div>
                             )}
