@@ -5,11 +5,13 @@ import { useStore } from '../../store';
 import CryptoJS from 'crypto-js';
 
 interface FileUploaderProps {
-    onUploadComplete: (url: string, fileName: string, hash?: string, isSecure?: boolean) => void;
+    onUploadComplete: (url: string, fileName: string, hash?: string, isSecure?: boolean, size?: number) => void;
     category: string;
     maxSizeMB?: number;
     allowedTypes?: string[];
     multiple?: boolean;
+    disabled?: boolean;
+    disabledMessage?: string;
 }
 
 export const FileUploader: React.FC<FileUploaderProps> = ({
@@ -18,6 +20,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     maxSizeMB = 10,
     allowedTypes = ['image/*', 'application/pdf', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
     multiple = false,
+    disabled = false,
+    disabledMessage = "Upload désactivé"
 }) => {
     const { user } = useStore();
     const [uploading, setUploading] = useState(false);
@@ -89,7 +93,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             setProgress(100);
 
             setTimeout(() => {
-                onUploadComplete(downloadURL, selectedFile.name, hash, isSecure);
+                onUploadComplete(downloadURL, selectedFile.name, hash, isSecure, selectedFile.size);
                 setSelectedFile(null);
                 setProgress(0);
                 setUploading(false);
@@ -122,18 +126,28 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     accept={allowedTypes.join(',')}
                     className="hidden"
                     id="file-upload"
+                    disabled={disabled}
                 />
                 <label
-                    htmlFor="file-upload"
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition-colors bg-slate-50 dark:bg-slate-800/50"
+                    htmlFor={disabled ? undefined : "file-upload"}
+                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl transition-colors ${disabled ? 'border-slate-200 bg-slate-100 cursor-not-allowed' : 'border-slate-300 dark:border-slate-600 cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 bg-slate-50 dark:bg-slate-800/50'}`}
                 >
-                    <Upload className="h-8 w-8 text-slate-400 mb-2" />
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                        Cliquez pour sélectionner un fichier
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                        Max {maxSizeMB}MB • PDF, Images, Excel
-                    </p>
+                    {disabled ? (
+                        <div className="text-center">
+                            <AlertTriangle className="h-8 w-8 text-slate-400 mb-2 mx-auto" />
+                            <p className="text-sm font-medium text-slate-500">{disabledMessage}</p>
+                        </div>
+                    ) : (
+                        <>
+                            <Upload className="h-8 w-8 text-slate-400 mb-2" />
+                            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                                Cliquez pour sélectionner un fichier
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                                Max {maxSizeMB}MB • PDF, Images, Excel
+                            </p>
+                        </>
+                    )}
                 </label>
             </div>
 

@@ -691,6 +691,72 @@ exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId
 // Export the API function
 exports.api = require("./api").api;
 
+/**
+ * Transfer Organization Ownership
+ * Callable function to safely transfer ownership to another member.
+ */
+exports.transferOwnership = onCall(async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError('unauthenticated', 'User must be logged in.');
+
+    const { organizationId, newOwnerId } = request.data;
+    if (!organizationId || !newOwnerId) throw new HttpsError('invalid-argument', 'Missing parameters.');
+
+    const db = admin.firestore();
+    const orgRef = db.collection('organizations').doc(organizationId);
+    const newOwnerRef = db.collection('users').doc(newOwnerId);
+    const oldOwnerRef = db.collection('users').doc(uid);
+
+    try {
+        await db.runTransaction(async (t) => {
+            const orgDoc = await t.get(orgRef);
+            if (!orgDoc.exists) throw new HttpsError('not-found', 'Organization not found.');
+
+            const orgData = orgDoc.data();
+            if (orgData.ownerId !== uid) {
+                throw new HttpsError('permission-denied', 'Only the current owner can transfer ownership.');
+            }
+
+            const newOwnerDoc = await t.get(newOwnerRef);
+            if (!newOwnerDoc.exists) throw new HttpsError('not-found', 'New owner user not found.');
+            const newOwnerData = newOwnerDoc.data();
+
+            if (newOwnerData.organizationId !== organizationId) {
+                throw new HttpsError('failed-precondition', 'New owner must be a member of the organization.');
+            }
+
+            // Update Organization
+            t.update(orgRef, { ownerId: newOwnerId });
+
+            // Update New Owner Role to Admin (if not already)
+            t.update(newOwnerRef, { role: 'admin' });
+
+            // Update Old Owner Role (Optional: Keep as Admin or downgrade? Keeping as Admin is safer/friendlier)
+            // We won't downgrade automatically to avoid locking them out of admin features they might still need.
+            // They can change their role later if they want.
+        });
+
+        // Force token refresh for both users to update claims
+        // We can't force it client-side for the other user, but we can update their claims here.
+        await admin.auth().setCustomUserClaims(newOwnerId, {
+            organizationId: organizationId,
+            role: 'admin'
+        });
+
+        // Update old owner claims (keep as admin for now, but update logic might be needed if we downgraded)
+        await admin.auth().setCustomUserClaims(uid, {
+            organizationId: organizationId,
+            role: 'admin'
+        });
+
+        return { success: true, message: 'Ownership transferred successfully.' };
+    } catch (error) {
+        logger.error('Transfer Ownership Failed', error);
+        throw new HttpsError('internal', error.message);
+    }
+});
+
+
 // --- SCHEDULED NOTIFICATION CHECKS ---
 
 // Email Templates for Scheduled Checks

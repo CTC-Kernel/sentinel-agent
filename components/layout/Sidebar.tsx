@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
-import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database } from '../ui/Icons';
+import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar } from '../ui/Icons';
 
 const navGroups = [
   {
     title: 'Pilotage',
     items: [
       { name: 'Tableau de bord', to: '/', icon: LayoutDashboard },
+      { name: 'Calendrier', to: '/calendar', icon: Calendar },
       { name: 'CTC Engine', to: '/voxel', icon: Settings3D },
       { name: 'Incidents', to: '/incidents', icon: Siren },
       { name: 'Projets SSI', to: '/projects', icon: FolderKanban },

@@ -108,7 +108,7 @@ export const Team: React.FC = () => {
     useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
     const handleOpenInviteModal = async () => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || !canAdmin) return;
 
         // Check plan limits
         const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', users.length);
@@ -124,7 +124,7 @@ export const Team: React.FC = () => {
     };
 
     const handleAddUser: SubmitHandler<UserFormData> = async (data) => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || !canAdmin) return;
 
         try {
             // Create an invitation in 'invitations' collection
@@ -169,7 +169,7 @@ export const Team: React.FC = () => {
     };
 
     const handleUpdateUser: SubmitHandler<UserFormData> = async (data) => {
-        if (!selectedUser) return;
+        if (!selectedUser || !canAdmin) return;
         if (selectedUser.isPending) return; // Cannot edit invites this way yet
 
         try {
@@ -190,7 +190,7 @@ export const Team: React.FC = () => {
     };
 
     const handleApproveRequest = async (req: JoinRequest) => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || !canAdmin) return;
 
         // Check plan limits
         const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', users.length);
@@ -231,7 +231,7 @@ export const Team: React.FC = () => {
     };
 
     const handleRejectRequest = async (req: JoinRequest) => {
-        if (!user) return;
+        if (!user || !canAdmin) return;
         if (!confirm(`Refuser la demande de ${req.displayName} ?`)) return;
         try {
             await updateDoc(doc(db, 'join_requests', req.id), {
@@ -293,6 +293,7 @@ export const Team: React.FC = () => {
     };
 
     const handleDeleteUser = async (u: UserProfile) => {
+        if (!canAdmin) return;
         try {
             if (u.isPending) {
                 await deleteDoc(doc(db, 'invitations', u.uid));

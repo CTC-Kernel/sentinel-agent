@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2, Server } from '../components/ui/Icons';
+import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2 } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { LegalModal } from '../components/ui/LegalModal';
 import { useForm, SubmitHandler } from 'react-hook-form';
@@ -25,7 +25,7 @@ export const Login: React.FC = () => {
     const { addToast } = useStore();
 
     // Main Auth Form
-    const { register, handleSubmit, formState: { errors }, setValue, clearErrors } = useForm<LoginFormData | RegisterFormData>({
+    const { register, handleSubmit, formState: { errors }, clearErrors } = useForm<LoginFormData | RegisterFormData>({
         resolver: zodResolver(isLogin ? loginSchema : registerSchema),
         mode: 'onSubmit'
     });
@@ -97,11 +97,7 @@ export const Login: React.FC = () => {
         }
     };
 
-    const fillDemo = () => {
-        setValue('email', 'demo@sentinel.local');
-        setValue('password', 'demo1234');
-        setErrorMsg(null);
-    };
+
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#E5E7EB] dark:bg-[#000000] relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
@@ -127,9 +123,7 @@ export const Login: React.FC = () => {
                         <div className="w-full mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex flex-col gap-2 text-xs font-bold text-red-600 shadow-sm animate-slide-up">
                             <p className="flex items-center justify-center"><AlertTriangle className="h-4 w-4 mr-2" /> {errorMsg}</p>
                             {errorMsg.includes('restreint') && (
-                                <button onClick={fillDemo} className="mx-auto bg-white border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
-                                    <Server className="h-3 w-3" /> Mode Démo
-                                </button>
+                                <p className="text-[10px] font-normal text-red-500 text-center mt-1">Contactez l'administrateur si le problème persiste.</p>
                             )}
                         </div>
                     )}

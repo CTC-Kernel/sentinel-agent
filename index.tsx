@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { ErrorLogger } from './services/errorLogger';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Capacitor imports for native functionality
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -27,11 +28,12 @@ const initializeApp = async () => {
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
-
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <HelmetProvider>
+      <App />
+    </HelmetProvider>
   </React.StrictMode>
 );
 

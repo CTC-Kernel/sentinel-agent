@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { doc, setDoc, collection, query, where, getDocs, addDoc, writeBatch } from 'firebase/firestore';
+import { doc, setDoc, collection, query, where, getDocs, addDoc, writeBatch, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { ArrowRight, User as UserIcon, Building, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus } from '../components/ui/Icons';
+import { ArrowRight, User as UserIcon, Building, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server } from '../components/ui/Icons';
 import { sendEmail } from '../services/emailService';
 import { getWelcomeEmailTemplate } from '../services/emailTemplates';
 import { PLANS } from '../config/plans';
@@ -14,6 +14,8 @@ import { ErrorLogger } from '../services/errorLogger';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { onboardingSchema, OnboardingFormData } from '../schemas/onboardingSchema';
+
+
 
 interface SearchResult {
     id: string;
@@ -50,6 +52,119 @@ export const Onboarding: React.FC = () => {
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [joinRequestSent, setJoinRequestSent] = useState(false);
 
+    // Step 3: Pilotage
+    const [standards, setStandards] = useState<string[]>([]);
+    const [scope, setScope] = useState('');
+
+    // Step 4: Team
+    const [inviteEmail, setInviteEmail] = useState('');
+    const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
+
+    // Step 5: Assets
+    const [assetName, setAssetName] = useState('');
+    const [assetType, setAssetType] = useState('SaaS');
+    const [initialAssets, setInitialAssets] = useState<{ name: string, type: string }[]>([]);
+
+    const handleStep3 = async () => {
+        if (!user?.organizationId || user.role !== 'admin') return;
+        setLoading(true);
+        try {
+            await updateDoc(doc(db, 'organizations', user.organizationId), {
+                standards,
+                scope,
+                onboardingStep: 3
+            });
+            setStep(4);
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Onboarding.step3', 'UPDATE_FAILED');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleInviteUser = () => {
+        if (inviteEmail && !invitedUsers.includes(inviteEmail)) {
+            setInvitedUsers([...invitedUsers, inviteEmail]);
+            setInviteEmail('');
+        }
+    };
+
+    const handleRemoveInvite = (email: string) => {
+        setInvitedUsers(invitedUsers.filter(e => e !== email));
+    };
+
+    const handleStep4 = async () => {
+        if (invitedUsers.length > 0 && user?.organizationId && user.role === 'admin') {
+            setLoading(true);
+            try {
+                const batch = writeBatch(db);
+                for (const email of invitedUsers) {
+                    const newUid = generateUUID();
+                    const ref = doc(db, 'users', newUid);
+                    batch.set(ref, {
+                        uid: newUid,
+                        email,
+                        organizationId: user.organizationId,
+                        organizationName: user.organizationName || '',
+                        role: 'user',
+                        invitedBy: user.uid,
+                        createdAt: new Date().toISOString(),
+                        onboardingPending: true
+                    });
+                    // In a real app, trigger email here via Cloud Function or API
+                }
+                await batch.commit();
+                addToast(`${invitedUsers.length} invitations envoyées`, "success");
+            } catch (e) {
+                ErrorLogger.handleErrorWithToast(e, 'Onboarding.step4', 'INVITE_FAILED');
+            } finally {
+                setLoading(false);
+            }
+        }
+        setStep(5);
+    };
+
+    const handleAddAsset = () => {
+        if (assetName) {
+            setInitialAssets([...initialAssets, { name: assetName, type: assetType }]);
+            setAssetName('');
+        }
+    };
+
+    const handleRemoveAsset = (index: number) => {
+        setInitialAssets(initialAssets.filter((_, i) => i !== index));
+    };
+
+    const handleStep5 = async () => {
+        if (initialAssets.length > 0 && user?.organizationId && user.role === 'admin') {
+            setLoading(true);
+            try {
+                const batch = writeBatch(db);
+                initialAssets.forEach(asset => {
+                    const ref = doc(collection(db, 'assets'));
+                    batch.set(ref, {
+                        name: asset.name,
+                        type: asset.type,
+                        organizationId: user.organizationId,
+                        createdAt: new Date().toISOString(),
+                        lifecycleStatus: 'En service',
+                        confidentiality: 'Medium',
+                        integrity: 'Medium',
+                        availability: 'Medium',
+                        owner: user.displayName || 'Admin'
+                    });
+                });
+                await batch.commit();
+                addToast(`${initialAssets.length} actifs créés`, "success");
+            } catch (e) {
+                ErrorLogger.handleErrorWithToast(e, 'Onboarding.step5', 'CREATE_FAILED');
+            } finally {
+                setLoading(false);
+            }
+        }
+        handleFinalize();
+    };
+
     // Auto-detect step based on user state or REDIRECT if finished
     React.useEffect(() => {
         if (user?.onboardingCompleted) {
@@ -59,6 +174,22 @@ export const Onboarding: React.FC = () => {
         }
 
         if (user?.organizationId && !user.onboardingCompleted) {
+            // If invited user (not admin), skip setup
+            if (user.role !== 'admin') {
+                const completeOnboarding = async () => {
+                    try {
+                        await setDoc(doc(db, 'users', user.uid), { onboardingCompleted: true }, { merge: true });
+                        await refreshSession();
+                        setUser({ ...user, onboardingCompleted: true });
+                        navigate('/', { replace: true });
+                    } catch (error) {
+                        ErrorLogger.handleErrorWithToast(error, 'Onboarding.autoComplete', 'UPDATE_FAILED');
+                    }
+                };
+                completeOnboarding();
+                return;
+            }
+
             setMode('create');
             setStep(2);
             // Pre-fill fields if possible (optional)
@@ -140,14 +271,10 @@ export const Onboarding: React.FC = () => {
         const email = targetUser.email || '';
         const photoURL = targetUser.photoURL || null;
 
-
-
         try {
             // Generate a NEW organization ID
             const newOrgId = generateUUID();
             const orgName = data.organizationName || (user as unknown as { organizationName?: string })?.organizationName || 'Mon Organisation';
-
-
 
             // USE BATCH FOR ATOMICITY
             const batch = writeBatch(db);
@@ -164,12 +291,12 @@ export const Onboarding: React.FC = () => {
                 organizationName: orgName,
                 organizationId: newOrgId,
                 photoURL: photoURL,
-                lastLogin: new Date().toISOString()
+                lastLogin: new Date().toISOString(),
+                onboardingCompleted: true, // Mark as completed here for immediate app access
+                createdAt: new Date().toISOString(),
+                theme: 'light' as const
             };
 
-
-            // Important: merge is not directly available in batch.set, but we can use update if doc exists
-            // However, since we want upsert behavior, we use set with merge option which IS supported in batch
             batch.set(userRef, userUpdates, { merge: true });
 
             // 2. Create Organization Document (CRITICAL for SubscriptionService)
@@ -303,12 +430,18 @@ export const Onboarding: React.FC = () => {
                         <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
                             {mode === 'select' ? 'Bienvenue' :
                                 mode === 'join' ? 'Rejoindre une équipe' :
-                                    step === 1 ? 'Configuration Initiale' : 'Choisissez votre Plan'}
+                                    step === 1 ? 'Configuration Initiale' :
+                                        step === 2 ? 'Choisissez votre Plan' :
+                                            step === 3 ? 'Pilotage & Conformité' :
+                                                step === 4 ? 'Votre Équipe' : 'Cartographie Initiale'}
                         </h1>
                         <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">
                             {mode === 'select' ? 'Comment souhaitez-vous commencer ?' :
                                 mode === 'join' ? 'Recherchez votre organisation.' :
-                                    step === 1 ? 'Créez votre espace organisationnel.' : 'Adaptez Sentinel GRC à vos besoins.'}
+                                    step === 1 ? 'Créez votre espace organisationnel.' :
+                                        step === 2 ? 'Adaptez Sentinel GRC à vos besoins.' :
+                                            step === 3 ? 'Définissez vos standards et votre périmètre.' :
+                                                step === 4 ? 'Invitez vos collaborateurs.' : 'Identifiez vos actifs critiques.'}
                         </p>
                     </div>
 
@@ -564,7 +697,7 @@ export const Onboarding: React.FC = () => {
                                             Retour
                                         </button>
                                         <button
-                                            onClick={handleFinalize}
+                                            onClick={() => setStep(3)}
                                             disabled={loading}
                                             className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                                         >
@@ -572,10 +705,159 @@ export const Onboarding: React.FC = () => {
                                                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                                             ) : (
                                                 <>
-                                                    {selectedPlan === 'discovery' ? 'Commencer Gratuitement' : 'Passer au Paiement'}
+                                                    Continuer
                                                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} />
                                                 </>
                                             )}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {step === 3 && (
+                                <div className="space-y-6 animate-fade-in">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 ml-1 flex items-center gap-2">
+                                            <ShieldCheck className="h-4 w-4" /> Standards & Normes
+                                        </label>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {['ISO 27001', 'ISO 27005', 'RGPD', 'SOC 2', 'HDS', 'PCI-DSS'].map(std => (
+                                                <div
+                                                    key={std}
+                                                    onClick={() => setStandards(prev => prev.includes(std) ? prev.filter(s => s !== std) : [...prev, std])}
+                                                    className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${standards.includes(std) ? 'bg-brand-50/50 border-brand-500 ring-1 ring-brand-500' : 'bg-slate-50/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300'}`}
+                                                >
+                                                    <span className="font-bold text-slate-700 dark:text-white">{std}</span>
+                                                    {standards.includes(std) && <Check className="h-5 w-5 text-brand-600" strokeWidth={3} />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Périmètre (Scope)</label>
+                                        <textarea
+                                            value={scope}
+                                            onChange={e => setScope(e.target.value)}
+                                            className="w-full p-4 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400 min-h-[100px]"
+                                            placeholder="Décrivez le périmètre de votre ISMS (ex: Toute l'entreprise, Service IT uniquement...)"
+                                        />
+                                    </div>
+
+                                    <div className="pt-4 flex gap-3">
+                                        <button onClick={() => setStep(2)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Retour</button>
+                                        <button onClick={handleStep3} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group">
+                                            {loading ? '...' : <>Continuer <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {step === 4 && (
+                                <div className="space-y-6 animate-fade-in">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Inviter des membres</label>
+                                        <div className="flex gap-2">
+                                            <div className="relative flex-1">
+                                                <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                                <input
+                                                    type="email"
+                                                    value={inviteEmail}
+                                                    onChange={e => setInviteEmail(e.target.value)}
+                                                    onKeyDown={e => e.key === 'Enter' && handleInviteUser()}
+                                                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white outline-none font-medium"
+                                                    placeholder="email@entreprise.com"
+                                                />
+                                            </div>
+                                            <button onClick={handleInviteUser} className="px-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold hover:opacity-90 transition-opacity">
+                                                <Plus className="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {invitedUsers.length > 0 && (
+                                        <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar p-1">
+                                            {invitedUsers.map(email => (
+                                                <div key={email} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 flex items-center justify-center font-bold text-xs">
+                                                            {email.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{email}</span>
+                                                    </div>
+                                                    <button onClick={() => handleRemoveInvite(email)} className="text-slate-400 hover:text-red-500 transition-colors">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="pt-4 flex gap-3">
+                                        <button onClick={() => setStep(3)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Retour</button>
+                                        <button onClick={handleStep4} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group">
+                                            {loading ? '...' : <>{invitedUsers.length > 0 ? 'Inviter & Continuer' : 'Passer cette étape'} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {step === 5 && (
+                                <div className="space-y-6 animate-fade-in">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Ajouter un actif critique</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="col-span-2 relative">
+                                                <Server className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                                <input
+                                                    type="text"
+                                                    value={assetName}
+                                                    onChange={e => setAssetName(e.target.value)}
+                                                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white outline-none font-medium"
+                                                    placeholder="Nom (ex: Serveur Prod)"
+                                                />
+                                            </div>
+                                            <select
+                                                value={assetType}
+                                                onChange={e => setAssetType(e.target.value)}
+                                                className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white outline-none font-medium appearance-none cursor-pointer"
+                                            >
+                                                <option value="SaaS">SaaS</option>
+                                                <option value="Server">Serveur</option>
+                                                <option value="Laptop">Ordinateur</option>
+                                                <option value="Data">Données</option>
+                                            </select>
+                                        </div>
+                                        <button onClick={handleAddAsset} disabled={!assetName} className="mt-2 w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50">
+                                            <Plus className="h-4 w-4" /> Ajouter à la liste
+                                        </button>
+                                    </div>
+
+                                    {initialAssets.length > 0 && (
+                                        <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar p-1">
+                                            {initialAssets.map((asset, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center">
+                                                            <Server className="h-4 w-4" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-slate-700 dark:text-white text-sm">{asset.name}</p>
+                                                            <p className="text-xs text-slate-500">{asset.type}</p>
+                                                        </div>
+                                                    </div>
+                                                    <button onClick={() => handleRemoveAsset(idx)} className="text-slate-400 hover:text-red-500 transition-colors">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="pt-4 flex gap-3">
+                                        <button onClick={() => setStep(4)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Retour</button>
+                                        <button onClick={handleStep5} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group">
+                                            {loading ? '...' : <>Terminer l'installation <Check className="ml-2 h-5 w-5" strokeWidth={3} /></>}
                                         </button>
                                     </div>
                                 </div>

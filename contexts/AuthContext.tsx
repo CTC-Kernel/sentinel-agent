@@ -21,7 +21,7 @@ import {
 import { auth, db } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
-import { UserProfile, Invitation } from '../types';
+import { UserProfile, Invitation, Organization } from '../types';
 import { httpsCallable, getFunctions } from 'firebase/functions';
 
 
@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
-    const { setUser, setTheme } = useStore();
+    const { setUser, setOrganization, setTheme } = useStore();
 
     // Fonction pour rafraîchir le token et les claims
     const refreshSession = useCallback(async () => {
@@ -77,6 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
         let unsubscribeProfile: (() => void) | undefined;
+        let unsubscribeOrg: (() => void) | undefined;
 
         // Sécurité : Timeout pour éviter le chargement infini
         const safetyTimeout = setTimeout(() => {
@@ -145,6 +146,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         if (userData.theme) {
                             setTheme(userData.theme);
                         }
+                        if (userData.organizationId) {
+                            // Subscribe to Organization updates
+                            if (unsubscribeOrg) unsubscribeOrg();
+                            const orgRef = doc(db, 'organizations', userData.organizationId);
+                            unsubscribeOrg = onSnapshot(orgRef, (orgSnap) => {
+                                if (orgSnap.exists()) {
+                                    setOrganization({ id: orgSnap.id, ...orgSnap.data() } as Organization);
+                                } else {
+                                    setOrganization(null);
+                                }
+                            }, (err) => {
+                                ErrorLogger.error(err, 'AuthContext.orgSnapshot');
+                            });
+                        } else {
+                            setOrganization(null);
+                            if (unsubscribeOrg) {
+                                unsubscribeOrg();
+                                unsubscribeOrg = undefined;
+                            }
+                        }
+
                         setLoading(false);
                     } else {
                         // PROFIL INEXISTANT -> CRÉATION AUTOMATIQUE
@@ -248,6 +270,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             clearTimeout(safetyTimeout);
             unsubscribeAuth();
             if (unsubscribeProfile) unsubscribeProfile();
+            if (unsubscribeOrg) unsubscribeOrg();
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
         };
