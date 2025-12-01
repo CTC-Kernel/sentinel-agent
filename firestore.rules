@@ -146,6 +146,16 @@ service cloud.firestore {
         request.auth.token.email == resource.data.email
       );
     }
+
+    // Custom Roles
+    match /custom_roles/{roleId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
     
     // Risk History (Immutable)
     match /risk_history/{historyId} {
@@ -445,6 +455,46 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
       allow update: if false;
       allow delete: if isAdmin();
+    }
+
+    // Incident Playbooks
+    match /incidentPlaybooks/{playbookId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (isAdmin() || isRSSI());
+      allow update: if canWrite(resource.data.organizationId) && (isAdmin() || isRSSI());
+      allow delete: if canDelete(resource.data.organizationId) && (isAdmin() || isRSSI());
+    }
+
+    // Incident Responses
+    match /incidentResponses/{responseId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
+    // Supplier Assessments
+    match /supplier_assessments/{assessmentId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
+    // Supplier Incidents
+    match /supplier_incidents/{incidentId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
     }
 
     // Secure Storage

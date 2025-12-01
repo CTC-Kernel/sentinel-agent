@@ -329,7 +329,7 @@ export const Settings: React.FC = () => {
         setUploadingPhoto(true);
 
         try {
-            const storageRef = ref(storage, `avatars / ${user.uid}_${file.name} `);
+            const storageRef = ref(storage, `avatars/${user.uid}/${file.name}`);
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
 

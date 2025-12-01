@@ -50,5 +50,17 @@ service firebase.storage {
       allow create: if belongsToOrg(orgId) && isValidFileSize(50);
       allow update, delete: if false;
     }
+
+    // Backups - organization-based
+    match /backups/{orgId}/{allPaths=**} {
+      allow read: if belongsToOrg(orgId);
+      allow write: if belongsToOrg(orgId);
+    }
+
+    // Organizations - general storage
+    match /organizations/{orgId}/{allPaths=**} {
+      allow read: if belongsToOrg(orgId);
+      allow write: if belongsToOrg(orgId);
+    }
   }
 }
