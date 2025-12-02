@@ -26,6 +26,10 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
+    if (!firebaseUser.emailVerified && location.pathname !== '/verify-email') {
+        return <Navigate to="/verify-email" replace />;
+    }
+
     if (user && requireOnboarding && (!user.onboardingCompleted || !user.organizationId)) {
         return <Navigate to="/onboarding" replace />;
     }

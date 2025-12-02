@@ -75,6 +75,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [setUser]);
 
+    // Session Timeout Logic
+    useEffect(() => {
+        if (!firebaseUser) return;
+
+        const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+        const CHECK_INTERVAL = 60 * 1000; // Check every minute
+        const lastActivityRef = { current: Date.now() };
+
+        const updateActivity = () => {
+            lastActivityRef.current = Date.now();
+        };
+
+        const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+        // Using a passive listener for scroll to improve performance
+        events.forEach(event => window.addEventListener(event, updateActivity, { passive: true }));
+
+        const intervalId = setInterval(() => {
+            if (Date.now() - lastActivityRef.current > IDLE_TIMEOUT) {
+                ErrorLogger.info('Session timed out due to inactivity', 'AuthContext.sessionTimeout');
+                logout();
+            }
+        }, CHECK_INTERVAL);
+
+        return () => {
+            clearInterval(intervalId);
+            events.forEach(event => window.removeEventListener(event, updateActivity));
+        };
+    }, [firebaseUser, logout]);
+
     // Gestionnaire principal d'état d'authentification
     useEffect(() => {
 
@@ -282,16 +311,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
     }, [setUser, setTheme, logout]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // MFA State
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [mfaSecret, setMfaSecret] = useState<any>(null);
+
+    const enrollMFA = useCallback(async () => {
+        if (!auth.currentUser) throw new Error("No user logged in");
+        const { multiFactor, TotpMultiFactorGenerator } = await import('firebase/auth');
+
+        const multiFactorSession = await multiFactor(auth.currentUser).getSession();
+        const secret = await TotpMultiFactorGenerator.generateSecret(multiFactorSession);
+        setMfaSecret(secret);
+
+        return secret.generateQrCodeUrl(auth.currentUser.email || 'Sentinel GRC', 'Sentinel GRC');
+    }, []);
+
+    const verifyMFA = useCallback(async (verificationId: string, code: string) => {
+        if (!auth.currentUser || !mfaSecret) throw new Error("MFA setup not initialized");
+        const { multiFactor, TotpMultiFactorGenerator } = await import('firebase/auth');
+
+        const multiFactorAssertion = TotpMultiFactorGenerator.assertionForEnrollment(mfaSecret, code);
+        await multiFactor(auth.currentUser).enroll(multiFactorAssertion, verificationId);
+        setMfaSecret(null);
+    }, [mfaSecret]);
+
+    const unenrollMFA = useCallback(async () => {
+        if (!auth.currentUser) return;
+        const { multiFactor } = await import('firebase/auth');
+        const enrolledFactors = multiFactor(auth.currentUser).enrolledFactors;
+        if (enrolledFactors.length > 0) {
+            await multiFactor(auth.currentUser).unenroll(enrolledFactors[0]);
+        }
+    }, []);
+
     const value = {
-        user: useStore.getState().user, // On lit depuis le store pour être synchro
+        user: useStore.getState().user,
         firebaseUser,
         loading,
         error,
-        isBlocked, // Expose blocked state
+        isBlocked,
         dismissBlockerError: () => setIsBlocked(false),
         isAdmin: useStore.getState().user?.role === 'admin',
         refreshSession,
-        logout
+        logout,
+        enrollMFA,
+        verifyMFA,
+        unenrollMFA
     };
 
     return (
