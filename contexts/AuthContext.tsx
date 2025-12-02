@@ -125,12 +125,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         const userData = snapshot.data() as UserProfile;
 
                         // SELF-HEALING: Vérifier la cohérence des données
-                        // 1. Si le rôle est manquant, on le force à 'admin' et ON LE SAUVEGARDE
+                        // 1. Si le rôle est manquant, on le force à 'user' par sécurité
                         if (!userData.role) {
-                            ErrorLogger.warn("User role missing in Firestore, defaulting to admin for recovery", 'AuthContext.handleUser');
-                            userData.role = 'admin';
+                            ErrorLogger.warn("User role missing in Firestore, defaulting to user for safety", 'AuthContext.handleUser');
+                            userData.role = 'user';
                             // Fix persistence immediately
-                            setDoc(userRef, { role: 'admin' }, { merge: true }).catch(e => ErrorLogger.error(e, 'AuthContext.autoFixRole'));
+                            setDoc(userRef, { role: 'user' }, { merge: true }).catch(e => ErrorLogger.error(e, 'AuthContext.autoFixRole'));
                         }
 
                         // 2. Si l'utilisateur a une organisation mais onboarding non validé -> Auto-fix

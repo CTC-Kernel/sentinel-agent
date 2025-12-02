@@ -147,9 +147,6 @@ export const hasPermission = (user: UserProfile | null, resource: ResourceType, 
 
     if (allowed.includes(action)) return true;
 
-    // RSSI acts as super-user when not already covered by matrix wildcard
-    if (userRole === 'rssi') return true;
-
     return false;
 };
 
@@ -217,7 +214,7 @@ export const canEditResource = (user: UserProfile | null, resource: ResourceType
     // Owner check
     if (orgOwnerId && user.uid === orgOwnerId) return true;
 
-    if (user.role === 'admin' || user.role === 'rssi') return true;
+    if (user.role === 'admin') return true;
 
     // Check plan limits for specific resources if needed
     // For now, we focus on feature access via hasFeatureAccess
@@ -247,7 +244,7 @@ export const canDeleteResource = (user: UserProfile | null, resource: ResourceTy
     // Owner check
     if (orgOwnerId && user.uid === orgOwnerId) return true;
 
-    if (user.role === 'admin' || user.role === 'rssi') return true;
+    if (user.role === 'admin') return true;
 
     if (resource === 'Document' && isResourceOwner(user, resourceOwnerId)) {
         return true;

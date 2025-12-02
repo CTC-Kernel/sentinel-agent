@@ -8,7 +8,7 @@ import { useFirestoreCollection } from '../../hooks/useFirestore';
 
 export const NotificationCenter: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const { user, demoMode, addToast } = useStore();
+    const { user } = useStore();
     const navigate = useNavigate();
 
     // Use the hook for fetching notifications
@@ -36,17 +36,7 @@ export const NotificationCenter: React.FC = () => {
     const handleMarkAllAsRead = async () => {
         if (!user?.uid) return;
 
-        if (demoMode) {
-            addToast("Action simulée en mode démo", "info");
-            // Optimistically mark all as read in local state isn't easily possible with the hook's current API 
-            // without iterating updates, which might be slow/complex. 
-            // For now, we'll just accept that "Mark All" might not visually update everything instantly in demo mode 
-            // unless we iterate.
-            notifications.forEach(n => {
-                if (!n.read) update(n.id, { read: true });
-            });
-            return;
-        }
+
 
         await NotificationService.markAllAsRead(user.uid);
         refresh(); // Refresh to get updated state
