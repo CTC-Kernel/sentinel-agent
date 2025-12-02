@@ -327,7 +327,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     title="Projets Actifs"
                     value={metrics.activeProjects}
                     icon={Clock}
-                    colorClass="bg-blue-500"
+                    colorClass="bg-indigo-500"
                     trend={{ value: metrics.trends.projectTrend, label: 'vs mois dernier' }}
                     onClick={() => navigate('/projects')}
                     sparklineData={trendData.slice(-7).map(d => d.assets)}

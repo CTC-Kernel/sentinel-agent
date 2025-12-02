@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
-import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier } from '../../types';
+import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier, Criticality } from '../../types';
 import { CheckCircle2 } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -66,6 +66,17 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const mitigationControlIds = useWatch({ control, name: 'mitigationControlIds' });
     const strategy = useWatch({ control, name: 'strategy' });
     const status = useWatch({ control, name: 'status' });
+    const assetId = useWatch({ control, name: 'assetId' });
+
+    const mapCriticalityToImpact = (crit: Criticality): number => {
+        switch (crit) {
+            case Criticality.CRITICAL: return 5;
+            case Criticality.HIGH: return 4;
+            case Criticality.MEDIUM: return 3;
+            case Criticality.LOW:
+            default: return 2;
+        }
+    };
 
     useEffect(() => {
         if (existingRisk) {
@@ -113,6 +124,24 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             });
         }
     }, [existingRisk, initialData, reset, usersList]);
+
+    useEffect(() => {
+        if (!assetId) return;
+        const asset = assets.find(a => a.id === assetId);
+        if (!asset) return;
+
+        const cia = [asset.confidentiality, asset.integrity, asset.availability];
+        const recommendedImpact = Math.max(...cia.map(mapCriticalityToImpact));
+
+        if (!isEditing) {
+            const currentImpact = getValues('impact');
+            const currentResidualImpact = getValues('residualImpact');
+            if (currentImpact === 3 && currentResidualImpact === 3) {
+                setValue('impact', recommendedImpact as Risk['impact'], { shouldDirty: true });
+                setValue('residualImpact', recommendedImpact as Risk['impact'], { shouldDirty: true });
+            }
+        }
+    }, [assetId, assets, getValues, isEditing, setValue]);
 
     const toggleControlSelection = (controlId: string) => {
         const currentIds = getValues('mitigationControlIds') || [];

@@ -10,6 +10,13 @@ const { defineString, defineSecret } = require("firebase-functions/params");
 const sendGridApiKey = defineSecret("SENDGRID_API_KEY");
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://sentinel-grc.web.app" });
 const admin = require("firebase-admin");
+const crypto = require("crypto");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const userSecretsKey = defineSecret("USER_SECRETS_ENCRYPTION_KEY");
+const geminiApiKey = defineSecret("GEMINI_API_KEY");
+const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
+const stripeWebhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
 
 admin.initializeApp();
 
@@ -254,7 +261,7 @@ exports.healMe = onCall(async (request) => {
 
 // --- STRIPE SUBSCRIPTION LOGIC ---
 
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const stripe = require("stripe")(stripeSecretKey.value());
 
 // Define Plans mapping for backend
 const PLANS = {
@@ -272,7 +279,9 @@ const PLANS = {
 /**
  * Create a Stripe Checkout Session for a subscription.
  */
-exports.createCheckoutSession = onCall(async (request) => {
+exports.createCheckoutSession = onCall({
+    secrets: [stripeSecretKey]
+}, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "User must be logged in.");
     }
@@ -369,7 +378,9 @@ exports.createCheckoutSession = onCall(async (request) => {
 /**
  * Create a Billing Portal Session for managing existing subscriptions.
  */
-exports.createPortalSession = onCall(async (request) => {
+exports.createPortalSession = onCall({
+    secrets: [stripeSecretKey]
+}, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "User must be logged in.");
     }
@@ -423,9 +434,11 @@ exports.createPortalSession = onCall(async (request) => {
 /**
  * Stripe Webhook to sync subscription status with Firestore.
  */
-exports.stripeWebhook = onRequest(async (req, res) => {
+exports.stripeWebhook = onRequest({
+    secrets: [stripeSecretKey, stripeWebhookSecret]
+}, async (req, res) => {
     const sig = req.headers['stripe-signature'];
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const webhookSecret = stripeWebhookSecret.value();
 
     let event;
 
@@ -692,6 +705,106 @@ exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId
 // Export the API function
 exports.api = require("./api").api;
 
+function getUserSecretKey() {
+    const raw = userSecretsKey.value();
+    if (!raw) {
+        throw new Error("USER_SECRETS_ENCRYPTION_KEY is missing");
+    }
+
+    if (/^[0-9a-fA-F]{64}$/.test(raw)) {
+        return Buffer.from(raw, "hex");
+    }
+
+    const utf8 = Buffer.from(raw, "utf8");
+    if (utf8.length === 32) {
+        return utf8;
+    }
+
+    if (utf8.length > 32) {
+        return utf8.subarray(0, 32);
+    }
+
+    const padded = Buffer.alloc(32);
+    utf8.copy(padded);
+    return padded;
+}
+
+function encryptUserSecret(plainText) {
+    const key = getUserSecretKey();
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+    const encrypted = Buffer.concat([cipher.update(plainText, "utf8"), cipher.final()]);
+    const authTag = cipher.getAuthTag();
+
+    return {
+        iv: iv.toString("base64"),
+        cipherText: encrypted.toString("base64"),
+        tag: authTag.toString("base64")
+    };
+}
+
+function decryptUserSecret(secretObject) {
+    if (!secretObject || !secretObject.iv || !secretObject.cipherText || !secretObject.tag) {
+        return null;
+    }
+
+    const key = getUserSecretKey();
+    const iv = Buffer.from(secretObject.iv, "base64");
+    const encrypted = Buffer.from(secretObject.cipherText, "base64");
+    const authTag = Buffer.from(secretObject.tag, "base64");
+
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+    decipher.setAuthTag(authTag);
+    const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+    return decrypted.toString("utf8");
+}
+
+async function getGeminiClientForUser(uid) {
+    const db = admin.firestore();
+    const userKeysRef = db.collection('user_api_keys').doc(uid);
+    const userKeysSnap = await userKeysRef.get();
+    const userKeys = userKeysSnap.data() || {};
+
+    let apiKey = null;
+
+    // 1) Clé chiffrée stockée dans user_api_keys
+    if (userKeys.gemini) {
+        apiKey = decryptUserSecret(userKeys.gemini);
+    }
+
+    // 2) Migration progressive : clé en clair éventuelle dans users/{uid}.geminiApiKey
+    if (!apiKey) {
+        const userRef = db.collection('users').doc(uid);
+        const userSnap = await userRef.get();
+        if (userSnap.exists) {
+            const userData = userSnap.data() || {};
+            if (userData.geminiApiKey) {
+                apiKey = userData.geminiApiKey;
+                const updateData = {
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    gemini: encryptUserSecret(apiKey)
+                };
+                await userKeysRef.set(updateData, { merge: true });
+                await userRef.set({ hasGeminiKey: true }, { merge: true });
+            }
+        }
+    }
+
+    // 3) Fallback : clé globale GEMINI_API_KEY (secret backend)
+    if (!apiKey) {
+        const globalKey = geminiApiKey.value();
+        if (globalKey) {
+            apiKey = globalKey.replace(/\s+/g, '');
+        }
+    }
+
+    if (!apiKey) {
+        throw new HttpsError('failed-precondition', 'Gemini API key not configured.');
+    }
+
+    return new GoogleGenerativeAI(apiKey);
+}
+
 /**
  * Transfer Organization Ownership
  * Callable function to safely transfer ownership to another member.
@@ -757,6 +870,361 @@ exports.transferOwnership = onCall(async (request) => {
     }
 });
 
+exports.saveUserApiKeys = onCall({
+    secrets: [userSecretsKey]
+}, async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const {
+        geminiApiKey,
+        shodanApiKey,
+        hibpApiKey,
+        safeBrowsingApiKey
+    } = request.data || {};
+
+    if (geminiApiKey === undefined && shodanApiKey === undefined && hibpApiKey === undefined && safeBrowsingApiKey === undefined) {
+        return { success: true, updated: false };
+    }
+
+    try {
+        const db = admin.firestore();
+        const userKeysRef = db.collection('user_api_keys').doc(uid);
+        const updateData = {
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        const flags = {};
+
+        if (geminiApiKey !== undefined) {
+            if (geminiApiKey) {
+                updateData.gemini = encryptUserSecret(geminiApiKey);
+                flags.hasGeminiKey = true;
+            } else {
+                updateData.gemini = admin.firestore.FieldValue.delete();
+                flags.hasGeminiKey = false;
+            }
+        }
+
+        if (shodanApiKey !== undefined) {
+            if (shodanApiKey) {
+                updateData.shodan = encryptUserSecret(shodanApiKey);
+                flags.hasShodanKey = true;
+            } else {
+                updateData.shodan = admin.firestore.FieldValue.delete();
+                flags.hasShodanKey = false;
+            }
+        }
+
+        if (hibpApiKey !== undefined) {
+            if (hibpApiKey) {
+                updateData.hibp = encryptUserSecret(hibpApiKey);
+                flags.hasHibpKey = true;
+            } else {
+                updateData.hibp = admin.firestore.FieldValue.delete();
+                flags.hasHibpKey = false;
+            }
+        }
+
+        if (safeBrowsingApiKey !== undefined) {
+            if (safeBrowsingApiKey) {
+                updateData.safeBrowsing = encryptUserSecret(safeBrowsingApiKey);
+                flags.hasSafeBrowsingKey = true;
+            } else {
+                updateData.safeBrowsing = admin.firestore.FieldValue.delete();
+                flags.hasSafeBrowsingKey = false;
+            }
+        }
+
+        await userKeysRef.set(updateData, { merge: true });
+
+        if (Object.keys(flags).length > 0) {
+            await db.collection('users').doc(uid).set(flags, { merge: true });
+        }
+
+        return { success: true, updated: true };
+    } catch (error) {
+        logger.error('saveUserApiKeys failed', error);
+        throw new HttpsError('internal', 'Failed to save API keys');
+    }
+});
+
+exports.scanAssetWithShodan = onCall({
+    secrets: [userSecretsKey]
+}, async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const ip = request.data?.ip;
+    if (!ip || typeof ip !== 'string') {
+        throw new HttpsError('invalid-argument', 'IP address is required.');
+    }
+
+    try {
+        const db = admin.firestore();
+        const userKeysSnap = await db.collection('user_api_keys').doc(uid).get();
+        const userKeys = userKeysSnap.data() || {};
+
+        const shodanSecret = userKeys.shodan;
+        const apiKey = decryptUserSecret(shodanSecret);
+
+        if (!apiKey) {
+            throw new HttpsError('failed-precondition', 'Shodan API key not configured.');
+        }
+
+        const response = await fetch(`https://api.shodan.io/shodan/host/${encodeURIComponent(ip)}?key=${apiKey}`);
+        if (!response.ok) {
+            const text = await response.text();
+            logger.error('Shodan API error', { status: response.status, body: text });
+            throw new HttpsError('internal', 'Shodan API error');
+        }
+
+        const result = await response.json();
+        return { result };
+    } catch (error) {
+        logger.error('scanAssetWithShodan failed', error);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        throw new HttpsError('internal', 'Failed to query Shodan');
+    }
+});
+
+exports.checkBreachWithHIBP = onCall({
+    secrets: [userSecretsKey]
+}, async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const email = request.data?.email;
+    if (!email || typeof email !== 'string') {
+        throw new HttpsError('invalid-argument', 'Email is required.');
+    }
+
+    try {
+        const db = admin.firestore();
+        const userKeysSnap = await db.collection('user_api_keys').doc(uid).get();
+        const userKeys = userKeysSnap.data() || {};
+
+        const hibpSecret = userKeys.hibp;
+        const apiKey = decryptUserSecret(hibpSecret);
+
+        if (!apiKey) {
+            throw new HttpsError('failed-precondition', 'HIBP API key not configured.');
+        }
+
+        const response = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(email)}`, {
+            headers: {
+                'hibp-api-key': apiKey,
+                'user-agent': 'Sentinel-GRC'
+            }
+        });
+
+        if (response.status === 404) {
+            return { breaches: [] };
+        }
+
+        if (!response.ok) {
+            const text = await response.text();
+            logger.error('HIBP API error', { status: response.status, body: text });
+            throw new HttpsError('internal', 'HIBP API error');
+        }
+
+        const breaches = await response.json();
+        return { breaches };
+    } catch (error) {
+        logger.error('checkBreachWithHIBP failed', error);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        throw new HttpsError('internal', 'Failed to query HIBP');
+    }
+});
+
+exports.checkUrlReputationWithSafeBrowsing = onCall({
+    secrets: [userSecretsKey]
+}, async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const url = request.data?.url;
+    if (!url || typeof url !== 'string') {
+        throw new HttpsError('invalid-argument', 'URL is required.');
+    }
+
+    try {
+        const db = admin.firestore();
+        const userKeysSnap = await db.collection('user_api_keys').doc(uid).get();
+        const userKeys = userKeysSnap.data() || {};
+
+        const safeSecret = userKeys.safeBrowsing;
+        const apiKey = decryptUserSecret(safeSecret);
+
+        if (!apiKey) {
+            throw new HttpsError('failed-precondition', 'Safe Browsing API key not configured.');
+        }
+
+        const response = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                client: { clientId: 'sentinel-grc', clientVersion: '1.0.0' },
+                threatInfo: {
+                    threatTypes: ['MALWARE', 'SOCIAL_ENGINEERING', 'UNWANTED_SOFTWARE', 'POTENTIALLY_HARMFUL_APPLICATION'],
+                    platformTypes: ['ANY_PLATFORM'],
+                    threatEntryTypes: ['URL'],
+                    threatEntries: [{ url }]
+                }
+            })
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            logger.error('Safe Browsing API error', { status: response.status, body: text });
+            throw new HttpsError('internal', 'Safe Browsing API error');
+        }
+
+        const body = await response.json();
+        const matches = Array.isArray(body.matches) ? body.matches : [];
+        const safe = matches.length === 0;
+        const threatType = safe ? undefined : matches[0].threatType;
+
+        return { result: { safe, threatType } };
+    } catch (error) {
+        logger.error('checkUrlReputationWithSafeBrowsing failed', error);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        throw new HttpsError('internal', 'Failed to query Safe Browsing');
+    }
+});
+
+exports.callGeminiGenerateContent = onCall({
+    secrets: [userSecretsKey, geminiApiKey]
+}, async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const prompt = request.data?.prompt;
+    const modelName = request.data?.modelName || "gemini-3-pro-preview";
+
+    if (!prompt || typeof prompt !== 'string') {
+        throw new HttpsError('invalid-argument', 'Prompt is required.');
+    }
+
+    try {
+        const genAI = await getGeminiClientForUser(uid);
+
+        const runGenerate = async (name) => {
+            const model = genAI.getGenerativeModel({ model: name });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            return response.text();
+        };
+
+        try {
+            const text = await runGenerate(modelName);
+            return { text };
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            logger.warn('Primary Gemini model failed in callGeminiGenerateContent', { error: message });
+
+            if (message.includes('404') || message.includes('not found')) {
+                const fallbackModels = ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+                for (const name of fallbackModels) {
+                    try {
+                        const text = await runGenerate(name);
+                        return { text, model: name };
+                    } catch (fallbackError) {
+                        logger.warn('Fallback Gemini model failed in callGeminiGenerateContent', {
+                            model: name,
+                            error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+                        });
+                        continue;
+                    }
+                }
+            }
+
+            throw error;
+        }
+    } catch (error) {
+        logger.error('callGeminiGenerateContent failed', error);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        throw new HttpsError('internal', 'Failed to call Gemini generateContent');
+    }
+});
+
+exports.callGeminiChat = onCall({
+    secrets: [userSecretsKey, geminiApiKey]
+}, async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const systemPrompt = request.data?.systemPrompt;
+    const message = request.data?.message;
+    const modelName = request.data?.modelName || "gemini-3-pro-preview";
+
+    if (!systemPrompt || typeof systemPrompt !== 'string' || !message || typeof message !== 'string') {
+        throw new HttpsError('invalid-argument', 'systemPrompt and message are required.');
+    }
+
+    try {
+        const genAI = await getGeminiClientForUser(uid);
+
+        const runChat = async (name) => {
+            const model = genAI.getGenerativeModel({ model: name });
+            const chat = model.startChat({
+                history: [
+                    { role: "user", parts: [{ text: systemPrompt }] },
+                    { role: "model", parts: [{ text: "Bien reçu. Je suis Sentinel AI, prêt à vous assister sur tous les sujets GRC." }] },
+                ],
+            });
+            const result = await chat.sendMessage(message);
+            const response = await result.response;
+            return response.text();
+        };
+
+        try {
+            const text = await runChat(modelName);
+            return { text };
+        } catch (error) {
+            const errMsg = error instanceof Error ? error.message : String(error);
+            logger.warn('Primary Gemini chat model failed in callGeminiChat', { error: errMsg });
+
+            if (errMsg.includes('404') || errMsg.includes('not found')) {
+                try {
+                    const text = await runChat('gemini-1.5-flash');
+                    return { text, model: 'gemini-1.5-flash' };
+                } catch (fallbackError) {
+                    logger.error('Fallback Gemini chat model failed in callGeminiChat', fallbackError);
+                    throw fallbackError;
+                }
+            }
+
+            throw error;
+        }
+    } catch (error) {
+        logger.error('callGeminiChat failed', error);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        throw new HttpsError('internal', 'Failed to call Gemini chat');
+    }
+});
 
 // --- SCHEDULED NOTIFICATION CHECKS ---
 
@@ -1006,7 +1474,7 @@ async function checkUpcomingAudits(db, organizationId) {
                 const auditorId = auditorDoc.id;
                 const auditorData = auditorDoc.data();
 
-                        if (await shouldNotify(db, auditorId, '/audits', audit.name)) {
+                if (await shouldNotify(db, auditorId, '/audits', audit.name)) {
                     await sendNotificationAndEmail(db, {
                         organizationId,
                         userId: auditorId,

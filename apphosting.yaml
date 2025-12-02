@@ -25,3 +25,9 @@ env:
     value: https://us-central1-sentinel-grc-a8701.cloudfunctions.net/api
   - variable: VITE_GEMINI_API_KEY
     value: ***REDACTED***
+  - variable: VITE_GOOGLE_CLIENT_ID
+    value: 728667422032-seo1j9c4a1lci8cfrok2raeogurpu3qr.apps.googleusercontent.com
+  - variable: VITE_RECAPTCHA_ENTERPRISE_KEY
+    value: "PLACEHOLDER_PLEASE_REPLACE_ME" # TODO: Add your Recaptcha Enterprise Key
+  - variable: VITE_FIREBASE_VAPID_KEY
+    value: "PLACEHOLDER_PLEASE_REPLACE_ME" # TODO: Add your Firebase VAPID Key

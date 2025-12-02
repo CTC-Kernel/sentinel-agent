@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import { Helmet } from 'react-helmet-async';
 
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit, Supplier, BusinessProcess } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
@@ -349,15 +350,16 @@ export const Assets: React.FC = () => {
     };
 
     const handleScanAsset = async () => {
-        if (!selectedAsset || !user?.shodanApiKey) {
-            if (!user?.shodanApiKey) addToast("Clé API Shodan manquante dans les paramètres", "info");
+        if (!selectedAsset || !user?.organizationId) {
             return;
         }
 
-        // Extract IP or Domain from location or description (naive approach)
-        // Ideally we should have a dedicated field. Let's check 'location' first if it looks like an IP.
-        // Or assume the user enters it in a prompt? For now let's try to parse 'location'.
-        const target = selectedAsset.location; // Assuming location might hold IP/Domain for IT assets
+        if (!user.hasShodanKey) {
+            addToast("Clé API Shodan manquante dans les paramètres", "info");
+            return;
+        }
+
+        const target = selectedAsset.location;
         if (!target || (!target.includes('.') && !target.includes(':'))) {
             addToast("Aucune adresse IP ou domaine valide trouvé dans le champ 'Localisation'", "info");
             return;
@@ -365,16 +367,19 @@ export const Assets: React.FC = () => {
 
         setScanning(true);
         try {
-            const result = await integrationService.scanAsset(target, user.shodanApiKey);
-            if (result.error) {
-                addToast(result.error, "error");
+            const functions = getFunctions();
+            const scanAssetWithShodan = httpsCallable(functions, 'scanAssetWithShodan');
+            const { data } = await scanAssetWithShodan({ ip: target });
+            const result = (data as { result?: unknown } | undefined)?.result;
+            if (!result) {
+                addToast("Erreur lors du scan", "error");
             } else {
                 setShodanResult(result);
                 setInspectorTab('security');
                 addToast("Scan Shodan terminé", "success");
             }
-        } catch {
-            addToast("Erreur lors du scan", "error");
+        } catch (err) {
+            ErrorLogger.handleErrorWithToast(err, 'Assets.handleScanAsset', 'SCAN_FAILED');
         } finally {
             setScanning(false);
         }

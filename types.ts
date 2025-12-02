@@ -106,6 +106,7 @@ export interface Control {
   framework?: 'ISO27001' | 'NIS2' | 'DORA' | 'GDPR' | 'SOC2' | 'HDS' | 'PCI_DSS' | 'NIST_CSF';
   description?: string;
   status: 'Non commencé' | 'Implémenté' | 'Partiel' | 'Non applicable' | 'Exclu' | 'En revue';
+  applicability?: 'Applicable' | 'Non applicable';
   justification?: string;
   evidenceIds?: string[];
   evidenceStrength?: 'Faible' | 'Forte';
@@ -526,6 +527,10 @@ export interface UserProfile {
   shodanApiKey?: string;
   hibpApiKey?: string;
   safeBrowsingApiKey?: string;
+  hasGeminiKey?: boolean;
+  hasShodanKey?: boolean;
+  hasHibpKey?: boolean;
+  hasSafeBrowsingKey?: boolean;
 }
 
 export interface CustomRole {
