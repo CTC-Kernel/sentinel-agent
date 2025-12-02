@@ -429,7 +429,7 @@ export const Dashboard: React.FC = () => {
                         <div className="flex flex-col lg:flex-row justify-between items-center gap-8">
                             <div className="flex-1 min-w-0 space-y-6">
                                 <div className="flex items-center gap-5">
-                                    <div className={`flex items-center justify-center w-16 h-16 shrink-0 rounded-2xl text-4xl font-black shadow-xl border-4 ${scoreGrade === 'A' ? 'bg-emerald-500 border-emerald-400/50 text-white shadow-emerald-500/20' : scoreGrade === 'B' ? 'bg-blue-500 border-blue-400/50 text-white shadow-blue-500/20' : scoreGrade === 'C' ? 'bg-orange-500 border-orange-400/50 text-white shadow-orange-500/20' : 'bg-red-500 border-red-400/50 text-white shadow-red-500/20'}`}>
+                                    <div className={`flex items-center justify-center w-16 h-16 shrink-0 rounded-2xl text-4xl font-black shadow-xl border-4 ${scoreGrade === 'A' ? 'bg-emerald-500 border-emerald-400/50 text-white shadow-emerald-500/20' : scoreGrade === 'B' ? 'bg-indigo-500 border-indigo-400/50 text-white shadow-indigo-500/20' : scoreGrade === 'C' ? 'bg-orange-500 border-orange-400/50 text-white shadow-orange-500/20' : 'bg-red-500 border-red-400/50 text-white shadow-red-500/20'}`}>
                                         {scoreGrade}
                                     </div>
                                     <div>
@@ -575,7 +575,7 @@ export const Dashboard: React.FC = () => {
                 <StatCard title={t('dashboard.activeIncidents')} value={loading ? null : stats.activeIncidents} icon={Siren} colorClass="bg-red-500 text-red-500" trend={stats.activeIncidents > 0 ? "Urgent" : undefined} delay="delay-0" onClick={() => navigate('/incidents')} />
                 <StatCard title={t('dashboard.criticalRisks')} value={loading ? null : stats.highRisks} icon={ShieldAlert} colorClass="bg-orange-500 text-orange-500" delay="delay-75" onClick={() => navigate('/risks')} />
                 <StatCard title={t('dashboard.financialExposure')} value={loading ? null : `${new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}`} icon={TrendingUp} colorClass="bg-red-600 text-red-600" trend={stats.financialRisk > 100000 ? "Critique" : undefined} delay="delay-100" onClick={() => navigate('/risks')} />
-                <StatCard title={t('dashboard.assetValue')} value={loading ? null : `${new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.assetValue)}`} icon={Euro} colorClass="bg-blue-500 text-blue-500" delay="delay-150" onClick={() => navigate('/assets')} />
+                <StatCard title={t('dashboard.assetValue')} value={loading ? null : `${new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.assetValue)}`} icon={Euro} colorClass="bg-indigo-500 text-indigo-500" delay="delay-150" onClick={() => navigate('/assets')} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

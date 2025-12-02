@@ -171,6 +171,7 @@ export const Compliance: React.FC = () => {
                             code: c.code,
                             name: c.name,
                             framework: currentFramework,
+                            applicability: 'Applicable',
                             status: 'Non commencé',
                             lastUpdated: new Date().toISOString(),
                             evidenceIds: []
@@ -277,13 +278,17 @@ export const Compliance: React.FC = () => {
     const handleStatusChange = async (control: Control, newStatus: Control['status']) => {
         if (!user?.organizationId || !canEdit) return;
         try {
+            const applicability: 'Applicable' | 'Non applicable' =
+                (newStatus === 'Non applicable' || newStatus === 'Exclu') ? 'Non applicable' : 'Applicable';
+
             await updateDoc(doc(db, 'controls', control.id), {
                 status: newStatus,
+                applicability,
                 lastUpdated: new Date().toISOString()
             });
             await logAction(user, 'UPDATE', 'Control', `Statut ${control.code} changé à ${newStatus}`);
 
-            const updatedControl = { ...control, status: newStatus, lastUpdated: new Date().toISOString() };
+            const updatedControl = { ...control, status: newStatus, applicability, lastUpdated: new Date().toISOString() };
             if (selectedControl?.id === control.id) setSelectedControl(updatedControl);
             refreshControls();
 
@@ -501,19 +506,29 @@ export const Compliance: React.FC = () => {
     };
 
     const generateSoAReport = () => {
-        const data = controls.map(c => [c.code, c.name, c.status, c.justification || (c.status === 'Exclu' ? 'Non justifié' : '-')]);
+        const data = controls.map(c => {
+            const applicability = c.applicability || ((c.status === 'Non applicable' || c.status === 'Exclu') ? 'Non applicable' : 'Applicable');
+            const justification = c.justification || ((c.status === 'Exclu' || applicability === 'Non applicable') ? 'Non justifié' : '-');
+            return [c.code, c.name, applicability, c.status, justification];
+        });
 
         PdfService.generateTableReport(
             {
-                title: 'Déclaration d\'Applicabilité (SoA)',
+                title: "Déclaration d'Applicabilité (SoA)",
                 subtitle: `${currentFramework} | Généré le ${new Date().toLocaleDateString()} | ${user?.organizationName || 'Organisation'}`,
                 filename: `SoA_${currentFramework}_${new Date().toISOString().split('T')[0]}.pdf`,
                 headerText: `${currentFramework} Compliance Report`,
                 footerText: 'Sentinel GRC by Cyber Threat Consulting - Document Confidentiel'
             },
-            ['Code', 'Contrôle', 'Statut', 'Justification / Commentaire'],
+            ['Code', 'Contrôle', 'Applicabilité', 'Statut', 'Justification / Commentaire'],
             data,
-            { 0: { fontStyle: 'bold', cellWidth: 20 }, 1: { cellWidth: 60 }, 2: { cellWidth: 30 }, 3: { cellWidth: 'auto' } }
+            {
+                0: { fontStyle: 'bold', cellWidth: 20 },
+                1: { cellWidth: 50 },
+                2: { cellWidth: 30 },
+                3: { cellWidth: 30 },
+                4: { cellWidth: 'auto' }
+            }
         );
     };
 
