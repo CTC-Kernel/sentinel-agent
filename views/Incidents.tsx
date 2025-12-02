@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { collection, where, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db } from '../firebase';
 import { useStore } from '../store';
 import { Incident, Asset, Risk, UserProfile, Criticality, BusinessProcess } from '../types';
@@ -506,15 +507,21 @@ export const Incidents: React.FC = () => {
                                                             />
                                                             <button
                                                                 onClick={async () => {
-                                                                    // Mock check
                                                                     if (!urlToCheck) return;
                                                                     setCheckingUrl(true);
                                                                     setUrlReputationResult(null);
                                                                     try {
-                                                                        const result = await integrationService.checkUrlReputation(urlToCheck, user?.safeBrowsingApiKey || '');
-                                                                        setUrlReputationResult(result);
+                                                                        const functions = getFunctions();
+                                                                        const checkUrlReputationWithSafeBrowsing = httpsCallable(functions, 'checkUrlReputationWithSafeBrowsing');
+                                                                        const { data } = await checkUrlReputationWithSafeBrowsing({ url: urlToCheck });
+                                                                        const result = (data as { result?: { safe?: boolean; threatType?: string } } | undefined)?.result;
+                                                                        if (!result) {
+                                                                            addToast('Erreur lors de la vérification de réputation', 'error');
+                                                                        } else {
+                                                                            setUrlReputationResult(result as any);
+                                                                        }
                                                                     } catch (err) {
-                                                                        ErrorLogger.handleErrorWithToast(err, 'Incidents.checkUrl');
+                                                                        ErrorLogger.handleErrorWithToast(err, 'Incidents.checkUrl', 'SAFE_BROWSING_FAILED');
                                                                     } finally {
                                                                         setCheckingUrl(false);
                                                                     }

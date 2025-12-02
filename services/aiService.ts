@@ -1,5 +1,6 @@
 import { useStore } from "../store";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIInsight } from "../types";
 import { ErrorLogger } from "./errorLogger";
 
@@ -28,16 +29,7 @@ export const aiService = {
      * Analyzes the graph data to find hidden relationships and generate insights.
      */
     async analyzeGraph(data: GraphData): Promise<{ suggestions: AISuggestedLink[]; insights: AIInsight[] }> {
-        const { genAI, hasKey } = getGenAI();
-        if (!hasKey) {
-            ErrorLogger.warn("Gemini API Key is missing. AI features disabled.", 'aiService.analyzeGraph');
-            throw new Error("L'analyse IA nécessite une clé API Gemini valide. Veuillez configurer VITE_GEMINI_API_KEY ou ajouter votre clé dans les paramètres.");
-        }
-
         try {
-            // Try with primary model
-            let model = genAI.getGenerativeModel({ model: MODEL_NAME });
-
             // Prepare a summarized version of the data to avoid token limits if necessary
             // For now, we send the raw data assuming it fits within the context window of 1.5 Flash (1M tokens).
             // We strip unnecessary fields to be efficient.
@@ -84,44 +76,17 @@ export const aiService = {
         }
       `;
 
-            try {
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                const text = response.text();
+            const text = await generateContentSafe(prompt);
 
-                // Clean up markdown code blocks if present
-                const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            // Clean up markdown code blocks if present
+            const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
-                const parsed = JSON.parse(cleanText);
+            const parsed = JSON.parse(cleanText);
 
-                return {
-                    suggestions: parsed.suggestions.map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
-                    insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
-                };
-            } catch (modelError: unknown) {
-                ErrorLogger.warn("Primary model failed, trying fallbacks...", 'aiService.analyzeGraph', { metadata: { error: modelError } });
-
-                const fallbackModels = ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash'];
-
-                for (const modelName of fallbackModels) {
-                    try {
-                        model = genAI.getGenerativeModel({ model: modelName });
-                        const result = await model.generateContent(prompt);
-                        const response = await result.response;
-                        const text = response.text();
-                        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                        const parsed = JSON.parse(cleanText);
-                        return {
-                            suggestions: parsed.suggestions.map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
-                            insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
-                        };
-                    } catch {
-                        console.warn(`Fallback ${modelName} failed`);
-                        continue;
-                    }
-                }
-                throw modelError;
-            }
+            return {
+                suggestions: parsed.suggestions.map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
+                insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
+            };
         } catch (error) {
             ErrorLogger.error(error, 'aiService.analyzeGraph');
             throw new Error("Failed to analyze graph with Gemini.");
@@ -134,9 +99,6 @@ export const aiService = {
      * Analyzes CSV import data to map columns and identify anomalies.
      */
     async analyzeImportData(csvPreview: string): Promise<{ mappings: Record<string, string>; confidence: number }> {
-        const { hasKey } = getGenAI();
-        if (!hasKey) return { mappings: {}, confidence: 0 };
-
         try {
             const prompt = `
                 You are a Data Import Assistant. Map the columns of this CSV preview to the following internal fields:
@@ -166,9 +128,6 @@ export const aiService = {
      * Suggests a value for a specific field based on context.
      */
     async suggestField(context: Record<string, unknown>, fieldName: string): Promise<{ value: string; reasoning: string }> {
-        const { hasKey } = getGenAI();
-        if (!hasKey) return { value: '', reasoning: 'AI Key missing' };
-
         try {
             const prompt = `
                 Context: ${JSON.stringify(context)}
@@ -189,9 +148,6 @@ export const aiService = {
      * General chat with the AI assistant.
      */
     async chatWithAI(message: string, context?: Record<string, unknown>): Promise<string> {
-        const { hasKey } = getGenAI();
-        if (!hasKey) return "Je ne peux pas répondre car la clé API Gemini est manquante.";
-
         const systemPrompt = `Tu es Sentinel AI, un assistant expert en cybersécurité et GRC (Gouvernance, Risque, Conformité).
             Ton rôle est d'aider les utilisateurs à gérer leur sécurité, comprendre les normes (ISO 27001, RGPD) et rédiger des documents.
             Sois professionnel, concis et précis. Réponds toujours en Français.${context ? `\n\nContexte actuel de l'application :\n${JSON.stringify(context)}` : ''}`;
@@ -208,9 +164,6 @@ export const aiService = {
      * Generates a policy document based on parameters.
      */
     async generatePolicy(type: string, topic: string, details: string): Promise<string> {
-        const { hasKey } = getGenAI();
-        if (!hasKey) return "Clé API manquante.";
-
         try {
             const prompt = `
                 Rédige un document de politique de sécurité (Format Markdown).
@@ -239,9 +192,6 @@ export const aiService = {
      * Generates a specific audit checklist for a list of controls.
      */
     async generateAuditChecklist(auditContext: string, controls: { code: string; description: string }[]): Promise<{ controlCode: string; questions: string[] }[]> {
-        const { hasKey } = getGenAI();
-        if (!hasKey) return []; controls.map(c => ({ controlCode: c.code, questions: [`Le contrôle ${c.code} est-il implémenté ?`] }));
-
         try {
             // Batch controls to avoid token limits if too many
             // For now, take top 20 or all if less
@@ -280,9 +230,6 @@ export const aiService = {
      * Generates an executive summary for an audit report.
      */
     async generateAuditExecutiveSummary(auditName: string, findings: { type: string, description: string }[], risks: { threat: string, score: number }[]): Promise<string> {
-        const { hasKey } = getGenAI();
-        if (!hasKey) return "Résumé non disponible (Clé API manquante).";
-
         try {
             const prompt = `
                 You are a Cybersecurity Auditor writing an Executive Summary for an audit report.
@@ -314,9 +261,6 @@ export const aiService = {
      * Generates an executive summary for the Risk Treatment Plan (RTP).
      */
     async generateRTPSummary(risks: { threat: string; score: number; strategy: string; status: string }[]): Promise<string> {
-        const { hasKey } = getGenAI();
-        if (!hasKey) return "Résumé non disponible (Clé API manquante).";
-
         try {
             const prompt = `
                 You are a CISO writing an Executive Summary for the Risk Treatment Plan (RTP).
@@ -344,8 +288,6 @@ export const aiService = {
      * Generates text based on a prompt.
      */
     async generateText(prompt: string): Promise<string> {
-        const { hasKey } = getGenAI();
-        if (!hasKey) return "IA non disponible.";
         try {
             return await generateContentSafe(prompt);
         } catch (error) {
@@ -356,9 +298,40 @@ export const aiService = {
 };
 
 // --- Helpers ---
-
 async function generateContentSafe(prompt: string): Promise<string> {
-    const { genAI } = getGenAI();
+    try {
+        const functions = getFunctions();
+        const callGeminiGenerateContent = httpsCallable(functions, 'callGeminiGenerateContent');
+        const anyResult = await callGeminiGenerateContent({ prompt, modelName: MODEL_NAME }) as unknown;
+        const result = anyResult as { data?: { text?: string } };
+        const text = result?.data?.text;
+        if (typeof text === 'string' && text.trim().length > 0) {
+            return text;
+        }
+    } catch (error: unknown) {
+        const anyError = error as { code?: unknown; message?: unknown };
+        const code = typeof anyError.code === 'string' ? anyError.code : undefined;
+        const message = typeof anyError.message === 'string' ? anyError.message : '';
+
+        if (code === 'functions/not-found' || message.includes('404')) {
+            ErrorLogger.warn('callGeminiGenerateContent Cloud Function not found, falling back to frontend Gemini client', 'aiService.generateContentSafe', {
+                metadata: { code, message }
+            });
+        } else if (code === 'unauthenticated' || code === 'failed-precondition') {
+            ErrorLogger.warn('Backend Gemini not available, falling back to frontend Gemini client', 'aiService.generateContentSafe', {
+                metadata: { code, message }
+            });
+        } else {
+            throw error;
+        }
+    }
+
+    const { genAI, hasKey } = getGenAI();
+    if (!hasKey) {
+        ErrorLogger.warn("Gemini API Key is missing. AI features disabled.", 'aiService.generateContentSafe');
+        throw new Error("L'analyse IA nécessite une clé API Gemini valide. Veuillez configurer VITE_GEMINI_API_KEY ou ajouter votre clé dans les paramètres.");
+    }
+
     try {
         const model = genAI.getGenerativeModel({ model: MODEL_NAME });
         const result = await model.generateContent(prompt);
@@ -386,7 +359,39 @@ async function generateContentSafe(prompt: string): Promise<string> {
 }
 
 async function runChatSafe(systemPrompt: string, message: string): Promise<string> {
-    const { genAI } = getGenAI();
+    try {
+        const functions = getFunctions();
+        const callGeminiChat = httpsCallable(functions, 'callGeminiChat');
+        const anyResult = await callGeminiChat({ systemPrompt, message, modelName: MODEL_NAME }) as unknown;
+        const result = anyResult as { data?: { text?: string } };
+        const text = result?.data?.text;
+        if (typeof text === 'string' && text.trim().length > 0) {
+            return text;
+        }
+    } catch (error: unknown) {
+        const anyError = error as { code?: unknown; message?: unknown };
+        const code = typeof anyError.code === 'string' ? anyError.code : undefined;
+        const message = typeof anyError.message === 'string' ? anyError.message : '';
+
+        if (code === 'functions/not-found' || message.includes('404')) {
+            ErrorLogger.warn('callGeminiChat Cloud Function not found, falling back to frontend Gemini client', 'aiService.runChatSafe', {
+                metadata: { code, message }
+            });
+        } else if (code === 'unauthenticated' || code === 'failed-precondition') {
+            ErrorLogger.warn('Backend Gemini chat not available, falling back to frontend client', 'aiService.runChatSafe', {
+                metadata: { code, message }
+            });
+        } else {
+            throw error;
+        }
+    }
+
+    const { genAI, hasKey } = getGenAI();
+    if (!hasKey) {
+        ErrorLogger.warn("Gemini API Key is missing. AI features disabled.", 'aiService.runChatSafe');
+        throw new Error("L'analyse IA nécessite une clé API Gemini valide. Veuillez configurer VITE_GEMINI_API_KEY ou ajouter votre clé dans les paramètres.");
+    }
+
     const runChat = async (modelName: string) => {
         const model = genAI.getGenerativeModel({ model: modelName });
         const chat = model.startChat({

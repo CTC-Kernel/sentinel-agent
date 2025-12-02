@@ -9,6 +9,7 @@ import {
     getWeeklyDigestTemplate,
     getSupplierReviewTemplate
 } from './emailTemplates';
+import { buildAppUrl } from '../config/appConfig';
 
 /**
  * Service pour gérer les emails planifiés et récurrents.
@@ -51,7 +52,7 @@ export const sendAuditReminders = async (organizationId: string) => {
                         audit.name,
                         auditor.displayName || auditor.email,
                         audit.dateScheduled,
-                        `${window.location.origin}/audits`
+                        buildAppUrl('/audits')
                     );
 
                     await sendEmail(null, {
@@ -86,7 +87,7 @@ export const sendRiskTreatmentReminders = async (organizationId: string) => {
             query(
                 collection(db, 'risks'),
                 where('organizationId', '==', organizationId),
-                where('status', '!=', 'Traité')
+                where('status', 'in', ['Ouvert', 'En cours'])
             )
         );
 
@@ -98,18 +99,21 @@ export const sendRiskTreatmentReminders = async (organizationId: string) => {
         let sentCount = 0;
 
         for (const riskDoc of risksSnap.docs) {
-            const risk = riskDoc.data();
-            const dueDate = risk.treatmentDeadline?.split('T')[0];
+            const risk = riskDoc.data() as any;
+            const treatment = risk.treatment as { dueDate?: string; ownerId?: string; status?: string } | undefined;
+            if (!treatment?.dueDate || !treatment.ownerId) continue;
 
-            if (dueDate === threeDaysStr && risk.responsable) {
-                const responsible = users.find(u => u.displayName === risk.responsable || u.email === risk.responsable);
+            const dueDate = treatment.dueDate.split('T')[0];
+
+            if (dueDate === threeDaysStr && (treatment.status === 'Planifié' || treatment.status === 'En cours' || !treatment.status)) {
+                const responsible = users.find(u => u.uid === treatment.ownerId);
 
                 if (responsible?.email) {
                     const htmlContent = getRiskTreatmentDueTemplate(
                         risk.threat,
-                        risk.treatmentDeadline,
+                        treatment.dueDate,
                         responsible.displayName || responsible.email,
-                        `${window.location.origin}/risks`
+                        buildAppUrl('/risks')
                     );
 
                     await sendEmail(null, {
@@ -167,7 +171,7 @@ export const sendDocumentReviewReminders = async (organizationId: string) => {
                         doc.title,
                         owner.displayName || owner.email,
                         doc.nextReviewDate,
-                        `${window.location.origin}/documents`
+                        buildAppUrl('/documents')
                     );
 
                     await sendEmail(null, {
@@ -223,7 +227,7 @@ export const sendSupplierReviewReminders = async (organizationId: string) => {
                             supplier.name,
                             supplier.criticality,
                             supplier.lastSecurityReview || 'Jamais',
-                            `${window.location.origin}/suppliers`
+                            buildAppUrl('/suppliers')
                         );
 
                         await sendEmail(null, {
@@ -291,7 +295,7 @@ export const sendWeeklyDigest = async (organizationId: string) => {
                 const htmlContent = getWeeklyDigestTemplate(
                     user.displayName || user.email,
                     stats,
-                    `${window.location.origin}/dashboard`
+                    buildAppUrl('/dashboard')
                 );
 
                 await sendEmail(null, {
