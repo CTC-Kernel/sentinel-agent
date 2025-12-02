@@ -52,7 +52,7 @@ export const Dashboard: React.FC = () => {
     const [openAuditsCount, setOpenAuditsCount] = useState(0);
     const [activityExpanded, setActivityExpanded] = useState(false);
 
-    const { user, theme, addToast, demoMode, t } = useStore();
+    const { user, theme, addToast, t } = useStore();
     const navigate = useNavigate();
 
     // Hooks
@@ -72,14 +72,7 @@ export const Dashboard: React.FC = () => {
 
     // Fetch Counts & Org Name
     useEffect(() => {
-        if (demoMode) {
-            setOrganizationName(t('dashboard.demoOrgName'));
-            setTeamSize(12);
-            setActiveIncidentsCount(3);
-            setOpenAuditsCount(2);
-            setManualLoading(false);
-            return;
-        }
+
 
         if (!user?.organizationId) {
             setManualLoading(false);
@@ -116,7 +109,7 @@ export const Dashboard: React.FC = () => {
             }
         };
         fetchCounts();
-    }, [user?.organizationId, user?.organizationName, demoMode]);
+    }, [user?.organizationId, user?.organizationName, t]);
 
     // Derived Data
     const topRisks = React.useMemo(() => [...allRisks].sort((a, b) => b.score - a.score).slice(0, 5), [allRisks]);
@@ -211,7 +204,7 @@ export const Dashboard: React.FC = () => {
             return { text: t('dashboard.insightAudits').replace('{count}', overdueAudits.toString()), type: 'warning' as const, details: t('dashboard.insightAuditsDesc'), action: t('sidebar.audits'), link: "/audits" };
         }
         return { text: t('dashboard.insightStable'), type: 'success' as const, details: "", action: "", link: "" };
-    }, [activeIncidentsCount, stats.financialRisk, allRisks, complianceScore, controls, myDocs, myAudits, allSuppliers]);
+    }, [activeIncidentsCount, stats.financialRisk, allRisks, complianceScore, controls, myDocs, myAudits, allSuppliers, t]);
 
     const healthIssues = React.useMemo(() => {
         const issues: HealthIssue[] = [];
@@ -223,7 +216,7 @@ export const Dashboard: React.FC = () => {
         const overdueAudits = myAudits.filter(a => new Date(a.dateScheduled) < new Date() && a.status !== 'Terminé' && a.status !== 'Validé').length;
         if (overdueAudits > 0) issues.push({ id: '6', type: 'warning', message: t('dashboard.issueAudits'), count: overdueAudits, link: '/audits' });
         return issues;
-    }, [allRisks, controls, myAudits]);
+    }, [allRisks, controls, myAudits, t]);
 
     const myActionItems = React.useMemo(() => {
         if (!user) return [];
@@ -243,7 +236,7 @@ export const Dashboard: React.FC = () => {
         });
         myItems.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         return myItems;
-    }, [user, myAudits, myDocs, publishedDocs, myProjects]);
+    }, [user, myAudits, myDocs, publishedDocs, myProjects, t]);
 
     // Stats History Generation
     useEffect(() => {

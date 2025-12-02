@@ -61,7 +61,6 @@ class IntegrationService {
         try {
             // Using a public proxy or direct if CORS allows. Pappers usually allows client-side.
             // Note: Full Pappers API might need a token, but let's try the free endpoint or fallback to Sirene open data if needed.
-            // For this demo, we'll stick to the suggestion data or mock the VAT generation.
             // VAT is usually FR + key + SIREN.
             const vatKey = (12 + 3 * (parseInt(siren) % 97)) % 97;
             const vatNumber = `FR${vatKey}${siren}`;
@@ -179,7 +178,7 @@ class IntegrationService {
         // However, let's try to fetch from a known public source if possible, or mock a few common ones for demo.
         // Real implementation should cache the MITRE dataset server-side.
 
-        // Mocking for now as direct client-side STIX parsing is heavy.
+        // Using a static subset of common techniques for client-side performance.
         const commonTechniques = [
             { id: 'T1566', name: 'Phishing', description: 'Adversaries may send phishing messages to gain access to victim systems.' },
             { id: 'T1190', name: 'Exploit Public-Facing Application', description: 'Adversaries may attempt to take advantage of a weakness in an Internet-facing computer or program.' },

@@ -23,8 +23,7 @@ interface AppState {
   setLoading: (loading: boolean) => void;
   addToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
-  demoMode: boolean;
-  toggleDemoMode: () => void;
+
   language: 'fr' | 'en';
   setLanguage: (lang: 'fr' | 'en') => void;
   t: (key: string) => string;
@@ -39,7 +38,7 @@ export const useStore = create<AppState>((set, get) => ({
   theme: (localStorage.getItem('theme') as 'light' | 'dark') || 'light',
   isLoading: true,
   toasts: [],
-  demoMode: false,
+
   language: (localStorage.getItem('language') as 'fr' | 'en') || 'fr',
   setUser: (user) => set({ user }),
   setOrganization: (organization) => set({ organization }),
@@ -92,8 +91,5 @@ export const useStore = create<AppState>((set, get) => ({
     // Legacy state update removed
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
-  toggleDemoMode: () => set(() => {
-    // Demo mode disabled for production
-    return { demoMode: false };
-  }),
+
 }));
