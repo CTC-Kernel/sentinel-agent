@@ -1,17 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { logAction } from '../../services/logger';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../firebase';
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({
-  db: {}
+  functions: {}
 }));
 
-vi.mock('firebase/firestore', () => ({
-  collection: vi.fn(),
-  addDoc: vi.fn()
+vi.mock('firebase/functions', () => ({
+  httpsCallable: vi.fn()
+}));
+
+// Mock ErrorLogger
+vi.mock('../../services/errorLogger', () => ({
+  ErrorLogger: {
+    error: vi.fn()
+  }
 }));
 
 describe('logger', () => {
@@ -26,35 +32,34 @@ describe('logger', () => {
   });
 
   describe('logAction', () => {
-    it('should log user action to Firestore', async () => {
-      const mockAddDoc = vi.mocked(addDoc);
-      const mockCollection = vi.fn().mockReturnValue('collection-ref');
-      vi.mocked(collection).mockImplementation(mockCollection as any);
+    it('should call logEvent cloud function', async () => {
+      const mockLogEvent = vi.fn().mockResolvedValue({ data: { success: true } });
+      vi.mocked(httpsCallable).mockReturnValue(mockLogEvent as any);
 
       await logAction(mockUser, 'CREATE', 'Asset', 'Created new asset: Server 01');
 
-      expect(collection).toHaveBeenCalledWith(db, 'system_logs');
-      expect(mockAddDoc).toHaveBeenCalledWith('collection-ref', expect.objectContaining({
+      expect(httpsCallable).toHaveBeenCalledWith(functions, 'logEvent');
+      expect(mockLogEvent).toHaveBeenCalledWith({
         organizationId: 'org-123',
-        userId: 'user-123',
-        userEmail: 'test@example.com',
         action: 'CREATE',
         resource: 'Asset',
-        details: 'Created new asset: Server 01',
-        timestamp: expect.any(String)
-      }));
+        details: 'Created new asset: Server 01'
+      });
     });
 
     it('should handle null user gracefully', async () => {
-      const mockAddDoc = vi.mocked(addDoc);
+      const mockLogEvent = vi.fn();
+      vi.mocked(httpsCallable).mockReturnValue(mockLogEvent as any);
 
       await logAction(null, 'SYSTEM', 'Backup', 'Automatic backup completed');
 
-      expect(mockAddDoc).not.toHaveBeenCalled();
+      expect(mockLogEvent).not.toHaveBeenCalled();
     });
 
     it('should handle user without organizationId', async () => {
-      const mockAddDoc = vi.mocked(addDoc);
+      const mockLogEvent = vi.fn();
+      vi.mocked(httpsCallable).mockReturnValue(mockLogEvent as any);
+
       const userWithoutOrg = {
         uid: 'user-123',
         email: 'test@example.com'
@@ -62,40 +67,33 @@ describe('logger', () => {
 
       await logAction(userWithoutOrg, 'LOGIN', 'Auth', 'User logged in');
 
-      expect(mockAddDoc).not.toHaveBeenCalled();
+      expect(mockLogEvent).not.toHaveBeenCalled();
     });
 
     it('should log action without details', async () => {
-      const mockAddDoc = vi.mocked(addDoc);
-      const mockCollection = vi.fn().mockReturnValue('collection-ref');
-      vi.mocked(collection).mockImplementation(mockCollection as any);
+      const mockLogEvent = vi.fn().mockResolvedValue({ data: { success: true } });
+      vi.mocked(httpsCallable).mockReturnValue(mockLogEvent as any);
 
       await logAction(mockUser, 'DELETE', 'Risk');
 
-      expect(mockAddDoc).toHaveBeenCalledWith('collection-ref', expect.objectContaining({
+      expect(mockLogEvent).toHaveBeenCalledWith({
         organizationId: 'org-123',
-        userId: 'user-123',
-        userEmail: 'test@example.com',
         action: 'DELETE',
         resource: 'Risk',
-        details: '',
-        timestamp: expect.any(String)
-      }));
+        details: ''
+      });
     });
 
-    it('should handle Firestore errors gracefully', async () => {
-      const mockAddDoc = vi.mocked(addDoc);
-      const mockCollection = vi.fn().mockReturnValue('collection-ref');
-      vi.mocked(collection).mockImplementation(mockCollection as any);
-      mockAddDoc.mockRejectedValue(new Error('Firestore error'));
+    it('should handle Cloud Function errors gracefully', async () => {
+      const mockLogEvent = vi.fn().mockRejectedValue(new Error('Cloud Function error'));
+      vi.mocked(httpsCallable).mockReturnValue(mockLogEvent as any);
 
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+      // We need to import ErrorLogger to check if it was called
+      const { ErrorLogger } = await import('../../services/errorLogger');
 
       await logAction(mockUser, 'CREATE', 'Asset', 'Test error');
 
-      expect(consoleSpy).toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
+      expect(ErrorLogger.error).toHaveBeenCalled();
     });
   });
 });
