@@ -103,8 +103,8 @@ export const Login: React.FC = () => {
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#E5E7EB] dark:bg-[#000000] relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
             {/* Ambient Background */}
             <div className="absolute inset-0 w-full h-full">
-                <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-300/30 dark:bg-blue-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float"></div>
-                <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-300/30 dark:bg-indigo-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
+                <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
             </div>
 
             <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center">

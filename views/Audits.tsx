@@ -805,11 +805,11 @@ export const Audits: React.FC = () => {
 
     const getStatusColor = (s: string) => {
         switch (s) {
-            case 'Planifié': return 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30';
+            case 'Planifié': return 'bg-blue-50 dark:bg-slate-900 text-blue-700 border-blue-100 dark:bg-slate-900/20 dark:text-blue-400 dark:border-blue-900/30';
             case 'En cours': return 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/30';
             case 'Terminé': return 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30';
             case 'Validé': return 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-900/30';
-            default: return 'bg-gray-50 text-gray-700 border-gray-100 dark:bg-gray-800 dark:text-gray-400';
+            default: return 'bg-gray-50 text-slate-700 border-gray-100 dark:bg-slate-800 dark:text-slate-400';
         }
     };
 
@@ -879,13 +879,13 @@ export const Audits: React.FC = () => {
             )}
 
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className="h-5 w-5 text-slate-400" />
                 <input type="text" placeholder="Rechercher un audit..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                     value={filter} onChange={e => setFilter(e.target.value)} />
-                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
+                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
-                <button onClick={handleExportCalendar} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter Calendrier">
+                <button onClick={handleExportCalendar} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter Calendrier">
                     <CalendarDays className="h-4 w-4" />
                 </button>
                 <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm ml-2">
@@ -962,7 +962,7 @@ export const Audits: React.FC = () => {
                                                     <>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); openEditDrawer(audit); }}
-                                                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                                                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
                                                             title="Modifier"
                                                         >
                                                             <Edit className="h-4 w-4" />
@@ -1002,7 +1002,7 @@ export const Audits: React.FC = () => {
                         filteredAudits.map(audit => (
                             <div key={audit.id} onClick={() => handleOpenAudit(audit)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover cursor-pointer group border border-white/50 dark:border-white/5">
                                 <div className="flex justify-between items-start mb-5">
-                                    <div className="p-3 bg-indigo-50 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
+                                    <div className="p-3 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
                                         <Activity className="h-6 w-6" />
                                     </div>
                                     <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(audit.status)}`}>
@@ -1214,16 +1214,16 @@ export const Audits: React.FC = () => {
                                     <div className="space-y-4">
                                         <h3 className="text-xs font-bold uppercase text-slate-400 mb-2 tracking-widest px-2">Constats ({findings.length})</h3>
                                         {findings.length === 0 ? (
-                                            <div className="text-center py-8 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic text-sm">Aucun écart relevé pour le moment.</div>
+                                            <div className="text-center py-8 text-slate-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic text-sm">Aucun écart relevé pour le moment.</div>
                                         ) : (
                                             findings.map(finding => (
                                                 <div key={finding.id} className="p-5 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm card-hover group relative">
                                                     <div className="flex justify-between items-start mb-2">
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${finding.type === 'Majeure' ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400' : finding.type === 'Mineure' ? 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400'}`}>
+                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${finding.type === 'Majeure' ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400' : finding.type === 'Mineure' ? 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-blue-50 dark:bg-slate-900 text-blue-700 border-blue-100 dark:bg-slate-900/20 dark:text-blue-400'}`}>
                                                             {finding.type}
                                                         </span>
                                                         {canEdit && (
-                                                            <button onClick={() => initiateDeleteFinding(finding.id)} className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                                            <button onClick={() => initiateDeleteFinding(finding.id)} className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
                                                                 <Trash2 className="h-4 w-4" />
                                                             </button>
                                                         )}
@@ -1236,7 +1236,7 @@ export const Audits: React.FC = () => {
                                                         </div>
                                                     )}
                                                     {finding.evidenceIds && finding.evidenceIds.length > 0 && (
-                                                        <div className="mt-2 flex items-center text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-lg w-fit">
+                                                        <div className="mt-2 flex items-center text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 px-3 py-1.5 rounded-lg w-fit">
                                                             <Link className="h-3 w-3 mr-1.5" />
                                                             {documents.find(d => d.id === finding.evidenceIds![0])?.title || 'Preuve liée'}
                                                         </div>
@@ -1277,7 +1277,7 @@ export const Audits: React.FC = () => {
                                                     {canEdit && (
                                                         <button onClick={markAllConform} className="text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors flex items-center"><CheckCheck className="h-3.5 w-3.5 mr-1" /> Tout Conforme</button>
                                                     )}
-                                                    <button onClick={generateSoA} className="text-xs font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors">Générer SoA</button>
+                                                    <button onClick={generateSoA} className="text-xs font-bold bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors">Générer SoA</button>
                                                     <span className="text-xs font-medium bg-slate-100 dark:bg-white/10 px-2 py-1.5 rounded-lg flex items-center">{checklist.questions.filter(q => q.response === 'Conforme').length} / {checklist.questions.length} Conformes</span>
                                                 </div>
                                             </div>
@@ -1354,7 +1354,7 @@ export const Audits: React.FC = () => {
                                                     </div>
                                                 ) : null;
                                             })}
-                                            {(!selectedAudit.relatedAssetIds || selectedAudit.relatedAssetIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun actif lié.</p>}
+                                            {(!selectedAudit.relatedAssetIds || selectedAudit.relatedAssetIds.length === 0) && <p className="text-sm text-slate-400 italic">Aucun actif lié.</p>}
                                         </div>
                                     </div>
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
@@ -1369,7 +1369,7 @@ export const Audits: React.FC = () => {
                                                     </div>
                                                 ) : null;
                                             })}
-                                            {(!selectedAudit.relatedRiskIds || selectedAudit.relatedRiskIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun risque lié.</p>}
+                                            {(!selectedAudit.relatedRiskIds || selectedAudit.relatedRiskIds.length === 0) && <p className="text-sm text-slate-400 italic">Aucun risque lié.</p>}
                                         </div>
                                     </div>
 
@@ -1385,7 +1385,7 @@ export const Audits: React.FC = () => {
                                                     </div>
                                                 ) : null;
                                             })}
-                                            {(!selectedAudit.relatedControlIds || selectedAudit.relatedControlIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun contrôle lié.</p>}
+                                            {(!selectedAudit.relatedControlIds || selectedAudit.relatedControlIds.length === 0) && <p className="text-sm text-slate-400 italic">Aucun contrôle lié.</p>}
                                         </div>
                                     </div>
 
@@ -1401,7 +1401,7 @@ export const Audits: React.FC = () => {
                                                     </div>
                                                 ) : null;
                                             })}
-                                            {(!selectedAudit.relatedProjectIds || selectedAudit.relatedProjectIds.length === 0) && <p className="text-sm text-gray-400 italic">Aucun projet lié.</p>}
+                                            {(!selectedAudit.relatedProjectIds || selectedAudit.relatedProjectIds.length === 0) && <p className="text-sm text-slate-400 italic">Aucun projet lié.</p>}
                                         </div>
                                     </div>
                                 </div>

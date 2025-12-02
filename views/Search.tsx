@@ -170,7 +170,7 @@ export const Search: React.FC = () => {
             case 'risk': return <AlertTriangle className="h-5 w-5 text-orange-500" />;
             case 'document': return <FileText className="h-5 w-5 text-purple-500" />;
             case 'project': return <FolderKanban className="h-5 w-5 text-emerald-500" />;
-            default: return <SearchIcon className="h-5 w-5 text-gray-500" />;
+            default: return <SearchIcon className="h-5 w-5 text-slate-500" />;
         }
     };
 
@@ -241,7 +241,7 @@ export const Search: React.FC = () => {
                 <div className="flex flex-wrap gap-2 items-center">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Filtres actifs:</span>
                     {advancedFilters.status && (
-                        <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold">
+                        <span className="px-3 py-1 bg-blue-100 dark:bg-slate-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold">
                             Statut: {advancedFilters.status}
                         </span>
                     )}

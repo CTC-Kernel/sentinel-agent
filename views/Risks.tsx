@@ -225,12 +225,24 @@ export const Risks: React.FC = () => {
             const score = probability * impact;
             const residualScore = residualProbability * residualImpact;
 
+            if (residualScore > score) {
+                addToast("Le score résiduel ne peut pas être supérieur au score brut. Ajustez la probabilité ou l'impact résiduel.", "error");
+                return;
+            }
+
+            if (validatedData.strategy === 'Accepter' && residualScore >= 15 && !validatedData.justification?.trim()) {
+                addToast("Pour accepter un risque critique (score résiduel >= 15), une justification détaillée est requise.", "error");
+                return;
+            }
+
             // Derive owner name
             const ownerUser = usersList.find(u => u.uid === validatedData.ownerId);
             const ownerName = ownerUser?.displayName || '';
 
             // Sanitize data before sending to Firestore
             const cleanNewRisk = { ...sanitizeData(validatedData), owner: ownerName };
+
+            const nowIso = new Date().toISOString();
 
             // Creation only
             const docRef = await addDoc(collection(db, 'risks'), {
@@ -239,7 +251,8 @@ export const Risks: React.FC = () => {
                 score,
                 residualScore,
                 previousScore: score,
-                createdAt: new Date().toISOString()
+                createdAt: nowIso,
+                lastReviewDate: nowIso
             });
 
             // Persist initial history entry in immutable collection
@@ -302,6 +315,27 @@ export const Risks: React.FC = () => {
             const residualImpact = riskData.residualImpact ?? impact;
             const score = probability * impact;
             const residualScore = residualProbability * residualImpact;
+
+            if (residualScore > score) {
+                addToast("Le score résiduel ne peut pas être supérieur au score brut. Ajustez la probabilité ou l'impact résiduel.", "error");
+                return;
+            }
+
+            if (validatedData.strategy === 'Accepter' && residualScore >= 15 && !validatedData.justification?.trim()) {
+                addToast("Pour accepter un risque critique (score résiduel >= 15), une justification détaillée est requise.", "error");
+                return;
+            }
+
+            const hasSignificantChange =
+                probability !== selectedRisk.probability ||
+                impact !== selectedRisk.impact ||
+                residualProbability !== (selectedRisk.residualProbability ?? selectedRisk.probability) ||
+                residualImpact !== (selectedRisk.residualImpact ?? selectedRisk.impact) ||
+                validatedData.strategy !== selectedRisk.strategy ||
+                validatedData.status !== selectedRisk.status;
+
+            const newLastReviewDate = hasSignificantChange ? new Date().toISOString() : selectedRisk.lastReviewDate;
+
             const historyEntry: RiskHistory = {
                 date: new Date().toISOString(),
                 previousScore: selectedRisk.score,
@@ -320,14 +354,17 @@ export const Risks: React.FC = () => {
 
             const updatedHistory = [...(selectedRisk.history || []), historyEntry];
 
-            await updateDoc(doc(db, 'risks', selectedRisk.id), {
+            const updatePayload = {
                 ...riskData,
                 score,
                 residualProbability,
                 residualImpact,
                 residualScore,
-                history: updatedHistory
-            });
+                history: updatedHistory,
+                ...(hasSignificantChange && newLastReviewDate ? { lastReviewDate: newLastReviewDate } : {})
+            };
+
+            await updateDoc(doc(db, 'risks', selectedRisk.id), updatePayload);
 
             // Persist history entry in immutable collection
             await addDoc(collection(db, 'risk_history'), {
@@ -359,7 +396,11 @@ export const Risks: React.FC = () => {
 
             await logAction(user, 'UPDATE', 'Risk', `Mise à jour risque: ${riskData.threat}`);
             addToast("Risque mis à jour", "success");
-            setSelectedRisk({ ...selectedRisk, ...riskData, score, residualProbability, residualImpact, residualScore, history: updatedHistory } as Risk);
+            const updatedRisk: Risk = { ...selectedRisk, ...riskData, score, residualProbability, residualImpact, residualScore, history: updatedHistory } as Risk;
+            if (hasSignificantChange && newLastReviewDate) {
+                updatedRisk.lastReviewDate = newLastReviewDate;
+            }
+            setSelectedRisk(updatedRisk);
             setIsEditing(false);
             refreshRisks();
         } catch (error) {
@@ -645,6 +686,12 @@ export const Risks: React.FC = () => {
         return { label: 'Faible', status: 'success' as const };
     };
 
+    const isReviewOverdue = (risk: Risk) => {
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        return !risk.lastReviewDate || new Date(risk.lastReviewDate) < oneYearAgo;
+    };
+
     const handleGenerateReport = async () => {
         try {
             addToast("Génération du rapport PDF en cours...", "info");
@@ -798,21 +845,21 @@ export const Risks: React.FC = () => {
 
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Risques</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p></div><div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600"><ShieldAlert className="h-6 w-6" /></div></div>
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Risques</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p></div><div className="p-3 rounded-2xl bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 text-blue-600"><ShieldAlert className="h-6 w-6" /></div></div>
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">Critiques / Élevés</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.critical}</p></div><div className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600"><Flame className="h-6 w-6" /></div></div>
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Atténués</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.mitigated}</p></div><div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600"><TrendingUp className="h-6 w-6" /></div></div>
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Revues en retard</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.reviewDue}</p></div><div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><Clock className="h-6 w-6" /></div></div>
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between gap-4">
-                <div className="flex items-center space-x-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 border border-slate-200 dark:border-white/5"><Search className="h-5 w-5 text-gray-400" /><input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
+                <div className="flex items-center space-x-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 border border-slate-200 dark:border-white/5"><Search className="h-5 w-5 text-slate-400" /><input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
                 <div className="flex gap-2">
                     <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                     <button onClick={generateRTP} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Download className="h-4 w-4 mr-2" /> RTP (PDF)</button>
                     <button onClick={exportPDF} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><FileText className="h-4 w-4 mr-2" /> Registre (PDF)</button>
                     <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>
                     <button onClick={handleExportCSV} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"><FileSpreadsheet className="h-4 w-4" /></button>
-                    <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm ml-2">
+                    <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm ml-2">
                         <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
                         <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
                         <button onClick={() => setViewMode('matrix')} className={`p-2 rounded-lg transition-all ${viewMode === 'matrix' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Matrice"><LayoutDashboard className="h-4 w-4" /></button>
@@ -939,9 +986,16 @@ export const Risks: React.FC = () => {
                                             </td>
                                             <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">{risk.strategy}</td>
                                             <td className="px-6 py-5">
-                                                <Badge status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'} variant="outline">
-                                                    {risk.status}
-                                                </Badge>
+                                                <div className="flex flex-col items-start gap-1">
+                                                    <Badge status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'} variant="outline">
+                                                        {risk.status}
+                                                    </Badge>
+                                                    {isReviewOverdue(risk) && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
+                                                            <Clock className="h-3 w-3 mr-1" /> Revue en retard
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
                                                 {canEdit && (
@@ -991,7 +1045,7 @@ export const Risks: React.FC = () => {
                                         </Badge>
                                         {trend === 'up' && <span className="text-red-500" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
                                         {trend === 'down' && <span className="text-emerald-500" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
-                                        {isMitigated && (<><ArrowRight className="w-3 h-3 text-gray-400" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
+                                        {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-400" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
                                     </div>
                                 </div>
                                 <div className="mb-4 flex-1">
@@ -1004,7 +1058,7 @@ export const Risks: React.FC = () => {
                                         <span className="font-bold text-xs uppercase text-slate-400 block mb-1">Vulnérabilité</span>{risk.vulnerability}
                                     </p>
                                 </div>
-                                <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
+                                <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
                                         <div className="flex items-center gap-2">
@@ -1024,6 +1078,13 @@ export const Risks: React.FC = () => {
                                             </Badge>
                                         </div>
                                     </div>
+                                    {isReviewOverdue(risk) && (
+                                        <div className="flex items-center justify-between">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
+                                                <Clock className="h-3 w-3 mr-1" /> Revue en retard
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>)
                     })}</div>
@@ -1054,7 +1115,7 @@ export const Risks: React.FC = () => {
                                     <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Modifier" aria-label="Modifier le risque">
                                         <Edit className="h-5 w-5" />
                                     </button>
-                                    <button onClick={() => initiateDelete(selectedRisk.id, selectedRisk.threat)} className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm" aria-label="Supprimer le risque">
+                                    <button onClick={() => initiateDelete(selectedRisk.id, selectedRisk.threat)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm" aria-label="Supprimer le risque">
                                         <Trash2 className="h-5 w-5" />
                                     </button>
                                 </>
@@ -1372,7 +1433,7 @@ export const Risks: React.FC = () => {
                                                     })}
                                                 </div>
                                             ) : (
-                                                <div className="text-center py-12 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10">
+                                                <div className="text-center py-12 text-slate-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10">
                                                     <ShieldAlert className="h-10 w-10 mx-auto mb-3 opacity-30" />
                                                     Aucun contrôle d'atténuation lié.
                                                 </div>
@@ -1391,7 +1452,7 @@ export const Risks: React.FC = () => {
                                         <div className="space-y-8">
                                             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
                                             {linkedProjects.length === 0 ? (
-                                                <p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé à ce risque.</p>
+                                                <p className="text-sm text-slate-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé à ce risque.</p>
                                             ) : (
                                                 <div className="grid gap-4">
                                                     {linkedProjects.map(proj => (
@@ -1418,7 +1479,7 @@ export const Risks: React.FC = () => {
                                         <div className="space-y-8">
                                             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
                                             {linkedAudits.length === 0 ? (
-                                                <p className="text-sm text-gray-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé à ce risque.</p>
+                                                <p className="text-sm text-slate-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé à ce risque.</p>
                                             ) : (
                                                 <div className="grid gap-4">
                                                     {linkedAudits.map(audit => (
@@ -1449,13 +1510,13 @@ export const Risks: React.FC = () => {
                                         <div className="space-y-8">
                                             <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
                                                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Évolution du Score</h4>
-                                                {riskScoreHistory.length === 0 ? <p className="text-sm text-gray-400 italic">Aucun changement de score enregistré.</p> : riskScoreHistory.map((h, i) => (
+                                                {riskScoreHistory.length === 0 ? <p className="text-sm text-slate-400 italic">Aucun changement de score enregistré.</p> : riskScoreHistory.map((h, i) => (
                                                     <div key={i} className="relative">
                                                         <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900">
                                                             <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                                                         </span>
                                                         <div>
-                                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(h.date).toLocaleString()}</span>
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(h.date).toLocaleString()}</span>
                                                             <div className="flex items-center gap-2 mt-1">
                                                                 <span className="text-sm font-bold text-slate-500">Score:</span>
                                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{h.previousScore} ➔ {h.newScore}</span>
@@ -1473,10 +1534,10 @@ export const Risks: React.FC = () => {
                                                             <div className="h-2 w-2 rounded-full bg-brand-500"></div>
                                                         </span>
                                                         <div>
-                                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                             <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
                                                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                            <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div>
+                                                            <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-slate-500">{log.userEmail}</div>
                                                         </div>
                                                     </div>
                                                 ))}

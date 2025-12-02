@@ -255,7 +255,7 @@ export const RoleManagement: React.FC = () => {
             </div>
 
             {/* Info Box */}
-            <div className="glass-panel p-4 rounded-2xl border border-blue-200 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10">
+            <div className="glass-panel p-4 rounded-2xl border border-blue-200 dark:border-blue-900/30 bg-blue-50/50 dark:bg-slate-900/10">
                 <div className="flex items-start gap-3">
                     <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-blue-900 dark:text-blue-100">

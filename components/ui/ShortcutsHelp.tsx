@@ -31,7 +31,7 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose })
             <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden animate-scale-in">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl text-indigo-600 dark:text-indigo-400">
+                        <div className="p-2 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400">
                             <Keyboard className="h-5 w-5" />
                         </div>
                         <div>

@@ -4,12 +4,10 @@ import {
     TrendingUp,
     TrendingDown,
     AlertTriangle,
-    CheckCircle2,
     Target,
     Calendar
 } from '../ui/Icons';
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { ChartTooltip } from '../ui/ChartTooltip';
 
 interface ProjectDashboardProps {
@@ -91,80 +89,93 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
         return total > 0 ? (achieved / total) * 100 : 0;
     }, [milestones]);
 
-    const getHealthColor = (status: string) => {
-        switch (status) {
-            case 'good': return 'text-green-600 bg-green-100 dark:bg-green-900/20';
-            case 'warning': return 'text-orange-600 bg-orange-100 dark:bg-orange-900/20';
-            case 'critical': return 'text-red-600 bg-red-100 dark:bg-red-900/20';
-            default: return 'text-slate-600 bg-slate-100 dark:bg-slate-800';
-        }
-    };
+
 
     return (
         <div className="space-y-6">
-            {/* Health Indicator */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Santé du Projet
-                </h3>
+            {/* Summary Card */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {/* Overall Health */}
-                    <CustomTooltip content="Score calculé sur l'avancement, les délais et les risques" position="top" className="w-full">
-                        <div className={`p-4 rounded-xl ${getHealthColor(projectHealth.status)} hover:shadow-md transition-shadow cursor-default`}>
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-bold uppercase tracking-wider">Score Global</span>
-                                {projectHealth.status === 'good' ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
-                            </div>
-                            <div className="text-3xl font-bold">{projectHealth.score}%</div>
-                            <div className="text-xs mt-1 opacity-80">
-                                {projectHealth.status === 'good' ? 'Excellent' : projectHealth.status === 'warning' ? 'Attention' : 'Critique'}
-                            </div>
+                {/* Global Health Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                                className="text-slate-100 dark:text-slate-800"
+                                strokeWidth="8"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                            <circle
+                                className={`${projectHealth.status === 'good' ? 'text-emerald-500' : projectHealth.status === 'warning' ? 'text-amber-500' : 'text-red-500'} transition-all duration-1000 ease-out`}
+                                strokeWidth="8"
+                                strokeDasharray={276}
+                                strokeDashoffset={276 - (276 * projectHealth.score) / 100}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">{projectHealth.score.toFixed(0)}%</span>
                         </div>
-                    </CustomTooltip>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Santé du Projet</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                            {projectHealth.status === 'good' ? 'Le projet est sur la bonne voie.' : projectHealth.status === 'warning' ? 'Attention requise sur certains points.' : 'Situation critique, action immédiate requise.'}
+                        </p>
+                    </div>
+                </div>
 
-                    {/* Progress */}
-                    <CustomTooltip content={`Progression attendue: ${Math.round(projectHealth.expectedProgress)}%`} position="top" className="w-full">
-                        <div className="p-4 rounded-xl bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:shadow-md transition-shadow cursor-default">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-bold uppercase tracking-wider">Progression</span>
-                                {projectHealth.onSchedule ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
-                            </div>
-                            <div className="text-3xl font-bold">{Math.round(projectHealth.progressRate)}%</div>
-                            <div className="text-xs mt-1 opacity-80">
-                                {projectHealth.onSchedule ? 'Dans les temps' : 'En retard'}
-                            </div>
+                {/* Key Metrics Breakdown */}
+                <div className="flex-1 grid grid-cols-2 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <TrendingUp className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Progression</div>
                         </div>
-                    </CustomTooltip>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{Math.round(projectHealth.progressRate)}%</div>
+                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${projectHealth.progressRate}%` }}></div>
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1">Attendue: {Math.round(projectHealth.expectedProgress)}%</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <Target className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Jalons</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{milestones.filter(m => m.status === 'achieved').length}/{milestones.length}</div>
+                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                            <div className="h-full bg-purple-500 rounded-full" style={{ width: `${milestoneProgress}%` }}></div>
+                        </div>
+                    </div>
+                </div>
 
-                    {/* Milestones */}
-                    <CustomTooltip content={`${milestones.filter(m => m.status === 'achieved').length} jalons atteints sur ${milestones.length}`} position="top" className="w-full">
-                        <div className="p-4 rounded-xl bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 hover:shadow-md transition-shadow cursor-default">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-bold uppercase tracking-wider">Jalons</span>
-                                <Target className="h-5 w-5" />
-                            </div>
-                            <div className="text-3xl font-bold">{milestones.filter(m => m.status === 'achieved').length}/{milestones.length}</div>
-                            <div className="text-xs mt-1 opacity-80">
-                                {Math.round(milestoneProgress)}% atteints
-                            </div>
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    <div className={`flex items-center justify-between p-2.5 rounded-xl border ${projectHealth.onSchedule ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30'}`}>
+                        <div className="flex items-center gap-2">
+                            {projectHealth.onSchedule ? <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> : <TrendingDown className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
+                            <span className={`text-xs font-bold ${projectHealth.onSchedule ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>Planning</span>
                         </div>
-                    </CustomTooltip>
-
-                    {/* Risks */}
-                    <CustomTooltip content={`${relatedRisks.filter(r => r.score >= 15).length} risques critiques identifiés`} position="top" className="w-full">
-                        <div className="p-4 rounded-xl bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 hover:shadow-md transition-shadow cursor-default">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-bold uppercase tracking-wider">Risques</span>
-                                <AlertTriangle className="h-5 w-5" />
-                            </div>
-                            <div className="text-3xl font-bold">{relatedRisks.filter(r => r.score >= 15).length}</div>
-                            <div className="text-xs mt-1 opacity-80">
-                                Critiques ({relatedRisks.length} total)
-                            </div>
+                        <span className={`text-sm font-black ${projectHealth.onSchedule ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>{projectHealth.onSchedule ? 'OK' : 'Retard'}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30">
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            <span className="text-xs font-bold text-red-700 dark:text-red-300">Risques Critiques</span>
                         </div>
-                    </CustomTooltip>
+                        <span className="text-sm font-black text-red-700 dark:text-red-400">{relatedRisks.filter(r => r.score >= 15).length}</span>
+                    </div>
                 </div>
             </div>
 

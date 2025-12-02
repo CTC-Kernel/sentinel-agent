@@ -77,6 +77,7 @@ export interface Risk {
   isSecureStorage?: boolean;
   category?: string;
   updatedAt?: string;
+  justification?: string;
 }
 
 export interface RiskTreatment {

@@ -129,11 +129,11 @@ const Pricing = () => {
 
               <div className="p-8 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-8">
-                  <div className={`p-3.5 rounded-2xl ${popular ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'}`}>
+                  <div className={`p-3.5 rounded-2xl ${popular ? 'bg-blue-50 dark:bg-slate-900 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'}`}>
                     <Icon className="w-6 h-6" strokeWidth={2} />
                   </div>
                   {popular && (
-                    <span className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold px-3 py-1 rounded-full border border-blue-100 dark:border-blue-500/20 uppercase tracking-widest">
+                    <span className="bg-blue-50 dark:bg-slate-900 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold px-3 py-1 rounded-full border border-blue-100 dark:border-blue-500/20 uppercase tracking-widest">
                       Populaire
                     </span>
                   )}

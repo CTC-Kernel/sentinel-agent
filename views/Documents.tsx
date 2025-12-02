@@ -144,6 +144,15 @@ export const Documents: React.FC = () => {
     const createStorageProvider = useWatch({ control: createForm.control, name: 'storageProvider' });
     const editStorageProvider = useWatch({ control: editForm.control, name: 'storageProvider' });
 
+    // Metrics for Summary Card
+    const totalDocs = documents.length;
+    const publishedDocs = documents.filter(d => d.status === 'Publié' || d.status === 'Approuvé').length;
+    const inReviewDocs = documents.filter(d => d.status === 'En revue').length;
+    const draftDocs = documents.filter(d => d.status === 'Brouillon').length;
+    const expiredDocs = documents.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < new Date()).length;
+
+    const validationRate = totalDocs > 0 ? (publishedDocs / totalDocs) * 100 : 0;
+
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
@@ -570,7 +579,7 @@ export const Documents: React.FC = () => {
             case 'Approuvé': return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50';
             case 'En revue': return 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50';
             case 'Rejeté': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50';
-            case 'Obsolète': return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
+            case 'Obsolète': return 'bg-gray-100 text-slate-700 border-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
             default: return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
         }
     };
@@ -614,13 +623,99 @@ export const Documents: React.FC = () => {
                 )}
             />
 
+            {/* Summary Card */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+
+                {/* Global Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                                className="text-slate-100 dark:text-slate-800"
+                                strokeWidth="8"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                            <circle
+                                className={`${validationRate >= 80 ? 'text-emerald-500' : validationRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
+                                strokeWidth="8"
+                                strokeDasharray={276}
+                                strokeDashoffset={276 - (276 * validationRate) / 100}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">{Math.round(validationRate)}%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Documents Validés</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                            Pourcentage de documents publiés ou approuvés.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Key Metrics Breakdown */}
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <FileText className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{totalDocs}</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <CheckCircle2 className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Publiés</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{publishedDocs}</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <Edit className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Brouillons</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{draftDocs}</div>
+                    </div>
+                </div>
+
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    <div className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                        <div className="flex items-center gap-2">
+                            <Bell className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">En Revue</span>
+                        </div>
+                        <span className="text-sm font-black text-amber-700 dark:text-amber-400">{inReviewDocs}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30">
+                        <div className="flex items-center gap-2">
+                            <History className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            <span className="text-xs font-bold text-red-700 dark:text-red-300">Expirés</span>
+                        </div>
+                        <span className="text-sm font-black text-red-700 dark:text-red-400">{expiredDocs}</span>
+                    </div>
+                </div>
+            </div>
+
             <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
                 {/* Search & Filters */}
                 <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200 dark:border-white/5">
-                    <Search className="h-5 w-5 text-gray-400" />
+                    <Search className="h-5 w-5 text-slate-400" />
                     <input type="text" placeholder="Rechercher un document..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                         value={filter} onChange={e => setFilter(e.target.value)} />
-                    <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
+                    <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
                         <FileSpreadsheet className="h-4 w-4" />
                     </button>
                 </div>
@@ -694,7 +789,7 @@ export const Documents: React.FC = () => {
                         filteredDocuments.map(docItem => (
                             <div key={docItem.id} onClick={() => openInspector(docItem)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover cursor-pointer border border-white/50 dark:border-white/5 group flex flex-col">
                                 <div className="flex justify-between items-start mb-5">
-                                    <div className="p-3 bg-blue-50 dark:bg-slate-800 rounded-2xl text-blue-600 shadow-inner">
+                                    <div className="p-3 bg-blue-50 dark:bg-slate-900 dark:bg-slate-800 rounded-2xl text-blue-600 shadow-inner">
                                         <FileText className="h-6 w-6" />
                                     </div>
                                     <div className="flex gap-2">
@@ -793,7 +888,7 @@ export const Documents: React.FC = () => {
                                         <tr key={docItem.id} onClick={() => openInspector(docItem)} className="hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-colors group">
                                             <td className="p-4">
                                                 <div className="flex items-center">
-                                                    <div className="p-2 bg-blue-50 dark:bg-slate-800 rounded-lg text-blue-600 mr-3">
+                                                    <div className="p-2 bg-blue-50 dark:bg-slate-900 dark:bg-slate-800 rounded-lg text-blue-600 mr-3">
                                                         <FileText className="h-4 w-4" />
                                                     </div>
                                                     <div>
@@ -828,7 +923,7 @@ export const Documents: React.FC = () => {
                                                                 window.open(docItem.url, '_blank');
                                                             }
                                                         }}
-                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                                                     >
                                                         {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
                                                     </button>
@@ -986,10 +1081,10 @@ export const Documents: React.FC = () => {
                                                                 const isCurrent = selectedDocument.status === step;
                                                                 return (
                                                                     <div key={step} className="flex flex-col items-center bg-white dark:bg-slate-900 px-2">
-                                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${isCompleted ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-300'}`}>
+                                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${isCompleted ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-slate-300'}`}>
                                                                             {isCompleted ? <CheckCircle2 className="h-4 w-4" /> : <span className="text-xs font-bold">{idx + 1}</span>}
                                                                         </div>
-                                                                        <span className={`text-[10px] font-bold mt-2 uppercase tracking-wide ${isCurrent ? 'text-blue-600' : 'text-gray-400'}`}>{step}</span>
+                                                                        <span className={`text-[10px] font-bold mt-2 uppercase tracking-wide ${isCurrent ? 'text-blue-600' : 'text-slate-400'}`}>{step}</span>
                                                                     </div>
                                                                 );
                                                             })}
@@ -1066,7 +1161,7 @@ export const Documents: React.FC = () => {
                                                         </div>
                                                     </div>
 
-                                                    <div className="p-6 bg-blue-50/50 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm flex items-center justify-between">
+                                                    <div className="p-6 bg-blue-50/50 dark:bg-slate-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm flex items-center justify-between">
                                                         <div className="flex items-center text-blue-700 dark:text-blue-300 text-sm font-bold">
                                                             <LinkIcon className="h-4 w-4 mr-3" /> Fichier Joint
                                                         </div>
@@ -1074,7 +1169,7 @@ export const Documents: React.FC = () => {
                                                             <a href={selectedDocument.url} target="_blank" rel="noreferrer" className="text-xs font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm hover:text-blue-600 transition-colors">
                                                                 Télécharger
                                                             </a>
-                                                        ) : <span className="text-xs text-gray-400 italic">Aucun fichier</span>}
+                                                        ) : <span className="text-xs text-slate-400 italic">Aucun fichier</span>}
                                                     </div>
 
                                                     <div className="grid grid-cols-3 gap-6">
@@ -1085,7 +1180,7 @@ export const Documents: React.FC = () => {
                                                                     const c = controls.find(x => x.id === cid);
                                                                     return c ? <div key={cid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{c.code}</div> : null;
                                                                 })}
-                                                                {(!selectedDocument.relatedControlIds || selectedDocument.relatedControlIds.length === 0) && <span className="text-xs text-gray-400 italic">Aucun</span>}
+                                                                {(!selectedDocument.relatedControlIds || selectedDocument.relatedControlIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
                                                             </div>
                                                         </div>
                                                         <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
@@ -1095,7 +1190,7 @@ export const Documents: React.FC = () => {
                                                                     const a = assets.find(x => x.id === aid);
                                                                     return a ? <div key={aid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{a.name}</div> : null;
                                                                 })}
-                                                                {(!selectedDocument.relatedAssetIds || selectedDocument.relatedAssetIds.length === 0) && <span className="text-xs text-gray-400 italic">Aucun</span>}
+                                                                {(!selectedDocument.relatedAssetIds || selectedDocument.relatedAssetIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
                                                             </div>
                                                         </div>
                                                         <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
@@ -1105,7 +1200,7 @@ export const Documents: React.FC = () => {
                                                                     const a = audits.find(x => x.id === aid);
                                                                     return a ? <div key={aid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{a.name}</div> : null;
                                                                 })}
-                                                                {(!selectedDocument.relatedAuditIds || selectedDocument.relatedAuditIds.length === 0) && <span className="text-xs text-gray-400 italic">Aucun</span>}
+                                                                {(!selectedDocument.relatedAuditIds || selectedDocument.relatedAuditIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1116,17 +1211,17 @@ export const Documents: React.FC = () => {
 
                                     {inspectorTab === 'history' && (
                                         <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                            {docHistory.length === 0 ? <p className="text-sm text-gray-500 pl-6">Aucun historique.</p> :
+                                            {docHistory.length === 0 ? <p className="text-sm text-slate-500 pl-6">Aucun historique.</p> :
                                                 docHistory.map((log, i) => (
                                                     <div key={i} className="relative">
                                                         <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900">
                                                             <div className="h-2 w-2 rounded-full bg-blue-600"></div>
                                                         </span>
                                                         <div>
-                                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                             <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
                                                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                            <p className="text-[10px] text-gray-400 mt-1">Par: {log.userEmail}</p>
+                                                            <p className="text-[10px] text-slate-400 mt-1">Par: {log.userEmail}</p>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -1152,7 +1247,7 @@ export const Documents: React.FC = () => {
                 showCreateModal && createPortal(
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] shadow-2xl w-full max-w-4xl border border-white/20 overflow-hidden flex flex-col max-h-[90vh]">
-                            <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-blue-50/30 dark:bg-blue-900/10">
+                            <div className="p-8 border-b border-gray-100 dark:border-white/5 bg-blue-50/30 dark:bg-slate-900/10">
                                 <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-100 tracking-tight">Nouveau Document</h2>
                             </div>
                             <form onSubmit={createForm.handleSubmit(handleCreate as unknown as SubmitHandler<DocumentFormData>)} className="p-8 space-y-5 overflow-y-auto custom-scrollbar">

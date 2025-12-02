@@ -42,12 +42,19 @@ app.post("/v1/consent/log", async (req, res) => {
     try {
         const { document_type, accepted, version } = req.body;
         const uid = req.user.uid;
+        const organizationId = req.user.organizationId || null; // Optional for consent
+
+        if (!document_type || typeof accepted !== 'boolean' || !version) {
+            res.status(400).json({ success: false, error: "Missing or invalid fields" });
+            return;
+        }
 
         await admin.firestore().collection("consents").add({
             documentType: document_type,
             accepted,
             version,
             userId: uid,
+            organizationId, // Trusted from token
             ip: req.ip,
             userAgent: req.get('User-Agent'),
             timestamp: admin.firestore.FieldValue.serverTimestamp()
@@ -56,21 +63,42 @@ app.post("/v1/consent/log", async (req, res) => {
         res.json({ success: true, message: "Consent logged" });
     } catch (error) {
         logger.error("Error logging consent:", error);
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ success: false, error: "Internal Server Error" });
     }
 });
 
 // Audit Log
 app.post("/v1/audit/log", async (req, res) => {
     try {
+        const { action, resource, details, metadata } = req.body;
+        const uid = req.user.uid;
+        const organizationId = req.user.organizationId;
+
+        if (!organizationId) {
+            res.status(403).json({ success: false, error: "User does not belong to an organization" });
+            return;
+        }
+
+        if (!action || !resource) {
+            res.status(400).json({ success: false, error: "Missing required fields (action, resource)" });
+            return;
+        }
+
         await admin.firestore().collection("audit_logs").add({
-            ...req.body,
-            timestamp: admin.firestore.FieldValue.serverTimestamp()
+            organizationId, // Enforced from token
+            userId: uid,    // Enforced from token
+            userEmail: req.user.email || '',
+            action,
+            resource,
+            details: details || '',
+            metadata: metadata || {},
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            source: 'api'
         });
         res.json({ success: true, message: "Event logged" });
     } catch (error) {
         logger.error("Error logging audit event:", error);
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ success: false, error: "Internal Server Error" });
     }
 });
 
