@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../store';
+import { useAuth } from '../hooks/useAuth';
+import QRCode from 'qrcode';
 import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, WifiOff, ArrowRight, FileSpreadsheet, BrainCircuit } from '../components/ui/Icons';
 import { collection, getDocs, query, orderBy, limit, where, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, enableNetwork, disableNetwork, getDoc, QueryDocumentSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -29,6 +31,7 @@ import { Calendar } from 'lucide-react';
 
 export const Settings: React.FC = () => {
     const { theme, toggleTheme, user, setUser, addToast, language, setLanguage, t, demoMode, toggleDemoMode } = useStore();
+    const { enrollMFA, verifyMFA, unenrollMFA } = useAuth();
     const [logs, setLogs] = useState<SystemLog[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
@@ -452,6 +455,49 @@ export const Settings: React.FC = () => {
         setChangingPassword(false);
     };
 
+    // MFA State
+    const [isEnrollingMFA, setIsEnrollingMFA] = useState(false);
+    const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+    const [mfaCode, setMfaCode] = useState('');
+    const [verifyingMFA, setVerifyingMFA] = useState(false);
+
+    const handleEnrollMFA = async () => {
+        try {
+            setIsEnrollingMFA(true);
+            const uri = await enrollMFA();
+            const dataUrl = await QRCode.toDataURL(uri);
+            setQrCodeUrl(dataUrl);
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Settings.handleEnrollMFA', 'UNKNOWN_ERROR');
+            setIsEnrollingMFA(false);
+        }
+    };
+
+    const handleVerifyMFA = async () => {
+        setVerifyingMFA(true);
+        try {
+            await verifyMFA('Sentinel Authenticator', mfaCode);
+            addToast("MFA activé avec succès", "success");
+            setIsEnrollingMFA(false);
+            setQrCodeUrl(null);
+            setMfaCode('');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Settings.handleVerifyMFA', 'UNKNOWN_ERROR');
+        } finally {
+            setVerifyingMFA(false);
+        }
+    };
+
+    const handleDisableMFA = async () => {
+        if (!confirm("Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?")) return;
+        try {
+            await unenrollMFA();
+            addToast("MFA désactivé", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Settings.handleDisableMFA', 'UNKNOWN_ERROR');
+        }
+    };
+
     const handleThemeToggle = () => {
         toggleTheme();
         if (user) {
@@ -863,6 +909,80 @@ export const Settings: React.FC = () => {
                                 {changingPassword ? '...' : t('settings.changePassword')}
                             </button>
                         </form>
+                    </div>
+
+                    {/* MFA Settings */}
+                    <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm flex flex-col h-full">
+                        <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><ShieldAlert className="h-5 w-5 mr-3 text-emerald-500" />Authentification à deux facteurs (MFA)</h3>
+                        </div>
+                        <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Sécurisez votre compte en ajoutant une seconde étape de validation.
+                            </p>
+
+                            {!isEnrollingMFA && !qrCodeUrl ? (
+                                <button
+                                    onClick={handleEnrollMFA}
+                                    className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-slate-900/10 dark:shadow-white/10 flex items-center justify-center"
+                                >
+                                    Activer MFA
+                                </button>
+                            ) : (
+                                <div className="space-y-4 animate-fade-in">
+                                    {qrCodeUrl && (
+                                        <div className="flex flex-col items-center p-4 bg-white rounded-xl border border-slate-200">
+                                            {/* We use a secure way to render QR later, for now using a placeholder or external if safe. 
+                                                Actually, sending secret to external API is bad. 
+                                                I will use a text display of the secret if I can't render QR, or just the otpauth URL.
+                                                But wait, I can use a simple canvas or existing lib.
+                                                Let's assume I'll add 'qrcode' package if missing.
+                                                For now, I'll put a placeholder text.
+                                            */}
+                                            <p className="text-xs text-slate-500 mb-2 text-center">Scannez ce code avec votre application d'authentification (Google Authenticator, Authy...)</p>
+                                            <div className="bg-slate-100 p-2 rounded">
+                                                <img src={qrCodeUrl} alt="QR Code" className="w-32 h-32" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Code de vérification</label>
+                                        <input
+                                            type="text"
+                                            value={mfaCode}
+                                            onChange={(e) => setMfaCode(e.target.value)}
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none font-medium text-center tracking-widest text-lg dark:text-white"
+                                            placeholder="000 000"
+                                            maxLength={6}
+                                        />
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => { setIsEnrollingMFA(false); setQrCodeUrl(null); }}
+                                            className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
+                                        >
+                                            Annuler
+                                        </button>
+                                        <button
+                                            onClick={handleVerifyMFA}
+                                            disabled={verifyingMFA || mfaCode.length < 6}
+                                            className="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                                        >
+                                            {verifyingMFA ? '...' : 'Vérifier'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <button
+                                onClick={handleDisableMFA}
+                                className="text-xs text-red-500 hover:text-red-600 font-bold mt-2"
+                            >
+                                Désactiver MFA
+                            </button>
+                        </div>
                     </div>
 
                     {/* AI Settings */}
