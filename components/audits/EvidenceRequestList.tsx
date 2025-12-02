@@ -141,10 +141,10 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'Pending': return 'bg-amber-50 text-amber-700 border-amber-100';
-            case 'Provided': return 'bg-blue-50 text-blue-700 border-blue-100';
+            case 'Provided': return 'bg-blue-50 dark:bg-slate-900 text-blue-700 border-blue-100';
             case 'Accepted': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
             case 'Rejected': return 'bg-red-50 text-red-700 border-red-100';
-            default: return 'bg-gray-50 text-gray-700';
+            default: return 'bg-gray-50 text-slate-700';
         }
     };
 
@@ -304,7 +304,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                             </span>
                                         )}
                                         {req.relatedControlId && (
-                                            <span className="flex items-center text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                                            <span className="flex items-center text-indigo-600 bg-indigo-50 dark:bg-slate-900 px-2 py-0.5 rounded">
                                                 <ShieldCheck className="w-3 h-3 mr-1" />
                                                 {controls.find(c => c.id === req.relatedControlId)?.code || 'Contrôle'}
                                             </span>

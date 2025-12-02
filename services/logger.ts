@@ -1,6 +1,6 @@
 
-import { addDoc, collection } from 'firebase/firestore';
-import { db } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 
 export const logAction = async (
@@ -15,16 +15,15 @@ export const logAction = async (
   if (!user || !orgId) return;
 
   try {
-    await addDoc(collection(db, 'system_logs'), {
+    const logEventFn = httpsCallable(functions, 'logEvent');
+    await logEventFn({
       organizationId: orgId,
-      userId: user.uid,
-      userEmail: user.email,
       action,
       resource,
-      details: details || '',
-      timestamp: new Date().toISOString()
+      details: details || ''
     });
   } catch (error) {
+    // Fallback or silent fail for logs to avoid crashing app
     ErrorLogger.error(error, 'Logger.logAction');
   }
 };

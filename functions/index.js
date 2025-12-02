@@ -633,6 +633,86 @@ exports.retryFailedEmails = onSchedule({
 });
 
 /**
+ * Secure Callable Function to send emails from client
+ */
+exports.sendEmail = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in to send emails.');
+    }
+
+    const { to, subject, html, type, metadata } = request.data;
+
+    // Basic validation
+    if (!to || !subject || !html) {
+        throw new HttpsError('invalid-argument', 'Missing required email fields (to, subject, html).');
+    }
+
+    try {
+        // Add to mail_queue (Admin SDK bypasses rules)
+        await admin.firestore().collection('mail_queue').add({
+            to,
+            message: {
+                subject,
+                html,
+            },
+            type: type || 'GENERIC',
+            metadata: {
+                ...metadata,
+                senderUid: request.auth.uid,
+                senderEmail: request.auth.token.email
+            },
+            status: 'PENDING',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        return { success: true };
+    } catch (error) {
+        logger.error('Error in sendEmail callable:', error);
+        throw new HttpsError('internal', 'Failed to queue email.');
+    }
+});
+
+/**
+ * Secure Callable Function to log system events from client
+ */
+exports.logEvent = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in to log events.');
+    }
+
+    const { action, resource, details, organizationId } = request.data;
+
+    if (!action || !resource || !organizationId) {
+        throw new HttpsError('invalid-argument', 'Missing required log fields.');
+    }
+
+    // Validate user belongs to the organization they are logging for
+    // (unless they are logging an onboarding event where they might not have the claim yet, 
+    // but typically we trust the client's orgId if it matches their profile or claim. 
+    // For strictness, we could check the DB, but for logs, checking auth is usually enough context).
+
+    // We'll trust the authenticated user's ID.
+
+    try {
+        await admin.firestore().collection('system_logs').add({
+            organizationId,
+            userId: request.auth.uid,
+            userEmail: request.auth.token.email,
+            action,
+            resource,
+            details: details || '',
+            timestamp: new Date().toISOString(),
+            source: 'client_secure'
+        });
+
+        return { success: true };
+    } catch (error) {
+        logger.error('Error in logEvent callable:', error);
+        throw new HttpsError('internal', 'Failed to log event.');
+    }
+});
+
+/**
  * Send Push Notification when a new notification is created in Firestore
  */
 exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId}", async (event) => {
@@ -699,6 +779,131 @@ exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId
         }
     } catch (error) {
         logger.error("Error sending push notification:", error);
+    }
+});
+
+/**
+ * Secure Callable Function to approve a join request
+ */
+exports.approveJoinRequest = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { requestId } = request.data;
+    if (!requestId) {
+        throw new HttpsError('invalid-argument', 'Missing requestId.');
+    }
+
+    const db = admin.firestore();
+    const requestRef = db.collection('join_requests').doc(requestId);
+    const requestSnap = await requestRef.get();
+
+    if (!requestSnap.exists) {
+        throw new HttpsError('not-found', 'Join request not found.');
+    }
+
+    const requestData = requestSnap.data();
+
+    // Verify caller is admin of the organization
+    const callerId = request.auth.uid;
+    const callerSnap = await db.collection('users').doc(callerId).get();
+    const callerData = callerSnap.data();
+
+    if (callerData.organizationId !== requestData.organizationId || callerData.role !== 'admin') {
+        // Also allow owner
+        const orgSnap = await db.collection('organizations').doc(requestData.organizationId).get();
+        if (!orgSnap.exists || orgSnap.data().ownerId !== callerId) {
+            throw new HttpsError('permission-denied', 'You must be an admin of the organization to approve requests.');
+        }
+    }
+
+    if (requestData.status !== 'pending') {
+        throw new HttpsError('failed-precondition', 'Request is not pending.');
+    }
+
+    try {
+        const batch = db.batch();
+
+        // 1. Update User Profile
+        const userRef = db.collection('users').doc(requestData.userId);
+        batch.update(userRef, {
+            organizationId: requestData.organizationId,
+            organizationName: requestData.organizationName,
+            role: 'user',
+            onboardingCompleted: true
+        });
+
+        // 2. Update Request Status
+        batch.update(requestRef, {
+            status: 'approved',
+            approvedBy: callerId,
+            approvedAt: new Date().toISOString()
+        });
+
+        await batch.commit();
+
+        // 3. Refresh claims for the user (optional, but good practice)
+        // We can't easily refresh their token client-side, but we can set claims
+        await admin.auth().setCustomUserClaims(requestData.userId, {
+            organizationId: requestData.organizationId,
+            role: 'user'
+        });
+
+        return { success: true };
+    } catch (error) {
+        logger.error('Error approving join request:', error);
+        throw new HttpsError('internal', 'Failed to approve request.');
+    }
+});
+
+/**
+ * Secure Callable Function to reject a join request
+ */
+exports.rejectJoinRequest = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { requestId } = request.data;
+    if (!requestId) {
+        throw new HttpsError('invalid-argument', 'Missing requestId.');
+    }
+
+    const db = admin.firestore();
+    const requestRef = db.collection('join_requests').doc(requestId);
+    const requestSnap = await requestRef.get();
+
+    if (!requestSnap.exists) {
+        throw new HttpsError('not-found', 'Join request not found.');
+    }
+
+    const requestData = requestSnap.data();
+
+    // Verify caller is admin of the organization
+    const callerId = request.auth.uid;
+    const callerSnap = await db.collection('users').doc(callerId).get();
+    const callerData = callerSnap.data();
+
+    if (callerData.organizationId !== requestData.organizationId || callerData.role !== 'admin') {
+        // Also allow owner
+        const orgSnap = await db.collection('organizations').doc(requestData.organizationId).get();
+        if (!orgSnap.exists || orgSnap.data().ownerId !== callerId) {
+            throw new HttpsError('permission-denied', 'You must be an admin of the organization to reject requests.');
+        }
+    }
+
+    try {
+        await requestRef.update({
+            status: 'rejected',
+            rejectedBy: callerId,
+            rejectedAt: new Date().toISOString()
+        });
+
+        return { success: true };
+    } catch (error) {
+        logger.error('Error rejecting join request:', error);
+        throw new HttpsError('internal', 'Failed to reject request.');
     }
 });
 
@@ -1230,37 +1435,6 @@ exports.callGeminiChat = onCall({
 
 // Email Templates for Scheduled Checks
 const Templates = {
-    BASE_STYLES: `
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-      line-height: 1.6;
-      color: #334155;
-      max-width: 600px;
-      margin: 0 auto;
-    `,
-    BUTTON_STYLE: `
-      display: inline-block;
-      background-color: #2563eb;
-      color: #ffffff;
-      padding: 12px 24px;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
-      margin-top: 20px;
-      font-size: 14px;
-    `,
-    HEADER: `
-      <div style="text-align: center; padding: 24px 0; border-bottom: 1px solid #e2e8f0;">
-        <div style="font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
-          Sentinel <span style="color: #2563eb;">GRC</span>
-        </div>
-      </div>
-    `,
-    FOOTER: `
-      <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
-        <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
-        <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
-      </div>
-    `,
     getAuditReminderTemplate: (auditName, auditorName, scheduledDate, link) => `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto;">
           <div style="text-align: center; padding: 24px 0; border-bottom: 1px solid #e2e8f0;">
@@ -1307,6 +1481,8 @@ const Templates = {
               <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date d'échéance</span>
               <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(dueDate).toLocaleDateString()}</div>
             </div>
+    
+            <p>Assurez-vous d'avoir préparé tous les documents et preuves nécessaires pour cette révision.</p>
     
             <div style="text-align: center;">
               <a href="${link}" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; font-size: 14px;">Accéder au document</a>
@@ -1379,9 +1555,7 @@ const Templates = {
           </div>
         </div>
     `,
-    getSupplierReviewTemplate: (supplierName, criticality, lastReviewDate, link) => {
-        const criticalityColor = criticality === 'Critique' ? '#dc2626' : criticality === 'Élevée' ? '#f59e0b' : '#22c55e';
-        return `
+    getRiskReviewTemplate: (riskTitle, lastReviewDate, ownerName, link) => `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto;">
           <div style="text-align: center; padding: 24px 0; border-bottom: 1px solid #e2e8f0;">
             <div style="font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">
@@ -1389,19 +1563,19 @@ const Templates = {
             </div>
           </div>
           <div style="padding: 32px 0;">
-            <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">🏢 Révision Fournisseur Requise</h2>
-            <p>Un fournisseur critique nécessite une révision de sécurité.</p>
+            <h2 style="font-size: 20px; color: #0f172a; margin-bottom: 16px;">🔍 Revue de Risque en Retard</h2>
+            <p>Bonjour ${ownerName},</p>
+            <p>Le risque suivant nécessite une revue périodique conformément à la méthode ISO 27005 :</p>
             
-            <div style="background-color: ${criticalityColor}15; border-left: 4px solid ${criticalityColor}; padding: 16px; border-radius: 4px; margin: 20px 0;">
-              <h3 style="margin: 0 0 8px 0; font-size: 18px; color: #0f172a;">${supplierName}</h3>
-              <p style="margin: 0; font-size: 14px; color: #64748b;">Criticité : <strong style="color: ${criticalityColor};">${criticality}</strong></p>
-              <p style="margin: 8px 0 0 0; font-size: 14px; color: #64748b;">Dernière révision : ${new Date(lastReviewDate).toLocaleDateString()}</p>
+            <div style="border-left: 4px solid #f97316; padding-left: 16px; margin: 24px 0;">
+              <h3 style="margin: 0; font-size: 16px; color: #0f172a;">${riskTitle}</h3>
+              <p style="margin: 8px 0 0 0; color: #64748b;">Dernière revue enregistrée : <strong style="color: #b45309;">${lastReviewDate ? new Date(lastReviewDate).toLocaleDateString() : 'Aucune revue enregistrée'}</strong></p>
             </div>
     
-            <p>Conformément à la politique de gestion des tiers, une révision annuelle est requise pour tous les fournisseurs critiques.</p>
+            <p>Pour respecter les bonnes pratiques de gestion des risques (ISO 27005), il est recommandé de revoir régulièrement la probabilité, l'impact et le plan de traitement associés.</p>
     
             <div style="text-align: center;">
-              <a href="${link}" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; font-size: 14px;">Réviser le fournisseur</a>
+              <a href="${link}" style="display: inline-block; background-color: #f97316; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; font-size: 14px;">Revoir le risque</a>
             </div>
           </div>
           <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
@@ -1409,14 +1583,10 @@ const Templates = {
             <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
           </div>
         </div>
-        `;
-    }
+    `
 };
 
-exports.scheduledNotificationChecks = onSchedule({
-    schedule: "every 6 hours",
-    secrets: [sendGridApiKey]
-}, async (event) => {
+exports.checkScheduledNotifications = onSchedule("every 24 hours", async (event) => {
     logger.info("Starting scheduled notification checks...");
     const db = admin.firestore();
 
@@ -1430,7 +1600,7 @@ exports.scheduledNotificationChecks = onSchedule({
         }
     });
 
-    logger.info(`Running checks for ${organizationIds.size} organizations`);
+    logger.info('Running checks for ' + organizationIds.size + ' organizations');
 
     for (const orgId of organizationIds) {
         await Promise.allSettled([
@@ -1438,7 +1608,8 @@ exports.scheduledNotificationChecks = onSchedule({
             checkOverdueDocuments(db, orgId),
             checkUpcomingMaintenance(db, orgId),
             checkCriticalRisks(db, orgId),
-            checkExpiringContracts(db, orgId)
+            checkExpiringContracts(db, orgId),
+            checkOverdueRisks(db, orgId)
         ]);
     }
 
@@ -1479,16 +1650,16 @@ async function checkUpcomingAudits(db, organizationId) {
                         organizationId,
                         userId: auditorId,
                         type: daysUntil <= 3 ? 'danger' : 'warning',
-                        title: `Audit à venir : ${audit.name}`,
-                        message: `L'audit est prévu dans ${daysUntil} jour(s) - ${new Date(audit.dateScheduled).toLocaleDateString()}`,
+                        title: 'Audit à venir: ' + audit.name,
+                        message: 'L\'audit est prévu dans ' + daysUntil + ' jour(s) - ' + new Date(audit.dateScheduled).toLocaleDateString(),
                         link: '/audits',
                         email: auditorData.email,
-                        emailSubject: `Rappel Audit : ${audit.name}`,
+                        emailSubject: 'Rappel Audit : ' + audit.name,
                         emailHtml: Templates.getAuditReminderTemplate(
                             audit.name,
                             auditorData.displayName || 'Auditeur',
                             audit.dateScheduled,
-                            `${appBaseUrl.value()}/audits`
+                            appBaseUrl.value() + '/audits'
                         ),
                         emailType: 'AUDIT_REMINDER'
                     });
@@ -1501,7 +1672,6 @@ async function checkUpcomingAudits(db, organizationId) {
 async function checkOverdueDocuments(db, organizationId) {
     const docsSnap = await db.collection('documents')
         .where('organizationId', '==', organizationId)
-        .where('status', '==', 'Publié')
         .get();
 
     for (const doc of docsSnap.docs) {
@@ -1524,16 +1694,16 @@ async function checkOverdueDocuments(db, organizationId) {
                         organizationId,
                         userId: ownerId,
                         type: 'warning',
-                        title: `Document à réviser : ${document.title}`,
-                        message: `La date de révision est dépassée depuis le ${new Date(document.nextReviewDate).toLocaleDateString()}`,
+                        title: 'Document à réviser: ' + document.title,
+                        message: 'La date de révision est dépassée depuis le ' + new Date(document.nextReviewDate).toLocaleDateString(),
                         link: '/documents',
                         email: ownerData.email,
-                        emailSubject: `Révision requise : ${document.title}`,
+                        emailSubject: 'Révision requise: ' + document.title,
                         emailHtml: Templates.getDocumentReviewTemplate(
                             document.title,
                             ownerData.displayName || 'Propriétaire',
                             document.nextReviewDate,
-                            `${appBaseUrl.value()}/documents`
+                            appBaseUrl.value() + '/documents'
                         ),
                         emailType: 'DOCUMENT_REVIEW'
                     });
@@ -1575,21 +1745,109 @@ async function checkUpcomingMaintenance(db, organizationId) {
                             organizationId,
                             userId: ownerId,
                             type: daysUntil <= 7 ? 'warning' : 'info',
-                            title: `Maintenance à prévoir : ${asset.name}`,
-                            message: `Maintenance prévue dans ${daysUntil} jour(s)`,
+                            title: 'Maintenance à prévoir : ' + asset.name,
+                            message: 'Maintenance prévue dans ' + daysUntil + ' jour(s)',
                             link: '/assets',
                             email: ownerData.email,
-                            emailSubject: `Maintenance : ${asset.name}`,
+                            emailSubject: 'Maintenance : ' + asset.name,
                             emailHtml: Templates.getMaintenanceTemplate(
                                 asset.name,
                                 asset.nextMaintenance,
                                 ownerData.displayName || 'Propriétaire',
-                                `${appBaseUrl.value()}/assets`
+                                appBaseUrl.value() + '/assets'
                             ),
                             emailType: 'MAINTENANCE_ALERT'
                         });
                     }
                 }
+            }
+        }
+    }
+}
+
+async function checkOverdueRisks(db, organizationId) {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const risksSnap = await db.collection('risks')
+        .where('organizationId', '==', organizationId)
+        .get();
+
+    const overdueRisks = [];
+    risksSnap.forEach(doc => {
+        const risk = doc.data();
+        if (risk.status && ['Ouvert', 'En cours'].includes(risk.status)) {
+            if (!risk.lastReviewDate || new Date(risk.lastReviewDate) < oneYearAgo) {
+                overdueRisks.push({ id: doc.id, ...risk });
+            }
+        }
+    });
+
+    for (const risk of overdueRisks) {
+        let targetUserId = null;
+        let targetUserData = null;
+
+        // 1) Prefer explicit ownerId
+        if (risk.ownerId) {
+            const ownerSnap = await db.collection('users').doc(risk.ownerId).get();
+            if (ownerSnap.exists) {
+                targetUserId = ownerSnap.id;
+                targetUserData = ownerSnap.data();
+            }
+        }
+
+        // 2) Fallback on displayName match if owner is stored as a name
+        if (!targetUserId && risk.owner) {
+            const ownerByNameSnap = await db.collection('users')
+                .where('organizationId', '==', organizationId)
+                .where('displayName', '==', risk.owner)
+                .limit(1)
+                .get();
+            if (!ownerByNameSnap.empty) {
+                const ownerDoc = ownerByNameSnap.docs[0];
+                targetUserId = ownerDoc.id;
+                targetUserData = ownerDoc.data();
+            }
+        }
+
+        // 3) Fallback on admins if no owner identified
+        let fallbackAdmins = [];
+        if (!targetUserId) {
+            const adminsSnap = await db.collection('users')
+                .where('organizationId', '==', organizationId)
+                .where('role', '==', 'admin')
+                .get();
+            fallbackAdmins = adminsSnap.docs.map(d => ({ id: d.id, data: d.data() }));
+        }
+
+        const recipients = targetUserId && targetUserData
+            ? [{ id: targetUserId, data: targetUserData }]
+            : fallbackAdmins;
+
+        for (const recipient of recipients) {
+            const userId = recipient.id;
+            const userData = recipient.data;
+
+            if (!userData || !userData.email) continue;
+
+            if (await shouldNotify(db, userId, '/risks', risk.threat)) {
+                await sendNotificationAndEmail(db, {
+                    organizationId,
+                    userId,
+                    type: 'warning',
+                    title: 'Revue de risque en retard : ' + risk.threat,
+                    message: 'La dernière revue du risque est dépassée ou non enregistrée.',
+                    link: '/risks',
+                    email: userData.email,
+                    emailSubject: 'Revue Risque en Retard : ' + risk.threat,
+                    emailHtml: Templates.getRiskReviewTemplate(
+                        risk.threat,
+                        risk.lastReviewDate || null,
+                        userData.displayName || 'Responsable du risque',
+                        appBaseUrl.value() + '/risks'
+                    ),
+                    emailType: 'RISK_REVIEW_DUE'
+                });
             }
         }
     }
@@ -1624,16 +1882,16 @@ async function checkCriticalRisks(db, organizationId) {
                     organizationId,
                     userId: adminId,
                     type: 'danger',
-                    title: `${criticalRisksWithoutMitigation.length} risque(s) critique(s) sans atténuation`,
-                    message: `Des risques critiques n'ont pas de contrôles d'atténuation associés`,
+                    title: criticalRisksWithoutMitigation.length + ' risque(s) critique(s) sans atténuation',
+                    message: 'Des risques critiques n\'ont pas de contrôles d\'atténuation associés',
                     link: '/risks',
                     email: adminData.email,
-                    emailSubject: `Action requise : ${criticalRisksWithoutMitigation.length} Risques Critiques`,
+                    emailSubject: 'Action requise : ' + criticalRisksWithoutMitigation.length + ' Risques Critiques',
                     emailHtml: Templates.getRiskTreatmentDueTemplate(
                         'Risques Critiques non traités',
                         new Date().toISOString(),
                         adminData.displayName || 'Admin',
-                        `${appBaseUrl.value()}/risks`
+                        appBaseUrl.value() + '/risks'
                     ),
                     emailType: 'RISK_TREATMENT_DUE'
                 });
@@ -1668,16 +1926,16 @@ async function checkExpiringContracts(db, organizationId) {
                                 organizationId,
                                 userId: supplier.ownerId,
                                 type: 'warning',
-                                title: `Fin de contrat : ${supplier.name}`,
-                                message: `Le contrat expire dans ${daysUntil} jour(s)`,
+                                title: 'Fin de contrat : ' + supplier.name,
+                                message: 'Le contrat expire dans ' + daysUntil + ' jour(s)',
                                 link: '/suppliers',
                                 email: ownerData.email,
-                                emailSubject: `Expiration Contrat : ${supplier.name}`,
+                                emailSubject: 'Expiration Contrat : ' + supplier.name,
                                 emailHtml: Templates.getSupplierReviewTemplate(
                                     supplier.name,
                                     supplier.criticality || 'Moyenne',
                                     supplier.contractEnd,
-                                    `${appBaseUrl.value()}/suppliers`
+                                    appBaseUrl.value() + '/suppliers'
                                 ),
                                 emailType: 'SUPPLIER_REVIEW'
                             });

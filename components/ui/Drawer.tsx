@@ -102,7 +102,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                 {actions}
                                 <button
                                     onClick={onClose}
-                                    className="p-2.5 text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"
+                                    className="p-2.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"
                                     aria-label="Fermer"
                                 >
                                     <X className="h-5 w-5" />

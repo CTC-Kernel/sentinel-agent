@@ -68,6 +68,11 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const status = useWatch({ control, name: 'status' });
     const assetId = useWatch({ control, name: 'assetId' });
 
+    const residualScore =
+        (residualProbability || probability) && (residualImpact || impact)
+            ? (residualProbability || probability) * (residualImpact || impact)
+            : 0;
+
     const mapCriticalityToImpact = (crit: Criticality): number => {
         switch (crit) {
             case Criticality.CRITICAL: return 5;
@@ -313,7 +318,21 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             </div>
                         </div>
 
-                        <div className="flex items-center space-x-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                        <div className="space-y-2">
+                            <FloatingLabelTextarea
+                                label="Justification (acceptation de risque, décisions)"
+                                {...control.register('justification')}
+                                rows={3}
+                                error={errors.justification?.message}
+                            />
+                            {strategy === 'Accepter' && residualScore >= 15 && (
+                                <p className="text-xs text-red-600 dark:text-red-400">
+                                    Pour accepter un risque critique (score résiduel &gt;= 15), une justification détaillée est requise selon ISO 27005.
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="flex items-center space-x-3 p-4 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
                             <input
                                 type="checkbox"
                                 id="isSecureStorage"

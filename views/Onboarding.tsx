@@ -417,8 +417,8 @@ export const Onboarding: React.FC = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-[#000000] relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
             <div className="absolute inset-0 w-full h-full pointer-events-none">
-                <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-400/20 dark:bg-blue-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-float"></div>
-                <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-400/20 dark:bg-indigo-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-float" style={{ animationDelay: '3s' }}></div>
+                <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-400/20 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-float"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-400/20 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-float" style={{ animationDelay: '3s' }}></div>
             </div>
 
             <div className="w-full max-w-xl p-6 relative z-10 animate-scale-in">
@@ -467,7 +467,7 @@ export const Onboarding: React.FC = () => {
                                 className="group relative p-6 rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all text-left"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-slate-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <Users className="h-6 w-6" />
                                     </div>
                                     <div>
@@ -510,7 +510,7 @@ export const Onboarding: React.FC = () => {
                                                 </div>
                                                 <button
                                                     onClick={() => handleJoinRequest(org.id, org.name)}
-                                                    className="px-4 py-2 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 rounded-xl text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                                    className="px-4 py-2 bg-blue-50 dark:bg-slate-900 text-blue-600 dark:bg-slate-900/20 dark:text-blue-400 rounded-xl text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                                                 >
                                                     Rejoindre
                                                 </button>
@@ -643,7 +643,7 @@ export const Onboarding: React.FC = () => {
                                                     key={planId}
                                                     onClick={() => setSelectedPlan(planId)}
                                                     className={`relative p-6 rounded-3xl border transition-all duration-300 cursor-pointer group ${isSelected
-                                                        ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-500 ring-1 ring-blue-500 shadow-lg shadow-blue-500/10'
+                                                        ? 'bg-blue-50/50 dark:bg-slate-900/10 border-blue-500 ring-1 ring-blue-500 shadow-lg shadow-blue-500/10'
                                                         : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md'
                                                         }`}
                                                 >
@@ -669,7 +669,7 @@ export const Onboarding: React.FC = () => {
                                                     <ul className="space-y-2">
                                                         {plan.featuresList.slice(0, 3).map((f, i) => (
                                                             <li key={i} className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
-                                                                <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
+                                                                <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-blue-100 dark:bg-slate-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
                                                                     <Check className="h-2.5 w-2.5" strokeWidth={3} />
                                                                 </div>
                                                                 {f}
@@ -838,7 +838,7 @@ export const Onboarding: React.FC = () => {
                                             {initialAssets.map((asset, idx) => (
                                                 <div key={idx} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center">
+                                                        <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-slate-900/30 text-indigo-600 flex items-center justify-center">
                                                             <Server className="h-4 w-4" />
                                                         </div>
                                                         <div>

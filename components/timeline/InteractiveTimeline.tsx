@@ -336,7 +336,7 @@ export const InteractiveTimeline: React.FC = () => {
                 <button
                     onClick={() => toggleFilter('audits')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.audits
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                        ? 'bg-blue-100 text-blue-700 dark:bg-slate-900/20 dark:text-blue-400'
                         : 'bg-slate-100 text-slate-400 dark:bg-slate-800'
                         }`}
                 >

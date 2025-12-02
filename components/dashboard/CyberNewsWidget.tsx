@@ -76,7 +76,7 @@ export const CyberNewsWidget: React.FC = () => {
                             href={item.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-500/30 transition-all group"
+                            className="block p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-500/30 transition-all group"
                         >
                             <div className="flex justify-between items-start">
                                 <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 line-clamp-2 mb-2">

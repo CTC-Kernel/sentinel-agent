@@ -27,6 +27,9 @@ interface AppState {
   language: 'fr' | 'en';
   setLanguage: (lang: 'fr' | 'en') => void;
   t: (key: string) => string;
+
+  demoMode: boolean;
+  toggleDemoMode: () => void;
 }
 
 import { translations } from './i18n/translations';
@@ -92,4 +95,6 @@ export const useStore = create<AppState>((set, get) => ({
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 
+  demoMode: false,
+  toggleDemoMode: () => set((state) => ({ demoMode: !state.demoMode })),
 }));

@@ -91,8 +91,16 @@ service cloud.firestore {
       allow update: if isAuthenticated() && (
         (
           request.auth.uid == userId && (
-            // Case 1: Initial Setup (Onboarding)
-            (!('organizationId' in resource.data) || resource.data.organizationId == null) ||
+            // Case 1: Initial Setup (Onboarding) - STRICTER
+            // Only allow setting organizationId if it is NOT currently set
+            // AND the user is creating the organization (must be owner)
+            (
+               (!('organizationId' in resource.data) || resource.data.organizationId == null) &&
+               request.resource.data.organizationId != null &&
+               request.resource.data.role == resource.data.role && // Prevent role change during onboarding
+               // Verify user is owner of the new organization
+               getAfter(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)).data.ownerId == request.auth.uid
+            ) ||
             
             // Case 2: Self-update (Profile info only)
             // Prevent changing sensitive fields: role, organizationId, organizationName
@@ -102,8 +110,12 @@ service cloud.firestore {
               request.resource.data.organizationName == resource.data.organizationName
             ) ||
             
-            // Case 3: Owner Override (Can change anything for themselves if they own the org)
-            isOrgOwner(resource.data.organizationId)
+            // Case 3: Owner Override (Can change profile fields, but NOT organizationId or role)
+            (
+              isOrgOwner(resource.data.organizationId) &&
+              request.resource.data.organizationId == resource.data.organizationId &&
+              request.resource.data.role == resource.data.role
+            )
           )
         ) || 
         // Case 4: Admin/Owner managing other users
@@ -359,10 +371,7 @@ service cloud.firestore {
     // System Logs (Immutable)
     match /system_logs/{logId} {
       allow read: if canRead(resource.data.organizationId);
-      allow create: if isAuthenticated() && (
-        request.resource.data.organizationId == getUserData().organizationId ||
-        isOrgOwner(request.resource.data.organizationId)
-      );
+      allow create: if false; // System logs should only be created by backend
       allow update: if false;
       allow delete: if false;
     }
@@ -433,7 +442,7 @@ service cloud.firestore {
     // Mail Queue (System)
     match /mail_queue/{mailId} {
       allow read: if false;
-      allow create: if isAuthenticated();
+      allow create: if false; // Mail queue should only be populated by backend
       allow update: if false;
       allow delete: if false;
     }
@@ -441,7 +450,7 @@ service cloud.firestore {
     // Scheduled Emails (System)
     match /scheduled_emails/{emailId} {
       allow read: if false;
-      allow create: if isAuthenticated();
+      allow create: if false; // Scheduled emails should only be created by backend
       allow update: if false;
       allow delete: if false;
     }

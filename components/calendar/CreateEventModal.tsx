@@ -285,7 +285,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                                             : `${field.value.length} actif(s) sélectionné(s)`}
                                                                     </span>
                                                                     <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                        <ChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
+                                                                        <ChevronDown className="h-4 w-4 text-slate-400" aria-hidden="true" />
                                                                     </span>
                                                                 </Listbox.Button>
                                                                 <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
@@ -336,7 +336,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                                             : `${field.value.length} risque(s) sélectionné(s)`}
                                                                     </span>
                                                                     <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                        <ChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
+                                                                        <ChevronDown className="h-4 w-4 text-slate-400" aria-hidden="true" />
                                                                     </span>
                                                                 </Listbox.Button>
                                                                 <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">

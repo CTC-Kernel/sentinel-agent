@@ -36,27 +36,33 @@ export interface EmailPayload {
  * Dans une architecture Firebase classique, cela écrit dans une collection 'mail_queue'.
  * Une Cloud Function (non incluse ici) écouterait cette collection pour envoyer le mail via SendGrid/Mailgun.
  */
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase';
+
+// ... imports
+
+/**
+ * Service centralisé d'envoi d'email.
+ * Utilise une Cloud Function sécurisée 'sendEmail' pour mettre en file d'attente.
+ */
 export const sendEmail = async (
   user: { uid: string; email: string } | null,
   payload: EmailPayload,
   simulatePreview: boolean = false
 ) => {
   try {
-    // 1. Écriture dans la file d'attente (Pattern standard Firebase Extension)
-    await addDoc(collection(db, 'mail_queue'), {
+    // 1. Appel de la Cloud Function sécurisée
+    const sendEmailFn = httpsCallable(functions, 'sendEmail');
+    await sendEmailFn({
       to: payload.to,
-      message: {
-        subject: payload.subject,
-        html: payload.html,
-      },
+      subject: payload.subject,
+      html: payload.html,
       type: payload.type,
-      metadata: payload.metadata || {},
-      status: 'PENDING', // Sera passé à 'SENT' par le backend
-      createdAt: new Date().toISOString(),
-      createdBy: user?.uid || 'system'
+      metadata: payload.metadata || {}
     });
 
-    // 2. Log système
+    // 2. Log système (via le nouveau logger sécurisé si possible, sinon l'ancien logger qui sera aussi migré)
+    // Note: logAction sera aussi migré pour utiliser une Cloud Function
     await logAction(user, 'EMAIL_QUEUED', 'System', `Email '${payload.type}' envoyé à ${payload.to}`);
 
     // 3. Simulation visuelle pour la démo / le dev

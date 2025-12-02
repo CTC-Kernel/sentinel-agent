@@ -74,7 +74,7 @@ export const NotificationCenter: React.FC = () => {
             case 'success':
                 return 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30';
             default:
-                return 'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30';
+                return 'bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/10 border-blue-100 dark:border-blue-900/30';
         }
     };
 
@@ -143,7 +143,7 @@ export const NotificationCenter: React.FC = () => {
                                         <div
                                             key={notification.id}
                                             onClick={() => handleNotificationClick(notification)}
-                                            className={`p-4 transition-all cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 ${!notification.read ? 'bg-blue-50/30 dark:bg-blue-900/5' : ''
+                                            className={`p-4 transition-all cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 ${!notification.read ? 'bg-blue-50/30 dark:bg-slate-900/5' : ''
                                                 }`}
                                         >
                                             <div className="flex items-start gap-3">

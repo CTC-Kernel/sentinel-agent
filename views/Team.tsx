@@ -1,7 +1,8 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
-import { db } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from '../firebase';
 import { UserProfile, Invitation, JoinRequest, CustomRole } from '../types';
 import { Users, Mail, Plus, Building, User, Trash2, Edit, Clock, Timer, FileSpreadsheet, Check, XCircle, UserPlus } from '../components/ui/Icons';
 import { useStore } from '../store';
@@ -60,6 +61,14 @@ export const Team: React.FC = () => {
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
+
+    // Metrics for Summary Card
+    const totalUsers = users.length;
+    const activeUsers = users.filter(u => u.lastLogin && (new Date().getTime() - new Date(u.lastLogin).getTime()) < 2592000000).length;
+    const activityRate = totalUsers > 0 ? (activeUsers / totalUsers) * 100 : 0;
+    const admins = users.filter(u => u.role === 'admin').length;
+    const pendingInvites = users.filter(u => u.isPending).length;
+    const joinRequestsCount = joinRequests.length;
 
     const canAdmin = hasPermission(user, 'User', 'manage');
 
@@ -203,26 +212,13 @@ export const Team: React.FC = () => {
         }
 
         try {
-            // 1. Update User Profile
-            await updateDoc(doc(db, 'users', req.userId), {
-                organizationId: user.organizationId,
-                organizationName: user.organizationName,
-                role: 'user', // Default role
-                onboardingCompleted: true
-            });
-
-            // 2. Update Request Status
-            await updateDoc(doc(db, 'join_requests', req.id), {
-                status: 'approved',
-                approvedBy: user.uid,
-                approvedAt: new Date().toISOString()
-            });
+            const approveFn = httpsCallable(functions, 'approveJoinRequest');
+            await approveFn({ requestId: req.id });
 
             // 3. Notify (Optional - could be email)
             // For now just toast
             addToast(`Accès approuvé pour ${req.displayName}`, "success");
 
-            // Refresh
             // Refresh
             fetchUsers();
         } catch (e) {
@@ -235,11 +231,9 @@ export const Team: React.FC = () => {
         if (!user || !canAdmin) return;
         if (!confirm(`Refuser la demande de ${req.displayName} ?`)) return;
         try {
-            await updateDoc(doc(db, 'join_requests', req.id), {
-                status: 'rejected',
-                rejectedBy: user.uid,
-                rejectedAt: new Date().toISOString()
-            });
+            const rejectFn = httpsCallable(functions, 'rejectJoinRequest');
+            await rejectFn({ requestId: req.id });
+
             addToast("Demande refusée", "info");
             fetchUsers();
         } catch {
@@ -332,10 +326,10 @@ export const Team: React.FC = () => {
         switch (role) {
             case 'admin': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200 dark:border-purple-800">Admin</span>;
             case 'rssi': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800">RSSI</span>;
-            case 'auditor': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800">Auditeur</span>;
+            case 'auditor': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-slate-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800">Auditeur</span>;
             case 'project_manager': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800">Chef Projet</span>;
             case 'direction': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">Direction</span>;
-            default: return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-gray-400 border border-gray-200 dark:border-slate-700">Utilisateur</span>;
+            default: return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-gray-200 dark:border-slate-700">Utilisateur</span>;
         }
     };
 
@@ -393,6 +387,92 @@ export const Team: React.FC = () => {
                 )}
             />
 
+            {/* Summary Card */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group mb-8">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+
+                {/* Global Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                                className="text-slate-100 dark:text-slate-800"
+                                strokeWidth="8"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                            <circle
+                                className={`${activityRate >= 80 ? 'text-emerald-500' : activityRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
+                                strokeWidth="8"
+                                strokeDasharray={276}
+                                strokeDashoffset={276 - (276 * activityRate) / 100}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">{Math.round(activityRate)}%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Taux d'Activité</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                            Utilisateurs actifs au cours des 30 derniers jours.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Key Metrics Breakdown */}
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <Users className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{totalUsers}</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <User className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Admins</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{admins}</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <Mail className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Invités</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{pendingInvites}</div>
+                    </div>
+                </div>
+
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                        <div className="flex items-center gap-2">
+                            <UserPlus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Demandes</span>
+                        </div>
+                        <span className="text-sm font-black text-blue-700 dark:text-blue-400">{joinRequestsCount}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                        <div className="flex items-center gap-2">
+                            <Timer className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">En Attente</span>
+                        </div>
+                        <span className="text-sm font-black text-amber-700 dark:text-amber-400">{pendingInvites}</span>
+                    </div>
+                </div>
+            </div>
+
             <div className="flex space-x-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl w-fit">
                 <button
                     onClick={() => setActiveTab('members')}
@@ -429,7 +509,7 @@ export const Team: React.FC = () => {
                                 {joinRequests.map(req => (
                                     <div key={req.id} className="bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-900/30 p-5 rounded-2xl shadow-sm flex flex-col">
                                         <div className="flex items-center gap-3 mb-3">
-                                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-slate-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
                                                 {req.displayName.charAt(0).toUpperCase()}
                                             </div>
                                             <div>

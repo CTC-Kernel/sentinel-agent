@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { Supplier, Criticality, SupplierIncident } from '../../types';
-import { Building, ShieldAlert, Handshake, FileText } from '../ui/Icons';
+import { Building, ShieldAlert, FileText } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface SupplierDashboardProps {
@@ -36,62 +36,90 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
 
     return (
         <div className="space-y-6">
-            {/* Metrics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {/* Total Suppliers */}
-                <div
-                    onClick={() => onFilterChange?.(null)}
-                    className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 cursor-pointer hover:scale-[1.02] transition-transform"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Total Fournisseurs</span>
-                        <Building className="h-5 w-5 text-blue-500" />
+            {/* Summary Card */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+
+                {/* Global Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                                className="text-slate-100 dark:text-slate-800"
+                                strokeWidth="8"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                            <circle
+                                className={`${avgScore >= 80 ? 'text-emerald-500' : avgScore >= 60 ? 'text-amber-500' : 'text-red-500'} transition-all duration-1000 ease-out`}
+                                strokeWidth="8"
+                                strokeDasharray={276}
+                                strokeDashoffset={276 - (276 * avgScore) / 100}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">{avgScore}</span>
+                        </div>
                     </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{totalSuppliers}</div>
-                    <div className="text-xs text-slate-500 mt-1">Base fournisseurs active</div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Score Moyen</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                            Niveau de sécurité moyen de l'ensemble des fournisseurs.
+                        </p>
+                    </div>
                 </div>
 
-                {/* Critical Suppliers */}
-                <div
-                    onClick={() => onFilterChange?.({ type: 'criticality', value: 'Critique' })}
-                    className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-6 rounded-2xl border border-orange-200 dark:border-orange-800 cursor-pointer hover:scale-[1.02] transition-transform"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-orange-700 dark:text-orange-400">Critiques / Élevés</span>
-                        <ShieldAlert className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                {/* Key Metrics Breakdown */}
+                <div className="flex-1 grid grid-cols-2 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <Building className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{totalSuppliers}</div>
+                        <div className="text-xs text-slate-500 mt-1">Fournisseurs actifs</div>
                     </div>
-                    <div className="text-3xl font-bold text-orange-700 dark:text-orange-400">{criticalSuppliers}</div>
-                    <div className="text-xs text-orange-600 dark:text-orange-500 mt-1">Nécessitent attention</div>
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <ShieldAlert className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Critiques</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{criticalSuppliers}</div>
+                        <div className="text-xs text-slate-500 mt-1">Nécessitent attention</div>
+                    </div>
                 </div>
 
-                {/* Avg Score */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Score Moyen</span>
-                        <Handshake className="h-5 w-5 text-purple-500" />
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    <div
+                        onClick={() => onFilterChange?.({ type: 'contract', value: 'expired' })}
+                        className="flex items-center justify-between p-2.5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                    >
+                        <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            <span className="text-xs font-bold text-red-700 dark:text-red-300">Contrats Expirés</span>
+                        </div>
+                        <span className="text-sm font-black text-red-700 dark:text-red-400">{expiredContracts}</span>
                     </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{avgScore}/100</div>
-                    <div className="text-xs text-slate-500 mt-1">Niveau de sécurité global</div>
-                </div>
-
-                {/* Expired Contracts */}
-                <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 p-6 rounded-2xl border border-red-200 dark:border-red-800">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-red-700 dark:text-red-400">Contrats Expirés</span>
-                        <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    <div
+                        onClick={() => onFilterChange?.({ type: 'status', value: 'incident' })}
+                        className="flex items-center justify-between p-2.5 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-100 dark:border-orange-900/30 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
+                    >
+                        <div className="flex items-center gap-2">
+                            <ShieldAlert className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                            <span className="text-xs font-bold text-orange-700 dark:text-orange-300">Incidents Actifs</span>
+                        </div>
+                        <span className="text-sm font-black text-orange-700 dark:text-orange-400">{activeIncidents}</span>
                     </div>
-                    <div className="text-3xl font-bold text-red-700 dark:text-red-400">{expiredContracts}</div>
-                    <div className="text-xs text-red-600 dark:text-red-500 mt-1">Renouvellement requis</div>
-                </div>
-
-                {/* Active Incidents */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Incidents Actifs</span>
-                        <ShieldAlert className="h-5 w-5 text-orange-500" />
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{activeIncidents}</div>
-                    <div className="text-xs text-slate-500 mt-1">En cours d'investigation</div>
                 </div>
             </div>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { Audit, Finding } from '../../types';
-import { ClipboardCheck, AlertTriangle, Calendar, CheckCircle2 } from '../ui/Icons';
+import { AlertTriangle, Calendar, CheckCircle2 } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface AuditDashboardProps {
@@ -41,49 +41,83 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
 
     return (
         <div className="space-y-6">
-            {/* Metrics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {/* Total Audits */}
-                <div
-                    onClick={() => onFilterChange?.(null)}
-                    className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 cursor-pointer hover:scale-[1.02] transition-transform"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Total Audits</span>
-                        <ClipboardCheck className="h-5 w-5 text-blue-500" />
+            {/* Summary Card */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group mb-8">
+                {/* Global Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                                cx="48"
+                                cy="48"
+                                r="40"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                className="text-slate-200 dark:text-slate-700"
+                            />
+                            <circle
+                                cx="48"
+                                cy="48"
+                                r="40"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                strokeDasharray={251.2}
+                                strokeDashoffset={251.2 - (251.2 * complianceRate) / 100}
+                                className="text-emerald-500 transition-all duration-1000 ease-out"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">{complianceRate}%</span>
+                        </div>
                     </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{totalAudits}</div>
-                    <div className="text-xs text-slate-500 mt-1">Campagne en cours</div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Taux de Complétion</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                            Pourcentage d'audits terminés sur le total planifié.
+                        </p>
+                    </div>
                 </div>
 
-                {/* Open Findings */}
-                <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 p-6 rounded-2xl border border-red-200 dark:border-red-800">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-red-700 dark:text-red-400">Constats Ouverts</span>
-                        <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                {/* Key Metrics Breakdown */}
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div onClick={() => onFilterChange?.(null)} className="cursor-pointer group/item">
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1 group-hover/item:text-brand-500 transition-colors">Total Audits</div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{totalAudits}</div>
                     </div>
-                    <div className="text-3xl font-bold text-red-700 dark:text-red-400">{openFindings}</div>
-                    <div className="text-xs text-red-600 dark:text-red-500 mt-1">Actions requises</div>
+                    <div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Constats Ouverts</div>
+                        <div className={`text-2xl font-bold ${openFindings > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
+                            {openFindings}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">À Venir (30j)</div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{upcomingAudits}</div>
+                    </div>
                 </div>
 
-                {/* Compliance Rate */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Taux Complétion</span>
-                        <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{complianceRate}%</div>
-                    <div className="text-xs text-slate-500 mt-1">Audits terminés</div>
-                </div>
-
-                {/* Upcoming */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">À Venir (30j)</span>
-                        <Calendar className="h-5 w-5 text-purple-500" />
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{upcomingAudits}</div>
-                    <div className="text-xs text-slate-500 mt-1">Audits planifiés</div>
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    {openFindings > 0 && (
+                        <div className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl border border-red-100 dark:border-red-800/30">
+                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">{openFindings} actions requises</span>
+                        </div>
+                    )}
+                    {upcomingAudits > 0 && (
+                        <div className="flex items-center gap-3 text-sm text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-3 py-2 rounded-xl border border-purple-100 dark:border-purple-800/30">
+                            <Calendar className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">{upcomingAudits} audits planifiés</span>
+                        </div>
+                    )}
+                    {openFindings === 0 && upcomingAudits === 0 && (
+                        <div className="flex items-center gap-3 text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
+                            <CheckCircle2 className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">Tout est à jour</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
