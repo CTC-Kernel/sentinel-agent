@@ -39,7 +39,7 @@ if (typeof window !== 'undefined') {
 
   try {
     initializeAppCheck(app, {
-      provider: new ReCaptchaEnterpriseProvider('6LdaJhwsAAAAAEK0XrRiCrnndzbrG04iesrX71kj'),
+      provider: new ReCaptchaEnterpriseProvider('***REDACTED***'),
       isTokenAutoRefreshEnabled: true
     });
   } catch (error) {
