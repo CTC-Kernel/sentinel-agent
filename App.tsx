@@ -171,12 +171,7 @@ const AppLayout: React.FC = () => {
                 </div>
             )}
 
-            {useStore.getState().demoMode && (
-                <div className="fixed bottom-24 right-6 z-[100] glass-panel px-4 py-2 rounded-full flex items-center text-xs font-bold text-indigo-600 dark:text-indigo-400 shadow-lg animate-slide-up border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/80 dark:bg-indigo-900/20 backdrop-blur-md">
-                    <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse mr-2"></div>
-                    MODE DÉMO
-                </div>
-            )}
+
 
             <div className="flex-1 flex flex-col overflow-hidden relative">
                 <TopBar setMobileOpen={setMobileOpen} />

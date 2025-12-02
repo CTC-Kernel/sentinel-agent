@@ -29,7 +29,7 @@ import { Calendar } from 'lucide-react';
 
 
 export const Settings: React.FC = () => {
-    const { theme, toggleTheme, user, setUser, addToast, demoMode, toggleDemoMode, language, setLanguage, t } = useStore();
+    const { theme, toggleTheme, user, setUser, addToast, language, setLanguage, t } = useStore();
     const [logs, setLogs] = useState<SystemLog[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
@@ -734,49 +734,7 @@ export const Settings: React.FC = () => {
                 </div>
             )}
 
-            {/* Demo Mode Section */}
-            {user?.organizationId && hasPermission(user, 'Settings', 'manage') && (
-                <div className="mb-8 glass-panel rounded-[2rem] p-6 border border-purple-100 dark:border-purple-900/30 bg-purple-50/30 dark:bg-purple-900/10 shadow-sm flex items-center justify-between animate-fade-in-up">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-lg shadow-purple-500/20">
-                            <BrainCircuit className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.demoMode')}</h4>
-                            <p className="text-xs text-slate-500 mt-1">{t('settings.demoModeDesc')}</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => {
-                            setConfirmData({
-                                isOpen: true,
-                                title: t('settings.generateDemoDataTitle'),
-                                message: t('settings.generateDemoDataMessage'),
-                                onConfirm: async () => {
-                                    if (!user?.organizationId) return;
-                                    setMaintenanceLoading(true);
-                                    try {
-                                        const { DemoDataService } = await import('../services/demoDataService');
-                                        await DemoDataService.populateDemoData(user.organizationId, user.uid);
-                                        addToast(t('settings.demoDataGenerated'), "success");
-                                        // Force reload to see data
-                                        setTimeout(() => window.location.reload(), 1500);
-                                    } catch (e) {
-                                        ErrorLogger.handleErrorWithToast(e, 'Settings.generateDemoData', 'UPDATE_FAILED');
-                                    } finally {
-                                        setMaintenanceLoading(false);
-                                    }
-                                }
-                            });
-                        }}
-                        disabled={maintenanceLoading}
-                        className="px-5 py-2.5 bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-400 text-sm font-bold rounded-xl hover:shadow-md transition-all border border-purple-200 dark:border-purple-900/30 flex items-center"
-                    >
-                        {maintenanceLoading ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div> : <Database className="w-4 h-4 mr-2" />}
-                        {t('settings.generateData')}
-                    </button>
-                </div>
-            )}
+
 
             <div className="space-y-8">
                 {/* Profile */}

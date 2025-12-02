@@ -23,25 +23,32 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize App Check with ReCAPTCHA Enterprise
 if (typeof window !== 'undefined') {
+  const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY as string | undefined;
+  const appCheckDebugToken = import.meta.env.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN as string | undefined;
+
   // Enable debug token for localhost OR if explicitly enabled via localStorage OR for the specific app domain
   const isDebugMode = localStorage.getItem('debug_app_check') === 'true';
   const isLocal = window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1' ||
     isDebugMode;
 
-  if (isLocal) {
+  if (isLocal && appCheckDebugToken) {
     // Hardcode the token to prevent it from changing when cache is cleared
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string }).FIREBASE_APPCHECK_DEBUG_TOKEN =
-      "***REDACTED***";
+      appCheckDebugToken;
 
     ErrorLogger.info("Using Hardcoded App Check Token", 'firebase.ts');
   }
 
   try {
-    initializeAppCheck(app, {
-      provider: new ReCaptchaEnterpriseProvider('***REDACTED***'),
-      isTokenAutoRefreshEnabled: true
-    });
+    if (appCheckKey) {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(appCheckKey),
+        isTokenAutoRefreshEnabled: true
+      });
+    } else {
+      ErrorLogger.warn('App Check site key missing', 'firebase.ts');
+    }
   } catch (error) {
     ErrorLogger.warn('App Check initialization failed', 'firebase.ts', { metadata: { error } });
   }
@@ -84,4 +91,4 @@ try {
 }
 
 export { messaging };
-export const VAPID_KEY = "BE8hei47RZ6vu4M04Mg5Vj_em4FC3K7BMbP8qIgH9_TJGKx8_MDPi9zVfiHmvx_PbXHnLvjiTrk9wIIDgWKIkr8";
+export const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY as string | undefined;

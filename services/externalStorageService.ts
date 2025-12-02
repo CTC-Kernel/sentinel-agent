@@ -35,9 +35,7 @@ class ExternalStorageService {
             // window.open(authUrl, '_blank', 'width=500,height=600');
             // Listen for message from popup...
 
-            // For now, returning a mock token to allow UI testing if keys are missing
             console.warn('Google OAuth flow not fully implemented without valid Client ID and callback route.');
-            // resolve('mock-google-token');
             reject(new Error('Google OAuth flow requires configuration and callback implementation.'));
         });
     }

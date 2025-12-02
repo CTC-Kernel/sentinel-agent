@@ -30,6 +30,11 @@ export class PushNotificationService {
 
             if (permission === 'granted') {
                 // Obtenir le token FCM
+                if (!VAPID_KEY) {
+                    ErrorLogger.warn('VAPID_KEY is not defined. Push notifications cannot be registered.', 'PushNotificationService.initialize');
+                    return false;
+                }
+
                 const token = await getToken(messaging, {
                     vapidKey: VAPID_KEY
                 });

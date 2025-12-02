@@ -8,6 +8,7 @@ const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https")
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineString, defineSecret } = require("firebase-functions/params");
 const sendGridApiKey = defineSecret("SENDGRID_API_KEY");
+const appBaseUrl = defineString("APP_BASE_URL", { default: "https://sentinel-grc.web.app" });
 const admin = require("firebase-admin");
 
 admin.initializeApp();
@@ -55,7 +56,7 @@ exports.onJoinRequestCreated = onDocumentCreated("join_requests/{requestId}", as
 
     // 2. Queue Email for each admin
     const batch = admin.firestore().batch();
-    const link = `https://sentinel-grc.web.app/team`; // Adjust base URL as needed
+    const link = `${appBaseUrl.value()}/team`;
 
     adminsSnap.forEach(adminDoc => {
         const adminUser = adminDoc.data();
@@ -83,7 +84,7 @@ exports.onJoinRequestUpdated = onDocumentUpdated("join_requests/{requestId}", as
     // Only react to status changes
     if (before.status === after.status) return;
 
-    const link = `https://sentinel-grc.web.app/dashboard`;
+    const link = `${appBaseUrl.value()}/dashboard`;
 
     if (after.status === 'approved') {
         await admin.firestore().collection('mail_queue').add({
@@ -1005,7 +1006,7 @@ async function checkUpcomingAudits(db, organizationId) {
                 const auditorId = auditorDoc.id;
                 const auditorData = auditorDoc.data();
 
-                if (await shouldNotify(db, auditorId, '/audits', audit.name)) {
+                        if (await shouldNotify(db, auditorId, '/audits', audit.name)) {
                     await sendNotificationAndEmail(db, {
                         organizationId,
                         userId: auditorId,
@@ -1015,7 +1016,12 @@ async function checkUpcomingAudits(db, organizationId) {
                         link: '/audits',
                         email: auditorData.email,
                         emailSubject: `Rappel Audit : ${audit.name}`,
-                        emailHtml: Templates.getAuditReminderTemplate(audit.name, auditorData.displayName || 'Auditeur', audit.dateScheduled, 'https://sentinel-grc.web.app/audits'),
+                        emailHtml: Templates.getAuditReminderTemplate(
+                            audit.name,
+                            auditorData.displayName || 'Auditeur',
+                            audit.dateScheduled,
+                            `${appBaseUrl.value()}/audits`
+                        ),
                         emailType: 'AUDIT_REMINDER'
                     });
                 }
@@ -1055,7 +1061,12 @@ async function checkOverdueDocuments(db, organizationId) {
                         link: '/documents',
                         email: ownerData.email,
                         emailSubject: `Révision requise : ${document.title}`,
-                        emailHtml: Templates.getDocumentReviewTemplate(document.title, ownerData.displayName || 'Propriétaire', document.nextReviewDate, 'https://sentinel-grc.web.app/documents'),
+                        emailHtml: Templates.getDocumentReviewTemplate(
+                            document.title,
+                            ownerData.displayName || 'Propriétaire',
+                            document.nextReviewDate,
+                            `${appBaseUrl.value()}/documents`
+                        ),
                         emailType: 'DOCUMENT_REVIEW'
                     });
                 }
@@ -1101,7 +1112,12 @@ async function checkUpcomingMaintenance(db, organizationId) {
                             link: '/assets',
                             email: ownerData.email,
                             emailSubject: `Maintenance : ${asset.name}`,
-                            emailHtml: Templates.getMaintenanceTemplate(asset.name, asset.nextMaintenance, ownerData.displayName || 'Propriétaire', 'https://sentinel-grc.web.app/assets'),
+                            emailHtml: Templates.getMaintenanceTemplate(
+                                asset.name,
+                                asset.nextMaintenance,
+                                ownerData.displayName || 'Propriétaire',
+                                `${appBaseUrl.value()}/assets`
+                            ),
                             emailType: 'MAINTENANCE_ALERT'
                         });
                     }
@@ -1145,7 +1161,12 @@ async function checkCriticalRisks(db, organizationId) {
                     link: '/risks',
                     email: adminData.email,
                     emailSubject: `Action requise : ${criticalRisksWithoutMitigation.length} Risques Critiques`,
-                    emailHtml: Templates.getRiskTreatmentDueTemplate('Risques Critiques non traités', new Date().toISOString(), adminData.displayName || 'Admin', 'https://sentinel-grc.web.app/risks'),
+                    emailHtml: Templates.getRiskTreatmentDueTemplate(
+                        'Risques Critiques non traités',
+                        new Date().toISOString(),
+                        adminData.displayName || 'Admin',
+                        `${appBaseUrl.value()}/risks`
+                    ),
                     emailType: 'RISK_TREATMENT_DUE'
                 });
             }
@@ -1184,7 +1205,12 @@ async function checkExpiringContracts(db, organizationId) {
                                 link: '/suppliers',
                                 email: ownerData.email,
                                 emailSubject: `Expiration Contrat : ${supplier.name}`,
-                                emailHtml: Templates.getSupplierReviewTemplate(supplier.name, supplier.criticality || 'Moyenne', supplier.contractEnd, 'https://sentinel-grc.web.app/suppliers'),
+                                emailHtml: Templates.getSupplierReviewTemplate(
+                                    supplier.name,
+                                    supplier.criticality || 'Moyenne',
+                                    supplier.contractEnd,
+                                    `${appBaseUrl.value()}/suppliers`
+                                ),
                                 emailType: 'SUPPLIER_REVIEW'
                             });
                         }

@@ -13,6 +13,7 @@ import {
     getSupplierReviewTemplate
 } from './emailTemplates';
 import { ErrorLogger } from './errorLogger';
+import { buildAppUrl } from '../config/appConfig';
 
 export interface Notification {
     id: string;
@@ -208,7 +209,12 @@ export class NotificationService {
                             await sendEmail(null, {
                                 to: auditorData.email,
                                 subject: `Rappel Audit : ${audit.name}`,
-                                html: getAuditReminderTemplate(audit.name, auditorData.displayName || 'Auditeur', audit.dateScheduled, 'https://sentinel-grc.web.app/audits'),
+                                html: getAuditReminderTemplate(
+                                    audit.name,
+                                    auditorData.displayName || 'Auditeur',
+                                    audit.dateScheduled,
+                                    buildAppUrl('/audits')
+                                ),
                                 type: 'AUDIT_REMINDER'
                             });
                         }
@@ -274,7 +280,12 @@ export class NotificationService {
                             await sendEmail(null, {
                                 to: ownerData.email,
                                 subject: `Révision requise : ${doc.title}`,
-                                html: getDocumentReviewTemplate(doc.title, ownerData.displayName || 'Propriétaire', doc.nextReviewDate, 'https://sentinel-grc.web.app/documents'),
+                                html: getDocumentReviewTemplate(
+                                    doc.title,
+                                    ownerData.displayName || 'Propriétaire',
+                                    doc.nextReviewDate,
+                                    buildAppUrl('/documents')
+                                ),
                                 type: 'DOCUMENT_REVIEW'
                             });
                         }
@@ -346,7 +357,12 @@ export class NotificationService {
                                 await sendEmail(null, {
                                     to: ownerData.email,
                                     subject: `Maintenance : ${asset.name}`,
-                                    html: getMaintenanceTemplate(asset.name, asset.nextMaintenance, ownerData.displayName || 'Propriétaire', 'https://sentinel-grc.web.app/assets'),
+                                    html: getMaintenanceTemplate(
+                                        asset.name,
+                                        asset.nextMaintenance,
+                                        ownerData.displayName || 'Propriétaire',
+                                        buildAppUrl('/assets')
+                                    ),
                                     type: 'MAINTENANCE_ALERT'
                                 });
                             }
@@ -413,7 +429,12 @@ export class NotificationService {
                         await sendEmail(null, {
                             to: adminData.email,
                             subject: `Action requise : ${criticalRisksWithoutMitigation.length} Risques Critiques`,
-                            html: getRiskTreatmentDueTemplate('Risques Critiques non traités', new Date().toISOString(), adminData.displayName || 'Admin', 'https://sentinel-grc.web.app/risks'),
+                            html: getRiskTreatmentDueTemplate(
+                                'Risques Critiques non traités',
+                                new Date().toISOString(),
+                                adminData.displayName || 'Admin',
+                                buildAppUrl('/risks')
+                            ),
                             type: 'RISK_TREATMENT_DUE'
                         });
                     }
@@ -449,7 +470,12 @@ export class NotificationService {
             await sendEmail(null, {
                 to: userData.email,
                 subject: `Nouvelle tâche : ${task.title}`,
-                html: getTaskAssignmentTemplate(task.title, task.projectName || 'Projet', 'Gestionnaire', `https://sentinel-grc.web.app/projects`),
+                html: getTaskAssignmentTemplate(
+                    task.title,
+                    task.projectName || 'Projet',
+                    'Gestionnaire',
+                    buildAppUrl('/projects')
+                ),
                 type: 'TASK_ASSIGNMENT'
             });
         }
@@ -484,7 +510,12 @@ export class NotificationService {
                     return sendEmail(null, {
                         to: adminData.email,
                         subject: `🚨 Incident : ${incident.title}`,
-                        html: getIncidentAlertTemplate(incident.title, incident.severity, incident.reporter || 'Un utilisateur', `https://sentinel-grc.web.app/incidents?id=${incident.id}`),
+                        html: getIncidentAlertTemplate(
+                            incident.title,
+                            incident.severity,
+                            incident.reporter || 'Un utilisateur',
+                            buildAppUrl(`/incidents?id=${incident.id}`)
+                        ),
                         type: 'INCIDENT_ALERT'
                     });
                 }
@@ -522,7 +553,12 @@ export class NotificationService {
             await sendEmail(null, {
                 to: userData.email,
                 subject: `Contrôle assigné : ${control.code}`,
-                html: getComplianceAlertTemplate(control.code, control.name, "Vous avez été désigné responsable de ce contrôle.", `https://sentinel-grc.web.app/compliance`),
+                html: getComplianceAlertTemplate(
+                    control.code,
+                    control.name,
+                    "Vous avez été désigné responsable de ce contrôle.",
+                    buildAppUrl('/compliance')
+                ),
                 type: 'COMPLIANCE_ALERT'
             });
         }
@@ -604,7 +640,12 @@ export class NotificationService {
                                         await sendEmail(null, {
                                             to: userData.email,
                                             subject: `Expiration Contrat : ${supplier.name}`,
-                                            html: getSupplierReviewTemplate(supplier.name, supplier.criticality || 'Moyenne', supplier.contractEnd, 'https://sentinel-grc.web.app/suppliers'),
+                                            html: getSupplierReviewTemplate(
+                                                supplier.name,
+                                                supplier.criticality || 'Moyenne',
+                                                supplier.contractEnd,
+                                                buildAppUrl('/suppliers')
+                                            ),
                                             type: 'SUPPLIER_REVIEW'
                                         });
                                     }

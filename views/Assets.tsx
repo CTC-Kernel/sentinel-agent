@@ -373,7 +373,7 @@ export const Assets: React.FC = () => {
                 setInspectorTab('security');
                 addToast("Scan Shodan terminé", "success");
             }
-        } catch (e) {
+        } catch {
             addToast("Erreur lors du scan", "error");
         } finally {
             setScanning(false);
@@ -394,7 +394,7 @@ export const Assets: React.FC = () => {
             } else {
                 addToast("Aucune vulnérabilité connue trouvée (NVD)", "success");
             }
-        } catch (e) {
+        } catch {
             addToast("Erreur lors de la recherche CVE", "error");
         } finally {
             setScanning(false);

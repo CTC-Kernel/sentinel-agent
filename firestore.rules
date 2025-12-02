@@ -53,15 +53,7 @@ service cloud.firestore {
       return belongsToOrganization(orgId) && (
         isAdmin() || 
         isRSSI() || 
-        isOrgOwner(orgId) ||
-        (isAuditor() && (
-          // Auditors can write to specific collections defined in match blocks
-          true 
-        )) ||
-        (isProjectManager() && (
-          // Project Managers can write to specific collections defined in match blocks
-          true
-        ))
+        isOrgOwner(orgId)
       );
     }
     
@@ -264,9 +256,10 @@ service cloud.firestore {
         
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId);
+        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
         
       allow update: if canWrite(resource.data.organizationId) ||
+        (isAuditor() && belongsToOrganization(resource.data.organizationId)) ||
         (isAuthenticated() && "collaborators" in resource.data && resource.data.collaborators.hasAny([request.auth.uid])) ||
         (isAuthenticated() && "externalAuditors" in resource.data && resource.data.externalAuditors.hasAny([request.auth.token.email]));
         
@@ -288,6 +281,7 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         (
           canWrite(request.resource.data.organizationId) ||
+          (isAuditor() && belongsToOrganization(request.resource.data.organizationId)) ||
           (
             exists(/databases/$(database)/documents/audits/$(request.resource.data.auditId)) &&
             (
@@ -298,6 +292,7 @@ service cloud.firestore {
         );
         
       allow update: if canWrite(resource.data.organizationId) ||
+        (isAuditor() && belongsToOrganization(resource.data.organizationId)) ||
         (isAuthenticated() && 
           exists(/databases/$(database)/documents/audits/$(resource.data.auditId)) &&
           (
@@ -314,8 +309,10 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId);
-      allow update: if canWrite(resource.data.organizationId);
+        (canWrite(request.resource.data.organizationId) || ((isAuditor() || isProjectManager()) && belongsToOrganization(request.resource.data.organizationId)));
+      allow update: if canWrite(resource.data.organizationId) || 
+        ((isAuditor() || isProjectManager()) && belongsToOrganization(resource.data.organizationId)) ||
+        (resource.data.owner == request.auth.token.email && belongsToOrganization(resource.data.organizationId));
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -324,8 +321,8 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId);
-      allow update: if canWrite(resource.data.organizationId);
+        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
+      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -334,8 +331,8 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId);
-      allow update: if canWrite(resource.data.organizationId);
+        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
+      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
       allow delete: if canDelete(resource.data.organizationId);
     }
 
