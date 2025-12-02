@@ -7,16 +7,19 @@ const sgMail = require('@sendgrid/mail');
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineString, defineSecret } = require("firebase-functions/params");
-const sendGridApiKey = defineSecret("SENDGRID_API_KEY");
+const nodemailer = require("nodemailer");
+
+// Hardcoded secrets for Zero Config deployment (User requested)
+const sendGridApiKey = { value: () => "UNUSED" };
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://sentinel-grc.web.app" });
 const admin = require("firebase-admin");
 const crypto = require("crypto");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const userSecretsKey = defineSecret("USER_SECRETS_ENCRYPTION_KEY");
-const geminiApiKey = defineSecret("GEMINI_API_KEY");
-const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
-const stripeWebhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
+const userSecretsKey = { value: () => "d01ba62474811e9af13458caa8f3f0cef8fc579e13f1540f7272bf6225c59704" };
+const geminiApiKey = { value: () => "***REDACTED***" };
+const stripeSecretKey = { value: () => "***REDACTED***" };
+const stripeWebhookSecret = { value: () => "***REDACTED***" };
 
 admin.initializeApp();
 
@@ -280,7 +283,7 @@ const PLANS = {
  * Create a Stripe Checkout Session for a subscription.
  */
 exports.createCheckoutSession = onCall({
-    secrets: [stripeSecretKey]
+    secrets: []
 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "User must be logged in.");
@@ -379,7 +382,7 @@ exports.createCheckoutSession = onCall({
  * Create a Billing Portal Session for managing existing subscriptions.
  */
 exports.createPortalSession = onCall({
-    secrets: [stripeSecretKey]
+    secrets: []
 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "User must be logged in.");
@@ -435,7 +438,7 @@ exports.createPortalSession = onCall({
  * Stripe Webhook to sync subscription status with Firestore.
  */
 exports.stripeWebhook = onRequest({
-    secrets: [stripeSecretKey, stripeWebhookSecret]
+    secrets: []
 }, async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = stripeWebhookSecret.value();
@@ -493,7 +496,7 @@ exports.processMailQueue = onDocumentCreated({
     maxInstances: 10,      // Increased to allow better scaling
     concurrency: 50,      // Allow this single instance to handle multiple requests
     retry: false,          // We handle retries manually with our scheduled function
-    secrets: [sendGridApiKey]
+    secrets: []
 }, async (event) => {
     const snap = event.data;
     if (!snap) return;
@@ -512,22 +515,26 @@ exports.processMailQueue = onDocumentCreated({
  * Helper function to attempt sending an email with retry logic.
  */
 /**
- * Helper function to attempt sending an email with retry logic using SendGrid.
+ * Helper function to attempt sending an email with retry logic using SMTP (OVH).
  */
 async function attemptSendEmail(docRef, data) {
     try {
-        const rawApiKey = sendGridApiKey.value();
-        if (!rawApiKey) {
-            throw new Error("SendGrid API Key is missing");
-        }
-        // Remove all whitespace including newlines
-        const cleanApiKey = rawApiKey.replace(/\s+/g, '');
-        sgMail.setApiKey(cleanApiKey);
-        logger.info(`Processing email for ${data.to} via SendGrid`);
+        // SMTP Configuration (OVH) - Hardcoded for Zero Config
+        const transporter = nodemailer.createTransport({
+            host: 'ssl0.ovh.net',
+            port: 465,
+            secure: true, // true for 465
+            auth: {
+                user: 'postmaster@cyber-threat-consulting.com',
+                pass: 'Al21689a!'
+            }
+        });
+
+        logger.info(`Processing email for ${data.to} via SMTP (OVH)`);
 
         const msg = {
+            from: '"Sentinel GRC" <postmaster@cyber-threat-consulting.com>',
             to: data.to,
-            from: 'contact@cyber-threat-consulting.com', // Verified sender
             subject: data.message.subject,
             html: data.message.html,
         };
@@ -536,15 +543,15 @@ async function attemptSendEmail(docRef, data) {
             msg.replyTo = mailReplyTo.value();
         }
 
-        // Send email via SendGrid
-        const info = await sgMail.send(msg);
-        logger.info("Message sent via SendGrid");
+        // Send email via SMTP
+        const info = await transporter.sendMail(msg);
+        logger.info("Message sent via SMTP", info.messageId);
 
         // Update Firestore document status
         return docRef.update({
             status: "SENT",
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
-            deliveryInfo: info[0].statusCode,
+            deliveryInfo: info.response,
         });
     } catch (error) {
         logger.error("Error sending email:", error);
@@ -582,7 +589,7 @@ async function attemptSendEmail(docRef, data) {
 
 exports.retryFailedEmails = onSchedule({
     schedule: "every 5 minutes",
-    secrets: [sendGridApiKey]
+    secrets: []
 }, async (event) => {
     const now = admin.firestore.Timestamp.now();
 
@@ -1076,7 +1083,7 @@ exports.transferOwnership = onCall(async (request) => {
 });
 
 exports.saveUserApiKeys = onCall({
-    secrets: [userSecretsKey]
+    secrets: []
 }, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
@@ -1157,7 +1164,7 @@ exports.saveUserApiKeys = onCall({
 });
 
 exports.scanAssetWithShodan = onCall({
-    secrets: [userSecretsKey]
+    secrets: []
 }, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
@@ -1200,7 +1207,7 @@ exports.scanAssetWithShodan = onCall({
 });
 
 exports.checkBreachWithHIBP = onCall({
-    secrets: [userSecretsKey]
+    secrets: []
 }, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
@@ -1253,7 +1260,7 @@ exports.checkBreachWithHIBP = onCall({
 });
 
 exports.checkUrlReputationWithSafeBrowsing = onCall({
-    secrets: [userSecretsKey]
+    secrets: []
 }, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
@@ -1313,7 +1320,7 @@ exports.checkUrlReputationWithSafeBrowsing = onCall({
 });
 
 exports.callGeminiGenerateContent = onCall({
-    secrets: [userSecretsKey, geminiApiKey]
+    secrets: []
 }, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
@@ -1372,7 +1379,7 @@ exports.callGeminiGenerateContent = onCall({
 });
 
 exports.callGeminiChat = onCall({
-    secrets: [userSecretsKey, geminiApiKey]
+    secrets: []
 }, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
