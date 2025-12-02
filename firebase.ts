@@ -6,8 +6,7 @@ import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics } from 'firebase/analytics';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
-import { ErrorLogger } from './services/errorLogger';
+
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -22,37 +21,37 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Initialize App Check with ReCAPTCHA Enterprise
-if (typeof window !== 'undefined') {
-  const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY as string | undefined;
-  const appCheckDebugToken = import.meta.env.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN as string | undefined;
+// if (typeof window !== 'undefined') {
+//   const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY as string | undefined;
+//   const appCheckDebugToken = import.meta.env.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN as string | undefined;
 
-  // Enable debug token for localhost OR if explicitly enabled via localStorage OR for the specific app domain
-  const isDebugMode = localStorage.getItem('debug_app_check') === 'true';
-  const isLocal = window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1' ||
-    isDebugMode;
+//   // Enable debug token for localhost OR if explicitly enabled via localStorage OR for the specific app domain
+//   const isDebugMode = localStorage.getItem('debug_app_check') === 'true';
+//   const isLocal = window.location.hostname === 'localhost' ||
+//     window.location.hostname === '127.0.0.1' ||
+//     isDebugMode;
 
-  if (isLocal && appCheckDebugToken) {
-    // Hardcode the token to prevent it from changing when cache is cleared
-    (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string }).FIREBASE_APPCHECK_DEBUG_TOKEN =
-      appCheckDebugToken;
+//   if (isLocal && appCheckDebugToken) {
+//     // Hardcode the token to prevent it from changing when cache is cleared
+//     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string }).FIREBASE_APPCHECK_DEBUG_TOKEN =
+//       appCheckDebugToken;
 
-    ErrorLogger.info("Using Hardcoded App Check Token", 'firebase.ts');
-  }
+//     ErrorLogger.info("Using Hardcoded App Check Token", 'firebase.ts');
+//   }
 
-  try {
-    if (appCheckKey) {
-      initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider(appCheckKey),
-        isTokenAutoRefreshEnabled: true
-      });
-    } else {
-      ErrorLogger.warn('App Check site key missing', 'firebase.ts');
-    }
-  } catch (error) {
-    ErrorLogger.warn('App Check initialization failed', 'firebase.ts', { metadata: { error } });
-  }
-}
+//   try {
+//     if (appCheckKey) {
+//       initializeAppCheck(app, {
+//         provider: new ReCaptchaEnterpriseProvider(appCheckKey),
+//         isTokenAutoRefreshEnabled: true
+//       });
+//     } else {
+//       ErrorLogger.warn('App Check site key missing', 'firebase.ts');
+//     }
+//   } catch (error) {
+//     ErrorLogger.warn('App Check initialization failed', 'firebase.ts', { metadata: { error } });
+//   }
+// }
 
 export const auth = getAuth(app);
 
