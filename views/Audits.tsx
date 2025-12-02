@@ -1253,7 +1253,7 @@ export const Audits: React.FC = () => {
                                     <AuditAIAssistant
                                         audit={selectedAudit}
                                         findings={findings}
-                                        onUpdate={(updates) => handleAuditFormSubmit({ ...selectedAudit, ...updates } as any)}
+                                        onUpdate={(updates) => handleAuditFormSubmit({ ...selectedAudit, ...updates })}
                                     />
                                 </div>
                             )}
