@@ -7,7 +7,7 @@ import {
     Target,
     Calendar
 } from '../ui/Icons';
-import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { ChartTooltip } from '../ui/ChartTooltip';
 
 interface ProjectDashboardProps {
@@ -60,26 +60,14 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
         ];
     }, [project.tasks]);
 
-    // Burndown data (simulated - would need historical data in production)
-    const burndownData = useMemo(() => {
+    // Tasks by Priority
+    const tasksByPriority = useMemo(() => {
         const tasks = project.tasks || [];
-        const totalTasks = tasks.length;
-        const completedTasks = tasks.filter(t => t.status === 'Terminé').length;
-        const remainingTasks = totalTasks - completedTasks;
-
-        // Simulate weekly progress
-        const weeks = 8;
-        const data = [];
-        for (let i = 0; i <= weeks; i++) {
-            const ideal = totalTasks - (totalTasks / weeks) * i;
-            const actual = i === weeks ? remainingTasks : totalTasks - (completedTasks / weeks) * i;
-            data.push({
-                week: `S${i}`,
-                ideal: Math.max(0, ideal),
-                actual: Math.max(0, actual)
-            });
-        }
-        return data;
+        return [
+            { name: 'Haute', value: tasks.filter(t => t.priority === 'high').length, color: '#ef4444' },
+            { name: 'Moyenne', value: tasks.filter(t => t.priority === 'medium').length, color: '#f59e0b' },
+            { name: 'Faible', value: tasks.filter(t => t.priority === 'low').length, color: '#3b82f6' }
+        ];
     }, [project.tasks]);
 
     // Milestone progress
@@ -214,15 +202,15 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     </div>
                 </div>
 
-                {/* Burndown Chart */}
+                {/* Tasks by Priority Chart */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-6 uppercase tracking-wider">Burndown Chart</h4>
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-6 uppercase tracking-wider">Tâches par Priorité</h4>
                     <div className="h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={burndownData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                            <BarChart data={tasksByPriority} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.5} />
                                 <XAxis
-                                    dataKey="week"
+                                    dataKey="name"
                                     stroke="#94a3b8"
                                     fontSize={11}
                                     tickLine={false}
@@ -236,33 +224,19 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                     axisLine={false}
                                     dx={-10}
                                 />
-                                <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: '#f1f5f9', opacity: 0.4 }} />
                                 <Legend
                                     verticalAlign="top"
                                     height={36}
                                     iconType="circle"
                                     formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
                                 />
-                                <Line
-                                    type="monotone"
-                                    dataKey="ideal"
-                                    stroke="#94a3b8"
-                                    strokeDasharray="5 5"
-                                    strokeWidth={2}
-                                    dot={false}
-                                    name="Idéal"
-                                    activeDot={{ r: 6, strokeWidth: 0 }}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="actual"
-                                    stroke="#3b82f6"
-                                    strokeWidth={3}
-                                    name="Réel"
-                                    dot={{ r: 4, strokeWidth: 2, fill: '#fff' }}
-                                    activeDot={{ r: 6, strokeWidth: 0 }}
-                                />
-                            </LineChart>
+                                <Bar dataKey="value" name="Nombre de tâches" radius={[4, 4, 0, 0]}>
+                                    {tasksByPriority.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>

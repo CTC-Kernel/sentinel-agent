@@ -21,22 +21,55 @@ class ExternalStorageService {
             throw new Error('Google Client ID not configured');
         }
 
-        // const scope = 'https://www.googleapis.com/auth/drive.file';
-        // In a real app, you might use a popup or redirect. 
-        // For this implementation, we'll assume a popup flow or similar.
-        // Since we can't easily implement the full callback handler here without routing changes,
-        // we'll simulate the token retrieval or use a simplified flow if possible.
+        const scope = 'https://www.googleapis.com/auth/drive.file';
+        const redirectUri = window.location.origin; // Expecting the app to handle the token parsing on load or a specific callback route
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${this.googleClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}&include_granted_scopes=true&state=google_drive`;
 
-        // Ideally, use the Google Identity Services (GIS) library:
-        // google.accounts.oauth2.initTokenClient(...)
+        return new Promise((resolve, reject) => {
+            const width = 500;
+            const height = 600;
+            const left = window.screen.width / 2 - width / 2;
+            const top = window.screen.height / 2 - height / 2;
 
-        return new Promise((_resolve, reject) => {
-            // Placeholder for actual OAuth flow
-            // window.open(authUrl, '_blank', 'width=500,height=600');
-            // Listen for message from popup...
+            const popup = window.open(
+                authUrl,
+                'Google Drive Auth',
+                `width=${width},height=${height},top=${top},left=${left}`
+            );
 
-            console.warn('Google OAuth flow not fully implemented without valid Client ID and callback route.');
-            reject(new Error('Google OAuth flow requires configuration and callback implementation.'));
+            if (!popup) {
+                reject(new Error('Popup blocked. Please allow popups for this site.'));
+                return;
+            }
+
+            const messageHandler = (event: MessageEvent) => {
+                if (event.origin !== window.location.origin) return;
+
+                // Expecting the popup to send back the token or the main window to detect the hash change if it redirects to self
+                // For this implementation, we assume the popup redirects to the app, which parses the hash and sends a message
+                if (event.data.type === 'OAUTH_SUCCESS' && event.data.provider === 'google') {
+                    window.removeEventListener('message', messageHandler);
+                    popup.close();
+                    resolve(event.data.token);
+                } else if (event.data.type === 'OAUTH_ERROR') {
+                    window.removeEventListener('message', messageHandler);
+                    popup.close();
+                    reject(new Error(event.data.error));
+                }
+            };
+
+            window.addEventListener('message', messageHandler);
+
+            // Cleanup if popup is closed manually
+            const checkClosed = setInterval(() => {
+                if (popup.closed) {
+                    clearInterval(checkClosed);
+                    window.removeEventListener('message', messageHandler);
+                    // If we didn't resolve yet, it might be a cancellation
+                    // But we can't be sure if it was successful or not without the message
+                    // So we don't reject here to avoid race conditions, or we reject with "User cancelled"
+                }
+            }, 1000);
         });
     }
 
@@ -71,13 +104,49 @@ class ExternalStorageService {
             throw new Error('Microsoft Client ID not configured');
         }
 
-        // const scope = 'Files.ReadWrite';
-        // const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${this.microsoftClientId}&response_type=token&redirect_uri=${encodeURIComponent(this.microsoftRedirectUri)}&scope=${encodeURIComponent(scope)}`;
+        const scope = 'Files.ReadWrite';
+        const redirectUri = window.location.origin;
+        const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${this.microsoftClientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=onedrive`;
 
-        return new Promise((_resolve, reject) => {
-            // Placeholder for actual OAuth flow
-            console.warn('Microsoft OAuth flow not fully implemented without valid Client ID and callback route.');
-            reject(new Error('Microsoft OAuth flow requires configuration and callback implementation.'));
+        return new Promise((resolve, reject) => {
+            const width = 500;
+            const height = 600;
+            const left = window.screen.width / 2 - width / 2;
+            const top = window.screen.height / 2 - height / 2;
+
+            const popup = window.open(
+                authUrl,
+                'Microsoft Auth',
+                `width=${width},height=${height},top=${top},left=${left}`
+            );
+
+            if (!popup) {
+                reject(new Error('Popup blocked. Please allow popups for this site.'));
+                return;
+            }
+
+            const messageHandler = (event: MessageEvent) => {
+                if (event.origin !== window.location.origin) return;
+
+                if (event.data.type === 'OAUTH_SUCCESS' && event.data.provider === 'microsoft') {
+                    window.removeEventListener('message', messageHandler);
+                    popup.close();
+                    resolve(event.data.token);
+                } else if (event.data.type === 'OAUTH_ERROR') {
+                    window.removeEventListener('message', messageHandler);
+                    popup.close();
+                    reject(new Error(event.data.error));
+                }
+            };
+
+            window.addEventListener('message', messageHandler);
+
+            const checkClosed = setInterval(() => {
+                if (popup.closed) {
+                    clearInterval(checkClosed);
+                    window.removeEventListener('message', messageHandler);
+                }
+            }, 1000);
         });
     }
 
