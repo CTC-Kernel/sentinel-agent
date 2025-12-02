@@ -27,7 +27,7 @@ import { IncidentFormData } from '../schemas/incidentSchema';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { canEditResource, hasPermission, canDeleteResource } from '../utils/permissions';
 import { hybridService } from '../services/hybridService';
-import { integrationService } from '../services/integrationService';
+
 
 export const Incidents: React.FC = () => {
     const { user, addToast } = useStore();
@@ -518,7 +518,7 @@ export const Incidents: React.FC = () => {
                                                                         if (!result) {
                                                                             addToast('Erreur lors de la vérification de réputation', 'error');
                                                                         } else {
-                                                                            setUrlReputationResult(result as any);
+                                                                            setUrlReputationResult(result);
                                                                         }
                                                                     } catch (err) {
                                                                         ErrorLogger.handleErrorWithToast(err, 'Incidents.checkUrl', 'SAFE_BROWSING_FAILED');
