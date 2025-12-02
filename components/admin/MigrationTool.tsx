@@ -162,7 +162,7 @@ export const MigrationTool: React.FC = () => {
     return (
         <div className="glass-panel rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
             <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
+                <div className="p-3 bg-indigo-100 dark:bg-slate-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
                     <Database className="h-6 w-6" />
                 </div>
                 <div>

@@ -213,7 +213,7 @@ export const BackupRestore: React.FC = () => {
   const getStatusColor = (status: string): string => {
     switch (status) {
       case 'completed': return 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400';
-      case 'creating': return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400';
+      case 'creating': return 'text-blue-600 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 dark:text-blue-400';
       case 'failed': return 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400';
       default: return 'text-slate-600 bg-slate-50 dark:bg-white/5 dark:text-slate-400';
     }
@@ -269,7 +269,7 @@ export const BackupRestore: React.FC = () => {
         <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
           <div className="flex items-center relative z-10">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl text-blue-600 dark:text-blue-400 mr-4">
+            <div className="p-3 bg-blue-100 dark:bg-slate-900/30 rounded-2xl text-blue-600 dark:text-blue-400 mr-4">
               <Database className="h-8 w-8" />
             </div>
             <div>
@@ -373,7 +373,7 @@ export const BackupRestore: React.FC = () => {
                 </div>
               ) : (
                 <form onSubmit={restoreForm.handleSubmit(handleRestore)} className="space-y-6">
-                  <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                  <div className="p-4 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Sauvegarde sélectionnée</span>
                       <span className="text-xs font-mono bg-white dark:bg-black/20 px-2 py-1 rounded text-slate-500">{selectedBackup.id}</span>
@@ -388,7 +388,7 @@ export const BackupRestore: React.FC = () => {
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Collections à restaurer</label>
                     <div className="grid grid-cols-2 gap-3">
                       {selectedBackup.collections.map((col) => (
-                        <label key={col} className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${restoreForm.watch('collections').includes(col) ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                        <label key={col} className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${restoreForm.watch('collections').includes(col) ? 'border-indigo-500 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
                           <input
                             type="checkbox"
                             checked={restoreForm.watch('collections').includes(col)}
@@ -449,7 +449,7 @@ export const BackupRestore: React.FC = () => {
                   <div
                     key={backup.id}
                     onClick={() => selectBackupForRestore(backup)}
-                    className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-500' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700'}`}
+                    className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'border-indigo-500 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 ring-1 ring-indigo-500' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700'}`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">

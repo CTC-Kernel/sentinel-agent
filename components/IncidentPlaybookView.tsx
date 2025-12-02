@@ -160,7 +160,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
       case 'High': return 'text-orange-600 bg-orange-50';
       case 'Medium': return 'text-yellow-600 bg-yellow-50';
       case 'Low': return 'text-green-600 bg-green-50';
-      default: return 'text-gray-600 bg-gray-50';
+      default: return 'text-slate-600 bg-gray-50';
     }
   };
 
@@ -197,12 +197,12 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         <div className="p-6 border-b bg-gray-50">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Playbook de Response</h2>
-              <p className="text-gray-600 mt-1">Incident: {incident.title}</p>
+              <h2 className="text-2xl font-bold text-slate-900">Playbook de Response</h2>
+              <p className="text-slate-600 mt-1">Incident: {incident.title}</p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-slate-400 hover:text-slate-600"
             >
               <XCircle className="h-6 w-6" />
             </button>
@@ -217,8 +217,8 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               <h3 className="text-lg font-semibold mb-4">Sélectionner un Playbook</h3>
               {playbooks.length === 0 ? (
                 <div className="text-center py-8">
-                  <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Aucun playbook disponible pour cette catégorie</p>
+                  <AlertTriangle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                  <p className="text-slate-500">Aucun playbook disponible pour cette catégorie</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -234,22 +234,22 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-semibold">{playbook.title}</h4>
-                          <p className="text-sm text-gray-600 mt-1">{playbook.description}</p>
+                          <p className="text-sm text-slate-600 mt-1">{playbook.description}</p>
                           <div className="flex items-center gap-4 mt-2">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(playbook.severity)}`}>
                               {playbook.severity}
                             </span>
-                            <span className="text-sm text-gray-500 flex items-center">
+                            <span className="text-sm text-slate-500 flex items-center">
                               <Timer className="h-3 w-3 mr-1" />
                               {playbook.estimatedDuration}
                             </span>
-                            <span className="text-sm text-gray-500 flex items-center">
+                            <span className="text-sm text-slate-500 flex items-center">
                               <Users className="h-3 w-3 mr-1" />
                               {playbook.requiredResources.length} ressources
                             </span>
                           </div>
                         </div>
-                        <ChevronRight className="h-5 w-5 text-gray-400" />
+                        <ChevronRight className="h-5 w-5 text-slate-400" />
                       </div>
                     </div>
                   ))}
@@ -278,7 +278,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                     {selectedPlaybook?.title} - Progression
                   </h3>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-slate-500">
                       Étape {currentStep + 1} sur {selectedPlaybook?.steps.length}
                     </span>
                     <div className="w-32 bg-gray-200 rounded-full h-2">
@@ -334,9 +334,9 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                           <Activity className="h-4 w-4 text-blue-600 animate-pulse" />
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{step.description}</p>
+                      <p className="text-sm text-slate-600 mb-3">{step.description}</p>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-4 text-sm text-slate-500">
                         <span className="flex items-center">
                           <Timer className="h-3 w-3 mr-1" />
                           {step.estimatedTime}
@@ -351,7 +351,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                         <div className="mt-4 space-y-4">
                           {/* Evidence Input */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
                               Evidence collectée
                             </label>
                             <textarea
@@ -368,7 +368,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
 
                           {/* Notes */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
                               Notes
                             </label>
                             <textarea
@@ -404,11 +404,11 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{event.type}</span>
-                          <span className="text-gray-500">
+                          <span className="text-slate-500">
                             {new Date(event.timestamp).toLocaleString()}
                           </span>
                         </div>
-                        <p className="text-gray-600">{event.description}</p>
+                        <p className="text-slate-600">{event.description}</p>
                       </div>
                     </div>
                   ))}

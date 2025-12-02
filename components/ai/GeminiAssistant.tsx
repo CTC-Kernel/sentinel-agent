@@ -124,7 +124,7 @@ export const GeminiAssistant: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-slate-50/50 dark:bg-black/20">
                 {messages.map((msg) => (
                     <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-slate-200 dark:bg-slate-700' : 'bg-indigo-100 dark:bg-indigo-900/30'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-slate-200 dark:bg-slate-700' : 'bg-indigo-100 dark:bg-slate-900/30'}`}>
                             {msg.role === 'user' ? <User className="h-4 w-4 text-slate-600 dark:text-slate-300" /> : <Bot className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />}
                         </div>
                         <div className={`max-w-[80%] p-3.5 rounded-2xl text-sm leading-relaxed ${msg.role === 'user'
@@ -142,7 +142,7 @@ export const GeminiAssistant: React.FC = () => {
                 ))}
                 {isLoading && (
                     <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-slate-900/30 flex items-center justify-center flex-shrink-0">
                             <Bot className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-gray-100 dark:border-white/5 shadow-sm">

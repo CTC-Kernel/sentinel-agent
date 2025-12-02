@@ -33,11 +33,11 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   const Icon = type === 'info' ? Info : AlertTriangle;
   const colorClass = type === 'danger' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
     type === 'warning' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
-      'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
+      'bg-blue-100 text-blue-600 dark:bg-slate-900/30 dark:text-blue-400';
 
   const buttonClass = type === 'danger' ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20' :
     type === 'warning' ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20' :
-      'text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20';
+      'text-blue-600 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/20';
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">

@@ -257,7 +257,7 @@ export const Dashboard: React.FC = () => {
     }, [loading, historyStats, user?.organizationId, allRisks.length, complianceScore, activeIncidentsCount]);
 
     const copyRules = () => { navigator.clipboard.writeText(`rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}`); addToast(t('dashboard.rulesCopied'), "success"); };
-    const getActivityIcon = (resource: string) => { switch (resource) { case 'Risk': return <ShieldAlert className="h-3.5 w-3.5 text-orange-500" />; case 'Incident': return <Siren className="h-3.5 w-3.5 text-red-500" />; case 'Asset': return <Server className="h-3.5 w-3.5 text-blue-500" />; default: return <CheckCircle2 className="h-3.5 w-3.5 text-gray-500" />; } };
+    const getActivityIcon = (resource: string) => { switch (resource) { case 'Risk': return <ShieldAlert className="h-3.5 w-3.5 text-orange-500" />; case 'Incident': return <Siren className="h-3.5 w-3.5 text-red-500" />; case 'Asset': return <Server className="h-3.5 w-3.5 text-blue-500" />; default: return <CheckCircle2 className="h-3.5 w-3.5 text-slate-500" />; } };
 
     const generateICal = async () => {
         if (!user?.organizationId) return;
@@ -381,7 +381,7 @@ export const Dashboard: React.FC = () => {
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl"></div>
                                     <div className="flex flex-col items-center gap-4 relative z-10">
-                                        <div className="p-4 bg-blue-50 dark:bg-blue-500/20 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                                        <div className="p-4 bg-blue-50 dark:bg-slate-900 dark:bg-blue-500/20 rounded-2xl group-hover:scale-110 transition-transform duration-300">
                                             <Server className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                                         </div>
                                         <div>
@@ -558,7 +558,7 @@ export const Dashboard: React.FC = () => {
                     <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{t('dashboard.risks')}</span>
                 </button>
                 <button onClick={() => navigate('/assets')} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-blue-300 dark:hover:border-blue-500/50 active:scale-95">
-                    <div className="p-3 bg-blue-50 dark:bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30">
+                    <div className="p-3 bg-blue-50 dark:bg-slate-900 dark:bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30">
                         <Server className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                     </div>
                     <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{t('dashboard.assets')}</span>
@@ -595,7 +595,7 @@ export const Dashboard: React.FC = () => {
                                         <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${item.type === 'audit' ? 'bg-blue-500' : item.type === 'policy' ? 'bg-red-500' : 'bg-orange-500'}`}></div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between mb-1">
-                                                <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md border ${item.type === 'audit' ? 'bg-blue-50 border-blue-100 text-blue-600 dark:bg-blue-900/20 dark:border-blue-900/30 dark:text-blue-400' : item.type === 'policy' ? 'bg-red-50 border-red-100 text-red-600 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400' : 'bg-orange-50 border-orange-100 text-orange-600 dark:bg-orange-900/20 dark:border-orange-900/30 dark:text-orange-400'}`}>
+                                                <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md border ${item.type === 'audit' ? 'bg-blue-50 dark:bg-slate-900 border-blue-100 text-blue-600 dark:bg-slate-900/20 dark:border-blue-900/30 dark:text-blue-400' : item.type === 'policy' ? 'bg-red-50 border-red-100 text-red-600 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400' : 'bg-orange-50 border-orange-100 text-orange-600 dark:bg-orange-900/20 dark:border-orange-900/30 dark:text-orange-400'}`}>
                                                     {item.type === 'audit' ? t('dashboard.typeAudit') : item.type === 'policy' ? t('dashboard.typeSignature') : item.type === 'document' ? t('dashboard.typeReview') : t('dashboard.typeProject')}
                                                 </span>
                                                 <span className="text-xs text-slate-400 font-medium tabular-nums">{new Date(item.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { Risk } from '../../types';
-import { ShieldAlert, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, Target, Clock } from '../ui/Icons';
+import { ShieldAlert, AlertTriangle, Target, Clock } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, ZAxis } from 'recharts';
 
 interface RiskDashboardProps {
@@ -16,8 +16,6 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
     const highRisks = risks.filter(r => r.score >= 10 && r.score < 15).length;
     const mediumRisks = risks.filter(r => r.score >= 5 && r.score < 10).length;
     const lowRisks = risks.filter(r => r.score < 5).length;
-
-    const treatedRisks = risks.filter(r => r.strategy !== 'Accepter').length;
     const untreatedRisks = risks.filter(r => r.strategy === 'Accepter').length;
 
     const avgScore = risks.length > 0 ? risks.reduce((sum, r) => sum + r.score, 0) / risks.length : 0;
@@ -60,93 +58,88 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
 
     return (
         <div className="space-y-6">
-            {/* Metrics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {/* Total Risks */}
-                <div
-                    onClick={() => onFilterChange?.(null)}
-                    className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 cursor-pointer hover:scale-[1.02] transition-transform"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Total Risques</span>
-                        <ShieldAlert className="h-5 w-5 text-blue-500" />
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{totalRisks}</div>
-                    <div className="text-xs text-slate-500 mt-1">{treatedRisks} traités</div>
-                </div>
+            {/* Summary Card */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group mb-8">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
 
-                {/* Critical Risks */}
-                <div
-                    onClick={() => onFilterChange?.({ type: 'level', value: 'Critique' })}
-                    className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 p-6 rounded-2xl border border-red-200 dark:border-red-800 cursor-pointer hover:scale-[1.02] transition-transform"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-red-700 dark:text-red-400">Critiques</span>
-                        <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                    </div>
-                    <div className="text-3xl font-bold text-red-700 dark:text-red-400">{criticalRisks}</div>
-                    <div className="text-xs text-red-600 dark:text-red-500 mt-1">Score ≥ 15</div>
-                </div>
-
-                {/* Average Score */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Score Moyen</span>
-                        <Target className="h-5 w-5 text-purple-500" />
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{avgScore.toFixed(1)}</div>
-                    <div className="text-xs text-slate-500 mt-1">Résiduel: {avgResidual.toFixed(1)}</div>
-                </div>
-
-                {/* Untreated Risks */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Non Traités</span>
-                        {untreatedRisks === 0 ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        ) : (
-                            <AlertTriangle className="h-5 w-5 text-amber-500" />
-                        )}
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{untreatedRisks}</div>
-                    <div className="text-xs text-slate-500 mt-1">
-                        {untreatedRisks === 0 ? 'Tous traités !' : 'Acceptés'}
-                    </div>
-                </div>
-
-                {/* Risk Reduction */}
-                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 rounded-2xl border border-green-200 dark:border-green-800">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-green-700 dark:text-green-400">Réduction</span>
-                        {riskReduction > 0 ? <TrendingDown className="h-5 w-5 text-green-600" /> : <TrendingUp className="h-5 w-5 text-red-600" />}
-                    </div>
-                    <div className="text-3xl font-bold text-green-700 dark:text-green-400">{riskReduction.toFixed(0)}%</div>
-                    <div className="text-xs text-green-600 dark:text-green-500 mt-1">Efficacité traitements</div>
-                </div>
-
-                {/* SLA Status */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">SLA Traitement</span>
-                        <Clock className="h-5 w-5 text-orange-500" />
-                    </div>
-                    <div className="flex items-end gap-2">
-                        <div className="text-3xl font-bold text-slate-900 dark:text-white">
-                            {risks.filter(r => r.treatment?.slaStatus === 'On Track').length}
+                {/* Global Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                                className="text-slate-100 dark:text-slate-800"
+                                strokeWidth="8"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                            <circle
+                                className={`${riskReduction >= 50 ? 'text-emerald-500' : riskReduction >= 20 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
+                                strokeWidth="8"
+                                strokeDasharray={276}
+                                strokeDashoffset={276 - (276 * riskReduction) / 100}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">{Math.round(riskReduction)}%</span>
                         </div>
-                        <span className="text-sm text-slate-400 mb-1">/ {risks.filter(r => r.treatment?.slaStatus).length || 0}</span>
                     </div>
-                    <div className="flex gap-2 mt-2">
-                        {risks.filter(r => r.treatment?.slaStatus === 'Breached').length > 0 && (
-                            <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-                                {risks.filter(r => r.treatment?.slaStatus === 'Breached').length} Dépassés
-                            </span>
-                        )}
-                        {risks.filter(r => r.treatment?.slaStatus === 'At Risk').length > 0 && (
-                            <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
-                                {risks.filter(r => r.treatment?.slaStatus === 'At Risk').length} À risque
-                            </span>
-                        )}
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Réduction du Risque</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                            Efficacité globale des stratégies de traitement.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Key Metrics Breakdown */}
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.(null)}>
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <ShieldAlert className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{totalRisks}</div>
+                    </div>
+                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.({ type: 'level', value: 'Critique' })}>
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <AlertTriangle className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Critiques</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{criticalRisks}</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <Target className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Score Moy.</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{avgScore.toFixed(1)}</div>
+                    </div>
+                </div>
+
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    <div className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">Non Traités</span>
+                        </div>
+                        <span className="text-sm font-black text-amber-700 dark:text-amber-400">{untreatedRisks}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                        <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <span className="text-xs font-bold text-blue-700 dark:text-blue-300">En Cours</span>
+                        </div>
+                        <span className="text-sm font-black text-blue-700 dark:text-blue-400">{risks.filter(r => r.treatment?.slaStatus === 'On Track').length}</span>
                     </div>
                 </div>
             </div>
@@ -308,7 +301,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                             <div className="text-xs text-slate-500">Score</div>
                                             <div className="text-lg font-bold text-red-600 dark:text-red-400">{risk.score}</div>
                                         </div>
-                                        <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.strategy === 'Atténuer' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
+                                        <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.strategy === 'Atténuer' ? 'bg-blue-100 text-blue-700 dark:bg-slate-900/20 dark:text-blue-400' :
                                             risk.strategy === 'Transférer' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
                                                 risk.strategy === 'Éviter' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
                                                     'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'

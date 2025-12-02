@@ -698,7 +698,7 @@ export const VoxelView: React.FC = () => {
                 onClick={handleAIAnalysis}
                 disabled={analyzing}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${analyzing
-                  ? 'bg-indigo-100 text-indigo-400 dark:bg-indigo-900/30 dark:text-indigo-400 cursor-wait'
+                  ? 'bg-indigo-100 text-indigo-400 dark:bg-slate-900/30 dark:text-indigo-400 cursor-wait'
                   : 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5'
                   }`}
               >

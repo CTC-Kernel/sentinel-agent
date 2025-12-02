@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, limit, addDoc } from 'firebase/firestore';
-import { RiskFormData } from '../schemas/riskSchema';
+import { RiskFormData, riskSchema } from '../schemas/riskSchema';
 import { ProjectFormData } from '../schemas/projectSchema';
 import { AuditFormData } from '../schemas/auditSchema';
 import { db } from '../firebase';
@@ -421,13 +421,38 @@ export const Compliance: React.FC = () => {
     const handleCreateRisk = async (data: RiskFormData) => {
         if (!selectedControl || !user?.organizationId || !hasPermission(user, 'Risk', 'create')) return;
         try {
+            const validatedData = riskSchema.parse(data);
+
+            const probability = validatedData.probability;
+            const impact = validatedData.impact;
+            const residualProbability = validatedData.residualProbability ?? probability;
+            const residualImpact = validatedData.residualImpact ?? impact;
+
+            const score = probability * impact;
+            const residualScore = residualProbability * residualImpact;
+
+            if (residualScore > score) {
+                addToast("Le score résiduel ne peut pas être supérieur au score brut. Ajustez la probabilité ou l'impact résiduel.", "error");
+                return;
+            }
+
+            if (validatedData.strategy === 'Accepter' && residualScore >= 15 && !validatedData.justification?.trim()) {
+                addToast("Pour accepter un risque critique (score résiduel >= 15), une justification détaillée est requise.", "error");
+                return;
+            }
+
+            const nowIso = new Date().toISOString();
+
             await addDoc(collection(db, 'risks'), {
-                ...data,
+                ...validatedData,
                 organizationId: user.organizationId,
                 mitigationControlIds: [selectedControl.id],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                status: 'Ouvert'
+                createdAt: nowIso,
+                updatedAt: nowIso,
+                status: 'Ouvert',
+                score,
+                residualScore,
+                lastReviewDate: nowIso
             });
             setCreationMode(null);
             addToast("Nouveau risque créé et lié", "success");
@@ -764,7 +789,7 @@ export const Compliance: React.FC = () => {
                                                                         <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
                                                                             <div className="flex items-center mt-1 gap-3 text-xs">
                                                                                 {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded"><Paperclip className="h-3 w-3 mr-1" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium"><AlertTriangle className="h-3 w-3 mr-1" /> Preuve manquante</span>) : null}
-                                                                                {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded"><ShieldAlert className="h-3 w-3 mr-1" /> {riskCount} risques</span>)}
+                                                                                {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 px-2 py-0.5 rounded"><ShieldAlert className="h-3 w-3 mr-1" /> {riskCount} risques</span>)}
                                                                                 {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded"><AlertOctagon className="h-3 w-3 mr-1" /> {findingsCount} écarts</span>)}
                                                                             </div>
                                                                         </div>
@@ -792,7 +817,7 @@ export const Compliance: React.FC = () => {
             {viewMode === 'watch' && (
                 <div className="space-y-6 animate-fade-in">
                     <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-200 dark:border-white/5 text-center">
-                        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <div className="w-16 h-16 bg-blue-100 dark:bg-slate-900/20 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                             <Globe className="w-8 h-8" />
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Veille Réglementaire EUR-Lex</h2>
@@ -1054,7 +1079,7 @@ export const Compliance: React.FC = () => {
                                                     return docObj ? (
                                                         <div key={docId} className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm group transition-all hover:bg-white dark:hover:bg-white/5">
                                                             <div className="flex items-center overflow-hidden">
-                                                                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg mr-3 text-blue-500"><File className="h-4 w-4" /></div>
+                                                                <div className="p-2 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-lg mr-3 text-blue-500"><File className="h-4 w-4" /></div>
                                                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[200px]">{docObj.title}</span>
                                                             </div>
                                                             <div className="flex gap-2">
@@ -1063,7 +1088,7 @@ export const Compliance: React.FC = () => {
                                                             </div>
                                                         </div>
                                                     ) : null;
-                                                }) : <p className="text-xs text-gray-400 italic text-center py-4 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl">Aucune preuve liée.</p>}
+                                                }) : <p className="text-xs text-slate-400 italic text-center py-4 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl">Aucune preuve liée.</p>}
                                             </div>
                                             {canEdit && (
                                                 <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/5">
@@ -1210,16 +1235,16 @@ export const Compliance: React.FC = () => {
                                     <div className="space-y-8 max-w-3xl mx-auto">
                                         <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
                                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Journal d'Activité</h4>
-                                            {controlHistory.length === 0 ? <p className="text-sm text-gray-400 italic">Aucune activité enregistrée.</p> : controlHistory.map((log, i) => (
+                                            {controlHistory.length === 0 ? <p className="text-sm text-slate-400 italic">Aucune activité enregistrée.</p> : controlHistory.map((log, i) => (
                                                 <div key={i} className="relative">
                                                     <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
                                                         <div className="h-2 w-2 rounded-full bg-brand-500"></div>
                                                     </span>
                                                     <div>
-                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                         <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
                                                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                        <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-gray-500">{log.userEmail}</div>
+                                                        <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-slate-500">{log.userEmail}</div>
                                                     </div>
                                                 </div>
                                             ))}
