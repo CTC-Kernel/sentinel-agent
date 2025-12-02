@@ -11,7 +11,8 @@ const nodemailer = require("nodemailer");
 
 // Hardcoded secrets for Zero Config deployment (User requested)
 const sendGridApiKey = { value: () => "UNUSED" };
-const appBaseUrl = defineString("APP_BASE_URL", { default: "https://sentinel-grc.web.app" });
+const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-threat-consulting.com" });
+
 const admin = require("firebase-admin");
 const crypto = require("crypto");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
