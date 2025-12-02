@@ -33,6 +33,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [error, setError] = useState<Error | null>(null);
     const { setUser, setOrganization, setTheme } = useStore();
 
+    const [isBlocked, setIsBlocked] = useState(false);
+
     // Fonction pour rafraîchir le token et les claims
     const refreshSession = useCallback(async () => {
         if (!auth.currentUser) return;
@@ -64,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             await firebaseSignOut(auth);
             setUser(null);
             setFirebaseUser(null);
+            setIsBlocked(false);
             // Nettoyer le stockage local si nécessaire
             localStorage.removeItem('last_org_id');
         } catch (err) {
@@ -116,6 +119,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 // 2. Écouter les changements du profil utilisateur en temps réel
                 unsubscribeProfile = onSnapshot(userRef, async (snapshot) => {
                     clearTimeout(safetyTimeout); // Clear timeout on success
+                    setIsBlocked(false); // Reset blocked state on success
+
                     if (snapshot.exists()) {
                         const userData = snapshot.data() as UserProfile;
 
@@ -229,21 +234,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                     // Detect stale session (User deleted in Auth but token still cached)
                     if (err.code === 'permission-denied') {
-                        ErrorLogger.warn('Permission denied for user profile. Session might be invalid or user deleted. Logging out...', 'AuthContext.onSnapshot');
-                        try {
-                            await logout();
-                        } catch (logoutErr) {
-                            ErrorLogger.error(logoutErr, 'AuthContext.forcedLogout');
-                            // Force local state cleanup even if firebase logout fails
-                            setUser(null);
-                            setFirebaseUser(null);
-                            localStorage.removeItem('last_org_id');
-                        }
+                        // Check if this might be a content blocker issue (App Check failure)
+                        // If it happens immediately on load, it's likely App Check.
+                        // If it happens after a while, it might be a stale token.
+                        // For now, we'll flag it as potential blocker if we can't access the profile.
+                        ErrorLogger.warn('Permission denied for user profile. Checking for blockers...', 'AuthContext.onSnapshot');
+                        setIsBlocked(true);
+                        setLoading(false);
+                    } else if (err.code === 'unavailable' || err.code === 'failed-precondition') {
+                        // Offline or App Check failure
+                        ErrorLogger.warn('Firestore unavailable. Likely content blocker.', 'AuthContext.onSnapshot');
+                        setIsBlocked(true);
+                        setLoading(false);
                     } else {
                         setError(err as Error);
+                        setLoading(false);
                     }
-
-                    setLoading(false);
                 });
 
             } catch (err) {
@@ -281,6 +287,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         firebaseUser,
         loading,
         error,
+        isBlocked, // Expose blocked state
+        dismissBlockerError: () => setIsBlocked(false),
         isAdmin: useStore.getState().user?.role === 'admin',
         refreshSession,
         logout
