@@ -12,6 +12,9 @@ export interface AuthContextType {
     isAdmin: boolean;
     refreshSession: () => Promise<void>;
     logout: () => Promise<void>;
+    enrollMFA: () => Promise<string>; // Returns QR Code URL
+    verifyMFA: (verificationId: string, code: string) => Promise<void>;
+    unenrollMFA: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);

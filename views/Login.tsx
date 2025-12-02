@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
+import {
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signInWithPopup,
+    GoogleAuthProvider,
+    sendPasswordResetEmail,
+    getMultiFactorResolver,
+    TotpMultiFactorGenerator,
+    MultiFactorResolver,
+    MultiFactorError
+} from 'firebase/auth';
 import { auth } from '../firebase';
 import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2 } from '../components/ui/Icons';
 import { useStore } from '../store';
@@ -42,6 +52,35 @@ export const Login: React.FC = () => {
     const [showLegalModal, setShowLegalModal] = useState(false);
     const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms'>('mentions');
 
+    // MFA State
+    const [showMfaModal, setShowMfaModal] = useState(false);
+    const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(null);
+    const [mfaCode, setMfaCode] = useState('');
+    const [mfaLoading, setMfaLoading] = useState(false);
+    const [mfaError, setMfaError] = useState<string | null>(null);
+
+    const handleMfaVerification = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!mfaResolver || !mfaCode) return;
+        setMfaLoading(true);
+        setMfaError(null);
+        try {
+            const hint = mfaResolver.hints.find(h => h.factorId === TotpMultiFactorGenerator.FACTOR_ID);
+            if (!hint) {
+                throw new Error("Aucun facteur TOTP trouvé.");
+            }
+            const multiFactorAssertion = TotpMultiFactorGenerator.assertionForSignIn(hint.uid, mfaCode);
+            await mfaResolver.resolveSignIn(multiFactorAssertion);
+            setShowMfaModal(false);
+            addToast("Connexion réussie", "success");
+        } catch (error) {
+            setMfaError("Code incorrect ou expiré.");
+            console.error(error);
+        } finally {
+            setMfaLoading(false);
+        }
+    };
+
     // Clear errors when switching modes
     useEffect(() => {
         clearErrors();
@@ -59,6 +98,13 @@ export const Login: React.FC = () => {
                 addToast("Compte créé avec succès", "success");
             }
         } catch (error: unknown) {
+            const err = error as { code?: string; message?: string };
+            if (err.code === 'auth/multi-factor-auth-required') {
+                const resolver = getMultiFactorResolver(auth, error as MultiFactorError);
+                setMfaResolver(resolver);
+                setShowMfaModal(true);
+                return;
+            }
             let msg = "Erreur d'authentification.";
             const code = (error as { code?: string })?.code;
             if (code === 'auth/invalid-credential') msg = "Identifiants incorrects.";
@@ -293,6 +339,43 @@ export const Login: React.FC = () => {
                                 <button onClick={() => setShowResetModal(false)} className="text-sm font-bold text-brand-600 hover:underline">Retour à la connexion</button>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+            {/* MFA Modal */}
+            {showMfaModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
+                        <button onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <X className="h-5 w-5" />
+                        </button>
+
+                        <div className="text-center mb-6">
+                            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mx-auto mb-4 text-emerald-600">
+                                <Lock className="h-7 w-7" />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Authentification MFA</h3>
+                            <p className="text-sm text-slate-500 mt-2">Entrez le code de votre application d'authentification.</p>
+                        </div>
+
+                        <form onSubmit={handleMfaVerification} className="space-y-6">
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Code de vérification</label>
+                                <input
+                                    type="text"
+                                    value={mfaCode}
+                                    onChange={(e) => setMfaCode(e.target.value)}
+                                    className={`w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none font-medium dark:text-white text-center tracking-[0.5em] text-xl ${mfaError ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
+                                    placeholder="000000"
+                                    maxLength={6}
+                                    autoFocus
+                                />
+                                {mfaError && <p className="text-red-500 text-xs ml-1 font-bold mt-1">{mfaError}</p>}
+                            </div>
+                            <button type="submit" disabled={mfaLoading} className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] transition-transform shadow-lg">
+                                {mfaLoading ? 'Vérification...' : 'Vérifier'}
+                            </button>
+                        </form>
                     </div>
                 </div>
             )}

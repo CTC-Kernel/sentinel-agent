@@ -9,6 +9,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Toaster } from 'sonner';
 import { Login } from './views/Login';
 import { Onboarding } from './views/Onboarding';
+import { VerifyEmail } from './views/VerifyEmail';
 import { WifiOff, AlertTriangle } from './components/ui/Icons'; // Lock supprimé car dans LoadingScreen
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CommandPalette } from './components/layout/CommandPalette';
@@ -252,6 +253,11 @@ const AppInner: React.FC = () => {
                     <Route path="/onboarding" element={
                         <AuthGuard requireOnboarding={false}>
                             <Onboarding />
+                        </AuthGuard>
+                    } />
+                    <Route path="/verify-email" element={
+                        <AuthGuard requireOnboarding={false}>
+                            <VerifyEmail />
                         </AuthGuard>
                     } />
                     <Route path="/*" element={
