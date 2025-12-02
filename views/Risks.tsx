@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment } from '../types';
+import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit, LayoutGrid, List } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
@@ -127,6 +127,16 @@ export const Risks: React.FC = () => {
     const [recommendations, setRecommendations] = useState<RiskRecommendation[]>([]);
     const [analyzing, setAnalyzing] = useState(false);
 
+    const mapCriticalityToImpact = (crit: Criticality): number => {
+        switch (crit) {
+            case Criticality.CRITICAL: return 5;
+            case Criticality.HIGH: return 4;
+            case Criticality.MEDIUM: return 3;
+            case Criticality.LOW:
+            default: return 2;
+        }
+    };
+
     useEffect(() => {
         const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
         setStats({
@@ -192,8 +202,28 @@ export const Risks: React.FC = () => {
             // Validate data with Zod
             const validatedData = riskSchema.parse(data);
 
-            const score = validatedData.probability * validatedData.impact;
-            const residualScore = (validatedData.residualProbability || validatedData.probability) * (validatedData.residualImpact || validatedData.impact);
+            const asset = assets.find(a => a.id === validatedData.assetId);
+            if (asset) {
+                const cia = [asset.confidentiality, asset.integrity, asset.availability];
+                const recommendedImpact = Math.max(...cia.map(mapCriticalityToImpact));
+                if (validatedData.impact < recommendedImpact) {
+                    ErrorLogger.warn('Impact inférieur au niveau de criticité de l\'actif', 'Risks.onSubmit', {
+                        metadata: {
+                            assetId: asset.id,
+                            impact: validatedData.impact,
+                            recommendedImpact
+                        }
+                    });
+                }
+            }
+
+            const probability = validatedData.probability;
+            const impact = validatedData.impact;
+            const residualProbability = validatedData.residualProbability ?? probability;
+            const residualImpact = validatedData.residualImpact ?? impact;
+
+            const score = probability * impact;
+            const residualScore = residualProbability * residualImpact;
 
             // Derive owner name
             const ownerUser = usersList.find(u => u.uid === validatedData.ownerId);
@@ -210,6 +240,23 @@ export const Risks: React.FC = () => {
                 residualScore,
                 previousScore: score,
                 createdAt: new Date().toISOString()
+            });
+
+            // Persist initial history entry in immutable collection
+            await addDoc(collection(db, 'risk_history'), {
+                organizationId: user.organizationId,
+                riskId: docRef.id,
+                date: new Date().toISOString(),
+                previousScore: score,
+                newScore: score,
+                previousProbability: probability,
+                newProbability: probability,
+                previousImpact: impact,
+                newImpact: impact,
+                residualProbability,
+                residualImpact,
+                residualScore,
+                changedBy: user.email || 'Unknown'
             });
 
             if (cleanNewRisk.isSecureStorage) {
@@ -249,16 +296,24 @@ export const Risks: React.FC = () => {
             // Validate data with Zod
             const validatedData = riskSchema.parse(data);
             const riskData = sanitizeData({ ...validatedData });
-            const score = riskData.probability * riskData.impact;
+            const probability = riskData.probability;
+            const impact = riskData.impact;
+            const residualProbability = riskData.residualProbability ?? probability;
+            const residualImpact = riskData.residualImpact ?? impact;
+            const score = probability * impact;
+            const residualScore = residualProbability * residualImpact;
             const historyEntry: RiskHistory = {
                 date: new Date().toISOString(),
                 previousScore: selectedRisk.score,
                 newScore: score,
                 changedBy: user.email || 'Unknown',
                 previousProbability: selectedRisk.probability,
-                newProbability: riskData.probability,
+                newProbability: probability,
                 previousImpact: selectedRisk.impact,
-                newImpact: riskData.impact,
+                newImpact: impact,
+                residualProbability,
+                residualImpact,
+                residualScore,
                 // Add justification if present (e.g. from AI)
                 reason: data.justification
             };
@@ -268,7 +323,17 @@ export const Risks: React.FC = () => {
             await updateDoc(doc(db, 'risks', selectedRisk.id), {
                 ...riskData,
                 score,
+                residualProbability,
+                residualImpact,
+                residualScore,
                 history: updatedHistory
+            });
+
+            // Persist history entry in immutable collection
+            await addDoc(collection(db, 'risk_history'), {
+                organizationId: user.organizationId,
+                riskId: selectedRisk.id,
+                ...historyEntry
             });
 
             if (riskData.isSecureStorage) {
@@ -294,7 +359,7 @@ export const Risks: React.FC = () => {
 
             await logAction(user, 'UPDATE', 'Risk', `Mise à jour risque: ${riskData.threat}`);
             addToast("Risque mis à jour", "success");
-            setSelectedRisk({ ...selectedRisk, ...riskData, score, history: updatedHistory } as Risk);
+            setSelectedRisk({ ...selectedRisk, ...riskData, score, residualProbability, residualImpact, residualScore, history: updatedHistory } as Risk);
             setIsEditing(false);
             refreshRisks();
         } catch (error) {

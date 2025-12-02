@@ -58,27 +58,25 @@ export const Settings: React.FC = () => {
 
     const handleCheckBreach = async () => {
         if (!user?.email) return;
-        // HIBP now requires an API key for all checks.
-        // We use the one from settings if available, or warn the user.
-        // Actually, let's check if the user has provided one.
-        const apiKey = profileForm.getValues('hibpApiKey') || user.hibpApiKey;
-
-        if (!apiKey) {
+        if (!user.hasHibpKey) {
             addToast(t('settings.hibpKeyRequired'), "info");
             return;
         }
 
         setBreachCheckLoading(true);
         try {
-            const breaches = await integrationService.checkBreach(user.email, apiKey);
+            const functions = getFunctions();
+            const checkBreachWithHIBP = httpsCallable(functions, 'checkBreachWithHIBP');
+            const { data } = await checkBreachWithHIBP({ email: user.email });
+            const breaches = (data as { breaches?: unknown[] } | undefined)?.breaches || [];
             if (breaches.length === 0) {
                 addToast(t('settings.noBreachesFound'), "success");
             } else {
                 addToast(t('settings.breachesFound').replace('{count}', breaches.length.toString()), "error");
-                // Could display details in a modal or alert
             }
-        } catch {
+        } catch (err) {
             addToast(t('settings.hibpError'), "error");
+            ErrorLogger.handleErrorWithToast(err, 'Settings.handleCheckBreach', 'HIBP_FAILED');
         } finally {
             setBreachCheckLoading(false);
         }
@@ -86,7 +84,7 @@ export const Settings: React.FC = () => {
 
     const profileForm = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
-        defaultValues: { displayName: '', department: '', role: 'user', geminiApiKey: '', shodanApiKey: '', hibpApiKey: '' }
+        defaultValues: { displayName: '', department: '', role: 'user', geminiApiKey: '', shodanApiKey: '', hibpApiKey: '', safeBrowsingApiKey: '' }
     });
 
     const passwordForm = useForm<PasswordFormData>({
@@ -299,9 +297,10 @@ export const Settings: React.FC = () => {
                 displayName: user.displayName || '',
                 department: user.department || '',
                 role: (user.role as UserProfile['role']) || 'user',
-                geminiApiKey: user.geminiApiKey || '',
-                shodanApiKey: user.shodanApiKey || '',
-                hibpApiKey: user.hibpApiKey || ''
+                geminiApiKey: '',
+                shodanApiKey: '',
+                hibpApiKey: '',
+                safeBrowsingApiKey: ''
             });
             fetchOrgDetails();
         }
@@ -359,31 +358,37 @@ export const Settings: React.FC = () => {
             const q = query(usersRef, where('email', '==', user.email));
             const querySnapshot = await getDocs(q);
 
-            const userData: UserProfile = {
-                ...user,
-                displayName: data.displayName,
-                department: data.department || '',
-                // Only allow role change if user has permission
-                role: hasPermission(user, 'User', 'manage') ? data.role : user.role,
-                geminiApiKey: data.geminiApiKey,
-                shodanApiKey: data.shodanApiKey,
-                hibpApiKey: data.hibpApiKey,
-                safeBrowsingApiKey: data.safeBrowsingApiKey
-            };
+            const updatedRole = hasPermission(user, 'User', 'manage') ? data.role : user.role;
 
             if (!querySnapshot.empty) {
                 const docId = querySnapshot.docs[0].id;
                 await updateDoc(doc(db, 'users', docId), {
                     displayName: data.displayName,
                     department: data.department || '',
-                    // Only allow role change if user has permission
-                    role: hasPermission(user, 'User', 'manage') ? data.role : user.role,
-                    geminiApiKey: data.geminiApiKey || '',
-                    shodanApiKey: data.shodanApiKey || '',
-                    hibpApiKey: data.hibpApiKey || '',
-                    safeBrowsingApiKey: data.safeBrowsingApiKey || ''
+                    role: updatedRole
                 });
             }
+
+            const functions = getFunctions();
+            const saveUserApiKeys = httpsCallable(functions, 'saveUserApiKeys');
+            const payload: Record<string, string> = {};
+            if (data.geminiApiKey !== undefined) payload.geminiApiKey = data.geminiApiKey || '';
+            if (data.shodanApiKey !== undefined) payload.shodanApiKey = data.shodanApiKey || '';
+            if (data.hibpApiKey !== undefined) payload.hibpApiKey = data.hibpApiKey || '';
+            if (data.safeBrowsingApiKey !== undefined) payload.safeBrowsingApiKey = data.safeBrowsingApiKey || '';
+
+            await saveUserApiKeys(payload);
+
+            const userData: UserProfile = {
+                ...user,
+                displayName: data.displayName,
+                department: data.department || '',
+                role: updatedRole,
+                hasGeminiKey: data.geminiApiKey ? true : user.hasGeminiKey,
+                hasShodanKey: data.shodanApiKey ? true : user.hasShodanKey,
+                hasHibpKey: data.hibpApiKey ? true : user.hasHibpKey,
+                hasSafeBrowsingKey: data.safeBrowsingApiKey ? true : user.hasSafeBrowsingKey
+            };
 
             setUser(userData);
             addToast(t('settings.profileUpdated'), "success");
