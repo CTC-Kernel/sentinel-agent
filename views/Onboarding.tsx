@@ -4,7 +4,7 @@ import { doc, setDoc, collection, query, where, getDocs, addDoc, writeBatch, upd
 import { auth, db } from '../firebase';
 import { ArrowRight, User as UserIcon, Building, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server } from '../components/ui/Icons';
 import { sendEmail } from '../services/emailService';
-import { getWelcomeEmailTemplate } from '../services/emailTemplates';
+import { getWelcomeEmailTemplate, getInvitationTemplate } from '../services/emailTemplates';
 import { PLANS } from '../config/plans';
 import { PlanType, UserProfile } from '../types';
 import { SubscriptionService } from '../services/subscriptionService';
@@ -111,7 +111,33 @@ export const Onboarding: React.FC = () => {
                         createdAt: new Date().toISOString(),
                         onboardingPending: true
                     });
-                    // In a real app, trigger email here via Cloud Function or API
+                    // Trigger email via Cloud Function or API (using client-side service for now)
+                    try {
+                        const inviteLink = `${window.location.origin}/login?invite=${newUid}`;
+                        const htmlContent = getInvitationTemplate(
+                            user.displayName || user.email || 'Un administrateur',
+                            'Collaborateur',
+                            inviteLink
+                        );
+
+                        // Create a minimal user object for the email service
+                        const inviteUserMock = {
+                            uid: newUid,
+                            email,
+                            displayName: 'Invité',
+                            organizationId: user.organizationId
+                        } as UserProfile;
+
+                        await sendEmail(inviteUserMock, {
+                            to: email,
+                            subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
+                            html: htmlContent,
+                            type: 'INVITATION'
+                        }, false);
+                    } catch (emailError) {
+                        ErrorLogger.error(emailError as Error, 'Onboarding.step4.sendEmail');
+                        // Don't block the flow if email fails, but log it
+                    }
                 }
                 await batch.commit();
                 addToast(`${invitedUsers.length} invitations envoyées`, "success");

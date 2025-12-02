@@ -171,18 +171,19 @@ class IntegrationService {
 
     // --- 7. MITRE ATT&CK ---
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async getMitreTechniques(query: string): Promise<any[]> {
+    async getCommonMitreTechniques(query: string): Promise<any[]> {
         if (!query) return [];
-        // Using a public MITRE ATT&CK STIX/JSON dump or search API would be ideal.
-        // For a quick win without downloading 10MB+ JSON client-side, we can use a lightweight proxy or just link.
-        // However, let's try to fetch from a known public source if possible, or mock a few common ones for demo.
-        // Real implementation should cache the MITRE dataset server-side.
 
-        // Using a static subset of common techniques for client-side performance.
+        // Returns a curated list of common techniques.
+        // For full MITRE ATT&CK database, a backend service or large JSON load is required.
         const commonTechniques = [
             { id: 'T1566', name: 'Phishing', description: 'Adversaries may send phishing messages to gain access to victim systems.' },
             { id: 'T1190', name: 'Exploit Public-Facing Application', description: 'Adversaries may attempt to take advantage of a weakness in an Internet-facing computer or program.' },
-            { id: 'T1078', name: 'Valid Accounts', description: 'Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.' }
+            { id: 'T1078', name: 'Valid Accounts', description: 'Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.' },
+            { id: 'T1003', name: 'OS Credential Dumping', description: 'Adversaries may attempt to dump credentials to obtain account login and credential material.' },
+            { id: 'T1059', name: 'Command and Scripting Interpreter', description: 'Adversaries may abuse command and script interpreters to execute commands, scripts, or binaries.' },
+            { id: 'T1204', name: 'User Execution', description: 'Adversaries may rely on a user performing an action, such as clicking on a malicious link.' },
+            { id: 'T1497', name: 'Virtualization/Sandbox Evasion', description: 'Adversaries may employ various means to detect and avoid virtualization and analysis environments.' }
         ];
         return commonTechniques.filter(t => t.name.toLowerCase().includes(query.toLowerCase()) || t.id.toLowerCase().includes(query.toLowerCase()));
     }
@@ -223,8 +224,9 @@ class IntegrationService {
         const frVatRegex = /^FR[0-9A-Z]{2}[0-9]{9}$/;
         const isValidFormat = frVatRegex.test(vatNumber);
 
-        // Real validation requires backend proxy.
-        return { valid: isValidFormat, message: isValidFormat ? 'Format valide (Vérification VIES requiert backend)' : 'Format invalide' };
+        // Real validation requires backend proxy to VIES SOAP API.
+        // For client-side, we validate the format strictly.
+        return { valid: isValidFormat, message: isValidFormat ? 'Format valide' : 'Format invalide' };
     }
 
     // --- 10. EUR-Lex (Legal Search) ---
