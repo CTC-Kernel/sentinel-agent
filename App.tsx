@@ -223,33 +223,50 @@ const AppLayout: React.FC = () => {
     );
 };
 
+import { ContentBlockerError } from './components/ui/ContentBlockerError';
+import { useAuth } from './hooks/useAuth';
+
 const AppContent: React.FC = () => {
     return (
         <Router>
             <AuthProvider>
-                <SkipLink />
-                <GlobalShortcutsWrapper />
-                <ErrorBoundary>
-                    <Routes>
-                        <Route path="/login" element={
-                            <PublicOnlyRoute>
-                                <Login />
-                            </PublicOnlyRoute>
-                        } />
-                        <Route path="/onboarding" element={
-                            <AuthGuard requireOnboarding={false}>
-                                <Onboarding />
-                            </AuthGuard>
-                        } />
-                        <Route path="/*" element={
-                            <AuthGuard>
-                                <AppLayout />
-                            </AuthGuard>
-                        } />
-                    </Routes>
-                </ErrorBoundary>
+                <AppInner />
             </AuthProvider>
         </Router>
+    );
+};
+
+const AppInner: React.FC = () => {
+    const { isBlocked } = useAuth();
+
+    if (isBlocked) {
+        return <ContentBlockerError />;
+    }
+
+    return (
+        <>
+            <SkipLink />
+            <GlobalShortcutsWrapper />
+            <ErrorBoundary>
+                <Routes>
+                    <Route path="/login" element={
+                        <PublicOnlyRoute>
+                            <Login />
+                        </PublicOnlyRoute>
+                    } />
+                    <Route path="/onboarding" element={
+                        <AuthGuard requireOnboarding={false}>
+                            <Onboarding />
+                        </AuthGuard>
+                    } />
+                    <Route path="/*" element={
+                        <AuthGuard>
+                            <AppLayout />
+                        </AuthGuard>
+                    } />
+                </Routes>
+            </ErrorBoundary>
+        </>
     );
 };
 
