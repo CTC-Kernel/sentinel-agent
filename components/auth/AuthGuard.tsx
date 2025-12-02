@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { useStore } from '../../store';
+
 import { ErrorLogger } from '../../services/errorLogger';
 
 interface AuthGuardProps {
@@ -11,7 +11,7 @@ interface AuthGuardProps {
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboarding = true }) => {
     const { user, loading, firebaseUser } = useAuth();
-    const { demoMode } = useStore();
+
     const location = useLocation();
 
     if (loading) {
@@ -20,10 +20,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
         </div>;
     }
 
-    // In Demo Mode, we bypass authentication checks
-    if (demoMode) {
-        return <>{children}</>;
-    }
+
 
     if (!firebaseUser) {
         return <Navigate to="/login" state={{ from: location }} replace />;

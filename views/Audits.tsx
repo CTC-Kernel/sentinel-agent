@@ -33,6 +33,7 @@ import { getAuditReminderTemplate } from '../services/emailTemplates';
 import { generateICS, downloadICS } from '../utils/calendar';
 import JSZip from 'jszip';
 import { ErrorLogger } from '../services/errorLogger';
+import { buildAppUrl } from '../config/appConfig';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { useForm, SubmitHandler } from 'react-hook-form';
@@ -264,7 +265,7 @@ export const Audits: React.FC = () => {
                             validatedData.name || 'Audit',
                             auditorUser.displayName || 'Auditeur',
                             validatedData.dateScheduled || '',
-                            'https://sentinel-grc.web.app/audits'
+                            buildAppUrl('/audits')
                         );
                         await sendEmail(user, {
                             to: auditorUser.email,
