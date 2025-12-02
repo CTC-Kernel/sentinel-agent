@@ -100,7 +100,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
 
                         {activeTab === 'privacy' && (
                             <div className="space-y-6 animate-fade-in">
-                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 text-blue-800 dark:text-blue-200 text-sm font-medium mb-6">
+                                <div className="bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 text-blue-800 dark:text-blue-200 text-sm font-medium mb-6">
                                     Conformément au RGPD, Sentinel GRC assure la protection de vos données personnelles.
                                 </div>
 

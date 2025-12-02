@@ -73,7 +73,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
             {!response && !loading && (
                 <div className="grid grid-cols-1 gap-3 relative z-10">
                     <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10 group">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
+                        <div className="p-2 bg-blue-100 dark:bg-slate-900/30 text-blue-600 dark:text-blue-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <FileText className="w-5 h-5" />
                         </div>
                         <div>

@@ -347,7 +347,7 @@ export const Help: React.FC = () => {
                                     setMobileMenuOpen(false);
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${selectedCategory === category.id
-                                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm'
+                                    ? 'bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 text-blue-600 dark:text-blue-400 shadow-sm'
                                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
                             >
@@ -393,7 +393,7 @@ export const Help: React.FC = () => {
                     {activeCategory ? (
                         <div className="max-w-4xl mx-auto space-y-8">
                             <div className="flex items-center gap-4 mb-8">
-                                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl">
+                                <div className="p-3 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-2xl">
                                     <activeCategory.icon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div>
@@ -410,7 +410,7 @@ export const Help: React.FC = () => {
                                         key={article.id}
                                         id={article.id}
                                         className={`group rounded-2xl border transition-all duration-300 overflow-hidden ${selectedArticle === article.id
-                                            ? 'bg-blue-50/30 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800 ring-1 ring-blue-500/20'
+                                            ? 'bg-blue-50/30 dark:bg-slate-900/10 border-blue-200 dark:border-blue-800 ring-1 ring-blue-500/20'
                                             : 'bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md'
                                             }`}
                                     >
@@ -419,8 +419,8 @@ export const Help: React.FC = () => {
                                             className="w-full flex items-start gap-4 p-6 text-left"
                                         >
                                             <div className={`p-2 rounded-xl shrink-0 transition-colors ${selectedArticle === article.id
-                                                ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                                                ? 'bg-blue-100 dark:bg-slate-900/40 text-blue-600 dark:text-blue-400'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-blue-50 dark:bg-slate-900 dark:group-hover:bg-blue-900/20 group-hover:text-blue-600 dark:group-hover:text-blue-400'
                                                 }`}>
                                                 {article.icon ? <article.icon className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                                             </div>

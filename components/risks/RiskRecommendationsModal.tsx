@@ -56,7 +56,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                         <div className="flex items-center gap-3">
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${rec.priority === 'urgent' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                                                 rec.priority === 'high' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                                                    'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                    'bg-blue-100 text-blue-700 dark:bg-slate-900/30 dark:text-blue-400'
                                                 }`}>
                                                 {rec.priority}
                                             </span>

@@ -255,7 +255,8 @@ export const ERROR_MESSAGES = {
   AUDIT_NOT_FOUND: "Audit introuvable",
 
   // IA
-  AI_ERROR: "Erreur lors de l'analyse IA"
+  AI_ERROR: "Erreur lors de l'analyse IA",
+  HIBP_FAILED: "Erreur lors de la vérification HIBP"
 } as const;
 
 export type ErrorMessageKey = keyof typeof ERROR_MESSAGES;

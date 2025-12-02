@@ -22,14 +22,13 @@ import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, ProfileFormData, passwordSchema, PasswordFormData, organizationSchema, OrganizationFormData } from '../schemas/settingsSchema';
-import { integrationService } from '../services/integrationService';
 import { formatFileSize } from '../services/fileUploadService';
 import { useGoogleLogin } from '@react-oauth/google';
 import { Calendar } from 'lucide-react';
 
 
 export const Settings: React.FC = () => {
-    const { theme, toggleTheme, user, setUser, addToast, language, setLanguage, t } = useStore();
+    const { theme, toggleTheme, user, setUser, addToast, language, setLanguage, t, demoMode, toggleDemoMode } = useStore();
     const [logs, setLogs] = useState<SystemLog[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
@@ -711,7 +710,7 @@ export const Settings: React.FC = () => {
 
             {/* Subscription Status - Visible to all org members */}
             {user?.organizationId && (
-                <div className="mb-8 glass-panel rounded-[2rem] p-6 border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/30 dark:bg-indigo-900/10 shadow-sm flex items-center justify-between animate-fade-in-up">
+                <div className="mb-8 glass-panel rounded-[2rem] p-6 border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/30 dark:bg-slate-900/10 shadow-sm flex items-center justify-between animate-fade-in-up">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
                             <FileSpreadsheet className="h-6 w-6" />
@@ -1133,7 +1132,7 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <button
                                     onClick={toggleDemoMode}
-                                    className={`w-full px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1 ${demoMode ? 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                                    className={`w-full px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1 ${demoMode ? 'bg-indigo-100 dark:bg-slate-900/20 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
                                 >
                                     {demoMode ? (
                                         <>

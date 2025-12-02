@@ -347,15 +347,15 @@ export const Privacy: React.FC = () => {
                         <p className="text-xs font-bold uppercase tracking-wider text-blue-500 mb-1">En cours / Projet</p>
                         <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.review}</p>
                     </div>
-                    <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600"><Clock className="h-6 w-6" /></div>
+                    <div className="p-3 rounded-2xl bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 text-blue-600"><Clock className="h-6 w-6" /></div>
                 </div>
             </div>
 
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-purple-500/20 transition-all border border-slate-200 dark:border-white/5">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className="h-5 w-5 text-slate-400" />
                 <input type="text" placeholder="Rechercher un traitement (ex: Paie, CRM)..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                     value={filter} onChange={e => setFilter(e.target.value)} />
-                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter le Registre">
+                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter le Registre">
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
             </div>
@@ -383,7 +383,7 @@ export const Privacy: React.FC = () => {
                                 <div className="p-3 bg-purple-50 dark:bg-slate-800 rounded-2xl text-purple-600 shadow-inner">
                                     <Fingerprint className="h-6 w-6" />
                                 </div>
-                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${activity.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' : 'bg-gray-50 text-gray-600 border-gray-100 dark:bg-white/5 dark:border-white/10 dark:text-gray-400'}`}>
+                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${activity.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' : 'bg-gray-50 text-slate-600 border-gray-100 dark:bg-white/5 dark:border-white/10 dark:text-slate-400'}`}>
                                     {activity.status}
                                 </span>
                             </div>
@@ -580,10 +580,10 @@ export const Privacy: React.FC = () => {
                                                 <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                             </span>
                                             <div>
-                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                 <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
                                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                <p className="text-[10px] text-gray-400 mt-1">Par: {log.userEmail}</p>
+                                                <p className="text-[10px] text-slate-400 mt-1">Par: {log.userEmail}</p>
                                             </div>
                                         </div>
                                     ))}

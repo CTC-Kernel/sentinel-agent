@@ -477,13 +477,13 @@ export const Suppliers: React.FC = () => {
             />
 
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className="h-5 w-5 text-slate-400" />
                 <input type="text" placeholder="Rechercher un fournisseur..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                     value={filter} onChange={e => setFilter(e.target.value)} />
-                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
+                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
-                <button onClick={handleExportDORARegister} className="p-2.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors ml-2" title="Exporter Registre DORA">
+                <button onClick={handleExportDORARegister} className="p-2.5 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors ml-2" title="Exporter Registre DORA">
                     <ShieldAlert className="h-4 w-4" />
                 </button>
                 <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm ml-2">
@@ -531,7 +531,7 @@ export const Suppliers: React.FC = () => {
                                                 <td className="px-8 py-5">
                                                     <div className="font-bold text-slate-900 dark:text-white text-[15px]">{supplier.name}</div>
                                                     {supplier.isICTProvider && (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 mt-1">
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-slate-900/30 dark:text-indigo-300 mt-1">
                                                             DORA ICT
                                                         </span>
                                                     )}
@@ -570,7 +570,7 @@ export const Suppliers: React.FC = () => {
                                                     ) : <span className="text-slate-400">-</span>}
                                                 </td>
                                                 <td className="px-6 py-5">
-                                                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                                                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-slate-600 border-gray-200'}`}>
                                                         {supplier.status}
                                                     </span>
                                                 </td>
@@ -618,7 +618,7 @@ export const Suppliers: React.FC = () => {
                             return (
                                 <div key={supplier.id} onClick={() => openInspector(supplier)} className="glass-panel rounded-[2.5rem] border border-white/50 dark:border-white/5 p-7 shadow-sm card-hover relative group cursor-pointer flex flex-col h-full">
                                     <div className="flex justify-between items-start mb-5">
-                                        <div className="p-3 bg-indigo-50 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
+                                        <div className="p-3 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
                                             {supplier.category === 'Matériel' ? <Truck className="h-6 w-6" /> : <Building className="h-6 w-6" />}
                                         </div>
                                         <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
@@ -628,9 +628,9 @@ export const Suppliers: React.FC = () => {
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{supplier.name}</h3>
                                     <div className="flex flex-wrap gap-2 mb-6">
                                         <span className="px-2.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">{supplier.category}</span>
-                                        <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-gray-600 border-gray-200'}`}>{supplier.status}</span>
+                                        <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-slate-600 border-gray-200'}`}>{supplier.status}</span>
                                         {supplier.isICTProvider && (
-                                            <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
+                                            <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-slate-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
                                         )}
                                     </div>
 
@@ -660,7 +660,7 @@ export const Suppliers: React.FC = () => {
                                             <FileText className="h-3.5 w-3.5 mr-2 text-slate-400" />
                                             {linkedDoc ? (
                                                 <span className="text-brand-600 truncate max-w-[180px] hover:underline">{linkedDoc.title}</span>
-                                            ) : <span className="text-gray-400 italic">Aucun contrat lié</span>}
+                                            ) : <span className="text-slate-400 italic">Aucun contrat lié</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -739,7 +739,7 @@ export const Suppliers: React.FC = () => {
                                                 <div className="flex items-center mb-3 text-sm font-medium text-slate-900 dark:text-white"><Handshake className="h-4 w-4 mr-3 text-slate-400" /> {selectedSupplier.contactName}</div>
                                                 <div className="flex items-center text-sm font-medium text-slate-900 dark:text-white"><Mail className="h-4 w-4 mr-3 text-slate-400" /> {selectedSupplier.contactEmail}</div>
                                             </div>
-                                            <div className="p-6 bg-blue-50/80 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm">
+                                            <div className="p-6 bg-blue-50/80 dark:bg-slate-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm">
                                                 <div className="flex justify-between items-center mb-4">
                                                     <div className="flex items-center text-blue-700 dark:text-blue-300 text-sm font-bold">
                                                         <FileText className="h-5 w-5 mr-3" />
@@ -759,7 +759,7 @@ export const Suppliers: React.FC = () => {
                                             </div>
 
                                             {selectedSupplier.isICTProvider && (
-                                                <div className="p-6 bg-indigo-50/80 dark:bg-indigo-900/10 rounded-3xl border border-indigo-100 dark:border-indigo-900/30 shadow-sm">
+                                                <div className="p-6 bg-indigo-50/80 dark:bg-slate-900/10 rounded-3xl border border-indigo-100 dark:border-indigo-900/30 shadow-sm">
                                                     <h4 className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-4 flex items-center">
                                                         <ShieldAlert className="h-4 w-4 mr-2" /> DORA Status
                                                     </h4>
@@ -815,7 +815,7 @@ export const Suppliers: React.FC = () => {
                                                         </div>
                                                     ))}
                                                     {assetsRaw.filter(a => a.supplierId === selectedSupplier.id || selectedSupplier.relatedAssetIds?.includes(a.id)).length === 0 && (
-                                                        <p className="text-sm text-gray-400 italic">Aucun actif associé.</p>
+                                                        <p className="text-sm text-slate-400 italic">Aucun actif associé.</p>
                                                     )}
                                                 </div>
                                             </div>
@@ -833,13 +833,13 @@ export const Suppliers: React.FC = () => {
                                                         </div>
                                                     ))}
                                                     {risksRaw.filter(r => r.relatedSupplierIds?.includes(selectedSupplier.id) || selectedSupplier.relatedRiskIds?.includes(r.id)).length === 0 && (
-                                                        <p className="text-sm text-gray-400 italic">Aucun risque associé.</p>
+                                                        <p className="text-sm text-slate-400 italic">Aucun risque associé.</p>
                                                     )}
                                                 </div>
                                             </div>
 
                                             {/* Linked Projects */}
-                                            <div className="p-6 bg-blue-50/50 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm mt-6">
+                                            <div className="p-6 bg-blue-50/50 dark:bg-slate-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm mt-6">
                                                 <h4 className="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-4 flex items-center">
                                                     <FileSpreadsheet className="h-4 w-4 mr-2" /> Projets Associés ({projectsRaw.filter(p => selectedSupplier.relatedProjectIds?.includes(p.id)).length})
                                                 </h4>
@@ -851,7 +851,7 @@ export const Suppliers: React.FC = () => {
                                                         </div>
                                                     ))}
                                                     {projectsRaw.filter(p => selectedSupplier.relatedProjectIds?.includes(p.id)).length === 0 && (
-                                                        <p className="text-sm text-gray-400 italic">Aucun projet associé.</p>
+                                                        <p className="text-sm text-slate-400 italic">Aucun projet associé.</p>
                                                     )}
                                                 </div>
                                             </div>
@@ -901,7 +901,7 @@ export const Suppliers: React.FC = () => {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <p className="text-sm text-gray-500 italic text-center py-4">Mode lecture seule. Contactez un administrateur pour modifier.</p>
+                                                <p className="text-sm text-slate-500 italic text-center py-4">Mode lecture seule. Contactez un administrateur pour modifier.</p>
                                             )}
 
                                             {isEditing && (
@@ -917,17 +917,17 @@ export const Suppliers: React.FC = () => {
                             {
                                 inspectorTab === 'history' && (
                                     <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                        {supplierHistory.length === 0 ? <p className="text-sm text-gray-500 pl-6">Aucun historique récent.</p> :
+                                        {supplierHistory.length === 0 ? <p className="text-sm text-slate-500 pl-6">Aucun historique récent.</p> :
                                             supplierHistory.map((log, i) => (
                                                 <div key={i} className="relative">
                                                     <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
                                                         <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                                     </span>
                                                     <div>
-                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                         <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
                                                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                        <p className="text-[10px] text-gray-400 mt-1">Par: {log.userEmail}</p>
+                                                        <p className="text-[10px] text-slate-400 mt-1">Par: {log.userEmail}</p>
                                                     </div>
                                                 </div>
                                             ))}

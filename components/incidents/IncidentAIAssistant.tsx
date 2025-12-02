@@ -67,7 +67,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
                         <button
                             onClick={handleAnalyzeIncident}
                             disabled={analyzing}
-                            className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
                             title="Relancer l'analyse"
                         >
                             <Loader2 className={`h-4 w-4 ${analyzing ? 'animate-spin' : ''}`} />

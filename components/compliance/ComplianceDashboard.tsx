@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Control } from '../../types';
-import { CheckCircle2, XCircle, Clock, AlertTriangle, TrendingUp } from '../ui/Icons';
+import { Clock, AlertTriangle, TrendingUp, ShieldAlert, CheckCircle2 } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { StatsService } from '../../services/statsService';
 import { useStore } from '../../store';
@@ -53,7 +53,6 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
     }, [user?.organizationId]);
 
     // Calculate metrics
-    // Calculate metrics
     const totalControls = controls.length;
     const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
     const inProgressControls = controls.filter(c => c.status === 'Partiel').length;
@@ -61,9 +60,22 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
     const notApplicableControls = controls.filter(c => c.status === 'Non applicable').length;
 
     const complianceRate = totalControls > 0 ? (implementedControls / totalControls * 100) : 0;
-    const progressRate = totalControls > 0 ? ((implementedControls + inProgressControls) / totalControls * 100) : 0;
+    const globalScore = complianceRate;
 
-    // Status distribution
+    const calculateScore = (fw: string) => {
+        const fwControls = controls.filter(c => c.framework === fw);
+        if (fwControls.length === 0) return 0;
+        const implemented = fwControls.filter(c => c.status === 'Implémenté').length;
+        return (implemented / fwControls.length) * 100;
+    };
+
+    const isoScore = calculateScore('ISO27001');
+    const rgpdScore = calculateScore('GDPR');
+    const doraScore = calculateScore('DORA');
+
+    const alertsCount = notImplementedControls;
+    const inProgressCount = inProgressControls;
+
     // Status distribution
     const statusData = [
         { name: 'Implémenté', value: implementedControls, color: chartTheme.colors.implemented },
@@ -72,7 +84,6 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
         { name: 'Non applicable', value: notApplicableControls, color: chartTheme.colors.notApplicable }
     ];
 
-    // Group by Annex A domain
     // Group by Domain (A.5 or NIS2.1)
     const domainData = controls.reduce((acc, control) => {
         const parts = control.code.split('.');
@@ -108,62 +119,98 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
     return (
         <div className="space-y-6">
-            {/* Metrics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {/* Compliance Rate */}
-                <div
-                    onClick={() => onFilterChange?.('Implémenté')}
-                    className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 p-6 rounded-2xl border border-emerald-100 dark:border-emerald-900/30 cursor-pointer hover:scale-[1.02] transition-transform shadow-sm"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Conformité</span>
-                        <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            {/* Summary Card */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+
+                {/* Global Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                                className="text-slate-100 dark:text-slate-800"
+                                strokeWidth="8"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                            <circle
+                                className="text-brand-600 transition-all duration-1000 ease-out"
+                                strokeWidth="8"
+                                strokeDasharray={276}
+                                strokeDashoffset={276 - (276 * globalScore) / 100}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">{globalScore.toFixed(0)}%</span>
+                        </div>
                     </div>
-                    <div className="flex items-end gap-2">
-                        <div className="text-3xl font-bold text-emerald-800 dark:text-emerald-200">{complianceRate.toFixed(0)}%</div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Score de Conformité</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">Niveau global de conformité sur tous les référentiels actifs.</p>
                         {trend !== undefined && (
-                            <div className={`text-xs font-bold mb-1.5 px-2 py-0.5 rounded-full ${trend >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
-                                {trend > 0 ? '+' : ''}{trend}%
+                            <div className={`text-xs font-bold mt-2 px-2 py-0.5 rounded-full w-fit ${trend >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
+                                {trend > 0 ? '+' : ''}{trend}% vs 30j
                             </div>
                         )}
                     </div>
-                    <div className="text-xs text-emerald-600/80 dark:text-emerald-400/80 mt-1 font-medium">{implementedControls}/{totalControls} contrôles</div>
                 </div>
 
-                {/* In Progress */}
-                <div
-                    onClick={() => onFilterChange?.('Partiel')}
-                    className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 cursor-pointer hover:scale-[1.02] transition-transform shadow-sm"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">En Cours</span>
-                        <Clock className="h-5 w-5 text-amber-500" />
+                {/* Framework Breakdown */}
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div className="text-center">
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">ISO 27001</div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{Math.round(isoScore)}%</div>
+                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${isoScore}%` }}></div>
+                        </div>
                     </div>
-                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{inProgressControls}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{((inProgressControls / totalControls) * 100).toFixed(0)}% du total</div>
+                    <div className="text-center">
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">RGPD</div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{Math.round(rgpdScore)}%</div>
+                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                            <div className="h-full bg-purple-500 rounded-full" style={{ width: `${rgpdScore}%` }}></div>
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">DORA</div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{Math.round(doraScore)}%</div>
+                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${doraScore}%` }}></div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Not Implemented */}
-                <div
-                    onClick={() => onFilterChange?.('Non commencé')}
-                    className="bg-gradient-to-br from-rose-50 to-red-50 dark:from-rose-900/10 dark:to-red-900/10 p-6 rounded-2xl border border-rose-100 dark:border-rose-900/30 cursor-pointer hover:scale-[1.02] transition-transform shadow-sm"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">À Implémenter</span>
-                        <XCircle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    <div
+                        onClick={() => onFilterChange?.('Non commencé')}
+                        className="flex items-center justify-between p-2.5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                    >
+                        <div className="flex items-center gap-2">
+                            <ShieldAlert className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            <span className="text-xs font-bold text-red-700 dark:text-red-300">Non-conformités</span>
+                        </div>
+                        <span className="text-sm font-black text-red-700 dark:text-red-400">{alertsCount}</span>
                     </div>
-                    <div className="text-3xl font-bold text-rose-800 dark:text-rose-200">{notImplementedControls}</div>
-                    <div className="text-xs text-rose-600/80 dark:text-rose-400/80 mt-1 font-medium">Priorité haute</div>
-                </div>
-
-                {/* Progress Rate */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Progression</span>
-                        <TrendingUp className="h-5 w-5 text-purple-500" />
+                    <div
+                        onClick={() => onFilterChange?.('Partiel')}
+                        className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                    >
+                        <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">En cours</span>
+                        </div>
+                        <span className="text-sm font-black text-amber-700 dark:text-amber-400">{inProgressCount}</span>
                     </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">{progressRate.toFixed(0)}%</div>
-                    <div className="text-xs text-slate-500 mt-1">Implémenté + En cours</div>
                 </div>
             </div>
 

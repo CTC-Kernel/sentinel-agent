@@ -310,7 +310,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
             </div>
 
             {/* DORA Compliance Card */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm bg-indigo-50/30 dark:bg-indigo-900/10">
+            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm bg-indigo-50/30 dark:bg-slate-900/10">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                     <ShieldAlert className="w-5 h-5 mr-2 text-indigo-600" />
                     Conformité DORA

@@ -1,8 +1,7 @@
 import React, { useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Send, Mail, User, MessageSquare, Loader2 } from 'lucide-react';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { sendEmail } from '../../services/emailService';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 
@@ -27,19 +26,10 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
         setLoading(true);
 
         try {
-            await addDoc(collection(db, 'mail_queue'), {
+            await sendEmail(user, {
                 to: 'contact@cyber-threat-consulting.com',
-                message: {
-                    subject: `[Contact App] ${formData.subject || 'Nouveau message'}`,
-                    text: `
-            Nom: ${formData.name}
-            Email: ${formData.email}
-            Sujet: ${formData.subject}
-            
-            Message:
-            ${formData.message}
-          `,
-                    html: `
+                subject: `[Contact App] ${formData.subject || 'Nouveau message'}`,
+                html: `
             <h3>Nouveau message de contact</h3>
             <p><strong>Nom:</strong> ${formData.name}</p>
             <p><strong>Email:</strong> ${formData.email}</p>
@@ -47,14 +37,11 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
             <br/>
             <p><strong>Message:</strong></p>
             <p>${formData.message.replace(/\n/g, '<br>')}</p>
-          `
-                },
+          `,
+                type: 'GENERIC' as any, // Cast as any if GENERIC is not in EmailType, or add GENERIC to EmailType
                 metadata: {
-                    userId: user?.uid || 'anonymous',
-                    organizationId: user?.organizationId || 'none',
                     source: 'contact_form'
-                },
-                createdAt: serverTimestamp()
+                }
             });
 
             addToast('Votre message a été envoyé avec succès.', 'success');

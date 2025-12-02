@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ShieldAlert, CalendarDays, Search, FileSpreadsheet, Siren, Trash2, LayoutGrid, List } from '../ui/Icons';
+import { ShieldAlert, CalendarDays, Search, FileSpreadsheet, Siren, Trash2, LayoutGrid, List, CheckCircle2 } from '../ui/Icons';
 import { Incident, Criticality } from '../../types';
 import { useStore } from '../../store';
 import { EmptyState } from '../ui/EmptyState';
@@ -54,27 +54,116 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             case Criticality.CRITICAL: return 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50 shadow-red-500/10';
             case Criticality.HIGH: return 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800/50 shadow-orange-500/10';
             case Criticality.MEDIUM: return 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50 shadow-amber-500/10';
-            default: return 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50 shadow-blue-500/10';
+            default: return 'bg-blue-50 dark:bg-slate-900 text-blue-700 dark:bg-slate-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50 shadow-blue-500/10';
         }
     };
 
     const getStatusColor = (s: string) => {
         switch (s) {
             case 'Nouveau': return 'text-purple-600 bg-purple-50 dark:bg-purple-900/20';
-            case 'Analyse': return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20';
+            case 'Analyse': return 'text-blue-600 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20';
             case 'Contenu': return 'text-amber-600 bg-amber-50 dark:bg-amber-900/20';
             case 'Résolu': return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20';
             case 'Fermé': return 'text-slate-500 bg-slate-100 dark:bg-slate-800 line-through decoration-slate-400';
-            default: return 'text-gray-600 bg-gray-50';
+            default: return 'text-slate-600 bg-gray-50';
         }
     };
 
+    // Metrics for Summary Card
+    const totalIncidents = incidents.length;
+    const openIncidents = incidents.filter(i => i.status !== 'Résolu' && i.status !== 'Fermé').length;
+    const criticalIncidents = incidents.filter(i => i.severity === Criticality.CRITICAL && (i.status !== 'Résolu' && i.status !== 'Fermé')).length;
+    const resolutionRate = totalIncidents > 0
+        ? Math.round(((totalIncidents - openIncidents) / totalIncidents) * 100)
+        : 100;
+
     return (
         <div className="space-y-8 animate-fade-in pb-10">
+            {/* Summary Card */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group">
+                {/* Global Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                                cx="48"
+                                cy="48"
+                                r="40"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                className="text-slate-200 dark:text-slate-700"
+                            />
+                            <circle
+                                cx="48"
+                                cy="48"
+                                r="40"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                strokeDasharray={251.2}
+                                strokeDashoffset={251.2 - (251.2 * resolutionRate) / 100}
+                                className="text-emerald-500 transition-all duration-1000 ease-out"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">{resolutionRate}%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Taux de Résolution</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                            Pourcentage d'incidents résolus ou fermés.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Key Metrics Breakdown */}
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Incidents</div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{totalIncidents}</div>
+                    </div>
+                    <div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">En Cours</div>
+                        <div className={`text-2xl font-bold ${openIncidents > 0 ? 'text-orange-500' : 'text-slate-900 dark:text-white'}`}>
+                            {openIncidents}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Critiques</div>
+                        <div className={`text-2xl font-bold ${criticalIncidents > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
+                            {criticalIncidents}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    {criticalIncidents > 0 && (
+                        <div className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl border border-red-100 dark:border-red-800/30">
+                            <ShieldAlert className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">{criticalIncidents} critiques ouverts</span>
+                        </div>
+                    )}
+                    {openIncidents > 0 && criticalIncidents === 0 && (
+                        <div className="flex items-center gap-3 text-sm text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-3 py-2 rounded-xl border border-orange-100 dark:border-orange-800/30">
+                            <Siren className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">{openIncidents} incidents actifs</span>
+                        </div>
+                    )}
+                    {openIncidents === 0 && (
+                        <div className="flex items-center gap-3 text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
+                            <CheckCircle2 className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">Aucun incident actif</span>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             {/* Search Bar */}
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className="h-5 w-5 text-slate-400" />
                 <input
                     type="text"
                     placeholder="Rechercher un incident..."
@@ -84,7 +173,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 />
                 <button
                     onClick={handleExportCSV}
-                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
                     title="Exporter CSV"
                 >
                     <FileSpreadsheet className="h-4 w-4" />

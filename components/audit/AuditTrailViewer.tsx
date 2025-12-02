@@ -128,7 +128,7 @@ export const AuditTrailViewer: React.FC = () => {
     const getActionColor = (action: string) => {
         switch (action) {
             case 'create': return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
-            case 'update': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
+            case 'update': return 'bg-blue-100 text-blue-700 dark:bg-slate-900/20 dark:text-blue-400';
             case 'delete': return 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400';
             default: return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
         }

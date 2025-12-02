@@ -67,55 +67,93 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
 
     return (
         <div className="space-y-6">
-            {/* Metrics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {/* Total Assets */}
-                <div
-                    onClick={() => onFilterChange?.(null)}
-                    className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 cursor-pointer hover:scale-[1.02] transition-transform"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Total Actifs</span>
-                        <Server className="h-5 w-5 text-blue-500" />
+            {/* Summary Card */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group mb-8">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+
+                {/* Global Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                                className="text-slate-100 dark:text-slate-800"
+                                strokeWidth="8"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                            <circle
+                                className={`${depreciation <= 20 ? 'text-emerald-500' : depreciation <= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
+                                strokeWidth="8"
+                                strokeDasharray={276}
+                                strokeDashoffset={276 - (276 * (100 - depreciation)) / 100}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">{Math.round(100 - depreciation)}%</span>
+                        </div>
                     </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{totalAssets}</div>
-                    <div className="text-xs text-slate-500 mt-1">Inventaire complet</div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Santé du Parc</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                            Basé sur l'amortissement et la maintenance.
+                        </p>
+                    </div>
                 </div>
 
-                {/* Critical Assets */}
-                <div
-                    onClick={() => onFilterChange?.({ type: 'criticality', value: 'Critique' })}
-                    className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 p-6 rounded-2xl border border-red-200 dark:border-red-800 cursor-pointer hover:scale-[1.02] transition-transform"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-red-700 dark:text-red-400">Critiques</span>
-                        <ShieldAlert className="h-5 w-5 text-red-600 dark:text-red-400" />
+                {/* Key Metrics Breakdown */}
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.(null)}>
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <Server className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{totalAssets}</div>
                     </div>
-                    <div className="text-3xl font-bold text-red-700 dark:text-red-400">{criticalAssets}</div>
-                    <div className="text-xs text-red-600 dark:text-red-500 mt-1">Haute sécurité requise</div>
+                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.({ type: 'criticality', value: 'Critique' })}>
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <ShieldAlert className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Critiques</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{criticalAssets}</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <Euro className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Valeur</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{(currentValue / 1000).toFixed(0)}k€</div>
+                    </div>
                 </div>
 
-                {/* Maintenance Due */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Maintenance (30j)</span>
-                        <Wrench className="h-5 w-5 text-orange-500" />
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    <div className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                        <div className="flex items-center gap-2">
+                            <Wrench className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">Maintenance</span>
+                        </div>
+                        <span className="text-sm font-black text-amber-700 dark:text-amber-400">{maintenanceDue}</span>
                     </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{maintenanceDue}</div>
-                    <div className="text-xs text-slate-500 mt-1">Actions requises</div>
-                </div>
-
-                {/* Financial Value */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Valeur Totale</span>
-                        <Euro className="h-5 w-5 text-emerald-500" />
+                    <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                        <div className="flex items-center gap-2">
+                            <Server className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Nouveaux</span>
+                        </div>
+                        <span className="text-sm font-black text-blue-700 dark:text-blue-400">
+                            {assets.filter(a => a.purchaseDate && (new Date().getTime() - new Date(a.purchaseDate).getTime()) < 2592000000).length}
+                        </span>
                     </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white">{(totalValue / 1000).toFixed(1)}k€</div>
-                    <div className="text-xs text-slate-500 mt-1">Dépréciation: {depreciation.toFixed(0)}%</div>
                 </div>
             </div>
-
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Criticality Distribution */}

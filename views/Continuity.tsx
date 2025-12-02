@@ -77,6 +77,20 @@ export const Continuity: React.FC = () => {
     const watchedDrillType = useWatch({ control: drillForm.control, name: 'type' });
     const watchedDrillProcessId = useWatch({ control: drillForm.control, name: 'processId' });
 
+    // Metrics for Summary Card
+    const totalProcesses = processes.length;
+    const criticalProcesses = processes.filter(p => p.priority === 'Critique').length;
+    const testedProcesses = processes.filter(p => {
+        if (!p.lastTestDate) return false;
+        const lastTest = new Date(p.lastTestDate);
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        return lastTest > oneYearAgo;
+    }).length;
+    const coverageRate = totalProcesses > 0 ? (testedProcesses / totalProcesses) * 100 : 0;
+    const overdueTests = totalProcesses - testedProcesses;
+    const failedDrills = drills.filter(d => d.result === 'Échec').length;
+
     const fetchData = useCallback(async () => {
         if (!user?.organizationId) {
             setLoading(false);
@@ -269,7 +283,7 @@ export const Continuity: React.FC = () => {
             case 'Critique': return 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30';
             case 'Elevée': return 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-900/30';
             case 'Moyenne': return 'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-900/30';
-            default: return 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30';
+            default: return 'bg-blue-50 dark:bg-slate-900 text-blue-700 border-blue-100 dark:bg-slate-900/20 dark:text-blue-400 dark:border-blue-900/30';
         }
     };
 
@@ -292,12 +306,12 @@ export const Continuity: React.FC = () => {
                 icon={<HeartPulse className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
                     <div className="flex gap-3">
-                        <button onClick={handleExportCSV} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                        <button onClick={handleExportCSV} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
                             <FileSpreadsheet className="h-4 w-4 mr-2" /> Export BIA
                         </button>
                         {canEdit && (
                             <>
-                                <button onClick={() => { openDrillModal(); }} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                                <button onClick={() => { openDrillModal(); }} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
                                     <Zap className="h-4 w-4 mr-2 text-amber-500" /> Nouvel Exercice
                                 </button>
                                 <button onClick={() => {
@@ -312,11 +326,97 @@ export const Continuity: React.FC = () => {
                 }
             />
 
+            {/* Summary Card */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group mb-8">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+
+                {/* Global Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                                className="text-slate-100 dark:text-slate-800"
+                                strokeWidth="8"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                            <circle
+                                className={`${coverageRate >= 80 ? 'text-emerald-500' : coverageRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
+                                strokeWidth="8"
+                                strokeDasharray={276}
+                                strokeDashoffset={276 - (276 * coverageRate) / 100}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="44"
+                                cx="48"
+                                cy="48"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">{Math.round(coverageRate)}%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Couverture des Tests</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                            Pourcentage de processus testés au cours des 12 derniers mois.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Key Metrics Breakdown */}
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <HeartPulse className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{totalProcesses}</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <ShieldAlert className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Critiques</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{criticalProcesses}</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <Zap className="h-4 w-4 text-slate-400" />
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Exercices</div>
+                        </div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white">{drills.length}</div>
+                    </div>
+                </div>
+
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    <div className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                        <div className="flex items-center gap-2">
+                            <History className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">Tests Expirés</span>
+                        </div>
+                        <span className="text-sm font-black text-amber-700 dark:text-amber-400">{overdueTests}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30">
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            <span className="text-xs font-bold text-red-700 dark:text-red-300">Échecs</span>
+                        </div>
+                        <span className="text-sm font-black text-red-700 dark:text-red-400">{failedDrills}</span>
+                    </div>
+                </div>
+            </div>
+
             <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit border border-slate-200 dark:border-white/5">
-                <button onClick={() => setActiveTab('bia')} className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'bia' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
+                <button onClick={() => setActiveTab('bia')} className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'bia' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
                     Analyse d'Impact (BIA)
                 </button>
-                <button onClick={() => setActiveTab('drills')} className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'drills' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
+                <button onClick={() => setActiveTab('drills')} className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'drills' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
                     Exercices & Tests
                 </button>
             </div>
@@ -519,7 +619,7 @@ export const Continuity: React.FC = () => {
                                                         <label key={asset.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl cursor-pointer transition-colors">
                                                             <input type="checkbox" checked={editProcessForm.watch('supportingAssetIds')?.includes(asset.id)}
                                                                 onChange={() => toggleAssetSelection(asset.id)} className="rounded text-rose-600 focus:ring-rose-500 border-gray-300" />
-                                                            <span className="text-sm font-medium dark:text-white">{asset.name} <span className="text-xs text-gray-400 ml-1">({asset.type})</span></span>
+                                                            <span className="text-sm font-medium dark:text-white">{asset.name} <span className="text-xs text-slate-400 ml-1">({asset.type})</span></span>
                                                         </label>
                                                     ))}
                                                 </div>
@@ -572,7 +672,7 @@ export const Continuity: React.FC = () => {
                                                                 ) : null;
                                                             })}
                                                         </div>
-                                                    ) : <p className="text-sm text-gray-400 italic">Aucune dépendance déclarée.</p>}
+                                                    ) : <p className="text-sm text-slate-400 italic">Aucune dépendance déclarée.</p>}
                                                 </div>
                                                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                                     <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Fournisseurs Critiques</h4>
@@ -588,7 +688,7 @@ export const Continuity: React.FC = () => {
                                                                 ) : null;
                                                             })}
                                                         </div>
-                                                    ) : <p className="text-sm text-gray-400 italic">Aucun fournisseur lié.</p>}
+                                                    ) : <p className="text-sm text-slate-400 italic">Aucun fournisseur lié.</p>}
                                                 </div>
                                             </div>
                                         </>
@@ -738,7 +838,7 @@ export const Continuity: React.FC = () => {
                                 <div className="space-y-4">
                                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Historique des exercices</h3>
                                     {drills.filter(d => d.processId === selectedProcess.id).length === 0 ? (
-                                        <div className="text-center py-12 text-gray-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic">Aucun test effectué pour ce processus.</div>
+                                        <div className="text-center py-12 text-slate-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic">Aucun test effectué pour ce processus.</div>
                                     ) : (
                                         drills.filter(d => d.processId === selectedProcess.id).map(drill => (
                                             <div key={drill.id} className="bg-white dark:bg-slate-800/50 p-5 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
@@ -762,10 +862,10 @@ export const Continuity: React.FC = () => {
                                                 <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                             </span>
                                             <div>
-                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                 <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
                                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                <p className="text-[10px] text-gray-400 mt-1">Par: {log.userEmail}</p>
+                                                <p className="text-[10px] text-slate-400 mt-1">Par: {log.userEmail}</p>
                                             </div>
                                         </div>
                                     ))}

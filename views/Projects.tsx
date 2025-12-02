@@ -626,21 +626,21 @@ export const Projects: React.FC = () => {
                 )}
             />
 
-            <div className="flex items-center space-x-4 bg-white dark:bg-slate-850 p-4 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-                <Search className="h-5 w-5 text-gray-400" />
+            <div className="flex items-center space-x-4 bg-white dark:bg-slate-850 p-4 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm">
+                <Search className="h-5 w-5 text-slate-400" />
                 <input
                     type="text"
                     placeholder="Rechercher un projet..."
                     className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white"
                     value={filter} onChange={e => setFilter(e.target.value)}
                 />
-                <button onClick={handleExportCSV} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-gray-500 hover:text-slate-900 dark:hover:text-white" title="Exporter CSV">
+                <button onClick={handleExportCSV} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-500 hover:text-slate-900 dark:hover:text-white" title="Exporter CSV">
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
-                <button onClick={exportPDF} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-gray-500 hover:text-slate-900 dark:hover:text-white ml-2" title="Exporter PDF">
+                <button onClick={exportPDF} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-500 hover:text-slate-900 dark:hover:text-white ml-2" title="Exporter PDF">
                     <Download className="h-4 w-4" />
                 </button>
-                <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm ml-2">
+                <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm ml-2">
                     <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
                     <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
                 </div>
@@ -768,7 +768,7 @@ export const Projects: React.FC = () => {
                                 </div>
 
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{project.name}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>
 
                                 <div className="mb-6">
                                     <div className="flex justify-between text-xs mb-1.5 font-medium">
@@ -780,7 +780,7 @@ export const Projects: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center text-xs text-gray-500 mb-4 space-x-4 border-t border-gray-100 dark:border-white/10 pt-4 mt-auto">
+                                <div className="flex items-center text-xs text-slate-500 mb-4 space-x-4 border-t border-gray-100 dark:border-white/10 pt-4 mt-auto">
                                     <div className="flex items-center font-medium">
                                         <CalendarDays className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
                                         {new Date(project.dueDate).toLocaleDateString()}
@@ -1053,7 +1053,7 @@ export const Projects: React.FC = () => {
                             {inspectorTab === 'tasks' && (
                                 <div className="space-y-6 h-full flex flex-col">
                                     <div className="flex justify-between items-center">
-                                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
+                                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700">
                                             <button onClick={() => setTaskViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500'}`}>Liste</button>
                                             <button onClick={() => setTaskViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500'}`}>Tableau</button>
                                         </div>
@@ -1072,13 +1072,13 @@ export const Projects: React.FC = () => {
 
                                     {taskViewMode === 'list' ? (
                                         <div className="space-y-2">
-                                            {selectedProject.tasks?.length === 0 && <p className="text-center text-gray-400 text-xs py-8 italic">Aucune tâche définie.</p>}
+                                            {selectedProject.tasks?.length === 0 && <p className="text-center text-slate-400 text-xs py-8 italic">Aucune tâche définie.</p>}
                                             {selectedProject.tasks?.map(task => (
                                                 <div key={task.id} className="flex items-center p-3 bg-white dark:bg-slate-800/50 rounded-xl border border-gray-100 dark:border-white/5 group hover:shadow-sm transition-all">
                                                     <button onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'}`}>
                                                         {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
                                                     </button>
-                                                    <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-gray-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                    <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
                                                         {task.title}
                                                         {task.dueDate && <span className="ml-2 text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{new Date(task.dueDate).toLocaleDateString()}</span>}
                                                     </span>
@@ -1092,8 +1092,8 @@ export const Projects: React.FC = () => {
                                                                     location: 'Sentinel GRC'
                                                                 }]);
                                                                 downloadICS(`tache_${task.id}.ics`, icsContent);
-                                                            }} className="p-1.5 text-gray-400 hover:text-blue-500 transition-all" title="Ajouter au calendrier"><CalendarDays className="h-3.5 w-3.5" /></button>
-                                                            <button onClick={() => deleteTask(task.id)} className="p-1.5 text-gray-400 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
+                                                            }} className="p-1.5 text-slate-400 hover:text-blue-500 transition-all" title="Ajouter au calendrier"><CalendarDays className="h-3.5 w-3.5" /></button>
+                                                            <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-400 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
                                                         </div>
                                                     )}
                                                 </div>
@@ -1147,10 +1147,10 @@ export const Projects: React.FC = () => {
                                                 <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                             </span>
                                             <div>
-                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                 <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
                                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                <p className="text-[10px] text-gray-400 mt-1">Par: {log.userEmail}</p>
+                                                <p className="text-[10px] text-slate-400 mt-1">Par: {log.userEmail}</p>
                                             </div>
                                         </div>
                                     ))}

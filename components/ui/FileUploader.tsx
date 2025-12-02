@@ -156,7 +156,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 <div className="glass-panel p-4 rounded-xl">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
-                            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-slate-900/30 flex items-center justify-center">
                                 <File className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div className="flex-1 min-w-0">
