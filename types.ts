@@ -75,6 +75,7 @@ export interface Risk {
   createdAt?: string;
   affectedProcessIds?: string[];
   relatedSupplierIds?: string[];
+  relatedProjectIds?: string[];
   history?: RiskHistory[];
   treatment?: RiskTreatment;
   isSecureStorage?: boolean;

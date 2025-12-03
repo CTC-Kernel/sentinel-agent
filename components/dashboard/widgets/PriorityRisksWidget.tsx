@@ -8,13 +8,14 @@ interface PriorityRisksWidgetProps {
     loading: boolean;
     navigate: (path: string) => void;
     t: (key: string) => string;
+    title?: string;
 }
 
-export const PriorityRisksWidget: React.FC<PriorityRisksWidgetProps> = ({ topRisks, loading, navigate, t }) => {
+export const PriorityRisksWidget: React.FC<PriorityRisksWidgetProps> = ({ topRisks, loading, navigate, t, title }) => {
     return (
         <div className="glass-panel p-0 rounded-[2rem] lg:col-span-2 overflow-hidden shadow-sm group hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
-                <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.priorityRisks')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.topCriticality')}</p></div>
+                <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{title || t('dashboard.priorityRisks')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.topCriticality')}</p></div>
                 <div className="p-2 bg-red-500/10 rounded-xl"><Flame className="w-5 h-5 text-red-500" /></div>
             </div>
             <div className="p-8 space-y-3 bg-white/40 dark:bg-transparent">

@@ -835,15 +835,17 @@ export const Risks: React.FC = () => {
                     { label: 'Risques' }
                 ]}
                 icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                actions={canEdit && (
+                actions={(
                     <>
-                        <button
-                            onClick={() => setShowTemplateModal(true)}
-                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
-                        >
-                            <Download className="h-4 w-4 mr-2" />
-                            Importer Template
-                        </button>
+                        {canEdit && (
+                            <button
+                                onClick={() => setShowTemplateModal(true)}
+                                className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+                            >
+                                <Download className="h-4 w-4 mr-2" />
+                                Importer Template
+                            </button>
+                        )}
 
                         <button
                             onClick={handleGenerateReport}
@@ -853,17 +855,21 @@ export const Risks: React.FC = () => {
                             Rapport PDF
                         </button>
 
-                        <button
-                            onClick={handleAIAnalysis}
-                            className="flex items-center px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
-                        >
-                            <BrainCircuit className="h-4 w-4 mr-2" />
-                            Analyse IA
-                        </button>
-                        <button onClick={openCreationDrawer} className="flex items-center space-x-2 px-4 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
-                            <Plus className="w-5 h-5" />
-                            <span>Nouveau Risque</span>
-                        </button>
+                        {canEdit && (
+                            <>
+                                <button
+                                    onClick={handleAIAnalysis}
+                                    className="flex items-center px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
+                                >
+                                    <BrainCircuit className="h-4 w-4 mr-2" />
+                                    Analyse IA
+                                </button>
+                                <button onClick={openCreationDrawer} className="flex items-center space-x-2 px-4 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
+                                    <Plus className="w-5 h-5" />
+                                    <span>Nouveau Risque</span>
+                                </button>
+                            </>
+                        )}
                     </>
                 )}
             />
@@ -882,7 +888,7 @@ export const Risks: React.FC = () => {
                     <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                     <button onClick={generateRTP} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Download className="h-4 w-4 mr-2" /> RTP (PDF)</button>
                     <button onClick={exportPDF} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><FileText className="h-4 w-4 mr-2" /> Registre (PDF)</button>
-                    <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>
+                    {canEdit && <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>}
                     <button onClick={handleExportCSV} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"><FileSpreadsheet className="h-4 w-4" /></button>
                     <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm ml-2">
                         <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>

@@ -10,7 +10,7 @@ import { AIAssistButton } from '../components/ai/AIAssistButton';
 import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk, Project } from '../types';
-import { canEditResource, canDeleteResource } from '../utils/permissions';
+import { canEditResource, canDeleteResource, hasPermission } from '../utils/permissions';
 import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
 import { QuestionnaireList } from '../components/audits/QuestionnaireList';
 import { AuditTeam } from '../components/audits/AuditTeam';
@@ -865,10 +865,12 @@ export const Audits: React.FC = () => {
                 ]}
                 icon={<ClipboardCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={canEdit && (
-                    <button onClick={() => openCreationDrawer()} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
-                        <Plus className="w-5 h-5" />
-                        <span>Nouvel Audit</span>
-                    </button>
+                    hasPermission(user, 'Audit', 'create') && (
+                        <button onClick={() => openCreationDrawer()} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
+                            <Plus className="w-5 h-5" />
+                            <span>Nouvel Audit</span>
+                        </button>
+                    )
                 )}
             />
 
@@ -926,8 +928,8 @@ export const Audits: React.FC = () => {
                                                 icon={Activity}
                                                 title="Aucun audit planifié"
                                                 description={filter ? "Aucun audit ne correspond à votre recherche." : "Planifiez des audits réguliers pour assurer la conformité continue."}
-                                                actionLabel={filter ? undefined : "Planifier un audit"}
-                                                onAction={filter ? undefined : () => openCreationDrawer()}
+                                                actionLabel={filter || !hasPermission(user, 'Audit', 'create') ? undefined : "Planifier un audit"}
+                                                onAction={filter || !hasPermission(user, 'Audit', 'create') ? undefined : () => openCreationDrawer()}
                                             />
                                         </td>
                                     </tr>
