@@ -101,7 +101,7 @@ export const Documents: React.FC = () => {
         if (loading || documents.length === 0) return;
         const doc = documents.find(d => d.id === state.voxelSelectedId);
         if (doc && selectedDocument?.id !== doc.id) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+             
             setSelectedDocument(doc);
         }
     }, [location.state, loading, documents, selectedDocument]);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useForm, useWatch, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { documentSchema, DocumentFormData } from '../../schemas/documentSchema';
 import { UserProfile, Control, Asset, Audit, Document, DocumentFolder } from '../../types';
@@ -51,7 +51,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     const [uploadedFileSecure, setUploadedFileSecure] = useState<boolean>(initialData?.isSecure || false);
 
     const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm<DocumentFormData>({
-        resolver: zodResolver(documentSchema) as any,
+        resolver: zodResolver(documentSchema) as Resolver<DocumentFormData>,
         defaultValues: {
             title: initialData?.title || '',
             type: initialData?.type || 'Politique',
@@ -136,7 +136,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                         label="Type"
                         options={['Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(t => ({ value: t, label: t }))}
                         value={watch('type') || 'Politique'}
-                        onChange={(val) => setValue('type', val as any)}
+                        onChange={(val) => setValue('type', val as DocumentFormData['type'])}
                         error={errors.type?.message}
                     />
                     <FloatingLabelInput
@@ -151,7 +151,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                         label="Statut"
                         options={['Brouillon', 'En revue', 'Approuvé', 'Rejeté', 'Publié', 'Obsolète'].map(s => ({ value: s, label: s }))}
                         value={watch('status') || 'Brouillon'}
-                        onChange={(val) => setValue('status', val as any)}
+                        onChange={(val) => setValue('status', val as DocumentFormData['status'])}
                         error={errors.status?.message}
                     />
                     <CustomSelect
@@ -253,7 +253,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                 { value: 'sharepoint', label: 'SharePoint' }
                             ]}
                             value={watch('storageProvider') || 'firebase'}
-                            onChange={(val) => setValue('storageProvider', val as any)}
+                            onChange={(val) => setValue('storageProvider', val as DocumentFormData['storageProvider'])}
                         />
                     </div>
 

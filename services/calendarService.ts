@@ -9,12 +9,28 @@ export interface CalendarEvent {
     start: Date;
     end: Date;
     allDay?: boolean;
-    resource?: any;
-    type: 'audit' | 'drill' | 'project' | 'maintenance' | 'incident' | 'compliance';
+    resource?: unknown;
+    type: 'audit' | 'drill' | 'project' | 'maintenance' | 'incident' | 'compliance' | 'google';
     color: string;
     description?: string;
     location?: string;
     status?: string;
+}
+
+interface CreateEventData {
+    type: 'audit' | 'project' | 'drill' | 'maintenance' | 'incident' | 'compliance';
+    title: string;
+    start: Date;
+    end: Date;
+    description?: string;
+    linkedAssetIds?: string[];
+    linkedRiskIds?: string[];
+    subType?: string;
+    auditor?: string;
+    manager?: string;
+    technician?: string;
+    processId?: string;
+    [key: string]: unknown;
 }
 
 export const CalendarService = {
@@ -143,7 +159,7 @@ export const CalendarService = {
     /**
      * Creates an event in the appropriate Firestore collection based on type.
      */
-    createEvent: async (eventData: any, organizationId: string, userId: string) => {
+    createEvent: async (eventData: CreateEventData, organizationId: string, userId: string) => {
         try {
             const { type, title, start, end, description, linkedAssetIds, linkedRiskIds, ...rest } = eventData;
 

@@ -2,6 +2,24 @@ import { CalendarEvent } from './calendarService';
 
 const GOOGLE_CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3';
 
+interface GoogleCalendarEventResource {
+    id: string;
+    summary?: string;
+    description?: string;
+    location?: string;
+    status?: string;
+    start: { dateTime?: string; date?: string };
+    end: { dateTime?: string; date?: string };
+}
+
+interface CreateGoogleEventInput {
+    title: string;
+    description?: string;
+    location?: string;
+    start: Date;
+    end: Date;
+}
+
 export const GoogleCalendarService = {
     /**
      * List events from the user's primary calendar.
@@ -28,11 +46,11 @@ export const GoogleCalendarService = {
 
             const data = await response.json();
 
-            return data.items.map((item: any) => ({
+            return data.items.map((item: GoogleCalendarEventResource) => ({
                 id: item.id,
                 title: item.summary || 'Sans titre',
-                start: new Date(item.start.dateTime || item.start.date),
-                end: new Date(item.end.dateTime || item.end.date),
+                start: new Date(item.start.dateTime || item.start.date || ''),
+                end: new Date(item.end.dateTime || item.end.date || ''),
                 allDay: !item.start.dateTime,
                 type: 'google', // Special type for styling
                 color: 'bg-white border-slate-200 text-slate-600 dark:bg-slate-800 dark:border-white/10 dark:text-slate-300', // Neutral styling
@@ -51,7 +69,7 @@ export const GoogleCalendarService = {
     /**
      * Create a new event in the user's primary calendar.
      */
-    createEvent: async (accessToken: string, event: any) => {
+    createEvent: async (accessToken: string, event: CreateGoogleEventInput) => {
         try {
             const googleEvent = {
                 summary: event.title,

@@ -52,7 +52,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             reader.onload = (e) => {
                 const binary = e.target?.result;
                 if (binary) {
-                    const wordArray = CryptoJS.lib.WordArray.create(binary as any);
+                    const wordArray = CryptoJS.lib.WordArray.create(binary as unknown as ArrayBuffer);
                     const hash = CryptoJS.SHA256(wordArray).toString();
                     resolve(hash);
                 } else {

@@ -81,7 +81,23 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
         if (isOpen) fetchData();
     }, [isOpen, user?.organizationId]);
 
-    const onSubmit = async (data: any) => {
+    interface CreateEventFormData {
+        title: string;
+        description: string;
+        start: string;
+        startTime: string;
+        end: string;
+        endTime: string;
+        subType: string;
+        manager: string;
+        auditor: string;
+        technician: string;
+        linkedAssetIds: string[];
+        linkedRiskIds: string[];
+        allDay: boolean;
+    }
+
+    const onSubmit = async (data: CreateEventFormData) => {
         if (!user?.organizationId || !user?.uid) return;
         setIsSubmitting(true);
 

@@ -21,7 +21,8 @@ export type EmailType =
   | 'JOIN_REQUEST_APPROVED'
   | 'JOIN_REQUEST_REJECTED'
   | 'AUDIT_INVITATION'
-  | 'MAINTENANCE_ALERT';
+  | 'MAINTENANCE_ALERT'
+  | 'GENERIC';
 
 export interface EmailPayload {
   to: string;

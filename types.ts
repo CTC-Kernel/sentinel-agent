@@ -39,7 +39,7 @@ export interface Asset {
   role?: string;
   department?: string;
   hardwareType?: string;
-  hardware?: any;
+  hardware?: Record<string, unknown>;
   notes?: string;
 }
 
