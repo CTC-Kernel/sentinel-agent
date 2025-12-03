@@ -139,18 +139,14 @@ export const scheduleEmail = async (
   scheduledFor: Date
 ) => {
   try {
-    await addDoc(collection(db, 'scheduled_emails'), {
+    const scheduleEmailFn = httpsCallable(functions, 'scheduleEmail');
+    await scheduleEmailFn({
       to: payload.to,
-      message: {
-        subject: payload.subject,
-        html: payload.html,
-      },
+      subject: payload.subject,
+      html: payload.html,
       type: payload.type,
-      metadata: payload.metadata || {},
-      status: 'SCHEDULED',
       scheduledFor: scheduledFor.toISOString(),
-      createdAt: new Date().toISOString(),
-      createdBy: user?.uid || 'system'
+      metadata: payload.metadata || {}
     });
 
     await logAction(user, 'EMAIL_SCHEDULED', 'System', `Email '${payload.type}' programmé pour ${scheduledFor.toLocaleString()}`);
