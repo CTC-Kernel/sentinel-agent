@@ -328,6 +328,122 @@ exports.healMe = onCall(async (request) => {
 //     throw new HttpsError('permission-denied', 'This function is disabled for security reasons.');
 // });
 
+/**
+ * Securely create a new organization and assign the creator as Admin.
+ */
+exports.createOrganization = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in to create an organization.');
+    }
+
+    const { organizationName, industry, department, role, displayName } = request.data;
+    const uid = request.auth.uid;
+    const email = request.auth.token.email;
+
+    if (!organizationName) {
+        throw new HttpsError('invalid-argument', 'Organization name is required.');
+    }
+
+    const db = admin.firestore();
+
+    try {
+        // 1. Check if user already has an organization
+        const userRef = db.collection('users').doc(uid);
+        const userSnap = await userRef.get();
+
+        if (userSnap.exists && userSnap.data().organizationId) {
+            throw new HttpsError('already-exists', 'User already belongs to an organization.');
+        }
+
+        // 2. Generate IDs and Slugs
+        const organizationId = crypto.randomUUID();
+        const slug = organizationName
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '') || organizationId;
+
+        const batch = db.batch();
+
+        // 3. Create Organization Document
+        const orgRef = db.collection('organizations').doc(organizationId);
+        batch.set(orgRef, {
+            id: organizationId,
+            name: organizationName,
+            slug: slug,
+            ownerId: uid,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            industry: industry || '',
+            subscription: {
+                planId: 'discovery',
+                status: 'active',
+                startDate: new Date().toISOString(),
+                stripeCustomerId: null,
+                stripeSubscriptionId: null,
+                currentPeriodEnd: null,
+                cancelAtPeriodEnd: false
+            }
+        });
+
+        // 4. Update User Profile
+        batch.set(userRef, {
+            uid: uid,
+            email: email,
+            role: 'admin', // Enforce Admin role for creator
+            department: department || '',
+            industry: industry || '',
+            displayName: displayName || '',
+            organizationName: organizationName,
+            organizationId: organizationId,
+            photoURL: request.auth.token.picture || null,
+            lastLogin: new Date().toISOString(),
+            onboardingCompleted: true,
+            createdAt: new Date().toISOString(), // Ensure createdAt exists
+            theme: 'light'
+        }, { merge: true });
+
+        await batch.commit();
+
+        // 5. Set Custom Claims IMMEDIATELY
+        await admin.auth().setCustomUserClaims(uid, {
+            organizationId: organizationId,
+            role: 'admin'
+        });
+
+        // 6. Send Welcome Email (Async)
+        // We can reuse the logic from the frontend but run it here securely
+        // For now, we'll let the frontend trigger the email or rely on a separate trigger if needed.
+        // But to be "ultra complete", let's queue it here.
+
+        const link = `${appBaseUrl.value()}/`;
+        const htmlContent = generateEmailHtml({
+            title: `Bienvenue chez ${organizationName}`,
+            content: `<p>Votre espace de travail est prêt. Vous avez désormais un accès administrateur complet.</p>`,
+            actionLabel: "Accéder à mon espace",
+            actionUrl: link
+        });
+
+        await db.collection('mail_queue').add({
+            to: email,
+            message: {
+                subject: 'Bienvenue sur Sentinel GRC',
+                html: htmlContent
+            },
+            type: 'WELCOME_EMAIL',
+            status: 'PENDING',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        return { success: true, organizationId };
+
+    } catch (error) {
+        logger.error('Error creating organization:', error);
+        throw new HttpsError('internal', 'Failed to create organization: ' + error.message);
+    }
+});
+
 // --- STRIPE SUBSCRIPTION LOGIC ---
 
 // Stripe initialized lazily inside functions

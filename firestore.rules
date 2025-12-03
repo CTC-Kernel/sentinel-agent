@@ -90,43 +90,33 @@ service cloud.firestore {
         request.auth.uid == userId || 
         belongsToOrganization(resource.data.organizationId)
       );
-      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // CREATE: Only allow creation if NO role or organizationId is specified (e.g. initial auth hook)
+      // OR if the user is an Admin creating a user for their org.
+      allow create: if isAuthenticated() && (
+        (request.auth.uid == userId && 
+         !('role' in request.resource.data) && 
+         !('organizationId' in request.resource.data)) ||
+        (isAdmin() && request.resource.data.organizationId == getUserData().organizationId)
+      );
+
+      // UPDATE: 
+      // 1. Self-update: Can update profile fields (displayName, photoURL, theme, etc.)
+      //    BUT CANNOT update 'role', 'organizationId', 'organizationName'.
+      // 2. Admin: Can update everything for users in their org.
       allow update: if isAuthenticated() && (
         (
-          request.auth.uid == userId && (
-            // Case 1: Initial Setup (Onboarding) - STRICTER
-            // Only allow setting organizationId if it is NOT currently set
-            // AND the user is creating the organization (must be owner)
-            (
-               (!('organizationId' in resource.data) || resource.data.organizationId == null) &&
-               request.resource.data.organizationId != null &&
-               request.resource.data.role == resource.data.role && // Prevent role change during onboarding
-               // Verify user is owner of the new organization
-               getAfter(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)).data.ownerId == request.auth.uid
-            ) ||
-            
-            // Case 2: Self-update (Profile info only)
-            // Prevent changing sensitive fields: role, organizationId, organizationName
-            (
-              request.resource.data.role == resource.data.role &&
-              request.resource.data.organizationId == resource.data.organizationId &&
-              request.resource.data.organizationName == resource.data.organizationName
-            ) ||
-            
-            // Case 3: Owner Override (Can change profile fields, but NOT organizationId or role)
-            (
-              isOrgOwner(resource.data.organizationId) &&
-              request.resource.data.organizationId == resource.data.organizationId &&
-              request.resource.data.role == resource.data.role
-            )
-          )
+          request.auth.uid == userId && 
+          request.resource.data.role == resource.data.role &&
+          request.resource.data.organizationId == resource.data.organizationId &&
+          request.resource.data.organizationName == resource.data.organizationName
         ) || 
-        // Case 4: Admin/Owner managing other users
         (
           belongsToOrganization(resource.data.organizationId) && 
-          (isAdmin() || isOrgOwner(resource.data.organizationId))
+          isAdmin()
         )
       );
+      
       allow delete: if belongsToOrganization(resource.data.organizationId) && (isAdmin() || isOrgOwner(resource.data.organizationId));
     }
     
