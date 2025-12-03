@@ -1,7 +1,7 @@
 import React from 'react';
 import { Incident } from '../../types';
 import { CheckCircle2, Circle } from '../ui/Icons';
-import { PLAYBOOKS } from '../../data/incidentPlaybooks';
+import { PLAYBOOKS } from '../../data/incidentConstants';
 
 interface IncidentPlaybookProps {
     incident: Incident;

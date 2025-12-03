@@ -9,6 +9,7 @@ import { projectSchema, ProjectFormData } from '../../schemas/projectSchema';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { Button } from '../ui/button';
+import { PROJECT_STATUSES } from '../../data/projectConstants';
 
 interface ProjectFormProps {
     onSubmit: (project: ProjectFormData) => void;
@@ -151,7 +152,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                                     label="Statut"
                                     value={field.value || 'Planifié'}
                                     onChange={field.onChange}
-                                    options={['Planifié', 'En cours', 'Terminé', 'En pause'].map(s => ({ value: s, label: s }))}
+                                    options={PROJECT_STATUSES.map(s => ({ value: s, label: s }))}
                                 />
                             )}
                         />
