@@ -17,6 +17,7 @@ import { ProjectForm } from '../components/projects/ProjectForm';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { NotificationService } from '../services/notificationService';
+import { getPlanLimits } from '../config/plans';
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PdfService } from '../services/PdfService';
@@ -47,7 +48,7 @@ import { usePersistedState } from '../hooks/usePersistedState';
 export const Projects: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, addToast } = useStore();
+    const { user, addToast, organization } = useStore();
 
     // Data Fetching with Hooks
     const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>(
@@ -391,11 +392,16 @@ export const Projects: React.FC = () => {
     const generateReport = () => {
         if (!selectedProject) return;
 
+        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+        const canWhiteLabel = limits.features.whiteLabelReports;
+
         PdfService.generateCustomReport(
             {
                 title: 'Rapport de Projet',
                 subtitle: `Projet: ${selectedProject.name} | ${new Date().toLocaleDateString()}`,
-                filename: `Projet_${selectedProject.name}_Report.pdf`
+                filename: `Projet_${selectedProject.name}_Report.pdf`,
+                organizationName: canWhiteLabel ? organization?.name : undefined,
+                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
             },
             (doc, startY) => {
                 let y = startY;
@@ -452,11 +458,16 @@ export const Projects: React.FC = () => {
     const exportPDF = () => {
         const data = projects.map(p => [p.name, p.status, p.manager, p.progress + '%', p.dueDate || '-']);
 
+        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+        const canWhiteLabel = limits.features.whiteLabelReports;
+
         PdfService.generateTableReport(
             {
                 title: 'Suivi des Projets SSI',
                 subtitle: `Exporté le ${new Date().toLocaleDateString()}`,
-                filename: 'projets_ssi.pdf'
+                filename: 'projets_ssi.pdf',
+                organizationName: canWhiteLabel ? organization?.name : undefined,
+                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
             },
             ['Nom du Projet', 'Statut', 'Responsable', 'Progression', 'Échéance'],
             data
@@ -618,7 +629,16 @@ export const Projects: React.FC = () => {
                 actions={canEdit && (
                     <div className="flex gap-3">
                         <button
-                            onClick={() => setShowTemplateModal(true)}
+                            onClick={() => {
+                                const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+                                if (!limits.features.customTemplates) {
+                                    if (confirm("Cette fonctionnalité nécessite un plan Professional ou Enterprise. Voulez-vous mettre à niveau ?")) {
+                                        navigate('/pricing');
+                                    }
+                                    return;
+                                }
+                                setShowTemplateModal(true);
+                            }}
                             className="flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20"
                         >
                             <Zap className="h-4 w-4 mr-2" />
