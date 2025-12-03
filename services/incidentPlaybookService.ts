@@ -3,6 +3,7 @@ import { db } from '../firebase';
 import { Incident } from '../types';
 import { logAction } from './logger';
 import { ErrorLogger } from './errorLogger';
+import { PLAYBOOKS } from '../data/incidentConstants';
 
 export interface IncidentPlaybook {
   id: string;
@@ -116,7 +117,8 @@ export class IncidentPlaybookService {
         uid: 'system',
         email: 'system@sentinel-grc.com',
         organizationId: 'system'
-      }, 'CREATE', 'IncidentPlaybook', `Playbook créé: ${playbook.title}`);
+      }, 'CREATE', 'IncidentPlaybook', `Playbook créé: ${playbook.title
+      }`);
 
       return docRef.id;
     } catch (error) {
@@ -180,7 +182,7 @@ export class IncidentPlaybookService {
         uid: 'system',
         email: 'system@sentinel-grc.com',
         organizationId: 'system'
-      }, 'UPDATE', 'IncidentPlaybook', `Playbook mis à jour: ${id}`);
+      }, 'UPDATE', 'IncidentPlaybook', `Playbook mis à jour: ${id} `);
     } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.updatePlaybook');
       throw error;
@@ -195,7 +197,7 @@ export class IncidentPlaybookService {
         uid: 'system',
         email: 'system@sentinel-grc.com',
         organizationId: 'system'
-      }, 'DELETE', 'IncidentPlaybook', `Playbook supprimé: ${id}`);
+      }, 'DELETE', 'IncidentPlaybook', `Playbook supprimé: ${id} `);
     } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.deletePlaybook');
       throw error;
@@ -245,7 +247,7 @@ export class IncidentPlaybookService {
         uid: 'system',
         email: 'system@sentinel-grc.com',
         organizationId: 'system'
-      }, 'CREATE', 'IncidentResponse', `Response initiée: ${incidentId}`);
+      }, 'CREATE', 'IncidentResponse', `Response initiée: ${incidentId} `);
 
       return docRef.id;
     } catch (error) {
@@ -298,7 +300,7 @@ export class IncidentPlaybookService {
         updates.timeline = [
           ...response.timeline,
           {
-            id: `step_${stepId}_completed`,
+            id: `step_${stepId} _completed`,
             timestamp: new Date().toISOString(),
             type: 'step_completed',
             description: `Step ${stepId} completed`,
@@ -315,7 +317,7 @@ export class IncidentPlaybookService {
         updates.notes = [
           ...response.notes,
           {
-            id: `note_${Date.now()}`,
+            id: `note_${Date.now()} `,
             userId: 'current_user', // Should be passed as parameter
             userName: 'Current User',
             content: note,
@@ -353,10 +355,10 @@ export class IncidentPlaybookService {
         timeline: [
           ...response.timeline,
           {
-            id: `escalation_${Date.now()}`,
+            id: `escalation_${Date.now()} `,
             timestamp: new Date().toISOString(),
             type: 'escalation',
-            description: `Incident escalated: ${reason}`,
+            description: `Incident escalated: ${reason} `,
             metadata: { escalatedTo, reason }
           }
         ]
@@ -619,7 +621,7 @@ export class IncidentPlaybookService {
     const hours = Math.floor(avgMinutes / 60);
     const minutes = Math.round(avgMinutes % 60);
 
-    return `${hours}h ${minutes}m`;
+    return `${hours}h ${minutes} m`;
   }
 
   private static async getCommonCategories(responses: IncidentResponse[]): Promise<Record<string, number>> {

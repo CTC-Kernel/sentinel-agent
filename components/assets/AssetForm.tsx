@@ -9,6 +9,7 @@ import { Button } from '../ui/button';
 import { Sparkles, AlertTriangle, ShieldCheck } from '../ui/Icons';
 import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
+import { ASSET_TYPES, ASSET_LIFECYCLE_STATUSES, COMPLIANCE_SCOPES } from '../../data/assetConstants';
 
 interface AssetFormProps {
     onSubmit: (data: AssetFormData) => Promise<void>;
@@ -154,7 +155,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             render={({ field }) => (
                                 <CustomSelect
                                     label="Type"
-                                    options={['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].map(t => ({ value: t, label: t }))}
+                                    options={ASSET_TYPES.map(t => ({ value: t, label: t }))}
                                     value={field.value}
                                     onChange={field.onChange}
                                     error={errors.type?.message}
@@ -322,7 +323,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
                 </h3>
                 <div className="flex flex-wrap gap-3">
-                    {(['NIS2', 'DORA', 'PCI_DSS', 'HDS', 'ISO27001', 'SOC2'] as const).map((scope) => (
+                    {COMPLIANCE_SCOPES.map((scope) => (
                         <label
                             key={scope}
                             className={`cursor-pointer px-4 py-2 rounded-xl border transition-all ${(watch('scope') || []).includes(scope)
@@ -360,7 +361,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             render={({ field }) => (
                                 <CustomSelect
                                     label="Statut"
-                                    options={['Neuf', 'En service', 'En réparation', 'Fin de vie', 'Rebut'].map(s => ({ value: s, label: s }))}
+                                    options={ASSET_LIFECYCLE_STATUSES.map(s => ({ value: s, label: s }))}
                                     value={field.value || 'Neuf'}
                                     onChange={field.onChange}
                                 />
