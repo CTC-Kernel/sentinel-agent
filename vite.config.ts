@@ -33,7 +33,16 @@ export default defineConfig({
     target: 'esnext',
     sourcemap: false,
     rollupOptions: {
-      external: ['capacitor.js']
+      external: ['capacitor.js'],
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage', 'firebase/functions', 'firebase/analytics'],
+          ui: ['clsx', 'tailwind-merge'],
+          charts: ['recharts'],
+          utils: ['date-fns', 'zod', 'jspdf', 'jspdf-autotable']
+        }
+      }
     }
   }
 });

@@ -4,6 +4,7 @@ import { sendEmailVerification, signOut, reload } from 'firebase/auth';
 import { useStore } from '../store';
 import { Mail, RefreshCw, LogOut, CheckCircle2, AlertTriangle } from '../components/ui/Icons';
 import { useNavigate } from 'react-router-dom';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const VerifyEmail: React.FC = () => {
     const [loading, setLoading] = useState(false);
@@ -63,7 +64,7 @@ export const VerifyEmail: React.FC = () => {
             await signOut(auth);
             navigate('/login');
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'VerifyEmail.handleLogout');
         }
     };
 
