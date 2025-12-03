@@ -8,7 +8,7 @@ import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, Pro
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target, ShieldAlert } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -634,6 +634,90 @@ export const Projects: React.FC = () => {
                     </div>
                 )}
             />
+
+            {/* Summary Card */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group">
+                {/* Global Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                                cx="48"
+                                cy="48"
+                                r="40"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                className="text-slate-200 dark:text-slate-700"
+                            />
+                            <circle
+                                cx="48"
+                                cy="48"
+                                r="40"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                strokeDasharray={251.2}
+                                strokeDashoffset={251.2 - (251.2 * (projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0)) / 100}
+                                className="text-brand-500 transition-all duration-1000 ease-out"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">
+                                {projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0}%
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Avancement Global</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                            Moyenne d'avancement de tous les projets en cours.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Key Metrics Breakdown */}
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Projets</div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{projects.length}</div>
+                    </div>
+                    <div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">En Cours</div>
+                        <div className="text-2xl font-bold text-brand-600 dark:text-brand-400">
+                            {projects.filter(p => p.status === 'En cours').length}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">En Retard</div>
+                        <div className={`text-2xl font-bold ${projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
+                            {projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    {projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length > 0 && (
+                        <div className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl border border-red-100 dark:border-red-800/30">
+                            <ShieldAlert className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">{projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length} projets en retard</span>
+                        </div>
+                    )}
+                    {projects.filter(p => p.status === 'En cours').length > 0 && (
+                        <div className="flex items-center gap-3 text-sm text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 px-3 py-2 rounded-xl border border-brand-100 dark:border-brand-800/30">
+                            <FolderKanban className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">{projects.filter(p => p.status === 'En cours').length} projets actifs</span>
+                        </div>
+                    )}
+                    {projects.length === 0 && (
+                        <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/20 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800/30">
+                            <CheckSquare className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">Aucun projet</span>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             <div className="flex items-center space-x-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm">
                 <Search className="h-5 w-5 text-slate-400" />

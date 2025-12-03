@@ -47,7 +47,7 @@ export const PLANS: Record<PlanType, PlanConfig> = {
     name: 'Professional',
     description: 'Crédibilisez votre démarche avec des rapports pro et plus de capacité.',
     priceMonthly: 199,
-    priceYearly: 1990, // 2 months free
+    priceYearly: 1910, // -20% discount
     highlight: true,
     limits: {
       maxUsers: 10,
@@ -78,7 +78,7 @@ export const PLANS: Record<PlanType, PlanConfig> = {
     name: 'Enterprise',
     description: 'La puissance totale sans aucune limite. L\'offre GRC la plus compétitive du marché.',
     priceMonthly: 499,
-    priceYearly: 4990,
+    priceYearly: 4790, // -20% discount
     highlight: false,
     limits: {
       maxUsers: 9999,
