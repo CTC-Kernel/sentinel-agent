@@ -14,6 +14,7 @@ import { auth } from '../firebase';
 import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2 } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { useStore } from '../store';
+import { ErrorLogger } from '../services/errorLogger';
 import { LegalModal } from '../components/ui/LegalModal';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -76,7 +77,8 @@ export const Login: React.FC = () => {
             addToast("Connexion réussie", "success");
         } catch (error) {
             setMfaError("Code incorrect ou expiré.");
-            console.error(error);
+            console.error(error); // Keep console for debugging auth flows locally if needed, but log it too
+            ErrorLogger.error(error, 'Login.handleMfaVerification');
         } finally {
             setMfaLoading(false);
         }

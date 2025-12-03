@@ -2,6 +2,7 @@ import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Audit, Project, Asset, BcpDrill, Incident } from '../types';
 import { parseISO } from 'date-fns';
+import { ErrorLogger } from './errorLogger';
 
 export interface CalendarEvent {
     id: string;
@@ -150,7 +151,7 @@ export const CalendarService = {
             });
 
         } catch (error) {
-            console.error("Error fetching calendar events:", error);
+            ErrorLogger.error(error, 'CalendarService.fetchAllEvents');
         }
 
         return events;
@@ -221,7 +222,7 @@ export const CalendarService = {
 
             return true;
         } catch (error) {
-            console.error("Error creating event:", error);
+            ErrorLogger.error(error, 'CalendarService.createEvent');
             throw error;
         }
     },

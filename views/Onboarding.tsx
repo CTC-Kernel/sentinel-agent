@@ -122,14 +122,14 @@ export const Onboarding: React.FC = () => {
                         );
 
                         // Create a minimal user object for the email service
-                        const inviteUserMock = {
+                        const invitedUserContext = {
                             uid: newUid,
                             email,
                             displayName: 'Invité',
                             organizationId: user.organizationId
                         } as UserProfile;
 
-                        await sendEmail(inviteUserMock, {
+                        await sendEmail(invitedUserContext, {
                             to: email,
                             subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
                             html: htmlContent,

@@ -722,14 +722,14 @@ async function attemptSendEmail(docRef, data) {
         }
 
         // Send email via SendGrid
-        await sgMail.send(msg);
+        const [response] = await sgMail.send(msg);
         logger.info("Message sent via SendGrid");
 
         // Update Firestore document status
         return docRef.update({
             status: "SENT",
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
-            deliveryInfo: info.response,
+            deliveryInfo: response,
         });
     } catch (error) {
         logger.error("Error sending email:", error);
@@ -737,7 +737,9 @@ async function attemptSendEmail(docRef, data) {
         // Determine if error is transient
         // SendGrid errors usually have a code or response.body.errors
         const responseCode = error.code;
-        const isTransient = responseCode && responseCode >= 400 && responseCode < 500;
+        // 4xx are usually permanent (Bad Request, Auth), except 429 (Rate Limit)
+        // 5xx are server errors (Transient)
+        const isTransient = (responseCode >= 500) || (responseCode === 429);
         const currentAttempts = data.attempts || 0;
         const MAX_ATTEMPTS = 5;
 
@@ -2179,3 +2181,147 @@ async function sendNotificationAndEmail(db, params) {
         });
     }
 }
+
+exports.migrateUserKeys = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const db = admin.firestore();
+    const usersRef = db.collection('users');
+    const snapshot = await usersRef.get();
+
+    const batches = [];
+    let currentBatch = db.batch();
+    let operationCount = 0;
+    let totalMigrated = 0;
+
+    snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        const updates = {};
+        if (data.geminiApiKey) updates.geminiApiKey = admin.firestore.FieldValue.delete();
+        if (data.shodanApiKey) updates.shodanApiKey = admin.firestore.FieldValue.delete();
+        if (data.hibpApiKey) updates.hibpApiKey = admin.firestore.FieldValue.delete();
+        if (data.safeBrowsingApiKey) updates.safeBrowsingApiKey = admin.firestore.FieldValue.delete();
+
+        if (Object.keys(updates).length > 0) {
+            currentBatch.update(doc.ref, updates);
+            operationCount++;
+            totalMigrated++;
+            if (operationCount === 499) {
+                batches.push(currentBatch.commit());
+                currentBatch = db.batch();
+                operationCount = 0;
+            }
+        }
+    });
+
+    if (operationCount > 0) {
+        batches.push(currentBatch.commit());
+    }
+
+    await Promise.all(batches);
+
+    return { success: true, migratedCount: totalMigrated };
+});
+
+exports.submitKioskAsset = onCall(async (request) => {
+    // Note: Kiosk is unauthenticated by design (public terminal), so we don't check request.auth
+    // In a real production environment, we should use App Check to verify the request comes from our app.
+
+    const data = request.data;
+    const { orgId, name, serialNumber, hardwareType, hardware, notes, userId, projectId } = data;
+
+    if (!orgId || !name || !serialNumber) {
+        throw new HttpsError('invalid-argument', 'Missing required fields (orgId, name, serialNumber).');
+    }
+
+    // Verify organization exists
+    const db = admin.firestore();
+    const orgRef = db.collection('organizations').doc(orgId);
+    const orgDoc = await orgRef.get();
+
+    if (!orgDoc.exists) {
+        throw new HttpsError('not-found', 'Organization not found.');
+    }
+
+    // Prepare asset data
+    const assetData = {
+        name,
+        serialNumber,
+        type: 'Matériel',
+        hardwareType: hardwareType || 'Laptop',
+        organizationId: orgId,
+        hardware: hardware || {},
+        status: 'En stock',
+        criticality: 'Moyenne',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        source: 'Kiosk Intake',
+        notes: notes || '',
+        ownerId: userId || '',
+        relatedProjectIds: projectId ? [projectId] : []
+    };
+
+    // If a user is selected, try to get their display name
+    if (userId) {
+        const userDoc = await db.collection('users').doc(userId).get();
+        if (userDoc.exists) {
+            assetData.owner = userDoc.data().displayName || '';
+        }
+    }
+
+    try {
+        const docRef = await db.collection('assets').add(assetData);
+        return { success: true, assetId: docRef.id };
+    } catch (error) {
+        logger.error("Error creating kiosk asset", error);
+        throw new HttpsError('internal', 'Failed to create asset.');
+    }
+});
+
+/**
+ * Trigger: Clean up user data when an Auth user is deleted.
+ * This ensures that even if the client-side cleanup fails, the user document and avatar are removed.
+ */
+exports.onUserDeleted = require("firebase-functions/v1").auth.user().onDelete(async (user) => {
+    const uid = user.uid;
+    logger.info(`User deleted from Auth: ${uid}`);
+
+    try {
+        const db = admin.firestore();
+
+        // 1. Delete user profile document
+        const userRef = db.collection('users').doc(uid);
+        const userDoc = await userRef.get();
+
+        if (userDoc.exists) {
+            await userRef.delete();
+            logger.info(`Deleted user document for ${uid}`);
+        } else {
+            logger.info(`User document for ${uid} already deleted or not found.`);
+        }
+
+        // 2. Delete avatar from storage
+        try {
+            const bucket = admin.storage().bucket();
+            const file = bucket.file(`avatars/${uid}`);
+            const [exists] = await file.exists();
+            if (exists) {
+                await file.delete();
+                logger.info(`Deleted avatar for ${uid}`);
+            }
+        } catch (storageError) {
+            logger.warn(`Error deleting avatar for ${uid}:`, storageError);
+            // Continue cleanup even if storage fails
+        }
+
+        // 3. Optional: Remove from organization if they were a member?
+        // The client-side logic handles org deletion if they were the last member.
+        // Here we could add a check for orphaned organizations, but that might be expensive.
+        // For now, we assume client-side logic or manual admin cleanup for edge cases.
+
+    } catch (error) {
+        logger.error(`Error cleaning up user ${uid}:`, error);
+    }
+});
