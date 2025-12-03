@@ -31,3 +31,8 @@ env:
     value: ***REDACTED***
   - variable: VITE_FIREBASE_VAPID_KEY
     value: BE8hei47RZ6vu4M04Mg5Vj_em4FC3K7BMbP8qIgH9_TJGKx8_MDPi9zVfiHmvx_PbXHnLvjiTrk9wIIDgWKIkr8
+  - variable: VITE_APP_BASE_URL
+    value: https://app.cyber-threat-consulting.com
+  - variable: VITE_API_URL
+    value: https://app.cyber-threat-consulting.com
+
