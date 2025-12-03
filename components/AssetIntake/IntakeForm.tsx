@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { HardwareInfo } from '../../utils/hardwareDetection';
-import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db, functions } from '../../firebase';
+import { httpsCallable } from 'firebase/functions';
 import { Laptop, Save, AlertTriangle, User, Server, Database } from '../ui/Icons';
 import { Project, UserProfile } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -78,21 +79,15 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
         }
 
         try {
-            const selectedUser = users.find(u => u.uid === formData.userId);
 
-            await addDoc(collection(db, 'assets'), {
+
+            const submitKioskAsset = httpsCallable(functions, 'submitKioskAsset');
+            await submitKioskAsset({
                 ...formData,
-                type: 'Matériel',
-                organizationId: orgId,
+                orgId: orgId,
                 hardware: hardwareInfo,
-                status: 'En stock',
-                criticality: 'Moyenne',
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-                source: 'Kiosk Intake',
-                owner: selectedUser ? selectedUser.displayName : '',
-                ownerId: formData.userId,
-                relatedProjectIds: formData.projectId ? [formData.projectId] : []
+                userId: formData.userId,
+                projectId: formData.projectId
             });
             onSuccess();
         } catch (err) {

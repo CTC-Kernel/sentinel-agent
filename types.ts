@@ -588,10 +588,7 @@ export interface UserProfile {
   theme?: 'light' | 'dark';
   isPending?: boolean;
   createdAt?: string;
-  geminiApiKey?: string;
-  shodanApiKey?: string;
-  hibpApiKey?: string;
-  safeBrowsingApiKey?: string;
+
   hasGeminiKey?: boolean;
   hasShodanKey?: boolean;
   hasHibpKey?: boolean;

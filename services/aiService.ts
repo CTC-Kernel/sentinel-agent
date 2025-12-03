@@ -1,17 +1,9 @@
-import { useStore } from "../store";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIInsight } from "../types";
 import { ErrorLogger } from "./errorLogger";
 
-// Initialize Gemini API
-const ENV_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
-const getGenAI = () => {
-    const userKey = useStore.getState().user?.geminiApiKey;
-    const key = userKey || ENV_API_KEY;
-    return { genAI: new GoogleGenerativeAI(key), hasKey: !!key };
-};
 
 const MODEL_NAME = "gemini-3-pro-preview";
 
@@ -314,49 +306,23 @@ async function generateContentSafe(prompt: string): Promise<string> {
         const message = typeof anyError.message === 'string' ? anyError.message : '';
 
         if (code === 'functions/not-found' || message.includes('404')) {
-            ErrorLogger.warn('callGeminiGenerateContent Cloud Function not found, falling back to frontend Gemini client', 'aiService.generateContentSafe', {
+            ErrorLogger.warn('callGeminiGenerateContent Cloud Function not found', 'aiService.generateContentSafe', {
                 metadata: { code, message }
             });
+            throw new Error("Le service IA est temporairement indisponible (Fonction introuvable).");
         } else if (code === 'unauthenticated' || code === 'failed-precondition') {
-            ErrorLogger.warn('Backend Gemini not available, falling back to frontend Gemini client', 'aiService.generateContentSafe', {
+            ErrorLogger.warn('Backend Gemini not available', 'aiService.generateContentSafe', {
                 metadata: { code, message }
             });
+            throw new Error("Le service IA est temporairement indisponible (Erreur d'authentification).");
         } else {
             throw error;
         }
     }
 
-    const { genAI, hasKey } = getGenAI();
-    if (!hasKey) {
-        ErrorLogger.warn("Gemini API Key is missing. AI features disabled.", 'aiService.generateContentSafe');
-        throw new Error("L'analyse IA nécessite une clé API Gemini valide. Veuillez configurer VITE_GEMINI_API_KEY ou ajouter votre clé dans les paramètres.");
-    }
-
-    try {
-        const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-        const result = await model.generateContent(prompt);
-        return (await result.response).text();
-    } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-            ErrorLogger.warn(`Model ${MODEL_NAME} not found, trying fallbacks...`, 'aiService.generateContentSafe');
-
-            const fallbackModels = ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash'];
-
-            for (const modelName of fallbackModels) {
-                try {
-                    const fallbackModel = genAI.getGenerativeModel({ model: modelName });
-                    const result = await fallbackModel.generateContent(prompt);
-                    return (await result.response).text();
-                } catch {
-                    console.warn(`Fallback ${modelName} failed`);
-                    continue;
-                }
-            }
-        }
-        throw error;
-    }
+    throw new Error("Impossible de générer le contenu via le service IA.");
 }
+
 
 async function runChatSafe(systemPrompt: string, message: string): Promise<string> {
     try {
@@ -374,44 +340,20 @@ async function runChatSafe(systemPrompt: string, message: string): Promise<strin
         const message = typeof anyError.message === 'string' ? anyError.message : '';
 
         if (code === 'functions/not-found' || message.includes('404')) {
-            ErrorLogger.warn('callGeminiChat Cloud Function not found, falling back to frontend Gemini client', 'aiService.runChatSafe', {
+            ErrorLogger.warn('callGeminiChat Cloud Function not found', 'aiService.runChatSafe', {
                 metadata: { code, message }
             });
+            throw new Error("Le chat IA est temporairement indisponible.");
         } else if (code === 'unauthenticated' || code === 'failed-precondition') {
-            ErrorLogger.warn('Backend Gemini chat not available, falling back to frontend client', 'aiService.runChatSafe', {
+            ErrorLogger.warn('Backend Gemini chat not available', 'aiService.runChatSafe', {
                 metadata: { code, message }
             });
+            throw new Error("Le chat IA est temporairement indisponible.");
         } else {
             throw error;
         }
     }
 
-    const { genAI, hasKey } = getGenAI();
-    if (!hasKey) {
-        ErrorLogger.warn("Gemini API Key is missing. AI features disabled.", 'aiService.runChatSafe');
-        throw new Error("L'analyse IA nécessite une clé API Gemini valide. Veuillez configurer VITE_GEMINI_API_KEY ou ajouter votre clé dans les paramètres.");
-    }
-
-    const runChat = async (modelName: string) => {
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const chat = model.startChat({
-            history: [
-                { role: "user", parts: [{ text: systemPrompt }] },
-                { role: "model", parts: [{ text: "Bien reçu. Je suis Sentinel AI, prêt à vous assister sur tous les sujets GRC." }] },
-            ],
-        });
-        const result = await chat.sendMessage(message);
-        return (await result.response).text();
-    };
-
-    try {
-        return await runChat(MODEL_NAME);
-    } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-            console.warn(`Model ${MODEL_NAME} not found for chat, falling back to gemini-1.5-flash`);
-            return await runChat('gemini-1.5-flash');
-        }
-        throw error;
-    }
+    throw new Error("Impossible de contacter le service de chat IA.");
 }
+

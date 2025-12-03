@@ -1,4 +1,5 @@
 import { CalendarEvent } from './calendarService';
+import { ErrorLogger } from './errorLogger';
 
 const GOOGLE_CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3';
 
@@ -61,7 +62,7 @@ export const GoogleCalendarService = {
             }));
 
         } catch (error) {
-            console.error("Error listing Google Calendar events:", error);
+            ErrorLogger.error(error, 'GoogleCalendarService.listEvents');
             return [];
         }
     },
@@ -100,7 +101,7 @@ export const GoogleCalendarService = {
 
             return await response.json();
         } catch (error) {
-            console.error("Error creating Google Calendar event:", error);
+            ErrorLogger.error(error, 'GoogleCalendarService.createEvent');
             throw error;
         }
     }
