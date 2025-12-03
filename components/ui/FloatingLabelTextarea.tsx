@@ -12,10 +12,12 @@ export const FloatingLabelTextarea = React.forwardRef<HTMLTextAreaElement, Float
     value,
     onFocus,
     onBlur,
+    onChange,
     ...props
 }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
-    const hasValue = value !== undefined && value !== '';
+    const [hasContent, setHasContent] = useState(false);
+    const hasValue = (value !== undefined && value !== '') || hasContent;
 
     const handleFocus = (e: React.FocusEvent<HTMLTextAreaElement>) => {
         setIsFocused(true);
@@ -25,6 +27,11 @@ export const FloatingLabelTextarea = React.forwardRef<HTMLTextAreaElement, Float
     const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
         setIsFocused(false);
         onBlur?.(e);
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setHasContent(e.target.value !== '');
+        onChange?.(e);
     };
 
     return (
@@ -44,6 +51,7 @@ export const FloatingLabelTextarea = React.forwardRef<HTMLTextAreaElement, Float
                     value={value}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
+                    onChange={handleChange}
                     className={`
                         w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
                         placeholder-transparent rounded-2xl resize-none
