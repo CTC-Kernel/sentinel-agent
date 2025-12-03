@@ -256,6 +256,46 @@ export interface AuditChecklist {
   completedAt?: string;
 }
 
+export type QuestionType = 'text' | 'yes_no' | 'choice' | 'multiple_choice' | 'rating';
+
+export interface QuestionnaireQuestion {
+  id: string;
+  text: string;
+  type: QuestionType;
+  options?: string[]; // For choice/multiple_choice
+  required: boolean;
+  description?: string;
+}
+
+export interface Questionnaire {
+  id: string;
+  organizationId: string;
+  auditId: string;
+  title: string;
+  description?: string;
+  questions: QuestionnaireQuestion[];
+  status: 'Draft' | 'Published' | 'Closed';
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  dueDate?: string;
+  targetAudience?: string[]; // User IDs or Emails
+}
+
+export interface QuestionnaireResponse {
+  id: string;
+  questionnaireId: string;
+  organizationId: string;
+  auditId: string;
+  respondentId: string; // User ID
+  respondentEmail?: string; // For external
+  answers: Record<string, string | string[] | number>; // questionId -> answer
+  status: 'In Progress' | 'Submitted';
+  submittedAt?: string;
+  startedAt: string;
+  updatedAt: string;
+}
+
 export interface ProjectTask {
   id: string;
   title: string;

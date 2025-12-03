@@ -11,6 +11,7 @@ import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { FileUploader } from '../ui/FileUploader';
+import { EmptyState } from '../ui/EmptyState';
 import { ErrorLogger } from '../../services/errorLogger';
 
 interface EvidenceRequestListProps {
@@ -140,11 +141,11 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'Pending': return 'bg-amber-50 text-amber-700 border-amber-100';
-            case 'Provided': return 'bg-blue-50 dark:bg-slate-900 text-blue-700 border-blue-100';
-            case 'Accepted': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-            case 'Rejected': return 'bg-red-50 text-red-700 border-red-100';
-            default: return 'bg-gray-50 text-slate-700';
+            case 'Pending': return 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/30';
+            case 'Provided': return 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30';
+            case 'Accepted': return 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900/30';
+            case 'Rejected': return 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30';
+            default: return 'bg-gray-50 text-slate-700 border-gray-100 dark:bg-slate-800 dark:text-slate-400';
         }
     };
 
@@ -275,10 +276,16 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
 
             <div className="space-y-4">
                 {requests.length === 0 && !isCreating && (
-                    <p className="text-center text-slate-400 italic py-8">Aucune demande de preuve pour le moment.</p>
+                    <EmptyState
+                        icon={FileText}
+                        title="Aucune demande de preuve"
+                        description="Créez des demandes de preuves pour collecter les documents nécessaires à l'audit."
+                        actionLabel={canEdit ? "Créer une demande" : undefined}
+                        onAction={canEdit ? () => setIsCreating(true) : undefined}
+                    />
                 )}
                 {requests.map(req => (
-                    <div key={req.id} className="bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm transition-all hover:shadow-md">
+                    <div key={req.id} className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm transition-all hover:shadow-md">
                         <div
                             className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5"
                             onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}
@@ -292,7 +299,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                     <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
                                         <span className={`px-2 py-0.5 rounded border ${getStatusColor(req.status)}`}>{req.status}</span>
                                         {req.dueDate && (
-                                            <span className="flex items-center text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+                                            <span className="flex items-center text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded">
                                                 <Clock className="w-3 h-3 mr-1" />
                                                 {format(new Date(req.dueDate), 'dd MMM yyyy', { locale: fr })}
                                             </span>
@@ -304,7 +311,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                             </span>
                                         )}
                                         {req.relatedControlId && (
-                                            <span className="flex items-center text-indigo-600 bg-indigo-50 dark:bg-slate-900 px-2 py-0.5 rounded">
+                                            <span className="flex items-center text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded">
                                                 <ShieldCheck className="w-3 h-3 mr-1" />
                                                 {controls.find(c => c.id === req.relatedControlId)?.code || 'Contrôle'}
                                             </span>
@@ -318,31 +325,46 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                         </div>
 
                         {expandedId === req.id && (
-                            <div className="p-4 pt-0 border-t border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
-                                <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 mt-4">{req.description}</p>
+                            <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
+                                <div className="mb-6">
+                                    <h5 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Description</h5>
+                                    <p className="text-sm text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                                        {req.description}
+                                    </p>
+                                </div>
 
                                 {/* Documents List */}
-                                <div className="space-y-2 mb-4">
+                                <div className="space-y-3 mb-6">
                                     <h5 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Preuves fournies</h5>
                                     {req.documentIds && req.documentIds.length > 0 ? (
-                                        req.documentIds.map(docId => {
-                                            const docObj = documents.find(d => d.id === docId);
-                                            if (!docObj) return null;
-                                            return (
-                                                <div key={docId} className="flex items-center justify-between p-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-white/10 text-sm">
-                                                    <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{docObj.title}</span>
-                                                    <a href={docObj.url} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline text-xs font-bold">Voir</a>
-                                                </div>
-                                            );
-                                        })
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {req.documentIds.map(docId => {
+                                                const docObj = documents.find(d => d.id === docId);
+                                                if (!docObj) return null;
+                                                return (
+                                                    <div key={docId} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-white/10 text-sm hover:border-brand-300 transition-colors group">
+                                                        <div className="flex items-center overflow-hidden">
+                                                            <FileText className="w-4 h-4 text-brand-500 mr-2 flex-shrink-0" />
+                                                            <span className="truncate font-medium text-slate-700 dark:text-slate-200">{docObj.title}</span>
+                                                        </div>
+                                                        <a href={docObj.url} target="_blank" rel="noreferrer" className="text-brand-600 hover:text-brand-700 text-xs font-bold px-3 py-1 bg-brand-50 dark:bg-brand-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            Voir
+                                                        </a>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     ) : (
-                                        <p className="text-xs text-slate-400 italic">Aucun document fourni.</p>
+                                        <div className="text-center py-6 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-gray-200 dark:border-white/10">
+                                            <p className="text-xs text-slate-400 italic">Aucun document fourni pour le moment.</p>
+                                        </div>
                                     )}
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex flex-wrap gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-white/10">
-                                    <div className="flex-1 min-w-[200px]">
+                                <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-gray-200 dark:border-white/10">
+                                    <div className="flex-1">
+                                        <h5 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Ajouter une preuve</h5>
                                         <FileUploader
                                             onUploadComplete={(url, name) => handleFileUpload(req, url, name)}
                                             category="evidence"
@@ -350,19 +372,23 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                     </div>
 
                                     {canEdit && (
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-col gap-2 min-w-[150px]">
+                                            <h5 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Actions</h5>
                                             {req.status !== 'Accepted' && (
-                                                <button onClick={() => handleStatusChange(req, 'Accepted')} className="px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 transition-colors">
+                                                <button onClick={() => handleStatusChange(req, 'Accepted')} className="w-full px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 transition-colors flex items-center justify-center">
+                                                    <ShieldCheck className="w-4 h-4 mr-2" />
                                                     Accepter
                                                 </button>
                                             )}
                                             {req.status !== 'Rejected' && (
-                                                <button onClick={() => handleStatusChange(req, 'Rejected')} className="px-3 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors">
+                                                <button onClick={() => handleStatusChange(req, 'Rejected')} className="w-full px-3 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors flex items-center justify-center">
+                                                    <X className="w-4 h-4 mr-2" />
                                                     Rejeter
                                                 </button>
                                             )}
-                                            <button onClick={() => handleDelete(req.id)} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
-                                                <Trash2 className="w-4 h-4" />
+                                            <button onClick={() => handleDelete(req.id)} className="w-full px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center mt-auto">
+                                                <Trash2 className="w-4 h-4 mr-2" />
+                                                Supprimer
                                             </button>
                                         </div>
                                     )}
