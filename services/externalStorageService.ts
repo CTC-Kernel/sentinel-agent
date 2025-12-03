@@ -9,6 +9,22 @@ export interface ExternalFile {
     provider: 'google_drive' | 'onedrive' | 'sharepoint';
 }
 
+interface GoogleDriveFile {
+    id: string;
+    name: string;
+    webViewLink: string;
+    thumbnailLink?: string;
+    mimeType: string;
+}
+
+interface OneDriveFile {
+    id: string;
+    name: string;
+    webUrl: string;
+    thumbnails?: { small: { url: string } }[];
+    file?: { mimeType: string };
+}
+
 class ExternalStorageService {
     private googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
     private microsoftClientId = import.meta.env.VITE_MICROSOFT_CLIENT_ID || '';
@@ -84,7 +100,7 @@ class ExternalStorageService {
             if (!response.ok) throw new Error('Failed to fetch Google Drive files');
 
             const data = await response.json();
-            return data.files.map((f: any) => ({
+            return data.files.map((f: GoogleDriveFile) => ({
                 id: f.id,
                 name: f.name,
                 webViewLink: f.webViewLink,
@@ -161,7 +177,7 @@ class ExternalStorageService {
             if (!response.ok) throw new Error('Failed to fetch OneDrive files');
 
             const data = await response.json();
-            return data.value.map((f: any) => ({
+            return data.value.map((f: OneDriveFile) => ({
                 id: f.id,
                 name: f.name,
                 webViewLink: f.webUrl,

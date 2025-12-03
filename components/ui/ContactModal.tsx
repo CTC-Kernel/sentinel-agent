@@ -32,7 +32,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                 to: 'contact@cyber-threat-consulting.com',
                 subject: `[Contact App] ${formData.subject || 'Nouveau message'}`,
                 html: getContactMessageTemplate(formData.name, formData.email, formData.subject, formData.message),
-                type: 'GENERIC' as any, // Cast as any if GENERIC is not in EmailType, or add GENERIC to EmailType
+                type: 'GENERIC',
                 metadata: {
                     source: 'contact_form'
                 }

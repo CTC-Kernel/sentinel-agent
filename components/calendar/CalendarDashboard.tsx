@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, dateFnsLocalizer, Views, View } from 'react-big-calendar';
+import { Calendar, dateFnsLocalizer, Views, View, ToolbarProps } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -123,7 +123,7 @@ export const CalendarDashboard: React.FC = () => {
         };
     };
 
-    const CustomToolbar = (toolbar: any) => {
+    const CustomToolbar = (toolbar: ToolbarProps<CalendarEvent>) => {
         const goToBack = () => {
             toolbar.onNavigate('PREV');
             setDate(toolbar.date);

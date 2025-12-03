@@ -1,0 +1,27 @@
+
+> sentinel-grc@2.0.0 lint
+> eslint .
+
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/assets/AssetAIAssistant.tsx
+  89:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/documents/DocumentForm.tsx
+  131:32  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/documents/DocumentForm.tsx:131:32
+  129 |                         label="Dossier"
+  130 |                         options={[{ value: '', label: 'Racine' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
+> 131 |                         value={watch('folderId') || ''}
+      |                                ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  132 |                         onChange={(val) => setValue('folderId', val as string)}
+  133 |                         error={errors.folderId?.message}
+  134 |                     />  react-hooks/incompatible-library
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/button.tsx
+  36:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+✖ 3 problems (0 errors, 3 warnings)
+

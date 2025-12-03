@@ -3,7 +3,7 @@ import { db } from '../firebase';
 import { Incident } from '../types';
 import { logAction } from './logger';
 import { ErrorLogger } from './errorLogger';
-import { PLAYBOOKS } from '../data/incidentConstants';
+
 
 export interface IncidentPlaybook {
   id: string;
