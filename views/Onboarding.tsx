@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
 import { doc, setDoc, collection, query, where, getDocs, addDoc, writeBatch, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { auth, db, functions } from '../firebase';
 import { ArrowRight, User as UserIcon, Building, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server } from '../components/ui/Icons';
 import { sendEmail } from '../services/emailService';
-import { getWelcomeEmailTemplate, getInvitationTemplate } from '../services/emailTemplates';
+import { getInvitationTemplate } from '../services/emailTemplates';
 import { PLANS } from '../config/plans';
 import { PlanType, UserProfile } from '../types';
 import { SubscriptionService } from '../services/subscriptionService';
@@ -293,118 +294,41 @@ export const Onboarding: React.FC = () => {
         setLoading(true);
         setError('');
 
-        const uid = targetUser.uid;
-        const email = targetUser.email || '';
-        const photoURL = targetUser.photoURL || null;
-
         try {
-            // Generate a NEW organization ID
-            const newOrgId = generateUUID();
-            const orgName = data.organizationName || (user as unknown as { organizationName?: string })?.organizationName || 'Mon Organisation';
-
-            // USE BATCH FOR ATOMICITY
-            const batch = writeBatch(db);
-
-            // 1. Create/Update User Profile
-            const userRef = doc(db, 'users', uid);
-            const userUpdates = {
-                uid: uid,
-                email: email,
-                role: data.role,
-                department: data.department || '',
-                industry: data.industry || '',
+            // Call the Secure Cloud Function
+            const createOrganizationFn = httpsCallable(functions, 'createOrganization');
+            const result = await createOrganizationFn({
+                organizationName: data.organizationName || (user as unknown as { organizationName?: string })?.organizationName || 'Mon Organisation',
                 displayName: data.displayName || '',
-                organizationName: orgName,
-                organizationId: newOrgId,
-                photoURL: photoURL,
-                lastLogin: new Date().toISOString(),
-                onboardingCompleted: true, // Mark as completed here for immediate app access
-                createdAt: new Date().toISOString(),
-                theme: 'light' as const
-            };
-
-            batch.set(userRef, userUpdates, { merge: true });
-
-            // 2. Create Organization Document (CRITICAL for SubscriptionService)
-            const orgRef = doc(db, 'organizations', newOrgId);
-
-            // Generate slug from organization name safely
-            const safeName = String(orgName || 'org');
-
-
-            const slug = safeName
-                .toLowerCase()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '') // Remove accents
-                .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with dash
-                .replace(/^-+|-+$/g, ''); // Remove leading/trailing dashes
-
-
-
-            batch.set(orgRef, {
-                id: newOrgId,
-                name: orgName,
-                slug: slug || newOrgId, // Fallback to ID if slug fails
-                ownerId: uid, // Utilisation de la variable locale uid
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                industry: data.industry || '',
-                subscription: {
-                    planId: 'discovery',
-                    status: 'active',
-                    startDate: new Date().toISOString(),
-                    stripeCustomerId: null,
-                    stripeSubscriptionId: null,
-                    currentPeriodEnd: null,
-                    cancelAtPeriodEnd: false
-                }
+                department: data.department || '',
+                role: data.role || 'admin',
+                industry: data.industry || ''
             });
 
-            // COMMIT BATCH
-            await batch.commit();
+            const { organizationId } = result.data as { organizationId: string };
 
-            // Update local store IMMEDIATELY
+            // Force refresh session to get new claims
+            await refreshSession();
+
+            // Update local user state
             if (user) {
-                setUser({ ...user, ...userUpdates });
-            } else {
-                setUser(userUpdates as UserProfile);
-            }
-
-
-
-            // 3. Send welcome email (async, don't block)
-            try {
-                const htmlContent = getWelcomeEmailTemplate(
-                    data.displayName || email || 'Utilisateur',
-                    orgName,
-                    data.role,
-                    `${window.location.origin}/`
-                );
-
-                if (email) {
-                    // Cast user to any or create minimal user object if needed for sendEmail
-                    // sendEmail expects a UserProfile-like object.
-                    const emailUserMock = { ...user, email, displayName: data.displayName } as UserProfile;
-
-                    sendEmail(emailUserMock, {
-                        to: email,
-                        subject: '🎉 Bienvenue sur Sentinel GRC',
-                        html: htmlContent,
-                        type: 'WELCOME_EMAIL'
-                    }, false).catch(err => ErrorLogger.error(err, 'Onboarding.handleStep1.sendEmail'));
-                }
-            } catch (emailError) {
-                ErrorLogger.error(emailError, 'Onboarding.handleStep1.prepareEmail');
+                setUser({
+                    ...user,
+                    organizationId,
+                    organizationName: data.organizationName || '',
+                    role: 'admin',
+                    onboardingCompleted: true
+                });
             }
 
             // Move to Step 2 (Plan Selection)
             setStep(2);
-            addToast("Profil créé ! Choisissez votre offre.", "success");
+            addToast("Organisation créée avec succès !", "success");
 
         } catch (error: unknown) {
             ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleStep1', 'CREATE_FAILED');
             const errorMessage = error instanceof Error ? error.message : String(error);
-            setError(errorMessage || "Une erreur est survenue.");
+            setError(errorMessage || "Une erreur est survenue lors de la création de l'organisation.");
         } finally {
             setLoading(false);
         }
