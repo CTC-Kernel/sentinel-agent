@@ -18,7 +18,7 @@ import { CyberNewsWidget } from '../components/dashboard/CyberNewsWidget';
 const StatCard: React.FC<{ title: string; value: string | number | null; icon: React.ElementType; trend?: string; colorClass: string; delay?: string; onClick?: () => void }> = ({ title, value, icon: Icon, trend, colorClass, delay, onClick }) => (
     <div
         onClick={onClick}
-        className={`relative group glass-panel p-6 rounded-[2rem] hover:shadow-apple transition-all duration-500 hover:-translate-y-1 overflow-hidden border border-white/60 dark:border-white/5 cursor-pointer ${delay || ''}`}
+        className={`relative group glass-panel p-6 rounded-[2rem] hover:shadow-apple transition-all duration-500 hover:-translate-y-1 overflow-hidden cursor-pointer ${delay || ''}`}
     >
         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
         <div className="flex flex-col h-full justify-between relative z-10">
@@ -580,7 +580,7 @@ export const Dashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* My Workspace */}
-                <div className="glass-panel p-0 rounded-[2rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm flex flex-col h-[450px] group hover:shadow-md transition-shadow">
+                <div className="glass-panel p-0 rounded-[2rem] overflow-hidden shadow-sm flex flex-col h-[450px] group hover:shadow-md transition-shadow">
                     <div className="px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 flex justify-between items-center backdrop-blur-sm">
                         <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.myWorkspace')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.todoThisWeek')}</p></div>
                         <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm"><User className="w-5 h-5 text-slate-600 dark:text-slate-300" /></div>
@@ -611,7 +611,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="glass-panel p-0 rounded-[2rem] lg:col-span-2 flex flex-col overflow-hidden border border-white/60 dark:border-white/5 shadow-sm h-[450px] group hover:shadow-md transition-shadow">
+                <div className="glass-panel p-0 rounded-[2rem] lg:col-span-2 flex flex-col overflow-hidden shadow-sm h-[450px] group hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
                         <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.complianceEvolution')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.last30Days')}</p></div>
                         <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20"><TrendingUp className="w-5 h-5 text-emerald-500" /></div>
@@ -655,7 +655,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="glass-panel p-0 rounded-[2rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm flex flex-col group hover:shadow-md transition-shadow">
+                <div className="glass-panel p-0 rounded-[2rem] overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-shadow">
                     <div className="px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 flex justify-between items-center backdrop-blur-sm">
                         <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.healthCheck')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.systemAlerts')}</p></div>
                         <CustomTooltip content={healthIssues.length > 0 ? t('dashboard.actionsRequired') : t('dashboard.systemHealthy')} position="left">
@@ -673,7 +673,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="glass-panel p-0 rounded-[2rem] lg:col-span-2 overflow-hidden border border-white/60 dark:border-white/5 shadow-sm group hover:shadow-md transition-shadow">
+                <div className="glass-panel p-0 rounded-[2rem] lg:col-span-2 overflow-hidden shadow-sm group hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
                         <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.priorityRisks')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.topCriticality')}</p></div>
                         <div className="p-2 bg-red-500/10 rounded-xl"><Flame className="w-5 h-5 text-red-500" /></div>
@@ -689,7 +689,7 @@ export const Dashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                    <div className="glass-panel p-0 rounded-[2rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm group hover:shadow-md transition-shadow h-full flex flex-col">
+                    <div className="glass-panel p-0 rounded-[2rem] overflow-hidden shadow-sm group hover:shadow-md transition-shadow h-full flex flex-col">
                         <div className="flex items-center justify-between px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
                             <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.recentActivity')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.realTime')}</p></div>
                             <div className="flex items-center gap-2">

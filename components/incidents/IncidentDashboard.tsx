@@ -80,7 +80,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
     return (
         <div className="space-y-8 animate-fade-in pb-10">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group">
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group">
                 {/* Global Score */}
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="relative">
@@ -162,7 +162,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             </div>
 
             {/* Search Bar */}
-            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5">
+            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
                 <Search className="h-5 w-5 text-slate-400" />
                 <input
                     type="text"
@@ -186,7 +186,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
 
             {/* Incident list */}
             {viewMode === 'list' ? (
-                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
@@ -281,7 +281,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                             <div
                                 key={inc.id}
                                 onClick={() => onSelect(inc)}
-                                className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5"
+                                className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group"
                             >
                                 {inc.severity === Criticality.CRITICAL && (
                                     <div className="absolute top-6 right-6">

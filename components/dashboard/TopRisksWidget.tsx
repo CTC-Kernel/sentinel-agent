@@ -12,7 +12,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
     const topRisks = [...risks].sort((a, b) => b.score - a.score).slice(0, 5);
 
     return (
-        <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 h-full">
+        <div className="glass-panel p-6 rounded-[2.5rem] h-full">
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Risques Critiques</h3>

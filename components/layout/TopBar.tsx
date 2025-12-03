@@ -47,7 +47,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
     };
 
     return (
-        <header className="h-16 flex items-center justify-between px-6 z-20 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/70 dark:border-white/5 transition-all duration-300">
+        <header className="h-16 flex items-center justify-between px-6 z-20 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800/70 transition-all duration-300">
             {/* Left: Mobile Menu & Search Trigger */}
             <div className="flex items-center flex-1 gap-4">
                 <button
@@ -60,7 +60,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                 {/* Modern Search Bar Trigger */}
                 <button
                     onClick={openCommandPalette}
-                    className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200/50 dark:border-white/5 rounded-xl text-sm text-slate-500 dark:text-slate-400 transition-all duration-200 group w-full max-w-md shadow-sm hover:shadow-md"
+                    className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl text-sm text-slate-500 dark:text-slate-400 transition-all duration-200 group w-full max-w-md shadow-sm hover:shadow-md"
                 >
                     <Search className="h-4 w-4 text-slate-400 group-hover:text-brand-500 transition-colors" />
                     <span className="flex-1 text-left font-medium">Rechercher...</span>

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { RISK_TEMPLATES, RiskTemplate } from '../../utils/riskTemplates';
 import { X, Zap, AlertTriangle, ShieldAlert } from '../ui/Icons';
 import { Button } from '../ui/button';
+import { CustomSelect } from '../ui/CustomSelect';
 
 interface RiskTemplateModalProps {
     isOpen: boolean;
@@ -126,20 +127,14 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                                    Responsable par Défaut *
-                                </label>
-                                <select
+                                <CustomSelect
+                                    label="Responsable par Défaut"
                                     value={owner}
-                                    onChange={(e) => setOwner(e.target.value)}
-                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                                    onChange={(val) => setOwner(val as string)}
+                                    options={owners.map(o => ({ value: o, label: o }))}
                                     required
-                                >
-                                    <option value="">Sélectionner...</option>
-                                    {owners.map(o => (
-                                        <option key={o} value={o}>{o}</option>
-                                    ))}
-                                </select>
+                                    placeholder="Sélectionner..."
+                                />
                             </div>
 
                             <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">

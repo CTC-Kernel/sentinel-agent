@@ -59,7 +59,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group mb-8">
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group mb-8">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
 
                 {/* Global Score */}
@@ -134,7 +134,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                         </div>
                         <span className="text-sm font-black text-amber-700 dark:text-amber-400">{untreatedRisks}</span>
                     </div>
-                    <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                    <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
                         <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                             <span className="text-xs font-bold text-blue-700 dark:text-blue-300">En Cours</span>
@@ -301,7 +301,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                             <div className="text-xs text-slate-500">Score</div>
                                             <div className="text-lg font-bold text-red-600 dark:text-red-400">{risk.score}</div>
                                         </div>
-                                        <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.strategy === 'Atténuer' ? 'bg-blue-100 text-blue-700 dark:bg-slate-900/20 dark:text-blue-400' :
+                                        <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.strategy === 'Atténuer' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
                                             risk.strategy === 'Transférer' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
                                                 risk.strategy === 'Éviter' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
                                                     'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'

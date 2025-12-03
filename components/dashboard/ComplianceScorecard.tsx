@@ -32,7 +32,7 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
     );
 
     return (
-        <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 h-full">
+        <div className="glass-panel p-6 rounded-[2.5rem] h-full">
             <div className="flex justify-between items-start mb-6">
                 <div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Scorecard Conformité</h3>

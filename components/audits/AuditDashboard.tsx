@@ -42,7 +42,7 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group mb-8">
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group mb-8">
                 {/* Global Score */}
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="relative">
