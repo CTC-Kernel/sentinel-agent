@@ -272,13 +272,15 @@ export const Incidents: React.FC = () => {
                 subtitle="Détection, analyse et réponse aux incidents de sécurité"
                 icon={<Siren className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
-                    <button
-                        onClick={() => setCreationMode(true)}
-                        className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
-                    >
-                        <Plus className="h-5 w-5 mr-2" />
-                        Déclarer un incident
-                    </button>
+                    hasPermission(user, 'Incident', 'create') && (
+                        <button
+                            onClick={() => setCreationMode(true)}
+                            className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
+                        >
+                            <Plus className="h-5 w-5 mr-2" />
+                            Déclarer un incident
+                        </button>
+                    )
                 }
             />
 

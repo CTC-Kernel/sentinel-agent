@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { db } from '../firebase';
 import { collection, getDocs, query, where, doc, setDoc, limit, getCountFromServer, getDoc, orderBy } from 'firebase/firestore';
-import { Risk, Control, Audit, Project, DailyStat, Document, Asset, SystemLog, Supplier } from '../types';
+import { Risk, Control, Audit, Project, DailyStat, Document, Asset, SystemLog, Supplier, Incident } from '../types';
 import { PdfService } from '../services/PdfService';
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +21,7 @@ import { PriorityRisksWidget } from '../components/dashboard/widgets/PriorityRis
 import { RecentActivityWidget } from '../components/dashboard/widgets/RecentActivityWidget';
 
 interface HealthIssue { id: string; type: 'warning' | 'danger'; message: string; count: number; link: string; }
-interface ActionItem { id: string; type: 'audit' | 'document' | 'project' | 'policy'; title: string; date: string; status: string; link: string; }
+interface ActionItem { id: string; type: 'audit' | 'document' | 'project' | 'policy' | 'incident' | 'risk'; title: string; date: string; status: string; link: string; }
 
 export const Dashboard: React.FC = () => {
     const [manualLoading, setManualLoading] = useState(true);
@@ -46,8 +46,9 @@ export const Dashboard: React.FC = () => {
     const { data: myAudits, loading: auditsLoading } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId || 'ignore'), where('auditor', '==', user?.displayName || 'ignore'), where('status', 'in', ['Planifié', 'En cours'])], { logError: true });
     const { data: myDocs, loading: myDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('owner', '==', user?.email || 'ignore')], { logError: true });
     const { data: publishedDocs, loading: publishedDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '==', 'Publié')], { logError: true });
+    const { data: myIncidents, loading: myIncidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('reporter', '==', user?.displayName || 'ignore'), where('status', '!=', 'Fermé')], { logError: true });
 
-    const loading = manualLoading || controlsLoading || logsLoading || historyLoading || risksLoading || assetsLoading || suppliersLoading || projectsLoading || auditsLoading || myDocsLoading || publishedDocsLoading;
+    const loading = manualLoading || controlsLoading || logsLoading || historyLoading || risksLoading || assetsLoading || suppliersLoading || projectsLoading || auditsLoading || myDocsLoading || publishedDocsLoading || myIncidentsLoading;
 
     // Fetch Counts & Org Name
     useEffect(() => {
@@ -147,6 +148,21 @@ export const Dashboard: React.FC = () => {
         };
     }, [controls, allAssets, allRisks, openAuditsCount, activeIncidentsCount]);
 
+    // Personalized Risks
+    const myRisksList = React.useMemo(() => {
+        if (!user) return [];
+        return allRisks.filter(r => r.ownerId === user.uid).sort((a, b) => b.score - a.score).slice(0, 5);
+    }, [allRisks, user]);
+
+    const projectRisks = React.useMemo(() => {
+        if (!user || user.role !== 'project_manager') return [];
+        const projectIds = myProjects.map(p => p.id);
+        return allRisks.filter(r =>
+            (r.ownerId === user.uid) ||
+            (r.relatedProjectIds?.some((pid: string) => projectIds.includes(pid)))
+        ).sort((a, b) => b.score - a.score).slice(0, 5);
+    }, [allRisks, user, myProjects]);
+
     const isEmpty = React.useMemo(() => !loading && allRisks.length === 0 && allAssets.length === 0 && myProjects.length === 0, [loading, allRisks, allAssets, myProjects]);
 
     const scoreGrade = React.useMemo(() => {
@@ -198,9 +214,23 @@ export const Dashboard: React.FC = () => {
     const myActionItems = React.useMemo(() => {
         if (!user) return [];
         const myItems: ActionItem[] = [];
+
+        // Audits
         myAudits.forEach(a => {
             myItems.push({ id: a.id, type: 'audit', title: a.name, date: a.dateScheduled, status: a.status, link: '/audits' });
         });
+
+        // Incidents
+        myIncidents.forEach(i => {
+            myItems.push({ id: i.id, type: 'incident', title: i.title, date: i.dateReported, status: i.status, link: '/incidents' });
+        });
+
+        // Risks
+        const myRisks = allRisks.filter(r => r.ownerId === user.uid && r.status !== 'Fermé');
+        myRisks.forEach(r => {
+            myItems.push({ id: r.id, type: 'risk', title: r.threat, date: r.updatedAt || new Date().toISOString(), status: r.status, link: '/risks' });
+        });
+
         const next30Days = new Date(); next30Days.setDate(next30Days.getDate() + 30);
         myDocs.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < next30Days).forEach(d => {
             myItems.push({ id: d.id, type: 'document', title: d.title, date: d.nextReviewDate!, status: t('dashboard.statusReview'), link: '/documents' });
@@ -213,7 +243,7 @@ export const Dashboard: React.FC = () => {
         });
         myItems.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         return myItems;
-    }, [user, myAudits, myDocs, publishedDocs, myProjects, t]);
+    }, [user, myAudits, myDocs, publishedDocs, myProjects, myIncidents, allRisks, t]);
 
     // Stats History Generation
     useEffect(() => {
@@ -348,26 +378,110 @@ export const Dashboard: React.FC = () => {
 
             <QuickActions navigate={navigate} t={t} stats={stats} />
 
-            <StatsOverview stats={stats} loading={loading} navigate={navigate} t={t} />
+            {/* Role-based Widget Visibility */}
+            {(() => {
+                const role = user?.role || 'user';
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
-                <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
-            </div>
+                // 1. Admin / RSSI (Full View)
+                if (['admin', 'rssi'].includes(role)) {
+                    return (
+                        <>
+                            <StatsOverview stats={stats} loading={loading} navigate={navigate} t={t} />
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
+                                <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
+                                <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="lg:col-span-2">
+                                    <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
+                                </div>
+                                <div className="lg:col-span-1">
+                                    <CyberNewsWidget />
+                                </div>
+                            </div>
+                        </>
+                    );
+                }
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
-                <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />
-            </div>
+                // 2. Direction (Strategic View - No granular activity/tasks)
+                if (role === 'direction') {
+                    return (
+                        <>
+                            <StatsOverview stats={stats} loading={loading} navigate={navigate} t={t} />
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
+                                <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="lg:col-span-2">
+                                    <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
+                                </div>
+                                <div className="lg:col-span-1">
+                                    <CyberNewsWidget />
+                                </div>
+                            </div>
+                        </>
+                    );
+                }
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
-                </div>
-                <div className="lg:col-span-1 h-full">
-                    <CyberNewsWidget />
-                </div>
-            </div>
+                // 3. Auditor (Audit & Compliance Focus)
+                if (role === 'auditor') {
+                    return (
+                        <>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="lg:col-span-2">
+                                    <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
+                                </div>
+                                <div className="lg:col-span-1">
+                                    <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
+                                <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
+                            </div>
+                        </>
+                    );
+                }
+
+                // 4. Project Manager (Projects & Risks)
+                if (role === 'project_manager') {
+                    return (
+                        <>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="lg:col-span-2">
+                                    <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
+                                </div>
+                                <div className="lg:col-span-1">
+                                    <PriorityRisksWidget topRisks={projectRisks} loading={loading} navigate={navigate} t={t} title="Risques Projets" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="lg:col-span-2">
+                                    <CyberNewsWidget />
+                                </div>
+                            </div>
+                        </>
+                    );
+                }
+
+                // 5. User (Operational)
+                return (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2">
+                            <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
+                        </div>
+                        <div className="lg:col-span-1 space-y-6">
+                            <PriorityRisksWidget topRisks={myRisksList} loading={loading} navigate={navigate} t={t} title="Mes Risques" />
+                            <CyberNewsWidget />
+                        </div>
+                    </div>
+                );
+            })()}
         </div >
     );
 };
