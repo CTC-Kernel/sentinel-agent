@@ -5,6 +5,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { auditSchema, AuditFormData } from '../../schemas/auditSchema';
 import { Audit, Control, Asset, Risk, UserProfile, Project } from '../../types';
 import { CustomSelect } from '../ui/CustomSelect';
+import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
+import { Button } from '../ui/button';
 
 interface AuditFormProps {
     onSubmit: import('react-hook-form').SubmitHandler<AuditFormData>;
@@ -16,6 +19,7 @@ interface AuditFormProps {
     projects: Project[];
     usersList: UserProfile[];
     initialData?: Partial<AuditFormData>;
+    isLoading?: boolean;
 }
 
 export const AuditForm: React.FC<AuditFormProps> = ({
@@ -24,16 +28,14 @@ export const AuditForm: React.FC<AuditFormProps> = ({
     existingAudit,
     assets,
     risks,
-
-
     controls,
     projects,
     usersList,
-    initialData
+    initialData,
+    isLoading = false
 }) => {
-    const { register, handleSubmit, reset, control } = useForm<AuditFormData>({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolver: zodResolver(auditSchema) as any,
+    const { register, handleSubmit, reset, control, formState: { errors } } = useForm<AuditFormData>({
+        resolver: zodResolver(auditSchema),
         defaultValues: {
             name: '',
             type: 'Interne',
@@ -43,7 +45,6 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             scope: '',
             relatedAssetIds: [],
             relatedRiskIds: [],
-
             relatedControlIds: [],
             relatedProjectIds: []
         }
@@ -64,7 +65,6 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 scope: existingAudit.scope || '',
                 relatedAssetIds: existingAudit.relatedAssetIds || [],
                 relatedRiskIds: existingAudit.relatedRiskIds || [],
-
                 relatedControlIds: existingAudit.relatedControlIds || [],
                 relatedProjectIds: existingAudit.relatedProjectIds || []
             });
@@ -78,7 +78,6 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 scope: initialData?.scope || '',
                 relatedAssetIds: initialData?.relatedAssetIds || [],
                 relatedRiskIds: initialData?.relatedRiskIds || [],
-
                 relatedControlIds: initialData?.relatedControlIds || [],
                 relatedProjectIds: initialData?.relatedProjectIds || []
             });
@@ -87,119 +86,148 @@ export const AuditForm: React.FC<AuditFormProps> = ({
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6 overflow-y-auto custom-scrollbar h-full">
-            <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom de l'audit</label>
-                <input required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-                    {...register('name')} placeholder="Ex: Audit Interne ISO 27001 - Q1" />
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Type</label>
-                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium appearance-none"
-                        {...register('type')}>
-                        {['Interne', 'Externe', 'Certification'].map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Date Prévue</label>
-                        {watchedDateScheduled && watchedName && (
-                            <AddToCalendar
-                                event={{
-                                    title: watchedName,
-                                    description: `Audit ${watchedType} - ${watchedScope}`,
-                                    start: new Date(watchedDateScheduled),
-                                    end: new Date(watchedDateScheduled),
-                                    location: 'Sentinel GRC'
-                                }}
-                                className="scale-75 origin-right"
+            <div className="space-y-6">
+                <FloatingLabelInput
+                    label="Nom de l'audit"
+                    {...register('name')}
+                    placeholder="Ex: Audit Interne ISO 27001 - Q1"
+                    error={errors.name?.message}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Controller
+                        name="type"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Type"
+                                value={field.value}
+                                onChange={field.onChange}
+                                options={['Interne', 'Externe', 'Certification'].map(t => ({ value: t, label: t }))}
                             />
                         )}
+                    />
+
+                    <div className="relative">
+                        <FloatingLabelInput
+                            label="Date Prévue"
+                            type="date"
+                            {...register('dateScheduled')}
+                            error={errors.dateScheduled?.message}
+                        />
+                        {watchedDateScheduled && watchedName && (
+                            <div className="absolute right-2 top-2 z-10">
+                                <AddToCalendar
+                                    event={{
+                                        title: watchedName,
+                                        description: `Audit ${watchedType} - ${watchedScope}`,
+                                        start: new Date(watchedDateScheduled),
+                                        end: new Date(watchedDateScheduled),
+                                        location: 'Sentinel GRC'
+                                    }}
+                                    className="scale-75 origin-right"
+                                />
+                            </div>
+                        )}
                     </div>
-                    <input type="date" required className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-                        {...register('dateScheduled')} />
                 </div>
-            </div>
-            <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Auditeur</label>
+
                 <Controller
                     name="auditor"
                     control={control}
                     render={({ field }) => (
                         <CustomSelect
-                            value={field.value}
+                            label="Auditeur"
+                            value={field.value || ''}
                             onChange={field.onChange}
                             options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                             placeholder="Sélectionner un auditeur..."
                         />
                     )}
                 />
+
+                <FloatingLabelTextarea
+                    label="Description du Périmètre"
+                    {...register('scope')}
+                    placeholder="Décrivez le périmètre de l'audit (ex: Tous les serveurs de production, Processus RH...)"
+                    rows={4}
+                    error={errors.scope?.message}
+                />
+
+                <div className="space-y-4">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Périmètre</label>
+                    <Controller
+                        name="relatedAssetIds"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Actifs concernés"
+                                value={field.value || []}
+                                onChange={field.onChange}
+                                options={assets.map(a => ({ value: a.id, label: a.name }))}
+                                multiple
+                            />
+                        )}
+                    />
+                    <Controller
+                        name="relatedControlIds"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Contrôles à vérifier"
+                                value={field.value || []}
+                                onChange={field.onChange}
+                                options={controls.map(c => ({ value: c.id, label: c.code, subLabel: c.name }))}
+                                multiple
+                            />
+                        )}
+                    />
+                    <Controller
+                        name="relatedRiskIds"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Risques concernés"
+                                value={field.value || []}
+                                onChange={field.onChange}
+                                options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
+                                multiple
+                            />
+                        )}
+                    />
+                    <Controller
+                        name="relatedProjectIds"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Projets liés"
+                                value={field.value || []}
+                                onChange={field.onChange}
+                                options={projects.map(p => ({ value: p.id, label: p.name }))}
+                                multiple
+                            />
+                        )}
+                    />
+                </div>
             </div>
-            <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description du Périmètre</label>
-                <textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium min-h-[100px]"
-                    {...register('scope')} placeholder="Décrivez le périmètre de l'audit (ex: Tous les serveurs de production, Processus RH...)" />
-            </div>
-            <div className="space-y-4">
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Périmètre</label>
-                <Controller
-                    name="relatedAssetIds"
-                    control={control}
-                    render={({ field }) => (
-                        <CustomSelect
-                            label="Actifs concernés"
-                            value={field.value || []}
-                            onChange={field.onChange}
-                            options={assets.map(a => ({ value: a.id, label: a.name }))}
-                            multiple
-                        />
-                    )}
-                />
-                <Controller
-                    name="relatedControlIds"
-                    control={control}
-                    render={({ field }) => (
-                        <CustomSelect
-                            label="Contrôles à vérifier"
-                            value={field.value || []}
-                            onChange={field.onChange}
-                            options={controls.map(c => ({ value: c.id, label: c.code, subLabel: c.name }))}
-                            multiple
-                        />
-                    )}
-                />
-                <Controller
-                    name="relatedRiskIds"
-                    control={control}
-                    render={({ field }) => (
-                        <CustomSelect
-                            label="Risques concernés"
-                            value={field.value || []}
-                            onChange={field.onChange}
-                            options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
-                            multiple
-                        />
-                    )}
-                />
-                <Controller
-                    name="relatedProjectIds"
-                    control={control}
-                    render={({ field }) => (
-                        <CustomSelect
-                            label="Projets liés"
-                            value={field.value || []}
-                            onChange={field.onChange}
-                            options={projects.map(p => ({ value: p.id, label: p.name }))}
-                            multiple
-                        />
-                    )}
-                />
-            </div>
+
             <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
-                <button type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                <button type="submit" className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none">
+                <Button
+                    type="button"
+                    onClick={onCancel}
+                    variant="ghost"
+                    disabled={isLoading}
+                    className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                >
+                    Annuler
+                </Button>
+                <Button
+                    type="submit"
+                    isLoading={isLoading}
+                    className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none"
+                >
                     {existingAudit ? 'Enregistrer' : 'Planifier'}
-                </button>
+                </Button>
             </div>
         </form>
     );

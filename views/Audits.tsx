@@ -125,6 +125,7 @@ export const Audits: React.FC = () => {
     const [showFindingsDrawer, setShowFindingsDrawer] = useState(false);
     const [checklist, setChecklist] = useState<AuditChecklist | null>(null);
     const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist' | 'scope' | 'collaboration' | 'evidence' | 'team' | 'intelligence'>('findings');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -228,6 +229,7 @@ export const Audits: React.FC = () => {
 
     const handleAuditFormSubmit: SubmitHandler<AuditFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
+        setIsSubmitting(true);
 
         if (editingAudit) {
             // Update existing audit
@@ -244,6 +246,8 @@ export const Audits: React.FC = () => {
                 } else {
                     ErrorLogger.handleErrorWithToast(e, 'Audits.handleAuditFormSubmit.update', 'UPDATE_FAILED');
                 }
+            } finally {
+                setIsSubmitting(false);
             }
         } else {
             // Create new audit
@@ -286,6 +290,8 @@ export const Audits: React.FC = () => {
                 } else {
                     ErrorLogger.handleErrorWithToast(error, 'Audits.handleAuditFormSubmit', 'CREATE_FAILED');
                 }
+            } finally {
+                setIsSubmitting(false);
             }
         }
     };
@@ -1430,6 +1436,7 @@ export const Audits: React.FC = () => {
                     controls={controls}
                     projects={rawProjects}
                     usersList={usersList}
+                    isLoading={isSubmitting}
                 />
             </Drawer>
         </div>

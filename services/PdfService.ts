@@ -3,8 +3,6 @@ import 'jspdf-autotable';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-
-
 interface ReportOptions {
     title: string;
     subtitle?: string;
@@ -12,70 +10,95 @@ interface ReportOptions {
     filename?: string;
     headerText?: string;
     footerText?: string;
+    includeCover?: boolean;
+    coverImage?: string; // Base64 or URL
+    watermark?: boolean;
 }
 
 export class PdfService {
-    private static readonly BRAND_COLOR = '#4F46E5'; // Indigo 600
-    private static readonly TEXT_COLOR = '#1E293B'; // Slate 800
-    private static readonly SECONDARY_TEXT_COLOR = '#64748B'; // Slate 500
-    private static readonly ACCENT_COLOR = '#F8FAFC'; // Slate 50
+    // Brand Palette - Modern & Professional
+    private static readonly BRAND_PRIMARY = '#4F46E5'; // Indigo 600
+    private static readonly BRAND_SECONDARY = '#312E81'; // Indigo 900
+    private static readonly ACCENT_COLOR = '#EEF2FF'; // Indigo 50
+    private static readonly TEXT_PRIMARY = '#1E293B'; // Slate 800
+    private static readonly TEXT_SECONDARY = '#64748B'; // Slate 500
     private static readonly BORDER_COLOR = '#E2E8F0'; // Slate 200
 
     /**
      * Initialize a new PDF document with standard settings
      */
     private static createDoc(orientation: 'portrait' | 'landscape' = 'portrait'): jsPDF {
-        return new jsPDF({
+        const doc = new jsPDF({
             orientation,
             unit: 'mm',
             format: 'a4'
         });
+        doc.setFont('helvetica');
+        return doc;
+    }
+
+    /**
+     * Add a "Confidential" watermark to the current page
+     */
+    private static addWatermark(doc: jsPDF) {
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+
+        doc.saveGraphicsState();
+        doc.setTextColor(240, 240, 240); // Very light gray
+        doc.setFontSize(60);
+        doc.setFont('helvetica', 'bold');
+
+        // Rotate text
+        doc.text('CONFIDENTIEL', pageWidth / 2, pageHeight / 2, {
+            align: 'center',
+            angle: 45,
+            renderingMode: 'fill'
+        });
+        doc.restoreGraphicsState();
     }
 
     /**
      * Add the standard header with logo and title
      */
-    private static addHeader(doc: jsPDF, title: string, subtitle?: string, extraText?: string) {
+    private static addHeader(doc: jsPDF, title: string, subtitle?: string) {
         const pageWidth = doc.internal.pageSize.width;
 
-        // Logo Placeholder (Left)
-        doc.setFillColor(this.BRAND_COLOR);
-        doc.rect(14, 10, 10, 10, 'F');
+        // Top Accent Line
+        doc.setFillColor(this.BRAND_PRIMARY);
+        doc.rect(0, 0, pageWidth, 2, 'F');
+
+        // Logo Area (Left)
+        doc.setFillColor(this.BRAND_PRIMARY);
+        doc.roundedRect(14, 10, 10, 10, 2, 2, 'F');
         doc.setTextColor('#FFFFFF');
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('S', 16.5, 17); // Sentinel Logo Init
 
         // App Name
-        doc.setTextColor(this.TEXT_COLOR);
-        doc.setFontSize(16);
+        doc.setTextColor(this.BRAND_SECONDARY);
+        doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Sentinel GRC', 28, 17);
 
         // Report Title (Right)
-        doc.setFontSize(16);
-        doc.setTextColor(this.BRAND_COLOR);
-        doc.text(title, pageWidth - 14, 17, { align: 'right' });
+        doc.setFontSize(12);
+        doc.setTextColor(this.TEXT_PRIMARY);
+        doc.text(title, pageWidth - 14, 15, { align: 'right' });
 
         // Subtitle/Date (Right, below title)
         if (subtitle) {
             doc.setFontSize(9);
-            doc.setTextColor(this.SECONDARY_TEXT_COLOR);
+            doc.setTextColor(this.TEXT_SECONDARY);
             doc.setFont('helvetica', 'normal');
-            doc.text(subtitle, pageWidth - 14, 23, { align: 'right' });
-        }
-
-        // Extra Header Text (Left, below logo)
-        if (extraText) {
-            doc.setFontSize(9);
-            doc.setTextColor(this.SECONDARY_TEXT_COLOR);
-            doc.text(extraText, 14, 25);
+            doc.text(subtitle, pageWidth - 14, 20, { align: 'right' });
         }
 
         // Divider Line
-        doc.setDrawColor(226, 232, 240); // Slate 200
-        doc.setLineWidth(0.5);
-        doc.line(14, 28, pageWidth - 14, 28);
+        doc.setDrawColor(this.BORDER_COLOR);
+        doc.setLineWidth(0.1);
+        doc.line(14, 25, pageWidth - 14, 25);
     }
 
     /**
@@ -90,17 +113,21 @@ export class PdfService {
             doc.setPage(i);
 
             // Divider Line
-            doc.setDrawColor(226, 232, 240);
-            doc.setLineWidth(0.5);
+            doc.setDrawColor(this.BORDER_COLOR);
+            doc.setLineWidth(0.1);
             doc.line(14, pageHeight - 15, pageWidth - 14, pageHeight - 15);
 
-            // Confidentiality Notice
+            // Footer Text
             doc.setFontSize(8);
-            doc.setTextColor(this.SECONDARY_TEXT_COLOR);
+            doc.setTextColor(this.TEXT_SECONDARY);
             doc.text(footerText, 14, pageHeight - 10);
 
             // Page Number
             doc.text(`Page ${i} sur ${pageCount}`, pageWidth - 14, pageHeight - 10, { align: 'right' });
+
+            // Bottom Accent
+            doc.setFillColor(this.BRAND_PRIMARY);
+            doc.rect(0, pageHeight - 1, pageWidth, 1, 'F');
         }
     }
 
@@ -116,7 +143,7 @@ export class PdfService {
         const doc = this.createDoc(options.orientation);
         const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
 
-        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options.headerText);
+        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`);
 
         doc.autoTable({
             startY: 35,
@@ -126,22 +153,28 @@ export class PdfService {
             styles: {
                 font: 'helvetica',
                 fontSize: 9,
-                cellPadding: 3,
-                textColor: this.TEXT_COLOR,
+                cellPadding: 4,
+                textColor: this.TEXT_PRIMARY,
                 lineColor: [226, 232, 240],
                 lineWidth: 0.1,
             },
             headStyles: {
-                fillColor: this.BRAND_COLOR,
+                fillColor: this.BRAND_PRIMARY,
                 textColor: '#FFFFFF',
                 fontStyle: 'bold',
                 halign: 'left',
+                cellPadding: 4,
             },
             alternateRowStyles: {
                 fillColor: this.ACCENT_COLOR,
             },
             columnStyles: columnStyles,
             margin: { top: 35, bottom: 20, left: 14, right: 14 },
+            didDrawPage: () => {
+                if (options.watermark) {
+                    this.addWatermark(doc);
+                }
+            }
         });
 
         this.addFooter(doc, options.footerText);
@@ -158,7 +191,7 @@ export class PdfService {
         const doc = this.createDoc(options.orientation);
         const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
 
-        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options.headerText);
+        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`);
 
         renderContent(doc, 35);
 
@@ -167,7 +200,7 @@ export class PdfService {
     }
 
     /**
-     * Generate a generic Executive Report with Cover Page, Summary, and Content
+     * Generate a generic Executive Report with Premium Cover Page
      */
     static generateExecutiveReport(
         options: ReportOptions & {
@@ -182,85 +215,121 @@ export class PdfService {
         const pageHeight = doc.internal.pageSize.height;
         const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
 
-        // --- COVER PAGE ---
-        // Background Accent
-        doc.setFillColor(this.BRAND_COLOR);
-        doc.rect(0, 0, pageWidth, 8, 'F'); // Top bar
+        // --- PREMIUM COVER PAGE ---
 
-        // Logo (Large)
-        doc.setFillColor(this.BRAND_COLOR);
-        doc.rect(pageWidth / 2 - 15, 60, 30, 30, 'F');
+        // 1. Background Gradient (Simulated with Rects)
+        // Main dark side bar
+        doc.setFillColor(this.BRAND_SECONDARY);
+        doc.rect(0, 0, pageWidth * 0.35, pageHeight, 'F');
+
+        // Accent overlay
+        doc.setFillColor(this.BRAND_PRIMARY);
+        doc.rect(0, 0, pageWidth * 0.35, pageHeight * 0.4, 'F');
+
+        // 2. Logo Area (Top Left)
         doc.setTextColor('#FFFFFF');
-        doc.setFontSize(40);
+        doc.setFontSize(60);
         doc.setFont('helvetica', 'bold');
-        doc.text('S', pageWidth / 2 - 7, 82);
+        doc.text('S', 20, 40);
 
-        // Title
-        doc.setTextColor(this.TEXT_COLOR);
-        doc.setFontSize(28);
-        doc.text(options.title, pageWidth / 2, 110, { align: 'center' });
-
-        // Subtitle
-        if (options.subtitle) {
-            doc.setFontSize(14);
-            doc.setTextColor(this.SECONDARY_TEXT_COLOR);
-            doc.setFont('helvetica', 'normal');
-            doc.text(options.subtitle, pageWidth / 2, 120, { align: 'center' });
-        }
-
-        // Info Box
-        doc.setDrawColor(this.BORDER_COLOR);
-        doc.setFillColor(this.ACCENT_COLOR);
-        doc.roundedRect(pageWidth / 2 - 60, 140, 120, 50, 3, 3, 'FD');
-
-        doc.setFontSize(11);
-        doc.setTextColor(this.TEXT_COLOR);
-
-        let infoY = 155;
-        if (options.organizationName) {
-            doc.setFont('helvetica', 'bold');
-            doc.text("Organisation:", pageWidth / 2 - 50, infoY);
-            doc.setFont('helvetica', 'normal');
-            doc.text(options.organizationName, pageWidth / 2 + 50, infoY, { align: 'right' });
-            infoY += 10;
-        }
-
-        if (options.author) {
-            doc.setFont('helvetica', 'bold');
-            doc.text("Auteur:", pageWidth / 2 - 50, infoY);
-            doc.setFont('helvetica', 'normal');
-            doc.text(options.author, pageWidth / 2 + 50, infoY, { align: 'right' });
-            infoY += 10;
-        }
-
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'light');
+        doc.text('Sentinel', 20, 55);
         doc.setFont('helvetica', 'bold');
-        doc.text("Date:", pageWidth / 2 - 50, infoY);
-        doc.setFont('helvetica', 'normal');
-        doc.text(dateStr, pageWidth / 2 + 50, infoY, { align: 'right' });
+        doc.text('GRC', 20, 65);
 
+        // 3. Report Info (Left Sidebar)
+        let infoY = pageHeight - 60;
 
-        // Footer on Cover
         doc.setFontSize(10);
-        doc.setTextColor(this.SECONDARY_TEXT_COLOR);
-        doc.text("Généré par Sentinel GRC", pageWidth / 2, pageHeight - 20, { align: 'center' });
+        doc.setTextColor(255, 255, 255, 0.7); // Transparent white
+        doc.text("ORGANISATION", 20, infoY);
+        doc.setFontSize(12);
+        doc.setTextColor('#FFFFFF');
+        doc.text(options.organizationName || 'Sentinel GRC', 20, infoY + 6);
+
+        infoY += 20;
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255, 0.7);
+        doc.text("AUTEUR", 20, infoY);
+        doc.setFontSize(12);
+        doc.setTextColor('#FFFFFF');
+        doc.text(options.author || 'Non spécifié', 20, infoY + 6);
+
+        infoY += 20;
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255, 0.7);
+        doc.text("DATE", 20, infoY);
+        doc.setFontSize(12);
+        doc.setTextColor('#FFFFFF');
+        doc.text(dateStr, 20, infoY + 6);
+
+        // 4. Main Title Area (Right Side)
+        const contentStartX = pageWidth * 0.35 + 20;
+        const contentWidth = pageWidth - contentStartX - 20;
+
+        // Optional: AI Generated Cover Image Placeholder
+        if (options.coverImage) {
+            // doc.addImage(options.coverImage, 'JPEG', contentStartX, 20, contentWidth, 80);
+        } else {
+            // Decorative Graphic Element
+            doc.setDrawColor(this.BRAND_PRIMARY);
+            doc.setLineWidth(2);
+            doc.line(contentStartX, 40, contentStartX + 20, 40);
+        }
+
+        doc.setTextColor(this.BRAND_SECONDARY);
+        doc.setFontSize(42);
+        doc.setFont('helvetica', 'bold');
+
+        // Split title if too long
+        const splitTitle = doc.splitTextToSize(options.title.toUpperCase(), contentWidth);
+        doc.text(splitTitle, contentStartX, 100);
+
+        if (options.subtitle) {
+            doc.setFontSize(18);
+            doc.setTextColor(this.TEXT_SECONDARY);
+            doc.setFont('helvetica', 'normal');
+            const splitSubtitle = doc.splitTextToSize(options.subtitle, contentWidth);
+            doc.text(splitSubtitle, contentStartX, 100 + (splitTitle.length * 15) + 5);
+        }
+
+        // Confidentiality Badge
+        doc.setDrawColor(this.BRAND_PRIMARY);
+        doc.setFillColor(this.ACCENT_COLOR);
+        doc.roundedRect(contentStartX, pageHeight - 40, 60, 12, 6, 6, 'FD');
+        doc.setFontSize(8);
+        doc.setTextColor(this.BRAND_PRIMARY);
+        doc.setFont('helvetica', 'bold');
+        doc.text("DOCUMENT CONFIDENTIEL", contentStartX + 30, pageHeight - 32, { align: 'center' });
 
         // --- EXECUTIVE SUMMARY PAGE (If provided) ---
         if (options.summary) {
             doc.addPage();
             this.addHeader(doc, options.title, "Synthèse Exécutive");
 
-            doc.setFontSize(16);
-            doc.setTextColor(this.BRAND_COLOR);
+            // Section Title
+            doc.setFontSize(24);
+            doc.setTextColor(this.BRAND_SECONDARY);
             doc.setFont('helvetica', 'bold');
             doc.text("Synthèse Exécutive", 14, 45);
 
+            // Decorative underline
+            doc.setDrawColor(this.BRAND_PRIMARY);
+            doc.setLineWidth(1);
+            doc.line(14, 50, 40, 50);
+
+            // Summary Content
             doc.setFontSize(11);
-            doc.setTextColor(this.TEXT_COLOR);
+            doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'normal');
 
-            // Split text to fit width
-            const splitSummary = doc.splitTextToSize(options.summary, pageWidth - 28);
-            doc.text(splitSummary, 14, 55);
+            // Add a light background box for the summary
+            doc.setFillColor(this.ACCENT_COLOR);
+            doc.roundedRect(14, 60, pageWidth - 28, 100, 4, 4, 'F');
+
+            const splitSummary = doc.splitTextToSize(options.summary, pageWidth - 38);
+            doc.text(splitSummary, 19, 70);
         }
 
         // --- CONTENT PAGES ---
@@ -269,6 +338,15 @@ export class PdfService {
         renderContent(doc, 35);
 
         this.addFooter(doc, options.footerText);
+
+        if (options.watermark) {
+            const pageCount = doc.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                this.addWatermark(doc);
+            }
+        }
+
         doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
     }
 }

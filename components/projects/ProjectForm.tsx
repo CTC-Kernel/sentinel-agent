@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { projectSchema, ProjectFormData } from '../../schemas/projectSchema';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
+import { Button } from '../ui/button';
 
 interface ProjectFormProps {
     onSubmit: (project: ProjectFormData) => void;
@@ -18,6 +19,7 @@ interface ProjectFormProps {
     availableControls?: Control[];
     availableAssets?: Asset[];
     initialData?: Partial<ProjectFormData>;
+    isLoading?: boolean;
 }
 
 export const ProjectForm: React.FC<ProjectFormProps> = ({
@@ -29,6 +31,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     availableControls = [],
     availableAssets = [],
     initialData,
+    isLoading = false,
 }) => {
     const {
         register,
@@ -228,10 +231,22 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             </div>
 
             <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
-                <button type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                <button type="submit" className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none">
+                <Button
+                    type="button"
+                    onClick={onCancel}
+                    variant="ghost"
+                    disabled={isLoading}
+                    className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                >
+                    Annuler
+                </Button>
+                <Button
+                    type="submit"
+                    isLoading={isLoading}
+                    className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none font-bold text-sm"
+                >
                     {existingProject ? 'Enregistrer' : 'Créer le Projet'}
-                </button>
+                </Button>
             </div>
         </form>
     );

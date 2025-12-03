@@ -11,6 +11,7 @@ import {
 } from '@tanstack/react-table';
 import { ChevronUp, ChevronDown, Download, Search, ChevronLeft, ChevronRight } from './Icons';
 import { cn } from '../../lib/utils';
+import { Skeleton } from './Skeleton';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -21,6 +22,7 @@ interface DataTableProps<TData, TValue> {
     searchable?: boolean;
     pageSize?: number;
     className?: string;
+    loading?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -32,6 +34,7 @@ export function DataTable<TData, TValue>({
     searchable = false,
     pageSize = 10,
     className,
+    loading = false,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
@@ -138,7 +141,17 @@ export function DataTable<TData, TValue>({
                         ))}
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-white/10">
-                        {table.getRowModel().rows.length > 0 ? (
+                        {loading ? (
+                            Array.from({ length: 5 }).map((_, i) => (
+                                <tr key={i}>
+                                    {columns.map((col, j) => (
+                                        <td key={j} className="px-6 py-4">
+                                            <Skeleton className="h-4 w-full" />
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))
+                        ) : table.getRowModel().rows.length > 0 ? (
                             table.getRowModel().rows.map((row) => (
                                 <tr
                                     key={row.id}
