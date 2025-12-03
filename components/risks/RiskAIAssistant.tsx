@@ -94,7 +94,6 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
             onUpdate({
                 probability: response.probability as 1 | 2 | 3 | 4 | 5,
                 impact: response.impact as 1 | 2 | 3 | 4 | 5,
-                // @ts-expect-error - justification is not in Risk type but we pass it for the handler
                 justification: response.justification as string
             });
         } else if (mode === 'improve' && typeof response.threat === 'string' && typeof response.vulnerability === 'string') {

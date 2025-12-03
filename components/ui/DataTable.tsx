@@ -144,7 +144,7 @@ export function DataTable<TData, TValue>({
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
                                 <tr key={i}>
-                                    {columns.map((col, j) => (
+                                    {columns.map((_, j) => (
                                         <td key={j} className="px-6 py-4">
                                             <Skeleton className="h-4 w-full" />
                                         </td>
