@@ -2,6 +2,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangle, Info } from './Icons';
+import { Button } from './button';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -55,22 +56,23 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           )}
         </div>
         <div className="flex border-t border-gray-100 dark:border-white/5">
-          <button
+          <Button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+            variant="ghost"
+            className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
           >
             {cancelText}
-          </button>
+          </Button>
           <div className="w-px bg-gray-100 dark:bg-white/5"></div>
-          <button
+          <Button
             onClick={() => { onConfirm(); onClose(); }}
-            disabled={loading}
-            className={`flex-1 py-4 text-sm font-bold ${buttonClass} transition-colors disabled:opacity-50 flex items-center justify-center gap-2`}
+            isLoading={loading}
+            variant="ghost"
+            className={`flex-1 py-4 h-auto rounded-none text-sm font-bold ${buttonClass} transition-colors disabled:opacity-50 flex items-center justify-center gap-2`}
           >
-            {loading && <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>}
             {confirmText}
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

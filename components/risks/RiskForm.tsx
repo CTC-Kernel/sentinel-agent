@@ -11,8 +11,9 @@ import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { RiskMatrixSelector } from './RiskMatrixSelector';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { RiskTreatmentPlan } from './RiskTreatmentPlan';
+import { Button } from '../ui/button';
 
-const STANDARD_THREATS = ["Panne matérielle serveur", "Incendie", "Inondation", "Vol d'équipement", "Attaque par Ransomware", "Phishing / Ingénierie Sociale", "Erreur humaine / Configuration", "Divulgation non autorisée", "Interruption de service FAI", "Sabotage interne", "Obsolescence technologique", "Perte de personnel clé"];
+import { STANDARD_THREATS, RISK_STRATEGIES, RISK_STATUSES } from '../../data/riskConstants';
 
 interface RiskFormProps {
     onSubmit: (data: RiskFormData) => Promise<void>;
@@ -25,6 +26,7 @@ interface RiskFormProps {
     controls: Control[];
     initialData?: Partial<RiskFormData>;
     isEditing?: boolean;
+    isLoading?: boolean;
 }
 
 export const RiskForm: React.FC<RiskFormProps> = ({
@@ -37,7 +39,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     suppliers,
     controls,
     initialData,
-    isEditing = false
+    isEditing = false,
+    isLoading = false
 }) => {
     const { control, handleSubmit, reset, formState: { errors }, setValue, getValues } = useForm<RiskFormData>({
         resolver: zodResolver(riskSchema),
@@ -279,7 +282,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                         <div className="space-y-4">
                             <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Stratégie de traitement</label>
                             <div className="grid grid-cols-2 gap-3">
-                                {['Accepter', 'Atténuer', 'Transférer', 'Éviter'].map(s => (
+                                {RISK_STRATEGIES.map(s => (
                                     <button
                                         key={s}
                                         type="button"
@@ -300,7 +303,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                         <div className="space-y-4">
                             <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Statut</label>
                             <div className="flex gap-3">
-                                {['Ouvert', 'En cours', 'Fermé'].map(s => (
+                                {RISK_STATUSES.map(s => (
                                     <button
                                         key={s}
                                         type="button"
@@ -382,8 +385,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                 </div>
             </div>
             <div className="flex justify-end space-x-4 pt-8 mt-4 border-t border-gray-100 dark:border-white/5">
-                <button type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                <button type="submit" className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none">{isEditing ? 'Enregistrer les modifications' : 'Créer le Risque'}</button>
+                <Button type="button" onClick={onCancel} variant="ghost" disabled={isLoading} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</Button>
+                <Button type="submit" isLoading={isLoading} className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none">{isEditing ? 'Enregistrer les modifications' : 'Créer le Risque'}</Button>
             </div>
         </form >
     );

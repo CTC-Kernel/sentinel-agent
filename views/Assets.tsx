@@ -41,6 +41,14 @@ import { z } from 'zod';
 import { Edit } from '../components/ui/Icons';
 import { integrationService, Vulnerability } from '../services/integrationService';
 
+interface ShodanResult {
+    ip_str?: string;
+    os?: string;
+    ports?: number[];
+    org?: string;
+    [key: string]: unknown;
+}
+
 export const Assets: React.FC = () => {
     const { user, addToast } = useStore();
     const navigate = useNavigate();
@@ -105,7 +113,7 @@ export const Assets: React.FC = () => {
     const [linkedAudits, setLinkedAudits] = useState<Audit[]>([]);
 
     // Security Scan State
-    const [shodanResult, setShodanResult] = useState<any>(null);
+    const [shodanResult, setShodanResult] = useState<ShodanResult | null>(null);
     const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
     const [scanning, setScanning] = useState(false);
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
@@ -118,6 +126,7 @@ export const Assets: React.FC = () => {
     const [showInspector, setShowInspector] = useState(false);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
 
 
@@ -211,6 +220,7 @@ export const Assets: React.FC = () => {
 
     const handleCreate = async (data: AssetFormData) => {
         if (!user?.organizationId || !canEdit) return;
+        setIsSubmitting(true);
         try {
             const validatedData = assetSchema.parse(data);
             const cleanData = sanitizeData(validatedData);
@@ -230,11 +240,14 @@ export const Assets: React.FC = () => {
             } else {
                 ErrorLogger.handleErrorWithToast(e, 'Assets.handleCreate', 'CREATE_FAILED');
             }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     const handleUpdate = async (data: AssetFormData) => {
         if (!selectedAsset || !user?.organizationId || !canEdit) return;
+        setIsSubmitting(true);
         try {
             const validatedData = assetSchema.parse(data);
             const cleanData = sanitizeData(validatedData);
@@ -253,6 +266,8 @@ export const Assets: React.FC = () => {
             } else {
                 ErrorLogger.handleErrorWithToast(e, 'Assets.handleUpdate', 'UPDATE_FAILED');
             }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -374,7 +389,7 @@ export const Assets: React.FC = () => {
             if (!result) {
                 addToast("Erreur lors du scan", "error");
             } else {
-                setShodanResult(result);
+                setShodanResult(result as ShodanResult);
                 setInspectorTab('security');
                 addToast("Scan Shodan terminé", "success");
             }
@@ -548,7 +563,7 @@ export const Assets: React.FC = () => {
                 assets={filteredAssets}
                 onFilterChange={(filter) => {
                     if (filter?.type === 'criticality') {
-                        setActiveFilters(prev => ({ ...prev, criticality: filter.value as any }));
+                        setActiveFilters(prev => ({ ...prev, criticality: filter.value as Criticality }));
                     } else if (filter === null) {
                         setActiveFilters(prev => ({ ...prev, criticality: undefined }));
                     }
@@ -746,6 +761,7 @@ export const Assets: React.FC = () => {
                             usersList={usersList}
                             suppliers={suppliers}
                             isEditing={isEditing}
+                            isLoading={isSubmitting}
                         />
                     </div>
                 ) : (
