@@ -1,5 +1,5 @@
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { UserProfile } from '../types';
+import { UserProfile, Risk } from '../types';
 import { db } from '../firebase';
 import { sendEmail } from './emailService';
 import {
@@ -99,7 +99,7 @@ export const sendRiskTreatmentReminders = async (organizationId: string) => {
         let sentCount = 0;
 
         for (const riskDoc of risksSnap.docs) {
-            const risk = riskDoc.data() as any;
+            const risk = riskDoc.data() as Risk;
             const treatment = risk.treatment as { dueDate?: string; ownerId?: string; status?: string } | undefined;
             if (!treatment?.dueDate || !treatment.ownerId) continue;
 

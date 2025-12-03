@@ -213,7 +213,7 @@ export const Assets: React.FC = () => {
         if (loading || assets.length === 0) return;
         const asset = assets.find(a => a.id === state.voxelSelectedId);
         if (asset) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+
             openInspector(asset);
         }
     }, [location.state, loading, assets]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -884,8 +884,8 @@ export const Assets: React.FC = () => {
                                             {['confidentiality', 'integrity', 'availability'].map((field) => (
                                                 <div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5">
                                                     <label className="block text-[10px] font-bold uppercase text-slate-400 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
-                                                    <div className={`text-sm font-bold ${getCriticalityColor(selectedAsset[field as keyof Asset] as Criticality)} px-2 py-1 rounded-lg inline-block`}>
-                                                        {selectedAsset[field as keyof Asset]}
+                                                    <div className={`text-sm font-bold ${getCriticalityColor(selectedAsset[field as 'confidentiality' | 'integrity' | 'availability'])} px-2 py-1 rounded-lg inline-block`}>
+                                                        {selectedAsset[field as 'confidentiality' | 'integrity' | 'availability']}
                                                     </div>
                                                 </div>
                                             ))}
@@ -1116,7 +1116,7 @@ export const Assets: React.FC = () => {
                                 <div className="h-full overflow-y-auto p-6">
                                     <AssetAIAssistant
                                         asset={selectedAsset}
-                                        onUpdate={(updates) => handleUpdate({ ...selectedAsset, ...updates } as any)}
+                                        onUpdate={(updates) => handleUpdate({ ...selectedAsset, ...updates } as unknown as AssetFormData)}
                                     />
                                 </div>
                             )}

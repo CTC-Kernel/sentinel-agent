@@ -9,6 +9,12 @@ interface SupplierAIAssistantProps {
     onUpdate?: (updates: Partial<Supplier>) => void;
 }
 
+interface AIClause {
+    title: string;
+    description: string;
+    importance: 'High' | 'Medium' | 'Low';
+}
+
 export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ supplier, onUpdate }) => {
     const [loading, setLoading] = useState(false);
     const [response, setResponse] = useState<Record<string, unknown> | null>(null);
@@ -175,7 +181,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                         )}
                         {mode === 'clauses' && Array.isArray(response.clauses) && (
                             <div className="space-y-3">
-                                {response.clauses.map((c: any, i: number) => (
+                                {response.clauses.map((c: AIClause, i: number) => (
                                     <div key={i} className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-white/5">
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="font-bold text-slate-800 dark:text-slate-200">{c.title}</span>

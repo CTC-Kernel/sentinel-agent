@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality } from '../types';
+import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality, Incident } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit, LayoutGrid, List } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
@@ -89,6 +89,24 @@ export const Risks: React.FC = () => {
         { logError: true, enabled: !!user?.organizationId }
     );
 
+    const { data: projects, loading: projectsLoading } = useFirestoreCollection<Project>(
+        'projects',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true, enabled: !!user?.organizationId }
+    );
+
+    const { data: audits, loading: auditsLoading } = useFirestoreCollection<Audit>(
+        'audits',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true, enabled: !!user?.organizationId }
+    );
+
+    const { data: incidents, loading: incidentsLoading } = useFirestoreCollection<Incident>(
+        'incidents',
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { logError: true, enabled: !!user?.organizationId }
+    );
+
     // Derived State (Sorting)
     const risks = React.useMemo(() => [...rawRisks].sort((a, b) => b.score - a.score), [rawRisks]);
     const controls = React.useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
@@ -120,7 +138,7 @@ export const Risks: React.FC = () => {
     const [stats, setStats] = useState({ total: 0, critical: 0, mitigated: 0, reviewDue: 0 });
     const [importing, setImporting] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || importing;
+    const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || projectsLoading || auditsLoading || incidentsLoading || importing;
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
     // AI Recommendations State
@@ -727,9 +745,9 @@ export const Risks: React.FC = () => {
             const graphData = {
                 assets: assets,
                 risks: risks,
-                projects: [], // We don't have these loaded globally here, passing empty for now
-                audits: [],
-                incidents: [],
+                projects: projects,
+                audits: audits,
+                incidents: incidents,
                 suppliers: suppliers
             };
 

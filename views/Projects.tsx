@@ -565,7 +565,7 @@ export const Projects: React.FC = () => {
                     } else {
                         // Create new task
                         const newTask: ProjectTask = {
-                            // eslint-disable-next-line react-hooks/purity
+                             
                             id: Date.now().toString(),
                             ...cleanTaskData
                         } as ProjectTask;
