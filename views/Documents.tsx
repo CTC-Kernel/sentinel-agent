@@ -22,6 +22,7 @@ import { ErrorLogger } from '../services/errorLogger';
 import { DocumentForm } from '../components/documents/DocumentForm';
 import { FolderTree } from '../components/documents/FolderTree';
 import { DocumentFormData } from '../schemas/documentSchema';
+import { getPlanLimits } from '../config/plans';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
@@ -79,7 +80,8 @@ export const Documents: React.FC = () => {
 
     const loading = loadingDocuments || loadingUsers || loadingControls || loadingAssets || loadingAudits || loadingFolders;
 
-    const storageLimitBytes = 1024 * 1024 * 1024; // 1GB default
+    const limits = user?.organizationId ? getPlanLimits(organization?.subscription?.planId || 'discovery') : null;
+    const storageLimitBytes = (limits?.maxStorageGB || 1) * 1024 * 1024 * 1024;
     const storageUsed = organization?.storageUsed || 0;
     const isStorageFull = storageUsed >= storageLimitBytes;
 

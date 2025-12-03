@@ -17,6 +17,7 @@ import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
+import { getPlanLimits } from '../config/plans';
 import { Comments } from '../components/ui/Comments';
 import { PdfService } from '../services/PdfService';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -43,7 +44,7 @@ import { useLocation } from 'react-router-dom';
 
 
 export const Risks: React.FC = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, organization } = useStore();
     const location = useLocation();
 
     // Data Fetching with Hooks
@@ -575,27 +576,36 @@ export const Risks: React.FC = () => {
         const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `risks.csv`; link.click();
     };
 
-    const exportPDF = () => {
+    const handleExportPDF = () => {
+        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+        const canWhiteLabel = limits.features.whiteLabelReports;
+
         const data = risks.map(r => [
             r.threat,
-            `${r.probability}x${r.impact} (${r.score})`,
+            r.score.toString(),
             r.strategy,
             r.status,
-            r.residualScore ? `${r.residualScore}` : '-'
+            (r.residualScore || r.score).toString()
         ]);
 
         PdfService.generateTableReport(
             {
                 title: 'Registre des Risques',
                 subtitle: `Exporté le ${new Date().toLocaleDateString()}`,
-                filename: 'risques.pdf'
+                filename: 'risques.pdf',
+                organizationName: canWhiteLabel ? organization?.name : undefined,
+                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
             },
             ['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel'],
             data
         );
+        addToast("Rapport téléchargé avec succès", "success");
     };
 
-    const generateRTP = async () => {
+    const handleExportRTP = async () => {
+        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+        const canWhiteLabel = limits.features.whiteLabelReports;
+
         addToast("Génération du RTP avec analyse IA...", "info");
         try {
             const summary = await aiService.generateRTPSummary(
@@ -607,9 +617,11 @@ export const Risks: React.FC = () => {
                     title: 'Plan de Traitement des Risques (RTP)',
                     subtitle: `ISO 27001 | ${new Date().toLocaleDateString()}`,
                     filename: 'RTP.pdf',
-                    organizationName: user?.email?.split('@')[1] || 'Sentinel GRC',
+                    organizationName: canWhiteLabel ? (organization?.name || user?.email?.split('@')[1] || 'Sentinel GRC') : 'Sentinel GRC',
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
                     author: user?.displayName || 'RSSI',
-                    summary: summary
+                    summary: summary,
+                    coverImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop' // AI/Tech themed image
                 },
                 (doc, startY) => {
                     let y = startY;
@@ -626,7 +638,7 @@ export const Risks: React.FC = () => {
                         (r.residualScore || r.score).toString()
                     ]);
 
-                    (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                    doc.autoTable({
                         startY: y,
                         head: [['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel']],
                         body: data,
@@ -714,26 +726,6 @@ export const Risks: React.FC = () => {
         const oneYearAgo = new Date();
         oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
         return !risk.lastReviewDate || new Date(risk.lastReviewDate) < oneYearAgo;
-    };
-
-    const handleGenerateReport = async () => {
-        try {
-            addToast("Génération du rapport PDF en cours...", "info");
-            // Reuse the exportPDF logic but maybe with a different title or format if needed
-            // For now, we'll use the same robust frontend generator
-            exportPDF();
-            addToast("Rapport téléchargé avec succès", "success");
-
-            // Centralized Audit Logging
-            await hybridService.logCriticalEvent({
-                action: 'export',
-                object_type: 'report',
-                object_id: 'risk_register',
-                description: 'Generated Risk Register PDF'
-            });
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Risks.handleGenerateReport', 'UNKNOWN_ERROR');
-        }
     };
 
     const handleAIAnalysis = async () => {
@@ -848,11 +840,19 @@ export const Risks: React.FC = () => {
                         )}
 
                         <button
-                            onClick={handleGenerateReport}
+                            onClick={handleExportRTP}
                             className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
                         >
                             <FileText className="h-4 w-4 mr-2 text-red-500" />
-                            Rapport PDF
+                            RTP (PDF)
+                        </button>
+
+                        <button
+                            onClick={handleExportPDF}
+                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+                        >
+                            <Download className="h-4 w-4 mr-2" />
+                            Registre (PDF)
                         </button>
 
                         {canEdit && (
@@ -886,8 +886,8 @@ export const Risks: React.FC = () => {
                 <div className="flex items-center space-x-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 border border-slate-200 dark:border-white/5"><Search className="h-5 w-5 text-slate-400" /><input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
                 <div className="flex gap-2">
                     <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                    <button onClick={generateRTP} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Download className="h-4 w-4 mr-2" /> RTP (PDF)</button>
-                    <button onClick={exportPDF} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><FileText className="h-4 w-4 mr-2" /> Registre (PDF)</button>
+                    <button onClick={handleExportRTP} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><FileText className="h-4 w-4 mr-2" /> RTP (PDF)</button>
+                    <button onClick={handleExportPDF} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Download className="h-4 w-4 mr-2" /> Registre (PDF)</button>
                     {canEdit && <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>}
                     <button onClick={handleExportCSV} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"><FileSpreadsheet className="h-4 w-4" /></button>
                     <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm ml-2">
