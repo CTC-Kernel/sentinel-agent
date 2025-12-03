@@ -11,6 +11,8 @@ import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { integrationService, CompanySearchResult } from '../../services/integrationService';
 import { Search, Loader2 } from 'lucide-react';
+import { Button } from '../ui/button';
+import { SUPPLIER_CATEGORIES, SUPPLIER_STATUSES, DORA_SERVICE_TYPES, DORA_CRITICALITIES } from '../../data/supplierConstants';
 
 interface SupplierFormProps {
     onSubmit: SubmitHandler<SupplierFormData>;
@@ -22,6 +24,7 @@ interface SupplierFormProps {
     assets: Asset[];
     risks: Risk[];
     documents: Document[];
+    isLoading?: boolean;
 }
 
 export const SupplierForm: React.FC<SupplierFormProps> = ({
@@ -33,7 +36,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     processes,
     assets,
     risks,
-    documents
+    documents,
+    isLoading = false
 }) => {
     const { addToast } = useStore();
     const { register, handleSubmit, control, setValue, formState: { errors }, getValues } = useForm<SupplierFormData>({
@@ -246,7 +250,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Catégorie</label>
                         <select className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
                             {...register('category')}>
-                            {['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'].map(c => <option key={c} value={c}>{c}</option>)}
+                            {SUPPLIER_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
 
@@ -262,9 +266,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Statut</label>
                         <select className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
                             {...register('status')}>
-                            <option value="Actif">Actif</option>
-                            <option value="En cours">En cours</option>
-                            <option value="Terminé">Terminé</option>
+                            {SUPPLIER_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                     </div>
 
@@ -330,14 +332,14 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Type de Service</label>
                         <select className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
                             {...register('serviceType')}>
-                            {['SaaS', 'Cloud', 'Software', 'Hardware', 'Consulting', 'Network', 'Security'].map(c => <option key={c} value={c}>{c}</option>)}
+                            {DORA_SERVICE_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Criticité DORA</label>
                         <select className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
                             {...register('doraCriticality')}>
-                            {['None', 'Important', 'Critical'].map(c => <option key={c} value={c}>{c}</option>)}
+                            {DORA_CRITICALITIES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
                 </div>
@@ -455,12 +457,22 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
             </div>
 
             <div className="flex justify-end gap-3 pt-6">
-                <button type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors">
+                <Button
+                    type="button"
+                    onClick={onCancel}
+                    variant="ghost"
+                    disabled={isLoading}
+                    className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                >
                     Annuler
-                </button>
-                <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg">
+                </Button>
+                <Button
+                    type="submit"
+                    isLoading={isLoading}
+                    className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg"
+                >
                     {isEditing ? 'Mettre à jour' : 'Créer le Fournisseur'}
-                </button>
+                </Button>
             </div>
         </form>
     );

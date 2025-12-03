@@ -3,6 +3,8 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { ShieldAlert } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
+import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { Button } from '../ui/button';
 
 export const ThreatIntelChecker: React.FC = () => {
     const { addToast } = useStore();
@@ -39,20 +41,21 @@ export const ThreatIntelChecker: React.FC = () => {
                 Threat Intel
             </h3>
             <div className="space-y-3">
-                <input
-                    type="text"
-                    placeholder="Vérifier une URL / IP..."
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                <FloatingLabelInput
+                    label="Vérifier une URL / IP"
                     value={urlToCheck}
                     onChange={(e) => setUrlToCheck(e.target.value)}
+                    placeholder="https://example.com"
                 />
-                <button
+                <Button
                     onClick={handleCheckUrl}
                     disabled={!urlToCheck || checkingUrl}
-                    className="w-full py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                    isLoading={checkingUrl}
+                    className="w-full"
+                    variant="secondary"
                 >
-                    {checkingUrl ? 'Vérification...' : 'Vérifier la réputation'}
-                </button>
+                    Vérifier la réputation
+                </Button>
 
                 {urlReputationResult && (
                     <div className={`p-3 rounded-xl text-sm font-medium flex items-center gap-2 ${urlReputationResult.safe ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'}`}>

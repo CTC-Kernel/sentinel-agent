@@ -8,6 +8,7 @@ import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { Button } from '../ui/button';
+import { AUDIT_TYPES } from '../../data/auditConstants';
 
 interface AuditFormProps {
     onSubmit: import('react-hook-form').SubmitHandler<AuditFormData>;
@@ -103,7 +104,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                                 label="Type"
                                 value={field.value}
                                 onChange={field.onChange}
-                                options={['Interne', 'Externe', 'Certification'].map(t => ({ value: t, label: t }))}
+                                options={AUDIT_TYPES.map(t => ({ value: t, label: t }))}
                             />
                         )}
                     />
