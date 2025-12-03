@@ -8,7 +8,7 @@ import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, Pro
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -31,6 +31,7 @@ import { KanbanColumn } from '../components/projects/KanbanColumn';
 import { GanttChart } from '../components/projects/GanttChart';
 import { TaskFormModal } from '../components/projects/TaskFormModal';
 import { ProjectAIAssistant } from '../components/projects/ProjectAIAssistant';
+import { ProjectMilestones } from '../components/projects/ProjectMilestones';
 import '../components/projects/gantt.css';
 
 import { SubscriptionService } from '../services/subscriptionService';
@@ -98,7 +99,7 @@ export const Projects: React.FC = () => {
 
     // Inspector State
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence'>('overview');
+    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence' | 'milestones'>('overview');
     const [taskViewMode, setTaskViewMode] = useState<'list' | 'board'>('list');
     const [projectHistory, setProjectHistory] = useState<SystemLog[]>([]);
     const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
@@ -117,6 +118,19 @@ export const Projects: React.FC = () => {
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
+
+    const fetchMilestones = useCallback(async (projectId: string) => {
+        try {
+            const milestonesRef = collection(db, 'project_milestones');
+            const q = query(milestonesRef, where('projectId', '==', projectId), where('organizationId', '==', user?.organizationId));
+            const snap = await getDocs(q);
+            const milestones = snap.docs.map(d => ({ id: d.id, ...d.data() } as ProjectMilestone));
+            milestones.sort((a, b) => new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime());
+            setProjectMilestones(milestones);
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Projects.fetchMilestones', 'FETCH_FAILED');
+        }
+    }, [user?.organizationId]);
 
     const openInspector = useCallback(async (project: Project) => {
         setSelectedProject(project);
@@ -144,16 +158,7 @@ export const Projects: React.FC = () => {
         }
 
         // Fetch Milestones
-        try {
-            const milestonesRef = collection(db, 'project_milestones');
-            const q = query(milestonesRef, where('projectId', '==', project.id), where('organizationId', '==', user?.organizationId));
-            const snap = await getDocs(q);
-            const milestones = snap.docs.map(d => ({ id: d.id, ...d.data() } as ProjectMilestone));
-            milestones.sort((a, b) => new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime());
-            setProjectMilestones(milestones);
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Projects.openInspector.milestones', 'FETCH_FAILED');
-        }
+        await fetchMilestones(project.id);
 
         // Fetch Linked Audits
         try {
@@ -172,7 +177,7 @@ export const Projects: React.FC = () => {
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.fetchLinkedSuppliers', 'FETCH_FAILED');
         }
-    }, [user?.organizationId]);
+    }, [user?.organizationId, fetchMilestones]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
@@ -565,7 +570,7 @@ export const Projects: React.FC = () => {
                     } else {
                         // Create new task
                         const newTask: ProjectTask = {
-                             
+
                             id: Date.now().toString(),
                             ...cleanTaskData
                         } as ProjectTask;
@@ -848,6 +853,7 @@ export const Projects: React.FC = () => {
                                 tabs={[
                                     { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
                                     { id: 'tasks', label: 'Tâches', icon: CheckSquare },
+                                    { id: 'milestones', label: 'Jalons', icon: Target },
                                     { id: 'gantt', label: 'Gantt', icon: CalendarDays },
                                     { id: 'dashboard', label: 'Dashboard', icon: FolderKanban },
                                     { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
@@ -855,7 +861,7 @@ export const Projects: React.FC = () => {
                                     { id: 'comments', label: 'Commentaires', icon: MessageSquare }
                                 ]}
                                 activeTab={inspectorTab}
-                                onTabChange={(id) => setInspectorTab(id as 'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence')}
+                                onTabChange={(id) => setInspectorTab(id as 'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence' | 'milestones')}
                             />
                         </div>
 
@@ -1042,6 +1048,14 @@ export const Projects: React.FC = () => {
                                     )}
 
                                 </div>
+                            )}
+
+                            {inspectorTab === 'milestones' && (
+                                <ProjectMilestones
+                                    project={selectedProject}
+                                    milestones={projectMilestones}
+                                    onUpdate={() => fetchMilestones(selectedProject.id)}
+                                />
                             )}
 
                             {inspectorTab === 'dashboard' && (
