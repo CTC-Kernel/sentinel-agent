@@ -30,6 +30,7 @@ import { ShortcutsHelp } from './components/ui/ShortcutsHelp';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 import { CustomRole } from './types';
+import { VersionCheck } from './components/VersionCheck';
 
 // Lazy Loading des Vues
 const Dashboard = React.lazy(() => import('./views/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -242,6 +243,7 @@ const AppInner: React.FC = () => {
     return (
         <>
             <SkipLink />
+            <VersionCheck />
             <GlobalShortcutsWrapper />
             <ErrorBoundary>
                 <Routes>

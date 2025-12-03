@@ -118,7 +118,11 @@ import {
   RotateCcw,
   Circle,
   LayoutGrid,
-  List
+  List,
+  Folder,
+  FolderOpen,
+  MoreVertical,
+  Edit2
 } from 'lucide-react';
 
 export {
@@ -240,5 +244,9 @@ export {
   RotateCcw,
   Circle,
   LayoutGrid,
-  List
+  List,
+  Folder,
+  FolderOpen,
+  MoreVertical,
+  Edit2
 };
