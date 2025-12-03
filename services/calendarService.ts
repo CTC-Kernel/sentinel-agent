@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Audit, Project, Asset, BcpDrill, Incident } from '../types';
 import { parseISO } from 'date-fns';
@@ -223,6 +223,41 @@ export const CalendarService = {
             return true;
         } catch (error) {
             ErrorLogger.error(error, 'CalendarService.createEvent');
+            throw error;
+        }
+    },
+
+    /**
+     * Updates an event's start and end dates.
+     */
+    updateEvent: async (event: CalendarEvent, start: Date, end: Date) => {
+        try {
+            const collectionName =
+                event.type === 'audit' ? 'audits' :
+                    event.type === 'project' ? 'projects' :
+                        event.type === 'drill' ? 'bcp_drills' :
+                            event.type === 'incident' ? 'incidents' :
+                                null;
+
+            if (!collectionName) return; // Maintenance and Google events not supported for direct update yet
+
+            const docRef = doc(db, collectionName, event.id);
+            const updates: Record<string, any> = {};
+
+            if (event.type === 'audit') {
+                updates.dateScheduled = start.toISOString();
+            } else if (event.type === 'project') {
+                updates.dueDate = end.toISOString();
+            } else if (event.type === 'drill') {
+                updates.date = start.toISOString();
+            } else if (event.type === 'incident') {
+                updates.dateReported = start.toISOString();
+            }
+
+            await updateDoc(docRef, updates);
+            return true;
+        } catch (error) {
+            ErrorLogger.error(error, 'CalendarService.updateEvent');
             throw error;
         }
     },

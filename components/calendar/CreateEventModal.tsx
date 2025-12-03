@@ -127,8 +127,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                     await GoogleCalendarService.createEvent(token, {
                         title: data.title,
                         description: data.description,
-                        start: startDateTime.toISOString(),
-                        end: endDateTime.toISOString(),
+                        start: startDateTime,
+                        end: endDateTime,
                     });
                     toast.success("Événement synchronisé avec Google Calendar");
                 }

@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, dateFnsLocalizer, Views, View, ToolbarProps } from 'react-big-calendar';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Calendar, dateFnsLocalizer, Views, View, ToolbarProps, EventProps } from 'react-big-calendar';
+import withDragAndDrop, { withDragAndDropProps } from 'react-big-calendar/lib/addons/dragAndDrop';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import { useStore } from '../../store';
 import { CalendarService, CalendarEvent } from '../../services/calendarService';
 import { GoogleCalendarService } from '../../services/googleCalendarService';
 import { AddToCalendar } from '../ui/AddToCalendar';
 import { Drawer } from '../ui/Drawer';
 import { CreateEventModal } from './CreateEventModal';
-import { Clock, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Plus, ShieldAlert, FileText, Briefcase, Wrench, Siren, ShieldCheck } from 'lucide-react';
 import { ErrorLogger } from '../../services/errorLogger';
+import { toast } from 'sonner';
 
 const locales = {
     'fr': fr,
@@ -23,6 +26,8 @@ const localizer = dateFnsLocalizer({
     getDay,
     locales,
 });
+
+const DnDCalendar = withDragAndDrop<CalendarEvent>(Calendar);
 
 const messages = {
     allDay: 'Journée',
@@ -43,7 +48,6 @@ const messages = {
 export const CalendarDashboard: React.FC = () => {
     const { user } = useStore();
     const [events, setEvents] = useState<CalendarEvent[]>([]);
-    // const [filteredEvents, setFilteredEvents] = useState<CalendarEvent[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -59,34 +63,35 @@ export const CalendarDashboard: React.FC = () => {
         google: true
     });
 
+    const loadEvents = useCallback(async () => {
+        if (user?.organizationId) {
+            try {
+                // 1. Fetch Internal Events
+                const internalEvents = await CalendarService.fetchAllEvents(user.organizationId);
+
+                // 2. Fetch Google Events (if connected)
+                let googleEvents: CalendarEvent[] = [];
+                const googleToken = localStorage.getItem('google_access_token');
+                if (googleToken && filters.google) {
+                    // Fetch for current view range (approximate)
+                    const now = new Date();
+                    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    const end = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+
+                    googleEvents = await GoogleCalendarService.listEvents(googleToken, start, end);
+                }
+
+                setEvents([...internalEvents, ...googleEvents]);
+            } catch (error) {
+                ErrorLogger.error(error, "CalendarDashboard.loadEvents");
+            }
+        }
+    }, [user?.organizationId, filters.google]);
+
     // Fetch events
     useEffect(() => {
-        const loadEvents = async () => {
-            if (user?.organizationId) {
-                try {
-                    // 1. Fetch Internal Events
-                    const internalEvents = await CalendarService.fetchAllEvents(user.organizationId);
-
-                    // 2. Fetch Google Events (if connected)
-                    let googleEvents: CalendarEvent[] = [];
-                    const googleToken = localStorage.getItem('google_access_token');
-                    if (googleToken && filters.google) {
-                        // Fetch for current view range (approximate)
-                        const now = new Date();
-                        const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                        const end = new Date(now.getFullYear(), now.getMonth() + 2, 0);
-
-                        googleEvents = await GoogleCalendarService.listEvents(googleToken, start, end);
-                    }
-
-                    setEvents([...internalEvents, ...googleEvents]);
-                } catch (error) {
-                    ErrorLogger.error(error, "CalendarDashboard.loadEvents");
-                }
-            }
-        };
         loadEvents();
-    }, [user?.organizationId, filters.google]); // Reload when google filter changes
+    }, [loadEvents]);
 
     const filteredEvents = React.useMemo(() => {
         return events.filter(e => filters[e.type as keyof typeof filters]);
@@ -97,8 +102,31 @@ export const CalendarDashboard: React.FC = () => {
         setIsDrawerOpen(true);
     };
 
+    const onEventResize: withDragAndDropProps['onEventResize'] = async (data) => {
+        const { event, start, end } = data;
+        const calendarEvent = event as CalendarEvent;
+        try {
+            await CalendarService.updateEvent(calendarEvent, new Date(start), new Date(end));
+            setEvents(prev => prev.map(e => e.id === calendarEvent.id ? { ...e, start: new Date(start), end: new Date(end) } : e));
+            toast.success('Événement mis à jour');
+        } catch (error) {
+            toast.error("Impossible de mettre à jour l'événement");
+        }
+    };
+
+    const onEventDrop: withDragAndDropProps['onEventDrop'] = async (data) => {
+        const { event, start, end } = data;
+        const calendarEvent = event as CalendarEvent;
+        try {
+            await CalendarService.updateEvent(calendarEvent, new Date(start), new Date(end));
+            setEvents(prev => prev.map(e => e.id === calendarEvent.id ? { ...e, start: new Date(start), end: new Date(end) } : e));
+            toast.success('Événement déplacé');
+        } catch (error) {
+            toast.error("Impossible de déplacer l'événement");
+        }
+    };
+
     const eventStyleGetter = (event: CalendarEvent) => {
-        // Extract tailwind classes to hex colors for react-big-calendar
         let backgroundColor = '#3b82f6'; // blue-500 default
         let borderColor = '#2563eb';
 
@@ -113,14 +141,32 @@ export const CalendarDashboard: React.FC = () => {
                 backgroundColor,
                 borderColor,
                 borderRadius: '6px',
-                opacity: 0.8,
+                opacity: 0.9,
                 color: 'white',
                 border: '0px',
                 display: 'block',
                 fontSize: '0.75rem',
-                fontWeight: '500',
+                fontWeight: '600',
+                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
             }
         };
+    };
+
+    const EventComponent = ({ event }: EventProps<CalendarEvent>) => {
+        const Icon =
+            event.type === 'audit' ? ShieldCheck :
+                event.type === 'drill' ? Siren :
+                    event.type === 'project' ? Briefcase :
+                        event.type === 'maintenance' ? Wrench :
+                            event.type === 'incident' ? ShieldAlert :
+                                FileText;
+
+        return (
+            <div className="flex items-center gap-1.5 px-1 py-0.5 overflow-hidden">
+                <Icon className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">{event.title}</span>
+            </div>
+        );
     };
 
     const CustomToolbar = (toolbar: ToolbarProps<CalendarEvent>) => {
@@ -142,7 +188,7 @@ export const CalendarDashboard: React.FC = () => {
         const label = () => {
             const date = toolbar.date;
             return (
-                <span className="capitalize font-bold text-lg text-slate-900 dark:text-white">
+                <span className="capitalize font-bold text-xl text-slate-900 dark:text-white font-display tracking-tight">
                     {format(date, view === 'day' ? 'd MMMM yyyy' : 'MMMM yyyy', { locale: fr })}
                 </span>
             );
@@ -165,23 +211,12 @@ export const CalendarDashboard: React.FC = () => {
                             setSelectedDate(new Date());
                             setIsCreateModalOpen(true);
                         }}
-                        className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-500/20 transition-all"
+                        className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-500/20 transition-all hover:scale-105 active:scale-95"
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         Nouvel Événement
                     </button>
                     <div className="flex items-center gap-2 bg-slate-100 dark:bg-white/5 rounded-xl p-1">
-                        {/* Existing filters... */}
-                        <button
-                            onClick={() => setFilters(prev => ({ ...prev, google: !prev.google }))}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${filters.google
-                                ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                                }`}
-                        >
-                            <div className={`w-2 h-2 rounded-full bg-slate-400`} />
-                            Google
-                        </button>
                         <button
                             onClick={() => { setView(Views.MONTH); toolbar.onView('month'); }}
                             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === Views.MONTH ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
@@ -215,42 +250,60 @@ export const CalendarDashboard: React.FC = () => {
                         key={key}
                         onClick={() => setFilters(prev => ({ ...prev, [key]: !prev[key as keyof typeof filters] }))}
                         className={`
-                            px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all border
+                            px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all border flex items-center gap-2
                             ${filters[key as keyof typeof filters]
                                 ? key === 'audit' ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800'
                                     : key === 'project' ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-slate-900/30 dark:text-blue-300 dark:border-blue-800'
                                         : key === 'maintenance' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
                                             : key === 'incident' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800'
-                                                : 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800'
+                                                : key === 'drill' ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800'
+                                                    : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-white/10 dark:text-slate-300 dark:border-white/20'
                                 : 'bg-slate-50 text-slate-400 border-slate-200 dark:bg-white/5 dark:text-slate-500 dark:border-white/10'
                             }
                         `}
                     >
+                        {filters[key as keyof typeof filters] && (
+                            key === 'audit' ? <ShieldCheck className="h-3 w-3" /> :
+                                key === 'project' ? <Briefcase className="h-3 w-3" /> :
+                                    key === 'maintenance' ? <Wrench className="h-3 w-3" /> :
+                                        key === 'incident' ? <ShieldAlert className="h-3 w-3" /> :
+                                            key === 'drill' ? <Siren className="h-3 w-3" /> :
+                                                null
+                        )}
                         {key}
                     </button>
                 ))}
             </div>
 
             {/* Calendar */}
-            <div className="flex-1 bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden p-6">
-                <Calendar
+            <div className="flex-1 bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden p-6 h-full">
+                <DnDCalendar
                     localizer={localizer}
                     events={filteredEvents}
                     startAccessor="start"
                     endAccessor="end"
-                    style={{ height: '100%', minHeight: '600px' }}
+                    style={{ height: '100%' }}
                     messages={messages}
                     culture='fr'
                     onSelectEvent={handleSelectEvent}
+                    onEventDrop={onEventDrop}
+                    onEventResize={onEventResize}
+                    resizable
                     eventPropGetter={eventStyleGetter}
                     components={{
-                        toolbar: CustomToolbar
+                        toolbar: CustomToolbar,
+                        event: EventComponent
                     }}
                     view={view}
                     onView={setView}
                     date={date}
                     onNavigate={setDate}
                     popup
+                    selectable
+                    onSelectSlot={(slotInfo) => {
+                        setSelectedDate(slotInfo.start);
+                        setIsCreateModalOpen(true);
+                    }}
                 />
             </div>
 
@@ -317,12 +370,7 @@ export const CalendarDashboard: React.FC = () => {
             <CreateEventModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
-                onEventCreated={() => {
-                    // Refresh events
-                    if (user?.organizationId) {
-                        CalendarService.fetchAllEvents(user.organizationId).then(setEvents);
-                    }
-                }}
+                onEventCreated={loadEvents}
                 initialDate={selectedDate}
             />
         </div>
