@@ -630,7 +630,7 @@ export const Projects: React.FC = () => {
                 )}
             />
 
-            <div className="flex items-center space-x-4 bg-white dark:bg-slate-850 p-4 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center space-x-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm">
                 <Search className="h-5 w-5 text-slate-400" />
                 <input
                     type="text"

@@ -44,7 +44,7 @@ export const CyberNewsWidget: React.FC = () => {
     };
 
     return (
-        <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm h-full flex flex-col">
+        <div className="glass-panel p-6 rounded-[2.5rem] shadow-sm h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                     <Shield className="w-5 h-5 mr-2 text-indigo-500" />

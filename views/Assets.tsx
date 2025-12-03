@@ -578,7 +578,7 @@ export const Assets: React.FC = () => {
             )}
 
             <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-                <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5">
+                <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
                     <Search className="h-5 w-5 text-slate-400" />
                     <input
                         type="text"
@@ -615,7 +615,7 @@ export const Assets: React.FC = () => {
 
             {/* List / Grid */}
             {viewMode === 'list' ? (
-                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
@@ -645,7 +645,7 @@ export const Assets: React.FC = () => {
                                                 <td className="px-8 py-5"><div className="flex items-center"><div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300"><Server className="h-5 w-5" strokeWidth={1.5} /></div><div><div className="font-bold text-slate-900 dark:text-white text-[15px]">{asset.name}</div><div className="flex items-center gap-2 mt-0.5 flex-wrap"><span className="text-xs text-slate-500 font-medium">{asset.owner}</span>{warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}{maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-900 px-1.5 py-0.5 rounded font-bold flex items-center"><Clock className="h-2.5 w-2.5 mr-1" />Maint.</span>}{asset.scope && asset.scope.map(s => <span key={s} className="text-[9px] bg-indigo-50 dark:bg-slate-900 text-indigo-600 border border-indigo-100 dark:bg-slate-900/30 dark:text-indigo-400 dark:border-indigo-900 px-1.5 py-0.5 rounded font-bold">{s}</span>)}</div></div></div></td>
                                                 <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">{asset.type}</td>
                                                 <td className="px-6 py-5"><span className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wide border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span></td>
-                                                <td className="px-6 py-5"><span className={`flex items-center w-fit px-2.5 py-1 rounded-full text-[11px] font-bold border ${asset.lifecycleStatus === 'En service' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}><span className={`w-1.5 h-1.5 rounded-full mr-2 ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>{asset.lifecycleStatus || 'Neuf'}</span></td>
+                                                <td className="px-6 py-5"><span className={`flex items-center w-fit px-2.5 py-1 rounded-full text-[11px] font-bold border ${asset.lifecycleStatus === 'En service' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}`}><span className={`w-1.5 h-1.5 rounded-full mr-2 ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>{asset.lifecycleStatus || 'Neuf'}</span></td>
                                                 <td className="px-6 py-5 text-slate-500 dark:text-slate-400 font-medium text-xs">{asset.location}</td>
                                                 <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}><button onClick={() => generateLabels(asset)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>{canDeleteResource(user, 'Asset') && (<button onClick={() => initiateDelete(asset.id, asset.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer"><Trash2 className="h-4 w-4" /></button>)}</td>
                                             </tr>
@@ -675,7 +675,7 @@ export const Assets: React.FC = () => {
                             const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
                             const maintenanceOverdue = asset.nextMaintenance && new Date(asset.nextMaintenance) < new Date();
                             return (
-                                <div key={asset.id} onClick={() => openInspector(asset)} className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm card-hover cursor-pointer group flex flex-col">
+                                <div key={asset.id} onClick={() => openInspector(asset)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300">
                                             <Server className="h-6 w-6" />
