@@ -82,7 +82,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group">
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group">
 
                 {/* Global Health Score */}
                 <div className="flex items-center gap-6 relative z-10">

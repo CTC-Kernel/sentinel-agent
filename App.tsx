@@ -199,7 +199,7 @@ const AppLayout: React.FC = () => {
                                 <Route path="/backup" element={<BackupRestore />} />
                                 <Route path="/privacy" element={<Privacy />} />
                                 <Route path="/continuity" element={<Continuity />} />
-                                <Route path="/voxel" element={<VoxelView />} />
+                                <Route path="/ctc-engine" element={<VoxelView />} />
                                 <Route path="/notifications" element={<Notifications />} />
                                 <Route path="/search" element={<Search />} />
                                 <Route path="/help" element={<Help />} />

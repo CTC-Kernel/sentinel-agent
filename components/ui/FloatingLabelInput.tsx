@@ -16,12 +16,14 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
     value,
     onFocus,
     onBlur,
+    onChange,
     textarea,
     rows = 3,
     ...props
 }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
-    const hasValue = value !== undefined && value !== '';
+    const [hasContent, setHasContent] = useState(false);
+    const hasValue = (value !== undefined && value !== '') || hasContent;
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setIsFocused(true);
@@ -31,6 +33,11 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
     const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setIsFocused(false);
         onBlur?.(e as React.FocusEvent<HTMLInputElement>);
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setHasContent(e.target.value !== '');
+        onChange?.(e as React.ChangeEvent<HTMLInputElement>);
     };
 
     return (
@@ -57,6 +64,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         value={value}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
+                        onChange={handleChange}
                         rows={rows}
                         className={`
                             w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
@@ -72,6 +80,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         value={value}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
+                        onChange={handleChange}
                         className={`
                             w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
                             placeholder-transparent rounded-2xl
