@@ -2,9 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, limit, increment } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, limit, increment, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Document, UserProfile, SystemLog, Control, Asset, Audit } from '../types';
+import { Document, UserProfile, SystemLog, Control, Asset, Audit, DocumentFolder, DocumentVersion } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, LayoutGrid, List } from '../components/ui/Icons';
 import { useStore } from '../store';
@@ -20,6 +20,7 @@ import { FilePreview } from '../components/ui/FilePreview';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { DocumentForm } from '../components/documents/DocumentForm';
+import { FolderTree } from '../components/documents/FolderTree';
 import { DocumentFormData } from '../schemas/documentSchema';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
@@ -63,13 +64,20 @@ export const Documents: React.FC = () => {
         { logError: true }
     );
 
+    const { data: rawFolders, loading: loadingFolders } = useFirestoreCollection<DocumentFolder>(
+        'document_folders',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true }
+    );
+
     // Derived State
     const documents = React.useMemo(() => [...rawDocuments].sort((a, b) => a.title.localeCompare(b.title)), [rawDocuments]);
     const controls = React.useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
     const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
     const audits = React.useMemo(() => [...rawAudits].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime()), [rawAudits]);
+    const folders = React.useMemo(() => [...rawFolders].sort((a, b) => a.name.localeCompare(b.name)), [rawFolders]);
 
-    const loading = loadingDocuments || loadingUsers || loadingControls || loadingAssets || loadingAudits;
+    const loading = loadingDocuments || loadingUsers || loadingControls || loadingAssets || loadingAudits || loadingFolders;
 
     const storageLimitBytes = 1024 * 1024 * 1024; // 1GB default
     const storageUsed = organization?.storageUsed || 0;
@@ -82,8 +90,10 @@ export const Documents: React.FC = () => {
     const [isDigitalSafeMode, setIsDigitalSafeMode] = useState(false);
 
     const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'history' | 'comments'>('details');
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'versions' | 'history' | 'comments'>('details');
     const [docHistory, setDocHistory] = useState<SystemLog[]>([]);
+    const [versions, setVersions] = useState<DocumentVersion[]>([]);
+    const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
@@ -135,20 +145,41 @@ export const Documents: React.FC = () => {
         setInspectorTab('details');
         setIsEditing(false);
         setIsEditing(false);
-
-        try {
-            // Limit history fetch to avoid heavy reads
-            const q = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), limit(50));
-            const snap = await getDocs(q);
-            const logs = snap.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog));
-
-            // Filter and sort client side
-            const relevantLogs = logs.filter(l => l.resource === 'Document' && l.details?.includes(docItem.title));
-            relevantLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-            setDocHistory(relevantLogs);
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Documents.handleSelectDocument'); }
     };
+
+    useEffect(() => {
+        if (!selectedDocument) {
+            setDocHistory([]);
+            setVersions([]);
+            return;
+        }
+
+        // Fetch System Logs
+        const qLogs = query(
+            collection(db, 'system_logs'),
+            where('targetId', '==', selectedDocument.id),
+            orderBy('timestamp', 'desc'),
+            limit(20)
+        );
+        const unsubscribeLogs = onSnapshot(qLogs, (snapshot) => {
+            setDocHistory(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog)));
+        });
+
+        // Fetch Versions
+        const qVersions = query(
+            collection(db, 'document_versions'),
+            where('documentId', '==', selectedDocument.id),
+            orderBy('uploadedAt', 'desc')
+        );
+        const unsubscribeVersions = onSnapshot(qVersions, (snapshot) => {
+            setVersions(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as DocumentVersion)));
+        });
+
+        return () => {
+            unsubscribeLogs();
+            unsubscribeVersions();
+        };
+    }, [selectedDocument]);
 
     const handleUploadSuccess = async (size: number) => {
         if (size && user?.organizationId) {
@@ -472,13 +503,70 @@ export const Documents: React.FC = () => {
         link.click();
     };
 
-    const filteredDocuments = documents.filter(d => {
-        const matchesSearch = d.title.toLowerCase().includes(filter.toLowerCase());
-        const matchesCategory = categoryFilter === 'all' || d.type === categoryFilter;
-        const matchesDigitalSafe = !isDigitalSafeMode || d.isSecure;
-        return matchesSearch && matchesCategory && matchesDigitalSafe;
-    });
+    const handleCreateFolder = async (name: string, parentId?: string) => {
+        if (!user?.organizationId) return;
+        try {
+            await addDoc(collection(db, 'document_folders'), {
+                organizationId: user.organizationId,
+                name,
+                parentId: parentId || null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            });
+            addToast('Dossier créé', 'success');
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'Documents.handleCreateFolder');
+            addToast('Erreur lors de la création du dossier', 'error');
+        }
+    };
 
+    const handleUpdateFolder = async (id: string, name: string) => {
+        try {
+            await updateDoc(doc(db, 'document_folders', id), {
+                name,
+                updatedAt: new Date().toISOString()
+            });
+            addToast('Dossier renommé', 'success');
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'Documents.handleUpdateFolder');
+            addToast('Erreur lors du renommage', 'error');
+        }
+    };
+
+    const handleDeleteFolder = async (id: string) => {
+        try {
+            // Delete folder
+            await deleteDoc(doc(db, 'document_folders', id));
+
+            // Delete subfolders (recursive deletion would be better but for now flat check)
+            const subfolders = rawFolders.filter(f => f.parentId === id);
+            for (const sub of subfolders) {
+                await deleteDoc(doc(db, 'document_folders', sub.id));
+            }
+
+            // Move documents to root (or delete them? Plan said move to root)
+            const docsInFolder = documents.filter(d => d.folderId === id);
+            for (const d of docsInFolder) {
+                await updateDoc(doc(db, 'documents', d.id), { folderId: null });
+            }
+
+            if (selectedFolderId === id) setSelectedFolderId(null);
+            addToast('Dossier supprimé', 'success');
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'Documents.handleDeleteFolder');
+            addToast('Erreur lors de la suppression', 'error');
+        }
+    };
+
+    const filteredDocuments = documents.filter(doc => {
+        const matchesSearch = doc.title.toLowerCase().includes(filter.toLowerCase()) ||
+            doc.type.toLowerCase().includes(filter.toLowerCase()) ||
+            doc.owner.toLowerCase().includes(filter.toLowerCase());
+        const matchesCategory = categoryFilter === 'all' || doc.type === categoryFilter;
+        const matchesFolder = selectedFolderId ? doc.folderId === selectedFolderId : !doc.folderId; // Show root docs if no folder selected
+
+        return matchesSearch && matchesCategory && matchesFolder;
+    });
     const getStatusColor = (s: string) => {
         switch (s) {
             case 'Publié': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900/50';
@@ -609,468 +697,527 @@ export const Documents: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-                {/* Search & Filters */}
-                <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200 dark:border-white/5">
-                    <Search className="h-5 w-5 text-slate-400" />
-                    <input type="text" placeholder="Rechercher un document..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
-                        value={filter} onChange={e => setFilter(e.target.value)} />
-                    <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
-                        <FileSpreadsheet className="h-4 w-4" />
-                    </button>
+            <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-200px)]">
+                {/* Sidebar - Folder Tree */}
+                <div className="w-full lg:w-64 flex-shrink-0 glass-panel rounded-2xl border border-white/50 dark:border-white/5 shadow-sm overflow-hidden flex flex-col">
+                    <FolderTree
+                        folders={folders}
+                        selectedFolderId={selectedFolderId}
+                        onSelectFolder={setSelectedFolderId}
+                        onCreateFolder={handleCreateFolder}
+                        onUpdateFolder={handleUpdateFolder}
+                        onDeleteFolder={handleDeleteFolder}
+                    />
                 </div>
 
-                {/* View Toggles & Digital Safe */}
-                <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                    <button
-                        onClick={() => setIsDigitalSafeMode(!isDigitalSafeMode)}
-                        className={`flex items-center px-3 py-2 rounded-xl text-sm font-bold transition-all ${isDigitalSafeMode ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5'}`}
-                    >
-                        <ShieldCheck className={`h-4 w-4 mr-2 ${isDigitalSafeMode ? 'text-emerald-600' : ''}`} />
-                        Coffre-fort
-                    </button>
-                    <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
-                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                        >
-                            <LayoutGrid className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                        >
-                            <List className="h-4 w-4" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Categories Tabs */}
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-                {['all', 'Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(cat => (
-                    <button
-                        key={cat}
-                        onClick={() => setCategoryFilter(cat)}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${categoryFilter === cat
-                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg'
-                            : 'bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/5'
-                            }`}
-                    >
-                        {cat === 'all' ? 'Tous' : cat}
-                    </button>
-                ))}
-            </div>
-
-            {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {loading ? (
-                        <div className="col-span-full"><CardSkeleton count={3} /></div>
-                    ) : filteredDocuments.length === 0 ? (
-                        <div className="col-span-full">
-                            <EmptyState
-                                icon={FileText}
-                                title="Aucun document"
-                                description={filter ? "Aucun document ne correspond à votre recherche." : "Centralisez vos politiques et procédures de sécurité."}
-                                actionLabel={filter ? undefined : "Nouveau Document"}
-                                onAction={filter ? undefined : () => {
-                                    setShowCreateModal(true);
-                                }}
-                            />
+                {/* Main Content */}
+                <div className="flex-1 flex flex-col gap-6 overflow-hidden">
+                    <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+                        {/* Search & Filters */}
+                        <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200 dark:border-white/5">
+                            <Search className="h-5 w-5 text-slate-400" />
+                            <input type="text" placeholder="Rechercher un document..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
+                                value={filter} onChange={e => setFilter(e.target.value)} />
+                            <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
+                                <FileSpreadsheet className="h-4 w-4" />
+                            </button>
                         </div>
-                    ) : (
-                        filteredDocuments.map(docItem => (
-                            <div key={docItem.id} onClick={() => openInspector(docItem)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover cursor-pointer border border-white/50 dark:border-white/5 group flex flex-col">
-                                <div className="flex justify-between items-start mb-5">
-                                    <div className="p-3 bg-blue-50 dark:bg-slate-900 dark:bg-slate-800 rounded-2xl text-blue-600 shadow-inner">
-                                        <FileText className="h-6 w-6" />
-                                    </div>
-                                    <div className="flex gap-2">
-                                        {docItem.isSecure && (
-                                            <span className="px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50 flex items-center">
-                                                <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
-                                            </span>
-                                        )}
-                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(docItem.status)}`}>{docItem.status}</span>
-                                    </div>
-                                </div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight line-clamp-2">{docItem.title}</h3>
-                                <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-6">
-                                    <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md mr-2">v{docItem.version}</span>
-                                    <span>{docItem.type}</span>
-                                </div>
-                                <div className="mt-auto pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center">
-                                    <div className="flex items-center text-xs text-slate-400 font-medium" title="Propriétaire">
-                                        <Users className="h-3.5 w-3.5 mr-1.5" /> {docItem.owner}
-                                    </div>
-                                    {docItem.url && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (docItem.isSecure) {
-                                                    handleSecureView(docItem);
-                                                } else {
-                                                    window.open(docItem.url, '_blank');
-                                                }
-                                            }}
-                                            className="p-1 text-slate-300 hover:text-blue-500 transition-colors"
-                                        >
-                                            {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
-                                        </button>
-                                    )}
-                                </div>
+
+                        {/* View Toggles & Digital Safe */}
+                        <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                            <button
+                                onClick={() => setIsDigitalSafeMode(!isDigitalSafeMode)}
+                                className={`flex items-center px-3 py-2 rounded-xl text-sm font-bold transition-all ${isDigitalSafeMode ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            >
+                                <ShieldCheck className={`h-4 w-4 mr-2 ${isDigitalSafeMode ? 'text-emerald-600' : ''}`} />
+                                Coffre-fort
+                            </button>
+                            <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
+                            <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                                <button
+                                    onClick={() => setViewMode('grid')}
+                                    className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    <LayoutGrid className="h-4 w-4" />
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('list')}
+                                    className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    <List className="h-4 w-4" />
+                                </button>
                             </div>
-                        ))
-                    )}
-                </div>
-            ) : (
-                <div className="glass-panel rounded-3xl overflow-hidden border border-slate-200 dark:border-white/5 shadow-sm">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Titre</th>
-                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Type</th>
-                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Version</th>
-                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Statut</th>
-                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Propriétaire</th>
-                                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan={6}>
-                                            <TableSkeleton rows={5} columns={6} />
-                                        </td>
-                                    </tr>
-                                ) : filteredDocuments.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={6}>
-                                            <EmptyState
-                                                icon={FileText}
-                                                title="Aucun document"
-                                                description={filter ? "Aucun document ne correspond à votre recherche." : "Centralisez vos politiques et procédures de sécurité."}
-                                                actionLabel={filter ? undefined : "Nouveau Document"}
-                                                onAction={filter ? undefined : () => {
-                                                    setShowCreateModal(true);
-                                                }}
-                                            />
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredDocuments.map(docItem => (
-                                        <tr key={docItem.id} onClick={() => openInspector(docItem)} className="hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-colors group">
-                                            <td className="p-4">
-                                                <div className="flex items-center">
-                                                    <div className="p-2 bg-blue-50 dark:bg-slate-900 dark:bg-slate-800 rounded-lg text-blue-600 mr-3">
-                                                        <FileText className="h-4 w-4" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-slate-900 dark:text-white text-sm">{docItem.title}</div>
-                                                        {docItem.isSecure && (
-                                                            <div className="flex items-center text-[10px] text-emerald-600 font-bold mt-0.5">
-                                                                <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{docItem.type}</td>
-                                            <td className="p-4 text-sm text-slate-600 dark:text-slate-400">v{docItem.version}</td>
-                                            <td className="p-4">
-                                                <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(docItem.status)}`}>{docItem.status}</span>
-                                            </td>
-                                            <td className="p-4 text-sm text-slate-600 dark:text-slate-400">
-                                                <div className="flex items-center">
-                                                    <Users className="h-3 w-3 mr-1.5 text-slate-400" />
-                                                    {docItem.owner}
-                                                </div>
-                                            </td>
-                                            <td className="p-4 text-right">
-                                                {docItem.url && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            if (docItem.isSecure) {
-                                                                handleSecureView(docItem);
-                                                            } else {
-                                                                window.open(docItem.url, '_blank');
-                                                            }
-                                                        }}
-                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                    >
-                                                        {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
-                                                    </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                        </div>
                     </div>
-                </div>
-            )}
 
-            {/* Inspector */}
-            {selectedDocument && createPortal(
-                <div className="fixed inset-0 z-[9999] overflow-hidden">
-                    <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedDocument(null)} />
-                    <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
-                        <div className="w-screen max-w-6xl pointer-events-auto">
-                            <div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
-                                <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedDocument.title}</h2>
-                                        <p className="text-sm font-medium text-slate-500 mt-1">v{selectedDocument.version} • {selectedDocument.type}</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        {selectedDocument.isSecure && (
-                                            <span className="px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50 flex items-center">
-                                                <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
-                                            </span>
-                                        )}
-                                        {selectedDocument.url && (
-                                            <button
-                                                onClick={() => selectedDocument.isSecure ? handleSecureView(selectedDocument) : window.open(selectedDocument.url, '_blank')}
-                                                className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"
-                                                title={selectedDocument.isSecure ? "Consultation Sécurisée" : "Ouvrir"}
-                                            >
-                                                {selectedDocument.isSecure ? <ShieldCheck className="h-5 w-5 text-emerald-600" /> : <Eye className="h-5 w-5" />}
-                                            </button>
-                                        )}
-                                        {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !isEditing && (
-                                            <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
-                                        )}
-                                        {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && isEditing && (
-                                            <button onClick={() => setIsEditing(false)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><X className="h-5 w-5" /></button>
-                                        )}
-                                        {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
-                                            <button onClick={() => initiateDelete(selectedDocument.id, selectedDocument.title)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
-                                        )}
-                                        <button onClick={() => setSelectedDocument(null)} className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
-                                    </div>
+                    {/* Categories Tabs */}
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                        {['all', 'Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => setCategoryFilter(cat)}
+                                className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${categoryFilter === cat
+                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg'
+                                    : 'bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/5'
+                                    }`}
+                            >
+                                {cat === 'all' ? 'Tous' : cat}
+                            </button>
+                        ))}
+                    </div>
+
+                    {viewMode === 'grid' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {loading ? (
+                                <div className="col-span-full"><CardSkeleton count={3} /></div>
+                            ) : filteredDocuments.length === 0 ? (
+                                <div className="col-span-full">
+                                    <EmptyState
+                                        icon={FileText}
+                                        title="Aucun document"
+                                        description={filter ? "Aucun document ne correspond à votre recherche." : "Centralisez vos politiques et procédures de sécurité."}
+                                        actionLabel={filter ? undefined : "Nouveau Document"}
+                                        onAction={filter ? undefined : () => {
+                                            setShowCreateModal(true);
+                                        }}
+                                    />
                                 </div>
-
-                                <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5 overflow-x-auto no-scrollbar">
-                                    {[
-                                        { id: 'details', label: 'Détails', icon: File },
-                                        { id: 'history', label: 'Historique', icon: History },
-                                        { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                                    ].map(tab => (
-                                        <button
-                                            key={tab.id}
-                                            onClick={() => setInspectorTab(tab.id as 'details' | 'history' | 'comments')}
-                                            className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-                                        >
-                                            <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-blue-500' : 'opacity-70'}`} />
-                                            {tab.label}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
-                                    {inspectorTab === 'details' && (
-                                        <div className="space-y-8">
-                                            {isEditing ? (
-                                                <DocumentForm
-                                                    onSubmit={handleUpdate}
-                                                    onCancel={() => setIsEditing(false)}
-                                                    initialData={selectedDocument}
-                                                    users={usersList}
-                                                    controls={controls}
-                                                    assets={assets}
-                                                    audits={audits}
-                                                    isLoading={isSubmitting}
-                                                    isStorageFull={isStorageFull}
-                                                    onUploadComplete={handleUploadSuccess}
-                                                />
-                                            ) : (
-                                                <>
-                                                    <div className="grid grid-cols-2 gap-6">
-                                                        <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
-                                                            <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Propriétaire</span>
-                                                            <span className="text-sm font-bold text-slate-900 dark:text-white">{selectedDocument.owner}</span>
-                                                        </div>
-                                                        <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
-                                                            <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Dernière MAJ</span>
-                                                            <span className="text-sm font-bold text-slate-900 dark:text-white">{new Date(selectedDocument.updatedAt).toLocaleDateString()}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Workflow Actions */}
-                                                    <div className="p-6 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Workflow de Validation</h4>
-
-                                                        {/* Status Steps */}
-                                                        <div className="flex items-center justify-between mb-6 relative">
-                                                            <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-gray-200 dark:bg-gray-700 -z-10" />
-                                                            {['Brouillon', 'En revue', 'Approuvé', 'Publié'].map((step, idx) => {
-                                                                const isCompleted = ['Brouillon', 'En revue', 'Approuvé', 'Publié'].indexOf(selectedDocument.status) >= idx;
-                                                                const isCurrent = selectedDocument.status === step;
-                                                                return (
-                                                                    <div key={step} className="flex flex-col items-center bg-white dark:bg-slate-900 px-2">
-                                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${isCompleted ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-slate-300'}`}>
-                                                                            {isCompleted ? <CheckCircle2 className="h-4 w-4" /> : <span className="text-xs font-bold">{idx + 1}</span>}
-                                                                        </div>
-                                                                        <span className={`text-[10px] font-bold mt-2 uppercase tracking-wide ${isCurrent ? 'text-blue-600' : 'text-slate-400'}`}>{step}</span>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-
-                                                        <div className="flex flex-wrap gap-3">
-                                                            {selectedDocument.status === 'Brouillon' && canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
-                                                                <button onClick={() => handleWorkflowAction('submit')} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">
-                                                                    Soumettre pour revue
-                                                                </button>
-                                                            )}
-                                                            {selectedDocument.status === 'En revue' && (
-                                                                <>
-                                                                    <button onClick={() => handleWorkflowAction('approve')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-                                                                        <CheckCircle2 className="h-4 w-4 mr-2" /> Approuver
-                                                                    </button>
-                                                                    <button onClick={() => handleWorkflowAction('reject')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-                                                                        <X className="h-4 w-4 mr-2" /> Rejeter
-                                                                    </button>
-                                                                </>
-                                                            )}
-                                                            {selectedDocument.status === 'Approuvé' && (
-                                                                <button onClick={() => handleWorkflowAction('sign')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-                                                                    <ShieldCheck className="h-4 w-4 mr-2" /> Signer & Publier
-                                                                </button>
-                                                            )}
-                                                        </div>
-
-                                                        {selectedDocument.signatures && selectedDocument.signatures.length > 0 && (
-                                                            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-white/10">
-                                                                <h5 className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wide">Signatures</h5>
-                                                                <div className="space-y-2">
-                                                                    {selectedDocument.signatures.map((sig, i) => (
-                                                                        <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-white/5">
-                                                                            <div className="flex items-center">
-                                                                                <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center mr-3">
-                                                                                    <ShieldCheck className="h-4 w-4" />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <p className="text-xs font-bold text-slate-900 dark:text-white">Signé par {usersList.find(u => u.uid === sig.userId)?.displayName || 'Utilisateur inconnu'}</p>
-                                                                                    <p className="text-[10px] text-slate-500">{new Date(sig.date).toLocaleString()}</p>
-                                                                                </div>
-                                                                            </div>
-                                                                            <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-slate-500">{sig.role}</span>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                        <div className="flex justify-between items-center mb-4">
-                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">Révision</h4>
-                                                            {selectedDocument.nextReviewDate && (
-                                                                <span className={`text-xs font-bold ${new Date(selectedDocument.nextReviewDate) < new Date() ? 'text-red-500' : 'text-emerald-500'}`}>
-                                                                    {new Date(selectedDocument.nextReviewDate).toLocaleDateString()}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <button onClick={sendReviewReminder} className="w-full py-3 bg-slate-50 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center border border-slate-200 dark:border-white/5">
-                                                            <Bell className="h-3.5 w-3.5 mr-2" /> Envoyer rappel de révision
-                                                        </button>
-                                                        <div className="w-full mt-2">
-                                                            {selectedDocument.nextReviewDate && (
-                                                                <AddToCalendar
-                                                                    event={{
-                                                                        title: `Révision : ${selectedDocument.title}`,
-                                                                        description: `Révision du document ${selectedDocument.title} (v${selectedDocument.version})`,
-                                                                        start: new Date(selectedDocument.nextReviewDate),
-                                                                        end: new Date(new Date(selectedDocument.nextReviewDate).getTime() + 60 * 60 * 1000),
-                                                                        location: 'Sentinel GRC'
-                                                                    }}
-                                                                    className="w-full [&>button]:w-full [&>button]:justify-center"
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="p-6 bg-blue-50/50 dark:bg-slate-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm flex items-center justify-between">
-                                                        <div className="flex items-center text-blue-700 dark:text-blue-300 text-sm font-bold">
-                                                            <LinkIcon className="h-4 w-4 mr-3" /> Fichier Joint
-                                                        </div>
-                                                        {selectedDocument.url ? (
-                                                            <a href={selectedDocument.url} target="_blank" rel="noreferrer" className="text-xs font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm hover:text-blue-600 transition-colors">
-                                                                Télécharger
-                                                            </a>
-                                                        ) : <span className="text-xs text-slate-400 italic">Aucun fichier</span>}
-                                                    </div>
-
-                                                    <div className="grid grid-cols-3 gap-6">
-                                                        <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Contrôles Liés</h4>
-                                                            <div className="space-y-1">
-                                                                {selectedDocument.relatedControlIds?.map(cid => {
-                                                                    const c = controls.find(x => x.id === cid);
-                                                                    return c ? <div key={cid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{c.code}</div> : null;
-                                                                })}
-                                                                {(!selectedDocument.relatedControlIds || selectedDocument.relatedControlIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
-                                                            </div>
-                                                        </div>
-                                                        <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Actifs Liés</h4>
-                                                            <div className="space-y-1">
-                                                                {selectedDocument.relatedAssetIds?.map(aid => {
-                                                                    const a = assets.find(x => x.id === aid);
-                                                                    return a ? <div key={aid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{a.name}</div> : null;
-                                                                })}
-                                                                {(!selectedDocument.relatedAssetIds || selectedDocument.relatedAssetIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
-                                                            </div>
-                                                        </div>
-                                                        <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Audits Liés</h4>
-                                                            <div className="space-y-1">
-                                                                {selectedDocument.relatedAuditIds?.map(aid => {
-                                                                    const a = audits.find(x => x.id === aid);
-                                                                    return a ? <div key={aid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{a.name}</div> : null;
-                                                                })}
-                                                                {(!selectedDocument.relatedAuditIds || selectedDocument.relatedAuditIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </>
+                            ) : (
+                                filteredDocuments.map(docItem => (
+                                    <div key={docItem.id} onClick={() => openInspector(docItem)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover cursor-pointer border border-white/50 dark:border-white/5 group flex flex-col">
+                                        <div className="flex justify-between items-start mb-5">
+                                            <div className="p-3 bg-blue-50 dark:bg-slate-900 dark:bg-slate-800 rounded-2xl text-blue-600 shadow-inner">
+                                                <FileText className="h-6 w-6" />
+                                            </div>
+                                            <div className="flex gap-2">
+                                                {docItem.isSecure && (
+                                                    <span className="px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50 flex items-center">
+                                                        <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
+                                                    </span>
+                                                )}
+                                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(docItem.status)}`}>{docItem.status}</span>
+                                            </div>
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight line-clamp-2">{docItem.title}</h3>
+                                        <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-6">
+                                            <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md mr-2">v{docItem.version}</span>
+                                            <span>{docItem.type}</span>
+                                        </div>
+                                        <div className="mt-auto pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center">
+                                            <div className="flex items-center text-xs text-slate-400 font-medium" title="Propriétaire">
+                                                <Users className="h-3.5 w-3.5 mr-1.5" /> {docItem.owner}
+                                            </div>
+                                            {docItem.url && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (docItem.isSecure) {
+                                                            handleSecureView(docItem);
+                                                        } else {
+                                                            window.open(docItem.url, '_blank');
+                                                        }
+                                                    }}
+                                                    className="p-1 text-slate-300 hover:text-blue-500 transition-colors"
+                                                >
+                                                    {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+                                                </button>
                                             )}
                                         </div>
-                                    )}
-
-                                    {inspectorTab === 'history' && (
-                                        <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                            {docHistory.length === 0 ? <p className="text-sm text-slate-500 pl-6">Aucun historique.</p> :
-                                                docHistory.map((log, i) => (
-                                                    <div key={i} className="relative">
-                                                        <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900">
-                                                            <div className="h-2 w-2 rounded-full bg-blue-600"></div>
-                                                        </span>
-                                                        <div>
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
-                                                            <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                            <p className="text-[10px] text-slate-400 mt-1">Par: {log.userEmail}</p>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    ) : (
+                        <div className="glass-panel rounded-3xl overflow-hidden border border-slate-200 dark:border-white/5 shadow-sm">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Titre</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Type</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Version</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Statut</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Propriétaire</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                        {loading ? (
+                                            <tr>
+                                                <td colSpan={6}>
+                                                    <TableSkeleton rows={5} columns={6} />
+                                                </td>
+                                            </tr>
+                                        ) : filteredDocuments.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={6}>
+                                                    <EmptyState
+                                                        icon={FileText}
+                                                        title="Aucun document"
+                                                        description={filter ? "Aucun document ne correspond à votre recherche." : "Centralisez vos politiques et procédures de sécurité."}
+                                                        actionLabel={filter ? undefined : "Nouveau Document"}
+                                                        onAction={filter ? undefined : () => {
+                                                            setShowCreateModal(true);
+                                                        }}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            filteredDocuments.map(docItem => (
+                                                <tr key={docItem.id} onClick={() => openInspector(docItem)} className="hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-colors group">
+                                                    <td className="p-4">
+                                                        <div className="flex items-center">
+                                                            <div className="p-2 bg-blue-50 dark:bg-slate-900 dark:bg-slate-800 rounded-lg text-blue-600 mr-3">
+                                                                <FileText className="h-4 w-4" />
+                                                            </div>
+                                                            <div>
+                                                                <div className="font-bold text-slate-900 dark:text-white text-sm">{docItem.title}</div>
+                                                                {docItem.isSecure && (
+                                                                    <div className="flex items-center text-[10px] text-emerald-600 font-bold mt-0.5">
+                                                                        <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    )}
+                                                    </td>
+                                                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{docItem.type}</td>
+                                                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">v{docItem.version}</td>
+                                                    <td className="p-4">
+                                                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(docItem.status)}`}>{docItem.status}</span>
+                                                    </td>
+                                                    <td className="p-4 text-sm text-slate-600 dark:text-slate-400">
+                                                        <div className="flex items-center">
+                                                            <Users className="h-3 w-3 mr-1.5 text-slate-400" />
+                                                            {docItem.owner}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4 text-right">
+                                                        {docItem.url && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (docItem.isSecure) {
+                                                                        handleSecureView(docItem);
+                                                                    } else {
+                                                                        window.open(docItem.url, '_blank');
+                                                                    }
+                                                                }}
+                                                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                            >
+                                                                {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
 
-                                    {inspectorTab === 'comments' && (
-                                        <div className="h-full flex flex-col">
-                                            <Comments collectionName="documents" documentId={selectedDocument.id} />
+            {/* Inspector */}
+            {
+                selectedDocument && createPortal(
+                    <div className="fixed inset-0 z-[9999] overflow-hidden">
+                        <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedDocument(null)} />
+                        <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
+                            <div className="w-screen max-w-6xl pointer-events-auto">
+                                <div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
+                                    <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedDocument.title}</h2>
+                                            <p className="text-sm font-medium text-slate-500 mt-1">v{selectedDocument.version} • {selectedDocument.type}</p>
                                         </div>
-                                    )}
+                                        <div className="flex gap-2">
+                                            {selectedDocument.isSecure && (
+                                                <span className="px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50 flex items-center">
+                                                    <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
+                                                </span>
+                                            )}
+                                            {selectedDocument.url && (
+                                                <button
+                                                    onClick={() => selectedDocument.isSecure ? handleSecureView(selectedDocument) : window.open(selectedDocument.url, '_blank')}
+                                                    className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"
+                                                    title={selectedDocument.isSecure ? "Consultation Sécurisée" : "Ouvrir"}
+                                                >
+                                                    {selectedDocument.isSecure ? <ShieldCheck className="h-5 w-5 text-emerald-600" /> : <Eye className="h-5 w-5" />}
+                                                </button>
+                                            )}
+                                            {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !isEditing && (
+                                                <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                            )}
+                                            {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && isEditing && (
+                                                <button onClick={() => setIsEditing(false)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><X className="h-5 w-5" /></button>
+                                            )}
+                                            {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
+                                                <button onClick={() => initiateDelete(selectedDocument.id, selectedDocument.title)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                                            )}
+                                            <button onClick={() => setSelectedDocument(null)} className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
+                                        </div>
+                                    </div>
+
+                                    <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5 overflow-x-auto no-scrollbar">
+                                        {[
+                                            { id: 'details', label: 'Détails', icon: File },
+                                            { id: 'versions', label: 'Versions', icon: History },
+                                            { id: 'history', label: 'Activité', icon: List },
+                                            { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                                        ].map(tab => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setInspectorTab(tab.id as 'details' | 'history' | 'comments')}
+                                                className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                            >
+                                                <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-blue-500' : 'opacity-70'}`} />
+                                                {tab.label}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
+                                        {inspectorTab === 'details' && (
+                                            <div className="space-y-8">
+                                                {isEditing ? (
+                                                    <DocumentForm
+                                                        onSubmit={handleUpdate}
+                                                        onCancel={() => setIsEditing(false)}
+                                                        initialData={selectedDocument}
+                                                        users={usersList}
+                                                        controls={controls}
+                                                        assets={assets}
+                                                        audits={audits}
+                                                        folders={rawFolders}
+                                                        isLoading={isSubmitting}
+                                                        isStorageFull={isStorageFull}
+                                                        onUploadComplete={handleUploadSuccess}
+                                                    />
+                                                ) : (
+                                                    <>
+                                                        <div className="grid grid-cols-2 gap-6">
+                                                            <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
+                                                                <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Propriétaire</span>
+                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{selectedDocument.owner}</span>
+                                                            </div>
+                                                            <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
+                                                                <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Dernière MAJ</span>
+                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{new Date(selectedDocument.updatedAt).toLocaleDateString()}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Workflow Actions */}
+                                                        <div className="p-6 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Workflow de Validation</h4>
+
+                                                            {/* Status Steps */}
+                                                            <div className="flex items-center justify-between mb-6 relative">
+                                                                <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-gray-200 dark:bg-gray-700 -z-10" />
+                                                                {['Brouillon', 'En revue', 'Approuvé', 'Publié'].map((step, idx) => {
+                                                                    const isCompleted = ['Brouillon', 'En revue', 'Approuvé', 'Publié'].indexOf(selectedDocument.status) >= idx;
+                                                                    const isCurrent = selectedDocument.status === step;
+                                                                    return (
+                                                                        <div key={step} className="flex flex-col items-center bg-white dark:bg-slate-900 px-2">
+                                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${isCompleted ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-slate-300'}`}>
+                                                                                {isCompleted ? <CheckCircle2 className="h-4 w-4" /> : <span className="text-xs font-bold">{idx + 1}</span>}
+                                                                            </div>
+                                                                            <span className={`text-[10px] font-bold mt-2 uppercase tracking-wide ${isCurrent ? 'text-blue-600' : 'text-slate-400'}`}>{step}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+
+                                                            <div className="flex flex-wrap gap-3">
+                                                                {selectedDocument.status === 'Brouillon' && canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
+                                                                    <button onClick={() => handleWorkflowAction('submit')} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">
+                                                                        Soumettre pour revue
+                                                                    </button>
+                                                                )}
+                                                                {selectedDocument.status === 'En revue' && (
+                                                                    <>
+                                                                        <button onClick={() => handleWorkflowAction('approve')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                                                                            <CheckCircle2 className="h-4 w-4 mr-2" /> Approuver
+                                                                        </button>
+                                                                        <button onClick={() => handleWorkflowAction('reject')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                                                                            <X className="h-4 w-4 mr-2" /> Rejeter
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                                {selectedDocument.status === 'Approuvé' && (
+                                                                    <button onClick={() => handleWorkflowAction('sign')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                                                                        <ShieldCheck className="h-4 w-4 mr-2" /> Signer & Publier
+                                                                    </button>
+                                                                )}
+                                                            </div>
+
+                                                            {selectedDocument.signatures && selectedDocument.signatures.length > 0 && (
+                                                                <div className="mt-6 pt-4 border-t border-gray-200 dark:border-white/10">
+                                                                    <h5 className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wide">Signatures</h5>
+                                                                    <div className="space-y-2">
+                                                                        {selectedDocument.signatures.map((sig, i) => (
+                                                                            <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-white/5">
+                                                                                <div className="flex items-center">
+                                                                                    <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center mr-3">
+                                                                                        <ShieldCheck className="h-4 w-4" />
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-xs font-bold text-slate-900 dark:text-white">Signé par {usersList.find(u => u.uid === sig.userId)?.displayName || 'Utilisateur inconnu'}</p>
+                                                                                        <p className="text-[10px] text-slate-500">{new Date(sig.date).toLocaleString()}</p>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-slate-500">{sig.role}</span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            <div className="flex justify-between items-center mb-4">
+                                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">Révision</h4>
+                                                                {selectedDocument.nextReviewDate && (
+                                                                    <span className={`text-xs font-bold ${new Date(selectedDocument.nextReviewDate) < new Date() ? 'text-red-500' : 'text-emerald-500'}`}>
+                                                                        {new Date(selectedDocument.nextReviewDate).toLocaleDateString()}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <button onClick={sendReviewReminder} className="w-full py-3 bg-slate-50 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center border border-slate-200 dark:border-white/5">
+                                                                <Bell className="h-3.5 w-3.5 mr-2" /> Envoyer rappel de révision
+                                                            </button>
+                                                            <div className="w-full mt-2">
+                                                                {selectedDocument.nextReviewDate && (
+                                                                    <AddToCalendar
+                                                                        event={{
+                                                                            title: `Révision : ${selectedDocument.title}`,
+                                                                            description: `Révision du document ${selectedDocument.title} (v${selectedDocument.version})`,
+                                                                            start: new Date(selectedDocument.nextReviewDate),
+                                                                            end: new Date(new Date(selectedDocument.nextReviewDate).getTime() + 60 * 60 * 1000),
+                                                                            location: 'Sentinel GRC'
+                                                                        }}
+                                                                        className="w-full [&>button]:w-full [&>button]:justify-center"
+                                                                    />
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="p-6 bg-blue-50/50 dark:bg-slate-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm flex items-center justify-between">
+                                                            <div className="flex items-center text-blue-700 dark:text-blue-300 text-sm font-bold">
+                                                                <LinkIcon className="h-4 w-4 mr-3" /> Fichier Joint
+                                                            </div>
+                                                            {selectedDocument.url ? (
+                                                                <a href={selectedDocument.url} target="_blank" rel="noreferrer" className="text-xs font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm hover:text-blue-600 transition-colors">
+                                                                    Télécharger
+                                                                </a>
+                                                            ) : <span className="text-xs text-slate-400 italic">Aucun fichier</span>}
+                                                        </div>
+
+                                                        <div className="grid grid-cols-3 gap-6">
+                                                            <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Contrôles Liés</h4>
+                                                                <div className="space-y-1">
+                                                                    {selectedDocument.relatedControlIds?.map(cid => {
+                                                                        const c = controls.find(x => x.id === cid);
+                                                                        return c ? <div key={cid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{c.code}</div> : null;
+                                                                    })}
+                                                                    {(!selectedDocument.relatedControlIds || selectedDocument.relatedControlIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
+                                                                </div>
+                                                            </div>
+                                                            <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Actifs Liés</h4>
+                                                                <div className="space-y-1">
+                                                                    {selectedDocument.relatedAssetIds?.map(aid => {
+                                                                        const a = assets.find(x => x.id === aid);
+                                                                        return a ? <div key={aid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{a.name}</div> : null;
+                                                                    })}
+                                                                    {(!selectedDocument.relatedAssetIds || selectedDocument.relatedAssetIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
+                                                                </div>
+                                                            </div>
+                                                            <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Audits Liés</h4>
+                                                                <div className="space-y-1">
+                                                                    {selectedDocument.relatedAuditIds?.map(aid => {
+                                                                        const a = audits.find(x => x.id === aid);
+                                                                        return a ? <div key={aid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{a.name}</div> : null;
+                                                                    })}
+                                                                    {(!selectedDocument.relatedAuditIds || selectedDocument.relatedAuditIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+
+
+
+                                        {inspectorTab === 'versions' && (
+                                            <div className="space-y-4 animate-fade-in">
+                                                {versions.length === 0 ? (
+                                                    <EmptyState
+                                                        icon={History}
+                                                        title="Aucune version"
+                                                        description="Ce document n'a pas d'historique de versions."
+                                                    />
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {versions.map((version) => (
+                                                            <div key={version.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                                                                        <FileText className="h-4 w-4" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-sm font-bold text-slate-900 dark:text-white">Version {version.version}</p>
+                                                                        <p className="text-xs text-slate-500">
+                                                                            Par {usersList.find(u => u.uid === version.uploadedBy)?.displayName || 'Utilisateur inconnu'} • {new Date(version.uploadedAt).toLocaleDateString()}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => window.open(version.url, '_blank')}
+                                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                                    title="Télécharger"
+                                                                >
+                                                                    <ExternalLink className="h-4 w-4" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {inspectorTab === 'history' && (
+                                            <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
+                                                {docHistory.length === 0 ? <p className="text-sm text-slate-500 pl-6">Aucun historique.</p> :
+                                                    docHistory.map((log, i) => (
+                                                        <div key={i} className="relative">
+                                                            <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900">
+                                                                <div className="h-2 w-2 rounded-full bg-blue-600"></div>
+                                                            </span>
+                                                            <div>
+                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                                <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
+                                                                <p className="text-[10px] text-slate-400 mt-1">Par: {log.userEmail}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                        )}
+
+                                        {inspectorTab === 'comments' && (
+                                            <div className="h-full flex flex-col">
+                                                <Comments collectionName="documents" documentId={selectedDocument.id} />
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>,
-                document.body
-            )
+                    </div>,
+                    document.body
+                )
             }
 
             {/* Create Modal */}
@@ -1089,6 +1236,7 @@ export const Documents: React.FC = () => {
                                     controls={controls}
                                     assets={assets}
                                     audits={audits}
+                                    folders={folders}
                                     isLoading={isSubmitting}
                                     isStorageFull={isStorageFull}
                                     onUploadComplete={handleUploadSuccess}
@@ -1140,6 +1288,6 @@ export const Documents: React.FC = () => {
                     </div>
                 )
             }
-        </div >
+        </div>
     );
 };

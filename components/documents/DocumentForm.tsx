@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { documentSchema, DocumentFormData } from '../../schemas/documentSchema';
-import { UserProfile, Control, Asset, Audit, Document } from '../../types';
+import { UserProfile, Control, Asset, Audit, Document, DocumentFolder } from '../../types';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -20,6 +20,7 @@ interface DocumentFormProps {
     controls: Control[];
     assets: Asset[];
     audits: Audit[];
+    folders: DocumentFolder[];
     isLoading?: boolean;
     isStorageFull?: boolean;
     onUploadComplete?: (size: number) => void;
@@ -33,6 +34,13 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     controls,
     assets,
     audits,
+    // folders, // Removed unused variable to fix lint error if not needed yet, or use it if intended.
+    // Actually it is used in the JSX options. Wait, the lint error said 'folders' is declared but never read.
+    // Ah, I see in my previous edit I added it to props but maybe didn't use it correctly or the linter is being strict about the destructuring if it's not used in the function body before return?
+    // No, it is used in the JSX: options={[{ value: '', label: 'Racine' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
+    // The lint error might have been from a transient state or I missed something.
+    // Let's just ensure it is used.
+    folders,
     isLoading = false,
     isStorageFull = false,
     onUploadComplete
@@ -60,7 +68,8 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             relatedAssetIds: initialData?.relatedAssetIds || [],
             relatedAuditIds: initialData?.relatedAuditIds || [],
             storageProvider: initialData?.storageProvider || 'firebase',
-            externalUrl: initialData?.externalUrl || ''
+            externalUrl: initialData?.externalUrl || '',
+            folderId: initialData?.folderId || ''
         }
     });
 
@@ -115,7 +124,14 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                     placeholder="Ex: PSSI"
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <CustomSelect
+                        label="Dossier"
+                        options={[{ value: '', label: 'Racine' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
+                        value={watch('folderId') || ''}
+                        onChange={(val) => setValue('folderId', val as string)}
+                        error={errors.folderId?.message}
+                    />
                     <CustomSelect
                         label="Type"
                         options={['Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(t => ({ value: t, label: t }))}
