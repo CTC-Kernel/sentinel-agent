@@ -101,7 +101,7 @@ export const Documents: React.FC = () => {
         if (loading || documents.length === 0) return;
         const doc = documents.find(d => d.id === state.voxelSelectedId);
         if (doc && selectedDocument?.id !== doc.id) {
-             
+
             setSelectedDocument(doc);
         }
     }, [location.state, loading, documents, selectedDocument]);
@@ -353,7 +353,7 @@ export const Documents: React.FC = () => {
         setIsSubmitting(true);
 
         try {
-            await addDoc(collection(db, 'documents'), {
+            const docData = {
                 ...data,
                 url: data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || ''),
                 hash: data.fileHash || '',
@@ -362,7 +362,22 @@ export const Documents: React.FC = () => {
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
-            });
+            };
+
+            const docRef = await addDoc(collection(db, 'documents'), docData);
+
+            // Create initial version
+            if (docData.url) {
+                await addDoc(collection(db, 'document_versions'), {
+                    documentId: docRef.id,
+                    version: data.version,
+                    url: docData.url,
+                    hash: docData.hash,
+                    uploadedBy: user.uid,
+                    uploadedAt: new Date().toISOString(),
+                    changeLog: 'Création initiale'
+                });
+            }
 
             await logAction(user, 'CREATE', 'Document', `Nouveau document: ${data.title}`);
             addToast("Document ajouté", "success");
@@ -379,9 +394,11 @@ export const Documents: React.FC = () => {
         if (!canEditResource(user, 'Document', selectedDocument?.ownerId || selectedDocument?.owner) || !selectedDocument) return;
         setIsSubmitting(true);
         try {
+            const newUrl = data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || selectedDocument.url);
+
             const updates = {
                 ...data,
-                url: data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || selectedDocument.url),
+                url: newUrl,
                 hash: data.fileHash || selectedDocument.hash,
                 isSecure: data.isSecure ?? selectedDocument.isSecure,
                 watermarkEnabled: (data.isSecure ?? selectedDocument.isSecure) || false,
@@ -389,6 +406,19 @@ export const Documents: React.FC = () => {
             };
 
             await updateDoc(doc(db, 'documents', selectedDocument.id), updates);
+
+            // Create new version if version number or file changed
+            if (data.version !== selectedDocument.version || newUrl !== selectedDocument.url) {
+                await addDoc(collection(db, 'document_versions'), {
+                    documentId: selectedDocument.id,
+                    version: data.version,
+                    url: newUrl || '',
+                    hash: updates.hash || '',
+                    uploadedBy: user?.uid,
+                    uploadedAt: new Date().toISOString(),
+                    changeLog: 'Mise à jour'
+                });
+            }
 
             await logAction(user, 'UPDATE', 'Document', `MAJ document: ${data.title}`);
             setSelectedDocument({ ...selectedDocument, ...updates });
