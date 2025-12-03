@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Asset } from '../../types';
+import { Asset, Criticality } from '../../types';
 import { aiService } from '../../services/aiService';
 import { Sparkles, Bot, Loader2, AlertTriangle, ShieldCheck, Wrench } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -11,7 +11,18 @@ interface AssetAIAssistantProps {
 
 export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpdate }) => {
     const [loading, setLoading] = useState(false);
-    const [response, setResponse] = useState<Record<string, unknown> | null>(null);
+    interface AIAnalysisResponse {
+        confidentiality: string;
+        integrity: string;
+        availability: string;
+        justification: string;
+        tasks?: string[];
+        frequency?: string;
+        suggestions?: string[];
+        text?: string;
+    }
+
+    const [response, setResponse] = useState<AIAnalysisResponse | null>(null);
     const [mode, setMode] = useState<'analyze' | 'maintenance' | 'optimize' | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -71,11 +82,11 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                     const parsed = JSON.parse(jsonMatch[0]);
                     setResponse(parsed);
                 } else {
-                    setResponse({ text: resultText });
+                    setResponse({ text: resultText } as AIAnalysisResponse);
                 }
             } catch (e) {
                 ErrorLogger.warn("Failed to parse AI response", 'AssetAIAssistant.handleAction', { metadata: { error: e } });
-                setResponse({ text: resultText });
+                setResponse({ text: resultText } as AIAnalysisResponse);
             }
 
         } catch (error) {
@@ -90,11 +101,10 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
         if (!onUpdate || !response) return;
 
         if (mode === 'analyze' && typeof response.confidentiality === 'string') {
-            // Map string to Criticality enum if needed, or just pass as is if matches
             onUpdate({
-                confidentiality: response.confidentiality as any,
-                integrity: response.integrity as any,
-                availability: response.availability as any,
+                confidentiality: response.confidentiality as Criticality,
+                integrity: response.integrity as Criticality,
+                availability: response.availability as Criticality,
             });
         }
         setResponse(null);

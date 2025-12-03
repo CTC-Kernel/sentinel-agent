@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
     User,
     onIdTokenChanged,
-    signOut as firebaseSignOut
+    signOut as firebaseSignOut,
+    TotpSecret
 } from 'firebase/auth';
 import {
     doc,
@@ -312,8 +313,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [setUser, setTheme, logout]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // MFA State
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [mfaSecret, setMfaSecret] = useState<any>(null);
+    const [mfaSecret, setMfaSecret] = useState<TotpSecret | null>(null);
 
     const enrollMFA = useCallback(async () => {
         if (!auth.currentUser) throw new Error("No user logged in");
