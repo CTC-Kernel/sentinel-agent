@@ -94,6 +94,7 @@ export const Projects: React.FC = () => {
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
     const [filter, setFilter] = useState('');
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('projects_view_mode', 'grid');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Inspector State
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -207,6 +208,7 @@ export const Projects: React.FC = () => {
     const handleProjectFormSubmit = async (projectData: Omit<Project, 'id' | 'organizationId' | 'tasks' | 'progress' | 'createdAt'>) => {
         if (!canEdit || !user?.organizationId) return;
 
+        setIsSubmitting(true);
         try {
             // Validate data
             const validatedData = projectSchema.parse(projectData);
@@ -244,6 +246,8 @@ export const Projects: React.FC = () => {
             } else {
                 ErrorLogger.handleErrorWithToast(e, 'Projects.handleProjectFormSubmit', 'UPDATE_FAILED');
             }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -1225,6 +1229,7 @@ export const Projects: React.FC = () => {
                     availableRisks={risks}
                     availableControls={controls}
                     availableAssets={assets}
+                    isLoading={isSubmitting}
                 />
             </Drawer>
         </div >

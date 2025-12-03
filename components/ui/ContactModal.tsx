@@ -2,6 +2,8 @@ import React, { useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Send, Mail, User, MessageSquare, Loader2 } from 'lucide-react';
 import { sendEmail } from '../../services/emailService';
+import { getContactMessageTemplate } from '../../services/emailTemplates';
+
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 
@@ -29,15 +31,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
             await sendEmail(user, {
                 to: '***REMOVED***',
                 subject: `[Contact App] ${formData.subject || 'Nouveau message'}`,
-                html: `
-            <h3>Nouveau message de contact</h3>
-            <p><strong>Nom:</strong> ${formData.name}</p>
-            <p><strong>Email:</strong> ${formData.email}</p>
-            <p><strong>Sujet:</strong> ${formData.subject}</p>
-            <br/>
-            <p><strong>Message:</strong></p>
-            <p>${formData.message.replace(/\n/g, '<br>')}</p>
-          `,
+                html: getContactMessageTemplate(formData.name, formData.email, formData.subject, formData.message),
                 type: 'GENERIC' as any, // Cast as any if GENERIC is not in EmailType, or add GENERIC to EmailType
                 metadata: {
                     source: 'contact_form'

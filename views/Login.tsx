@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../firebase';
 import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2 } from '../components/ui/Icons';
+import { Button } from '../components/ui/button';
 import { useStore } from '../store';
 import { LegalModal } from '../components/ui/LegalModal';
 import { useForm, SubmitHandler } from 'react-hook-form';
@@ -175,16 +176,17 @@ export const Login: React.FC = () => {
                     )}
 
                     <div className="w-full space-y-5">
-                        <button
+                        <Button
                             onClick={handleGoogleLogin}
-                            disabled={loading}
-                            className="w-full flex items-center justify-center px-4 py-4 bg-white dark:bg-[#1c1c1e] border border-slate-200 dark:border-white/10 rounded-2xl card-hover transition-all duration-200 shadow-sm active:scale-[0.98]"
+                            isLoading={loading}
+                            variant="outline"
+                            className="w-full py-6 rounded-2xl border-slate-200 dark:border-white/10 card-hover shadow-sm"
                         >
-                            <GoogleIcon />
+                            {!loading && <GoogleIcon />}
                             <span className="ml-3 text-[15px] font-bold text-slate-700 dark:text-white">Continuer avec Google</span>
-                        </button>
+                        </Button>
 
-                        <button
+                        <Button
                             onClick={async () => {
                                 setLoading(true);
                                 setErrorMsg(null);
@@ -203,17 +205,19 @@ export const Login: React.FC = () => {
                                     }
                                 } finally { setLoading(false); }
                             }}
-                            disabled={loading}
-                            className="w-full flex items-center justify-center px-4 py-4 bg-black text-white border border-transparent rounded-2xl card-hover transition-all duration-200 shadow-sm active:scale-[0.98]"
+                            isLoading={loading}
+                            className="w-full py-6 bg-black text-white rounded-2xl card-hover shadow-sm"
                         >
-                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-.98-.4-2.05-.4-3.08.4-1.05.45-2.05.45-3.08-.4-1.05-.85-2.05-2.4-2.05-4.6 0-3.15 2.05-4.8 4.1-4.8 1.05 0 2.05.45 3.08.45 1.05 0 2.05-.45 3.08-.45 1.05 0 2.05.45 3.08.45.98 0 1.95-.45 2.55-1.15-2.05-1.15-2.05-3.6-2.05-3.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15zM12.03 7.25c-.05-.25-.05-.5-.05-.75 1.55-.65 2.55-1.9 2.55-3.15.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15z" />
-                                <path d="M12.03 7.25c.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15-.05-.25-.05-.5-.05-.75 1.55-.65 2.55-1.9 2.55-3.15z" fill="none" />
-                                <path d="M13.03 2.1c-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75z" />
-                                <path d="M17.03 11.28c-.6-.7-1.55-1.15-2.55-1.15-1.03 0-2.03.45-3.08.45-1.03 0-2.03-.45-3.08-.45-2.05 0-4.1 1.65-4.1 4.8 0 2.2 1 3.75 2.05 4.6 1.03.85 2.03.85 3.08.4 1.03-.8 2.1-.8 3.08.4 1.03.48 2.1.55 3.08-.4 1.03-.85 2.03-2.4 2.05-4.6-.05-.15-2.05-1.15-2.05-3.75.05-.15 2.05-1.15 2.05-3.75z" />
-                            </svg>
+                            {!loading && (
+                                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-.98-.4-2.05-.4-3.08.4-1.05.45-2.05.45-3.08-.4-1.05-.85-2.05-2.4-2.05-4.6 0-3.15 2.05-4.8 4.1-4.8 1.05 0 2.05.45 3.08.45 1.05 0 2.05-.45 3.08-.45 1.05 0 2.05.45 3.08.45.98 0 1.95-.45 2.55-1.15-2.05-1.15-2.05-3.6-2.05-3.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15zM12.03 7.25c-.05-.25-.05-.5-.05-.75 1.55-.65 2.55-1.9 2.55-3.15.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15z" />
+                                    <path d="M12.03 7.25c.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15-.05-.25-.05-.5-.05-.75 1.55-.65 2.55-1.9 2.55-3.15z" fill="none" />
+                                    <path d="M13.03 2.1c-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75z" />
+                                    <path d="M17.03 11.28c-.6-.7-1.55-1.15-2.55-1.15-1.03 0-2.03.45-3.08.45-1.03 0-2.03-.45-3.08-.45-2.05 0-4.1 1.65-4.1 4.8 0 2.2 1 3.75 2.05 4.6 1.03.85 2.03.85 3.08.4 1.03-.8 2.1-.8 3.08.4 1.03.48 2.1.55 3.08-.4 1.03-.85 2.03-2.4 2.05-4.6-.05-.15-2.05-1.15-2.05-3.75.05-.15 2.05-1.15 2.05-3.75z" />
+                                </svg>
+                            )}
                             <span className="ml-3 text-[15px] font-bold">Continuer avec Apple</span>
-                        </button>
+                        </Button>
 
                         <div className="relative py-2">
                             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-white/10"></div></div>
@@ -256,15 +260,14 @@ export const Login: React.FC = () => {
                                 {errors.password && <p className="text-red-500 text-xs ml-1 font-bold">{errors.password.message}</p>}
                             </div>
 
-                            <button
+                            <Button
                                 type="submit"
-                                disabled={loading}
-                                className="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl card-hover transition-all duration-300 flex items-center justify-center text-[15px] shadow-lg shadow-brand-500/20"
+                                isLoading={loading}
+                                className="w-full py-6 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl card-hover shadow-lg shadow-brand-500/20"
                             >
-                                {loading ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> :
-                                    (isLogin ? 'Se connecter' : 'Créer un compte')}
+                                {isLogin ? 'Se connecter' : 'Créer un compte'}
                                 {!loading && <ArrowRight className="ml-2 h-5 w-5" strokeWidth={2.5} />}
-                            </button>
+                            </Button>
                         </form>
                     </div>
 
@@ -326,9 +329,9 @@ export const Login: React.FC = () => {
                                     />
                                     {resetForm.formState.errors.email && <p className="text-red-500 text-xs ml-1 font-bold mt-1">{resetForm.formState.errors.email.message}</p>}
                                 </div>
-                                <button type="submit" disabled={loading} className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] transition-transform shadow-lg">
+                                <Button type="submit" isLoading={loading} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
                                     {loading ? 'Envoi...' : 'Envoyer le lien'}
-                                </button>
+                                </Button>
                             </form>
                         ) : (
                             <div className="text-center py-4">
@@ -372,9 +375,9 @@ export const Login: React.FC = () => {
                                 />
                                 {mfaError && <p className="text-red-500 text-xs ml-1 font-bold mt-1">{mfaError}</p>}
                             </div>
-                            <button type="submit" disabled={mfaLoading} className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] transition-transform shadow-lg">
+                            <Button type="submit" isLoading={mfaLoading} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
                                 {mfaLoading ? 'Vérification...' : 'Vérifier'}
-                            </button>
+                            </Button>
                         </form>
                     </div>
                 </div>

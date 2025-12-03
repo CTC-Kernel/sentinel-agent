@@ -27,8 +27,9 @@ export const VerifyEmail: React.FC = () => {
             await sendEmailVerification(auth.currentUser);
             setEmailSent(true);
             addToast("Email de vérification envoyé", "success");
-        } catch (err: any) {
-            if (err.code === 'auth/too-many-requests') {
+        } catch (err: unknown) {
+            const error = err as { code?: string };
+            if (error.code === 'auth/too-many-requests') {
                 setError("Trop de tentatives. Veuillez patienter.");
             } else {
                 setError("Erreur lors de l'envoi de l'email.");
@@ -50,7 +51,7 @@ export const VerifyEmail: React.FC = () => {
             } else {
                 addToast("Email non vérifié. Veuillez vérifier votre boîte mail.", "info");
             }
-        } catch (err) {
+        } catch {
             addToast("Erreur lors de la vérification", "error");
         } finally {
             setLoading(false);

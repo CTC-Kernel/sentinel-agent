@@ -22,6 +22,7 @@ import { LegalModal } from '../components/ui/LegalModal';
 import { Scale, Crown, ArrowRightLeft } from 'lucide-react';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { CustomSelect } from '../components/ui/CustomSelect';
+import { Button } from '../components/ui/button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, ProfileFormData, passwordSchema, PasswordFormData, organizationSchema, OrganizationFormData } from '../schemas/settingsSchema';
 import { formatFileSize } from '../services/fileUploadService';
@@ -773,14 +774,14 @@ export const Settings: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <button
+                    <Button
                         onClick={handleManageSubscription}
-                        disabled={subLoading}
-                        className="px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-bold rounded-xl hover:shadow-md transition-all border border-slate-200 dark:border-white/10 flex items-center"
+                        isLoading={subLoading}
+                        variant="outline"
+                        className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700"
                     >
-                        {subLoading ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div> : null}
                         {currentOrg?.subscription?.planId === 'discovery' ? t('settings.upgradeSub') : t('settings.manage')}
-                    </button>
+                    </Button>
                 </div>
             )}
 
@@ -864,9 +865,9 @@ export const Settings: React.FC = () => {
                             )}
                         </div>
 
-                        <button type="submit" disabled={savingProfile} className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-500/20 disabled:opacity-70 flex justify-center items-center mt-4">
-                            {savingProfile ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : t('settings.saveProfile')}
-                        </button>
+                        <Button type="submit" isLoading={savingProfile} className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-500/20 mt-4">
+                            {t('settings.saveProfile')}
+                        </Button>
                     </form>
                 </div>
 
@@ -901,13 +902,13 @@ export const Settings: React.FC = () => {
                                     )}
                                 </div>
                             </div>
-                            <button
+                            <Button
                                 type="submit"
-                                disabled={changingPassword}
-                                className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-slate-900/10 dark:shadow-white/10 flex items-center justify-center mt-4"
+                                isLoading={changingPassword}
+                                className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-slate-900/10 dark:shadow-white/10 mt-4"
                             >
-                                {changingPassword ? '...' : t('settings.changePassword')}
-                            </button>
+                                {t('settings.changePassword')}
+                            </Button>
                         </form>
                     </div>
 
@@ -1227,9 +1228,10 @@ export const Settings: React.FC = () => {
                                 </button>
                             </div>
 
-                            <button onClick={handleExport} disabled={exporting} className="w-full flex items-center justify-center px-4 py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors">
-                                {exporting ? t('common.loading') : <><Download className="h-4 w-4 mr-2" /> {t('settings.exportJson')}</>}
-                            </button>
+                            <Button onClick={handleExport} isLoading={exporting} className="w-full flex items-center justify-center px-4 py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors">
+                                {!exporting && <Download className="h-4 w-4 mr-2" />}
+                                {t('settings.exportJson')}
+                            </Button>
                             <div className="pt-4 border-t border-slate-200 dark:border-white/10">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('settings.offlineMode')}</span>
@@ -1312,9 +1314,9 @@ export const Settings: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="flex justify-end">
-                                        <button type="submit" disabled={savingOrg} className="px-6 py-3 bg-brand-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50">
-                                            {savingOrg ? '...' : t('settings.saveChanges')}
-                                        </button>
+                                        <Button type="submit" isLoading={savingOrg} className="px-6 py-3 bg-brand-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg">
+                                            {t('settings.saveChanges')}
+                                        </Button>
                                     </div>
                                 </form>
                             </div>
@@ -1547,9 +1549,9 @@ export const Settings: React.FC = () => {
                                     <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.leaveOrg')}</h4>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('settings.leaveOrgDesc')}</p>
                                 </div>
-                                <button onClick={initiateLeaveOrg} className="px-4 py-2 bg-white dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl text-xs hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30 shadow-sm">
+                                <Button onClick={initiateLeaveOrg} variant="outline" className="px-4 py-2 bg-white dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl text-xs hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30 shadow-sm">
                                     {t('common.leave')}
-                                </button>
+                                </Button>
                             </div>
                         )}
 
@@ -1558,9 +1560,9 @@ export const Settings: React.FC = () => {
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.deleteAccount')}</h4>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('settings.deleteAccountDesc')}</p>
                             </div>
-                            <button onClick={handleDeleteAccount} className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
+                            <Button onClick={handleDeleteAccount} variant="destructive" className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
                                 {t('common.delete')}
-                            </button>
+                            </Button>
                         </div>
 
                         {hasPermission(user, 'Settings', 'manage') && (
@@ -1569,9 +1571,9 @@ export const Settings: React.FC = () => {
                                     <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.deleteOrg')}</h4>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('settings.deleteOrgDesc')}</p>
                                 </div>
-                                <button onClick={handleDeleteOrganization} className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
+                                <Button onClick={handleDeleteOrganization} variant="destructive" className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
                                     {t('settings.destroy')}
-                                </button>
+                                </Button>
                             </div>
                         )}
                     </div>

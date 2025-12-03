@@ -1,11 +1,15 @@
 import React, { useEffect } from 'react';
-import { useForm, SubmitHandler, useWatch } from 'react-hook-form';
+import { useForm, SubmitHandler, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { incidentSchema, IncidentFormData } from '../../schemas/incidentSchema';
 import { Criticality, UserProfile, BusinessProcess, Asset, Risk } from '../../types';
 import { ShieldAlert } from '../ui/Icons';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { useStore } from '../../store';
+import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
+import { CustomSelect } from '../ui/CustomSelect';
+import { Button } from '../ui/button';
 
 import { PLAYBOOKS } from '../../data/incidentPlaybooks';
 
@@ -17,6 +21,7 @@ interface IncidentFormProps {
     processes: BusinessProcess[];
     assets: Asset[];
     risks: Risk[];
+    isLoading?: boolean;
 }
 
 export const IncidentForm: React.FC<IncidentFormProps> = ({
@@ -26,12 +31,12 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     users,
     processes,
     assets,
-    risks
+    risks,
+    isLoading = false
 }) => {
     const { addToast } = useStore();
     const { register, handleSubmit, setValue, control, getValues, formState: { errors } } = useForm<IncidentFormData>({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolver: zodResolver(incidentSchema) as any,
+        resolver: zodResolver(incidentSchema),
         defaultValues: {
             title: '',
             description: '',
@@ -73,17 +78,22 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Titre de l'incident</label>
-                <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium"
-                    {...register('title')} placeholder="Ex: Attaque Ransomware sur Serveur RH" />
-                {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
-            </div>
-            <div>
+            <div className="space-y-6">
+                <FloatingLabelInput
+                    label="Titre de l'incident"
+                    {...register('title')}
+                    placeholder="Ex: Attaque Ransomware sur Serveur RH"
+                    error={errors.title?.message}
+                />
+
                 {/* NIS 2 Section */}
                 <div className="bg-red-50/50 dark:bg-red-900/10 p-6 rounded-3xl border border-red-100 dark:border-red-900/30 space-y-4">
                     <div className="flex items-center space-x-3">
-                        <input type="checkbox" className="h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300" {...register('isSignificant')} />
+                        <input
+                            type="checkbox"
+                            className="h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300"
+                            {...register('isSignificant')}
+                        />
                         <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center">
                             <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />
                             Incident Significatif (NIS 2)
@@ -91,8 +101,8 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                     </div>
 
                     {isSignificant && (
-                        <div className="animate-fade-in pl-8">
-                            <div className="p-4 bg-white dark:bg-slate-900/50 rounded-2xl border border-red-100 dark:border-red-900/30 mb-4">
+                        <div className="animate-fade-in pl-8 space-y-4">
+                            <div className="p-4 bg-white dark:bg-slate-900/50 rounded-2xl border border-red-100 dark:border-red-900/30">
                                 <h4 className="text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 mb-2">Délais de Notification</h4>
                                 <ul className="text-xs space-y-1 text-slate-600 dark:text-slate-400">
                                     <li className="flex justify-between"><span>Pré-notification (Early Warning)</span> <span className="font-bold">24h</span></li>
@@ -100,104 +110,184 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                                     <li className="flex justify-between"><span>Rapport Final</span> <span className="font-bold">1 mois</span></li>
                                 </ul>
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut Notification</label>
-                                <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
-                                    {...register('notificationStatus')}>
-                                    <option value="Not Required">Non Requis</option>
-                                    <option value="Pending">En attente</option>
-                                    <option value="Reported">Signalé</option>
-                                </select>
-                            </div>
+
+                            <Controller
+                                name="notificationStatus"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Statut Notification"
+                                        value={field.value || ''}
+                                        onChange={field.onChange}
+                                        options={[
+                                            { value: 'Not Required', label: 'Non Requis' },
+                                            { value: 'Pending', label: 'En attente' },
+                                            { value: 'Reported', label: 'Signalé' }
+                                        ]}
+                                    />
+                                )}
+                            />
                         </div>
                     )}
                 </div>
 
-                <div className="flex justify-between items-center mb-2 mt-4">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Description détaillée</label>
-                    <AIAssistButton
-                        context={{
-                            title: title,
-                            category: category,
-                            severity: severity,
-                            affectedAsset: assets.find(a => a.id === affectedAssetId)?.name
-                        }}
-                        fieldName="description"
-                        onSuggest={(val: string) => setValue('description', val)}
-                        prompt="Rédige une description détaillée et professionnelle pour cet incident de sécurité. Inclus les éléments factuels probables basés sur le titre et la catégorie."
+                <div className="relative">
+                    <FloatingLabelTextarea
+                        label="Description détaillée"
+                        {...register('description')}
+                        rows={4}
+                        placeholder="Décrivez les faits, l'heure de découverte, les symptômes..."
+                        error={errors.description?.message}
+                    />
+                    <div className="absolute right-2 top-2 z-10">
+                        <AIAssistButton
+                            context={{
+                                title: title || '',
+                                category: category || '',
+                                severity: severity || '',
+                                affectedAsset: assets.find(a => a.id === affectedAssetId)?.name || ''
+                            }}
+                            fieldName="description"
+                            onSuggest={(val: string) => setValue('description', val)}
+                            prompt="Rédige une description détaillée et professionnelle pour cet incident de sécurité. Inclus les éléments factuels probables basés sur le titre et la catégorie."
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Controller
+                        name="category"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Catégorie (Playbook)"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                options={Object.keys(PLAYBOOKS).map(c => ({ value: c, label: c }))}
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        name="severity"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Sévérité"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                options={Object.values(Criticality).map(c => ({ value: c, label: c }))}
+                            />
+                        )}
                     />
                 </div>
-                <textarea rows={4} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium resize-none"
-                    {...register('description')} placeholder="Décrivez les faits, l'heure de découverte, les symptômes..." />
-                {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Controller
+                        name="status"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Statut"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                options={['Nouveau', 'Analyse', 'Contenu', 'Résolu', 'Fermé'].map(s => ({ value: s, label: s }))}
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        name="affectedAssetId"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Actif Impacté"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                options={[
+                                    { value: '', label: 'Aucun / Inconnu' },
+                                    ...assets.map(a => ({ value: a.id, label: a.name }))
+                                ]}
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        name="affectedProcessId"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Processus Impacté"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                options={[
+                                    { value: '', label: 'Aucun / Inconnu' },
+                                    ...processes.map(p => ({ value: p.id, label: p.name }))
+                                ]}
+                            />
+                        )}
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Controller
+                        name="relatedRiskId"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Lier à un Risque Identifié"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                options={[
+                                    { value: '', label: 'Non lié' },
+                                    ...risks.map(r => ({ value: r.id, label: `${r.threat} (Score: ${r.score})` }))
+                                ]}
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        name="reporter"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Déclaré par"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                options={[
+                                    { value: '', label: 'Sélectionner...' },
+                                    ...users.map(u => ({ value: u.displayName || u.email, label: u.displayName || u.email }))
+                                ]}
+                            />
+                        )}
+                    />
+
+                    <FloatingLabelInput
+                        label="Coût estimé (€)"
+                        type="number"
+                        {...register('financialImpact', { valueAsNumber: true })}
+                        placeholder="0.00"
+                    />
+                </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Catégorie (Playbook)</label>
-                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
-                        {...register('category')}>
-                        {Object.keys(PLAYBOOKS).map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Sévérité</label>
-                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
-                        {...register('severity')}>
-                        {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label>
-                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
-                        {...register('status')}>
-                        {['Nouveau', 'Analyse', 'Contenu', 'Résolu', 'Fermé'].map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Actif Impacté</label>
-                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
-                        {...register('affectedAssetId')}>
-                        <option value="">Aucun / Inconnu</option>
-                        {assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Processus Impacté</label>
-                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
-                        {...register('affectedProcessId')}>
-                        <option value="">Aucun / Inconnu</option>
-                        {processes.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Lier à un Risque Identifié</label>
-                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
-                        {...register('relatedRiskId')}>
-                        <option value="">Non lié</option>
-                        {risks.map(r => <option key={r.id} value={r.id}>{r.threat} (Score: {r.score})</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Déclaré par</label>
-                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium appearance-none"
-                        {...register('reporter')}>
-                        <option value="">Sélectionner...</option>
-                        {users.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Coût estimé (€)</label>
-                    <input type="number" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none font-medium"
-                        {...register('financialImpact', { valueAsNumber: true })} placeholder="0.00" />
-                </div>
-            </div>
+
             <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                <button type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                <button type="submit" className="px-8 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold text-sm shadow-lg shadow-red-500/20 hover:scale-105 transition-all">Enregistrer</button>
+                <Button
+                    type="button"
+                    onClick={onCancel}
+                    variant="ghost"
+                    disabled={isLoading}
+                    className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                >
+                    Annuler
+                </Button>
+                <Button
+                    type="submit"
+                    isLoading={isLoading}
+                    className="px-8 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold text-sm shadow-lg shadow-red-500/20 hover:scale-105 transition-all"
+                >
+                    Enregistrer
+                </Button>
             </div>
         </form>
     );

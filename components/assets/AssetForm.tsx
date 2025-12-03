@@ -5,6 +5,7 @@ import { assetSchema, AssetFormData } from '../../schemas/assetSchema';
 import { Asset, UserProfile, Supplier, Criticality } from '../../types';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
+import { Button } from '../ui/button';
 import { Sparkles, AlertTriangle, ShieldCheck } from '../ui/Icons';
 import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -16,6 +17,7 @@ interface AssetFormProps {
     usersList: UserProfile[];
     suppliers: Supplier[];
     isEditing?: boolean;
+    isLoading?: boolean;
 }
 
 export const AssetForm: React.FC<AssetFormProps> = ({
@@ -24,7 +26,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     initialData,
     usersList,
     suppliers,
-    isEditing = false
+    isEditing = false,
+    isLoading = false
 }) => {
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues } = useForm<AssetFormData>({
         resolver: zodResolver(assetSchema) as Resolver<AssetFormData>,
@@ -145,20 +148,23 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     </div>
 
                     <div className="relative">
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Type</label>
-                        <select
-                            className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
-                            {...control.register('type')}
-                        >
-                            {['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].map(t => (
-                                <option key={t} value={t}>{t}</option>
-                            ))}
-                        </select>
-                        {errors.type && <p className="text-red-500 text-xs mt-1">{errors.type.message}</p>}
+                        <Controller
+                            name="type"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Type"
+                                    options={['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].map(t => ({ value: t, label: t }))}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.type?.message}
+                                />
+                            )}
+                        />
                         <button
                             type="button"
                             onClick={() => handleSuggestField('type')}
-                            className="absolute right-8 top-1/2 -translate-y-1/2 mt-4 text-slate-400 hover:text-brand-500 transition-colors"
+                            className="absolute right-8 top-1/2 -translate-y-1/2 mt-0 text-slate-400 hover:text-brand-500 transition-colors z-10"
                             title="Suggérer le type"
                         >
                             <Sparkles className={`h-4 w-4 ${suggestingField === 'type' ? 'animate-spin' : ''}`} />
@@ -166,17 +172,19 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Propriétaire</label>
-                        <select
-                            className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
-                            {...control.register('owner')}
-                        >
-                            <option value="">Sélectionner...</option>
-                            {usersList.map(u => (
-                                <option key={u.uid} value={u.displayName}>{u.displayName}</option>
-                            ))}
-                        </select>
-                        {errors.owner && <p className="text-red-500 text-xs mt-1">{errors.owner.message}</p>}
+                        <Controller
+                            name="owner"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Propriétaire"
+                                    options={usersList.map(u => ({ value: u.displayName || u.email, label: u.displayName || u.email }))}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.owner?.message}
+                                />
+                            )}
+                        />
                     </div>
 
                     <div className="col-span-1 md:col-span-2">
@@ -194,12 +202,12 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     </div>
 
                     <div className="col-span-1 md:col-span-2">
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Fournisseur / Mainteneur</label>
                         <Controller
                             name="supplierId"
                             control={control}
                             render={({ field }) => (
                                 <CustomSelect
+                                    label="Fournisseur / Mainteneur"
                                     options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
                                     value={field.value || ''}
                                     onChange={field.onChange}
@@ -239,10 +247,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             )}
                         />
                         <div>
-                            <label className="block text-xs font-bold uppercase text-slate-400 mb-2">Expiration Licence</label>
-                            <input
+                            <FloatingLabelInput
                                 type="date"
-                                className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium"
+                                label="Expiration Licence"
                                 {...control.register('licenseExpiry')}
                             />
                         </div>
@@ -292,18 +299,19 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {['confidentiality', 'integrity', 'availability'].map((field) => (
-                        <div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5">
-                            <label className="block text-[10px] font-bold uppercase text-slate-400 mb-3 tracking-wider">
-                                {field.charAt(0).toUpperCase() + field.slice(1)}
-                            </label>
-                            <select
-                                className="w-full bg-transparent border-none p-0 font-bold text-slate-900 dark:text-white focus:ring-0 cursor-pointer text-sm"
-                                {...control.register(field as keyof AssetFormData)}
-                            >
-                                {Object.values(Criticality).map(c => (
-                                    <option key={c} value={c}>{c}</option>
-                                ))}
-                            </select>
+                        <div key={field}>
+                            <Controller
+                                name={field as keyof AssetFormData}
+                                control={control}
+                                render={({ field: f }) => (
+                                    <CustomSelect
+                                        label={field.charAt(0).toUpperCase() + field.slice(1)}
+                                        options={Object.values(Criticality).map(c => ({ value: c, label: c }))}
+                                        value={f.value as string}
+                                        onChange={f.onChange}
+                                    />
+                                )}
+                            />
                         </div>
                     ))}
                 </div>
@@ -346,37 +354,37 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Cycle de Vie</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-2">Statut</label>
-                        <select
-                            className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
-                            {...control.register('lifecycleStatus')}
-                        >
-                            {['Neuf', 'En service', 'En réparation', 'Fin de vie', 'Rebut'].map(s => (
-                                <option key={s} value={s}>{s}</option>
-                            ))}
-                        </select>
+                        <Controller
+                            name="lifecycleStatus"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Statut"
+                                    options={['Neuf', 'En service', 'En réparation', 'Fin de vie', 'Rebut'].map(s => ({ value: s, label: s }))}
+                                    value={field.value || 'Neuf'}
+                                    onChange={field.onChange}
+                                />
+                            )}
+                        />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-2">Date d'achat</label>
-                        <input
+                        <FloatingLabelInput
                             type="date"
-                            className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium"
+                            label="Date d'achat"
                             {...control.register('purchaseDate')}
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-2">Fin de garantie</label>
-                        <input
+                        <FloatingLabelInput
                             type="date"
-                            className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium"
+                            label="Fin de garantie"
                             {...control.register('warrantyEnd')}
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase text-slate-400 mb-2">Prix d'achat (€)</label>
-                        <input
+                        <FloatingLabelInput
                             type="number"
-                            className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-medium"
+                            label="Prix d'achat (€)"
                             {...control.register('purchasePrice', { valueAsNumber: true })}
                         />
                     </div>
@@ -384,19 +392,22 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             </div>
 
             <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
-                <button
+                <Button
                     type="button"
                     onClick={onCancel}
+                    variant="ghost"
+                    disabled={isLoading}
                     className="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                 >
                     Annuler
-                </button>
-                <button
+                </Button>
+                <Button
                     type="submit"
+                    isLoading={isLoading}
                     className="px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-105 transition-transform shadow-lg shadow-brand-500/20"
                 >
                     {isEditing ? 'Mettre à jour' : 'Créer l\'actif'}
-                </button>
+                </Button>
             </div>
         </form>
     );
