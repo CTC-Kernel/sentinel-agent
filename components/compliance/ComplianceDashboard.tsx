@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Control } from '../../types';
-import { Clock, AlertTriangle, TrendingUp, ShieldAlert, CheckCircle2 } from '../ui/Icons';
+import { Clock, AlertTriangle, TrendingUp, ShieldAlert } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { StatsService } from '../../services/statsService';
 import { useStore } from '../../store';

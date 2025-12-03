@@ -119,6 +119,7 @@ export const Risks: React.FC = () => {
     const [riskScoreHistory, setRiskScoreHistory] = useState<RiskHistory[]>([]);
     const [stats, setStats] = useState({ total: 0, critical: 0, mitigated: 0, reviewDue: 0 });
     const [importing, setImporting] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || importing;
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
@@ -197,7 +198,7 @@ export const Risks: React.FC = () => {
 
     const onSubmit = async (data: RiskFormData) => {
         if (!canEdit || !user?.organizationId) return;
-
+        setSubmitting(true);
         try {
             // Validate data with Zod
             const validatedData = riskSchema.parse(data);
@@ -300,11 +301,14 @@ export const Risks: React.FC = () => {
             } else {
                 ErrorLogger.handleErrorWithToast(error, 'Risks.onSubmit', 'CREATE_FAILED');
             }
+        } finally {
+            setSubmitting(false);
         }
     };
 
     const handleUpdate = async (data: RiskFormData) => {
         if (!user?.organizationId || !selectedRisk || !canEdit) return;
+        setSubmitting(true);
         try {
             // Validate data with Zod
             const validatedData = riskSchema.parse(data);
@@ -409,6 +413,8 @@ export const Risks: React.FC = () => {
             } else {
                 ErrorLogger.handleErrorWithToast(error, 'Risks.handleUpdate', 'UPDATE_FAILED');
             }
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -786,6 +792,7 @@ export const Risks: React.FC = () => {
                 onClose={() => setShowTemplateModal(false)}
                 onSelectTemplate={handleImportTemplate}
                 owners={usersList.map(u => u.displayName || u.email)}
+                isLoading={importing}
             />
 
             <RiskRecommendationsModal
@@ -1133,6 +1140,7 @@ export const Risks: React.FC = () => {
                         processes={rawProcesses}
                         suppliers={suppliers}
                         controls={controls}
+                        isLoading={submitting}
                     />
                 ) : selectedRisk && (
                     <div className="flex flex-col h-full">
@@ -1149,6 +1157,7 @@ export const Risks: React.FC = () => {
                                     suppliers={suppliers}
                                     controls={controls}
                                     isEditing={true}
+                                    isLoading={submitting}
                                 />
                             </div>
                         ) : (
