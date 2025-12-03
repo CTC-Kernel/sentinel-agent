@@ -27,6 +27,13 @@ if (typeof window !== 'undefined') {
   const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY as string | undefined;
   const appCheckDebugToken = import.meta.env.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN as string | undefined;
 
+  console.log('[AppCheck] Initializing...', {
+    hasKey: !!appCheckKey,
+    keyPrefix: appCheckKey ? appCheckKey.substring(0, 4) + '...' : 'N/A',
+    hasDebugToken: !!appCheckDebugToken,
+    hostname: window.location.hostname
+  });
+
   // Enable debug token for localhost OR if explicitly enabled via localStorage OR for the specific app domain
   const isDebugMode = localStorage.getItem('debug_app_check') === 'true';
   const isLocal = window.location.hostname === 'localhost' ||
@@ -36,10 +43,11 @@ if (typeof window !== 'undefined') {
   if (appCheckDebugToken) {
     // Enforce debug token if available in env, regardless of localhost
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string }).FIREBASE_APPCHECK_DEBUG_TOKEN = appCheckDebugToken;
-    console.log("App Check Debug Token enforced from env");
+    console.log("[AppCheck] Debug Token enforced from env");
   } else if (isLocal) {
     // Generate a new debug token for localhost if one isn't provided
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: boolean }).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    console.log("[AppCheck] Auto-generated debug token for localhost");
   }
 
   try {
@@ -48,10 +56,13 @@ if (typeof window !== 'undefined') {
         provider: new ReCaptchaEnterpriseProvider(appCheckKey),
         isTokenAutoRefreshEnabled: true
       });
+      console.log('[AppCheck] Initialization called successfully');
     } else {
+      console.error('[AppCheck] Site key missing! Check VITE_RECAPTCHA_ENTERPRISE_KEY');
       ErrorLogger.warn('App Check site key missing', 'firebase.ts');
     }
   } catch (error) {
+    console.error('[AppCheck] Initialization failed', error);
     ErrorLogger.warn('App Check initialization failed', 'firebase.ts', { metadata: { error } });
   }
 }
