@@ -19,6 +19,7 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { Drawer } from '../components/ui/Drawer';
+import { getPlanLimits } from '../config/plans';
 import { Comments } from '../components/ui/Comments';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { NotificationService } from '../services/notificationService';
@@ -41,7 +42,7 @@ import { Globe } from '../components/ui/Icons';
 import { canEditResource, hasPermission } from '../utils/permissions';
 
 export const Compliance: React.FC = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, organization } = useStore();
 
     const canEdit = canEditResource(user, 'Control');
 
@@ -537,13 +538,18 @@ export const Compliance: React.FC = () => {
             return [c.code, c.name, applicability, c.status, justification];
         });
 
+        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+        const canWhiteLabel = limits.features.whiteLabelReports;
+
         PdfService.generateTableReport(
             {
-                title: "Déclaration d'Applicabilité (SoA)",
+                title: `Déclaration d'Applicabilité (SoA) - ${currentFramework}`,
                 subtitle: `${currentFramework} | Généré le ${new Date().toLocaleDateString()} | ${user?.organizationName || 'Organisation'}`,
                 filename: `SoA_${currentFramework}_${new Date().toISOString().split('T')[0]}.pdf`,
                 headerText: `${currentFramework} Compliance Report`,
-                footerText: 'Sentinel GRC by Cyber Threat Consulting - Document Confidentiel'
+                footerText: 'Sentinel GRC by Cyber Threat Consulting - Document Confidentiel',
+                organizationName: canWhiteLabel ? organization?.name : undefined,
+                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
             },
             ['Code', 'Contrôle', 'Applicabilité', 'Statut', 'Justification / Commentaire'],
             data,

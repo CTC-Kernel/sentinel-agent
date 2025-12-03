@@ -13,6 +13,9 @@ interface ReportOptions {
     includeCover?: boolean;
     coverImage?: string; // Base64 or URL
     watermark?: boolean;
+    save?: boolean;
+    organizationName?: string;
+    organizationLogo?: string; // Base64 or URL
 }
 
 export class PdfService {
@@ -61,7 +64,7 @@ export class PdfService {
     /**
      * Add the standard header with logo and title
      */
-    private static addHeader(doc: jsPDF, title: string, subtitle?: string) {
+    private static addHeader(doc: jsPDF, title: string, subtitle?: string, options?: ReportOptions) {
         const pageWidth = doc.internal.pageSize.width;
 
         // Top Accent Line
@@ -69,18 +72,33 @@ export class PdfService {
         doc.rect(0, 0, pageWidth, 2, 'F');
 
         // Logo Area (Left)
-        doc.setFillColor(this.BRAND_PRIMARY);
-        doc.roundedRect(14, 10, 10, 10, 2, 2, 'F');
-        doc.setTextColor('#FFFFFF');
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('S', 16.5, 17); // Sentinel Logo Init
+        if (options?.organizationLogo) {
+            try {
+                // Assuming base64 or valid URL that jsPDF can handle
+                doc.addImage(options.organizationLogo, 'PNG', 14, 10, 10, 10);
+            } catch (e) {
+                // Fallback if image fails
+                doc.setFillColor(this.BRAND_PRIMARY);
+                doc.roundedRect(14, 10, 10, 10, 2, 2, 'F');
+                doc.setTextColor('#FFFFFF');
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.text(options.organizationName?.charAt(0) || 'S', 16.5, 17);
+            }
+        } else {
+            doc.setFillColor(this.BRAND_PRIMARY);
+            doc.roundedRect(14, 10, 10, 10, 2, 2, 'F');
+            doc.setTextColor('#FFFFFF');
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('S', 16.5, 17); // Sentinel Logo Init
+        }
 
-        // App Name
+        // App/Org Name
         doc.setTextColor(this.BRAND_SECONDARY);
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text('Sentinel GRC', 28, 17);
+        doc.text(options?.organizationName || 'Sentinel GRC', 28, 17);
 
         // Report Title (Right)
         doc.setFontSize(12);
@@ -139,11 +157,11 @@ export class PdfService {
         columns: string[],
         data: (string | number)[][],
         columnStyles: Record<string, unknown> = {}
-    ) {
+    ): jsPDF {
         const doc = this.createDoc(options.orientation);
         const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
 
-        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`);
+        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options);
 
         doc.autoTable({
             startY: 35,
@@ -178,7 +196,11 @@ export class PdfService {
         });
 
         this.addFooter(doc, options.footerText);
-        doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+
+        if (options.save !== false) {
+            doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+        }
+        return doc;
     }
 
     /**
@@ -187,16 +209,20 @@ export class PdfService {
     static generateCustomReport(
         options: ReportOptions,
         renderContent: (doc: jsPDF, startY: number) => void
-    ) {
+    ): jsPDF {
         const doc = this.createDoc(options.orientation);
         const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
 
-        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`);
+        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options);
 
         renderContent(doc, 35);
 
         this.addFooter(doc, options.footerText);
-        doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+
+        if (options.save !== false) {
+            doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+        }
+        return doc;
     }
 
     /**
@@ -209,7 +235,7 @@ export class PdfService {
             summary?: string;
         },
         renderContent: (doc: jsPDF, startY: number) => void
-    ) {
+    ): jsPDF {
         const doc = this.createDoc(options.orientation);
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
@@ -227,16 +253,31 @@ export class PdfService {
         doc.rect(0, 0, pageWidth * 0.35, pageHeight * 0.4, 'F');
 
         // 2. Logo Area (Top Left)
-        doc.setTextColor('#FFFFFF');
-        doc.setFontSize(60);
-        doc.setFont('helvetica', 'bold');
-        doc.text('S', 20, 40);
+        if (options.organizationLogo) {
+            try {
+                doc.addImage(options.organizationLogo, 'PNG', 20, 40, 30, 30);
+            } catch (e) {
+                // Fallback
+                doc.setTextColor('#FFFFFF');
+                doc.setFontSize(60);
+                doc.setFont('helvetica', 'bold');
+                doc.text(options.organizationName?.charAt(0) || 'S', 20, 55);
+            }
+        } else {
+            doc.setTextColor('#FFFFFF');
+            doc.setFontSize(60);
+            doc.setFont('helvetica', 'bold');
+            doc.text('S', 20, 40);
+        }
 
         doc.setFontSize(24);
         doc.setFont('helvetica', 'light');
-        doc.text('Sentinel', 20, 55);
-        doc.setFont('helvetica', 'bold');
-        doc.text('GRC', 20, 65);
+        doc.setTextColor('#FFFFFF');
+        doc.text(options.organizationName || 'Sentinel', 20, 85);
+        if (!options.organizationName) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('GRC', 20, 95);
+        }
 
         // 3. Report Info (Left Sidebar)
         let infoY = pageHeight - 60;
@@ -270,7 +311,11 @@ export class PdfService {
 
         // Optional: AI Generated Cover Image Placeholder
         if (options.coverImage) {
-            // doc.addImage(options.coverImage, 'JPEG', contentStartX, 20, contentWidth, 80);
+            try {
+                doc.addImage(options.coverImage, 'JPEG', contentStartX, 20, contentWidth, 80);
+            } catch (e) {
+                console.warn('Failed to add cover image', e);
+            }
         } else {
             // Decorative Graphic Element
             doc.setDrawColor(this.BRAND_PRIMARY);
@@ -334,7 +379,7 @@ export class PdfService {
 
         // --- CONTENT PAGES ---
         doc.addPage();
-        this.addHeader(doc, options.title, options.subtitle || dateStr);
+        this.addHeader(doc, options.title, options.subtitle || dateStr, options);
         renderContent(doc, 35);
 
         this.addFooter(doc, options.footerText);
@@ -347,6 +392,9 @@ export class PdfService {
             }
         }
 
-        doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+        if (options.save !== false) {
+            doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+        }
+        return doc;
     }
 }

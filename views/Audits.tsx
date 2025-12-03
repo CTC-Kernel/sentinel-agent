@@ -24,7 +24,7 @@ import { AuditAIAssistant } from '../components/audits/AuditAIAssistant';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { PdfService } from '../services/PdfService';
-import { jsPDF } from 'jspdf';
+
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -34,6 +34,7 @@ import { getAuditReminderTemplate } from '../services/emailTemplates';
 import { generateICS, downloadICS } from '../utils/calendar';
 import JSZip from 'jszip';
 import { ErrorLogger } from '../services/errorLogger';
+import { getPlanLimits } from '../config/plans';
 import { buildAppUrl } from '../config/appConfig';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useFirestoreCollection } from '../hooks/useFirestore';
@@ -45,7 +46,7 @@ import { aiService } from '../services/aiService';
 import { usePersistedState } from '../hooks/usePersistedState';
 
 export const Audits: React.FC = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, organization } = useStore();
     const canEdit = canEditResource(user, 'Audit');
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('audits_view_mode', 'grid');
 
@@ -509,24 +510,25 @@ export const Audits: React.FC = () => {
 
     const generateSoA = () => {
         if (!selectedAudit || !checklist) return;
-        const doc = new jsPDF();
-        doc.setFillColor(79, 70, 229);
-        doc.rect(0, 0, 210, 40, 'F');
-        doc.setFontSize(18);
-        doc.setTextColor(255, 255, 255);
-        doc.text("Statement of Applicability (SoA)", 14, 25);
-        doc.setFontSize(10);
-        doc.text(`Audit: ${selectedAudit.name} | Date: ${new Date().toLocaleDateString()} `, 14, 33);
+
+        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+        const canWhiteLabel = limits.features.whiteLabelReports;
 
         const data = checklist.questions.map(q => [q.controlCode, q.response, q.comment || '']);
-        doc.autoTable({
-            startY: 50,
-            head: [['Contrôle', 'Statut', 'Justification']],
-            body: data,
-            theme: 'striped',
-            headStyles: { fillColor: [79, 70, 229] }
-        });
-        doc.save('SoA.pdf');
+
+        PdfService.generateTableReport(
+            {
+                title: "Statement of Applicability (SoA)",
+                subtitle: `Audit: ${selectedAudit.name} | Date: ${new Date().toLocaleDateString()}`,
+                filename: 'SoA.pdf',
+                footerText: 'Sentinel GRC - Document Confidentiel',
+                organizationName: canWhiteLabel ? organization?.name : undefined,
+                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
+            },
+            ['Contrôle', 'Statut', 'Justification'],
+            data,
+            { 0: { fontStyle: 'bold', cellWidth: 30 } }
+        );
     };
 
     const generateAuditReport = async () => {
@@ -570,7 +572,7 @@ export const Audits: React.FC = () => {
                         ['Périmètre', selectedAudit.scope || 'Non défini']
                     ];
 
-                    (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                    doc.autoTable({
                         startY: y,
                         body: details,
                         theme: 'plain',
@@ -593,7 +595,7 @@ export const Audits: React.FC = () => {
                             f.status
                         ]);
 
-                        (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                        doc.autoTable({
                             startY: y,
                             head: [['Type', 'Description', 'Contrôle', 'Statut']],
                             body: findingsData,
@@ -620,7 +622,7 @@ export const Audits: React.FC = () => {
                             r.status
                         ]);
 
-                        (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                        doc.autoTable({
                             startY: y,
                             head: [['Menace', 'Score', 'Statut']],
                             body: risksData,
@@ -682,7 +684,7 @@ export const Audits: React.FC = () => {
                     const relatedControls = controls.filter(c => selectedAudit.relatedControlIds?.includes(c.id));
                     const controlsData = relatedControls.map(c => [c.code, c.name]);
 
-                    (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                    doc.autoTable({
                         startY: y,
                         head: [['Code', 'Contrôle']],
                         body: controlsData,
@@ -706,7 +708,7 @@ export const Audits: React.FC = () => {
                     ['Type d\'Audit', selectedAudit.type]
                 ];
 
-                (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                doc.autoTable({
                     startY: y,
                     body: logistics,
                     theme: 'plain',
@@ -745,7 +747,7 @@ export const Audits: React.FC = () => {
                     f.status
                 ]);
 
-                (doc as unknown as { autoTable: (options: unknown) => void }).autoTable({
+                doc.autoTable({
                     startY: y,
                     head: [['Type', 'Description', 'Contrôle', 'Statut']],
                     body: rows,
@@ -766,13 +768,23 @@ export const Audits: React.FC = () => {
             if (!folder) return;
 
             // 1. Generate Report PDF
-            const doc = new jsPDF();
-            doc.setFillColor(79, 70, 229); doc.rect(0, 0, 210, 40, 'F');
-            doc.setFontSize(18); doc.setTextColor(255, 255, 255); doc.text(`Rapport d'Audit: ${selectedAudit.name}`, 14, 25);
-            doc.setFontSize(10); doc.setTextColor(220); doc.text(`Auditeur: ${selectedAudit.auditor} | Date: ${new Date(selectedAudit.dateScheduled).toLocaleDateString()}`, 14, 33);
-
             const findingsData = findings.map(f => [f.type, f.description, f.relatedControlId ? controls.find(c => c.id === f.relatedControlId)?.code || '-' : '-', f.status]);
-            doc.autoTable({ startY: 50, head: [['Type', 'Description', 'Contrôle', 'Statut']], body: findingsData, theme: 'striped', headStyles: { fillColor: [79, 70, 229] } });
+
+            const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+            const canWhiteLabel = limits.features.whiteLabelReports;
+
+            const doc = PdfService.generateTableReport(
+                {
+                    title: `Rapport d'Audit: ${selectedAudit.name}`,
+                    subtitle: `Auditeur: ${selectedAudit.auditor} | Date: ${new Date(selectedAudit.dateScheduled).toLocaleDateString()}`,
+                    filename: 'Rapport_Audit.pdf',
+                    save: false,
+                    organizationName: canWhiteLabel ? organization?.name : undefined,
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
+                },
+                ['Type', 'Description', 'Contrôle', 'Statut'],
+                findingsData
+            );
 
             const pdfBlob = doc.output('blob');
             folder.file(`Rapport_Audit.pdf`, pdfBlob);
