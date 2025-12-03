@@ -8,8 +8,8 @@ service firebase.storage {
     }
     
     function getUserOrg() {
-      // Fetch user's organizationId from Firestore
-      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.organizationId;
+      // Use custom claim for better performance and security
+      return request.auth.token.organizationId;
     }
     
     function belongsToOrg(orgId) {
