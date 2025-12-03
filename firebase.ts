@@ -6,7 +6,7 @@ import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics } from 'firebase/analytics';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken, AppCheckTokenResult } from "firebase/app-check";
 
 import { ErrorLogger } from './services/errorLogger';
 
@@ -58,16 +58,20 @@ if (typeof window !== 'undefined') {
       });
       console.log('[AppCheck] Initialization called successfully');
 
-      // DEBUG: Try to get a token immediately to see if it fails
-      import('firebase/app-check').then(({ getToken }) => {
+      // DEBUG: Verify Auth and App Check Token
+      // We use a slight delay to allow Auth to initialize
+      setTimeout(() => {
+        const user = auth.currentUser;
+        console.log('[Auth] Current User:', user ? user.uid : 'Not logged in');
+
         getToken(appCheck, false)
-          .then((tokenResult) => {
+          .then((tokenResult: AppCheckTokenResult) => {
             console.log('[AppCheck] Token fetched successfully:', tokenResult.token.substring(0, 10) + '...');
           })
-          .catch((err) => {
+          .catch((err: Error) => {
             console.error('[AppCheck] Token fetch failed:', err);
           });
-      });
+      }, 2000);
 
     } else {
       console.error('[AppCheck] Site key missing! Check VITE_RECAPTCHA_ENTERPRISE_KEY');
