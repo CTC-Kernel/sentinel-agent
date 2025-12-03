@@ -682,7 +682,7 @@ exports.processMailQueue = onDocumentCreated({
     maxInstances: 10,      // Increased to allow better scaling
     concurrency: 50,      // Allow this single instance to handle multiple requests
     retry: false,          // We handle retries manually with our scheduled function
-    retry: false,          // We handle retries manually with our scheduled function
+
     secrets: [sendGridApiKey]
 }, async (event) => {
     const snap = event.data;
@@ -702,7 +702,7 @@ exports.processMailQueue = onDocumentCreated({
  * Helper function to attempt sending an email with retry logic.
  */
 /**
- * Helper function to attempt sending an email with retry logic using SMTP (OVH).
+ * Helper function to attempt sending an email with retry logic using SendGrid.
  */
 async function attemptSendEmail(docRef, data) {
     try {
@@ -896,6 +896,46 @@ exports.logEvent = onCall(async (request) => {
     } catch (error) {
         logger.error('Error in logEvent callable:', error);
         throw new HttpsError('internal', 'Failed to log event.');
+    }
+});
+
+/**
+ * Secure Callable Function to schedule an email
+ */
+exports.scheduleEmail = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in to schedule emails.');
+    }
+
+    const { to, subject, html, type, scheduledFor, metadata } = request.data;
+
+    if (!to || !subject || !html || !scheduledFor) {
+        throw new HttpsError('invalid-argument', 'Missing required fields.');
+    }
+
+    try {
+        await admin.firestore().collection('scheduled_emails').add({
+            to,
+            message: {
+                subject,
+                html,
+            },
+            type: type || 'GENERIC',
+            metadata: {
+                ...metadata,
+                senderUid: request.auth.uid,
+                senderEmail: request.auth.token.email
+            },
+            status: 'SCHEDULED',
+            scheduledFor: scheduledFor,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdBy: request.auth.uid
+        });
+
+        return { success: true };
+    } catch (error) {
+        logger.error('Error in scheduleEmail callable:', error);
+        throw new HttpsError('internal', 'Failed to schedule email.');
     }
 });
 
@@ -1508,7 +1548,7 @@ exports.callGeminiGenerateContent = onCall({
     }
 
     const prompt = request.data?.prompt;
-    const modelName = request.data?.modelName || "gemini-3-pro-preview";
+    const modelName = request.data?.modelName || "gemini-1.5-pro";
 
     if (!prompt || typeof prompt !== 'string') {
         throw new HttpsError('invalid-argument', 'Prompt is required.');
@@ -1568,7 +1608,7 @@ exports.callGeminiChat = onCall({
 
     const systemPrompt = request.data?.systemPrompt;
     const message = request.data?.message;
-    const modelName = request.data?.modelName || "gemini-3-pro-preview";
+    const modelName = request.data?.modelName || "gemini-1.5-pro";
 
     if (!systemPrompt || typeof systemPrompt !== 'string' || !message || typeof message !== 'string') {
         throw new HttpsError('invalid-argument', 'systemPrompt and message are required.');
