@@ -148,6 +148,27 @@ export interface Document {
   storageProvider?: 'firebase' | 'google_drive' | 'onedrive' | 'sharepoint';
   externalUrl?: string;
   externalId?: string; // ID of the file in the external provider
+  folderId?: string;
+}
+
+export interface DocumentFolder {
+  id: string;
+  organizationId: string;
+  name: string;
+  parentId?: string; // For nested folders
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DocumentVersion {
+  id: string;
+  documentId: string;
+  version: string;
+  url: string;
+  hash?: string;
+  uploadedBy: string; // User ID
+  uploadedAt: string;
+  changeLog?: string;
 }
 
 export interface Audit {

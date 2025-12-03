@@ -20,6 +20,7 @@ export const documentSchema = z.object({
     storageProvider: z.enum(['firebase', 'google_drive', 'onedrive', 'sharepoint']).default('firebase'),
     externalUrl: z.string().url("L'URL doit être valide").optional().or(z.literal('')),
     externalId: z.string().optional(),
+    folderId: z.string().optional(),
     isSecure: z.boolean().optional(),
     hash: z.string().optional(),
     watermarkEnabled: z.boolean().optional()
