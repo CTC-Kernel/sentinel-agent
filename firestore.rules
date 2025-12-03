@@ -9,9 +9,12 @@ service cloud.firestore {
     }
     
     function getUserData() {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) 
-        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data 
-        : {'role': 'none', 'organizationId': 'none'};
+      // Prefer custom claims for performance and stability in aggregations
+      return request.auth.token.organizationId != null 
+        ? request.auth.token 
+        : (exists(/databases/$(database)/documents/users/$(request.auth.uid)) 
+            ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data 
+            : {'role': 'none', 'organizationId': 'none'});
     }
     
     // Role Checks

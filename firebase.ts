@@ -6,7 +6,8 @@ import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics } from 'firebase/analytics';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken, AppCheckTokenResult } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
+
 
 import { ErrorLogger } from './services/errorLogger';
 
@@ -27,13 +28,6 @@ if (typeof window !== 'undefined') {
   const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY as string | undefined;
   const appCheckDebugToken = import.meta.env.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN as string | undefined;
 
-  console.log('[AppCheck] Initializing...', {
-    hasKey: !!appCheckKey,
-    keyPrefix: appCheckKey ? appCheckKey.substring(0, 4) + '...' : 'N/A',
-    hasDebugToken: !!appCheckDebugToken,
-    hostname: window.location.hostname
-  });
-
   // Enable debug token for localhost OR if explicitly enabled via localStorage OR for the specific app domain
   const isDebugMode = localStorage.getItem('debug_app_check') === 'true';
   const isLocal = window.location.hostname === 'localhost' ||
@@ -43,42 +37,21 @@ if (typeof window !== 'undefined') {
   if (appCheckDebugToken) {
     // Enforce debug token if available in env, regardless of localhost
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string }).FIREBASE_APPCHECK_DEBUG_TOKEN = appCheckDebugToken;
-    console.log("[AppCheck] Debug Token enforced from env");
   } else if (isLocal) {
     // Generate a new debug token for localhost if one isn't provided
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: boolean }).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-    console.log("[AppCheck] Auto-generated debug token for localhost");
   }
 
   try {
     if (appCheckKey) {
-      const appCheck = initializeAppCheck(app, {
+      initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider(appCheckKey),
         isTokenAutoRefreshEnabled: true
       });
-      console.log('[AppCheck] Initialization called successfully');
-
-      // DEBUG: Verify Auth and App Check Token
-      // We use a slight delay to allow Auth to initialize
-      setTimeout(() => {
-        const user = auth.currentUser;
-        console.log('[Auth] Current User:', user ? user.uid : 'Not logged in');
-
-        getToken(appCheck, false)
-          .then((tokenResult: AppCheckTokenResult) => {
-            console.log('[AppCheck] Token fetched successfully:', tokenResult.token.substring(0, 10) + '...');
-          })
-          .catch((err: Error) => {
-            console.error('[AppCheck] Token fetch failed:', err);
-          });
-      }, 2000);
-
     } else {
-      console.error('[AppCheck] Site key missing! Check VITE_RECAPTCHA_ENTERPRISE_KEY');
       ErrorLogger.warn('App Check site key missing', 'firebase.ts');
     }
   } catch (error) {
-    console.error('[AppCheck] Initialization failed', error);
     ErrorLogger.warn('App Check initialization failed', 'firebase.ts', { metadata: { error } });
   }
 }
