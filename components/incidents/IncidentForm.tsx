@@ -11,7 +11,7 @@ import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Button } from '../ui/button';
 
-import { PLAYBOOKS } from '../../data/incidentPlaybooks';
+import { PLAYBOOKS, INCIDENT_STATUSES, NOTIFICATION_STATUSES } from '../../data/incidentConstants';
 
 interface IncidentFormProps {
     onSubmit: SubmitHandler<IncidentFormData>;
@@ -119,11 +119,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                                         label="Statut Notification"
                                         value={field.value || ''}
                                         onChange={field.onChange}
-                                        options={[
-                                            { value: 'Not Required', label: 'Non Requis' },
-                                            { value: 'Pending', label: 'En attente' },
-                                            { value: 'Reported', label: 'Signalé' }
-                                        ]}
+                                        options={[...NOTIFICATION_STATUSES]}
                                     />
                                 )}
                             />
@@ -191,7 +187,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                                 label="Statut"
                                 value={field.value || ''}
                                 onChange={field.onChange}
-                                options={['Nouveau', 'Analyse', 'Contenu', 'Résolu', 'Fermé'].map(s => ({ value: s, label: s }))}
+                                options={INCIDENT_STATUSES.map(s => ({ value: s, label: s }))}
                             />
                         )}
                     />

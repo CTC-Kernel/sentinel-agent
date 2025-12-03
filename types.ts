@@ -38,6 +38,9 @@ export interface Asset {
   email?: string;
   role?: string;
   department?: string;
+  hardwareType?: string;
+  hardware?: any;
+  notes?: string;
 }
 
 export interface MaintenanceRecord {

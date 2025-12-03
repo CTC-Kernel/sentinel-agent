@@ -5,6 +5,10 @@ import { db } from '../../firebase';
 import { Laptop, Save, AlertTriangle, User, Server, Database } from '../ui/Icons';
 import { Project, UserProfile } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
+import { Button } from '../ui/button';
+import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { CustomSelect } from '../ui/CustomSelect';
+import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 
 interface IntakeFormProps {
     hardwareInfo: HardwareInfo;
@@ -22,8 +26,9 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
         serialNumber: '',
         userId: '', // Changed from user string to userId for linking
         projectId: '',
+
         notes: '',
-        type: hardwareInfo.isMobile ? 'Mobile' : 'Laptop' // Default guess
+        hardwareType: hardwareInfo.isMobile ? 'Mobile' : 'Laptop' // Default guess
     });
 
     const assetTypeIcons: Record<string, JSX.Element> = {
@@ -53,11 +58,11 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
 
         // Smart Categorization
         if (hardwareInfo.os.includes('iOS') || hardwareInfo.os.includes('Android')) {
-            setFormData(prev => ({ ...prev, type: 'Mobile' }));
+            setFormData(prev => ({ ...prev, hardwareType: 'Mobile' }));
         } else if (hardwareInfo.gpu.includes('NVIDIA') || Number(hardwareInfo.cpuCores) > 8) {
-            setFormData(prev => ({ ...prev, type: 'Workstation' }));
+            setFormData(prev => ({ ...prev, hardwareType: 'Workstation' }));
         } else {
-            setFormData(prev => ({ ...prev, type: 'Laptop' }));
+            setFormData(prev => ({ ...prev, hardwareType: 'Laptop' }));
         }
     }, [orgId, hardwareInfo]);
 
@@ -77,6 +82,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
 
             await addDoc(collection(db, 'assets'), {
                 ...formData,
+                type: 'Matériel',
                 organizationId: orgId,
                 hardware: hardwareInfo,
                 status: 'En stock',
@@ -104,7 +110,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                 {/* Hardware Detected Section */}
                 <div className="glass-panel p-6 rounded-2xl border border-white/40 dark:border-white/10 bg-white/50 dark:bg-slate-800/50">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                        {assetTypeIcons[formData.type]}
+                        {assetTypeIcons[formData.hardwareType]}
                         Matériel Détecté
                     </h3>
 
@@ -156,95 +162,70 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Nom de l'équipement <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    required
+                                <FloatingLabelInput
+                                    label="Nom de l'équipement"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     placeholder="ex: MacBook Pro de Thibault"
-                                    className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                                    required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Numéro de Série <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    required
+                                <FloatingLabelInput
+                                    label="Numéro de Série"
                                     value={formData.serialNumber}
                                     onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
                                     placeholder="ex: C02..."
-                                    className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                                    required
                                 />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Utilisateur Principal
-                                </label>
-                                <select
+                                <CustomSelect
+                                    label="Utilisateur Principal"
                                     value={formData.userId}
-                                    onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                                >
-                                    <option value="">-- Sélectionner un utilisateur --</option>
-                                    {users.map(u => (
-                                        <option key={u.uid} value={u.uid}>{u.displayName}</option>
-                                    ))}
-                                </select>
+                                    onChange={(val) => setFormData({ ...formData, userId: val as string })}
+                                    options={users.map(u => ({ value: u.uid, label: u.displayName }))}
+                                    placeholder="-- Sélectionner un utilisateur --"
+                                />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Projet Associé
-                                </label>
-                                <select
+                                <CustomSelect
+                                    label="Projet Associé"
                                     value={formData.projectId}
-                                    onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                                >
-                                    <option value="">-- Aucun projet --</option>
-                                    {projects.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
-                                </select>
+                                    onChange={(val) => setFormData({ ...formData, projectId: val as string })}
+                                    options={projects.map(p => ({ value: p.id, label: p.name }))}
+                                    placeholder="-- Aucun projet --"
+                                />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Type d'équipement
-                            </label>
-                            <select
-                                value={formData.type}
-                                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                            >
-                                <option value="Laptop">Ordinateur Portable</option>
-                                <option value="Desktop">Ordinateur Fixe</option>
-                                <option value="Mobile">Smartphone</option>
-                                <option value="Tablet">Tablette</option>
-                                <option value="Workstation">Station de Travail</option>
-                                <option value="Server">Serveur</option>
-                                <option value="Other">Autre</option>
-                            </select>
+                            <CustomSelect
+                                label="Type d'équipement"
+                                value={formData.hardwareType}
+                                onChange={(val) => setFormData({ ...formData, hardwareType: val as string })}
+                                options={[
+                                    { value: 'Laptop', label: 'Ordinateur Portable' },
+                                    { value: 'Desktop', label: 'Ordinateur Fixe' },
+                                    { value: 'Mobile', label: 'Smartphone' },
+                                    { value: 'Tablet', label: 'Tablette' },
+                                    { value: 'Workstation', label: 'Station de Travail' },
+                                    { value: 'Server', label: 'Serveur' },
+                                    { value: 'Other', label: 'Autre' }
+                                ]}
+                            />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Notes
-                            </label>
-                            <textarea
-                                rows={3}
+                            <FloatingLabelTextarea
+                                label="Notes"
                                 value={formData.notes}
                                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                 placeholder="État physique, accessoires fournis..."
-                                className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all resize-none"
+                                rows={3}
                             />
                         </div>
                     </div>
@@ -259,20 +240,14 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                     )
                 }
 
-                <button
+                <Button
                     type="submit"
-                    disabled={loading}
-                    className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    isLoading={loading}
+                    className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
-                    {loading ? (
-                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                        <>
-                            <Save className="h-5 w-5" />
-                            Enregistrer l'équipement
-                        </>
-                    )}
-                </button>
+                    <Save className="h-5 w-5 mr-2" />
+                    Enregistrer l'équipement
+                </Button>
             </form >
         </div >
     );
