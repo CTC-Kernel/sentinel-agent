@@ -664,7 +664,7 @@ export const VoxelView: React.FC = () => {
           title="CTC Engine"
           subtitle="Visualisation interactive de votre écosystème de sécurité."
           breadcrumbs={[
-            { label: 'Voxel 3D' }
+            { label: 'CTC Engine' }
           ]}
           icon={<Network className="h-6 w-6 text-white" strokeWidth={2.5} />}
           actions={

@@ -149,11 +149,11 @@ const Pricing = () => {
                     <span className="text-5xl font-bold text-slate-900 dark:text-white font-display tracking-tighter">
                       {price === 0 ? 'Gratuit' : `${price}€`}
                     </span>
-                    {price > 0 && <span className="text-slate-500 font-medium text-lg">/mois</span>}
+                    {price > 0 && <span className="text-slate-500 font-medium text-lg">HT/mois</span>}
                   </div>
                   {isAnnual && price > 0 && (
                     <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-2">
-                      Facturé {plan.priceYearly}€ par an
+                      Facturé {plan.priceYearly}€ HT par an
                     </p>
                   )}
                 </div>

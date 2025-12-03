@@ -83,30 +83,29 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
         <div className="space-y-6">
             {/* Summary Card */}
             <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
 
                 {/* Global Health Score */}
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="relative">
                         <svg className="w-24 h-24 transform -rotate-90">
                             <circle
-                                className="text-slate-100 dark:text-slate-800"
+                                className="text-slate-200 dark:text-slate-700"
                                 strokeWidth="8"
                                 stroke="currentColor"
                                 fill="transparent"
-                                r="44"
+                                r="40"
                                 cx="48"
                                 cy="48"
                             />
                             <circle
                                 className={`${projectHealth.status === 'good' ? 'text-emerald-500' : projectHealth.status === 'warning' ? 'text-amber-500' : 'text-red-500'} transition-all duration-1000 ease-out`}
                                 strokeWidth="8"
-                                strokeDasharray={276}
-                                strokeDashoffset={276 - (276 * projectHealth.score) / 100}
+                                strokeDasharray={251.2}
+                                strokeDashoffset={251.2 - (251.2 * projectHealth.score) / 100}
                                 strokeLinecap="round"
                                 stroke="currentColor"
                                 fill="transparent"
-                                r="44"
+                                r="40"
                                 cx="48"
                                 cy="48"
                             />
@@ -150,20 +149,17 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
 
                 {/* Alerts/Status */}
                 <div className="flex flex-col gap-3 min-w-[180px]">
-                    <div className={`flex items-center justify-between p-2.5 rounded-xl border ${projectHealth.onSchedule ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30'}`}>
-                        <div className="flex items-center gap-2">
-                            {projectHealth.onSchedule ? <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> : <TrendingDown className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
-                            <span className={`text-xs font-bold ${projectHealth.onSchedule ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>Planning</span>
-                        </div>
-                        <span className={`text-sm font-black ${projectHealth.onSchedule ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>{projectHealth.onSchedule ? 'OK' : 'Retard'}</span>
+                    <div className={`flex items-center gap-3 text-sm px-3 py-2 rounded-xl border ${projectHealth.onSchedule ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30' : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30'}`}>
+                        {projectHealth.onSchedule ? <TrendingUp className="h-4 w-4 shrink-0" /> : <TrendingDown className="h-4 w-4 shrink-0" />}
+                        <span className="font-medium">{projectHealth.onSchedule ? 'Planning OK' : 'Retard Planning'}</span>
                     </div>
-                    <div className="flex items-center justify-between p-2.5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30">
-                        <div className="flex items-center gap-2">
-                            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                            <span className="text-xs font-bold text-red-700 dark:text-red-300">Risques Critiques</span>
+
+                    {relatedRisks.filter(r => r.score >= 15).length > 0 && (
+                        <div className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl border border-red-100 dark:border-red-800/30">
+                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">{relatedRisks.filter(r => r.score >= 15).length} Risques Critiques</span>
                         </div>
-                        <span className="text-sm font-black text-red-700 dark:text-red-400">{relatedRisks.filter(r => r.score >= 15).length}</span>
-                    </div>
+                    )}
                 </div>
             </div>
 
