@@ -757,7 +757,7 @@ export const Settings: React.FC = () => {
 
             {/* Subscription Status - Visible to all org members */}
             {user?.organizationId && (
-                <div className="mb-8 glass-panel rounded-[2rem] p-6 border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/30 dark:bg-slate-900/10 shadow-sm flex items-center justify-between animate-fade-in-up">
+                <div className="mb-8 glass-panel rounded-[2rem] p-6 bg-indigo-50/30 dark:bg-slate-900/10 shadow-sm flex items-center justify-between animate-fade-in-up">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
                             <FileSpreadsheet className="h-6 w-6" />
@@ -789,7 +789,7 @@ export const Settings: React.FC = () => {
 
             <div className="space-y-8">
                 {/* Profile */}
-                <div className="glass-panel rounded-[2.5rem] p-8 relative overflow-hidden border border-white/50 dark:border-white/5 shadow-sm">
+                <div className="glass-panel rounded-[2.5rem] p-8 relative overflow-hidden shadow-sm">
                     <div className="flex flex-col items-center mb-8">
                         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                             <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center transition-transform group-hover:scale-105">
