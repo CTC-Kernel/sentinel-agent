@@ -12,6 +12,7 @@ import { db } from '../firebase';
 import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk, Project } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
+import { QuestionnaireList } from '../components/audits/QuestionnaireList';
 import { AuditTeam } from '../components/audits/AuditTeam';
 import { Comments } from '../components/ui/Comments';
 import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, LayoutGrid, List, BrainCircuit } from '../components/ui/Icons';
@@ -124,7 +125,7 @@ export const Audits: React.FC = () => {
     const [findings, setFindings] = useState<Finding[]>([]);
     const [showFindingsDrawer, setShowFindingsDrawer] = useState(false);
     const [checklist, setChecklist] = useState<AuditChecklist | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist' | 'scope' | 'collaboration' | 'evidence' | 'team' | 'intelligence'>('findings');
+    const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist' | 'scope' | 'collaboration' | 'evidence' | 'team' | 'intelligence' | 'questionnaires'>('findings');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Confirm Dialog
@@ -1116,7 +1117,8 @@ export const Audits: React.FC = () => {
                                     { id: 'findings', label: 'Constats', icon: AlertOctagon },
                                     { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
                                     { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
-                                    { id: 'evidence', label: 'Preuves & Demandes', icon: FileText },
+                                    { id: 'evidence', label: 'Preuves', icon: FileText },
+                                    { id: 'questionnaires', label: 'Questionnaires', icon: MessageSquare },
                                     { id: 'collaboration', label: 'Collaboration', icon: MessageSquare },
                                     { id: 'team', label: 'Équipe', icon: Users },
                                     { id: 'scope', label: 'Périmètre', icon: Target }
@@ -1322,9 +1324,18 @@ export const Audits: React.FC = () => {
                             {inspectorTab === 'evidence' && (
                                 <EvidenceRequestList
                                     auditId={selectedAudit.id}
-                                    organizationId={user?.organizationId || ''}
+                                    organizationId={selectedAudit.organizationId}
                                     users={usersList}
                                     controls={controls}
+                                    canEdit={canEdit}
+                                />
+                            )}
+
+                            {inspectorTab === 'questionnaires' && (
+                                <QuestionnaireList
+                                    auditId={selectedAudit.id}
+                                    organizationId={selectedAudit.organizationId}
+                                    users={usersList}
                                     canEdit={canEdit}
                                 />
                             )}

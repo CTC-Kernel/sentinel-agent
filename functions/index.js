@@ -330,7 +330,8 @@ exports.healMe = onCall(async (request) => {
 
 // --- STRIPE SUBSCRIPTION LOGIC ---
 
-const stripe = require("stripe")(stripeSecretKey.value());
+// Stripe initialized lazily inside functions
+// const stripe = require("stripe")(stripeSecretKey.value());
 
 // Define Plans mapping for backend
 const PLANS = {
@@ -351,6 +352,7 @@ const PLANS = {
 exports.createCheckoutSession = onCall({
     secrets: [stripeSecretKey]
 }, async (request) => {
+    const stripe = require("stripe")(stripeSecretKey.value());
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "User must be logged in.");
     }
@@ -450,6 +452,7 @@ exports.createCheckoutSession = onCall({
 exports.createPortalSession = onCall({
     secrets: [stripeSecretKey]
 }, async (request) => {
+    const stripe = require("stripe")(stripeSecretKey.value());
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "User must be logged in.");
     }
@@ -506,13 +509,14 @@ exports.createPortalSession = onCall({
 exports.stripeWebhook = onRequest({
     secrets: [stripeSecretKey, stripeWebhookSecret]
 }, async (req, res) => {
-    const sig = req.headers['stripe-signature'];
+    const stripe = require("stripe")(stripeSecretKey.value());
+    const signature = req.headers['stripe-signature'];
     const webhookSecret = stripeWebhookSecret.value();
 
     let event;
 
     try {
-        event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+        event = stripe.webhooks.constructEvent(req.rawBody, signature, webhookSecret);
     } catch (err) {
         logger.error(`Webhook Error: ${err.message}`);
         return res.status(400).send(`Webhook Error: ${err.message}`);

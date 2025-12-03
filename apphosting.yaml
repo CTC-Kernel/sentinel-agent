@@ -35,7 +35,6 @@ env:
     value: https://app.cyber-threat-consulting.com
   - variable: VITE_API_URL
     value: https://app.cyber-threat-consulting.com
-  - variable: VITE_OVH_API_BASE_URL
-    value: /api/v1
+
 
 
