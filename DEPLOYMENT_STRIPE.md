@@ -21,13 +21,13 @@ Créez deux produits dans votre catalogue Stripe :
 
 ### Produit : Professional
 *   Nom : **Sentinel GRC Professional**
-*   Prix Mensuel : **19 €** (ID: `price_professional_monthly_id`)
-*   Prix Annuel : **190 €**
+*   Prix Mensuel : **199 €** (ID: `price_professional_monthly_id`)
+*   Prix Annuel : **1910 €**
 
 ### Produit : Enterprise
 *   Nom : **Sentinel GRC Enterprise**
-*   Prix Mensuel : **49 €** (ID: `price_enterprise_monthly_id`)
-*   Prix Annuel : **490 €**
+*   Prix Mensuel : **499 €** (ID: `price_enterprise_monthly_id`)
+*   Prix Annuel : **4790 €**
 
 > **IMPORTANT** : Une fois les prix créés, copiez les IDs (ex: `price_1Pxyz...`) et mettez-les à jour dans le fichier `functions/index.js` à la ligne 139.
 
