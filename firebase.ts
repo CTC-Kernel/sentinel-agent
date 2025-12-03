@@ -52,11 +52,23 @@ if (typeof window !== 'undefined') {
 
   try {
     if (appCheckKey) {
-      initializeAppCheck(app, {
+      const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider(appCheckKey),
         isTokenAutoRefreshEnabled: true
       });
       console.log('[AppCheck] Initialization called successfully');
+
+      // DEBUG: Try to get a token immediately to see if it fails
+      import('firebase/app-check').then(({ getToken }) => {
+        getToken(appCheck, false)
+          .then((tokenResult) => {
+            console.log('[AppCheck] Token fetched successfully:', tokenResult.token.substring(0, 10) + '...');
+          })
+          .catch((err) => {
+            console.error('[AppCheck] Token fetch failed:', err);
+          });
+      });
+
     } else {
       console.error('[AppCheck] Site key missing! Check VITE_RECAPTCHA_ENTERPRISE_KEY');
       ErrorLogger.warn('App Check site key missing', 'firebase.ts');
