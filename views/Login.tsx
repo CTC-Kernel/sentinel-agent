@@ -304,7 +304,7 @@ export const Login: React.FC = () => {
             {/* Reset Password Modal */}
             {showResetModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
+                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
                         <button onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                             <X className="h-5 w-5" />
                         </button>
@@ -348,7 +348,7 @@ export const Login: React.FC = () => {
             {/* MFA Modal */}
             {showMfaModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-850 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
+                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
                         <button onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                             <X className="h-5 w-5" />
                         </button>

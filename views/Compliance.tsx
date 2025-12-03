@@ -676,7 +676,7 @@ export const Compliance: React.FC = () => {
                     <ComplianceDashboard controls={controls} onFilterChange={setStatusFilter} />
 
                     {/* Filter Bar - Clean Style */}
-                    <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-col sm:flex-row gap-4 border border-slate-200 dark:border-white/5 shadow-sm">
+                    <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-col sm:flex-row gap-4 shadow-sm">
                         <div className="flex-1 relative group flex items-center">
                             <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                             <input
@@ -746,7 +746,7 @@ export const Compliance: React.FC = () => {
                                     const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
 
                                     return (
-                                        <div key={domain.id} className="glass-panel rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
+                                        <div key={domain.id} className="glass-panel rounded-[2.5rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
                                             <div
                                                 onClick={() => toggleDomain(domain.id)}
                                                 className={`p-6 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
@@ -795,7 +795,7 @@ export const Compliance: React.FC = () => {
                                                                         </div>
                                                                     </div>
                                                                     <div className="flex items-center gap-4">
-                                                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-500 bg-slate-100 border-slate-200'}`}>{control.status}</span>
+                                                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800' : 'text-slate-500 bg-slate-100 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}`}>{control.status}</span>
                                                                         <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
                                                                     </div>
                                                                 </div>
