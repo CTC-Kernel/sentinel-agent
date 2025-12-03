@@ -152,7 +152,7 @@ export const Settings: React.FC = () => {
             // Force reload to reflect changes (permissions, etc.)
             window.location.reload();
         } catch (error: unknown) {
-            console.error('Transfer failed:', error);
+            ErrorLogger.error(error, 'Settings.handleTransferOwnership');
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             addToast(t('settings.transferError') + errorMessage, 'error');
         } finally {
