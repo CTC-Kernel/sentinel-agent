@@ -31,6 +31,79 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     generateICal = () => { },
     generateExecutiveReport = () => { }
 }) => {
+    const gradeClass =
+        !scoreGrade
+            ? 'bg-gradient-to-br from-slate-200 to-slate-400 border-slate-200/60 text-slate-900 shadow-slate-400/30'
+            : scoreGrade === 'A'
+                ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 border-emerald-300/50 text-white shadow-emerald-500/30'
+                : scoreGrade === 'B'
+                    ? 'bg-gradient-to-br from-indigo-400 to-indigo-600 border-indigo-300/50 text-white shadow-indigo-500/30'
+                    : scoreGrade === 'C'
+                        ? 'bg-gradient-to-br from-orange-400 to-orange-600 border-orange-300/50 text-white shadow-orange-500/30'
+                        : 'bg-gradient-to-br from-red-400 to-red-600 border-red-300/50 text-white shadow-red-500/30';
+
+    const role = user?.role || 'user';
+
+    let welcomeTitleKey = 'dashboard.welcomeTitle';
+    let welcomeSubtitle1Key = 'dashboard.welcomeSubtitle1';
+    let welcomeSubtitle2Key = 'dashboard.welcomeSubtitle2';
+
+    if (role === 'admin' || role === 'rssi') {
+        welcomeTitleKey = 'dashboard.welcomeTitle_rssi';
+        welcomeSubtitle1Key = 'dashboard.welcomeSubtitle1_rssi';
+        welcomeSubtitle2Key = 'dashboard.welcomeSubtitle2_rssi';
+    } else if (role === 'direction') {
+        welcomeTitleKey = 'dashboard.welcomeTitle_direction';
+        welcomeSubtitle1Key = 'dashboard.welcomeSubtitle1_direction';
+        welcomeSubtitle2Key = 'dashboard.welcomeSubtitle2_direction';
+    } else if (role === 'auditor') {
+        welcomeTitleKey = 'dashboard.welcomeTitle_auditor';
+        welcomeSubtitle1Key = 'dashboard.welcomeSubtitle1_auditor';
+        welcomeSubtitle2Key = 'dashboard.welcomeSubtitle2_auditor';
+    } else if (role === 'project_manager') {
+        welcomeTitleKey = 'dashboard.welcomeTitle_project_manager';
+        welcomeSubtitle1Key = 'dashboard.welcomeSubtitle1_project_manager';
+        welcomeSubtitle2Key = 'dashboard.welcomeSubtitle2_project_manager';
+    } else {
+        welcomeTitleKey = 'dashboard.welcomeTitle_user';
+        welcomeSubtitle1Key = 'dashboard.welcomeSubtitle1_user';
+        welcomeSubtitle2Key = 'dashboard.welcomeSubtitle2_user';
+    }
+
+    const welcomeTitle = t(welcomeTitleKey);
+    const welcomeSubtitle1 = t(welcomeSubtitle1Key);
+    const welcomeSubtitle2 = t(welcomeSubtitle2Key);
+
+    let createAssetDescKey = 'dashboard.createAssetDesc';
+    let configureControlsDescKey = 'dashboard.configureControlsDesc';
+    let addDocumentsDescKey = 'dashboard.addDocumentsDesc';
+
+    if (role === 'admin' || role === 'rssi') {
+        createAssetDescKey = 'dashboard.createAssetDesc_rssi';
+        configureControlsDescKey = 'dashboard.configureControlsDesc_rssi';
+        addDocumentsDescKey = 'dashboard.addDocumentsDesc_rssi';
+    } else if (role === 'direction') {
+        createAssetDescKey = 'dashboard.createAssetDesc_direction';
+        configureControlsDescKey = 'dashboard.configureControlsDesc_direction';
+        addDocumentsDescKey = 'dashboard.addDocumentsDesc_direction';
+    } else if (role === 'auditor') {
+        createAssetDescKey = 'dashboard.createAssetDesc_auditor';
+        configureControlsDescKey = 'dashboard.configureControlsDesc_auditor';
+        addDocumentsDescKey = 'dashboard.addDocumentsDesc_auditor';
+    } else if (role === 'project_manager') {
+        createAssetDescKey = 'dashboard.createAssetDesc_project_manager';
+        configureControlsDescKey = 'dashboard.configureControlsDesc_project_manager';
+        addDocumentsDescKey = 'dashboard.addDocumentsDesc_project_manager';
+    } else {
+        createAssetDescKey = 'dashboard.createAssetDesc_user';
+        configureControlsDescKey = 'dashboard.configureControlsDesc_user';
+        addDocumentsDescKey = 'dashboard.addDocumentsDesc_user';
+    }
+
+    const createAssetDesc = t(createAssetDescKey);
+    const configureControlsDesc = t(configureControlsDescKey);
+    const addDocumentsDesc = t(addDocumentsDescKey);
+
     return (
         <div className="relative overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-2xl ring-1 ring-slate-200/60 dark:ring-white/5 transition-all duration-500 group">
             {/* Enhanced Background Effects */}
@@ -50,11 +123,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         </div>
 
                         <h2 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-slate-900 via-slate-700 to-slate-600 dark:from-white dark:via-slate-200 dark:to-slate-400 tracking-tight font-display mb-8 drop-shadow-sm">
-                            {t('dashboard.welcomeTitle')}
+                            {welcomeTitle}
                         </h2>
                         <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mb-12 leading-relaxed font-medium">
-                            {t('dashboard.welcomeSubtitle1')}<br />
-                            {t('dashboard.welcomeSubtitle2')}
+                            {welcomeSubtitle1}<br />
+                            {welcomeSubtitle2}
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full mx-auto">
@@ -69,7 +142,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.createAsset')}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{t('dashboard.createAssetDesc')}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{createAssetDesc}</p>
                                     </div>
                                 </div>
                             </button>
@@ -85,7 +158,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.configureControls')}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{t('dashboard.configureControlsDesc')}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{configureControlsDesc}</p>
                                     </div>
                                 </div>
                             </button>
@@ -101,7 +174,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.addDocuments')}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{t('dashboard.addDocumentsDesc')}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{addDocumentsDesc}</p>
                                     </div>
                                 </div>
                             </button>
@@ -112,8 +185,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         <div className="flex-1 min-w-0 space-y-8">
                             {/* Header Section */}
                             <div className="flex items-start gap-6">
-                                <div className={`relative flex items-center justify-center w-20 h-20 shrink-0 rounded-[1.5rem] text-5xl font-black shadow-2xl border-[3px] transition-transform duration-500 hover:scale-105 ${scoreGrade === 'A' ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 border-emerald-300/50 text-white shadow-emerald-500/30' : scoreGrade === 'B' ? 'bg-gradient-to-br from-indigo-400 to-indigo-600 border-indigo-300/50 text-white shadow-indigo-500/30' : scoreGrade === 'C' ? 'bg-gradient-to-br from-orange-400 to-orange-600 border-orange-300/50 text-white shadow-orange-500/30' : 'bg-gradient-to-br from-red-400 to-red-600 border-red-300/50 text-white shadow-red-500/30'}`}>
-                                    <span className="drop-shadow-md">{scoreGrade || 'A'}</span>
+                                <div className={`relative flex items-center justify-center w-20 h-20 shrink-0 rounded-[1.5rem] text-5xl font-black shadow-2xl border-[3px] transition-transform duration-500 hover:scale-105 ${gradeClass}`}>
+                                    <span className="drop-shadow-md">{scoreGrade || t('common.na')}</span>
                                     <div className="absolute inset-0 rounded-[1.5rem] bg-white/20 mix-blend-overlay"></div>
                                 </div>
                                 <div>
@@ -127,14 +200,14 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                             <span className={`text-lg ${loading ? 'opacity-50' : ''} text-slate-900 dark:text-white`}>
                                                 {loading ? '...' : activeIncidentsCount}
                                             </span>
-                                            Incidents Actifs
+                                            {t('dashboard.activeIncidents')}
                                         </span>
                                         <div className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600"></div>
                                         <span className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                                             <span className={`text-lg ${loading ? 'opacity-50' : ''} text-slate-900 dark:text-white`}>
                                                 {loading ? '...' : openAuditsCount}
                                             </span>
-                                            Audits en cours
+                                            {t('dashboard.openAudits')}
                                         </span>
                                     </div>
                                 </div>
@@ -212,10 +285,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         </div>
 
                         {/* Radar Chart Section */}
-                        <div className="relative group/chart">
+                        <div className="relative group/chart flex items-center justify-center">
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-100 transition-opacity duration-700"></div>
                             <div
-                                className="relative w-full max-w-[320px] h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-full border border-slate-200/50 dark:border-white/5 shadow-inner p-4"
+                                className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-full border border-slate-200/50 dark:border-white/5 shadow-inner p-4 flex items-center justify-center"
                                 onClick={() => navigate('/compliance')}
                             >
                                 <ResponsiveContainer width="100%" height="100%">
@@ -255,8 +328,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         />
                                     </RadarChart>
                                 </ResponsiveContainer>
-                                <div className="absolute bottom-6 w-full text-center">
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/50 dark:bg-black/20 backdrop-blur-md border border-slate-200/50 dark:border-white/10 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest shadow-sm">
+                                <div className="pointer-events-none absolute inset-x-0 bottom-8 flex justify-center">
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/70 dark:bg-black/30 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest shadow-sm whitespace-nowrap">
                                         {t('dashboard.isoMaturity')}
                                     </span>
                                 </div>

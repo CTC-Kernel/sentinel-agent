@@ -51,6 +51,28 @@ export const Audits: React.FC = () => {
     const canEdit = canEditResource(user, 'Audit');
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('audits_view_mode', 'grid');
 
+    const role = user?.role || 'user';
+
+    let auditsTitle = "Programme d'Audit";
+    let auditsSubtitle = "Planification, exécution et suivi des audits internes et externes.";
+
+    if (role === 'admin' || role === 'rssi') {
+        auditsTitle = "Programme d'Audit & Conformité";
+        auditsSubtitle = "Orchestrez les audits ISO 27001, le suivi des écarts et les plans d'actions associés.";
+    } else if (role === 'direction') {
+        auditsTitle = 'Vue Exécutive des Audits';
+        auditsSubtitle = "Suivez l'état des audits, les non-conformités et les risques associés pour la direction.";
+    } else if (role === 'auditor') {
+        auditsTitle = 'Mes Audits & Constats';
+        auditsSubtitle = "Préparez, exécutez et documentez vos missions d'audit et leurs constats.";
+    } else if (role === 'project_manager') {
+        auditsTitle = 'Audits liés aux Projets';
+        auditsSubtitle = "Identifiez les audits impactant vos projets et les actions à coordonner.";
+    } else {
+        auditsTitle = 'Audits & Conformité';
+        auditsSubtitle = "Consultez les audits planifiés et les écarts qui concernent votre périmètre.";
+    }
+
     // Data Fetching with Hooks
     const { data: rawAudits, loading: auditsLoading, refresh: refreshAudits } = useFirestoreCollection<Audit>(
         'audits',
@@ -875,8 +897,8 @@ export const Audits: React.FC = () => {
             />
 
             <PageHeader
-                title="Audits & Contrôles"
-                subtitle="Planification et suivi des audits de sécurité (ISO 27001 A.9.2)."
+                title={auditsTitle}
+                subtitle={auditsSubtitle}
                 breadcrumbs={[
                     { label: 'Audits' }
                 ]}
@@ -1020,8 +1042,8 @@ export const Audits: React.FC = () => {
                                 icon={Activity}
                                 title="Aucun audit planifié"
                                 description={filter ? "Aucun audit ne correspond à votre recherche." : "Planifiez des audits réguliers pour assurer la conformité continue."}
-                                actionLabel={filter ? undefined : "Planifier un audit"}
-                                onAction={filter ? undefined : () => openCreationDrawer()}
+                                actionLabel={filter || !hasPermission(user, 'Audit', 'create') ? undefined : "Planifier un audit"}
+                                onAction={filter || !hasPermission(user, 'Audit', 'create') ? undefined : () => openCreationDrawer()}
                             />
                         </div>
                     ) : (

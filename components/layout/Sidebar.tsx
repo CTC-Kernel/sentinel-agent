@@ -72,7 +72,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       case 'backup': return hasPermission(user, 'Settings', 'manage');
       case 'continuity': return hasPermission(user, 'Risk', 'read');
       case 'compliance': return hasPermission(user, 'Audit', 'read');
-      case 'suppliers': return hasPermission(user, 'Asset', 'read');
+      case 'suppliers': return hasPermission(user, 'Supplier', 'read');
       case 'privacy': return hasPermission(user, 'Document', 'read');
       case 'voxel': return false;
       default: return true;

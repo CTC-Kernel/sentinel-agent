@@ -17,7 +17,7 @@ interface IncidentDashboardProps {
 
 export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete }) => {
     const { user } = useStore();
-    const canEdit = user?.role === 'admin' || user?.role === 'auditor';
+    const canEdit = !!user && (hasPermission(user, 'Incident', 'update') || hasPermission(user, 'Incident', 'delete'));
     const [filter, setFilter] = useState('');
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('incidents_view_mode', 'grid');
 
@@ -273,8 +273,8 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 icon={Siren}
                                 title="Aucun incident signalé"
                                 description={filter ? "Aucun incident ne correspond à votre recherche." : "Tout est calme. Aucun incident de sécurité n'a été rapporté pour le moment."}
-                                actionLabel={filter ? undefined : "Déclarer un incident"}
-                                onAction={filter ? undefined : onCreate}
+                                actionLabel={filter || !hasPermission(user, 'Incident', 'create') ? undefined : "Déclarer un incident"}
+                                onAction={filter || !hasPermission(user, 'Incident', 'create') ? undefined : onCreate}
                             />
                         </div>
                     ) : (

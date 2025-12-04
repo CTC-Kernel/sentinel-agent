@@ -103,6 +103,28 @@ export const Assets: React.FC = () => {
 
     const canEdit = canEditResource(user, 'Asset');
 
+    const role = user?.role || 'user';
+
+    let assetsTitle = 'Inventaire des Actifs';
+    let assetsSubtitle = "Base de connaissance de l'infrastructure.";
+
+    if (role === 'admin' || role === 'rssi') {
+        assetsTitle = 'Cartographie des Actifs & Criticité';
+        assetsSubtitle = "Gérez l'inventaire des actifs, leurs propriétaires, criticités et dépendances métiers.";
+    } else if (role === 'direction') {
+        assetsTitle = 'Vue Stratégique des Actifs';
+        assetsSubtitle = "Comprenez vos actifs critiques, leur valeur et les unités métier associées.";
+    } else if (role === 'auditor') {
+        assetsTitle = 'Actifs à Auditer';
+        assetsSubtitle = "Accédez aux actifs et à leur contexte pour préparer vos missions d'audit.";
+    } else if (role === 'project_manager') {
+        assetsTitle = 'Actifs Impactés par les Projets';
+        assetsSubtitle = "Suivez les actifs concernés par vos projets et leurs dépendances.";
+    } else {
+        assetsTitle = 'Mes Actifs';
+        assetsSubtitle = "Consultez les actifs que vous utilisez ou dont vous êtes responsable.";
+    }
+
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const [creationMode, setCreationMode] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -537,8 +559,8 @@ export const Assets: React.FC = () => {
 
 
             <PageHeader
-                title="Inventaire des Actifs"
-                subtitle="Base de connaissance de l'infrastructure."
+                title={assetsTitle}
+                subtitle={assetsSubtitle}
                 breadcrumbs={[
                     { label: 'Actifs' }
                 ]}
@@ -636,8 +658,8 @@ export const Assets: React.FC = () => {
                                                 icon={Server}
                                                 title="Aucun actif trouvé"
                                                 description={activeFilters.query ? "Aucun actif ne correspond à votre recherche." : "Commencez par ajouter votre premier actif pour suivre votre parc."}
-                                                actionLabel={activeFilters.query ? undefined : "Nouvel Actif"}
-                                                onAction={activeFilters.query ? undefined : () => openInspector(undefined)}
+                                                actionLabel={activeFilters.query || !canEdit ? undefined : "Nouvel Actif"}
+                                                onAction={activeFilters.query || !canEdit ? undefined : () => openInspector(undefined)}
                                             />
                                         </td>
                                     </tr>
@@ -671,8 +693,8 @@ export const Assets: React.FC = () => {
                                 icon={Server}
                                 title="Aucun actif trouvé"
                                 description={activeFilters.query ? "Aucun actif ne correspond à votre recherche." : "Commencez par ajouter votre premier actif pour suivre votre parc."}
-                                actionLabel={activeFilters.query ? undefined : "Nouvel Actif"}
-                                onAction={activeFilters.query ? undefined : () => openInspector(undefined)}
+                                actionLabel={activeFilters.query || !canEdit ? undefined : "Nouvel Actif"}
+                                onAction={activeFilters.query || !canEdit ? undefined : () => openInspector(undefined)}
                             />
                         </div>
                     ) : (

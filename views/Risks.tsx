@@ -49,6 +49,28 @@ export const Risks: React.FC = () => {
     const { user, addToast, organization, demoMode } = useStore();
     const location = useLocation();
 
+    const role = user?.role || 'user';
+
+    let risksTitle = 'Gestion des Risques';
+    let risksSubtitle = "Analyse et traitement des risques selon ISO 27005.";
+
+    if (role === 'admin' || role === 'rssi') {
+        risksTitle = 'Registre des Risques & Exposition';
+        risksSubtitle = "Pilotez l'identification, l'évaluation et le traitement des risques critiques de l'organisation.";
+    } else if (role === 'direction') {
+        risksTitle = 'Vue Exécutive des Risques';
+        risksSubtitle = "Surveillez les risques majeurs, leur impact potentiel et l'avancement des plans de traitement.";
+    } else if (role === 'auditor') {
+        risksTitle = 'Risques Auditables';
+        risksSubtitle = "Analysez les risques, contrôles et preuves associés pour préparer vos missions d'audit.";
+    } else if (role === 'project_manager') {
+        risksTitle = 'Risques Projets';
+        risksSubtitle = "Suivez les risques impactant vos projets, jalons critiques et engagements.";
+    } else {
+        risksTitle = 'Mes Risques';
+        risksSubtitle = "Consultez les risques liés à vos actifs, activités ou responsabilités.";
+    }
+
     // Data Fetching with Hooks
     const { data: rawRisks, loading: risksLoading, refresh: refreshRisks, error: risksError } = useFirestoreCollection<Risk>(
         'risks',
@@ -832,8 +854,8 @@ export const Risks: React.FC = () => {
             />
 
             <PageHeader
-                title="Gestion des Risques"
-                subtitle="Analyse et traitement des risques selon ISO 27005."
+                title={risksTitle}
+                subtitle={risksSubtitle}
                 breadcrumbs={[
                     { label: 'Risques' }
                 ]}
@@ -1000,8 +1022,8 @@ export const Risks: React.FC = () => {
                                                 icon={ShieldAlert}
                                                 title="Aucun risque identifié"
                                                 description={filter ? "Aucun risque ne correspond à votre recherche." : "Identifiez et évaluez les risques pour protéger votre organisation."}
-                                                actionLabel={filter ? undefined : "Nouveau Risque"}
-                                                onAction={filter ? undefined : openCreationDrawer}
+                                                actionLabel={filter || !canEdit ? undefined : "Nouveau Risque"}
+                                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
                                             />
                                         </td>
                                     </tr>
@@ -1068,8 +1090,8 @@ export const Risks: React.FC = () => {
                                 icon={ShieldAlert}
                                 title="Aucun risque identifié"
                                 description={filter ? "Aucun risque ne correspond à votre recherche." : "Identifiez et évaluez les risques pour protéger votre organisation."}
-                                actionLabel={filter ? undefined : "Nouveau Risque"}
-                                onAction={filter ? undefined : openCreationDrawer}
+                                actionLabel={filter || !canEdit ? undefined : "Nouveau Risque"}
+                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
                             />
                         </div>
                     ) : filteredRisks.map(risk => {
