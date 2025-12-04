@@ -2855,3 +2855,28 @@ exports.fetchEvidence = onCall({
         throw new HttpsError('internal', 'Failed to fetch evidence: ' + error.message);
     }
 });
+/**
+ * Proxy function to fetch RSS feeds and avoid CORS issues.
+ */
+exports.fetchRssFeed = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { url } = request.data;
+    if (!url) {
+        throw new HttpsError('invalid-argument', 'URL is required.');
+    }
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch RSS feed: ${response.statusText}`);
+        }
+        const text = await response.text();
+        return { content: text };
+    } catch (error) {
+        logger.error('Error fetching RSS feed:', error);
+        throw new HttpsError('internal', 'Failed to fetch RSS feed: ' + error.message);
+    }
+});
