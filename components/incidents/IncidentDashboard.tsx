@@ -108,7 +108,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                             />
                         </svg>
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                            <span className="text-2xl font-black text-slate-900 dark:text-white">{resolutionRate}%</span>
+                            <span className="text-xl font-black text-slate-900 dark:text-white">{resolutionRate}%</span>
                         </div>
                     </div>
                     <div>
