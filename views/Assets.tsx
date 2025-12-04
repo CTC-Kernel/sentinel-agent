@@ -51,7 +51,7 @@ interface ShodanResult {
 }
 
 export const Assets: React.FC = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, demoMode } = useStore();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -407,7 +407,7 @@ export const Assets: React.FC = () => {
         try {
             // Use asset name or type as CPE query
             // Ideally we need a CPE field. Let's use name.
-            const vulns = await integrationService.checkVulnerabilities(selectedAsset.name);
+            const vulns = await integrationService.checkVulnerabilities(selectedAsset.name, demoMode);
             setVulnerabilities(vulns);
             if (vulns.length > 0) {
                 setInspectorTab('security');
