@@ -10,6 +10,7 @@ export const logAction = async (
   details?: string,
   explicitOrgId?: string // Allow explicit org ID for onboarding logs
 ) => {
+  // SECURITY: Prefer explicit orgId, then user.organizationId
   const orgId = explicitOrgId || user?.organizationId;
 
   if (!user || !orgId) return;
