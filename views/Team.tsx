@@ -396,7 +396,7 @@ export const Team: React.FC = () => {
                 {/* Global Score */}
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="relative">
-                        <svg className="w-24 h-24 transform -rotate-90">
+                        <svg className="w-24 h-24 transform -rotate-90" style={{ overflow: 'visible' }}>
                             <circle
                                 className="text-slate-100 dark:text-slate-800"
                                 strokeWidth="8"
