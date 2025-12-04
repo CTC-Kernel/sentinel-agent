@@ -126,7 +126,9 @@ service cloud.firestore {
         request.auth.token.email == resource.data.userEmail ||
         belongsToOrganization(resource.data.organizationId)
       );
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() && 
+        request.resource.data.userEmail == request.auth.token.email &&
+        (!('status' in request.resource.data) || request.resource.data.status == 'pending');
       allow update: if belongsToOrganization(resource.data.organizationId) && (isAdmin() || isOrgOwner(resource.data.organizationId));
       allow delete: if belongsToOrganization(resource.data.organizationId) && (isAdmin() || isOrgOwner(resource.data.organizationId));
     }
@@ -463,7 +465,7 @@ service cloud.firestore {
 
     // Feedback
     match /feedback/{feedbackId} {
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
       allow update: if false;
       allow delete: if isAdmin();

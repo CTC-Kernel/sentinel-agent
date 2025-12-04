@@ -1142,12 +1142,24 @@ exports.logEvent = onCall(async (request) => {
         throw new HttpsError('invalid-argument', 'Missing required log fields.');
     }
 
-    // Validate user belongs to the organization they are logging for
-    // (unless they are logging an onboarding event where they might not have the claim yet, 
-    // but typically we trust the client's orgId if it matches their profile or claim. 
-    // For strictness, we could check the DB, but for logs, checking auth is usually enough context).
+    // SECURITY HARDENING: Verify user belongs to the organization
+    // We trust the token claims which are signed by Firebase Auth
+    const tokenOrgId = request.auth.token.organizationId;
+    const isAdmin = request.auth.token.role === 'admin';
 
-    // We'll trust the authenticated user's ID.
+    // Allow if user's token matches orgId OR if user is admin (who might be acting on behalf of org)
+    // Note: For strict multi-tenant, even admins should only log for their own org, 
+    // but in some "super admin" scenarios (not yet fully implemented), cross-org might be valid. 
+    // For now, we enforce strict token matching for standard users.
+
+    // Exception: Onboarding. During onboarding, user might not have claims yet.
+    // In that case, we might relax this check if the action is related to onboarding, 
+    // OR we rely on the fact that `logAction` in frontend handles this gracefully.
+
+    if (tokenOrgId && tokenOrgId !== organizationId) {
+        logger.warn(`Security Alert: User ${request.auth.uid} attempted to log for org ${organizationId} but belongs to ${tokenOrgId}`);
+        throw new HttpsError('permission-denied', 'You can only log events for your own organization.');
+    }
 
     try {
         await admin.firestore().collection('system_logs').add({
@@ -1158,7 +1170,8 @@ exports.logEvent = onCall(async (request) => {
             resource,
             details: details || '',
             timestamp: new Date().toISOString(),
-            source: 'client_secure'
+            source: 'client_secure',
+            ip: request.rawRequest.ip // Add IP for better audit trail
         });
 
         return { success: true };
