@@ -6,6 +6,7 @@ import { ProjectFormData } from '../schemas/projectSchema';
 import { AuditFormData } from '../schemas/auditSchema';
 import { db } from '../firebase';
 import { toast } from 'sonner';
+import { analyticsService } from '../services/analyticsService';
 import { Control, Document, Risk, Finding, UserProfile, SystemLog, Asset, Supplier, Project, Audit, BusinessProcess, AutomatedEvidence } from '../types';
 import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet, RefreshCw, Loader2, CheckCircle2, XCircle, Plug } from '../components/ui/Icons';
 import { useStore } from '../store';
@@ -574,6 +575,10 @@ export const Compliance: React.FC = () => {
             refreshControls();
 
             await logAction(user, 'LINK', 'Compliance', `Preuve automatisée liée: ${provider.name}`);
+            analyticsService.logEvent('link_evidence', {
+                provider: provider.name,
+                control_id: selectedControl.id
+            });
             addToast("Preuve automatisée liée", "success");
             setSelectedProviderId('');
             setSelectedResourceId('');

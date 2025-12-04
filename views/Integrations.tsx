@@ -4,7 +4,10 @@ import { IntegrationCard } from '../components/integrations/IntegrationCard';
 import { Search, ShieldCheck, Cloud, Code, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useStore } from '../store';
+
 export const Integrations: React.FC = () => {
+    const { user } = useStore();
     const [providers, setProviders] = useState<IntegrationProvider[]>([]);
     const [loading, setLoading] = useState(true);
     const [connectingId, setConnectingId] = useState<string | null>(null);
@@ -28,10 +31,15 @@ export const Integrations: React.FC = () => {
     };
 
     const handleConnect = async (provider: IntegrationProvider) => {
+        if (!user?.organizationId) {
+            toast.error("Impossible de connecter : ID d'organisation manquant.");
+            return;
+        }
         setConnectingId(provider.id);
         try {
             // In a real app, this would open a modal for API Key input or OAuth flow
-            await integrationService.connectProvider(provider.id, { apiKey: 'mock-key' });
+            // For now, we simulate connecting with dummy credentials.
+            await integrationService.connectProvider(provider.id, { apiKey: 'mock-key' }, user.organizationId);
 
             // Optimistic update
             setProviders(prev => prev.map(p =>
