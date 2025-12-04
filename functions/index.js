@@ -994,11 +994,18 @@ async function attemptSendEmail(docRef, data) {
         const [response] = await sgMail.send(msg);
         logger.info("Message sent via SendGrid");
 
+        // Sanitize response for Firestore
+        const safeResponse = {
+            statusCode: response.statusCode,
+            headers: response.headers,
+            // body might be large or complex, keep it minimal
+        };
+
         // Update Firestore document status
         return docRef.update({
             status: "SENT",
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
-            deliveryInfo: response,
+            deliveryInfo: safeResponse,
         });
     } catch (error) {
         logger.error("Error sending email:", error);
@@ -1050,8 +1057,10 @@ exports.retryFailedEmails = onSchedule({
         .get();
 
     // Query 2: Recover previously failed emails (Auto-healing for 454 errors)
+    // Only retry if attempts are low to prevent infinite loops on permanent errors
     const errorQuery = admin.firestore().collection('mail_queue')
         .where('status', '==', 'ERROR')
+        .where('attempts', '<', 5) // Safety valve
         .limit(20)
         .get();
 
