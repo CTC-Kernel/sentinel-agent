@@ -77,49 +77,49 @@ export const Audits: React.FC = () => {
     const { data: rawAudits, loading: auditsLoading, refresh: refreshAudits } = useFirestoreCollection<Audit>(
         'audits',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: rawControls, loading: controlsLoading } = useFirestoreCollection<Control>(
         'controls',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: rawAssets, loading: assetsLoading } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: rawRisks, loading: risksLoading } = useFirestoreCollection<Risk>(
         'risks',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: documents, loading: docsLoading } = useFirestoreCollection<Document>(
         'documents',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: rawProjects, loading: projectsLoading } = useFirestoreCollection<Project>(
         'projects',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: allFindings, loading: findingsLoading } = useFirestoreCollection<Finding>(
         'findings',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     // Derived State
