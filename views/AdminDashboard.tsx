@@ -5,6 +5,7 @@ import { useStore } from '../store';
 import { ShieldAlert, Users, Building, Activity, Search } from 'lucide-react';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { ErrorLogger } from '../services/errorLogger';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 interface OrganizationSummary {
     id: string;
@@ -20,10 +21,32 @@ export const AdminDashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ totalOrgs: 0, totalUsers: 0 });
 
-    // Security Check (Frontend only - Backend rules must also enforce this)
-    // TODO: Move this to a secure backend check (Custom Claims)
-    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', '***REMOVED***'];
-    const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
+
+    useEffect(() => {
+        const checkSuperAdmin = async () => {
+            if (!user?.email) {
+                setCheckingAuth(false);
+                return;
+            }
+
+            try {
+                const functions = getFunctions();
+                const verifySuperAdmin = httpsCallable(functions, 'verifySuperAdmin');
+                const result = await verifySuperAdmin();
+                const data = result.data as { isSuperAdmin: boolean };
+                setIsSuperAdmin(data.isSuperAdmin);
+            } catch (error) {
+                console.error('Failed to verify super admin status', error);
+                setIsSuperAdmin(false);
+            } finally {
+                setCheckingAuth(false);
+            }
+        };
+
+        checkSuperAdmin();
+    }, [user]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -56,6 +79,8 @@ export const AdminDashboard: React.FC = () => {
 
         fetchData();
     }, [isSuperAdmin]);
+
+    if (checkingAuth) return <LoadingScreen />;
 
     if (!isSuperAdmin) {
         return (

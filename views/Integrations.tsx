@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { useStore } from '../store';
 
 export const Integrations: React.FC = () => {
-    const { user } = useStore();
+    const { user, demoMode } = useStore();
     const [providers, setProviders] = useState<IntegrationProvider[]>([]);
     const [loading, setLoading] = useState(true);
     const [connectingId, setConnectingId] = useState<string | null>(null);
@@ -39,7 +39,7 @@ export const Integrations: React.FC = () => {
         try {
             // In a real app, this would open a modal for API Key input or OAuth flow
             // For now, we simulate connecting with dummy credentials.
-            await integrationService.connectProvider(provider.id, { apiKey: 'mock-key' }, user.organizationId);
+            await integrationService.connectProvider(provider.id, { apiKey: 'mock-key' }, user.organizationId, demoMode);
 
             // Optimistic update
             setProviders(prev => prev.map(p =>
@@ -58,7 +58,7 @@ export const Integrations: React.FC = () => {
 
         setConnectingId(provider.id);
         try {
-            await integrationService.disconnectProvider(provider.id);
+            await integrationService.disconnectProvider(provider.id, demoMode);
 
             // Optimistic update
             setProviders(prev => prev.map(p =>
