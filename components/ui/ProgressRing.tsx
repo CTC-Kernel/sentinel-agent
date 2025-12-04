@@ -60,7 +60,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
             {/* Center label */}
             {showLabel && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                    <span className="text-xl font-bold text-slate-900 dark:text-white">
                         {Math.round(progress)}%
                     </span>
                     {label && (
