@@ -56,7 +56,13 @@ if (typeof window !== 'undefined') {
   }
 }
 
-export const auth = getAuth(app);
+import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
+import { Capacitor } from '@capacitor/core';
+
+// Use IndexedDB persistence for Capacitor (native), otherwise standard browser persistence
+export const auth = initializeAuth(app, {
+  persistence: Capacitor.isNativePlatform() ? indexedDBLocalPersistence : browserLocalPersistence
+});
 
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
 export const db = initializeFirestore(app, {

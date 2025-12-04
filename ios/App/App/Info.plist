@@ -53,5 +53,14 @@
 	<string>Sentinel GRC a besoin d'accéder à votre galerie pour enregistrer des images.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.728667422032-hkdf1pjhttvvnk3pj4tla1rsp9sk19mn</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
