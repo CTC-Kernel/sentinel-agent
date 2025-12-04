@@ -104,7 +104,7 @@ else
     echo "  firebase functions:config:set smtp.host=\"smtp.gmail.com\""
     echo "  firebase functions:config:set smtp.port=\"465\""
     echo "  firebase functions:config:set smtp.user=\"contact@cyber-threat-consulting.com\""
-    echo "  firebase functions:config:set smtp.pass=\"recw qbmo dwke twud\""
+    echo "  firebase functions:config:set smtp.pass=\"YOUR_APP_PASSWORD\""
 fi
 
 echo ""
