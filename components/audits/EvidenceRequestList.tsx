@@ -30,13 +30,13 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
     const { data: requests, refresh } = useFirestoreCollection<EvidenceRequest>(
         'evidence_requests',
         [where('auditId', '==', auditId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: documents } = useFirestoreCollection<Document>(
         'documents',
-        [where('organizationId', '==', organizationId)],
-        { logError: true }
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true }
     );
 
     const [formData, setFormData] = useState({
