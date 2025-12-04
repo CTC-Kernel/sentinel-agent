@@ -105,7 +105,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         shadow-[0_20px_60px_rgba(15,23,42,0.15)] lg:shadow-none
         transform transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1)
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        flex flex-col pb-8 pt-4 lg:pb-6 min-h-0 lg:h-screen
+        flex flex-col pb-8 pt-4 pt-safe pb-safe lg:pb-6 min-h-0 lg:h-screen
       `}>
         {/* Brand Logo */}
         <div className="h-16 flex items-center px-6 mb-4 border-b border-slate-200/60 dark:border-white/5">

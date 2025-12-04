@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-version.js && vite build",
+    "build": "node scripts/generate-version.js && node scripts/generate-sitemap.js && vite build",
     "lint": "eslint .",
     "test": "vitest",
     "test:ui": "vitest --ui",

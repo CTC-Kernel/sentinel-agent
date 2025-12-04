@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
 import { db } from '../firebase';
 import { collection, getDocs, query, where, doc, setDoc, limit, getCountFromServer, getDoc, orderBy } from 'firebase/firestore';
 import { Risk, Control, Audit, Project, DailyStat, Document, Asset, SystemLog, Supplier, Incident } from '../types';
@@ -364,9 +364,10 @@ export const Dashboard: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            <Helmet>
-                <title>Dashboard | Sentinel GRC</title>
-            </Helmet>
+            <SEO
+                title="Tableau de bord"
+                description="Vue d'ensemble de votre conformité et de vos risques."
+            />
 
             <DashboardHeader
                 user={user}
