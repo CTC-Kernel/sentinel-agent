@@ -49,7 +49,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                             {label && (
                                 <Listbox.Label className={`
                             absolute left-4 transition-all duration-200 pointer-events-none z-10
-                            ${(open || (Array.isArray(value) ? value.length > 0 : value))
+                            ${(open || selectedOptions.length > 0)
                                         ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded text-brand-600'
                                         : 'top-3.5 text-sm font-medium text-slate-500'
                                     }

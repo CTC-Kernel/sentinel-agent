@@ -22,7 +22,8 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
 }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [hasContent, setHasContent] = useState(false);
-    const hasValue = (value !== undefined && value !== '') || hasContent;
+    const isOptionSelected = options.some(opt => opt.value === value);
+    const hasValue = (value !== undefined && value !== '' && value !== null) || hasContent || isOptionSelected;
 
     const handleFocus = (e: React.FocusEvent<HTMLSelectElement>) => {
         setIsFocused(true);
