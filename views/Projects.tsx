@@ -89,6 +89,28 @@ export const Projects: React.FC = () => {
 
     const loading = loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers;
 
+    const role = user?.role || 'user';
+
+    let projectsTitle = 'Projets SSI';
+    let projectsSubtitle = "Pilotage des plans d'actions et mise en conformité.";
+
+    if (role === 'admin' || role === 'rssi') {
+        projectsTitle = 'Projets SSI & Chantiers de Conformité';
+        projectsSubtitle = "Planifiez et suivez les projets de sécurité, de remédiation et de mise en conformité ISO 27001.";
+    } else if (role === 'direction') {
+        projectsTitle = 'Portefeuille de Projets SSI';
+        projectsSubtitle = "Visualisez les chantiers clés, leur avancement et les risques de dérive.";
+    } else if (role === 'auditor') {
+        projectsTitle = 'Projets liés aux Audits';
+        projectsSubtitle = "Identifiez les projets issus des plans d'actions d'audit et suivez leur exécution.";
+    } else if (role === 'project_manager') {
+        projectsTitle = 'Mes Projets SSI';
+        projectsSubtitle = "Pilotez vos projets de sécurité, jalons, tâches et risques associés.";
+    } else {
+        projectsTitle = 'Projets & Actions';
+        projectsSubtitle = "Consultez les projets en cours et votre contribution aux plans d'actions.";
+    }
+
     const [creationMode, setCreationMode] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
@@ -620,8 +642,8 @@ export const Projects: React.FC = () => {
             />
 
             <PageHeader
-                title="Projets SSI"
-                subtitle="Pilotage des plans d'actions et mise en conformité."
+                title={projectsTitle}
+                subtitle={projectsSubtitle}
                 breadcrumbs={[
                     { label: 'Projets' }
                 ]}
@@ -784,8 +806,8 @@ export const Projects: React.FC = () => {
                                                 icon={FolderKanban}
                                                 title="Aucun projet en cours"
                                                 description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
-                                                actionLabel={filter ? undefined : "Créer un projet"}
-                                                onAction={filter ? undefined : openCreationDrawer}
+                                                actionLabel={filter || !canEdit ? undefined : "Créer un projet"}
+                                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
                                             />
                                         </td>
                                     </tr>
@@ -852,8 +874,8 @@ export const Projects: React.FC = () => {
                                 icon={FolderKanban}
                                 title="Aucun projet en cours"
                                 description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
-                                actionLabel={filter ? undefined : "Créer un projet"}
-                                onAction={filter ? undefined : openCreationDrawer}
+                                actionLabel={filter || !canEdit ? undefined : "Créer un projet"}
+                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
                             />
                         </div>
                     ) : (

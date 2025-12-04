@@ -151,6 +151,14 @@ export const Dashboard: React.FC = () => {
         };
     }, [controls, allAssets, allRisks, openAuditsCount, activeIncidentsCount]);
 
+    const scoreGrade = React.useMemo(() => {
+        if (!Number.isFinite(complianceScore) || complianceScore < 0) return undefined;
+        if (complianceScore >= 85) return 'A';
+        if (complianceScore >= 70) return 'B';
+        if (complianceScore >= 50) return 'C';
+        return 'D';
+    }, [complianceScore]);
+
     // Personalized Risks
     const myRisksList = React.useMemo(() => {
         if (!user) return [];
@@ -363,6 +371,8 @@ export const Dashboard: React.FC = () => {
             <DashboardHeader
                 user={user}
                 organizationName={organizationName}
+                scoreGrade={scoreGrade}
+                radarData={radarData}
                 teamSize={teamSize}
                 activeIncidentsCount={activeIncidentsCount}
                 openAuditsCount={openAuditsCount}
