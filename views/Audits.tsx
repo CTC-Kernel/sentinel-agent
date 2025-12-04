@@ -43,6 +43,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AuditFormData, findingSchema, FindingFormData, auditSchema } from '../schemas/auditSchema';
 import { z } from 'zod';
 import { aiService } from '../services/aiService';
+import { analyticsService } from '../services/analyticsService';
 import { usePersistedState } from '../hooks/usePersistedState';
 
 export const Audits: React.FC = () => {
@@ -262,6 +263,10 @@ export const Audits: React.FC = () => {
                     createdBy: user.uid // Track creator for Segregation of Duties
                 });
                 await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${validatedData.name}`);
+                analyticsService.logEvent('create_audit', {
+                    audit_type: validatedData.type,
+                    auditor: validatedData.auditor
+                });
 
                 // Send notification
                 if (validatedData.auditor) {

@@ -38,6 +38,7 @@ import { ErrorLogger } from '../services/errorLogger';
 import { hybridService } from '../services/hybridService';
 import { aiService } from '../services/aiService';
 import { integrationService } from '../services/integrationService';
+import { analyticsService } from '../services/analyticsService';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useLocation } from 'react-router-dom';
@@ -419,6 +420,11 @@ export const Risks: React.FC = () => {
             });
 
             await logAction(user, 'UPDATE', 'Risk', `Mise à jour risque: ${riskData.threat}`);
+            analyticsService.logEvent('assess_risk', {
+                risk_id: selectedRisk.id,
+                score: score,
+                strategy: riskData.strategy
+            });
             addToast("Risque mis à jour", "success");
             const updatedRisk: Risk = { ...selectedRisk, ...riskData, score, residualProbability, residualImpact, residualScore, history: updatedHistory } as Risk;
             if (hasSignificantChange && newLastReviewDate) {

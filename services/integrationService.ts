@@ -84,11 +84,10 @@ class IntegrationService {
         }
     }
 
-    async disconnectProvider(providerId: string): Promise<boolean> {
-        console.log(`Disconnecting ${providerId}`);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return true;
+    async disconnectProvider(providerId: string): Promise<void> {
+        void providerId;
+        // Mock disconnect
+        await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     async fetchEvidence(providerId: string, resourceId: string, organizationId: string): Promise<{ status: string, details: string, lastSync: string }> {
@@ -97,21 +96,31 @@ class IntegrationService {
             const result = await fetchEvidenceFn({ providerId, resourceId, organizationId });
             return result.data as any;
         } catch (error) {
-            console.error('Failed to fetch evidence', error);
             throw error;
         }
     }
 
     async syncProvider(providerId: string): Promise<void> {
-        console.log(`Syncing ${providerId}`);
-        // Legacy method, kept for compatibility if needed, but fetchEvidence is preferred.
+        void providerId;
+        // Deprecated in favor of fetchEvidence, but kept for compatibility
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     async searchEurLex(query: string): Promise<string> {
-        console.log(`Searching EUR-Lex for: ${query}`);
+        void query;
         // Mock response
         await new Promise(resolve => setTimeout(resolve, 1000));
         return `https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679&qid=${Date.now()}`;
+    }
+
+    async getCommonMitreTechniques(query: string): Promise<any[]> {
+        void query;
+        // Mock response
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return [
+            { id: 'T1566', name: 'Phishing', url: 'https://attack.mitre.org/techniques/T1566/' },
+            { id: 'T1190', name: 'Exploit Public-Facing Application', url: 'https://attack.mitre.org/techniques/T1190/' }
+        ];
     }
 }
 

@@ -9,6 +9,7 @@ import { getInvitationTemplate } from '../services/emailTemplates';
 import { PLANS } from '../config/plans';
 import { PlanType, UserProfile } from '../types';
 import { SubscriptionService } from '../services/subscriptionService';
+import { analyticsService } from '../services/analyticsService';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ErrorLogger } from '../services/errorLogger';
@@ -350,6 +351,11 @@ export const Onboarding: React.FC = () => {
 
             // Update local user state to unlock app access immediately for free plan
             setUser({ ...user, onboardingCompleted: true });
+
+            analyticsService.logEvent('complete_onboarding', {
+                plan: selectedPlan,
+                organization_id: user.organizationId
+            });
 
             if (selectedPlan === 'discovery') {
                 // Free plan: Direct access
