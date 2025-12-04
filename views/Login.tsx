@@ -198,17 +198,30 @@ export const Login: React.FC = () => {
                                 setLoading(true);
                                 setErrorMsg(null);
                                 try {
-                                    const { OAuthProvider, signInWithPopup } = await import('firebase/auth');
-                                    const provider = new OAuthProvider('apple.com');
-                                    provider.addScope('email');
-                                    provider.addScope('name');
-                                    await signInWithPopup(auth, provider);
-                                } catch (error: unknown) {
-                                    const code = (error as { code?: string })?.code;
+                                    const { Capacitor } = await import('@capacitor/core');
+                                    if (Capacitor.isNativePlatform()) {
+                                        const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+                                        const result = await FirebaseAuthentication.signInWithApple();
+                                        if (result.user) {
+                                            // Sign in successful
+                                            addToast("Connexion réussie", "success");
+                                            // Force reload to ensure auth state sync
+                                            window.location.href = '/';
+                                        }
+                                    } else {
+                                        const { OAuthProvider, signInWithPopup } = await import('firebase/auth');
+                                        const provider = new OAuthProvider('apple.com');
+                                        provider.addScope('email');
+                                        provider.addScope('name');
+                                        await signInWithPopup(auth, provider);
+                                    }
+                                } catch (error: any) {
+                                    console.error("Apple Sign In Error:", error);
+                                    const code = error.code || error.message;
                                     if (code === 'auth/operation-not-allowed') {
                                         setErrorMsg("Apple Sign In non activé dans la console Firebase.");
                                     } else {
-                                        setErrorMsg("Erreur Apple Sign In.");
+                                        setErrorMsg("Erreur Apple Sign In: " + (error.message || "Inconnue"));
                                     }
                                 } finally { setLoading(false); }
                             }}
