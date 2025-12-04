@@ -360,8 +360,6 @@ export const Dashboard: React.FC = () => {
                 <title>Dashboard | Sentinel GRC</title>
             </Helmet>
 
-            {showGettingStarted && <GettingStartedWidget onClose={() => setShowGettingStarted(false)} />}
-
             <DashboardHeader
                 user={user}
                 organizationName={organizationName}
@@ -377,6 +375,8 @@ export const Dashboard: React.FC = () => {
                 generateICal={generateICal}
                 generateExecutiveReport={generateExecutiveReport}
             />
+
+            {showGettingStarted && <GettingStartedWidget onClose={() => setShowGettingStarted(false)} />}
 
             <QuickActions navigate={navigate} t={t} stats={stats} />
 
