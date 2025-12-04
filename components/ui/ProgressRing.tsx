@@ -27,7 +27,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
 
     return (
         <div className={`relative inline-flex items-center justify-center ${className}`}>
-            <svg width={size} height={size} className="transform -rotate-90">
+            <svg width={size} height={size} className="transform -rotate-90 overflow-visible">
                 {/* Background circle */}
                 <circle
                     cx={size / 2}
