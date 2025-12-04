@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useStore } from '../store';
 import { Check, ChevronRight, Shield, Zap, Building2, HelpCircle, Info, ChevronDown } from 'lucide-react';
 import { SubscriptionService } from '../services/subscriptionService';
@@ -169,23 +170,31 @@ const Pricing = () => {
                   ))}
                 </div>
 
-                <button
-                  onClick={() => handleSubscribe(id)}
-                  disabled={loading !== null}
-                  className={`w-full py-4 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${popular
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5'
-                    : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 hover:shadow-lg hover:-translate-y-0.5'
-                    } ${loading === id ? 'opacity-75 cursor-wait' : ''}`}
-                >
-                  {loading === id ? (
-                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      {price === 0 ? 'Commencer gratuitement' : 'Choisir ce plan'}
-                      <ChevronRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
+                {Capacitor.isNativePlatform() ? (
+                  <div className="w-full py-4 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-center">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      La gestion des abonnements est disponible uniquement sur la version web de Sentinel GRC.
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleSubscribe(id)}
+                    disabled={loading !== null}
+                    className={`w-full py-4 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${popular
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5'
+                      : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 hover:shadow-lg hover:-translate-y-0.5'
+                      } ${loading === id ? 'opacity-75 cursor-wait' : ''}`}
+                  >
+                    {loading === id ? (
+                      <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        {price === 0 ? 'Commencer gratuitement' : 'Choisir ce plan'}
+                        <ChevronRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from './components/SEO';
 import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { AuthGuard } from './components/auth/AuthGuard';
@@ -150,7 +150,7 @@ const AppLayout: React.FC = () => {
     }, [user, user?.organizationId]);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-950 text-[#1d1d1f] dark:text-[#f5f5f7] font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300">
+        <div className="flex h-screen overflow-hidden bg-[#fafafa] dark:bg-slate-950 text-[#1d1d1f] dark:text-[#f5f5f7] font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300 pb-safe">
             <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
                 <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-200/30 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float"></div>
                 <div className="absolute top-[20%] right-[-10%] w-[50rem] h-[50rem] bg-purple-200/30 dark:bg-purple-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{ animationDelay: '2s' }}></div>
@@ -162,11 +162,10 @@ const AppLayout: React.FC = () => {
             </div>
 
             <Toaster richColors position="bottom-right" theme={theme === 'dark' ? 'dark' : 'light'} />
-            <Helmet>
-                <title>Sentinel GRC - Gouvernance, Risques et Conformité</title>
-                <meta name="description" content="Plateforme de gouvernance, risques et conformité (GRC) pour piloter votre cybersécurité." />
-                <meta name="theme-color" content={theme === 'dark' ? '#0f172a' : '#fafafa'} />
-            </Helmet>
+            <SEO
+                title="Tableau de bord"
+                description="Plateforme de gouvernance, risques et conformité (GRC) pour piloter votre cybersécurité."
+            />
             <CommandPalette />
             <GeminiAssistant />
 
