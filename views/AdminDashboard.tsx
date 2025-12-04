@@ -21,8 +21,9 @@ export const AdminDashboard: React.FC = () => {
     const [stats, setStats] = useState({ totalOrgs: 0, totalUsers: 0 });
 
     // Security Check (Frontend only - Backend rules must also enforce this)
-    // TODO: Replace with robust Super Admin check (e.g. custom claim or specific email list)
-    const isSuperAdmin = user?.email === 'thibault.llopis@gmail.com' || user?.role === 'admin';
+    // TODO: Move this to a secure backend check (Custom Claims)
+    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', '***REMOVED***'];
+    const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -145,8 +146,8 @@ export const AdminDashboard: React.FC = () => {
                                     <td className="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">{org.name}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700' :
-                                                org.planId === 'professional' ? 'bg-blue-100 text-blue-700' :
-                                                    'bg-slate-100 text-slate-700'
+                                            org.planId === 'professional' ? 'bg-blue-100 text-blue-700' :
+                                                'bg-slate-100 text-slate-700'
                                             }`}>
                                             {org.planId || 'discovery'}
                                         </span>
