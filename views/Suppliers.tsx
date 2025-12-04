@@ -88,13 +88,13 @@ export const Suppliers: React.FC = () => {
     const { data: suppliersRaw, loading: loadingSuppliers } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: usersRaw } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const selectedOwnerId = editForm.watch('ownerId');
@@ -109,37 +109,37 @@ export const Suppliers: React.FC = () => {
     const { data: documentsRaw } = useFirestoreCollection<Document>(
         'documents',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: incidentsRaw } = useFirestoreCollection<SupplierIncident>(
         'supplierIncidents',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: processesRaw, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: assetsRaw } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: risksRaw } = useFirestoreCollection<Risk>(
         'risks',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: projectsRaw } = useFirestoreCollection<Project>(
         'projects',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     // Derived State

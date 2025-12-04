@@ -39,37 +39,37 @@ export const Documents: React.FC = () => {
     const { data: rawDocuments, loading: loadingDocuments } = useFirestoreCollection<Document>(
         'documents',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>(
         'controls',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: rawAudits, loading: loadingAudits } = useFirestoreCollection<Audit>(
         'audits',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: rawFolders, loading: loadingFolders } = useFirestoreCollection<DocumentFolder>(
         'document_folders',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     // Derived State
