@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Timeline } from 'vis-timeline/standalone';
 import { DataSet } from 'vis-data';
 import 'vis-timeline/styles/vis-timeline-graph2d.css';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { where } from 'firebase/firestore';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { Risk, Project, Audit, Document, Incident } from '../../types';
 import {
     Download,
@@ -34,8 +34,6 @@ export const InteractiveTimeline: React.FC = () => {
     const timelineRef = useRef<HTMLDivElement>(null);
     const timelineInstance = useRef<Timeline | null>(null);
 
-    const [loading, setLoading] = useState(true);
-    const [events, setEvents] = useState<TimelineEvent[]>([]);
     const [filters, setFilters] = useState({
         incidents: true,
         audits: true,
@@ -45,125 +43,116 @@ export const InteractiveTimeline: React.FC = () => {
     });
     const [zoomLevel, setZoomLevel] = useState<'day' | 'week' | 'month' | 'year'>('month');
 
-    // Fetch all events
-    useEffect(() => {
-        if (!user?.organizationId) return;
+    // Real-time Data Fetching
+    const { data: incidents, loading: incidentsLoading } = useFirestoreCollection<Incident>(
+        'incidents',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true, enabled: !!user?.organizationId }
+    );
 
-        const fetchEvents = async () => {
-            setLoading(true);
-            const orgId = user.organizationId;
-            const allEvents: TimelineEvent[] = [];
+    const { data: audits, loading: auditsLoading } = useFirestoreCollection<Audit>(
+        'audits',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true, enabled: !!user?.organizationId }
+    );
 
-            try {
-                // Fetch Incidents
-                const incidentsSnap = await getDocs(
-                    query(collection(db, 'incidents'), where('organizationId', '==', orgId))
-                );
-                incidentsSnap.forEach(doc => {
-                    const data = doc.data() as Incident;
-                    if (data.dateReported) {
-                        allEvents.push({
-                            id: `incident-${doc.id}`,
-                            content: `🚨 ${data.title}`,
-                            start: new Date(data.dateReported),
-                            type: 'incident',
-                            className: 'timeline-incident',
-                            title: `Incident: ${data.title} (${data.severity})`,
-                            metadata: { ...data, docId: doc.id }
-                        });
-                    }
+    const { data: projects, loading: projectsLoading } = useFirestoreCollection<Project>(
+        'projects',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true, enabled: !!user?.organizationId }
+    );
+
+    const { data: risks, loading: risksLoading } = useFirestoreCollection<Risk>(
+        'risks',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true, enabled: !!user?.organizationId }
+    );
+
+    const { data: documents, loading: docsLoading } = useFirestoreCollection<Document>(
+        'documents',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true, enabled: !!user?.organizationId }
+    );
+
+    const loading = incidentsLoading || auditsLoading || projectsLoading || risksLoading || docsLoading;
+
+    // Transform data into timeline events
+    const events = useMemo(() => {
+        const allEvents: TimelineEvent[] = [];
+
+        incidents.forEach(data => {
+            if (data.dateReported) {
+                allEvents.push({
+                    id: `incident-${data.id}`,
+                    content: `🚨 ${data.title}`,
+                    start: new Date(data.dateReported),
+                    type: 'incident',
+                    className: 'timeline-incident',
+                    title: `Incident: ${data.title} (${data.severity})`,
+                    metadata: { ...data, docId: data.id }
                 });
-
-                // Fetch Audits
-                const auditsSnap = await getDocs(
-                    query(collection(db, 'audits'), where('organizationId', '==', orgId))
-                );
-                auditsSnap.forEach(doc => {
-                    const data = doc.data() as Audit;
-                    if (data.dateScheduled) {
-                        allEvents.push({
-                            id: `audit-${doc.id}`,
-                            content: `📋 ${data.name}`,
-                            start: new Date(data.dateScheduled),
-                            type: 'audit',
-                            className: 'timeline-audit',
-                            title: `Audit: ${data.name} (${data.type})`,
-                            metadata: { ...data, docId: doc.id }
-                        });
-                    }
-                });
-
-                // Fetch Projects
-                const projectsSnap = await getDocs(
-                    query(collection(db, 'projects'), where('organizationId', '==', orgId))
-                );
-                projectsSnap.forEach(doc => {
-                    const data = doc.data() as Project;
-                    const startDate = data.startDate;
-                    const endDate = data.dueDate;
-
-                    if (startDate) {
-                        allEvents.push({
-                            id: `project-${doc.id}`,
-                            content: `📁 ${data.name}`,
-                            start: new Date(startDate),
-                            end: endDate ? new Date(endDate) : undefined,
-                            type: 'project',
-                            className: 'timeline-project',
-                            title: `Projet: ${data.name} (${data.status})`,
-                            metadata: { ...data, docId: doc.id }
-                        });
-                    }
-                });
-
-                // Fetch Risks
-                const risksSnap = await getDocs(
-                    query(collection(db, 'risks'), where('organizationId', '==', orgId))
-                );
-                risksSnap.forEach(doc => {
-                    const data = doc.data() as Risk;
-                    if (data.createdAt) {
-                        allEvents.push({
-                            id: `risk-${doc.id}`,
-                            content: `⚠️ ${data.threat}`,
-                            start: new Date(data.createdAt),
-                            type: 'risk',
-                            className: 'timeline-risk',
-                            title: `Risque: ${data.threat} (Score: ${data.score})`,
-                            metadata: { ...data, docId: doc.id }
-                        });
-                    }
-                });
-
-                // Fetch Documents
-                const docsSnap = await getDocs(
-                    query(collection(db, 'documents'), where('organizationId', '==', orgId))
-                );
-                docsSnap.forEach(doc => {
-                    const data = doc.data() as Document;
-                    if (data.createdAt) {
-                        allEvents.push({
-                            id: `document-${doc.id}`,
-                            content: `📄 ${data.title}`,
-                            start: new Date(data.createdAt),
-                            type: 'document',
-                            className: 'timeline-document',
-                            title: `Document: ${data.title} (v${data.version})`,
-                            metadata: { ...data, docId: doc.id }
-                        });
-                    }
-                });
-
-                setEvents(allEvents);
-            } catch (error) {
-                ErrorLogger.error(error, 'InteractiveTimeline.fetchEvents');
-            } finally {
-                setLoading(false);
             }
-        };
+        });
 
-        fetchEvents();
-    }, [user]);
+        audits.forEach(data => {
+            if (data.dateScheduled) {
+                allEvents.push({
+                    id: `audit-${data.id}`,
+                    content: `📋 ${data.name}`,
+                    start: new Date(data.dateScheduled),
+                    type: 'audit',
+                    className: 'timeline-audit',
+                    title: `Audit: ${data.name} (${data.type})`,
+                    metadata: { ...data, docId: data.id }
+                });
+            }
+        });
+
+        projects.forEach(data => {
+            if (data.startDate) {
+                allEvents.push({
+                    id: `project-${data.id}`,
+                    content: `📁 ${data.name}`,
+                    start: new Date(data.startDate),
+                    end: data.dueDate ? new Date(data.dueDate) : undefined,
+                    type: 'project',
+                    className: 'timeline-project',
+                    title: `Projet: ${data.name} (${data.status})`,
+                    metadata: { ...data, docId: data.id }
+                });
+            }
+        });
+
+        risks.forEach(data => {
+            if (data.createdAt) {
+                allEvents.push({
+                    id: `risk-${data.id}`,
+                    content: `⚠️ ${data.threat}`,
+                    start: new Date(data.createdAt),
+                    type: 'risk',
+                    className: 'timeline-risk',
+                    title: `Risque: ${data.threat} (Score: ${data.score})`,
+                    metadata: { ...data, docId: data.id }
+                });
+            }
+        });
+
+        documents.forEach(data => {
+            if (data.createdAt) {
+                allEvents.push({
+                    id: `document-${data.id}`,
+                    content: `📄 ${data.title}`,
+                    start: new Date(data.createdAt),
+                    type: 'document',
+                    className: 'timeline-document',
+                    title: `Document: ${data.title} (v${data.version})`,
+                    metadata: { ...data, docId: data.id }
+                });
+            }
+        });
+
+        return allEvents;
+    }, [incidents, audits, projects, risks, documents]);
 
     // Filter events based on selected filters
     const filteredEvents = useMemo(() => {
