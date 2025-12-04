@@ -1,7 +1,8 @@
 
 
-import { functions } from '../firebase';
+import { functions, db } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
+import { collection, doc, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
 
 export interface IntegrationProvider {
     id: string;
@@ -83,16 +84,63 @@ const MOCK_PROVIDERS: IntegrationProvider[] = [
 ];
 
 class IntegrationService {
-    async getProviders(): Promise<IntegrationProvider[]> {
-        // In a real app, we might fetch enabled providers from backend or config
-        // For now, we return the static list.
-        return MOCK_PROVIDERS;
+    async getProviders(organizationId?: string): Promise<IntegrationProvider[]> {
+        if (!organizationId) {
+            return MOCK_PROVIDERS;
+        }
+
+        try {
+            // Fetch real connections from Firestore
+            const integrationsRef = collection(db, 'organizations', organizationId, 'integrations');
+            const snapshot = await getDocs(integrationsRef);
+
+            const connectedIntegrations = new Map<string, any>();
+            snapshot.forEach(doc => {
+                connectedIntegrations.set(doc.id, doc.data());
+            });
+
+            // Merge with static list
+            return MOCK_PROVIDERS.map(provider => {
+                const connection = connectedIntegrations.get(provider.id);
+                if (connection) {
+                    return {
+                        ...provider,
+                        status: connection.status === 'active' ? 'connected' : 'error',
+                        lastSync: connection.lastSync ? new Date(connection.lastSync) : undefined
+                    };
+                }
+                return provider;
+            });
+        } catch (error) {
+            console.error('Error fetching integrations:', error);
+            return MOCK_PROVIDERS;
+        }
     }
 
     async connectProvider(providerId: string, config: any, organizationId: string, isDemoMode: boolean = false): Promise<boolean> {
+        if (isDemoMode) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return true;
+        }
+
         try {
-            const connectIntegration = httpsCallable(functions, 'connectIntegration');
-            await connectIntegration({ providerId, credentials: config, organizationId, isDemoMode });
+            // 1. Call Cloud Function for actual connection/validation (if needed)
+            // const connectIntegration = httpsCallable(functions, 'connectIntegration');
+            // await connectIntegration({ providerId, credentials: config, organizationId });
+
+            // 2. Persist status to Firestore
+            const integrationRef = doc(db, 'organizations', organizationId, 'integrations', providerId);
+            await setDoc(integrationRef, {
+                id: providerId,
+                providerId,
+                organizationId,
+                config: { ...config, apiKey: '***' }, // Don't store actual secrets in plain text if possible
+                status: 'active',
+                connectedAt: new Date().toISOString(),
+                lastSync: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            });
+
             return true;
         } catch (error) {
             console.error('Failed to connect provider', error);
@@ -100,14 +148,24 @@ class IntegrationService {
         }
     }
 
-    async disconnectProvider(_providerId: string, isDemoMode: boolean = false): Promise<void> {
+    async disconnectProvider(providerId: string, organizationId?: string, isDemoMode: boolean = false): Promise<void> {
         if (isDemoMode) {
-            // Mock disconnect
             await new Promise(resolve => setTimeout(resolve, 500));
             return;
         }
-        // Real implementation would go here
-        throw new Error('Disconnect not implemented for production yet.');
+
+        if (!organizationId) {
+            throw new Error('Organization ID is required to disconnect.');
+        }
+
+        try {
+            // Delete from Firestore
+            const integrationRef = doc(db, 'organizations', organizationId, 'integrations', providerId);
+            await deleteDoc(integrationRef);
+        } catch (error) {
+            console.error('Failed to disconnect provider', error);
+            throw error;
+        }
     }
 
     async fetchEvidence(providerId: string, resourceId: string, organizationId: string, isDemoMode: boolean = false): Promise<{ status: string, details: string, lastSync: string }> {
