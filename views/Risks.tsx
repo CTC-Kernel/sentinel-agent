@@ -46,7 +46,7 @@ import { useLocation } from 'react-router-dom';
 
 
 export const Risks: React.FC = () => {
-    const { user, addToast, organization } = useStore();
+    const { user, addToast, organization, demoMode } = useStore();
     const location = useLocation();
 
     // Data Fetching with Hooks
@@ -1655,12 +1655,12 @@ export const Risks: React.FC = () => {
                                                             className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-brand-500 outline-none"
                                                             value={mitreQuery}
                                                             onChange={(e) => setMitreQuery(e.target.value)}
-                                                            onKeyDown={(e) => e.key === 'Enter' && integrationService.getCommonMitreTechniques(mitreQuery).then(setMitreResults)}
+                                                            onKeyDown={(e) => e.key === 'Enter' && integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults)}
                                                         />
                                                         <Search className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
                                                     </div>
                                                     <button
-                                                        onClick={() => integrationService.getCommonMitreTechniques(mitreQuery).then(setMitreResults)}
+                                                        onClick={() => integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults)}
                                                         className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl hover:opacity-90 transition-opacity"
                                                     >
                                                         Rechercher

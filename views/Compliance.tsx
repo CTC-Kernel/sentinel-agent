@@ -45,7 +45,7 @@ import { Globe } from '../components/ui/Icons';
 import { canEditResource, hasPermission } from '../utils/permissions';
 
 export const Compliance: React.FC = () => {
-    const { user, addToast, organization } = useStore();
+    const { user, addToast, organization, demoMode } = useStore();
 
     const canEdit = canEditResource(user, 'Control');
 
@@ -619,7 +619,7 @@ export const Compliance: React.FC = () => {
         if (!selectedControl || !user?.organizationId) return;
         const toastId = toast.loading("Synchronisation...");
         try {
-            const result = await integrationService.fetchEvidence(evidence.providerId, evidence.resourceId, user.organizationId);
+            const result = await integrationService.fetchEvidence(evidence.providerId, evidence.resourceId, user.organizationId, demoMode);
 
             const updatedEvidenceItem = {
                 ...evidence,
@@ -648,7 +648,7 @@ export const Compliance: React.FC = () => {
         if (!eurLexQuery) return;
         const toastId = toast.loading("Recherche EUR-Lex en cours...");
         try {
-            const result = await integrationService.searchEurLex(eurLexQuery);
+            const result = await integrationService.searchEurLex(eurLexQuery, demoMode);
             setEurLexResult(result);
             toast.dismiss(toastId);
         } catch (error) {

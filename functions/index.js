@@ -329,6 +329,26 @@ exports.healMe = onCall(async (request) => {
 // });
 
 /**
+ * Verifies if the current user is a Super Admin.
+ * This is a secure backend check that validates the user's email against a hardcoded allowlist.
+ * In a future iteration, this should be replaced by a custom claim 'superAdmin'.
+ */
+exports.verifySuperAdmin = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const email = request.auth.token.email;
+    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', 'contact@cyber-threat-consulting.com'];
+
+    if (email && SUPER_ADMIN_EMAILS.includes(email)) {
+        return { isSuperAdmin: true };
+    }
+
+    return { isSuperAdmin: false };
+});
+
+/**
  * Securely create a new organization and assign the creator as Admin.
  */
 exports.createOrganization = onCall(async (request) => {
@@ -2528,21 +2548,28 @@ exports.fetchEvidence = onCall({
         // In a real app, we would decrypt and use these credentials
         // const credentials = JSON.parse(decryptData(data.encryptedCredentials, userSecretsKey.value()));
 
-        // MOCK API CALL based on providerId
-        let status = 'pass';
-        let details = 'Check passed successfully.';
+        const { isDemoMode } = request.data;
 
-        // Simulate some randomness for demo
-        if (Math.random() > 0.8) {
-            status = 'fail';
-            details = 'Check failed: Resource configuration does not match policy.';
+        if (isDemoMode) {
+            // MOCK API CALL based on providerId
+            let status = 'pass';
+            let details = 'Check passed successfully.';
+
+            // Simulate some randomness for demo
+            if (Math.random() > 0.8) {
+                status = 'fail';
+                details = 'Check failed: Resource configuration does not match policy.';
+            }
+
+            return {
+                status,
+                details,
+                lastSync: new Date().toISOString()
+            };
         }
 
-        return {
-            status,
-            details,
-            lastSync: new Date().toISOString()
-        };
+        // Real implementation placeholder
+        throw new HttpsError('unimplemented', 'Real integration not configured. Please use Demo Mode to test this feature.');
 
     } catch (error) {
         logger.error('Error fetching evidence:', error);
