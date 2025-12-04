@@ -179,6 +179,86 @@ class IntegrationService {
         // Real implementation would call NVD API or similar
         return [];
     }
+    async getCyberNews(isDemoMode: boolean = false): Promise<CyberNewsItem[]> {
+        if (isDemoMode) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return [
+                {
+                    title: "Alerte de sécurité : Vulnérabilité critique dans OpenSSL",
+                    link: "https://www.cert.ssi.gouv.fr/alerte/CERTFR-2023-ALE-001/",
+                    pubDate: new Date().toISOString(),
+                    source: "CERT-FR"
+                },
+                {
+                    title: "Campagne de phishing ciblant les établissements de santé",
+                    link: "https://www.cert.ssi.gouv.fr/actualite/CERTFR-2023-ACT-002/",
+                    pubDate: new Date(Date.now() - 86400000).toISOString(),
+                    source: "CERT-FR"
+                }
+            ];
+        }
+
+        try {
+            const fetchRssFeed = httpsCallable(functions, 'fetchRssFeed');
+            const result = await fetchRssFeed({ url: 'https://www.cert.ssi.gouv.fr/feed/' });
+            const xmlText = (result.data as any).content;
+
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+            const items = xmlDoc.querySelectorAll("item");
+
+            return Array.from(items).slice(0, 5).map(item => ({
+                title: item.querySelector("title")?.textContent || "Sans titre",
+                link: item.querySelector("link")?.textContent || "#",
+                pubDate: item.querySelector("pubDate")?.textContent || new Date().toISOString(),
+                source: "CERT-FR"
+            }));
+        } catch (error) {
+            console.error("Failed to fetch CERT-FR news", error);
+            return [];
+        }
+    }
+
+    async getCnilNews(isDemoMode: boolean = false): Promise<CyberNewsItem[]> {
+        if (isDemoMode) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return [
+                {
+                    title: "Sanction de 10 millions d'euros à l'encontre de la société X",
+                    link: "https://www.cnil.fr/fr/sanction-10-millions-euros",
+                    pubDate: new Date(Date.now() - 172800000).toISOString(),
+                    source: "CNIL"
+                }
+            ];
+        }
+
+        try {
+            const fetchRssFeed = httpsCallable(functions, 'fetchRssFeed');
+            const result = await fetchRssFeed({ url: 'https://www.cnil.fr/fr/rss.xml' });
+            const xmlText = (result.data as any).content;
+
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+            const items = xmlDoc.querySelectorAll("item");
+
+            return Array.from(items).slice(0, 5).map(item => ({
+                title: item.querySelector("title")?.textContent || "Sans titre",
+                link: item.querySelector("link")?.textContent || "#",
+                pubDate: item.querySelector("pubDate")?.textContent || new Date().toISOString(),
+                source: "CNIL"
+            }));
+        } catch (error) {
+            console.error("Failed to fetch CNIL news", error);
+            return [];
+        }
+    }
+}
+
+export interface CyberNewsItem {
+    title: string;
+    link: string;
+    pubDate: string;
+    source: string;
 }
 
 export interface Vulnerability {

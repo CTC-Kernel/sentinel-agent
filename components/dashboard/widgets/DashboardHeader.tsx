@@ -114,7 +114,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div className="relative z-10 p-8 md:p-10">
+            <div className="relative z-10 p-5 sm:p-8 md:p-10">
                 {isEmpty && !loading ? (
                     <div className="flex flex-col items-center justify-center text-center py-12">
                         <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-900/5 dark:bg-white/10 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-8 backdrop-blur-md shadow-sm">
@@ -181,7 +181,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         </div>
                     </div>
                 ) : (
-                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10">
+                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 lg:gap-10">
                         <div className="flex-1 min-w-0 space-y-8">
                             {/* Header Section */}
                             <div className="flex items-start gap-6">
@@ -328,7 +328,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         />
                                     </RadarChart>
                                 </ResponsiveContainer>
-                                <div className="pointer-events-none absolute inset-x-0 bottom-8 flex justify-center">
+                                <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center">
                                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/70 dark:bg-black/30 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest shadow-sm whitespace-nowrap">
                                         {t('dashboard.isoMaturity')}
                                     </span>
