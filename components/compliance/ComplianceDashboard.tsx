@@ -126,25 +126,25 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 {/* Global Score */}
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="relative">
-                        <svg className="w-24 h-24 transform -rotate-90">
+                        <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                             <circle
                                 className="text-slate-100 dark:text-slate-800"
                                 strokeWidth="8"
                                 stroke="currentColor"
                                 fill="transparent"
-                                r="44"
+                                r="40"
                                 cx="48"
                                 cy="48"
                             />
                             <circle
                                 className="text-brand-600 transition-all duration-1000 ease-out"
                                 strokeWidth="8"
-                                strokeDasharray={276}
-                                strokeDashoffset={276 - (276 * globalScore) / 100}
+                                strokeDasharray={251.2}
+                                strokeDashoffset={251.2 - (251.2 * globalScore) / 100}
                                 strokeLinecap="round"
                                 stroke="currentColor"
                                 fill="transparent"
-                                r="44"
+                                r="40"
                                 cx="48"
                                 cy="48"
                             />
