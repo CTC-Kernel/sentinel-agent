@@ -388,8 +388,10 @@ export const Team: React.FC = () => {
             />
 
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden group mb-8">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8">
+                <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+                </div>
 
                 {/* Global Score */}
                 <div className="flex items-center gap-6 relative z-10">
@@ -418,7 +420,7 @@ export const Team: React.FC = () => {
                             />
                         </svg>
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                            <span className="text-2xl font-black text-slate-900 dark:text-white">{Math.round(activityRate)}%</span>
+                            <span className="text-xl font-black text-slate-900 dark:text-white">{Math.round(activityRate)}%</span>
                         </div>
                     </div>
                     <div>

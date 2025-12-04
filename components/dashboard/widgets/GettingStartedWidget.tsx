@@ -95,7 +95,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                 <div className="w-full md:w-64 flex-shrink-0">
                     <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg text-center">
                         <div className="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
-                            <svg className="w-full h-full transform -rotate-90">
+                            <svg className="w-full h-full transform -rotate-90 overflow-visible" viewBox="0 0 128 128">
                                 <circle
                                     cx="64"
                                     cy="64"
@@ -119,7 +119,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                                 />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                <span className="text-3xl font-bold text-slate-900 dark:text-white">{Math.round(progress)}%</span>
+                                <span className="text-xl font-bold text-slate-900 dark:text-white">{Math.round(progress)}%</span>
                             </div>
                         </div>
                         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
