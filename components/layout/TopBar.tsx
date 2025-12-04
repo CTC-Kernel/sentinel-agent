@@ -47,7 +47,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
     };
 
     return (
-        <header className="h-16 flex items-center justify-between px-6 z-20 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800/70 transition-all duration-300">
+        <header className="h-16 pt-safe flex items-center justify-between px-6 z-20 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800/70 transition-all duration-300">
             {/* Left: Mobile Menu & Search Trigger */}
             <div className="flex items-center flex-1 gap-4">
                 <button

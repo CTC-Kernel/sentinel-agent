@@ -86,7 +86,7 @@ const MOCK_PROVIDERS: IntegrationProvider[] = [
 class IntegrationService {
     async getProviders(organizationId?: string): Promise<IntegrationProvider[]> {
         if (!organizationId) {
-            return MOCK_PROVIDERS;
+            return [];
         }
 
         try {
@@ -113,7 +113,7 @@ class IntegrationService {
             });
         } catch (error) {
             console.error('Error fetching integrations:', error);
-            return MOCK_PROVIDERS;
+            return [];
         }
     }
 
