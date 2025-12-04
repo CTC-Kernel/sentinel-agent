@@ -154,6 +154,28 @@ export const Suppliers: React.FC = () => {
         return resolved.sort((a, b) => a.name.localeCompare(b.name));
     }, [suppliersRaw, usersRaw]);
 
+    const role = user?.role || 'user';
+
+    let suppliersTitle = 'Fournisseurs';
+    let suppliersSubtitle = 'Gestion des tiers et des contrats (ISO 27001 A.15).';
+
+    if (role === 'admin' || role === 'rssi') {
+        suppliersTitle = 'Gestion des Tiers & Exposition Fournisseurs';
+        suppliersSubtitle = "Pilotez les fournisseurs critiques, les contrats, la conformité SSI et les risques associés.";
+    } else if (role === 'direction') {
+        suppliersTitle = 'Vue Risques Fournisseurs';
+        suppliersSubtitle = "Surveillez les fournisseurs critiques, les contrats à risque et les obligations réglementaires.";
+    } else if (role === 'auditor') {
+        suppliersTitle = 'Fournisseurs à Auditer';
+        suppliersSubtitle = "Préparez vos audits fournisseurs, preuves et contrôles attendus.";
+    } else if (role === 'project_manager') {
+        suppliersTitle = 'Fournisseurs liés aux Projets';
+        suppliersSubtitle = "Identifiez les fournisseurs impliqués dans vos projets et suivez leurs engagements.";
+    } else {
+        suppliersTitle = 'Mes Fournisseurs';
+        suppliersSubtitle = "Consultez les fournisseurs et contacts qui concernent votre périmètre.";
+    }
+
 
 
     // Import
@@ -440,8 +462,8 @@ export const Suppliers: React.FC = () => {
             />
 
             <PageHeader
-                title="Fournisseurs"
-                subtitle="Gestion des tiers et des contrats (ISO 27001 A.15)."
+                title={suppliersTitle}
+                subtitle={suppliersSubtitle}
                 breadcrumbs={[
                     { label: 'Fournisseurs' }
                 ]}
@@ -518,8 +540,8 @@ export const Suppliers: React.FC = () => {
                                                 icon={Building}
                                                 title="Aucun fournisseur"
                                                 description={filter ? "Aucun fournisseur ne correspond à votre recherche." : "Gérez vos fournisseurs et évaluez leur sécurité."}
-                                                actionLabel={filter ? undefined : "Nouveau Fournisseur"}
-                                                onAction={filter ? undefined : openCreationDrawer}
+                                                actionLabel={filter || !canEdit ? undefined : "Nouveau Fournisseur"}
+                                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
                                             />
                                         </td>
                                     </tr>
@@ -606,8 +628,8 @@ export const Suppliers: React.FC = () => {
                                 icon={Building}
                                 title="Aucun fournisseur"
                                 description={filter ? "Aucun fournisseur ne correspond à votre recherche." : "Gérez vos fournisseurs et évaluez leur sécurité."}
-                                actionLabel={filter ? undefined : "Nouveau Fournisseur"}
-                                onAction={filter ? undefined : openCreationDrawer}
+                                actionLabel={filter || !canEdit ? undefined : "Nouveau Fournisseur"}
+                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
                             />
                         </div>
                     ) : (
