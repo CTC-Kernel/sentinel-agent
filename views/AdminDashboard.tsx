@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
-import { db } from '../firebase';
+import { orderBy, limit } from 'firebase/firestore';
+import { useFirestoreCollection } from '../hooks/useFirestore';
+
 import { useStore } from '../store';
 import { ShieldAlert, Users, Building, Activity, Search } from 'lucide-react';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { ErrorLogger } from '../services/errorLogger';
+
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 interface OrganizationSummary {
@@ -17,12 +18,27 @@ interface OrganizationSummary {
 
 export const AdminDashboard: React.FC = () => {
     const { user } = useStore();
-    const [organizations, setOrganizations] = useState<OrganizationSummary[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ totalOrgs: 0, totalUsers: 0 });
-
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
+
+    const { data: organizations, loading: orgsLoading } = useFirestoreCollection<OrganizationSummary>(
+        'organizations',
+        [orderBy('createdAt', 'desc'), limit(50)],
+        { logError: true, realtime: true, enabled: isSuperAdmin }
+    );
+
+    const { data: users, loading: usersLoading } = useFirestoreCollection<any>(
+        'users',
+        [],
+        { logError: true, realtime: true, enabled: isSuperAdmin }
+    );
+
+    const stats = {
+        totalOrgs: organizations.length,
+        totalUsers: users.length
+    };
+
+    const loading = checkingAuth || (isSuperAdmin && (orgsLoading || usersLoading));
 
     useEffect(() => {
         const checkSuperAdmin = async () => {
@@ -48,37 +64,7 @@ export const AdminDashboard: React.FC = () => {
         checkSuperAdmin();
     }, [user]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!isSuperAdmin) return;
 
-            try {
-                // Fetch Organizations
-                const orgsSnap = await getDocs(query(collection(db, 'organizations'), orderBy('createdAt', 'desc'), limit(50)));
-                const orgs = orgsSnap.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                })) as OrganizationSummary[];
-
-                setOrganizations(orgs);
-
-                // Fetch basic stats (approximate)
-                const usersSnap = await getDocs(collection(db, 'users'));
-
-                setStats({
-                    totalOrgs: orgs.length,
-                    totalUsers: usersSnap.size
-                });
-
-            } catch (error) {
-                ErrorLogger.error(error, 'AdminDashboard.fetchData');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [isSuperAdmin]);
 
     if (checkingAuth) return <LoadingScreen />;
 
