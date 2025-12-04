@@ -169,9 +169,13 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId));
+        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId))) &&
+        (!('name' in request.resource.data) || request.resource.data.name.size() < 200) &&
+        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
 
-      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+      allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
+        (!('name' in request.resource.data) || request.resource.data.name.size() < 200) &&
+        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
       allow delete: if canDelete(resource.data.organizationId);
       
       match /maintenance/{maintenanceId} {
@@ -185,8 +189,12 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId));
-      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId))) &&
+        (!('threat' in request.resource.data) || request.resource.data.threat.size() < 500) &&
+        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
+      allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
+        (!('threat' in request.resource.data) || request.resource.data.threat.size() < 500) &&
+        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
       allow delete: if canDelete(resource.data.organizationId);
     }
     
@@ -245,8 +253,12 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || isUser() || (isAuditor() && belongsToOrganization(request.resource.data.organizationId))); // Users can report incidents
-      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+        (canWrite(request.resource.data.organizationId) || isUser() || (isAuditor() && belongsToOrganization(request.resource.data.organizationId))) &&
+        (!('title' in request.resource.data) || request.resource.data.title.size() < 200) &&
+        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000); // Users can report incidents
+      allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
+        (!('title' in request.resource.data) || request.resource.data.title.size() < 200) &&
+        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -343,8 +355,12 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || isProjectManager());
-      allow update: if canWrite(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
+        (canWrite(request.resource.data.organizationId) || isProjectManager()) &&
+        (!('name' in request.resource.data) || request.resource.data.name.size() < 200) &&
+        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
+      allow update: if (canWrite(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId))) &&
+        (!('name' in request.resource.data) || request.resource.data.name.size() < 200) &&
+        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
       allow delete: if canDelete(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
     }
 

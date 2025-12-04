@@ -54,13 +54,13 @@ service firebase.storage {
     // Backups - organization-based
     match /backups/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId);
+      allow write: if belongsToOrg(orgId) && isValidFileSize(500); // 500MB limit
     }
 
     // Organizations - general storage
     match /organizations/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId);
+      allow write: if belongsToOrg(orgId) && isValidFileSize(50); // 50MB limit
     }
   }
 }

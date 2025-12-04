@@ -130,6 +130,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return;
             }
 
+            // FIX: Ensure loading is true while we fetch the profile to prevent AuthGuard from redirecting prematurely
+            setLoading(true);
+
             try {
                 // 1. Mettre à jour le dernier login (Non-blocking & Safe)
                 // Use updateDoc to avoid creating a partial document if it doesn't exist yet.

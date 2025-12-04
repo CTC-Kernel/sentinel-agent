@@ -103,6 +103,16 @@ export interface RiskRecommendation {
   confidence_score: number;
 }
 
+export interface AutomatedEvidence {
+  id: string;
+  providerId: string;
+  resourceType: string;
+  resourceId: string;
+  status: 'pass' | 'fail' | 'error';
+  lastSync: string;
+  details?: string;
+}
+
 export interface Control {
   id: string;
   organizationId: string;
@@ -114,6 +124,7 @@ export interface Control {
   applicability?: 'Applicable' | 'Non applicable';
   justification?: string;
   evidenceIds?: string[];
+  automatedEvidence?: AutomatedEvidence[];
   evidenceStrength?: 'Faible' | 'Forte';
   lastUpdated?: string;
   assigneeId?: string;

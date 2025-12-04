@@ -5,12 +5,14 @@ import { RiskFormData, riskSchema } from '../schemas/riskSchema';
 import { ProjectFormData } from '../schemas/projectSchema';
 import { AuditFormData } from '../schemas/auditSchema';
 import { db } from '../firebase';
-import { Control, Document, Risk, Finding, UserProfile, SystemLog, Asset, Supplier, Project, Audit, BusinessProcess } from '../types';
-import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet } from '../components/ui/Icons';
+import { toast } from 'sonner';
+import { Control, Document, Risk, Finding, UserProfile, SystemLog, Asset, Supplier, Project, Audit, BusinessProcess, AutomatedEvidence } from '../types';
+import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet, RefreshCw, Loader2, CheckCircle2, XCircle, Plug } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { PdfService } from '../services/PdfService';
 import { Skeleton } from '../components/ui/Skeleton';
+import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
@@ -30,7 +32,7 @@ import { ProjectForm } from '../components/projects/ProjectForm';
 
 
 import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS, DORA_DOMAINS, DORA_SEED_CONTROLS, GDPR_DOMAINS, GDPR_SEED_CONTROLS, SOC2_DOMAINS, SOC2_SEED_CONTROLS, HDS_DOMAINS, HDS_SEED_CONTROLS, PCI_DSS_DOMAINS, PCI_DSS_SEED_CONTROLS, NIST_CSF_DOMAINS, NIST_CSF_SEED_CONTROLS } from '../data/complianceData';
-import { integrationService } from '../services/integrationService';
+import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { Globe } from '../components/ui/Icons';
 
 
@@ -71,6 +73,30 @@ export const Compliance: React.FC = () => {
     // EUR-Lex State
     const [eurLexQuery, setEurLexQuery] = useState('');
     const [eurLexResult, setEurLexResult] = useState<string | null>(null);
+
+    // Automated Evidence State
+    const [providers, setProviders] = useState<IntegrationProvider[]>([]);
+    const [loadingProviders, setLoadingProviders] = useState(false);
+    const [selectedProviderId, setSelectedProviderId] = useState<string>('');
+    const [selectedResourceId, setSelectedResourceId] = useState<string>('');
+    const [isLinkingEvidence, setIsLinkingEvidence] = useState(false);
+
+    useEffect(() => {
+        const loadProviders = async () => {
+            setLoadingProviders(true);
+            try {
+                const data = await integrationService.getProviders();
+                setProviders(data.filter(p => p.status === 'connected'));
+            } catch (error) {
+                console.error('Failed to load providers', error);
+            } finally {
+                setLoadingProviders(false);
+            }
+        };
+        if (isDrawerOpen) {
+            loadProviders();
+        }
+    }, [isDrawerOpen]);
 
     // Data Fetching with Hooks
     const { data: rawControls, loading: controlsLoading, refresh: refreshControls } = useFirestoreCollection<Control>(
@@ -522,6 +548,109 @@ export const Compliance: React.FC = () => {
         }
     };
 
+    const handleLinkAutomatedEvidence = async () => {
+        if (!selectedControl || !selectedProviderId || !selectedResourceId || !canEdit) return;
+        setIsLinkingEvidence(true);
+        try {
+            const provider = providers.find(p => p.id === selectedProviderId);
+            if (!provider) return;
+
+            const newEvidence: AutomatedEvidence = {
+                id: crypto.randomUUID(),
+                providerId: selectedProviderId,
+                resourceType: 'check', // Mocked for now
+                resourceId: selectedResourceId,
+                status: 'pass', // Mocked initial status
+                lastSync: new Date().toISOString(),
+                details: `Automated check from ${provider.name}`
+            };
+
+            await updateDoc(doc(db, 'controls', selectedControl.id), {
+                automatedEvidence: arrayUnion(newEvidence)
+            });
+
+            const updatedEvidence = [...(selectedControl.automatedEvidence || []), newEvidence];
+            setSelectedControl({ ...selectedControl, automatedEvidence: updatedEvidence });
+            refreshControls();
+
+            await logAction(user, 'LINK', 'Compliance', `Preuve automatisée liée: ${provider.name}`);
+            addToast("Preuve automatisée liée", "success");
+            setSelectedProviderId('');
+            setSelectedResourceId('');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkAutomatedEvidence', 'UPDATE_FAILED');
+        } finally {
+            setIsLinkingEvidence(false);
+        }
+    };
+
+    const handleUnlinkAutomatedEvidence = async (evidenceId: string) => {
+        if (!selectedControl || !canEdit) return;
+        try {
+            const evidenceToRemove = selectedControl.automatedEvidence?.find(e => e.id === evidenceId);
+            if (!evidenceToRemove) return;
+
+            await updateDoc(doc(db, 'controls', selectedControl.id), {
+                automatedEvidence: arrayUnion(evidenceToRemove) // This is tricky with arrayUnion/Remove for objects. 
+                // Better to read, filter, and set.
+            });
+
+            // Correct approach for object array removal in Firestore is usually reading and writing back the filtered array
+            // But since we have selectedControl, we can just filter and set.
+            const updatedEvidence = (selectedControl.automatedEvidence || []).filter(e => e.id !== evidenceId);
+            await updateDoc(doc(db, 'controls', selectedControl.id), {
+                automatedEvidence: updatedEvidence
+            });
+
+            setSelectedControl({ ...selectedControl, automatedEvidence: updatedEvidence });
+            refreshControls();
+            addToast("Preuve automatisée retirée", "info");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkAutomatedEvidence', 'UPDATE_FAILED');
+        }
+    };
+
+    const handleSyncEvidence = async (evidence: AutomatedEvidence) => {
+        if (!selectedControl || !user?.organizationId) return;
+        const toastId = toast.loading("Synchronisation...");
+        try {
+            const result = await integrationService.fetchEvidence(evidence.providerId, evidence.resourceId, user.organizationId);
+
+            const updatedEvidenceItem = {
+                ...evidence,
+                lastSync: result.lastSync,
+                status: result.status as 'pass' | 'fail' | 'error',
+                details: result.details
+            } as AutomatedEvidence;
+
+            const updatedEvidenceList = (selectedControl.automatedEvidence || []).map(e =>
+                e.id === evidence.id ? updatedEvidenceItem : e
+            );
+
+            await updateDoc(doc(db, 'controls', selectedControl.id), {
+                automatedEvidence: updatedEvidenceList
+            });
+
+            setSelectedControl({ ...selectedControl, automatedEvidence: updatedEvidenceList });
+            refreshControls();
+            toast.success("Synchronisation réussie", { id: toastId });
+        } catch (error) {
+            toast.error("Erreur de synchronisation", { id: toastId });
+        }
+    };
+
+    const handleEurLexSearch = async () => {
+        if (!eurLexQuery) return;
+        const toastId = toast.loading("Recherche EUR-Lex en cours...");
+        try {
+            const result = await integrationService.searchEurLex(eurLexQuery);
+            setEurLexResult(result);
+            toast.dismiss(toastId);
+        } catch (error) {
+            toast.error("Erreur lors de la recherche EUR-Lex", { id: toastId });
+        }
+    };
+
     // ... rest of the file
     const getDomainStats = (prefix: string) => {
         const domainControls = controls.filter(c => c.code.startsWith(prefix));
@@ -600,6 +729,10 @@ export const Compliance: React.FC = () => {
 
         return crumbs;
     };
+
+    if (loading) {
+        return <LoadingScreen />;
+    }
 
     return (
         <div className="space-y-8 animate-fade-in relative pb-10">
@@ -831,6 +964,7 @@ export const Compliance: React.FC = () => {
                             Recherchez les dernières réglementations européennes (Directives, Règlements) directement depuis la source officielle EUR-Lex.
                         </p>
 
+
                         <div className="max-w-2xl mx-auto flex gap-3">
                             <div className="relative flex-1 text-left">
                                 <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
@@ -840,11 +974,11 @@ export const Compliance: React.FC = () => {
                                     className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm"
                                     value={eurLexQuery}
                                     onChange={(e) => setEurLexQuery(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && setEurLexResult(integrationService.searchEurLex(eurLexQuery))}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleEurLexSearch()}
                                 />
                             </div>
                             <button
-                                onClick={() => setEurLexResult(integrationService.searchEurLex(eurLexQuery))}
+                                onClick={handleEurLexSearch}
                                 className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
                             >
                                 Rechercher
@@ -1077,6 +1211,91 @@ export const Compliance: React.FC = () => {
                             {
                                 inspectorTab === 'evidence' && (
                                     <div className="space-y-6 max-w-3xl mx-auto">
+                                        {/* Automated Evidence Section */}
+                                        <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 p-6 shadow-sm">
+                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 flex items-center tracking-widest"><Plug className="h-3.5 w-3.5 mr-2" /> Preuves Automatisées</h3>
+
+                                            <div className="space-y-3 mb-6">
+                                                {selectedControl.automatedEvidence && selectedControl.automatedEvidence.length > 0 ? (
+                                                    selectedControl.automatedEvidence.map(evidence => {
+                                                        const provider = providers.find(p => p.id === evidence.providerId) || { name: evidence.providerId, icon: 'default' };
+                                                        return (
+                                                            <div key={evidence.id} className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className={`p-2 rounded-xl ${evidence.status === 'pass' ? 'bg-emerald-100 text-emerald-600' : evidence.status === 'fail' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
+                                                                        {evidence.status === 'pass' ? <CheckCircle2 className="h-5 w-5" /> : evidence.status === 'fail' ? <XCircle className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="font-bold text-slate-900 dark:text-white text-sm">{provider.name}</div>
+                                                                        <div className="text-xs text-slate-500 font-medium">{evidence.details}</div>
+                                                                        <div className="text-[10px] text-slate-400 mt-1">Dernière synchro: {new Date(evidence.lastSync).toLocaleString()}</div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <button
+                                                                        onClick={() => handleSyncEvidence(evidence)}
+                                                                        className="p-2 text-slate-400 hover:text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all"
+                                                                        title="Synchroniser maintenant"
+                                                                    >
+                                                                        <RefreshCw className="h-4 w-4" />
+                                                                    </button>
+                                                                    {canEdit && (
+                                                                        <button
+                                                                            onClick={() => handleUnlinkAutomatedEvidence(evidence.id)}
+                                                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all"
+                                                                            title="Délier"
+                                                                        >
+                                                                            <X className="h-4 w-4" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <p className="text-xs text-slate-400 italic text-center py-4 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl">Aucune preuve automatisée liée.</p>
+                                                )}
+                                            </div>
+
+                                            {canEdit && (
+                                                <div className="bg-slate-50 dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
+                                                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3">Ajouter une source</h4>
+                                                    <div className="flex flex-col sm:flex-row gap-3">
+                                                        <select
+                                                            value={selectedProviderId}
+                                                            onChange={(e) => setSelectedProviderId(e.target.value)}
+                                                            className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500"
+                                                        >
+                                                            <option value="">Sélectionner un fournisseur...</option>
+                                                            {providers.map(p => (
+                                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                                            ))}
+                                                        </select>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="ID de la ressource (ex: bucket-name)"
+                                                            value={selectedResourceId}
+                                                            onChange={(e) => setSelectedResourceId(e.target.value)}
+                                                            className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500"
+                                                        />
+                                                        <button
+                                                            onClick={handleLinkAutomatedEvidence}
+                                                            disabled={!selectedProviderId || !selectedResourceId || isLinkingEvidence}
+                                                            className="bg-brand-600 text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center min-w-[100px]"
+                                                        >
+                                                            {isLinkingEvidence ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Lier'}
+                                                        </button>
+                                                    </div>
+                                                    {providers.length === 0 && !loadingProviders && (
+                                                        <p className="text-[10px] text-amber-500 mt-2 flex items-center">
+                                                            <AlertTriangle className="h-3 w-3 mr-1" />
+                                                            Aucune intégration connectée. Allez dans "Intégrations" pour en configurer.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
                                         <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 p-6 shadow-sm">
                                             <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 flex items-center tracking-widest"><Link className="h-3.5 w-3.5 mr-2" /> Preuves Documentaires</h3>
                                             <div className="space-y-2 mb-4">

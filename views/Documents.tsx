@@ -15,6 +15,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Comments } from '../components/ui/Comments';
 import { AddToCalendar } from '../components/ui/AddToCalendar';
 import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
+import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FilePreview } from '../components/ui/FilePreview';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -609,6 +610,10 @@ export const Documents: React.FC = () => {
             default: return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
         }
     };
+
+    if (loading) {
+        return <LoadingScreen />;
+    }
 
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">

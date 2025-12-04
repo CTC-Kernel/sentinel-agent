@@ -462,6 +462,54 @@ const PLANS = {
     }
 };
 
+const AI_LIMITS = {
+    'discovery': 5,
+    'professional': 50,
+    'enterprise': 1000
+};
+
+/**
+ * Helper to check and increment AI usage for an organization.
+ * Enforces daily limits based on the plan.
+ */
+async function checkAndIncrementAiUsage(uid, organizationId) {
+    if (!organizationId) return true; // Should not happen if validated upstream
+
+    const db = admin.firestore();
+    const orgRef = db.collection('organizations').doc(organizationId);
+    const orgSnap = await orgRef.get();
+
+    if (!orgSnap.exists) return false;
+
+    const orgData = orgSnap.data();
+    const planId = orgData.subscription?.planId || 'discovery';
+    const limit = AI_LIMITS[planId] || 5;
+
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const usageRef = orgRef.collection('usage').doc(`ai_${today}`);
+
+    return await db.runTransaction(async (t) => {
+        const usageDoc = await t.get(usageRef);
+        let currentCount = 0;
+
+        if (usageDoc.exists) {
+            currentCount = usageDoc.data().count || 0;
+        }
+
+        if (currentCount >= limit) {
+            throw new HttpsError('resource-exhausted', `Daily AI limit reached for ${planId} plan (${limit} requests/day). Upgrade to increase limits.`);
+        }
+
+        t.set(usageRef, {
+            count: currentCount + 1,
+            date: today,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        return true;
+    });
+}
+
 /**
  * Create a Stripe Checkout Session for a subscription.
  */
@@ -1555,6 +1603,13 @@ exports.callGeminiGenerateContent = onCall({
     }
 
     try {
+        // Check and increment usage
+        const userDoc = await admin.firestore().collection('users').doc(uid).get();
+        const userData = userDoc.data();
+        if (userData?.organizationId) {
+            await checkAndIncrementAiUsage(uid, userData.organizationId);
+        }
+
         const genAI = await getGeminiClientForUser(uid);
 
         const runGenerate = async (name) => {
@@ -1615,6 +1670,13 @@ exports.callGeminiChat = onCall({
     }
 
     try {
+        // Check and increment usage
+        const userDoc = await admin.firestore().collection('users').doc(uid).get();
+        const userData = userDoc.data();
+        if (userData?.organizationId) {
+            await checkAndIncrementAiUsage(uid, userData.organizationId);
+        }
+
         const genAI = await getGeminiClientForUser(uid);
 
         const runChat = async (name) => {
@@ -2363,5 +2425,127 @@ exports.onUserDeleted = require("firebase-functions/v1").auth.user().onDelete(as
 
     } catch (error) {
         logger.error(`Error cleaning up user ${uid}:`, error);
+    }
+});
+
+// --- INTEGRATIONS ---
+
+/**
+ * Encrypts data using the USER_SECRETS_ENCRYPTION_KEY.
+ */
+function encryptData(text, secretKey) {
+    const iv = crypto.randomBytes(16);
+    const key = crypto.scryptSync(secretKey, 'salt', 32);
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    let encrypted = cipher.update(text);
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    return iv.toString('hex') + ':' + encrypted.toString('hex');
+}
+
+/**
+ * Decrypts data using the USER_SECRETS_ENCRYPTION_KEY.
+ */
+function decryptData(text, secretKey) {
+    const textParts = text.split(':');
+    const iv = Buffer.from(textParts.shift(), 'hex');
+    const encryptedText = Buffer.from(textParts.join(':'), 'hex');
+    const key = crypto.scryptSync(secretKey, 'salt', 32);
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+}
+
+exports.connectIntegration = onCall({
+    secrets: [userSecretsKey]
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { providerId, credentials, organizationId } = request.data;
+
+    if (!organizationId || !providerId || !credentials) {
+        throw new HttpsError('invalid-argument', 'Missing required fields.');
+    }
+
+    // Verify permissions (Admin or Owner)
+    try {
+        const userRef = admin.firestore().collection("users").doc(request.auth.uid);
+        const userSnap = await userRef.get();
+        const userData = userSnap.data();
+
+        if (userData.organizationId !== organizationId || userData.role !== 'admin') {
+            // Also check if owner of org
+            const orgRef = admin.firestore().collection("organizations").doc(organizationId);
+            const orgSnap = await orgRef.get();
+            if (!orgSnap.exists || orgSnap.data().ownerId !== request.auth.uid) {
+                throw new HttpsError('permission-denied', 'Only admins can manage integrations.');
+            }
+        }
+
+        const encryptedCredentials = encryptData(JSON.stringify(credentials), userSecretsKey.value());
+
+        await admin.firestore().collection('organizations').doc(organizationId)
+            .collection('integrations').doc(providerId).set({
+                id: providerId,
+                status: 'connected',
+                connectedAt: new Date().toISOString(),
+                connectedBy: request.auth.uid,
+                encryptedCredentials // Store encrypted
+            }, { merge: true });
+
+        return { success: true };
+    } catch (error) {
+        logger.error('Error connecting integration:', error);
+        throw new HttpsError('internal', 'Failed to connect integration: ' + error.message);
+    }
+});
+
+exports.fetchEvidence = onCall({
+    secrets: [userSecretsKey]
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { providerId, resourceId, organizationId } = request.data;
+
+    if (!organizationId || !providerId || !resourceId) {
+        throw new HttpsError('invalid-argument', 'Missing required fields.');
+    }
+
+    try {
+        // Get credentials
+        const doc = await admin.firestore().collection('organizations').doc(organizationId)
+            .collection('integrations').doc(providerId).get();
+
+        if (!doc.exists) {
+            throw new HttpsError('not-found', 'Integration not found.');
+        }
+
+        const data = doc.data();
+        // In a real app, we would decrypt and use these credentials
+        // const credentials = JSON.parse(decryptData(data.encryptedCredentials, userSecretsKey.value()));
+
+        // MOCK API CALL based on providerId
+        let status = 'pass';
+        let details = 'Check passed successfully.';
+
+        // Simulate some randomness for demo
+        if (Math.random() > 0.8) {
+            status = 'fail';
+            details = 'Check failed: Resource configuration does not match policy.';
+        }
+
+        return {
+            status,
+            details,
+            lastSync: new Date().toISOString()
+        };
+
+    } catch (error) {
+        logger.error('Error fetching evidence:', error);
+        throw new HttpsError('internal', 'Failed to fetch evidence: ' + error.message);
     }
 });
