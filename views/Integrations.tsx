@@ -15,12 +15,15 @@ export const Integrations: React.FC = () => {
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
     useEffect(() => {
-        loadProviders();
-    }, []);
+        if (user?.organizationId) {
+            loadProviders();
+        }
+    }, [user?.organizationId]);
 
     const loadProviders = async () => {
+        if (!user?.organizationId) return;
         try {
-            const data = await integrationService.getProviders();
+            const data = await integrationService.getProviders(user.organizationId);
             setProviders(data);
         } catch (error) {
             console.error('Failed to load providers', error);
@@ -55,10 +58,11 @@ export const Integrations: React.FC = () => {
 
     const handleDisconnect = async (provider: IntegrationProvider) => {
         if (!confirm(`Voulez-vous vraiment déconnecter ${provider.name} ?`)) return;
+        if (!user?.organizationId) return;
 
         setConnectingId(provider.id);
         try {
-            await integrationService.disconnectProvider(provider.id, demoMode);
+            await integrationService.disconnectProvider(provider.id, user.organizationId, demoMode);
 
             // Optimistic update
             setProviders(prev => prev.map(p =>
