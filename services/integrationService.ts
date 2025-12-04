@@ -57,10 +57,26 @@ const MOCK_PROVIDERS: IntegrationProvider[] = [
         status: 'disconnected'
     },
     {
-        id: 'vanta_agent',
-        name: 'Sentinel Agent',
-        description: 'Collect local workstation security posture (OS, Disk Encryption).',
-        icon: 'shield',
+        id: 'website_check',
+        name: 'Website Availability',
+        description: 'Check if your public websites are accessible (Uptime).',
+        icon: 'globe',
+        category: 'productivity',
+        status: 'disconnected'
+    },
+    {
+        id: 'shodan',
+        name: 'Shodan',
+        description: 'Scan public IPs for open ports and vulnerabilities.',
+        icon: 'search',
+        category: 'security',
+        status: 'disconnected'
+    },
+    {
+        id: 'hibp',
+        name: 'Have I Been Pwned',
+        description: 'Check if email addresses have been compromised in data breaches.',
+        icon: 'shield-alert',
         category: 'security',
         status: 'disconnected'
     }

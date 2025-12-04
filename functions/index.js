@@ -2545,8 +2545,15 @@ exports.fetchEvidence = onCall({
         }
 
         const data = doc.data();
-        // In a real app, we would decrypt and use these credentials
-        // const credentials = JSON.parse(decryptData(data.encryptedCredentials, userSecretsKey.value()));
+        let apiKey = null;
+        if (data.encryptedCredentials) {
+            try {
+                const creds = JSON.parse(decryptData(data.encryptedCredentials, userSecretsKey.value()));
+                apiKey = creds.apiKey;
+            } catch (e) {
+                logger.warn('Failed to decrypt credentials', e);
+            }
+        }
 
         const { isDemoMode } = request.data;
 
@@ -2568,8 +2575,79 @@ exports.fetchEvidence = onCall({
             };
         }
 
-        // Real implementation placeholder
-        throw new HttpsError('unimplemented', 'Real integration not configured. Please use Demo Mode to test this feature.');
+        // --- REAL IMPLEMENTATION ---
+
+        if (providerId === 'shodan') {
+            if (!apiKey) throw new HttpsError('failed-precondition', 'Missing API Key for Shodan');
+
+            // resourceId should be an IP
+            const response = await fetch(`https://api.shodan.io/shodan/host/${encodeURIComponent(resourceId)}?key=${apiKey}`);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return { status: 'pass', details: 'IP not found in Shodan (Good sign)', lastSync: new Date().toISOString() };
+                }
+                throw new Error(`Shodan API Error: ${response.statusText}`);
+            }
+            const result = await response.json();
+            const openPorts = result.ports || [];
+            const vulns = result.vulns || [];
+
+            if (vulns.length > 0) {
+                return {
+                    status: 'fail',
+                    details: `Found ${vulns.length} vulnerabilities and open ports: ${openPorts.join(', ')}`,
+                    lastSync: new Date().toISOString()
+                };
+            }
+
+            return {
+                status: 'pass',
+                details: `No vulnerabilities found. Open ports: ${openPorts.join(', ')}`,
+                lastSync: new Date().toISOString()
+            };
+        }
+
+        if (providerId === 'hibp') {
+            if (!apiKey) throw new HttpsError('failed-precondition', 'Missing API Key for HIBP');
+
+            // resourceId should be an email
+            const response = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(resourceId)}`, {
+                headers: {
+                    'hibp-api-key': apiKey,
+                    'user-agent': 'Sentinel-GRC'
+                }
+            });
+
+            if (response.status === 404) {
+                return { status: 'pass', details: 'No breaches found for this email.', lastSync: new Date().toISOString() };
+            }
+
+            if (!response.ok) throw new Error(`HIBP API Error: ${response.statusText}`);
+
+            const breaches = await response.json();
+            return {
+                status: 'fail',
+                details: `Found ${breaches.length} breaches: ${breaches.map(b => b.Name).join(', ')}`,
+                lastSync: new Date().toISOString()
+            };
+        }
+
+        if (providerId === 'website_check') {
+            // No API key needed usually, just checking availability
+            // resourceId should be a URL
+            try {
+                const response = await fetch(resourceId, { method: 'HEAD', timeout: 5000 });
+                if (response.ok) {
+                    return { status: 'pass', details: `Website is UP (Status: ${response.status})`, lastSync: new Date().toISOString() };
+                } else {
+                    return { status: 'fail', details: `Website returned status ${response.status}`, lastSync: new Date().toISOString() };
+                }
+            } catch (err) {
+                return { status: 'fail', details: `Website is DOWN or Unreachable: ${err.message}`, lastSync: new Date().toISOString() };
+            }
+        }
+
+        throw new HttpsError('unimplemented', `Provider ${providerId} not supported yet.`);
 
     } catch (error) {
         logger.error('Error fetching evidence:', error);
