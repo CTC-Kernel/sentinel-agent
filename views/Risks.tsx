@@ -75,7 +75,7 @@ export const Risks: React.FC = () => {
     const { data: rawRisks, loading: risksLoading, refresh: refreshRisks, error: risksError } = useFirestoreCollection<Risk>(
         'risks',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     useEffect(() => {
@@ -87,49 +87,49 @@ export const Risks: React.FC = () => {
     const { data: rawControls, loading: controlsLoading } = useFirestoreCollection<Control>(
         'controls',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: rawAssets, loading: assetsLoading } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: rawProcesses, loading: processesLoading } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: projects, loading: projectsLoading } = useFirestoreCollection<Project>(
         'projects',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: audits, loading: auditsLoading } = useFirestoreCollection<Audit>(
         'audits',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: incidents, loading: incidentsLoading } = useFirestoreCollection<Incident>(
         'incidents',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     // Derived State (Sorting)

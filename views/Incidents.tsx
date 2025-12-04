@@ -37,31 +37,31 @@ export const Incidents: React.FC = () => {
     const { data: rawIncidents, loading: loadingIncidents } = useFirestoreCollection<Incident>(
         'incidents',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>(
         'risks',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: rawProcesses, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     // Derived State
