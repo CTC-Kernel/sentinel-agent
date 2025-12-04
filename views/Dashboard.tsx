@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { ErrorLogger } from '../services/errorLogger';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { CyberNewsWidget } from '../components/dashboard/CyberNewsWidget';
+import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { GettingStartedWidget } from '../components/dashboard/widgets/GettingStartedWidget';
 
 // Widgets
 import { DashboardHeader } from '../components/dashboard/widgets/DashboardHeader';
@@ -30,6 +32,7 @@ export const Dashboard: React.FC = () => {
     const [teamSize, setTeamSize] = useState<number | null>(null);
     const [activeIncidentsCount, setActiveIncidentsCount] = useState(0);
     const [openAuditsCount, setOpenAuditsCount] = useState(0);
+    const [showGettingStarted, setShowGettingStarted] = useState(true);
 
     const { user, theme, addToast, t } = useStore();
     const navigate = useNavigate();
@@ -352,26 +355,30 @@ export const Dashboard: React.FC = () => {
 
     if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-panel rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">{t('dashboard.dbLocked')}</p> <button onClick={copyRules} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm">{t('dashboard.copyRules')}</button> </div> </div>); }
 
+    if (loading) {
+        return <LoadingScreen />;
+    }
+
     return (
-        <div className="space-y-8 animate-fade-in pb-10">
+        <div className="space-y-6 animate-fade-in">
             <Helmet>
-                <title>{t('dashboard.metaTitle')}</title>
-                <meta name="description" content={t('dashboard.metaDescription')} />
+                <title>Dashboard | Sentinel GRC</title>
             </Helmet>
+
+            {showGettingStarted && <GettingStartedWidget onClose={() => setShowGettingStarted(false)} />}
 
             <DashboardHeader
                 user={user}
                 organizationName={organizationName}
-                scoreGrade={scoreGrade}
-                stats={stats}
-                radarData={radarData}
+                teamSize={teamSize}
+                activeIncidentsCount={activeIncidentsCount}
+                openAuditsCount={openAuditsCount}
                 loading={loading}
                 isEmpty={isEmpty}
                 navigate={navigate}
                 t={t}
                 theme={theme}
                 insight={insight}
-                teamSize={teamSize}
                 generateICal={generateICal}
                 generateExecutiveReport={generateExecutiveReport}
             />
