@@ -57,6 +57,10 @@ const InteractiveTimeline = React.lazy(() => import('./components/timeline/Inter
 const AuditTrailViewer = React.lazy(() => import('./components/audit/AuditTrailViewer').then(module => ({ default: module.AuditTrailViewer })));
 const CalendarView = React.lazy(() => import('./views/CalendarView').then(module => ({ default: module.CalendarView })));
 const Pricing = React.lazy(() => import('./views/Pricing'));
+const AdminDashboard = React.lazy(() => import('./views/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
+const Integrations = React.lazy(() => import('./views/Integrations').then(module => ({ default: module.Integrations })));
+
+// ... (skipping unchanged parts)
 
 const NotFound = () => (
     <div className="flex flex-col items-center justify-center h-full text-center p-6">
@@ -206,6 +210,8 @@ const AppLayout: React.FC = () => {
                                 <Route path="/intake" element={<KioskPage />} />
                                 <Route path="/calendar" element={<CalendarView />} />
                                 <Route path="/pricing" element={<Pricing />} />
+                                <Route path="/admin_management" element={<AdminDashboard />} />
+                                <Route path="/integrations" element={<Integrations />} />
                                 <Route path="*" element={<NotFound />} />
                             </Routes>
                         </Suspense>

@@ -122,7 +122,8 @@ import {
   Folder,
   FolderOpen,
   MoreVertical,
-  Edit2
+  Edit2,
+  Plug
 } from 'lucide-react';
 
 export {
@@ -248,5 +249,6 @@ export {
   Folder,
   FolderOpen,
   MoreVertical,
-  Edit2
+  Edit2,
+  Plug
 };

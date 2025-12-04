@@ -40,6 +40,7 @@ import { z } from 'zod';
 
 import { Edit } from '../components/ui/Icons';
 import { integrationService, Vulnerability } from '../services/integrationService';
+import { LoadingScreen } from '../components/ui/LoadingScreen';
 
 interface ShodanResult {
     ip_str?: string;
@@ -520,6 +521,10 @@ export const Assets: React.FC = () => {
 
         return crumbs;
     };
+
+    if (loading) {
+        return <LoadingScreen />;
+    }
 
     return (
         <div className="space-y-8 animate-fade-in relative pb-10">
