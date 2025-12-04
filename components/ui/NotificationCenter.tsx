@@ -17,14 +17,11 @@ export const NotificationCenter: React.FC = () => {
     const { data: notifications, update, refresh } = useFirestoreCollection<Notification>(
         'notifications',
         [
-            where('userId', '==', user?.uid || 'ignore'),
+            where('userId', '==', user?.uid),
             orderBy('createdAt', 'desc'),
-            limit(20)
+            limit(50)
         ],
-        {
-            realtime: true,
-            enabled: !!user?.uid
-        }
+        { logError: true, realtime: true, enabled: !!user?.uid }
     );
 
     const unreadCount = notifications.filter(n => !n.read).length;

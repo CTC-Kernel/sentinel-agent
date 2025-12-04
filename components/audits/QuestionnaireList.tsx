@@ -24,7 +24,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
     const { data: questionnaires, refresh } = useFirestoreCollection<Questionnaire>(
         'questionnaires',
         [where('auditId', '==', auditId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const handleDelete = async (id: string) => {

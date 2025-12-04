@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useForm, SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { businessProcessSchema, BusinessProcessFormData, bcpDrillSchema, BcpDrillFormData } from '../schemas/continuitySchema';
 import { canEditResource } from '../utils/permissions';
 
 import { Drawer } from '../components/ui/Drawer';
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, QuerySnapshot, DocumentData } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, updateDoc, where, limit, query, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useFirestoreCollection } from '../hooks/useFirestore';
 import { BusinessProcess, Asset, BcpDrill, SystemLog, UserProfile, Risk, Supplier } from '../types';
 import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, History, MessageSquare, Save, LayoutDashboard, FileSpreadsheet, ShieldAlert, Truck } from '../components/ui/Icons';
 import { useStore } from '../store';
@@ -22,22 +23,49 @@ import { AddToCalendar } from '../components/ui/AddToCalendar';
 import { Controller } from 'react-hook-form';
 
 export const Continuity: React.FC = () => {
-    const [processes, setProcesses] = useState<BusinessProcess[]>([]);
-    const [drills, setDrills] = useState<BcpDrill[]>([]);
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [risks, setRisks] = useState<Risk[]>([]);
-    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const { user, addToast } = useStore();
+    const canEdit = canEditResource(user, 'BusinessProcess');
 
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { data: processes, loading: procLoading } = useFirestoreCollection<BusinessProcess>(
+        'business_processes',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true, enabled: !!user?.organizationId }
+    );
+
+    const { data: drills, loading: drillsLoading } = useFirestoreCollection<BcpDrill>(
+        'bcp_drills',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true, enabled: !!user?.organizationId }
+    );
+
+    const { data: assets, loading: assetsLoading } = useFirestoreCollection<Asset>(
+        'assets',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true, enabled: !!user?.organizationId }
+    );
+
+    const { data: risks, loading: risksLoading } = useFirestoreCollection<Risk>(
+        'risks',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true, enabled: !!user?.organizationId }
+    );
+
+    const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
+        'suppliers',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true, enabled: !!user?.organizationId }
+    );
+
+    const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
+        'users',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true, enabled: !!user?.organizationId }
+    );
+
+    const loading = procLoading || drillsLoading || assetsLoading || risksLoading || suppliersLoading || usersLoading;
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDrillModal, setShowDrillModal] = useState(false);
     const [activeTab, setActiveTab] = useState<'bia' | 'drills'>('bia');
-
-
-
-    const { user, addToast } = useStore();
-    const canEdit = canEditResource(user, 'BusinessProcess');
 
     // Inspector State
     const [selectedProcess, setSelectedProcess] = useState<BusinessProcess | null>(null);
@@ -91,61 +119,7 @@ export const Continuity: React.FC = () => {
     const overdueTests = totalProcesses - testedProcesses;
     const failedDrills = drills.filter(d => d.result === 'Échec').length;
 
-    const fetchData = useCallback(async () => {
-        if (!user?.organizationId) {
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        try {
-            // Use Promise.allSettled for robustness
-            // Removed 'IN' query on documents to prevent index error
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'business_processes'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'bcp_drills'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
-            ]);
 
-            const getDocsData = <T,>(result: PromiseSettledResult<unknown>): T[] => {
-                if (result.status === 'fulfilled') {
-
-                    return (result.value as QuerySnapshot<DocumentData>).docs.map((d) => ({ id: d.id, ...d.data() })) as T[];
-                }
-                ErrorLogger.warn("Failed to load some data in Continuity view", 'Continuity.fetchData');
-                return [];
-            };
-
-            const procData = getDocsData<BusinessProcess>(results[0]);
-            procData.sort((a, b) => a.name.localeCompare(b.name));
-            setProcesses(procData);
-
-            const drillData = getDocsData<BcpDrill>(results[1]);
-            drillData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            setDrills(drillData);
-
-            const assetData = getDocsData<Asset>(results[2]);
-            assetData.sort((a, b) => a.name.localeCompare(b.name));
-            setAssets(assetData);
-
-            const riskData = getDocsData<Risk>(results[3]);
-            setRisks(riskData);
-
-            const supplierData = getDocsData<Supplier>(results[4]);
-            setSuppliers(supplierData);
-
-            const usersData = getDocsData<UserProfile>(results[5]);
-            setUsersList(usersData);
-        } catch (err) {
-            ErrorLogger.handleErrorWithToast(err, 'Continuity.fetchData', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    }, [user?.organizationId]);
-
-    useEffect(() => { fetchData(); }, [fetchData]);
 
     // ... rest of the component code (openInspector, CRUD, etc.) ...
     // Including the rest of the file content to ensure integrity
@@ -189,7 +163,6 @@ export const Continuity: React.FC = () => {
             addToast("Processus créé", "success");
             setShowCreateModal(false);
             createProcessForm.reset();
-            fetchData();
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleCreateProcess', 'CREATE_FAILED'); }
     };
 
@@ -199,7 +172,7 @@ export const Continuity: React.FC = () => {
             await updateDoc(doc(db, 'business_processes', selectedProcess.id), data);
             await logAction(user, 'UPDATE', 'BCP', `MAJ Processus: ${data.name} `);
 
-            setProcesses(prev => prev.map(p => p.id === selectedProcess.id ? { ...p, ...data } : p));
+
             setSelectedProcess({ ...selectedProcess, ...data });
             setIsEditing(false);
             addToast("Processus mis à jour", "success");
@@ -220,7 +193,7 @@ export const Continuity: React.FC = () => {
         if (!canEdit) return;
         try {
             await deleteDoc(doc(db, 'business_processes', id));
-            setProcesses(prev => prev.filter(p => p.id !== id));
+
             setSelectedProcess(null);
             await logAction(user, 'DELETE', 'BCP', `Suppression: ${name} `);
             addToast("Processus supprimé", "info");
@@ -248,7 +221,6 @@ export const Continuity: React.FC = () => {
             await logAction(user, 'CREATE', 'BCP', 'Nouvel exercice de crise');
             addToast("Exercice enregistré", "success");
             setShowDrillModal(false);
-            fetchData();
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleSubmitDrill', 'CREATE_FAILED'); }
     };
 
