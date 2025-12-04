@@ -1,6 +1,7 @@
 
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
+import { Capacitor } from '@capacitor/core';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
@@ -56,8 +57,7 @@ if (typeof window !== 'undefined') {
   }
 }
 
-import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
-import { Capacitor } from '@capacitor/core';
+
 
 // Use IndexedDB persistence for Capacitor (native), otherwise standard browser persistence
 export const auth = initializeAuth(app, {

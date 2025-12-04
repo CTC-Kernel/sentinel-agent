@@ -4,6 +4,8 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     signInWithPopup,
+    signInWithCredential, // Added
+    OAuthProvider, // Added
     GoogleAuthProvider,
     sendPasswordResetEmail,
     getMultiFactorResolver,
@@ -202,14 +204,18 @@ export const Login: React.FC = () => {
                                     if (Capacitor.isNativePlatform()) {
                                         const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
                                         const result = await FirebaseAuthentication.signInWithApple();
-                                        if (result.user) {
-                                            // Sign in successful
+
+                                        // Sync with Firebase JS SDK
+                                        if (result.credential?.idToken) {
+                                            const provider = new OAuthProvider('apple.com');
+                                            const credential = provider.credential({
+                                                idToken: result.credential.idToken,
+                                            });
+                                            await signInWithCredential(auth, credential);
                                             addToast("Connexion réussie", "success");
-                                            // Force reload to ensure auth state sync
-                                            window.location.href = '/';
+                                            // No need to force reload if we sign in correctly to JS SDK
                                         }
                                     } else {
-                                        const { OAuthProvider, signInWithPopup } = await import('firebase/auth');
                                         const provider = new OAuthProvider('apple.com');
                                         provider.addScope('email');
                                         provider.addScope('name');
