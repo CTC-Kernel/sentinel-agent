@@ -168,12 +168,7 @@ export const Dashboard: React.FC = () => {
 
     const isEmpty = React.useMemo(() => !loading && allRisks.length === 0 && allAssets.length === 0 && myProjects.length === 0, [loading, allRisks, allAssets, myProjects]);
 
-    const scoreGrade = React.useMemo(() => {
-        if (activeIncidentsCount > 0) return 'D';
-        if (complianceScore < 50 || allRisks.filter(r => r.score >= 20).length > 0) return 'C';
-        if (complianceScore < 80 || allRisks.filter(r => r.score >= 15).length > 0) return 'B';
-        return 'A';
-    }, [activeIncidentsCount, complianceScore, allRisks]);
+
 
     const insight = React.useMemo(() => {
         const expiredDocs = myDocs.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < new Date()).length;
