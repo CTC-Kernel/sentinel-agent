@@ -54,31 +54,31 @@ export const Projects: React.FC = () => {
     const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>(
         'projects',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>(
         'risks',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>(
         'controls',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true }
+        { logError: true, realtime: true }
     );
 
     // Derived State

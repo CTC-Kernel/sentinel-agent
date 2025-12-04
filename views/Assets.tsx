@@ -70,25 +70,25 @@ export const Assets: React.FC = () => {
     const { data: rawAssets, loading: assetsLoading, refresh: refreshAssets } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     const { data: processes, loading: processesLoading } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId }
+        { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
     // Derived State
