@@ -10,10 +10,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { backupConfigSchema, restoreConfigSchema, BackupConfigFormData, RestoreConfigFormData } from '../schemas/backupSchema';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { OnboardingService } from '../services/onboardingService';
+import { LoadingScreen } from '../components/ui/LoadingScreen';
 
 export const BackupRestore: React.FC = () => {
   const { user, addToast } = useStore();
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [backups, setBackups] = useState<BackupMetadata[]>([]);
   const [selectedBackup, setSelectedBackup] = useState<BackupMetadata | null>(null);
   const [activeTab, setActiveTab] = useState<'backup' | 'restore'>('backup');
@@ -84,10 +86,15 @@ export const BackupRestore: React.FC = () => {
 
   useEffect(() => {
     if (user?.organizationId) {
-      loadBackups();
-      loadStats();
+      Promise.all([loadBackups(), loadStats()]).finally(() => setInitialLoading(false));
+    } else {
+      setInitialLoading(false);
     }
   }, [user?.organizationId, loadBackups, loadStats]);
+
+  if (initialLoading) {
+    return <LoadingScreen />;
+  }
 
   const handleBackup: SubmitHandler<BackupConfigFormData> = async (data) => {
     if (!user) return;

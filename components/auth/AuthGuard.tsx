@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { LoadingScreen } from '../ui/LoadingScreen';
 
 import { ErrorLogger } from '../../services/errorLogger';
 
@@ -15,9 +16,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
     const location = useLocation();
 
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center bg-[#fafafa] dark:bg-slate-900">
-            <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>;
+        return <LoadingScreen />;
     }
 
 

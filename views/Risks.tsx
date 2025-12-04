@@ -10,6 +10,7 @@ import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit, LayoutGrid, List } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { Badge } from '../components/ui/Badge';
+import { LoadingScreen } from '../components/ui/LoadingScreen';
 
 import { RiskForm } from '../components/risks/RiskForm';
 import { RelationshipGraph } from '../components/RelationshipGraph';
@@ -790,6 +791,10 @@ export const Risks: React.FC = () => {
 
         return crumbs;
     };
+
+    if (loading) {
+        return <LoadingScreen />;
+    }
 
     return (
         <div className="space-y-6 relative">

@@ -7,7 +7,7 @@ import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIIns
 import { aiService } from '../services/aiService';
 import { ErrorLogger } from '../services/errorLogger';
 import { useStore } from '../store';
-import { Skeleton } from '../components/ui/Skeleton';
+import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, Search, RotateCw, Minimize2, CheckCheck, MonitorPlay } from '../components/ui/Icons';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -640,20 +640,7 @@ export const VoxelView: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col h-full">
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/10">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-8 w-8 rounded-lg" />
-            <Skeleton className="h-6 w-48 rounded-lg" />
-          </div>
-          <Skeleton className="h-10 w-32 rounded-lg" />
-        </div>
-        <div className="flex-1 flex items-center justify-center">
-          <Skeleton className="h-96 w-full max-w-4xl rounded-2xl" />
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
