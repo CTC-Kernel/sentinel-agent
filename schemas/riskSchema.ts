@@ -32,7 +32,12 @@ export const riskSchema = z.object({
         estimatedCost: z.number().optional()
     }).optional(),
     justification: z.string().optional(),
-    isSecureStorage: z.boolean().optional()
+    isSecureStorage: z.boolean().optional(),
+    aiAnalysis: z.object({
+        type: z.string(),
+        response: z.record(z.string(), z.any()),
+        timestamp: z.string()
+    }).optional().nullable(),
 });
 
 export type RiskFormData = z.infer<typeof riskSchema>;
