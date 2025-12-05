@@ -463,8 +463,9 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
   if (!points || points.length === 0) return null;
 
   if (!points || points.length === 0) return null;
-  // Verify points are valid numbers
-  const isValid = points.every(p => !isNaN(p.x) && !isNaN(p.y) && !isNaN(p.z));
+  if (!points || points.length === 0) return null;
+  // Verify points are valid numbers and array has length
+  const isValid = Array.isArray(points) && points.length > 0 && points.every(p => p && !isNaN(p.x) && !isNaN(p.y) && !isNaN(p.z));
   if (!isValid) return null;
 
   const geometry = useMemo(() => new BufferGeometry().setFromPoints(points), [points]);
