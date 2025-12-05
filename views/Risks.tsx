@@ -5,12 +5,13 @@ import { z } from 'zod';
 
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality, Incident } from '../types';
+import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality, Incident, MitreTechnique } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit, LayoutGrid, List } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { Badge } from '../components/ui/Badge';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { DataTable } from '../components/ui/DataTable';
 
 import { RiskForm } from '../components/risks/RiskForm';
 import { RelationshipGraph } from '../components/RelationshipGraph';
@@ -22,7 +23,7 @@ import { getPlanLimits } from '../config/plans';
 import { Comments } from '../components/ui/Comments';
 import { PdfService } from '../services/PdfService';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
+import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { RiskDashboard } from '../components/risks/RiskDashboard';
 import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
@@ -153,8 +154,7 @@ export const Risks: React.FC = () => {
     // const [currentRiskId, setCurrentRiskId] = useState<string | null>(null); // Removed unused
     const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
     const [mitreQuery, setMitreQuery] = useState('');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [mitreResults, setMitreResults] = useState<any[]>([]);
+    const [mitreResults, setMitreResults] = useState<MitreTechnique[]>([]);
     const [inspectorTab, setInspectorTab] = useState<'details' | 'treatment' | 'dashboard' | 'projects' | 'audits' | 'history' | 'comments' | 'graph' | 'threats'>('details');
     const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
     const [linkedAudits, setLinkedAudits] = useState<Audit[]>([]);
@@ -1049,86 +1049,120 @@ export const Risks: React.FC = () => {
                 </div>
             ) : viewMode === 'list' ? (
                 <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
-                                <tr>
-                                    <th className="px-8 py-4">Menace</th>
-                                    <th className="px-6 py-4">Vulnérabilité</th>
-                                    <th className="px-6 py-4">Actif</th>
-                                    <th className="px-6 py-4">Score</th>
-                                    <th className="px-6 py-4">Stratégie</th>
-                                    <th className="px-6 py-4">Statut</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                {loading ? (
-                                    <tr><td colSpan={7}><TableSkeleton rows={5} columns={7} /></td></tr>
-                                ) : filteredRisks.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7}>
-                                            <EmptyState
-                                                icon={ShieldAlert}
-                                                title="Aucun risque identifié"
-                                                description={filter ? "Aucun risque ne correspond à votre recherche." : "Identifiez et évaluez les risques pour protéger votre organisation."}
-                                                actionLabel={filter || !canEdit ? undefined : "Nouveau Risque"}
-                                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
-                                            />
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredRisks.map(risk => (
-                                        <tr key={risk.id} onClick={() => openInspector(risk)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]">
-                                            <td className="px-8 py-5">
-                                                <div className="flex items-center">
-                                                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300">
-                                                        <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-slate-900 dark:text-white text-[15px]">{risk.threat}</div>
-                                                        <div className="text-xs text-slate-500 font-medium">{risk.owner || 'Non assigné'}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium max-w-xs truncate" title={risk.vulnerability}>{risk.vulnerability}</td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">{getAssetName(risk.assetId)}</td>
-                                            <td className="px-6 py-5">
-                                                <Badge status={getRiskLevel(risk.score).status} variant="soft" size="sm">
-                                                    {risk.score}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">{risk.strategy}</td>
-                                            <td className="px-6 py-5">
-                                                <div className="flex flex-col items-start gap-1">
-                                                    <Badge status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'} variant="outline">
-                                                        {risk.status}
-                                                    </Badge>
-                                                    {isReviewOverdue(risk) && (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
-                                                            <Clock className="h-3 w-3 mr-1" /> Revue en retard
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                                {canEdit && (
-                                                    <>
-                                                        <button onClick={() => { setSelectedRisk(risk); setIsEditing(true); }} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
-                                                            <Edit className="h-4 w-4" />
-                                                        </button>
-                                                        <button onClick={() => initiateDelete(risk.id, risk.threat)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <DataTable
+                        columns={[
+                            {
+                                header: 'Menace',
+                                accessorKey: 'threat',
+                                cell: ({ row }) => (
+                                    <div className="flex items-center">
+                                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300">
+                                            <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.threat}</div>
+                                            <div className="text-xs text-slate-500 font-medium">{row.original.owner || 'Non assigné'}</div>
+                                        </div>
+                                    </div>
+                                ),
+                            },
+                            {
+                                header: 'Vulnérabilité',
+                                accessorKey: 'vulnerability',
+                                cell: ({ row }) => (
+                                    <div className="max-w-xs truncate" title={row.original.vulnerability}>
+                                        {row.original.vulnerability}
+                                    </div>
+                                ),
+                            },
+                            {
+                                header: 'Actif',
+                                accessorFn: (row) => getAssetName(row.assetId),
+                                cell: ({ row }) => (
+                                    <span className="text-slate-600 dark:text-slate-400 font-medium">
+                                        {getAssetName(row.original.assetId)}
+                                    </span>
+                                ),
+                            },
+                            {
+                                header: 'Score',
+                                accessorKey: 'score',
+                                cell: ({ row }) => (
+                                    <Badge status={getRiskLevel(row.original.score).status} variant="soft" size="sm">
+                                        {row.original.score}
+                                    </Badge>
+                                ),
+                            },
+                            {
+                                header: 'Stratégie',
+                                accessorKey: 'strategy',
+                                cell: ({ row }) => (
+                                    <span className="text-slate-600 dark:text-slate-400 font-medium">
+                                        {row.original.strategy}
+                                    </span>
+                                ),
+                            },
+                            {
+                                header: 'Statut',
+                                accessorKey: 'status',
+                                cell: ({ row }) => (
+                                    <div className="flex flex-col items-start gap-1">
+                                        <Badge status={row.original.status === 'Ouvert' ? 'error' : row.original.status === 'En cours' ? 'warning' : 'success'} variant="outline">
+                                            {row.original.status}
+                                        </Badge>
+                                        {isReviewOverdue(row.original) && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
+                                                <Clock className="h-3 w-3 mr-1" /> Revue en retard
+                                            </span>
+                                        )}
+                                    </div>
+                                ),
+                            },
+                            {
+                                id: 'actions',
+                                header: '',
+                                cell: ({ row }) => (
+                                    <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                                        {canEdit && (
+                                            <>
+                                                <button onClick={() => { setSelectedRisk(row.original); setIsEditing(true); }} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all" title="Modifier">
+                                                    <Edit className="h-4 w-4" />
+                                                </button>
+                                                <button onClick={() => initiateDelete(row.original.id, row.original.threat)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Supprimer">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                ),
+                            },
+                        ]}
+                        data={filteredRisks}
+                        selectable={canEdit}
+                        onRowClick={(risk) => openInspector(risk)}
+                        searchable={false}
+                        exportable={false}
+                        loading={loading}
+                        onBulkDelete={async (selectedIds) => {
+                            if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} risques ? Cette action est irréversible.`)) {
+                                return;
+                            }
+
+                            try {
+                                const batch = writeBatch(db);
+                                selectedIds.forEach(id => {
+                                    const ref = doc(db, 'risks', id);
+                                    batch.delete(ref);
+                                });
+                                await batch.commit();
+
+                                addToast(`${selectedIds.length} risques supprimés avec succès`, 'success');
+                                refreshRisks();
+                            } catch (error) {
+                                ErrorLogger.handleErrorWithToast(error, 'Risks.bulkDelete', 'DELETE_FAILED');
+                            }
+                        }}
+                    />
                 </div>
             ) : (
                 <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in">

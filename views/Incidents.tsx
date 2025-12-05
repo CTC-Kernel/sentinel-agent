@@ -174,23 +174,39 @@ export const Incidents: React.FC = () => {
         if (!canDeleteResource(user, 'Incident')) return;
         setConfirmData({ isOpen: true, title: "Supprimer l'incident ?", message: "Cette action est définitive.", onConfirm: () => handleDelete(id) });
     };
+    const performDelete = async (id: string) => {
+        await deleteDoc(doc(db, 'incidents', id));
+        // Backend Audit Log
+        await hybridService.logCriticalEvent({
+            action: 'DELETE',
+            resource: 'Incident',
+            details: `Deleted incident ID: ${id}`,
+            metadata: { incidentId: id }
+        });
+    };
+
     const handleDelete = async (id: string) => {
         if (!canDeleteResource(user, 'Incident')) return;
         try {
-            await deleteDoc(doc(db, 'incidents', id));
-
-            // Backend Audit Log
-            await hybridService.logCriticalEvent({
-                action: 'DELETE',
-                resource: 'Incident',
-                details: `Deleted incident ID: ${id}`,
-                metadata: { incidentId: id }
-            });
-
+            await performDelete(id);
             if (selectedIncident?.id === id) setSelectedIncident(null);
             addToast("Incident supprimé", "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.handleDelete', 'DELETE_FAILED');
+        }
+    };
+
+    const handleBulkDelete = async (ids: string[]) => {
+        if (!canDeleteResource(user, 'Incident')) return;
+        if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ces ${ids.length} incidents ?`)) return;
+
+        try {
+            await Promise.all(ids.map(performDelete));
+            const selectedId = selectedIncident?.id;
+            if (selectedId && ids.includes(selectedId)) setSelectedIncident(null);
+            addToast(`${ids.length} incidents supprimés`, "info");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Incidents.handleBulkDelete', 'DELETE_FAILED');
         }
     };
 
@@ -348,6 +364,7 @@ export const Incidents: React.FC = () => {
                 onSelect={(inc: Incident) => { setSelectedIncident(inc); setIsEditing(false); }}
                 loading={loading}
                 onDelete={initiateDelete}
+                onBulkDelete={handleBulkDelete}
             />
 
             {/* Inspector Drawer */}

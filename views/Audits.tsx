@@ -26,7 +26,9 @@ import { logAction } from '../services/logger';
 import { PdfService } from '../services/PdfService';
 
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
+import { CardSkeleton } from '../components/ui/Skeleton';
+import { DataTable } from '../components/ui/DataTable';
+import { ColumnDef } from '@tanstack/react-table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { sendEmail } from '../services/emailService';
@@ -140,6 +142,83 @@ export const Audits: React.FC = () => {
     }, [rawRisks]);
 
     const loading = auditsLoading || controlsLoading || assetsLoading || risksLoading || usersLoading || docsLoading || projectsLoading || findingsLoading;
+
+    const columns = React.useMemo<ColumnDef<Audit>[]>(() => [
+        {
+            accessorKey: 'name',
+            header: 'Audit',
+            cell: ({ row }) => (
+                <div>
+                    <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</div>
+                    <div className="text-xs text-slate-500 font-medium">{row.original.type}</div>
+                </div>
+            )
+        },
+        {
+            accessorKey: 'auditor',
+            header: 'Auditeur',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-medium">
+                    <User className="h-4 w-4" />
+                    {row.original.auditor || 'Non assigné'}
+                </div>
+            )
+        },
+        {
+            accessorKey: 'status',
+            header: 'Statut',
+            cell: ({ row }) => {
+                const colors = {
+                    'Planifié': 'bg-blue-100 text-blue-800 border-blue-200',
+                    'En cours': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+                    'Validé': 'bg-green-100 text-green-800 border-green-200',
+                    'Retard': 'bg-red-100 text-red-800 border-red-200',
+                    'Annulé': 'bg-gray-100 text-gray-800 border-gray-200'
+                };
+                return (
+                    <span className={`px-2 py-1 rounded-md text-xs font-bold border ${colors[row.original.status as keyof typeof colors] || 'bg-gray-100 text-gray-800'}`}>
+                        {row.original.status}
+                    </span>
+                );
+            }
+        },
+        {
+            accessorKey: 'findingsCount',
+            header: 'Écarts',
+            cell: ({ row }) => (
+                <div className="flex items-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg w-fit">
+                    <AlertOctagon className="h-3.5 w-3.5 mr-1.5" /> {row.original.findingsCount || 0}
+                </div>
+            )
+        },
+        {
+            accessorKey: 'dateScheduled',
+            header: 'Date Prévue',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-medium">
+                    <CalendarDays className="h-4 w-4" />
+                    {new Date(row.original.dateScheduled).toLocaleDateString()}
+                </div>
+            )
+        },
+        {
+            id: 'actions',
+            cell: ({ row }) => (
+                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                    {canEdit && (
+                        <>
+                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(row.original); }} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
+                                <Edit className="h-4 w-4" />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(row.original.id, row.original.name); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </>
+                    )}
+                </div>
+            )
+        }
+    ], [canEdit]);
 
     const [creationMode, setCreationMode] = useState(false);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
@@ -386,18 +465,20 @@ export const Audits: React.FC = () => {
         });
     };
 
+    const performDelete = async (id: string) => {
+        // Delete findings first (Cascade)
+        const findingsQ = query(collection(db, 'findings'), where('auditId', '==', id));
+        const findingsSnap = await getDocs(findingsQ);
+        const deletePromises = findingsSnap.docs.map(d => deleteDoc(doc(db, 'findings', d.id)));
+        await Promise.all(deletePromises);
+
+        await deleteDoc(doc(db, 'audits', id));
+    };
+
     const handleDeleteAudit = async (id: string, name: string) => {
         if (!canDeleteResource(user, 'Audit')) return;
         try {
-            // Delete findings first (Cascade)
-            const findingsQ = query(collection(db, 'findings'), where('auditId', '==', id));
-            const findingsSnap = await getDocs(findingsQ);
-
-            // Actually, let's use Promise.all for simplicity or import writeBatch
-            const deletePromises = findingsSnap.docs.map(d => deleteDoc(doc(db, 'findings', d.id)));
-            await Promise.all(deletePromises);
-
-            await deleteDoc(doc(db, 'audits', id));
+            await performDelete(id);
             refreshAudits();
             if (selectedAudit?.id === id) {
                 setSelectedAudit(null);
@@ -408,6 +489,23 @@ export const Audits: React.FC = () => {
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Audits.handleDeleteAudit', 'DELETE_FAILED');
             addToast("Erreur suppression", "error");
+        }
+    };
+
+    const handleBulkDelete = async (ids: string[]) => {
+        if (!canDeleteResource(user, 'Audit')) return;
+        if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ces ${ids.length} audits ?`)) return;
+
+        try {
+            await Promise.all(ids.map(performDelete));
+            if (selectedAudit?.id && ids.includes(selectedAudit.id)) {
+                setSelectedAudit(null);
+                setShowFindingsDrawer(false);
+            }
+            refreshAudits();
+            addToast(`${ids.length} audits supprimés`, "info");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Audits.handleBulkDelete', 'DELETE_FAILED');
         }
     };
 
@@ -944,93 +1042,15 @@ export const Audits: React.FC = () => {
 
             {viewMode === 'list' ? (
                 <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
-                                <tr>
-                                    <th className="px-8 py-4">Audit</th>
-                                    <th className="px-6 py-4">Type</th>
-                                    <th className="px-6 py-4">Auditeur</th>
-                                    <th className="px-6 py-4">Date</th>
-                                    <th className="px-6 py-4">Statut</th>
-                                    <th className="px-6 py-4">Écarts</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                {loading ? (
-                                    <tr><td colSpan={7}><TableSkeleton rows={5} columns={7} /></td></tr>
-                                ) : filteredAudits.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7}>
-                                            <EmptyState
-                                                icon={Activity}
-                                                title="Aucun audit planifié"
-                                                description={filter ? "Aucun audit ne correspond à votre recherche." : "Planifiez des audits réguliers pour assurer la conformité continue."}
-                                                actionLabel={filter || !hasPermission(user, 'Audit', 'create') ? undefined : "Planifier un audit"}
-                                                onAction={filter || !hasPermission(user, 'Audit', 'create') ? undefined : () => openCreationDrawer()}
-                                            />
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredAudits.map(audit => (
-                                        <tr key={audit.id} onClick={() => handleOpenAudit(audit)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]">
-                                            <td className="px-8 py-5">
-                                                <div className="font-bold text-slate-900 dark:text-white text-[15px]">{audit.name}</div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <span className="px-2.5 py-1 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
-                                                    {audit.type}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
-                                                <div className="flex items-center">
-                                                    <User className="h-3.5 w-3.5 mr-2 text-slate-400" />
-                                                    {audit.auditor}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
-                                                <div className="flex items-center">
-                                                    <CalendarDays className="h-3.5 w-3.5 mr-2 text-slate-400" />
-                                                    {new Date(audit.dateScheduled).toLocaleDateString() || 'Non planifié'}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${getStatusColor(audit.status)}`}>
-                                                    {audit.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg w-fit">
-                                                    <AlertOctagon className="h-3.5 w-3.5 mr-1.5" /> {audit.findingsCount}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                                {canEdit && (
-                                                    <>
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); openEditDrawer(audit); }}
-                                                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
-                                                            title="Modifier"
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(audit.id, audit.name) }}
-                                                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
-                                                            title="Supprimer"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <DataTable
+                        columns={columns}
+                        data={filteredAudits}
+                        selectable={true}
+                        onBulkDelete={handleBulkDelete}
+                        onRowClick={handleOpenAudit}
+                        searchable={false}
+                        loading={loading}
+                    />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

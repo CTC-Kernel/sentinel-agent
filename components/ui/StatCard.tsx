@@ -4,7 +4,7 @@ import { TrendingUp, TrendingDown, Minus } from './Icons';
 interface StatCardProps {
     title: string;
     value: string | number;
-    icon: React.ElementType;
+    icon: any;
     trend?: {
         value: number;
         label: string;

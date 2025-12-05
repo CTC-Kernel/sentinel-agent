@@ -3,10 +3,10 @@ import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Helmet } from 'react-helmet-async';
 
-import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot, writeBatch } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db } from '../firebase';
-import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, Audit, Supplier, BusinessProcess } from '../types';
+import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, BusinessProcess, Supplier, Audit, Vulnerability } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, LayoutGrid, List, BrainCircuit } from '../components/ui/Icons';
@@ -39,8 +39,9 @@ import { AssetFormData, assetSchema } from '../schemas/assetSchema';
 import { z } from 'zod';
 
 import { Edit } from '../components/ui/Icons';
-import { integrationService, Vulnerability } from '../services/integrationService';
+import { integrationService } from '../services/integrationService';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { DataTable } from '../components/ui/DataTable';
 
 interface ShodanResult {
     ip_str?: string;
@@ -643,45 +644,110 @@ export const Assets: React.FC = () => {
             {/* List / Grid */}
             {viewMode === 'list' ? (
                 <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
-                                <tr><th className="px-8 py-4">Actif</th><th className="px-6 py-4">Type</th><th className="px-6 py-4">Classification</th><th className="px-6 py-4">Statut</th><th className="px-6 py-4">Localisation</th><th className="px-6 py-4 text-right">Actions</th></tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                {loading ? (
-                                    <tr><td colSpan={6}><TableSkeleton rows={5} columns={6} /></td></tr>
-                                ) : paginatedItems.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={6}>
-                                            <EmptyState
-                                                icon={Server}
-                                                title="Aucun actif trouvé"
-                                                description={activeFilters.query ? "Aucun actif ne correspond à votre recherche." : "Commencez par ajouter votre premier actif pour suivre votre parc."}
-                                                actionLabel={activeFilters.query || !canEdit ? undefined : "Nouvel Actif"}
-                                                onAction={activeFilters.query || !canEdit ? undefined : () => openInspector(undefined)}
-                                            />
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    paginatedItems.map((asset) => {
-                                        const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
-                                        const maintenanceOverdue = asset.nextMaintenance && new Date(asset.nextMaintenance) < new Date();
-                                        return (
-                                            <tr key={asset.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]" onClick={() => openInspector(asset)}>
-                                                <td className="px-8 py-5"><div className="flex items-center"><div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300"><Server className="h-5 w-5" strokeWidth={1.5} /></div><div><div className="font-bold text-slate-900 dark:text-white text-[15px]">{asset.name}</div><div className="flex items-center gap-2 mt-0.5 flex-wrap"><span className="text-xs text-slate-500 font-medium">{asset.owner}</span>{warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}{maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-900 px-1.5 py-0.5 rounded font-bold flex items-center"><Clock className="h-2.5 w-2.5 mr-1" />Maint.</span>}{asset.scope && asset.scope.map(s => <span key={s} className="text-[9px] bg-indigo-50 dark:bg-slate-900 text-indigo-600 border border-indigo-100 dark:bg-slate-900/30 dark:text-indigo-400 dark:border-indigo-900 px-1.5 py-0.5 rounded font-bold">{s}</span>)}</div></div></div></td>
-                                                <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">{asset.type}</td>
-                                                <td className="px-6 py-5"><span className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wide border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span></td>
-                                                <td className="px-6 py-5"><span className={`flex items-center w-fit px-2.5 py-1 rounded-full text-[11px] font-bold border ${asset.lifecycleStatus === 'En service' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}`}><span className={`w-1.5 h-1.5 rounded-full mr-2 ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>{asset.lifecycleStatus || 'Neuf'}</span></td>
-                                                <td className="px-6 py-5 text-slate-500 dark:text-slate-400 font-medium text-xs">{asset.location}</td>
-                                                <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}><button onClick={() => generateLabels(asset)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>{canDeleteResource(user, 'Asset') && (<button onClick={() => initiateDelete(asset.id, asset.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer"><Trash2 className="h-4 w-4" /></button>)}</td>
-                                            </tr>
-                                        )
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <DataTable
+                        columns={[
+                            {
+                                header: 'Actif',
+                                accessorKey: 'name',
+                                cell: ({ row }) => {
+                                    const asset = row.original;
+                                    const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
+                                    const maintenanceOverdue = asset.nextMaintenance && new Date(asset.nextMaintenance) < new Date();
+                                    return (
+                                        <div className="flex items-center">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300">
+                                                <Server className="h-5 w-5" strokeWidth={1.5} />
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-slate-900 dark:text-white text-[15px]">{asset.name}</div>
+                                                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                    <span className="text-xs text-slate-500 font-medium">{asset.owner}</span>
+                                                    {warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}
+                                                    {maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-900 px-1.5 py-0.5 rounded font-bold flex items-center"><Clock className="h-2.5 w-2.5 mr-1" />Maint.</span>}
+                                                    {asset.scope && asset.scope.map(s => <span key={s} className="text-[9px] bg-indigo-50 dark:bg-slate-900 text-indigo-600 border border-indigo-100 dark:bg-slate-900/30 dark:text-indigo-400 dark:border-indigo-900 px-1.5 py-0.5 rounded font-bold">{s}</span>)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                },
+                            },
+                            {
+                                header: 'Type',
+                                accessorKey: 'type',
+                                cell: ({ row }) => <span className="text-slate-600 dark:text-slate-400 font-medium">{row.original.type}</span>,
+                            },
+                            {
+                                header: 'Classification',
+                                accessorKey: 'confidentiality',
+                                cell: ({ row }) => (
+                                    <span className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wide border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>
+                                        {row.original.confidentiality}
+                                    </span>
+                                ),
+                            },
+                            {
+                                header: 'Statut',
+                                accessorKey: 'lifecycleStatus',
+                                cell: ({ row }) => {
+                                    const status = row.original.lifecycleStatus || 'Neuf';
+                                    const isService = status === 'En service';
+                                    return (
+                                        <span className={`flex items-center w-fit px-2.5 py-1 rounded-full text-[11px] font-bold border ${isService ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full mr-2 ${isService ? 'bg-green-500' : 'bg-slate-400'}`}></span>
+                                            {status}
+                                        </span>
+                                    );
+                                },
+                            },
+                            {
+                                header: 'Localisation',
+                                accessorKey: 'location',
+                                cell: ({ row }) => <span className="text-slate-500 dark:text-slate-400 font-medium text-xs">{row.original.location}</span>,
+                            },
+                            {
+                                id: 'actions',
+                                header: '',
+                                cell: ({ row }) => (
+                                    <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                                        <button onClick={() => generateLabels(row.original)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all" title="Imprimer Étiquette">
+                                            <QrCode className="h-4 w-4" />
+                                        </button>
+                                        {canDeleteResource(user, 'Asset') && (
+                                            <button onClick={() => initiateDelete(row.original.id, row.original.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Supprimer">
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ),
+                            },
+                        ]}
+                        data={filteredAssets}
+                        selectable={canDeleteResource(user, 'Asset')}
+                        onRowClick={(asset) => openInspector(asset)}
+                        searchable={false}
+                        exportable={false}
+                        loading={loading}
+                        pageSize={12}
+                        onBulkDelete={async (selectedIds) => {
+                            if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} actifs ? Cette action est irréversible.`)) {
+                                return;
+                            }
+
+                            try {
+                                const batch = writeBatch(db);
+                                selectedIds.forEach(id => {
+                                    const ref = doc(db, 'assets', id);
+                                    batch.delete(ref);
+                                });
+                                await batch.commit();
+
+                                addToast(`${selectedIds.length} actifs supprimés avec succès`, 'success');
+                                // Refresh logic is usually automatic with Firestore subscription
+                            } catch (error) {
+                                ErrorLogger.handleErrorWithToast(error, 'Assets.bulkDelete', 'DELETE_FAILED');
+                            }
+                        }}
+                    />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -732,7 +798,7 @@ export const Assets: React.FC = () => {
             )}
 
             {/* Pagination */}
-            {!loading && filteredAssets.length > 0 && (
+            {!loading && filteredAssets.length > 0 && viewMode === 'grid' && (
                 <Pagination
                     currentPage={currentPage}
                     totalItems={totalItems}

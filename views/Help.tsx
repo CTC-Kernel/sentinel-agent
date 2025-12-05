@@ -16,7 +16,7 @@ type ArticleSection = {
 type HelpArticle = {
     id: string;
     title: string;
-    icon?: React.ElementType;
+    icon?: any;
     description: string;
     sections: ArticleSection[];
 };
@@ -24,7 +24,7 @@ type HelpArticle = {
 type HelpCategory = {
     id: string;
     title: string;
-    icon: React.ElementType;
+    icon: any;
     articles: HelpArticle[];
 };
 
