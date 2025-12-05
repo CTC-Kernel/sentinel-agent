@@ -220,18 +220,27 @@ export const Login: React.FC = () => {
                                         // Sync with Firebase JS SDK
                                         if (result.credential?.idToken) {
                                             alert("Step 3: Syncing with JS SDK...");
-                                            alert("Result payload: " + JSON.stringify(result)); // Debug log
+                                            // alert("Result payload: " + JSON.stringify(result)); // Too verbose for user, check console
 
                                             const provider = new OAuthProvider('apple.com');
-                                            const credential = provider.credential({
+                                            const credentialParams: any = {
                                                 idToken: result.credential.idToken,
-                                                rawNonce: result.credential.rawNonce, // Restore rawNonce
-                                            });
-                                            await signInWithCredential(auth, credential);
-                                            alert("Step 4: Sync Complete! Redirecting...");
-                                            addToast("Connexion réussie", "success");
-                                            // Force reload to ensure auth state sync
-                                            window.location.href = '/';
+                                            };
+                                            // Only add rawNonce if it exists and is not empty
+                                            if (result.credential.rawNonce) {
+                                                credentialParams.rawNonce = result.credential.rawNonce;
+                                            }
+
+                                            try {
+                                                const credential = provider.credential(credentialParams);
+                                                await signInWithCredential(auth, credential);
+                                                alert("Step 4: Sync Complete! Redirecting...");
+                                                addToast("Connexion réussie", "success");
+                                                window.location.href = '/';
+                                            } catch (innerError: any) {
+                                                alert("JS Sync Error: " + innerError.message);
+                                                throw innerError;
+                                            }
                                         } else {
                                             alert("Error: No ID Token from Apple");
                                         }
