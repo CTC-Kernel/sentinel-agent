@@ -847,12 +847,13 @@ const VoxelMesh: React.FC<{
     };
 
     const getDataLabel = (data: VoxelNode['data']): string => {
-      if ('name' in data) return data.name;
-      if ('title' in data) return data.title;
-      if ('threat' in data) return data.threat;
+      if (!data) return 'Élément';
+      if ('name' in data && data.name) return String(data.name);
+      if ('title' in data && data.title) return String(data.title);
+      if ('threat' in data && data.threat) return String(data.threat);
       return 'Élément';
     };
-    const rawLabel = getDataLabel(node.data);
+    const rawLabel = getDataLabel(node.data) || 'Élément';
     const label = rawLabel.length > 24 ? `${rawLabel.slice(0, 21)}…` : rawLabel;
     const safeLabel = safeRender(label);
 
