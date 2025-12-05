@@ -11,9 +11,13 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboarding = true }) => {
-    const { user, loading, firebaseUser } = useAuth();
+    const { user, loading, firebaseUser, error } = useAuth();
 
     const location = useLocation();
+
+    if (error) {
+        throw error;
+    }
 
     if (loading) {
         return <LoadingScreen />;
