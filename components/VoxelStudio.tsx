@@ -1,7 +1,7 @@
 import React, { useRef, useState, useMemo, useEffect, createContext, useContext, useCallback, Component, ErrorInfo, Suspense } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment, Html, Billboard } from '@react-three/drei';
-import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints, BufferGeometry } from 'three';
+import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints, BufferGeometry, Material } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, VoxelNode } from '../types';
@@ -560,8 +560,8 @@ const VoxelMesh: React.FC<{
     const modelLibrary = useModelLibrary();
     const meshRef = useRef<Group>(null);
     const [hovered, setHovered] = useState(false);
-    const [currentScale, setCurrentScale] = useState(1);
-    const [currentGlow, setCurrentGlow] = useState(0);
+    const currentScale = useRef(1);
+    const currentGlow = useRef(0);
 
     const isCritical = useMemo(() => {
       if (node.type === 'risk') {
@@ -579,24 +579,33 @@ const VoxelMesh: React.FC<{
 
     const labelVisible = hovered || isSelected || isHighlighted;
 
-    useFrame(() => {
-      if (meshRef.current) {
-        meshRef.current.rotation.y += 0.005;
-      }
-    });
-
     // Animate scale and glow using useFrame
     const targetScale = isSelected ? 1.3 : (hovered || isHighlighted || isImpacted) ? 1.15 : 1;
     const targetGlow = (isCritical && highlightCritical) || isImpacted ? 0.8 : 0;
 
     useFrame(() => {
       if (meshRef.current) {
+        meshRef.current.rotation.y += 0.005;
+
         // Smooth interpolation for scale
-        setCurrentScale(prev => prev + (targetScale - prev) * 0.1);
-        meshRef.current.scale.setScalar(currentScale);
+        currentScale.current += (targetScale - currentScale.current) * 0.1;
+        meshRef.current.scale.setScalar(currentScale.current);
 
         // Smooth interpolation for glow
-        setCurrentGlow(prev => prev + (targetGlow - prev) * 0.1);
+        currentGlow.current += (targetGlow - currentGlow.current) * 0.1;
+
+        // Update material emissive intensity directly if possible to avoid re-render
+        meshRef.current.traverse((child) => {
+          if ((child as Mesh).isMesh) {
+            const mesh = child as Mesh;
+            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+            materials.forEach((mat: Material) => {
+              if (mat && 'emissiveIntensity' in mat) {
+                (mat as MeshPhysicalMaterial).emissiveIntensity = 0.35 + currentGlow.current * 0.4;
+              }
+            });
+          }
+        });
       }
     });
 
@@ -620,7 +629,8 @@ const VoxelMesh: React.FC<{
 
     const baseOpacity = isDimmed ? 0.4 : highlightCritical && !isCritical ? 0.7 : 0.95;
     const calculatedOpacity = usesLibraryModel ? Math.max(baseOpacity, 0.85) : baseOpacity;
-    const emissiveIntensity = 0.35 + currentGlow * 0.4;
+    // Initial static value for render, animation handles updates
+    const emissiveIntensity = 0.35;
 
     const sharedMaterialProps = {
       color: baseColor,
