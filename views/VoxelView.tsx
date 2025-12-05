@@ -221,8 +221,8 @@ export const VoxelView: React.FC = () => {
       if ('threat' in item && item.threat) return String(item.threat);
       return 'Élément';
     };
-    const mapNode = (collection: DataNode['data'][], type: LayerType) =>
-      collection.map(item => ({ id: item.id, type, label: getDataLabel(item) }));
+    const mapNode = (collection: DataNode['data'][] | undefined | null, type: LayerType) =>
+      (collection || []).map(item => ({ id: item.id, type, label: getDataLabel(item) }));
     return [
       ...mapNode(assets, 'asset'),
       ...mapNode(risks, 'risk'),
