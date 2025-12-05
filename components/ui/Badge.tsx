@@ -6,7 +6,7 @@ interface BadgeProps {
     status?: 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'brand';
     size?: 'sm' | 'md';
     className?: string;
-    icon?: React.ElementType;
+    icon?: any;
 }
 
 export const Badge: React.FC<BadgeProps> = ({

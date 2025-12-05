@@ -94,7 +94,6 @@ export const Documents: React.FC = () => {
     const [isDigitalSafeMode, setIsDigitalSafeMode] = useState(false);
 
     const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'versions' | 'history' | 'comments'>('details');
     const [docHistory, setDocHistory] = useState<SystemLog[]>([]);
     const [versions, setVersions] = useState<DocumentVersion[]>([]);
     const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
@@ -132,6 +131,9 @@ export const Documents: React.FC = () => {
     // Signature Modal
     const [showSignatureModal, setShowSignatureModal] = useState(false);
     const signaturePadRef = useRef<SignatureCanvas>(null);
+
+    type InspectorTab = 'details' | 'versions' | 'history' | 'comments';
+    const [inspectorTab, setInspectorTab] = useState<InspectorTab>('details');
 
     const handleSignatureSubmit = async () => {
         if (!signaturePadRef.current || signaturePadRef.current.isEmpty()) {
@@ -1015,7 +1017,7 @@ export const Documents: React.FC = () => {
                                                 { id: 'comments', label: 'Discussion', icon: MessageSquare },
                                             ]}
                                             activeTab={inspectorTab}
-                                            onTabChange={(id) => setInspectorTab(id as any)}
+                                            onTabChange={(id) => setInspectorTab(id as InspectorTab)}
                                         />
                                     </div>
 

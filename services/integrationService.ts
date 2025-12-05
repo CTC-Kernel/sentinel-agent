@@ -3,6 +3,8 @@ import { functions, db } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { collection, doc, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
 import { ErrorLogger } from './errorLogger';
+import { MitreTechnique, Vulnerability, CyberNewsItem, CompanySearchResult } from '../types';
+export type { CyberNewsItem, CompanySearchResult } from '../types';
 
 export interface IntegrationProvider {
     id: string;
@@ -192,12 +194,12 @@ class IntegrationService {
         return '';
     }
 
-    async getCommonMitreTechniques(_query: string, isDemoMode: boolean = false): Promise<unknown[]> {
+    async getCommonMitreTechniques(_query: string, isDemoMode: boolean = false): Promise<MitreTechnique[]> {
         if (isDemoMode) {
             await new Promise(resolve => setTimeout(resolve, 500));
             return [
-                { id: 'T1566', name: 'Phishing', url: 'https://attack.mitre.org/techniques/T1566/' },
-                { id: 'T1190', name: 'Exploit Public-Facing Application', url: 'https://attack.mitre.org/techniques/T1190/' }
+                { id: 'T1566', name: 'Phishing', description: 'Phishing' },
+                { id: 'T1190', name: 'Exploit Public-Facing Application', description: 'Exploitation' }
             ];
         }
         // Real implementation would call MITRE ATT&CK API
@@ -351,29 +353,6 @@ class IntegrationService {
         await new Promise(resolve => setTimeout(resolve, 300));
         return { valid: true, message: 'Numéro de TVA valide (Simulé)' };
     }
-}
-
-export interface CompanySearchResult {
-    name: string;
-    siren: string;
-    address: string;
-    activity: string;
-}
-
-export interface CyberNewsItem {
-    title: string;
-    link: string;
-    pubDate: string;
-    source: string;
-}
-
-export interface Vulnerability {
-    cveId: string;
-    description: string;
-    severity: 'Low' | 'Medium' | 'High' | 'Critical';
-    score?: number;
-    publishedDate: string;
-    source: string;
 }
 
 export const integrationService = new IntegrationService();

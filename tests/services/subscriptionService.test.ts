@@ -8,6 +8,10 @@ vi.mock('firebase/firestore', () => ({
     getDoc: vi.fn(),
     getFunctions: vi.fn(),
     httpsCallable: vi.fn(),
+    initializeFirestore: vi.fn(() => ({})),
+    persistentLocalCache: vi.fn(),
+    persistentMultipleTabManager: vi.fn(),
+    getFirestore: vi.fn(), // If used elsewhere
 }));
 
 // Mock getPlanLimits to avoid dependency on config file if possible, or let it run if it's pure JS

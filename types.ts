@@ -61,6 +61,35 @@ export interface MaintenanceRecord {
   cost?: number;
 }
 
+export interface MitreTechnique {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface CompanySearchResult {
+  name: string;
+  siren: string;
+  address: string;
+  activity: string;
+}
+
+export interface CyberNewsItem {
+  title: string;
+  link: string;
+  pubDate: string;
+  source: string;
+}
+
+export interface Vulnerability {
+  cveId: string;
+  description: string;
+  severity: 'Low' | 'Medium' | 'High' | 'Critical';
+  score?: number;
+  publishedDate: string;
+  source: string;
+}
+
 export interface Risk {
   id: string;
   organizationId: string;
@@ -73,7 +102,7 @@ export interface Risk {
   residualProbability?: 1 | 2 | 3 | 4 | 5;
   residualImpact?: 1 | 2 | 3 | 4 | 5;
   residualScore?: number;
-  mitreTechniques?: { id: string; name: string; description: string; }[];
+  mitreTechniques?: MitreTechnique[];
   previousScore?: number;
   strategy: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
   status: 'Ouvert' | 'En cours' | 'Fermé';
@@ -256,7 +285,7 @@ export interface RiskHistory {
   residualProbability?: number;
   residualImpact?: number;
   residualScore?: number;
-  mitreTechniques?: { id: string; name: string; description: string; }[];
+  mitreTechniques?: MitreTechnique[];
   changedBy: string;
   reason?: string;
 }

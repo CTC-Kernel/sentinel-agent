@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 interface Tab {
     id: string;
     label: string;
-    icon?: React.ElementType;
+    icon?: any;
 }
 
 interface ScrollableTabsProps {
@@ -64,8 +64,8 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                         key={tab.id}
                         onClick={() => onTabChange(tab.id)}
                         className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap flex-shrink-0 ${activeTab === tab.id
-                                ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white'
-                                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                            ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white'
+                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                             }`}
                     >
                         {tab.icon && (

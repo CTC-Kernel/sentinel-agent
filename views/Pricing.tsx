@@ -68,7 +68,7 @@ const Pricing = () => {
     { name: 'Onboarding Assisté', discovery: false, professional: false, enterprise: true, tooltip: "Accompagnement personnalisé pour la configuration initiale." },
   ];
 
-  const plans: { id: PlanType; name: string; icon: React.ElementType; popular?: boolean }[] = [
+  const plans: { id: PlanType; name: string; icon: any; popular?: boolean }[] = [
     { id: 'discovery', name: 'Discovery', icon: Shield },
     { id: 'professional', name: 'Professional', icon: Zap, popular: true },
     { id: 'enterprise', name: 'Enterprise', icon: Building2 },

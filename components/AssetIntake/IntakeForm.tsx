@@ -32,7 +32,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
         hardwareType: hardwareInfo.isMobile ? 'Mobile' : 'Laptop' // Default guess
     });
 
-    const assetTypeIcons: Record<string, JSX.Element> = {
+    const assetTypeIcons: Record<string, React.ReactNode> = {
         'Laptop': <Laptop className="h-8 w-8 text-blue-600" />,
         'Server': <Server className="h-8 w-8 text-blue-600" />,
         'Workstation': <Laptop className="h-8 w-8 text-blue-600" />,
