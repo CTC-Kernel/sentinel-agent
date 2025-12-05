@@ -9,6 +9,14 @@ export enum Criticality {
 export type ResourceType = 'Asset' | 'Risk' | 'Project' | 'Audit' | 'Document' | 'Control' | 'Incident' | 'Supplier' | 'BusinessProcess';
 export type ActionType = 'read' | 'create' | 'update' | 'delete' | 'manage';
 
+// ... (existing imports, etc)
+
+export interface AIAnalysisResult {
+  type: string;
+  response: Record<string, any>;
+  timestamp: string;
+}
+
 export interface Asset {
   id: string;
   organizationId: string;
@@ -41,6 +49,7 @@ export interface Asset {
   hardwareType?: string;
   hardware?: Record<string, unknown>;
   notes?: string;
+  aiAnalysis?: AIAnalysisResult;
 }
 
 export interface MaintenanceRecord {
@@ -82,6 +91,7 @@ export interface Risk {
   category?: string;
   updatedAt?: string;
   justification?: string;
+  aiAnalysis?: AIAnalysisResult;
 }
 
 export interface RiskTreatment {

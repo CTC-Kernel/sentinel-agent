@@ -22,8 +22,12 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
         text?: string;
     }
 
-    const [response, setResponse] = useState<AIAnalysisResponse | null>(null);
-    const [mode, setMode] = useState<'analyze' | 'maintenance' | 'optimize' | null>(null);
+    const [response, setResponse] = useState<AIAnalysisResponse | null>(
+        asset.aiAnalysis?.response ? asset.aiAnalysis.response as AIAnalysisResponse : null
+    );
+    const [mode, setMode] = useState<'analyze' | 'maintenance' | 'optimize' | null>(
+        (asset.aiAnalysis?.type as any) || null
+    );
     const [error, setError] = useState<string | null>(null);
 
     const handleAction = async (action: 'analyze' | 'maintenance' | 'optimize') => {
@@ -77,16 +81,40 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
             const resultText = await aiService.generateText(prompt);
 
             try {
+                let parsedResponse: AIAnalysisResponse;
                 const jsonMatch = resultText.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
-                    const parsed = JSON.parse(jsonMatch[0]);
-                    setResponse(parsed);
+                    parsedResponse = JSON.parse(jsonMatch[0]);
                 } else {
-                    setResponse({ text: resultText } as AIAnalysisResponse);
+                    parsedResponse = { text: resultText } as AIAnalysisResponse;
                 }
+
+                setResponse(parsedResponse);
+
+                // Persist the result
+                if (onUpdate) {
+                    onUpdate({
+                        aiAnalysis: {
+                            type: action,
+                            response: parsedResponse,
+                            timestamp: new Date().toISOString()
+                        }
+                    });
+                }
+
             } catch (e) {
                 ErrorLogger.warn("Failed to parse AI response", 'AssetAIAssistant.handleAction', { metadata: { error: e } });
-                setResponse({ text: resultText } as AIAnalysisResponse);
+                const fallbackResponse = { text: resultText } as AIAnalysisResponse;
+                setResponse(fallbackResponse);
+                if (onUpdate) {
+                    onUpdate({
+                        aiAnalysis: {
+                            type: action,
+                            response: fallbackResponse,
+                            timestamp: new Date().toISOString()
+                        }
+                    });
+                }
             }
 
         } catch (error) {
@@ -97,18 +125,47 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
         }
     };
 
-    const handleApply = () => {
+    const [applying, setApplying] = useState(false);
+
+    const handleApply = async () => {
         if (!onUpdate || !response) return;
 
-        if (mode === 'analyze' && typeof response.confidentiality === 'string') {
+        setApplying(true);
+        try {
+            if (mode === 'analyze') {
+                // Rough mapping to handle case sensitivity
+                const mapCriticality = (val: string): Criticality => {
+                    const v = val.toLowerCase();
+                    if (v.includes('low') || v.includes('faible')) return Criticality.LOW;
+                    if (v.includes('medium') || v.includes('moyenne')) return Criticality.MEDIUM;
+                    if (v.includes('high') || v.includes('élevée') || v.includes('elevee')) return Criticality.HIGH;
+                    if (v.includes('critical') || v.includes('critique')) return Criticality.CRITICAL;
+                    return Criticality.MEDIUM; // Default
+                };
+
+                if (response.confidentiality) {
+                    await onUpdate({
+                        confidentiality: mapCriticality(response.confidentiality),
+                        integrity: mapCriticality(response.integrity),
+                        availability: mapCriticality(response.availability),
+                    });
+                }
+            }
+        } finally {
+            setApplying(false);
+        }
+        // Do not clear the response, keep it visible as requested
+    };
+
+    const handleDismiss = () => {
+        setResponse(null);
+        if (onUpdate) {
+            // Clear the persisted analysis
             onUpdate({
-                confidentiality: response.confidentiality as Criticality,
-                integrity: response.integrity as Criticality,
-                availability: response.availability as Criticality,
+                aiAnalysis: null as any // Force null to clear field
             });
         }
-        setResponse(null);
-    };
+    }
 
     return (
         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-5 border border-indigo-100 dark:border-indigo-500/30">
@@ -160,7 +217,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                             <Bot className="h-3.5 w-3.5 mr-1.5" />
                             Réponse de l'IA
                         </h4>
-                        <button onClick={() => setResponse(null)} className="text-slate-400 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>
+                        <button onClick={handleDismiss} className="text-slate-400 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>
                     </div>
 
                     <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
@@ -191,10 +248,11 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                     {onUpdate && mode === 'analyze' && !response.text && (
                         <button
                             onClick={handleApply}
-                            className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors"
+                            disabled={applying}
+                            className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <ShieldCheck className="h-3.5 w-3.5 mr-2" />
-                            Appliquer les changements
+                            {applying ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
+                            {applying ? 'Application...' : 'Appliquer les changements'}
                         </button>
                     )}
                 </div>
