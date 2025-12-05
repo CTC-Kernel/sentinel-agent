@@ -3,7 +3,6 @@ import { Canvas, useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { OrbitControls, Line, Html, Text, Float, Edges, Environment, Billboard } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints, Material } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, VoxelNode } from '../types';
 import { VoxelDetailOverlay } from './VoxelDetailOverlay';
 
@@ -1552,10 +1551,10 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                 }}
               />
 
-              <EffectComposer>
-                <Bloom luminanceThreshold={1} mipmapBlur intensity={1.5} radius={0.6} />
-                <Vignette eskil={false} offset={0.1} darkness={1.1} />
-              </EffectComposer>
+              {/* <EffectComposer>
+              <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} height={300} />
+              <Vignette eskil={false} offset={0.1} darkness={1.1} />
+            </EffectComposer> */}
             </ModelLibraryProvider>
           </Suspense>
         </VoxelErrorBoundary>
