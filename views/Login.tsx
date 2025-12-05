@@ -202,8 +202,10 @@ export const Login: React.FC = () => {
                                 try {
                                     const { Capacitor } = await import('@capacitor/core');
                                     const isNative = Capacitor.isNativePlatform();
+                                    console.log('Apple Sign In Debug:', { isNative, platform: Capacitor.getPlatform(), authInitialized: !!auth });
 
                                     if (isNative) {
+                                        console.log('Starting Native Apple Sign In');
                                         const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
 
                                         // Add timeout to detect hangs
@@ -215,6 +217,8 @@ export const Login: React.FC = () => {
                                                 setTimeout(() => reject(new Error("Apple Sign In timed out.")), 15000)
                                             )
                                         ]) as any;
+
+                                        console.log('Native Result:', result);
 
                                         // Sync with Firebase JS SDK
                                         if (result.credential?.idToken) {
@@ -229,6 +233,7 @@ export const Login: React.FC = () => {
 
                                             try {
                                                 const credential = provider.credential(credentialParams);
+                                                console.log('Signing in with credential...');
                                                 await signInWithCredential(auth, credential);
                                                 addToast("Connexion réussie", "success");
                                                 window.location.href = '/';
@@ -240,10 +245,13 @@ export const Login: React.FC = () => {
                                             throw new Error("No ID Token from Apple");
                                         }
                                     } else {
+                                        console.log('Starting Web Apple Sign In');
                                         const provider = new OAuthProvider('apple.com');
                                         provider.addScope('email');
                                         provider.addScope('name');
+                                        console.log('Provider created:', provider);
                                         await signInWithPopup(auth, provider);
+                                        console.log('Web Sign In Successful');
                                     }
                                 } catch (error: any) {
                                     console.error("Apple Sign In Error:", error);
