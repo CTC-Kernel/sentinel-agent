@@ -470,7 +470,7 @@ export const Settings: React.FC = () => {
             setQrCodeUrl(dataUrl);
         } catch (error: any) {
             setIsEnrollingMFA(false);
-            console.error("MFA Enrollment Error:", error);
+            ErrorLogger.error(error, "Settings.handleEnrollMFA.enrollmentErrors");
 
             if (error.code === 'auth/requires-recent-login') {
                 addToast(t('settings.reloginRequired'), "error");

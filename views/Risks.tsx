@@ -967,7 +967,7 @@ export const Risks: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div className="flex items-center space-x-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 border border-slate-200 dark:border-white/5"><Search className="h-5 w-5 text-slate-400" /><input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                     <button onClick={handleExportRTP} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><FileText className="h-4 w-4 mr-2" /> RTP (PDF)</button>
                     <button onClick={handleExportPDF} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Download className="h-4 w-4 mr-2" /> Registre (PDF)</button>
@@ -997,9 +997,9 @@ export const Risks: React.FC = () => {
             {viewMode === 'matrix' ? (
                 <div className="glass-panel p-8 rounded-[2.5rem] shadow-xl overflow-x-auto animate-fade-in border border-white/50 dark:border-white/5">
                     <div className="min-w-[700px]">
-                        <div className="flex justify-between items-center mb-8">
+                        <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Matrice de Criticité</h3>
-                            <div className="flex gap-2 text-xs font-medium">
+                            <div className="flex flex-wrap gap-2 text-xs font-medium">
                                 <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-rose-500 mr-2"></span>Critique</span>
                                 <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>Élevé</span>
                                 <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-amber-400 mr-2"></span>Moyen</span>
@@ -1290,7 +1290,7 @@ export const Risks: React.FC = () => {
                                 <div className="p-8 space-y-8">
                                     {inspectorTab === 'details' && (
                                         <div className="space-y-8">
-                                            <div className="grid grid-cols-2 gap-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 <div className="p-6 bg-red-50/80 dark:bg-red-900/10 rounded-3xl border border-red-100 dark:border-red-900/30 shadow-sm">
                                                     <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4">Risque Brut</h4>
                                                     <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{selectedRisk.score}</div>
@@ -1318,15 +1318,15 @@ export const Risks: React.FC = () => {
                                             </div>
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Statut Actuel</h4>
-                                                <div className="flex justify-between items-center">
+                                                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                                                     {canEdit ? (
-                                                        <div className="flex gap-3">
+                                                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                                                             {['Ouvert', 'En cours', 'Fermé'].map(s => (
-                                                                <button key={s} onClick={() => handleStatusChange(selectedRisk, s as Risk['status'])} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'}`}>{s}</button>
+                                                                <button key={s} onClick={() => handleStatusChange(selectedRisk, s as Risk['status'])} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'}`}>{s}</button>
                                                             ))}
                                                         </div>
                                                     ) : <Badge status={selectedRisk.status === 'Ouvert' ? 'error' : selectedRisk.status === 'En cours' ? 'warning' : 'success'} variant="soft">{selectedRisk.status}</Badge>}
-                                                    {canEdit && (<button onClick={handleReview} className="flex items-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors"><CalendarDays className="h-3.5 w-3.5 mr-2" /> Valider la revue</button>)}
+                                                    {canEdit && (<button onClick={handleReview} className="flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto"><CalendarDays className="h-3.5 w-3.5 mr-2" /> Valider la revue</button>)}
                                                 </div>
                                                 {selectedRisk.lastReviewDate && (<p className="text-xs text-slate-400 mt-3 text-right">Dernière revue le : {new Date(selectedRisk.lastReviewDate).toLocaleDateString()}</p>)}
                                             </div>
@@ -1342,7 +1342,7 @@ export const Risks: React.FC = () => {
 
                                             <div className="space-y-4">
                                                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Stratégie de traitement</label>
-                                                <div className="grid grid-cols-2 gap-3">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                     {['Accepter', 'Atténuer', 'Transférer', 'Éviter'].map(s => (
                                                         <button
                                                             key={s}

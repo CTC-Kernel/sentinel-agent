@@ -6,6 +6,8 @@ interface VersionInfo {
     timestamp: string;
 }
 
+import { ErrorLogger } from '../services/errorLogger';
+
 export const VersionCheck = () => {
     const [currentVersion, setCurrentVersion] = useState<string | null>(null);
 
@@ -32,7 +34,7 @@ export const VersionCheck = () => {
                     });
                 }
             } catch (error) {
-                console.error('Failed to check version:', error);
+                ErrorLogger.warn('Failed to check version', 'VersionCheck', { metadata: { error } });
             }
         };
 

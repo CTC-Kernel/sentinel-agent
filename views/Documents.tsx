@@ -257,6 +257,9 @@ export const Documents: React.FC = () => {
         try {
             // 1. Fetch the file
             const response = await fetch(docItem.url);
+            if (!response.ok) throw new Error(`Erreur lors du téléchargement (${response.status})`);
+
+            const mimeType = response.headers.get('content-type') || 'application/octet-stream';
             const arrayBuffer = await response.arrayBuffer();
 
             // 2. Verify Integrity (Hash)
@@ -265,15 +268,17 @@ export const Documents: React.FC = () => {
                 const currentHash = CryptoJS.SHA256(wordArray).toString();
                 if (currentHash !== docItem.hash) {
                     addToast("ALERTE : L'intégrité du document est compromise ! Le hash ne correspond pas.", "error");
-                    // We might want to block viewing here, or just warn.
-                    // For now, let's warn but allow viewing (maybe it was modified legitimately outside system).
+                    // We allow viewing but with a warning, or blocking could be an option.
                 } else {
                     addToast("Intégrité du document vérifiée.", "success");
                 }
             }
 
             // 3. Watermark & Certificate (if PDF)
-            if (docItem.url.toLowerCase().includes('.pdf')) {
+            // Use mimeType check instead of just url extension if possible, or fallback to extension
+            const isPdf = mimeType.includes('pdf') || docItem.url.toLowerCase().includes('.pdf');
+
+            if (isPdf) {
                 const pdfDoc = await PDFDocument.load(arrayBuffer);
                 const pages = pdfDoc.getPages();
                 const { height } = pages[0].getSize();
@@ -340,7 +345,7 @@ export const Documents: React.FC = () => {
                 window.open(url, '_blank');
             } else {
                 // Non-PDF
-                const blob = new Blob([arrayBuffer]);
+                const blob = new Blob([arrayBuffer], { type: mimeType });
                 const url = URL.createObjectURL(blob);
                 window.open(url, '_blank');
             }
