@@ -201,7 +201,10 @@ export const Login: React.FC = () => {
                                 setErrorMsg(null);
                                 try {
                                     const { Capacitor } = await import('@capacitor/core');
-                                    if (Capacitor.isNativePlatform()) {
+                                    const isNative = Capacitor.isNativePlatform();
+                                    alert(`DIAGNOSTIC: Platform=${isNative ? 'NATIVE' : 'WEB'}, Auth=${!!auth}, User=${auth?.currentUser?.uid || 'none'}`);
+
+                                    if (isNative) {
                                         alert("Step 1: Starting Native Apple Sign In");
                                         const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
 
