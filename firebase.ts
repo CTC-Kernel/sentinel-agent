@@ -1,7 +1,8 @@
 
 import { initializeApp } from 'firebase/app';
-import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
-import { Capacitor } from '@capacitor/core';
+import { getAuth, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
+// Capacitor import removed from static scope to prevent web issues
+// import { Capacitor } from '@capacitor/core';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
@@ -59,10 +60,25 @@ if (typeof window !== 'undefined') {
 
 
 
-// Use IndexedDB persistence for Capacitor (native), otherwise standard browser persistence
-export const auth = initializeAuth(app, {
-  persistence: Capacitor.isNativePlatform() ? indexedDBLocalPersistence : browserLocalPersistence
-});
+// Use getAuth for immediate instance, configure persistence asynchronously
+export const auth = getAuth(app);
+
+// Configure persistence dynamically to avoid static Capacitor dependencies on web
+(async () => {
+  try {
+    const { Capacitor } = await import('@capacitor/core');
+    if (Capacitor.isNativePlatform()) {
+      await setPersistence(auth, indexedDBLocalPersistence);
+    } else {
+      await setPersistence(auth, browserLocalPersistence);
+    }
+  } catch (error) {
+    // Fallback to browser persistence if Capacitor fails or is missing
+    setPersistence(auth, browserLocalPersistence).catch(e =>
+      ErrorLogger.error(e, 'firebase.persistenceFallback')
+    );
+  }
+})();
 
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
 export const db = initializeFirestore(app, {
