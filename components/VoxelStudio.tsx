@@ -1018,15 +1018,15 @@ const PresentationManager: React.FC<{
 };
 
 export const VoxelStudio: React.FC<VoxelStudioProps> = ({
-  assets,
-  risks,
-  projects,
-  audits,
-  incidents,
-  suppliers,
+  assets = [],
+  risks = [],
+  projects = [],
+  audits = [],
+  incidents = [],
+  suppliers = [],
   onNodeClick,
   className = "",
-  visibleTypes,
+  visibleTypes = [],
   focusNodeId,
   highlightCritical = false,
   summaryStats,
@@ -1039,7 +1039,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   isDetailMinimized,
   setIsDetailMinimized,
   handleSelectionClear,
-  relatedElements,
+  relatedElements = [],
   applyFocus,
   handleOpenSelected,
 }) => {
@@ -1093,117 +1093,112 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   const safeSuppliers = useMemo(() => suppliers ?? [], [suppliers]);
 
   // Convert data to voxel nodes
-  const baseNodes = useMemo(() => {
+  const voxelNodes = useMemo(() => {
     const nodes: VoxelNode[] = [];
-    const gridSize = 10;
+    const GRID_SIZE = 10;
     const spacing = 4;
+    const currentVisible = visibleTypes || [];
 
-    // Assets - Foundation layer (bottom)
-    safeAssets.forEach((asset, index) => {
-      const x = (index % gridSize) * spacing - (gridSize * spacing) / 2;
-      const z = Math.floor(index / gridSize) * spacing - (gridSize * spacing) / 2;
-      const y = -8;
-
-      nodes.push({
-        id: asset.id,
-        type: 'asset',
-        position: applySceneOffset(x, y, z),
-        color: '#3b82f6',
-        size: 0.8,
-        data: asset,
-        connections: []
+    // --- 1. ASSETS (Base Foundation) ---
+    if (currentVisible.includes('asset')) {
+      safeAssets.forEach((asset, i) => {
+        // Simple grid layout for assets
+        const row = Math.floor(i / GRID_SIZE);
+        const col = i % GRID_SIZE;
+        nodes.push({
+          id: asset.id,
+          position: applySceneOffset(col * 3 - (GRID_SIZE * 1.5), 0, row * 3 - (GRID_SIZE * 1.5)),
+          color: '#3b82f6', // blue-500
+          size: 1,
+          type: 'asset',
+          data: asset,
+          connections: []
+        });
       });
-    });
+    }
 
-    // Risks - Middle layer
-    safeRisks.forEach((risk, index) => {
-      const x = (index % gridSize) * spacing - (gridSize * spacing) / 2;
-      const z = Math.floor(index / gridSize) * spacing - (gridSize * spacing) / 2;
-      const y = -4;
-
-      const riskColor = risk.score >= 15 ? '#ef4444' : risk.score >= 10 ? '#f59e0b' : '#22c55e';
-
-      nodes.push({
-        id: risk.id,
-        type: 'risk',
-        position: applySceneOffset(x, y, z),
-        color: riskColor,
-        size: 0.6 + (risk.score / 25) * 0.4,
-        data: risk,
-        connections: [risk.assetId]
+    // --- 2. RISKS (Hovering above assets) ---
+    if (currentVisible.includes('risk')) {
+      safeRisks.forEach((risk, index) => {
+        const x = (index % GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
+        const z = Math.floor(index / GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
+        const y = -4;
+        const riskColor = risk.score >= 15 ? '#ef4444' : risk.score >= 10 ? '#f59e0b' : '#22c55e';
+        nodes.push({
+          id: risk.id,
+          type: 'risk',
+          position: applySceneOffset(x, y, z),
+          color: riskColor,
+          size: 0.6 + (risk.score / 25) * 0.4,
+          data: risk,
+          connections: [risk.assetId]
+        });
       });
-    });
+    }
 
-    // Projects - Upper middle layer
-    safeProjects.forEach((project, index) => {
-      const x = (index % gridSize) * spacing - (gridSize * spacing) / 2;
-      const z = Math.floor(index / gridSize) * spacing - (gridSize * spacing) / 2;
-      const y = 0;
-
-      nodes.push({
-        id: project.id,
-        type: 'project',
-        position: applySceneOffset(x, y, z),
-        color: '#8b5cf6',
-        size: 0.7,
-        data: project,
-        connections: project.relatedRiskIds || []
+    // --- 3. PROJECTS (Building blocks) ---
+    if (currentVisible.includes('project')) {
+      safeProjects.forEach((project, index) => {
+        const x = (index % GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
+        const z = Math.floor(index / GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
+        const y = 0;
+        nodes.push({
+          id: project.id,
+          type: 'project',
+          position: applySceneOffset(x, y, z),
+          color: '#a855f7', // purple-500
+          size: 1.2,
+          data: project,
+          connections: project.relatedRiskIds || []
+        });
       });
-    });
+    }
 
-    // Audits - Upper layer
-    safeAudits.forEach((audit, index) => {
-      const x = (index % gridSize) * spacing - (gridSize * spacing) / 2;
-      const z = Math.floor(index / gridSize) * spacing - (gridSize * spacing) / 2;
-      const y = 4;
-
-      nodes.push({
-        id: audit.id,
-        type: 'audit',
-        position: applySceneOffset(x, y, z),
-        color: '#06b6d4',
-        size: 0.6,
-        data: audit,
-        connections: []
+    // --- 4. AUDITS (Satellites) ---
+    if (currentVisible.includes('audit')) {
+      safeAudits.forEach((audit, i) => {
+        const angle = (i / (safeAudits.length || 1)) * Math.PI * 2;
+        const radius = 12;
+        nodes.push({
+          id: audit.id,
+          position: applySceneOffset(Math.cos(angle) * radius, 8, Math.sin(angle) * radius),
+          color: '#06b6d4', // cyan-500
+          size: 0.9,
+          type: 'audit',
+          data: audit,
+          connections: []
+        });
       });
-    });
+    }
 
-    // Incidents - Top layer (critical)
-    safeIncidents.forEach((incident, index) => {
-      const x = (index % gridSize) * spacing - (gridSize * spacing) / 2;
-      const z = Math.floor(index / gridSize) * spacing - (gridSize * spacing) / 2;
-      const y = 8;
-
-      const incidentColor = incident.severity === 'Critique' ? '#dc2626' :
-        incident.severity === 'Élevée' ? '#ea580c' : '#f59e0b';
-
-      nodes.push({
-        id: incident.id,
-        type: 'incident',
-        position: applySceneOffset(x, y, z),
-        color: incidentColor,
-        size: 0.5 + (['Faible', 'Moyenne', 'Élevée', 'Critique'].indexOf(incident.severity) / 3) * 0.3,
-        data: incident,
-        connections: incident.affectedAssetId ? [incident.affectedAssetId] : []
-      });
-    });
-
-    // Suppliers - Side layer
-    if (safeSuppliers.length > 0) {
-      safeSuppliers.forEach((supplier, index) => {
-        const angle = (index / safeSuppliers.length) * Math.PI * 2;
+    // --- 5. INCIDENTS (Warning flares) ---
+    if (currentVisible.includes('incident')) {
+      safeIncidents.forEach((incident, i) => {
+        const angle = (i / (safeIncidents.length || 1)) * Math.PI * 2 + 1;
         const radius = 15;
-        const x = Math.cos(angle) * radius;
-        const z = Math.sin(angle) * radius;
-        const y = 2;
+        const isCritical = incident.severity === 'Critique' || incident.severity === 'Élevée';
+        nodes.push({
+          id: incident.id,
+          position: applySceneOffset(Math.cos(angle) * radius, isCritical ? 12 : 6, Math.sin(angle) * radius),
+          color: '#f43f5e', // rose-500
+          size: isCritical ? 1.5 : 1,
+          type: 'incident',
+          data: incident,
+          connections: incident.affectedAssetId ? [incident.affectedAssetId] : []
+        });
+      });
+    }
 
-        const supplierColor = supplier.criticality === 'Critique' ? '#dc2626' :
-          supplier.criticality === 'Élevée' ? '#ea580c' : '#22c55e';
-
+    // --- 6. SUPPLIERS (External Orbit) ---
+    if (currentVisible.includes('supplier')) {
+      safeSuppliers.forEach((supplier, i) => {
+        const angle = (i / (safeSuppliers.length || 1)) * Math.PI * 2 + 2;
+        const radius = 20;
+        const supplierColor = supplier.criticality === 'Critique' ? '#dc2626' : supplier.criticality === 'Élevée' ? '#ea580c' : '#22c55e';
         nodes.push({
           id: supplier.id,
+          position: applySceneOffset(Math.cos(angle) * radius, 0, Math.sin(angle) * radius),
           type: 'supplier',
-          position: applySceneOffset(x, y, z),
           color: supplierColor,
           size: 0.6,
           data: supplier,
@@ -1213,7 +1208,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     }
 
     return nodes;
-  }, [safeAssets, safeRisks, safeProjects, safeAudits, safeIncidents, safeSuppliers]);
+  }, [safeAssets, safeRisks, safeProjects, safeAudits, safeIncidents, safeSuppliers, visibleTypes]);
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -1260,13 +1255,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     return () => clearTimeout(timer);
   }, [selectedNode]);
 
-  const voxelNodes = useMemo(() => {
-    if (!visibleTypes || visibleTypes.length === 0) {
-      return baseNodes;
-    }
-    const allowed = new Set(visibleTypes);
-    return baseNodes.filter(node => allowed.has(node.type));
-  }, [baseNodes, visibleTypes]);
+
 
   const connectionPairs = useMemo(() => {
     const pairs: { start: [number, number, number]; end: [number, number, number]; strength: number; sourceId: string; targetId: string }[] = [];
