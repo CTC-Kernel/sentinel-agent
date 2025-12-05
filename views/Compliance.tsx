@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+// import { Helmet } from 'react-helmet-async'; // Replaced by SEO component
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, limit, addDoc } from 'firebase/firestore';
 import { RiskFormData, riskSchema } from '../schemas/riskSchema';
 import { ProjectFormData } from '../schemas/projectSchema';
@@ -43,6 +43,8 @@ import { Globe } from '../components/ui/Icons';
 
 
 import { canEditResource, hasPermission } from '../utils/permissions';
+
+import { SEO } from '../components/SEO';
 
 export const Compliance: React.FC = () => {
     const { user, addToast, organization, demoMode } = useStore();
@@ -596,7 +598,7 @@ export const Compliance: React.FC = () => {
             if (!evidenceToRemove) return;
 
             await updateDoc(doc(db, 'controls', selectedControl.id), {
-                automatedEvidence: arrayUnion(evidenceToRemove) // This is tricky with arrayUnion/Remove for objects. 
+                automatedEvidence: arrayUnion(evidenceToRemove) // This is tricky with arrayUnion/Remove for objects.
                 // Better to read, filter, and set.
             });
 
@@ -741,9 +743,11 @@ export const Compliance: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in relative pb-10">
-            <Helmet>
-                <title>{selectedControl ? `${selectedControl.code} - Conformité` : 'Conformité & Standards - Sentinel GRC'}</title>
-            </Helmet>
+            <SEO
+                title={selectedControl ? `${selectedControl.code} - Conformité` : 'Conformité & Standards'}
+                description="Suivez votre conformité aux normes ISO 27001, NIS 2, DORA et gérez vos audits."
+                keywords="Conformité, Audit, ISO 27001, NIS 2, DORA, Réglementation, Preuves, Contrôles"
+            />
             {/* Confirm Modal */}
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
@@ -772,19 +776,20 @@ export const Compliance: React.FC = () => {
                     { label: 'Conformité' }
                 ]}
                 icon={<ShieldCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                trustType="general"
                 actions={
-                    <div className="flex gap-3 items-center">
+                    <div className="flex flex-col md:flex-row gap-3 items-start md:items-center w-full md:w-auto">
                         {/* View Switcher */}
-                        <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10 mr-2">
+                        <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center justify-between md:justify-start border border-slate-200 dark:border-white/10 w-full md:w-auto">
                             <button
                                 onClick={() => setViewMode('compliance')}
-                                className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${viewMode === 'compliance' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                className={`flex-1 md:flex-none px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'compliance' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
                             >
                                 Conformité
                             </button>
                             <button
                                 onClick={() => setViewMode('watch')}
-                                className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${viewMode === 'watch' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                className={`flex-1 md:flex-none px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'watch' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
                             >
                                 Veille Réglementaire
                             </button>
@@ -793,20 +798,28 @@ export const Compliance: React.FC = () => {
                         {viewMode === 'compliance' && (
                             <>
                                 {/* Framework Switcher - Tabs Style */}
-                                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10 overflow-x-auto max-w-[400px] custom-scrollbar">
+                                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10 overflow-x-auto w-full max-w-[calc(100vw-3rem)] md:w-auto md:max-w-[400px] custom-scrollbar">
                                     {(['ISO27001', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF'] as const).map(fw => (
                                         <button
                                             key={fw}
                                             onClick={() => setCurrentFramework(fw)}
-                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap ${currentFramework === fw ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap ${currentFramework === fw ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                                         >
-                                            {fw === 'ISO27001' ? 'ISO 27001' : fw === 'NIS2' ? 'NIS 2' : fw === 'DORA' ? 'DORA' : fw === 'GDPR' ? 'RGPD' : fw === 'SOC2' ? 'SOC 2' : fw === 'HDS' ? 'HDS' : fw === 'PCI_DSS' ? 'PCI DSS' : 'NIST CSF'}
+                                            {fw === 'ISO27001' ? 'ISO 27001' :
+                                                fw === 'NIS2' ? 'NIS 2' :
+                                                    fw === 'DORA' ? 'DORA' :
+                                                        fw === 'PCI_DSS' ? 'PCI DSS' :
+                                                            fw === 'NIST_CSF' ? 'NIST CSF' :
+                                                                fw}
                                         </button>
                                     ))}
                                 </div>
-
-                                <button onClick={generateSoAReport} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white whitespace-nowrap">
-                                    <Download className="h-4 w-4 mr-2 text-slate-500" /> Rapport
+                                <button
+                                    onClick={generateSoAReport}
+                                    className="hidden md:flex p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+                                    title="Générer SoA"
+                                >
+                                    <Download className="h-5 w-5" />
                                 </button>
                             </>
                         )}
