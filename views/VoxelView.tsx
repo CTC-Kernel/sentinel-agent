@@ -303,7 +303,7 @@ export const VoxelView: React.FC = () => {
 
     return layerOptions.map(option => ({
       ...option,
-      items: sourceMap[option.id].map(item => {
+      items: (sourceMap[option.id] || []).map(item => {
         let label = 'Élément';
         if ('name' in item) label = item.name;
         else if ('title' in item) label = item.title;

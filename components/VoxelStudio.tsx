@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useEffect, createContext, useContext, useCallback, Component, ErrorInfo, Suspense } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree } from '@react-three/fiber';
-import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment, Html, Billboard } from '@react-three/drei';
+import { OrbitControls, Line, Html, Text, Float, Edges, Environment, Billboard } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints, Material } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
@@ -205,8 +205,15 @@ const StarField: React.FC = () => {
   });
 
   return (
-    <Points ref={starsRef} positions={positions} stride={3} frustumCulled={false}>
-      <PointMaterial
+    <points ref={starsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={positions.length / 3}
+          args={[positions, 3]}
+        />
+      </bufferGeometry>
+      <pointsMaterial
         transparent
         color="#94a3b8"
         size={0.3}
@@ -214,7 +221,7 @@ const StarField: React.FC = () => {
         depthWrite={false}
         opacity={0.6}
       />
-    </Points>
+    </points>
   );
 };
 
@@ -442,7 +449,7 @@ const PulseCore: React.FC = () => {
   );
 };
 
-const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string; speed?: number; opacity?: number; showParticles?: boolean; particleSize?: number }> = ({ start, end, color, speed = 1, opacity = 0.5, showParticles = true, particleSize = 0.08 }) => {
+const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string; opacity?: number }> = ({ start, end, color, opacity = 0.5 }) => {
   const curve = useMemo(() => {
     if (!start || !end) return null;
     const mid = new Vector3().addVectors(start, end).multiplyScalar(0.5);
@@ -459,29 +466,14 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
     }
   }, [curve]);
 
-  const particleCount = Math.max(3, Math.floor(8 * speed));
-
   // Geometry validation
   if (!points || points.length === 0) return null;
   const isValid = Array.isArray(points) && points.length > 0 && points.every(p => p && !isNaN(p.x) && !isNaN(p.y) && !isNaN(p.z));
   if (!isValid) return null;
 
-  useFrame(() => {
-    if (!showParticles || !curve) return;
-    // Logic for particles updates if needed, or rely on shader/points material
-    // Note: The previous implementation relied on Points material, which is static.
-    // If animation is needed, it should be here. For now, just rendering valid static line + particles.
-  });
-
   return (
     <group>
       <Line points={points} color={color} opacity={opacity} transparent lineWidth={1} />
-      {showParticles && curve && (
-        <Points limit={particleCount} range={particleCount}>
-          <pointsMaterial size={particleSize} color={color} transparent opacity={0.8} sizeAttenuation={true} depthWrite={false} />
-          {/* Dynamic particle positions would go here or be managed by a shader */}
-        </Points>
-      )}
     </group>
   );
 };
@@ -1482,9 +1474,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                     start={new Vector3(...pair.start)}
                     end={new Vector3(...pair.end)}
                     color="#94a3b8"
-                    speed={pair.strength * 2}
                     opacity={isRelevant ? 0.5 : 0.05}
-                    showParticles={isRelevant}
                   />
                 );
               })}
@@ -1501,9 +1491,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                     start={new Vector3(...pair.start)}
                     end={new Vector3(...pair.end)}
                     color="#fbbf24"
-                    speed={pair.strength * 2}
                     opacity={isRelevant ? 0.6 : 0.1}
-                    showParticles={isRelevant}
                   />
                 );
               })}
