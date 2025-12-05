@@ -3,9 +3,11 @@ import { ShieldAlert, CalendarDays, Search, FileSpreadsheet, Siren, Trash2, Layo
 import { Incident, Criticality } from '../../types';
 import { useStore } from '../../store';
 import { EmptyState } from '../ui/EmptyState';
-import { CardSkeleton, TableSkeleton } from '../ui/Skeleton';
+import { CardSkeleton } from '../ui/Skeleton';
 import { usePersistedState } from '../../hooks/usePersistedState';
 import { hasPermission } from '../../utils/permissions';
+import { DataTable } from '../ui/DataTable';
+import { ColumnDef } from '@tanstack/react-table';
 
 interface IncidentDashboardProps {
     incidents: Incident[];
@@ -13,9 +15,30 @@ interface IncidentDashboardProps {
     onSelect: (incident: Incident) => void;
     loading?: boolean;
     onDelete?: (id: string) => void;
+    onBulkDelete?: (ids: string[]) => void;
 }
 
-export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete }) => {
+const getSeverityColor = (s: Criticality) => {
+    switch (s) {
+        case Criticality.CRITICAL: return 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50 shadow-red-500/10';
+        case Criticality.HIGH: return 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800/50 shadow-orange-500/10';
+        case Criticality.MEDIUM: return 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50 shadow-amber-500/10';
+        default: return 'bg-blue-50 dark:bg-slate-900 text-blue-700 dark:bg-slate-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50 shadow-blue-500/10';
+    }
+};
+
+const getStatusColor = (s: string) => {
+    switch (s) {
+        case 'Nouveau': return 'text-purple-600 bg-purple-50 dark:bg-purple-900/20';
+        case 'Analyse': return 'text-blue-600 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20';
+        case 'Contenu': return 'text-amber-600 bg-amber-50 dark:bg-amber-900/20';
+        case 'Résolu': return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20';
+        case 'Fermé': return 'text-slate-500 bg-slate-100 dark:bg-slate-800 line-through decoration-slate-400';
+        default: return 'text-slate-600 bg-gray-50';
+    }
+};
+
+export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete, onBulkDelete }) => {
     const { user } = useStore();
     const canEdit = !!user && (hasPermission(user, 'Incident', 'update') || hasPermission(user, 'Incident', 'delete'));
     const [filter, setFilter] = useState('');
@@ -50,27 +73,86 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         document.body.removeChild(link);
     };
 
-    const getSeverityColor = (s: Criticality) => {
-        switch (s) {
-            case Criticality.CRITICAL: return 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50 shadow-red-500/10';
-            case Criticality.HIGH: return 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800/50 shadow-orange-500/10';
-            case Criticality.MEDIUM: return 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50 shadow-amber-500/10';
-            default: return 'bg-blue-50 dark:bg-slate-900 text-blue-700 dark:bg-slate-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50 shadow-blue-500/10';
-        }
-    };
 
-    const getStatusColor = (s: string) => {
-        switch (s) {
-            case 'Nouveau': return 'text-purple-600 bg-purple-50 dark:bg-purple-900/20';
-            case 'Analyse': return 'text-blue-600 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20';
-            case 'Contenu': return 'text-amber-600 bg-amber-50 dark:bg-amber-900/20';
-            case 'Résolu': return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20';
-            case 'Fermé': return 'text-slate-500 bg-slate-100 dark:bg-slate-800 line-through decoration-slate-400';
-            default: return 'text-slate-600 bg-gray-50';
-        }
-    };
 
     // Metrics for Summary Card
+    const columns = useMemo<ColumnDef<Incident>[]>(() => [
+        {
+            accessorKey: 'title',
+            header: 'Incident',
+            cell: ({ row }) => (
+                <div>
+                    <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.title}</div>
+                    <div className="text-xs text-slate-500 font-medium line-clamp-1">{row.original.description}</div>
+                </div>
+            )
+        },
+        {
+            accessorKey: 'severity',
+            header: 'Sévérité',
+            cell: ({ row }) => (
+                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getSeverityColor(row.original.severity)}`}>
+                    {row.original.severity}
+                </span>
+            )
+        },
+        {
+            accessorKey: 'status',
+            header: 'Statut',
+            cell: ({ row }) => (
+                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusColor(row.original.status)}`}>
+                    {row.original.status}
+                </span>
+            )
+        },
+        {
+            accessorKey: 'dateReported',
+            header: 'Date',
+            cell: ({ row }) => (
+                <span className="text-slate-600 dark:text-slate-400 font-medium">
+                    {new Date(row.original.dateReported).toLocaleDateString()}
+                </span>
+            )
+        },
+        {
+            accessorKey: 'reporter',
+            header: 'Reporter',
+            cell: ({ row }) => (
+                <span className="text-slate-600 dark:text-slate-400 font-medium">
+                    {row.original.reporter}
+                </span>
+            )
+        },
+        {
+            accessorKey: 'category',
+            header: 'Catégorie',
+            cell: ({ row }) => (
+                <span className="text-slate-600 dark:text-slate-400 font-medium">
+                    {row.original.category || '-'}
+                </span>
+            )
+        },
+        {
+            id: 'actions',
+            cell: ({ row }) => (
+                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                    {canEdit && onDelete && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete(row.original.id);
+                            }}
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                            title="Supprimer"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </button>
+                    )}
+                </div>
+            )
+        }
+    ], [canEdit, onDelete]);
+
     const totalIncidents = incidents.length;
     const openIncidents = incidents.filter(i => i.status !== 'Résolu' && i.status !== 'Fermé').length;
     const criticalIncidents = incidents.filter(i => i.severity === Criticality.CRITICAL && (i.status !== 'Résolu' && i.status !== 'Fermé')).length;
@@ -188,80 +270,15 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             {/* Incident list */}
             {viewMode === 'list' ? (
                 <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
-                                <tr>
-                                    <th className="px-8 py-4">Incident</th>
-                                    <th className="px-6 py-4">Sévérité</th>
-                                    <th className="px-6 py-4">Statut</th>
-                                    <th className="px-6 py-4">Date</th>
-                                    <th className="px-6 py-4">Reporter</th>
-                                    <th className="px-6 py-4">Catégorie</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                {loading ? (
-                                    <tr><td colSpan={7}><TableSkeleton rows={5} columns={7} /></td></tr>
-                                ) : filteredIncidents.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7}>
-                                            <EmptyState
-                                                icon={Siren}
-                                                title="Aucun incident signalé"
-                                                description={filter ? "Aucun incident ne correspond à votre recherche." : "Tout est calme. Aucun incident de sécurité n'a été rapporté pour le moment."}
-                                                actionLabel={filter || !hasPermission(user, 'Incident', 'create') ? undefined : "Déclarer un incident"}
-                                                onAction={filter || !hasPermission(user, 'Incident', 'create') ? undefined : onCreate}
-                                            />
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredIncidents.map((inc) => (
-                                        <tr key={inc.id} onClick={() => onSelect(inc)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]">
-                                            <td className="px-8 py-5">
-                                                <div className="font-bold text-slate-900 dark:text-white text-[15px]">{inc.title}</div>
-                                                <div className="text-xs text-slate-500 font-medium line-clamp-1">{inc.description}</div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getSeverityColor(inc.severity)}`}>
-                                                    {inc.severity}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusColor(inc.status)}`}>
-                                                    {inc.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
-                                                {new Date(inc.dateReported).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
-                                                {inc.reporter}
-                                            </td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
-                                                {inc.category || '-'}
-                                            </td>
-                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                                {canEdit && onDelete && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            onDelete(inc.id);
-                                                        }}
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
-                                                        title="Supprimer"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <DataTable
+                        columns={columns}
+                        data={filteredIncidents}
+                        selectable={true}
+                        onBulkDelete={onBulkDelete}
+                        onRowClick={onSelect} // onSelect handles navigation or drawer opening
+                        searchable={false}
+                        loading={loading}
+                    />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

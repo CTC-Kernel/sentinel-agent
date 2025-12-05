@@ -12,7 +12,7 @@ interface CommandItem {
     id: string;
     title: string;
     subtitle?: string;
-    icon: React.ElementType;
+    icon: any;
     path?: string;
     action?: () => void;
     category: string;

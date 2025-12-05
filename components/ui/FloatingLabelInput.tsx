@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 interface FloatingLabelInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
     error?: string;
-    icon?: React.ElementType;
+    icon?: any;
     textarea?: boolean;
     rows?: number;
 }

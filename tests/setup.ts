@@ -1,32 +1,24 @@
-import { vi } from 'vitest';
+import '@testing-library/jest-dom';
+import { cleanup } from '@testing-library/react';
+import { afterEach, expect, vi } from 'vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
 
-// Mock Firebase
-vi.mock('firebase/app', () => ({
-    initializeApp: vi.fn(),
-}));
+// Extend Vitest's expect method with methods from react-testing-library
+expect.extend(matchers as any);
 
-vi.mock('firebase/auth', () => ({
-    getAuth: vi.fn(() => ({
-        currentUser: null,
-    })),
-}));
+// Cleanup after each test case (e.g. clearing jsdom)
+afterEach(() => {
+    cleanup();
+});
 
-vi.mock('firebase/firestore', () => ({
-    getFirestore: vi.fn(),
-    doc: vi.fn(),
-    getDoc: vi.fn(),
-    collection: vi.fn(),
-    query: vi.fn(),
-    where: vi.fn(),
-    getDocs: vi.fn(),
-}));
+// Mock ResizeObserver which is not available in jsdom
+global.ResizeObserver = class ResizeObserver {
+    observe() { }
+    unobserve() { }
+    disconnect() { }
+};
 
-vi.mock('firebase/functions', () => ({
-    getFunctions: vi.fn(),
-    httpsCallable: vi.fn(),
-}));
-
-// Mock other globals if needed
+// Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: vi.fn().mockImplementation(query => ({

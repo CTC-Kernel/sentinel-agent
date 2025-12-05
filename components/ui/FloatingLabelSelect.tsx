@@ -4,7 +4,7 @@ import { ChevronDown } from 'lucide-react';
 interface FloatingLabelSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
     label: string;
     error?: string;
-    icon?: React.ElementType;
+    icon?: any;
     options: { value: string; label: string }[];
 }
 
