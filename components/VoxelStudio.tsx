@@ -103,11 +103,11 @@ const applySceneOffset = (x: number, y: number, z: number): [number, number, num
   z + SCENE_OFFSET[2]
 ];
 
-const assetModelUrl = '/models/w2yurp9pjcow-ServerV2console/ServerV2+console.obj';
-const riskModelUrl = '/models/A_Shield_with_a_Raised_Star_v1_L1.123c9f2a1173-8c93-4a8d-a572-89acfb9632eb/19329_A_Shield_with_a_Raised_Star_v1.obj';
-const incidentModelUrl = '/models/Flame_v1_L1.123c9492eea4-9564-46cc-bdc9-fe01a6e3b117/21330_Flame_v1.obj';
-const supplierModelUrl = '/models/i8cotix2ujuo-Cap/Cap.obj';
-const projectModelUrl = '/models/Models and Textures/Cardboard box.obj';
+const assetModelUrl = '/models/server/console.obj';
+const riskModelUrl = '/models/shield/shield.obj';
+const incidentModelUrl = '/models/flame/flame.obj';
+const supplierModelUrl = '/models/cap/cap.obj';
+const projectModelUrl = '/models/box/box.obj';
 
 type ModelLibrary = {
   asset: Group;
