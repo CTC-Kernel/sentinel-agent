@@ -639,7 +639,7 @@ export const Compliance: React.FC = () => {
             setSelectedControl({ ...selectedControl, automatedEvidence: updatedEvidenceList });
             refreshControls();
             toast.success("Synchronisation réussie", { id: toastId });
-        } catch (error) {
+        } catch {
             toast.error("Erreur de synchronisation", { id: toastId });
         }
     };
@@ -651,7 +651,7 @@ export const Compliance: React.FC = () => {
             const result = await integrationService.searchEurLex(eurLexQuery, demoMode);
             setEurLexResult(result);
             toast.dismiss(toastId);
-        } catch (error) {
+        } catch {
             toast.error("Erreur lors de la recherche EUR-Lex", { id: toastId });
         }
     };

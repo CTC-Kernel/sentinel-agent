@@ -25,8 +25,7 @@ export const Integrations: React.FC = () => {
         try {
             const data = await integrationService.getProviders(user.organizationId);
             setProviders(data);
-        } catch (error) {
-            console.error('Failed to load providers', error);
+        } catch {
             toast.error('Erreur lors du chargement des intégrations');
         } finally {
             setLoading(false);
@@ -49,7 +48,7 @@ export const Integrations: React.FC = () => {
                 p.id === provider.id ? { ...p, status: 'connected' } : p
             ));
             toast.success(`Connecté à ${provider.name} avec succès`);
-        } catch (error) {
+        } catch {
             toast.error(`Échec de la connexion à ${provider.name}`);
         } finally {
             setConnectingId(null);
@@ -69,7 +68,7 @@ export const Integrations: React.FC = () => {
                 p.id === provider.id ? { ...p, status: 'disconnected' } : p
             ));
             toast.success(`Déconnecté de ${provider.name}`);
-        } catch (error) {
+        } catch {
             toast.error(`Erreur lors de la déconnexion`);
         } finally {
             setConnectingId(null);

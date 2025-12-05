@@ -63,11 +63,13 @@ export const CalendarDashboard: React.FC = () => {
         google: true
     });
 
+    const organizationId = user?.organizationId;
+
     const loadEvents = useCallback(async () => {
-        if (user?.organizationId) {
+        if (organizationId) {
             try {
                 // 1. Fetch Internal Events
-                const internalEvents = await CalendarService.fetchAllEvents(user.organizationId);
+                const internalEvents = await CalendarService.fetchAllEvents(organizationId);
 
                 // 2. Fetch Google Events (if connected)
                 let googleEvents: CalendarEvent[] = [];
@@ -86,10 +88,11 @@ export const CalendarDashboard: React.FC = () => {
                 ErrorLogger.error(error, "CalendarDashboard.loadEvents");
             }
         }
-    }, [user?.organizationId, filters.google]);
+    }, [organizationId, filters.google]);
 
     // Fetch events
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         loadEvents();
     }, [loadEvents]);
 

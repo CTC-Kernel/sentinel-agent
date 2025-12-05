@@ -4,9 +4,9 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     signInWithPopup,
-    signInWithCredential, // Added
-    OAuthProvider, // Added
+    signInWithCredential,
     GoogleAuthProvider,
+    OAuthProvider,
     sendPasswordResetEmail,
     getMultiFactorResolver,
     TotpMultiFactorGenerator,
@@ -124,14 +124,46 @@ export const Login: React.FC = () => {
         setLoading(true);
         setErrorMsg(null);
         try {
-            const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
+            const { Capacitor } = await import('@capacitor/core');
+            const isNative = Capacitor.isNativePlatform();
+
+            if (isNative) {
+                console.log('Starting Native Google Sign In');
+                const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+
+                // Native Google Sign In
+                const result = await FirebaseAuthentication.signInWithGoogle();
+
+                if (result.credential?.idToken) {
+                    // Sync with Firebase JS SDK
+                    const credential = GoogleAuthProvider.credential(
+                        result.credential.idToken,
+                        result.credential.accessToken // Optional depending on config, but good to pass if present
+                    );
+
+                    await signInWithCredential(auth, credential);
+                    addToast("Connexion réussie", "success");
+                    window.location.href = '/';
+                } else {
+                    throw new Error("No ID Token from Google");
+                }
+            } else {
+                // Web Google Sign In
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
+            }
         } catch (error: unknown) {
+            console.error("Google Sign In Error:", error);
+            ErrorLogger.error(error as Error, 'Login.googleSignIn');
+
             const code = (error as { code?: string })?.code;
             if (code === 'auth/unauthorized-domain' || code === 'auth/operation-not-allowed') {
-                setErrorMsg("Environnement restreint : Google Auth non disponible ici. Utilisez l'email.");
+                setErrorMsg("Environnement restreint : Google Auth non disponible ici.");
+            } else if (code === 'auth/popup-closed-by-user' || code === 'cancelled-popup-request') {
+                // User cancelled, no error message needed
+                console.log('User cancelled login');
             } else {
-                setErrorMsg("Erreur Google Auth.");
+                setErrorMsg("Erreur Google Auth. Veuillez réessayer.");
             }
         } finally { setLoading(false); }
     };
@@ -216,14 +248,14 @@ export const Login: React.FC = () => {
                                             new Promise<never>((_, reject) =>
                                                 setTimeout(() => reject(new Error("Apple Sign In timed out.")), 15000)
                                             )
-                                        ]) as any;
+                                        ]) as { credential?: { idToken: string; rawNonce?: string } };
 
                                         console.log('Native Result:', result);
 
                                         // Sync with Firebase JS SDK
                                         if (result.credential?.idToken) {
                                             const provider = new OAuthProvider('apple.com');
-                                            const credentialParams: any = {
+                                            const credentialParams: Record<string, string> = {
                                                 idToken: result.credential.idToken,
                                             };
                                             // Only add rawNonce if it exists and is not empty
@@ -237,7 +269,7 @@ export const Login: React.FC = () => {
                                                 await signInWithCredential(auth, credential);
                                                 addToast("Connexion réussie", "success");
                                                 window.location.href = '/';
-                                            } catch (innerError: any) {
+                                            } catch (innerError: unknown) {
                                                 console.error("JS Sync Error:", innerError);
                                                 throw innerError;
                                             }
@@ -253,10 +285,10 @@ export const Login: React.FC = () => {
                                         await signInWithPopup(auth, provider);
                                         console.log('Web Sign In Successful');
                                     }
-                                } catch (error: any) {
+                                } catch (error: unknown) {
                                     console.error("Apple Sign In Error:", error);
                                     ErrorLogger.error(error, 'Login.appleSignIn');
-                                    const code = error.code || error.message;
+                                    const code = (error as { code?: string; message?: string })?.code || (error as { message?: string })?.message;
                                     if (code === 'auth/operation-not-allowed') {
                                         setErrorMsg("Apple Sign In non activé dans la console Firebase.");
                                     } else {
@@ -361,92 +393,96 @@ export const Login: React.FC = () => {
             </div>
 
             {/* Reset Password Modal */}
-            {showResetModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
-                        <button onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-                            <X className="h-5 w-5" />
-                        </button>
+            {
+                showResetModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+                        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
+                            <button onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                                <X className="h-5 w-5" />
+                            </button>
 
-                        <div className="text-center mb-6">
-                            <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mx-auto mb-4 text-brand-600">
-                                <Mail className="h-7 w-7" />
-                            </div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Réinitialisation</h3>
-                            <p className="text-sm text-slate-500 mt-2">Entrez votre email pour recevoir un lien de réinitialisation.</p>
-                        </div>
-
-                        {!resetSent ? (
-                            <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-6">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Email</label>
-                                    <input
-                                        type="email"
-                                        className={`w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white ${resetForm.formState.errors.email ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
-                                        placeholder="nom@entreprise.com"
-                                        {...resetForm.register('email')}
-                                    />
-                                    {resetForm.formState.errors.email && <p className="text-red-500 text-xs ml-1 font-bold mt-1">{resetForm.formState.errors.email.message}</p>}
+                            <div className="text-center mb-6">
+                                <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mx-auto mb-4 text-brand-600">
+                                    <Mail className="h-7 w-7" />
                                 </div>
-                                <Button type="submit" isLoading={loading} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
-                                    {loading ? 'Envoi...' : 'Envoyer le lien'}
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Réinitialisation</h3>
+                                <p className="text-sm text-slate-500 mt-2">Entrez votre email pour recevoir un lien de réinitialisation.</p>
+                            </div>
+
+                            {!resetSent ? (
+                                <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-6">
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Email</label>
+                                        <input
+                                            type="email"
+                                            className={`w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white ${resetForm.formState.errors.email ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
+                                            placeholder="nom@entreprise.com"
+                                            {...resetForm.register('email')}
+                                        />
+                                        {resetForm.formState.errors.email && <p className="text-red-500 text-xs ml-1 font-bold mt-1">{resetForm.formState.errors.email.message}</p>}
+                                    </div>
+                                    <Button type="submit" isLoading={loading} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
+                                        {loading ? 'Envoi...' : 'Envoyer le lien'}
+                                    </Button>
+                                </form>
+                            ) : (
+                                <div className="text-center py-4">
+                                    <div className="inline-flex items-center px-4 py-2 rounded-xl bg-green-50 text-green-700 text-sm font-bold mb-4 border border-green-100">
+                                        <CheckCircle2 className="h-4 w-4 mr-2" /> Email envoyé !
+                                    </div>
+                                    <p className="text-sm text-slate-500 mb-6">Vérifiez votre boîte de réception (et vos spams).</p>
+                                    <button onClick={() => setShowResetModal(false)} className="text-sm font-bold text-brand-600 hover:underline">Retour à la connexion</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )
+            }
+            {/* MFA Modal */}
+            {
+                showMfaModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+                        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
+                            <button onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                                <X className="h-5 w-5" />
+                            </button>
+
+                            <div className="text-center mb-6">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mx-auto mb-4 text-emerald-600">
+                                    <Lock className="h-7 w-7" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Authentification MFA</h3>
+                                <p className="text-sm text-slate-500 mt-2">Entrez le code de votre application d'authentification.</p>
+                            </div>
+
+                            <form onSubmit={handleMfaVerification} className="space-y-6">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Code de vérification</label>
+                                    <input
+                                        type="text"
+                                        value={mfaCode}
+                                        onChange={(e) => setMfaCode(e.target.value)}
+                                        className={`w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none font-medium dark:text-white text-center tracking-[0.5em] text-xl ${mfaError ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
+                                        placeholder="000000"
+                                        maxLength={6}
+                                        autoFocus
+                                    />
+                                    {mfaError && <p className="text-red-500 text-xs ml-1 font-bold mt-1">{mfaError}</p>}
+                                </div>
+                                <Button type="submit" isLoading={mfaLoading} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
+                                    {mfaLoading ? 'Vérification...' : 'Vérifier'}
                                 </Button>
                             </form>
-                        ) : (
-                            <div className="text-center py-4">
-                                <div className="inline-flex items-center px-4 py-2 rounded-xl bg-green-50 text-green-700 text-sm font-bold mb-4 border border-green-100">
-                                    <CheckCircle2 className="h-4 w-4 mr-2" /> Email envoyé !
-                                </div>
-                                <p className="text-sm text-slate-500 mb-6">Vérifiez votre boîte de réception (et vos spams).</p>
-                                <button onClick={() => setShowResetModal(false)} className="text-sm font-bold text-brand-600 hover:underline">Retour à la connexion</button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-            {/* MFA Modal */}
-            {showMfaModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
-                        <button onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-                            <X className="h-5 w-5" />
-                        </button>
-
-                        <div className="text-center mb-6">
-                            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mx-auto mb-4 text-emerald-600">
-                                <Lock className="h-7 w-7" />
-                            </div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Authentification MFA</h3>
-                            <p className="text-sm text-slate-500 mt-2">Entrez le code de votre application d'authentification.</p>
                         </div>
-
-                        <form onSubmit={handleMfaVerification} className="space-y-6">
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Code de vérification</label>
-                                <input
-                                    type="text"
-                                    value={mfaCode}
-                                    onChange={(e) => setMfaCode(e.target.value)}
-                                    className={`w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none font-medium dark:text-white text-center tracking-[0.5em] text-xl ${mfaError ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
-                                    placeholder="000000"
-                                    maxLength={6}
-                                    autoFocus
-                                />
-                                {mfaError && <p className="text-red-500 text-xs ml-1 font-bold mt-1">{mfaError}</p>}
-                            </div>
-                            <Button type="submit" isLoading={mfaLoading} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
-                                {mfaLoading ? 'Vérification...' : 'Vérifier'}
-                            </Button>
-                        </form>
                     </div>
-                </div>
-            )}
+                )
+            }
             {/* Legal Modal */}
             <LegalModal
                 isOpen={showLegalModal}
                 onClose={() => setShowLegalModal(false)}
                 initialTab={legalTab}
             />
-        </div>
+        </div >
     );
 };
