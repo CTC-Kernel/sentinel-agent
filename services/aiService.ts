@@ -5,7 +5,8 @@ import { ErrorLogger } from "./errorLogger";
 
 
 
-const MODEL_NAME = "gemini-3-pro-preview";
+const FAST_MODEL = "gemini-1.5-flash";
+const SMART_MODEL = "gemini-1.5-pro";
 
 interface GraphData {
     assets: Asset[];
@@ -68,7 +69,7 @@ export const aiService = {
         }
       `;
 
-            const text = await generateContentSafe(prompt);
+            const text = await generateContentSafe(prompt, SMART_MODEL);
 
             // Clean up markdown code blocks if present
             const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -145,7 +146,7 @@ export const aiService = {
             Sois professionnel, concis et précis. Réponds toujours en Français.${context ? `\n\nContexte actuel de l'application :\n${JSON.stringify(context)}` : ''}`;
 
         try {
-            return await runChatSafe(systemPrompt, message);
+            return await runChatSafe(systemPrompt, message, FAST_MODEL);
         } catch (error) {
             ErrorLogger.error(error, 'aiService.chatWithAI');
             return "Désolé, une erreur est survenue lors de la communication avec l'IA.";
@@ -173,7 +174,7 @@ export const aiService = {
                 Le ton doit être formel et adapté à une entreprise certifiée ISO 27001.
             `;
 
-            return await generateContentSafe(prompt);
+            return await generateContentSafe(prompt, SMART_MODEL);
         } catch (error) {
             ErrorLogger.error(error, 'aiService.generatePolicy', { metadata: { type, topic } });
             throw new Error("Échec de la génération de politique.");
@@ -208,7 +209,7 @@ export const aiService = {
                 ]
             `;
 
-            const text = await generateContentSafe(prompt);
+            const text = await generateContentSafe(prompt, SMART_MODEL);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
         } catch (error) {
@@ -242,7 +243,7 @@ export const aiService = {
                 Do not use markdown formatting (bold, italic) as this will be put in a PDF. Just plain text with paragraphs.
             `;
 
-            return await generateContentSafe(prompt);
+            return await generateContentSafe(prompt, SMART_MODEL);
         } catch (error) {
             ErrorLogger.error(error, 'aiService.generateAuditExecutiveSummary');
             return "Impossible de générer le résumé exécutif.";
@@ -269,7 +270,7 @@ export const aiService = {
                 Do not use markdown formatting. Just plain text.
             `;
 
-            return await generateContentSafe(prompt);
+            return await generateContentSafe(prompt, SMART_MODEL);
         } catch (error) {
             ErrorLogger.error(error, 'aiService.generateRTPSummary');
             return "Impossible de générer le résumé RTP.";
@@ -290,11 +291,11 @@ export const aiService = {
 };
 
 // --- Helpers ---
-async function generateContentSafe(prompt: string): Promise<string> {
+async function generateContentSafe(prompt: string, modelName: string = FAST_MODEL): Promise<string> {
     try {
         const functions = getFunctions();
         const callGeminiGenerateContent = httpsCallable(functions, 'callGeminiGenerateContent');
-        const anyResult = await callGeminiGenerateContent({ prompt, modelName: MODEL_NAME }) as unknown;
+        const anyResult = await callGeminiGenerateContent({ prompt, modelName: modelName }) as unknown;
         const result = anyResult as { data?: { text?: string } };
         const text = result?.data?.text;
         if (typeof text === 'string' && text.trim().length > 0) {
@@ -324,11 +325,11 @@ async function generateContentSafe(prompt: string): Promise<string> {
 }
 
 
-async function runChatSafe(systemPrompt: string, message: string): Promise<string> {
+async function runChatSafe(systemPrompt: string, message: string, modelName: string = FAST_MODEL): Promise<string> {
     try {
         const functions = getFunctions();
         const callGeminiChat = httpsCallable(functions, 'callGeminiChat');
-        const anyResult = await callGeminiChat({ systemPrompt, message, modelName: MODEL_NAME }) as unknown;
+        const anyResult = await callGeminiChat({ systemPrompt, message, modelName: modelName }) as unknown;
         const result = anyResult as { data?: { text?: string } };
         const text = result?.data?.text;
         if (typeof text === 'string' && text.trim().length > 0) {
