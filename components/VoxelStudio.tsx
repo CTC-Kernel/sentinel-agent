@@ -103,11 +103,11 @@ const applySceneOffset = (x: number, y: number, z: number): [number, number, num
   z + SCENE_OFFSET[2]
 ];
 
-const assetModelUrl = new URL('../3D/w2yurp9pjcow-ServerV2console/ServerV2+console.obj', import.meta.url).href;
-const riskModelUrl = new URL('../3D/A_Shield_with_a_Raised_Star_v1_L1.123c9f2a1173-8c93-4a8d-a572-89acfb9632eb/19329_A_Shield_with_a_Raised_Star_v1.obj', import.meta.url).href;
-const incidentModelUrl = new URL('../3D/Flame_v1_L1.123c9492eea4-9564-46cc-bdc9-fe01a6e3b117/21330_Flame_v1.obj', import.meta.url).href;
-const supplierModelUrl = new URL('../3D/i8cotix2ujuo-Cap/Cap.obj', import.meta.url).href;
-const projectModelUrl = new URL('../3D/Models and Textures/Cardboard box.obj', import.meta.url).href;
+const assetModelUrl = '/models/w2yurp9pjcow-ServerV2console/ServerV2+console.obj';
+const riskModelUrl = '/models/A_Shield_with_a_Raised_Star_v1_L1.123c9f2a1173-8c93-4a8d-a572-89acfb9632eb/19329_A_Shield_with_a_Raised_Star_v1.obj';
+const incidentModelUrl = '/models/Flame_v1_L1.123c9492eea4-9564-46cc-bdc9-fe01a6e3b117/21330_Flame_v1.obj';
+const supplierModelUrl = '/models/i8cotix2ujuo-Cap/Cap.obj';
+const projectModelUrl = '/models/Models and Textures/Cardboard box.obj';
 
 type ModelLibrary = {
   asset: Group;
@@ -128,27 +128,15 @@ const useModelLibrary = (): ModelLibrary => {
 };
 
 const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  try {
-    const asset = useLoader(OBJLoader, assetModelUrl);
-    const risk = useLoader(OBJLoader, riskModelUrl);
-    const incident = useLoader(OBJLoader, incidentModelUrl);
-    const supplier = useLoader(OBJLoader, supplierModelUrl);
-    const project = useLoader(OBJLoader, projectModelUrl);
-    const value = useMemo(() => ({ asset, risk, incident, supplier, project }), [asset, risk, incident, supplier, project]);
-    return <ModelLibraryContext.Provider value={value}>{children}</ModelLibraryContext.Provider>;
-  } catch (error) {
-    console.error("Failed to load 3D models:", error);
-    // Fallback context with empty groups to prevent crashes
-    const emptyGroup = new Group();
-    const fallbackValue = {
-      asset: emptyGroup,
-      risk: emptyGroup,
-      incident: emptyGroup,
-      supplier: emptyGroup,
-      project: emptyGroup
-    };
-    return <ModelLibraryContext.Provider value={fallbackValue}>{children}</ModelLibraryContext.Provider>;
-  }
+  const asset = useLoader(OBJLoader, assetModelUrl);
+  const risk = useLoader(OBJLoader, riskModelUrl);
+  const incident = useLoader(OBJLoader, incidentModelUrl);
+  const supplier = useLoader(OBJLoader, supplierModelUrl);
+  const project = useLoader(OBJLoader, projectModelUrl);
+
+  const value = useMemo(() => ({ asset, risk, incident, supplier, project }), [asset, risk, incident, supplier, project]);
+
+  return <ModelLibraryContext.Provider value={value}>{children}</ModelLibraryContext.Provider>;
 };
 
 const MODEL_LIBRARY_CONFIG: Partial<Record<VoxelNode['type'], { key: keyof ModelLibrary; scale: number; position?: [number, number, number]; rotation?: [number, number, number]; }>> = {

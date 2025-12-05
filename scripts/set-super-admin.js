@@ -26,7 +26,7 @@ try {
         // Fallback to default credentials (requires `gcloud auth application-default login`)
         app = admin.initializeApp({
             credential: admin.credential.applicationDefault(),
-            projectId: 'sentinel-grc-v2-prod' // Explicitly set project ID
+            projectId: 'sentinel-grc-a8701' // Explicitly set project ID
         });
         console.log('Initialized with Application Default Credentials');
     }
