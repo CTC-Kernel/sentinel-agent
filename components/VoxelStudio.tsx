@@ -1004,6 +1004,47 @@ const EmptyState3D: React.FC = () => (
   </group>
 );
 
+const PresentationManager: React.FC<{
+  presentationMode: boolean | undefined;
+  voxelNodes: VoxelNode[];
+  onNodeSelect: (node: VoxelNode) => void;
+}> = ({ presentationMode, voxelNodes, onNodeSelect }) => {
+  const lastPresentationSwitch = useRef(0);
+  const [presentationIndex, setPresentationIndex] = useState(0);
+
+  const criticalNodes = useMemo(() => {
+    return voxelNodes.filter(node => {
+      if (node.type === 'risk') return (node.data as Risk).score >= 12;
+      if (node.type === 'incident') return (node.data as Incident).severity === 'Critique' || (node.data as Incident).severity === 'Élevée';
+      return false;
+    });
+  }, [voxelNodes]);
+
+  // Reset index when mode disabled
+  useEffect(() => {
+    if (!presentationMode) {
+      setPresentationIndex(0);
+    }
+  }, [presentationMode]);
+
+  useFrame((state) => {
+    if (presentationMode && criticalNodes.length > 0) {
+      // Switch every 8 seconds
+      if (state.clock.elapsedTime - lastPresentationSwitch.current > 8) {
+        lastPresentationSwitch.current = state.clock.elapsedTime;
+        const nextIndex = (presentationIndex + 1) % criticalNodes.length;
+        setPresentationIndex(nextIndex);
+
+        // Auto-select the node
+        const nextNode = criticalNodes[nextIndex];
+        onNodeSelect(nextNode);
+      }
+    }
+  });
+
+  return null;
+};
+
 export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   assets,
   risks,
@@ -1375,7 +1416,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       });
     });
 
-    while (queue.length > 0) {
+    while (queue && queue.length > 0) {
       const currentId = queue.shift()!;
       const node = voxelNodes.find(n => n.id === currentId);
 
@@ -1411,47 +1452,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     }
   }, [impactMode, selectedNode, calculateBlastRadius]);
 
-  // Presentation Manager Component
-  const PresentationManager: React.FC<{
-    presentationMode: boolean | undefined;
-    voxelNodes: VoxelNode[];
-    onNodeSelect: (node: VoxelNode) => void;
-  }> = ({ presentationMode, voxelNodes, onNodeSelect }) => {
-    const lastPresentationSwitch = useRef(0);
-    const [presentationIndex, setPresentationIndex] = useState(0);
 
-    const criticalNodes = useMemo(() => {
-      return voxelNodes.filter(node => {
-        if (node.type === 'risk') return (node.data as Risk).score >= 12;
-        if (node.type === 'incident') return (node.data as Incident).severity === 'Critique' || (node.data as Incident).severity === 'Élevée';
-        return false;
-      });
-    }, [voxelNodes]);
-
-    // Reset index when mode disabled
-    useEffect(() => {
-      if (!presentationMode) {
-        setPresentationIndex(0);
-      }
-    }, [presentationMode]);
-
-    useFrame((state) => {
-      if (presentationMode && criticalNodes.length > 0) {
-        // Switch every 8 seconds
-        if (state.clock.elapsedTime - lastPresentationSwitch.current > 8) {
-          lastPresentationSwitch.current = state.clock.elapsedTime;
-          const nextIndex = (presentationIndex + 1) % criticalNodes.length;
-          setPresentationIndex(nextIndex);
-
-          // Auto-select the node
-          const nextNode = criticalNodes[nextIndex];
-          onNodeSelect(nextNode);
-        }
-      }
-    });
-
-    return null;
-  };
 
   return (
     <div className={`w-full h-full ${className}`}>
