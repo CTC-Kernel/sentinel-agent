@@ -1,6 +1,6 @@
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
+import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
 // Capacitor import removed from static scope to prevent web issues
 // import { Capacitor } from '@capacitor/core';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
@@ -60,25 +60,17 @@ if (typeof window !== 'undefined') {
 
 
 
-// Use getAuth for immediate instance, configure persistence asynchronously
-export const auth = getAuth(app);
+// Safe check for native platform without importing @capacitor/core statically
+// This prevents web build issues while ensuring iOS uses the correct persistence
+const isNative = typeof window !== 'undefined' &&
+  (window as any).Capacitor &&
+  (window as any).Capacitor.isNativePlatform();
 
-// Configure persistence dynamically to avoid static Capacitor dependencies on web
-(async () => {
-  try {
-    const { Capacitor } = await import('@capacitor/core');
-    if (Capacitor.isNativePlatform()) {
-      await setPersistence(auth, indexedDBLocalPersistence);
-    } else {
-      await setPersistence(auth, browserLocalPersistence);
-    }
-  } catch (error) {
-    // Fallback to browser persistence if Capacitor fails or is missing
-    setPersistence(auth, browserLocalPersistence).catch(e =>
-      ErrorLogger.error(e, 'firebase.persistenceFallback')
-    );
-  }
-})();
+// Use initializeAuth to ensure persistence is set synchronously at startup
+// This is critical for iOS to restore the session correctly
+export const auth = initializeAuth(app, {
+  persistence: isNative ? indexedDBLocalPersistence : browserLocalPersistence
+});
 
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
 export const db = initializeFirestore(app, {
