@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
+// import { Helmet } from 'react-helmet-async'; // Replaced by SEO component
 import { collection, where, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
@@ -29,6 +29,8 @@ import { canEditResource, hasPermission, canDeleteResource } from '../utils/perm
 import { hybridService } from '../services/hybridService';
 
 
+import { SEO } from '../components/SEO';
+
 export const Incidents: React.FC = () => {
     const { user, addToast } = useStore();
     const location = useLocation();
@@ -51,6 +53,8 @@ export const Incidents: React.FC = () => {
         [where('organizationId', '==', user?.organizationId)],
         { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
+
+
 
     const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
@@ -261,16 +265,18 @@ export const Incidents: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
-            <Helmet>
-                <title>Gestion des Incidents - Sentinel GRC</title>
-                <meta name="description" content="Déclarez et gérez les incidents de sécurité, suivez les playbooks et générez des rapports." />
-            </Helmet>
+            <SEO
+                title="Gestion des Incidents"
+                description="Détection, analyse et réponse aux incidents de sécurité (SOC/CSIRT)."
+                keywords="Incidents, SOC, CSIRT, Cyberattaque, Réponse, Analyse, Playbooks, SIEM"
+            />
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
             <PageHeader
                 title="Gestion des Incidents"
                 subtitle="Détection, analyse et réponse aux incidents de sécurité"
                 icon={<Siren className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                trustType="confidentiality"
                 actions={
                     hasPermission(user, 'Incident', 'create') && (
                         <button

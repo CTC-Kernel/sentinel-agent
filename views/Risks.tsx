@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
 import { RiskFormData, riskSchema } from '../schemas/riskSchema';
 import { z } from 'zod';
 
@@ -826,10 +826,11 @@ export const Risks: React.FC = () => {
 
     return (
         <div className="space-y-6 relative">
-            <Helmet>
-                <title>Gestion des Risques - Sentinel GRC</title>
-                <meta name="description" content="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005." />
-            </Helmet>
+            <SEO
+                title="Gestion des Risques - Sentinel GRC"
+                description="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005."
+                keywords="Risques, ISO 27005, EBIOS RM, Menaces, Vulnérabilités, Plan de traitement"
+            />
             <RiskTemplateModal
                 isOpen={showTemplateModal}
                 onClose={() => setShowTemplateModal(false)}
@@ -860,6 +861,7 @@ export const Risks: React.FC = () => {
                     { label: 'Risques' }
                 ]}
                 icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                trustType="integrity"
                 actions={(
                     <>
                         {canEdit && (

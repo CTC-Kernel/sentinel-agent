@@ -188,6 +188,7 @@ export const Login: React.FC = () => {
             <SEO
                 title="Connexion"
                 description="Connectez-vous à votre espace sécurisé Sentinel GRC."
+                keywords="Connexion, Secure Login, MFA, GRC, Sentinel"
             />
             {/* Ambient Background */}
             <div className="absolute inset-0 w-full h-full">
