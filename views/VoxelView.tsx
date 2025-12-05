@@ -158,7 +158,7 @@ export const VoxelView: React.FC = () => {
   useEffect(() => { localStorage.setItem('voxel_xRayEnabled', JSON.stringify(xRayEnabled)); }, [xRayEnabled]);
   useEffect(() => { localStorage.setItem('voxel_autoRotateEnabled', JSON.stringify(autoRotateEnabled)); }, [autoRotateEnabled]);
   useEffect(() => { localStorage.setItem('voxel_activeLayers', JSON.stringify(activeLayers)); }, [activeLayers]);
-  const silhouetteMap: Record<LayerType, JSX.Element> = {
+  const silhouetteMap: Record<LayerType, React.ReactNode> = {
     asset: (
       <svg viewBox="0 0 64 64" className="w-full h-full text-blue-500 fill-current">
         <rect x="10" y="28" width="16" height="26" rx="2" className="opacity-80" />
@@ -216,9 +216,9 @@ export const VoxelView: React.FC = () => {
 
   const orderedNodes = useMemo(() => {
     const getDataLabel = (item: DataNode['data']): string => {
-      if ('name' in item) return item.name;
-      if ('title' in item) return item.title;
-      if ('threat' in item) return item.threat;
+      if ('name' in item && item.name) return String(item.name);
+      if ('title' in item && item.title) return String(item.title);
+      if ('threat' in item && item.threat) return String(item.threat);
       return 'Élément';
     };
     const mapNode = (collection: DataNode['data'][], type: LayerType) =>
