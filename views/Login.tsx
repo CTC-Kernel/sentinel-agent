@@ -202,10 +202,8 @@ export const Login: React.FC = () => {
                                 try {
                                     const { Capacitor } = await import('@capacitor/core');
                                     const isNative = Capacitor.isNativePlatform();
-                                    alert(`DIAGNOSTIC: Platform=${isNative ? 'NATIVE' : 'WEB'}, Auth=${!!auth}, User=${auth?.currentUser?.uid || 'none'}`);
 
                                     if (isNative) {
-                                        alert("Step 1: Starting Native Apple Sign In");
                                         const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
 
                                         // Add timeout to detect hangs
@@ -214,17 +212,12 @@ export const Login: React.FC = () => {
                                                 scopes: ['email', 'name'],
                                             }),
                                             new Promise<never>((_, reject) =>
-                                                setTimeout(() => reject(new Error("TIMEOUT: Apple Sign In took too long. Check Provisioning Profile.")), 10000)
+                                                setTimeout(() => reject(new Error("Apple Sign In timed out.")), 15000)
                                             )
-                                        ]) as any; // Cast to avoid TS issues with race
-
-                                        alert("Step 2: Native Sign In Complete. Token: " + (result.credential?.idToken ? "YES" : "NO"));
+                                        ]) as any;
 
                                         // Sync with Firebase JS SDK
                                         if (result.credential?.idToken) {
-                                            alert("Step 3: Syncing with JS SDK...");
-                                            // alert("Result payload: " + JSON.stringify(result)); // Too verbose for user, check console
-
                                             const provider = new OAuthProvider('apple.com');
                                             const credentialParams: any = {
                                                 idToken: result.credential.idToken,
@@ -234,21 +227,17 @@ export const Login: React.FC = () => {
                                                 credentialParams.rawNonce = result.credential.rawNonce;
                                             }
 
-                                            // DEBUG: Inspect the params causing the error
-                                            alert(`DEBUG PARAMS: idToken length=${credentialParams.idToken?.length}, rawNonce=${credentialParams.rawNonce}`);
-
                                             try {
                                                 const credential = provider.credential(credentialParams);
                                                 await signInWithCredential(auth, credential);
-                                                alert("Step 4: Sync Complete! Redirecting...");
                                                 addToast("Connexion réussie", "success");
                                                 window.location.href = '/';
                                             } catch (innerError: any) {
-                                                alert("JS Sync Error: " + innerError.message);
+                                                console.error("JS Sync Error:", innerError);
                                                 throw innerError;
                                             }
                                         } else {
-                                            alert("Error: No ID Token from Apple");
+                                            throw new Error("No ID Token from Apple");
                                         }
                                     } else {
                                         const provider = new OAuthProvider('apple.com');
@@ -258,13 +247,12 @@ export const Login: React.FC = () => {
                                     }
                                 } catch (error: any) {
                                     console.error("Apple Sign In Error:", error);
-                                    console.error("Apple Sign In Error:", error);
-                                    alert("CRITICAL ERROR: " + (error.message || JSON.stringify(error)));
+                                    ErrorLogger.error(error, 'Login.appleSignIn');
                                     const code = error.code || error.message;
                                     if (code === 'auth/operation-not-allowed') {
                                         setErrorMsg("Apple Sign In non activé dans la console Firebase.");
                                     } else {
-                                        setErrorMsg("Erreur Apple Sign In: " + (error.message || "Inconnue"));
+                                        setErrorMsg("Erreur Apple Sign In. Veuillez réessayer.");
                                     }
                                 } finally { setLoading(false); }
                             }}

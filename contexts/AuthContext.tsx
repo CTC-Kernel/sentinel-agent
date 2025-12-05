@@ -12,17 +12,12 @@ import {
     serverTimestamp,
     enableNetwork,
     disableNetwork,
-    updateDoc,
-    collection,
-    query,
-    where,
-    getDocs,
-    deleteDoc
+    updateDoc
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
-import { UserProfile, Invitation, Organization } from '../types';
+import { UserProfile, Organization } from '../types';
 import { httpsCallable, getFunctions } from 'firebase/functions';
 
 
@@ -211,51 +206,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         ErrorLogger.info('No user profile found, creating default profile', 'AuthContext.handleUser');
 
                         try {
-                            // Vérifier s'il y a une invitation en attente
-                            let initialData: Partial<UserProfile> = {
+                            // Basic initial data - SAFE to create
+                            const initialData: Partial<UserProfile> = {
                                 uid: u.uid,
                                 email: u.email || '',
                                 displayName: u.displayName || u.email?.split('@')[0] || 'Utilisateur',
                                 photoURL: u.photoURL,
-                                role: 'user',
-                                onboardingCompleted: false,
-                                createdAt: new Date().toISOString() // Ajout timestamp création
+                                onboardingCompleted: false, // Will be updated by backend if invitation exists
+                                createdAt: new Date().toISOString()
                             };
 
-                            const inviteQuery = query(collection(db, 'invitations'), where('email', '==', u.email));
-                            const inviteSnap = await getDocs(inviteQuery);
-
-                            if (!inviteSnap.empty) {
-                                const invite = inviteSnap.docs[0].data() as Invitation;
-                                ErrorLogger.info('Invitation found, linking to organization', 'AuthContext.handleUser', { metadata: { organizationName: invite.organizationName } });
-                                initialData = {
-                                    ...initialData,
-                                    organizationId: invite.organizationId,
-                                    organizationName: invite.organizationName,
-                                    department: invite.department,
-                                    role: invite.role || 'user',
-                                    // Onboarding considéré comme non terminé pour confirmer les infos, 
-                                    // ou true si on veut skip. Laissons false pour qu'il vérifie ses infos.
-                                    onboardingCompleted: false
-                                };
-                                // Supprimer l'invitation utilisée
-                                await deleteDoc(inviteSnap.docs[0].ref);
-                            }
-
-                            // Création du document utilisateur
-                            // Cela va déclencher le snapshot listener à nouveau avec exists=true
+                            // Create user document
+                            // This will trigger the backend 'setUserClaims' function which will:
+                            // 1. Check for invitations
+                            // 2. Assign organization/role if invitation exists
+                            // 3. Set custom claims
                             await setDoc(userRef, initialData, { merge: true });
 
-                            // On ne met pas setLoading(false) ici, on attend que le snapshot repasse
-                            // Cependant, par sécurité pour éviter un blocage si le snapshot ne trigger pas vite :
-                            // On set un état temporaire
+                            // Set temporary state to avoid UI flash while waiting for backend
                             setUser(initialData as UserProfile);
                             setLoading(false);
 
                         } catch (err) {
                             ErrorLogger.error(err, 'AuthContext.createUserProfile');
                             setError(err as Error);
-                            setLoading(false); // Débloquer même en cas d'erreur pour afficher l'erreur
+                            setLoading(false);
                         }
                     }
                 }, async (err) => {
