@@ -429,11 +429,12 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
   }, [start, end]);
 
   const particleCount = Math.max(3, Math.floor(8 * speed)); // More particles for faster flows
+
   const points = useMemo(() => {
     try {
       return curve.getPoints(50);
     } catch (e) {
-      console.warn("Failed to generate curve points", e);
+      console.warn("Curve generation failed", e);
       return [];
     }
   }, [curve]);
@@ -442,7 +443,12 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
 
   return (
     <group>
-      <Line points={points} color={color} opacity={opacity * 0.6} transparent lineWidth={1.5} />
+      {/* Native line rendering using bufferGeometry */}
+      <line>
+        <bufferGeometry onUpdate={(geo) => geo.setFromPoints(points)} />
+        <lineBasicMaterial color={color} opacity={opacity * 0.6} transparent linewidth={1} />
+      </line>
+
       {showParticles && [...Array(particleCount)].map((_, i) => (
         <MovingParticle
           key={i}
