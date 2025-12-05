@@ -120,6 +120,7 @@ echo "  - createCheckoutSession"
 echo "  - createPortalSession"
 echo "  - stripeWebhook"
 echo "  - processMailQueue"
+echo "  - requestPasswordReset"
 echo ""
 
 read -p "Confirmer le déploiement ? (o/N) " -n 1 -r

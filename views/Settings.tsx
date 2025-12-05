@@ -468,9 +468,18 @@ export const Settings: React.FC = () => {
             const uri = await enrollMFA();
             const dataUrl = await QRCode.toDataURL(uri);
             setQrCodeUrl(dataUrl);
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Settings.handleEnrollMFA', 'UNKNOWN_ERROR');
+        } catch (error: any) {
             setIsEnrollingMFA(false);
+            console.error("MFA Enrollment Error:", error);
+
+            if (error.code === 'auth/requires-recent-login') {
+                addToast(t('settings.reloginRequired'), "error");
+            } else if (error.code === 'auth/operation-not-allowed' || error.message?.includes('400')) {
+                addToast("La configuration MFA semble incomplète. Vérifiez que TOTP est activé dans la console Firebase.", "error");
+                ErrorLogger.warn("Possible MFA Configuration Issue (TOTP disabled?)", 'Settings.handleEnrollMFA', { metadata: { error } });
+            } else {
+                ErrorLogger.handleErrorWithToast(error, 'Settings.handleEnrollMFA', 'UNKNOWN_ERROR');
+            }
         }
     };
 

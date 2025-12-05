@@ -1,5 +1,5 @@
 
-const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onDocumentCreated, onDocumentUpdated, onDocumentWritten, onDocumentDeleted } = require("firebase-functions/v2/firestore");
 const { logger } = require("firebase-functions");
 const sgMail = require('@sendgrid/mail');
 // sgMail.setApiKey is now called with secret
@@ -22,6 +22,8 @@ const geminiApiKey = defineSecret("GEMINI_API_KEY");
 const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
 const stripeWebhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
 const sendGridApiKey = defineSecret("SENDGRID_API_KEY");
+
+const { generateAuditTrigger } = require('./services/auditTriggers'); // Import Audit Factory
 
 admin.initializeApp();
 
@@ -312,6 +314,23 @@ const getRejectedEmailHtml = (userName, orgName) => generateEmailHtml({
       <p style="margin: 0; font-size: 14px;">Si vous pensez qu'il s'agit d'une erreur, veuillez contacter l'administrateur de l'organisation.</p>
     </div>
   `
+});
+
+const getPasswordResetEmailHtml = (userName, link) => generateEmailHtml({
+    title: "Réinitialisation de mot de passe",
+    content: `
+    <p>Bonjour ${userName},</p>
+    <p>Une demande de réinitialisation de mot de passe a été effectuée pour votre compte Sentinel GRC.</p>
+    <div class="highlight-box">
+      <p style="margin: 0; font-size: 14px; color: #64748b;">Si vous êtes à l'origine de cette demande, cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.</p>
+    </div>
+    <div class="alert-box alert-warning">
+        <p style="margin: 0; font-size: 14px;">Ce lien est temporaire et expirera prochainement pour des raisons de sécurité.</p>
+    </div>
+  `,
+    actionLabel: "Réinitialiser mon mot de passe",
+    actionUrl: link,
+    footerText: "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email en toute sécurité."
 });
 
 
@@ -1694,6 +1713,70 @@ exports.transferOwnership = onCall(async (request) => {
 exports.saveUserApiKeys = onCall({
     secrets: [userSecretsKey]
 }, async (request) => {
+    // ... existing implementation ...
+}); // Note: This replacement is just to find the spot, I will insert the new function BEFORE this or after. 
+// Actually, it's safer to append the new function at the end or in a logical place. 
+// I'll add it after 'saveUserApiKeys' block ends, but I don't see the end of saveUserApiKeys in the view_file output. 
+// Let's look for a better anchor. I'll add it before `exports.saveUserApiKeys`.
+
+/**
+ * Request a password reset email with a custom template.
+ */
+exports.requestPasswordReset = onCall(async (request) => {
+    const email = request.data.email;
+    if (!email) {
+        throw new HttpsError('invalid-argument', 'Email is required.');
+    }
+
+    try {
+        // 1. Generate Password Reset Link
+        const link = await admin.auth().generatePasswordResetLink(email);
+
+        // 2. Get user details (optional, for personalization)
+        let userName = 'Utilisateur';
+        try {
+            const userRecord = await admin.auth().getUserByEmail(email);
+            userName = userRecord.displayName || 'Utilisateur';
+        } catch (e) {
+            // User might not exist, but for security we shouldn't reveal that.
+            // However, generatePasswordResetLink throws if user doesn't exist.
+            // So if we are here, user likely exists.
+            logger.warn(`Could not fetch user details for ${email}`, e);
+        }
+
+        // 3. Queue Email
+        await admin.firestore().collection('mail_queue').add({
+            to: email,
+            message: {
+                subject: 'Réinitialisation de votre mot de passe - Sentinel GRC',
+                html: getPasswordResetEmailHtml(userName, link)
+            },
+            type: 'PASSWORD_RESET',
+            status: 'PENDING',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        logger.info(`Password reset requested for ${email}`);
+        return { success: true, message: 'Reset email sent.' };
+
+    } catch (error) {
+        logger.error('Error requesting password reset:', error);
+        // Don't reveal if user exists or not for security, usually.
+        // But invalid-email is thrown by generatePasswordResetLink if not found.
+        if (error.code === 'auth/user-not-found') {
+            // Mimic success to prevent enumeration? Or just throw standard error?
+            // Standard practice often is "If email exists, email sent".
+            // For now, let's return success to UI so it shows "Email sent".
+            logger.warn(`Password reset requested for non-existent email: ${email}`);
+            return { success: true, message: 'Reset email sent.' };
+        }
+        throw new HttpsError('internal', 'Internal error processing request.');
+    }
+});
+
+exports.saveUserApiKeys = onCall({
+    secrets: [userSecretsKey]
+}, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
         throw new HttpsError('unauthenticated', 'User must be logged in.');
@@ -3000,3 +3083,53 @@ exports.fetchRssFeed = onCall(async (request) => {
         throw new HttpsError('internal', 'Failed to fetch RSS feed: ' + error.message);
     }
 });
+
+// --- AUDIT LOGGING AUTOMATION ---
+exports.auditRisks = generateAuditTrigger('risks/{docId}', 'threat');
+exports.auditIncidents = generateAuditTrigger('incidents/{docId}', 'title');
+exports.auditAssets = generateAuditTrigger('assets/{docId}', 'name');
+exports.auditDocuments = generateAuditTrigger('documents/{docId}', 'title');
+
+// --- GDPR / CASCADING DELETION ---
+exports.onOrganizationDeleted = onDocumentDeleted("organizations/{orgId}", async (event) => {
+    const orgId = event.params.orgId;
+    const db = admin.firestore();
+    const batch = db.batch();
+
+    logger.info(`Organization ${orgId} deleted. Starting cascading cleanup...`);
+
+    try {
+        // 1. Delete Users associated with Org
+        // Warning: This deletes the user accounts entirely. 
+        // If users can belong to multiple orgs, this logic needs adjustment (Sentinel is single-tenant per user for now).
+        const usersSnap = await db.collection('users').where('organizationId', '==', orgId).get();
+        const deletePromises = [];
+
+        usersSnap.forEach(doc => {
+            // Delete Auth User
+            deletePromises.push(admin.auth().deleteUser(doc.id).catch(e => logger.warn(`Failed to delete auth user ${doc.id}`, e)));
+            // Delete Firestore User Doc
+            batch.delete(doc.ref);
+        });
+
+        // 2. Delete Subcollections logic (if hardcoded known subcollections exist)
+        // Firestore doesn't support recursive delete in triggers easily without using firebase-tools helper
+        // or listing all known collections.
+        // For Critical Data: Risks, Incidents, Assets, Documents
+        const commonCollections = ['risks', 'incidents', 'assets', 'documents', 'projects', 'audits'];
+
+        for (const col of commonCollections) {
+            const snap = await db.collection(col).where('organizationId', '==', orgId).get();
+            snap.forEach(doc => batch.delete(doc.ref));
+        }
+
+        await batch.commit();
+        await Promise.all(deletePromises);
+
+        logger.info(`Cascading cleanup for ${orgId} complete.`);
+
+    } catch (error) {
+        logger.error(`Cascading delete failed for ${orgId}`, error);
+    }
+});
+
