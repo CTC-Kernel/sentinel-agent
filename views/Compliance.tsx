@@ -8,7 +8,7 @@ import { db } from '../firebase';
 import { toast } from 'sonner';
 import { analyticsService } from '../services/analyticsService';
 import { Control, Document, Risk, Finding, UserProfile, SystemLog, Asset, Supplier, Project, Audit, BusinessProcess, AutomatedEvidence } from '../types';
-import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet, RefreshCw, Loader2, CheckCircle2, XCircle, Plug } from '../components/ui/Icons';
+import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet, RefreshCw, Loader2, CheckCircle2, XCircle, Plug, MessageSquare } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { PdfService } from '../services/PdfService';
@@ -28,6 +28,7 @@ import { CustomSelect } from '../components/ui/CustomSelect';
 import { NotificationService } from '../services/notificationService';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { RiskForm } from '../components/risks/RiskForm';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AuditForm } from '../components/audits/AuditForm';
 import { ProjectForm } from '../components/projects/ProjectForm';
 
@@ -1082,12 +1083,18 @@ export const Compliance: React.FC = () => {
                 ) : (selectedControl && (
                     <div className="h-full flex flex-col">
                         {/* Tabs */}
-                        <div className="flex border-b border-gray-100 dark:border-white/5 px-6 bg-white/50 dark:bg-white/5 backdrop-blur-sm sticky top-0 z-10">
-                            <button onClick={() => setInspectorTab('details')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'details' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Détails</button>
-                            <button onClick={() => setInspectorTab('evidence')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'evidence' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Preuves ({selectedControl.evidenceIds?.length || 0})</button>
-                            <button onClick={() => setInspectorTab('linkedItems')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'linkedItems' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Éléments Liés</button>
-                            <button onClick={() => setInspectorTab('comments')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'comments' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Discussion</button>
-                            <button onClick={() => setInspectorTab('history')} className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${inspectorTab === 'history' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>Historique</button>
+                        <div className="px-6 bg-white/50 dark:bg-white/5 backdrop-blur-sm sticky top-0 z-10 border-b border-gray-100 dark:border-white/5">
+                            <ScrollableTabs
+                                tabs={[
+                                    { id: 'details', label: 'Détails', icon: FileText },
+                                    { id: 'evidence', label: `Preuves (${selectedControl.evidenceIds?.length || 0})`, icon: Paperclip },
+                                    { id: 'linkedItems', label: 'Éléments Liés', icon: Link },
+                                    { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                                    { id: 'history', label: 'Historique', icon: RefreshCw },
+                                ]}
+                                activeTab={inspectorTab}
+                                onTabChange={(id) => setInspectorTab(id as any)}
+                            />
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">

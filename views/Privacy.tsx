@@ -6,7 +6,7 @@ import { processingActivitySchema, ProcessingActivityFormData } from '../schemas
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ProcessingActivity, SystemLog, UserProfile } from '../types';
-import { Plus, Search, Fingerprint, Trash2, Edit, GlobeLock, Scale, FileSpreadsheet, CheckCircle2, Clock, Activity, AlertTriangle, History, MessageSquare, Save, LayoutDashboard, Upload } from '../components/ui/Icons';
+import { Plus, Search, Fingerprint, Trash2, Edit, GlobeLock, Scale, FileSpreadsheet, CheckCircle2, Clock, AlertTriangle, History, MessageSquare, Save, LayoutDashboard, Upload } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -16,6 +16,9 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { Drawer } from '../components/ui/Drawer';
+import { Badge } from '../components/ui/Badge';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { Target } from 'lucide-react';
 
 import { canEditResource } from '../utils/permissions';
 
@@ -320,34 +323,56 @@ export const Privacy: React.FC = () => {
             />
 
             {/* Stats Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Traitements</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p>
+            {/* Insight Card (Summary) */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="space-y-2">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                        <span className="inline-flex h-2 w-2 rounded-full bg-purple-500 animate-pulse" />
+                        Registre des Traitements
+                    </p>
+                    <div className="flex items-baseline gap-3">
+                        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</h2>
+                        <span className="text-sm font-bold text-slate-500">Traitements identifiés</span>
                     </div>
-                    <div className="p-3 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-600"><Activity className="h-6 w-6" /></div>
                 </div>
-                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
+
+                <div className="h-px w-full md:w-px md:h-16 bg-slate-200 dark:bg-white/10" />
+
+                <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Données Sensibles</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.sensitive}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Données Sensibles</p>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-orange-500">{stats.sensitive}</span>
+                            <Badge status="warning" variant="soft" size="sm">Prioritaire</Badge>
+                        </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><Fingerprint className="h-6 w-6" /></div>
-                </div>
-                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">DPIA Manquants</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.dpiaMissing}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">DPIA Requis</p>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">
+                                {stats.dpiaMissing}
+                            </span>
+                            <span className="text-xs font-medium text-slate-400">à réaliser</span>
+                        </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600"><AlertTriangle className="h-6 w-6" /></div>
-                </div>
-                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-blue-500 mb-1">En cours / Projet</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.review}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">En Projet</p>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-blue-500">
+                                {stats.review}
+                            </span>
+                            <span className="text-xs font-medium text-slate-400">Traitements</span>
+                        </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 text-blue-600"><Clock className="h-6 w-6" /></div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Conformité Actifs</p>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-emerald-500">
+                                {stats.total > 0 ? Math.round(((stats.total - stats.review) / stats.total) * 100) : 0}%
+                            </span>
+                            <Target className="h-4 w-4 text-emerald-500" />
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -455,22 +480,17 @@ export const Privacy: React.FC = () => {
             >
                 {selectedActivity && (
                     <div className="flex flex-col h-full">
-                        <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5 overflow-x-auto no-scrollbar sticky top-0 z-10 backdrop-blur-md">
-                            {[
-                                { id: 'details', label: 'Fiche Registre', icon: LayoutDashboard },
-                                { id: 'data', label: 'Données & Sécurité', icon: GlobeLock },
-                                { id: 'history', label: 'Historique', icon: History },
-                                { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                            ].map(tab => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setInspectorTab(tab.id as typeof inspectorTab)}
-                                    className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-                                >
-                                    <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
-                                    {tab.label}
-                                </button>
-                            ))}
+                        <div className="px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                            <ScrollableTabs
+                                tabs={[
+                                    { id: 'details', label: 'Fiche Registre', icon: LayoutDashboard },
+                                    { id: 'data', label: 'Données & Sécurité', icon: GlobeLock },
+                                    { id: 'history', label: 'Historique', icon: History },
+                                    { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                                ]}
+                                activeTab={inspectorTab}
+                                onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
+                            />
                         </div>
 
                         <div className="p-8">

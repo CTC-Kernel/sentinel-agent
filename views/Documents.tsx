@@ -24,6 +24,7 @@ import { DocumentForm } from '../components/documents/DocumentForm';
 import { FolderTree } from '../components/documents/FolderTree';
 import { DocumentFormData } from '../schemas/documentSchema';
 import { getPlanLimits } from '../config/plans';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
@@ -1000,22 +1001,17 @@ export const Documents: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5 overflow-x-auto no-scrollbar">
-                                        {[
-                                            { id: 'details', label: 'Détails', icon: File },
-                                            { id: 'versions', label: 'Versions', icon: History },
-                                            { id: 'history', label: 'Activité', icon: List },
-                                            { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                                        ].map(tab => (
-                                            <button
-                                                key={tab.id}
-                                                onClick={() => setInspectorTab(tab.id as 'details' | 'history' | 'comments')}
-                                                className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all whitespace-nowrap ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-                                            >
-                                                <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-blue-500' : 'opacity-70'}`} />
-                                                {tab.label}
-                                            </button>
-                                        ))}
+                                    <div className="px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                                        <ScrollableTabs
+                                            tabs={[
+                                                { id: 'details', label: 'Détails', icon: File },
+                                                { id: 'versions', label: 'Versions', icon: History },
+                                                { id: 'history', label: 'Activité', icon: List },
+                                                { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                                            ]}
+                                            activeTab={inspectorTab}
+                                            onTabChange={(id) => setInspectorTab(id as any)}
+                                        />
                                     </div>
 
                                     <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
