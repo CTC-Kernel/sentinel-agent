@@ -1,6 +1,6 @@
 
 import { initializeApp } from 'firebase/app';
-import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
+import { getAuth, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
 // Capacitor import removed from static scope to prevent web issues
 // import { Capacitor } from '@capacitor/core';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
@@ -60,17 +60,29 @@ if (typeof window !== 'undefined') {
 
 
 
-// Safe check for native platform without importing @capacitor/core statically
-// This prevents web build issues while ensuring iOS uses the correct persistence
-const isNative = typeof window !== 'undefined' &&
-  (window as any).Capacitor &&
-  (window as any).Capacitor.isNativePlatform();
+// Use getAuth for immediate instance, which works reliably on Web
+export const auth = getAuth(app);
 
-// Use initializeAuth to ensure persistence is set synchronously at startup
-// This is critical for iOS to restore the session correctly
-export const auth = initializeAuth(app, {
-  persistence: isNative ? indexedDBLocalPersistence : browserLocalPersistence
-});
+// Configure persistence dynamically to ensure iOS works correctly
+// This avoids static Capacitor imports that break Web, but sets persistence for Native
+(async () => {
+  try {
+    const isNative = typeof window !== 'undefined' &&
+      (window as any).Capacitor &&
+      (window as any).Capacitor.isNativePlatform();
+
+    if (isNative) {
+      // On iOS/Android, we MUST use indexedDBLocalPersistence for correct session restoration
+      // We import it dynamically to be safe, though it's already imported above
+      await setPersistence(auth, indexedDBLocalPersistence);
+    } else {
+      // On Web, browserLocalPersistence is default, but we can be explicit
+      await setPersistence(auth, browserLocalPersistence);
+    }
+  } catch (error) {
+    ErrorLogger.error(error, 'firebase.persistenceConfig');
+  }
+})();
 
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
 export const db = initializeFirestore(app, {
