@@ -1,5 +1,4 @@
 
-
 import { functions, db } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { collection, doc, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
@@ -117,7 +116,7 @@ class IntegrationService {
         }
     }
 
-    async connectProvider(providerId: string, config: any, organizationId: string, isDemoMode: boolean = false): Promise<boolean> {
+    async connectProvider(providerId: string, config: Record<string, unknown>, organizationId: string, isDemoMode: boolean = false): Promise<boolean> {
         if (isDemoMode) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             return true;
@@ -169,13 +168,9 @@ class IntegrationService {
     }
 
     async fetchEvidence(providerId: string, resourceId: string, organizationId: string, isDemoMode: boolean = false): Promise<{ status: string, details: string, lastSync: string }> {
-        try {
-            const fetchEvidenceFn = httpsCallable(functions, 'fetchEvidence');
-            const result = await fetchEvidenceFn({ providerId, resourceId, organizationId, isDemoMode });
-            return result.data as any;
-        } catch (error) {
-            throw error;
-        }
+        const fetchEvidenceFn = httpsCallable(functions, 'fetchEvidence');
+        const result = await fetchEvidenceFn({ providerId, resourceId, organizationId, isDemoMode });
+        return result.data as { status: string, details: string, lastSync: string };
     }
 
     async syncProvider(_providerId: string, isDemoMode: boolean = false): Promise<void> {
@@ -196,7 +191,7 @@ class IntegrationService {
         return '';
     }
 
-    async getCommonMitreTechniques(_query: string, isDemoMode: boolean = false): Promise<any[]> {
+    async getCommonMitreTechniques(_query: string, isDemoMode: boolean = false): Promise<unknown[]> {
         if (isDemoMode) {
             await new Promise(resolve => setTimeout(resolve, 500));
             return [
@@ -259,7 +254,7 @@ class IntegrationService {
         try {
             const fetchRssFeed = httpsCallable(functions, 'fetchRssFeed');
             const result = await fetchRssFeed({ url: 'https://www.cert.ssi.gouv.fr/feed/' });
-            const xmlText = (result.data as any).content;
+            const xmlText = (result.data as { content: string }).content;
 
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlText, "text/xml");
@@ -293,7 +288,7 @@ class IntegrationService {
         try {
             const fetchRssFeed = httpsCallable(functions, 'fetchRssFeed');
             const result = await fetchRssFeed({ url: 'https://www.cnil.fr/fr/rss.xml' });
-            const xmlText = (result.data as any).content;
+            const xmlText = (result.data as { content: string }).content;
 
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlText, "text/xml");
@@ -310,6 +305,58 @@ class IntegrationService {
             return [];
         }
     }
+
+    // --- Added for SupplierForm compatibility ---
+
+    async searchCompany(query: string): Promise<CompanySearchResult[]> {
+        // Mock implementation for demo/build
+        // In production, integrate with Pappers or Sirene API
+        if (query.length < 3) return [];
+
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate net lag
+
+        return [
+            {
+                name: `${query.toUpperCase()} SOLUTIONS`,
+                siren: '123456789',
+                address: '10 Avenue des Champs-Élysées, 75008 Paris',
+                activity: 'Conseil en systèmes et logiciels informatiques'
+            },
+            {
+                name: `${query.toUpperCase()} TECH`,
+                siren: '987654321',
+                address: 'Station F, 75013 Paris',
+                activity: 'Édition de logiciels applicatifs'
+            }
+        ];
+    }
+
+    getLogoUrl(domain: string): string {
+        // Use Clearbit's free logo API as a robust placeholder
+        if (!domain) return '';
+        return `https://logo.clearbit.com/${domain}`;
+    }
+
+    async validateVat(vatNumber: string): Promise<{ valid: boolean, message: string }> {
+        // Basic Regex Validation for common EU formats (Simplified)
+        // In prod, call VIES API
+        const vatRegex = /^[A-Z]{2}[0-9A-Z]+$/;
+
+        if (!vatRegex.test(vatNumber)) {
+            return { valid: false, message: 'Format de TVA invalide' };
+        }
+
+        // Mock async check
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return { valid: true, message: 'Numéro de TVA valide (Simulé)' };
+    }
+}
+
+export interface CompanySearchResult {
+    name: string;
+    siren: string;
+    address: string;
+    activity: string;
 }
 
 export interface CyberNewsItem {
