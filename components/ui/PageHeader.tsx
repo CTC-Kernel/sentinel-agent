@@ -139,7 +139,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
       {/* Actions */}
       {actions && (
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           {actions}
         </div>
       )}

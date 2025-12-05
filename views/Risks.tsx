@@ -7,7 +7,7 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality, Incident } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit, LayoutGrid, List } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit, LayoutGrid, List } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { Badge } from '../components/ui/Badge';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -910,11 +910,59 @@ export const Risks: React.FC = () => {
             />
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Risques</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total}</p></div><div className="p-3 rounded-2xl bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 text-blue-600"><ShieldAlert className="h-6 w-6" /></div></div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">Critiques / Élevés</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.critical}</p></div><div className="p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600"><Flame className="h-6 w-6" /></div></div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Atténués</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.mitigated}</p></div><div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600"><TrendingUp className="h-6 w-6" /></div></div>
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-1">Revues en retard</p><p className="text-3xl font-black text-slate-900 dark:text-white">{stats.reviewDue}</p></div><div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600"><Clock className="h-6 w-6" /></div></div>
+            {/* Insight Card (Summary) */}
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="space-y-2">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                        <span className="inline-flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                        Vue globale des risques
+                    </p>
+                    <div className="flex items-baseline gap-3">
+                        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</h2>
+                        <span className="text-sm font-bold text-slate-500">Risques identifiés</span>
+                    </div>
+                </div>
+
+                <div className="h-px w-full md:w-px md:h-16 bg-slate-200 dark:bg-white/10" />
+
+                <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Critiques</p>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-red-500">{stats.critical}</span>
+                            <Badge status="error" variant="soft" size="sm">Score 15+</Badge>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Score Moyen</p>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">
+                                {risks.length > 0 ? (risks.reduce((sum, r) => sum + r.score, 0) / risks.length).toFixed(1) : '0'}
+                            </span>
+                            <span className="text-xs font-medium text-slate-400">/ 25</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Non Traités</p>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-amber-500">
+                                {risks.filter(r => r.strategy === 'Accepter' && r.score >= 10).length}
+                            </span>
+                            <span className="text-xs font-medium text-slate-400">Critiques</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Réduction</p>
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-black text-emerald-500">
+                                {risks.length > 0 ?
+                                    Math.round(((risks.reduce((sum, r) => sum + r.score, 0) - risks.reduce((sum, r) => sum + (r.residualScore || r.score), 0)) / risks.reduce((sum, r) => sum + r.score, 0)) * 100)
+                                    : 0}%
+                            </span>
+                            <TrendingDown className="h-4 w-4 text-emerald-500" />
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between gap-4">
