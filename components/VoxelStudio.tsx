@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useEffect, createContext, useContext, useCallback } from 'react';
+import React, { useRef, useState, useMemo, useEffect, createContext, useContext, useCallback, Component, ErrorInfo, Suspense } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment, Html, Billboard } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints } from 'three';
@@ -6,6 +6,29 @@ import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, VoxelNode } from '../types';
 import { VoxelDetailOverlay } from './VoxelDetailOverlay';
+
+class VoxelErrorBoundary extends Component<{ children: React.ReactNode, fallback?: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode, fallback?: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(_error: any) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: ErrorInfo) {
+    console.error("Voxel 3D Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || null;
+    }
+    return this.props.children;
+  }
+}
+
 
 export interface VoxelDetail {
   id: string;
@@ -105,13 +128,27 @@ const useModelLibrary = (): ModelLibrary => {
 };
 
 const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const asset = useLoader(OBJLoader, assetModelUrl);
-  const risk = useLoader(OBJLoader, riskModelUrl);
-  const incident = useLoader(OBJLoader, incidentModelUrl);
-  const supplier = useLoader(OBJLoader, supplierModelUrl);
-  const project = useLoader(OBJLoader, projectModelUrl);
-  const value = useMemo(() => ({ asset, risk, incident, supplier, project }), [asset, risk, incident, supplier, project]);
-  return <ModelLibraryContext.Provider value={value}>{children}</ModelLibraryContext.Provider>;
+  try {
+    const asset = useLoader(OBJLoader, assetModelUrl);
+    const risk = useLoader(OBJLoader, riskModelUrl);
+    const incident = useLoader(OBJLoader, incidentModelUrl);
+    const supplier = useLoader(OBJLoader, supplierModelUrl);
+    const project = useLoader(OBJLoader, projectModelUrl);
+    const value = useMemo(() => ({ asset, risk, incident, supplier, project }), [asset, risk, incident, supplier, project]);
+    return <ModelLibraryContext.Provider value={value}>{children}</ModelLibraryContext.Provider>;
+  } catch (error) {
+    console.error("Failed to load 3D models:", error);
+    // Fallback context with empty groups to prevent crashes
+    const emptyGroup = new Group();
+    const fallbackValue = {
+      asset: emptyGroup,
+      risk: emptyGroup,
+      incident: emptyGroup,
+      supplier: emptyGroup,
+      project: emptyGroup
+    };
+    return <ModelLibraryContext.Provider value={fallbackValue}>{children}</ModelLibraryContext.Provider>;
+  }
 };
 
 const MODEL_LIBRARY_CONFIG: Partial<Record<VoxelNode['type'], { key: keyof ModelLibrary; scale: number; position?: [number, number, number]; rotation?: [number, number, number]; }>> = {
@@ -392,7 +429,16 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
   }, [start, end]);
 
   const particleCount = Math.max(3, Math.floor(8 * speed)); // More particles for faster flows
-  const points = useMemo(() => curve.getPoints(50), [curve]);
+  const points = useMemo(() => {
+    try {
+      return curve.getPoints(50);
+    } catch (e) {
+      console.warn("Failed to generate curve points", e);
+      return [];
+    }
+  }, [curve]);
+
+  if (!points || points.length === 0) return null;
 
   return (
     <group>
@@ -1370,148 +1416,153 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         gl={{ antialias: true }}
       >
         <fog attach="fog" args={['#020617', 40, 90]} />
-        <ModelLibraryProvider>
-          <color attach="background" args={[new Color('#020617')]} />
-          <ambientLight intensity={0.55} />
-          <pointLight position={[12, 18, 18]} intensity={1.2} color="#93c5fd" />
-          <pointLight position={[-14, -12, -8]} intensity={0.7} color="#4ecdc4" />
+        <fog attach="fog" args={['#020617', 40, 90]} />
+        <VoxelErrorBoundary fallback={null}>
+          <Suspense fallback={null}>
+            <ModelLibraryProvider>
+              <color attach="background" args={[new Color('#020617')]} />
+              <ambientLight intensity={0.55} />
+              <pointLight position={[12, 18, 18]} intensity={1.2} color="#93c5fd" />
+              <pointLight position={[-14, -12, -8]} intensity={0.7} color="#4ecdc4" />
 
-          <OrbitControls
-            enablePan
-            enableZoom
-            enableRotate
-            enableDamping
-            autoRotate={autoRotate}
-            autoRotateSpeed={0.35}
-            minDistance={4}
-            maxDistance={55}
-            zoomSpeed={0.6}
-            dampingFactor={0.05}
-            ref={controlsRef}
-          />
-
-          {voxelNodes.length > 0 && (
-            <Float floatIntensity={0.4} rotationIntensity={0.2} speed={1.2}>
-              <PulseCore />
-            </Float>
-          )}
-          <StarField />
-          <NeonGrid />
-          <ScanRing radius={12} color="#0ea5e9" />
-          <ScanRing radius={18} color="#9333ea" speed={0.25} />
-          <ScanRing radius={25} color="#f97316" speed={0.18} />
-
-          <Environment preset="city" />
-
-          {/* Target Reticle */}
-          {selectedNode && (
-            <TargetReticle position={selectedNode.position} size={selectedNode.size} color={selectedNode.color} />
-          )}
-
-          {/* Click Impact Wave */}
-          {impactPosition && (
-            <ImpactWave key={impactKey} position={impactPosition} />
-          )}
-
-          {/* Render connections */}
-          {connectionPairs.map((pair, i) => {
-            const isRelevant = !selectedNode ||
-              pair.sourceId === selectedNode.id ||
-              pair.targetId === selectedNode.id;
-
-            return (
-              <DataFlowParticles
-                key={`conn-${i}`}
-                start={new Vector3(...pair.start)}
-                end={new Vector3(...pair.end)}
-                color="#94a3b8"
-                speed={pair.strength * 2}
-                opacity={isRelevant ? 0.5 : 0.05}
-                showParticles={isRelevant}
+              <OrbitControls
+                enablePan
+                enableZoom
+                enableRotate
+                enableDamping
+                autoRotate={autoRotate}
+                autoRotateSpeed={0.35}
+                minDistance={4}
+                maxDistance={55}
+                zoomSpeed={0.6}
+                dampingFactor={0.05}
+                ref={controlsRef}
               />
-            );
-          })}
 
-          {/* AI Suggested Links */}
-          {aiConnectionPairs.map((pair, i) => {
-            const isRelevant = !selectedNode ||
-              pair.sourceId === selectedNode.id ||
-              pair.targetId === selectedNode.id;
+              {voxelNodes.length > 0 && (
+                <Float floatIntensity={0.4} rotationIntensity={0.2} speed={1.2}>
+                  <PulseCore />
+                </Float>
+              )}
+              <StarField />
+              <NeonGrid />
+              <ScanRing radius={12} color="#0ea5e9" />
+              <ScanRing radius={18} color="#9333ea" speed={0.25} />
+              <ScanRing radius={25} color="#f97316" speed={0.18} />
 
-            return (
-              <DataFlowParticles
-                key={`ai-conn-${i}`}
-                start={new Vector3(...pair.start)}
-                end={new Vector3(...pair.end)}
-                color="#fbbf24"
-                speed={pair.strength * 2}
-                opacity={isRelevant ? 0.6 : 0.1}
-                showParticles={isRelevant}
+              <Environment preset="city" />
+
+              {/* Target Reticle */}
+              {selectedNode && (
+                <TargetReticle position={selectedNode.position} size={selectedNode.size} color={selectedNode.color} />
+              )}
+
+              {/* Click Impact Wave */}
+              {impactPosition && (
+                <ImpactWave key={impactKey} position={impactPosition} />
+              )}
+
+              {/* Render connections */}
+              {connectionPairs.map((pair, i) => {
+                const isRelevant = !selectedNode ||
+                  pair.sourceId === selectedNode.id ||
+                  pair.targetId === selectedNode.id;
+
+                return (
+                  <DataFlowParticles
+                    key={`conn-${i}`}
+                    start={new Vector3(...pair.start)}
+                    end={new Vector3(...pair.end)}
+                    color="#94a3b8"
+                    speed={pair.strength * 2}
+                    opacity={isRelevant ? 0.5 : 0.05}
+                    showParticles={isRelevant}
+                  />
+                );
+              })}
+
+              {/* AI Suggested Links */}
+              {aiConnectionPairs.map((pair, i) => {
+                const isRelevant = !selectedNode ||
+                  pair.sourceId === selectedNode.id ||
+                  pair.targetId === selectedNode.id;
+
+                return (
+                  <DataFlowParticles
+                    key={`ai-conn-${i}`}
+                    start={new Vector3(...pair.start)}
+                    end={new Vector3(...pair.end)}
+                    color="#fbbf24"
+                    speed={pair.strength * 2}
+                    opacity={isRelevant ? 0.6 : 0.1}
+                    showParticles={isRelevant}
+                  />
+                );
+              })}
+
+              {/* Render voxel nodes */}
+              {voxelNodes.length === 0 ? (
+                <EmptyState3D />
+              ) : (
+                voxelNodes.map(node => {
+                  const isRelated = relatedNodeIds.has(node.id);
+                  const isImpacted = impactMode && impactedNodeIds.has(node.id);
+
+                  // In impact mode, dim everything except impacted nodes
+                  // In normal mode, dim everything except selected and related
+                  const isDimmed = impactMode
+                    ? !isImpacted
+                    : Boolean(selectedNode && node.id !== selectedNode.id && !isRelated);
+
+                  const isHighlighted = Boolean(selectedNode && (node.id === selectedNode.id || isRelated));
+
+                  return (
+                    <VoxelMesh
+                      key={node.id}
+                      node={node}
+                      onClick={handleNodeClick}
+                      isSelected={selectedNode?.id === node.id}
+                      isDimmed={isDimmed}
+                      isHighlighted={isHighlighted}
+                      opacity={xRayMode ? 0.3 : 0.9}
+                      highlightCritical={highlightCritical}
+                      xRayMode={xRayMode}
+                      overlayProps={overlayProps}
+                      overlayOffset={overlayOffset}
+                      isImpacted={isImpacted}
+                    />
+                  );
+                })
+              )}
+              <FocusController
+                target={branchPivotNode}
+                controlsRef={controlsRef}
+                setAutoRotate={setAutoRotate}
+                userInteractingRef={isUserInteracting}
+                shouldSnapRef={shouldSnapToTarget}
+                focusOnCardRef={focusOnCardRef}
+                overlayOffset={overlayOffset}
               />
-            );
-          })}
 
-          {/* Render voxel nodes */}
-          {voxelNodes.length === 0 ? (
-            <EmptyState3D />
-          ) : (
-            voxelNodes.map(node => {
-              const isRelated = relatedNodeIds.has(node.id);
-              const isImpacted = impactMode && impactedNodeIds.has(node.id);
+              <PresentationManager
+                presentationMode={presentationMode}
+                voxelNodes={voxelNodes}
+                onNodeSelect={(node) => {
+                  setSelectedNode(node);
+                  focusOnCardRef.current = true;
+                  shouldSnapToTarget.current = true;
+                  setImpactPosition(node.position);
+                  setImpactKey(prev => prev + 1);
+                }}
+              />
 
-              // In impact mode, dim everything except impacted nodes
-              // In normal mode, dim everything except selected and related
-              const isDimmed = impactMode
-                ? !isImpacted
-                : Boolean(selectedNode && node.id !== selectedNode.id && !isRelated);
-
-              const isHighlighted = Boolean(selectedNode && (node.id === selectedNode.id || isRelated));
-
-              return (
-                <VoxelMesh
-                  key={node.id}
-                  node={node}
-                  onClick={handleNodeClick}
-                  isSelected={selectedNode?.id === node.id}
-                  isDimmed={isDimmed}
-                  isHighlighted={isHighlighted}
-                  opacity={xRayMode ? 0.3 : 0.9}
-                  highlightCritical={highlightCritical}
-                  xRayMode={xRayMode}
-                  overlayProps={overlayProps}
-                  overlayOffset={overlayOffset}
-                  isImpacted={isImpacted}
-                />
-              );
-            })
-          )}
-          <FocusController
-            target={branchPivotNode}
-            controlsRef={controlsRef}
-            setAutoRotate={setAutoRotate}
-            userInteractingRef={isUserInteracting}
-            shouldSnapRef={shouldSnapToTarget}
-            focusOnCardRef={focusOnCardRef}
-            overlayOffset={overlayOffset}
-          />
-
-          <PresentationManager
-            presentationMode={presentationMode}
-            voxelNodes={voxelNodes}
-            onNodeSelect={(node) => {
-              setSelectedNode(node);
-              focusOnCardRef.current = true;
-              shouldSnapToTarget.current = true;
-              setImpactPosition(node.position);
-              setImpactKey(prev => prev + 1);
-            }}
-          />
-
-          <EffectComposer>
-            <Bloom luminanceThreshold={1} mipmapBlur intensity={1.5} radius={0.6} />
-            <Vignette eskil={false} offset={0.1} darkness={1.1} />
-          </EffectComposer>
-        </ModelLibraryProvider>
+              <EffectComposer>
+                <Bloom luminanceThreshold={1} mipmapBlur intensity={1.5} radius={0.6} />
+                <Vignette eskil={false} offset={0.1} darkness={1.1} />
+              </EffectComposer>
+            </ModelLibraryProvider>
+          </Suspense>
+        </VoxelErrorBoundary>
       </Canvas>
 
       {/* Controls overlay */}
