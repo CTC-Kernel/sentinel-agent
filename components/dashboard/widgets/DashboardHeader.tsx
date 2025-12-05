@@ -1,7 +1,50 @@
 import React from 'react';
-import { Server, ClipboardCheck, FileText, Zap, ArrowRight, CalendarDays, Download } from '../../ui/Icons';
+import { Server, ClipboardCheck, FileText, Zap, ArrowRight, CalendarDays, Download, X } from '../../ui/Icons';
 import { MaturityRadarWidget } from './MaturityRadarWidget';
 import { SecurityBadge } from '../../ui/SecurityBadge';
+
+const InsightCard: React.FC<{ insight: any, navigate: (path: string) => void }> = ({ insight, navigate }) => {
+    const [isVisible, setIsVisible] = React.useState(true);
+
+    if (!isVisible) return null;
+
+    return (
+        <div
+            className={`relative overflow-hidden p-4 sm:p-5 rounded-2xl border transition-all duration-300 hover:scale-[1.01] hover:shadow-lg group/insight animate-fade-in ${insight.type === 'danger' ? 'bg-red-50/80 dark:bg-red-950/30 border-red-200 dark:border-red-500/30' : insight.type === 'warning' ? 'bg-orange-50/80 dark:bg-orange-950/30 border-orange-200 dark:border-orange-500/30' : 'bg-emerald-50/80 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-500/30'}`}
+        // Allow clicking the card background to dismiss on mobile if desired, or just rely on the X button. 
+        // The user said "should also close on touch". Adding a touch listener to body is intrusive. 
+        // Let's add a dedicated close button that is large enough.
+        >
+            <button
+                onClick={(e) => { e.stopPropagation(); setIsVisible(false); }}
+                className="absolute top-2 right-2 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors z-20"
+                aria-label="Fermer"
+            >
+                <X className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+            </button>
+
+            <div className="flex items-start gap-3 sm:gap-4 relative z-10 pr-6">
+                <div className={`p-2.5 sm:p-3 rounded-xl shrink-0 shadow-sm ${insight.type === 'danger' ? 'bg-white dark:bg-red-500/20 text-red-600 dark:text-red-400 ring-1 ring-red-100 dark:ring-red-500/40' : insight.type === 'warning' ? 'bg-white dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 ring-1 ring-orange-100 dark:ring-orange-500/40' : 'bg-white dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-100 dark:ring-emerald-500/40'}`}>
+                    <Zap className="h-5 w-5 sm:h-6 sm:w-6" fill="currentColor" strokeWidth={0} />
+                </div>
+                <div className="flex-1 min-w-0 pt-0.5 sm:pt-1">
+                    <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-1 pr-4">{insight.text}</p>
+                    {insight.details && <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-2">{insight.details}</p>}
+
+                    {insight.link && (
+                        <button onClick={() => navigate(insight.link!)} className="mt-1 sm:mt-3 inline-flex items-center text-xs sm:text-sm font-bold hover:underline underline-offset-4 transition-all opacity-90 hover:opacity-100 p-1 -ml-1">
+                            <span className={`${insight.type === 'danger' ? 'text-red-700 dark:text-red-300' : insight.type === 'warning' ? 'text-orange-700 dark:text-orange-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
+                                {insight.action}
+                            </span>
+                            <ArrowRight className={`h-3 w-3 sm:h-4 sm:w-4 ml-1.5 ${insight.type === 'danger' ? 'text-red-700 dark:text-red-300' : insight.type === 'warning' ? 'text-orange-700 dark:text-orange-300' : 'text-emerald-700 dark:text-emerald-300'}`} />
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 interface DashboardHeaderProps {
     user: any;
@@ -217,26 +260,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             </div>
 
                             {/* Insight Card */}
-                            <div className={`relative overflow-hidden p-5 rounded-2xl border transition-all duration-300 hover:scale-[1.01] hover:shadow-lg group/insight ${insight.type === 'danger' ? 'bg-red-50/80 dark:bg-red-950/30 border-red-200 dark:border-red-500/30' : insight.type === 'warning' ? 'bg-orange-50/80 dark:bg-orange-950/30 border-orange-200 dark:border-orange-500/30' : 'bg-emerald-50/80 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-500/30'}`}>
-                                <div className="flex items-start gap-4 relative z-10">
-                                    <div className={`p-3 rounded-xl shrink-0 shadow-sm ${insight.type === 'danger' ? 'bg-white dark:bg-red-500/20 text-red-600 dark:text-red-400 ring-1 ring-red-100 dark:ring-red-500/40' : insight.type === 'warning' ? 'bg-white dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 ring-1 ring-orange-100 dark:ring-orange-500/40' : 'bg-white dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-100 dark:ring-emerald-500/40'}`}>
-                                        <Zap className="h-6 w-6" fill="currentColor" strokeWidth={0} />
-                                    </div>
-                                    <div className="flex-1 min-w-0 pt-1">
-                                        <p className="text-base font-bold text-slate-900 dark:text-white mb-1">{insight.text}</p>
-                                        {insight.details && <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{insight.details}</p>}
-
-                                        {insight.link && (
-                                            <button onClick={() => navigate(insight.link!)} className="mt-3 inline-flex items-center text-sm font-bold hover:underline underline-offset-4 transition-all opacity-90 hover:opacity-100">
-                                                <span className={`${insight.type === 'danger' ? 'text-red-700 dark:text-red-300' : insight.type === 'warning' ? 'text-orange-700 dark:text-orange-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
-                                                    {insight.action}
-                                                </span>
-                                                <ArrowRight className={`h-4 w-4 ml-1.5 ${insight.type === 'danger' ? 'text-red-700 dark:text-red-300' : insight.type === 'warning' ? 'text-orange-700 dark:text-orange-300' : 'text-emerald-700 dark:text-emerald-300'}`} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                            {insight.text && (
+                                <InsightCard insight={insight} navigate={navigate} />
+                            )}
 
                             {/* Actions & Team */}
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
