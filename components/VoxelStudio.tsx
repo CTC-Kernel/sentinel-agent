@@ -128,15 +128,48 @@ const useModelLibrary = (): ModelLibrary => {
 };
 
 const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const asset = useLoader(OBJLoader, assetModelUrl);
-  const risk = useLoader(OBJLoader, riskModelUrl);
-  const incident = useLoader(OBJLoader, incidentModelUrl);
-  const supplier = useLoader(OBJLoader, supplierModelUrl);
-  const project = useLoader(OBJLoader, projectModelUrl);
+  const [library, setLibrary] = useState<ModelLibrary | null>(null);
 
-  const value = useMemo(() => ({ asset, risk, incident, supplier, project }), [asset, risk, incident, supplier, project]);
+  useEffect(() => {
+    const loadModels = async () => {
+      const loader = new OBJLoader();
 
-  return <ModelLibraryContext.Provider value={value}>{children}</ModelLibraryContext.Provider>;
+      const loadSafe = async (url: string): Promise<Group> => {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`Status ${response.status}`);
+
+          const text = await response.text();
+          // Critical check: if the server returns HTML (e.g., fallback index.html), abort parsing
+          if (text.trim().toLowerCase().startsWith('<!doctype html') || text.trim().toLowerCase().startsWith('<html')) {
+            throw new Error('Received HTML instead of 3D model');
+          }
+
+          return loader.parse(text);
+        } catch (error) {
+          console.warn(`Failed to load 3D model from ${url}`, error);
+          // Return an empty group as fallback to prevent crash
+          return new Group();
+        }
+      };
+
+      const [asset, risk, incident, supplier, project] = await Promise.all([
+        loadSafe(assetModelUrl),
+        loadSafe(riskModelUrl),
+        loadSafe(incidentModelUrl),
+        loadSafe(supplierModelUrl),
+        loadSafe(projectModelUrl)
+      ]);
+
+      setLibrary({ asset, risk, incident, supplier, project });
+    };
+
+    loadModels();
+  }, []);
+
+  if (!library) return null; // Or a loading spinner if preferred
+
+  return <ModelLibraryContext.Provider value={library}>{children}</ModelLibraryContext.Provider>;
 };
 
 const MODEL_LIBRARY_CONFIG: Partial<Record<VoxelNode['type'], { key: keyof ModelLibrary; scale: number; position?: [number, number, number]; rotation?: [number, number, number]; }>> = {
