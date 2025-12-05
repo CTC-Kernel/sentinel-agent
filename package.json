@@ -78,7 +78,7 @@
     "vis-data": "^8.0.3",
     "vis-timeline": "^8.4.0",
     "zod": "^4.1.13",
-    "zustand": "^4.5.1"
+    "zustand": "^5.0.1"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
