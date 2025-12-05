@@ -1,7 +1,7 @@
 import React, { useRef, useState, useMemo, useEffect, createContext, useContext, useCallback, Component, ErrorInfo, Suspense } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment, Html, Billboard } from '@react-three/drei';
-import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints } from 'three';
+import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints, BufferGeometry } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, VoxelNode } from '../types';
@@ -441,11 +441,18 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
 
   if (!points || points.length === 0) return null;
 
+  if (!points || points.length === 0) return null;
+  // Verify points are valid numbers
+  const isValid = points.every(p => !isNaN(p.x) && !isNaN(p.y) && !isNaN(p.z));
+  if (!isValid) return null;
+
+  const geometry = useMemo(() => new BufferGeometry().setFromPoints(points), [points]);
+
   return (
     <group>
-      {/* Native line rendering using bufferGeometry */}
+      {/* @ts-ignore */}
       <line>
-        <bufferGeometry onUpdate={(geo) => geo.setFromPoints(points)} />
+        <primitive object={geometry} attach="geometry" />
         <lineBasicMaterial color={color} opacity={opacity * 0.6} transparent linewidth={1} />
       </line>
 

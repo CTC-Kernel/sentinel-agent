@@ -1,56 +1,66 @@
-const admin = require('firebase-admin');
+import admin from 'firebase-admin';
+import fs from 'fs';
+
 const args = process.argv.slice(2);
 const email = args[0];
 
 if (!email) {
-    console.error('Please provide an email address: node scripts/set-super-admin.js <email>');
+    console.error('Please provide an email address.');
+    console.log('Usage: node scripts/set-super-admin.js <email>');
     process.exit(1);
 }
 
 // Initialize Firebase Admin
-// 1. Try to find serviceAccountKey.json in root or parent
-// 2. Fallback to GOOGLE_APPLICATION_CREDENTIALS or Default Auth
+// Check for serviceAccountKey.json
+const serviceAccountPath = './serviceAccountKey.json';
+
 try {
-    // Check local directory
-    try {
-        const serviceAccount = require('../serviceAccountKey.json');
-        admin.initializeApp({
+    let app;
+    if (fs.existsSync(serviceAccountPath)) {
+        const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+        app = admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
         });
-        console.log('Using serviceAccountKey.json');
-    } catch (e) {
-        console.log('No serviceAccountKey.json found, trying default credentials...');
-        admin.initializeApp();
+        console.log('Initialized with serviceAccountKey.json');
+    } else {
+        // Fallback to default credentials (requires `gcloud auth application-default login`)
+        app = admin.initializeApp({
+            credential: admin.credential.applicationDefault(),
+            projectId: 'sentinel-grc-v2-prod' // Explicitly set project ID
+        });
+        console.log('Initialized with Application Default Credentials');
     }
 } catch (error) {
     console.error('Failed to initialize Firebase Admin:', error);
     process.exit(1);
 }
 
-async function setSuperAdmin() {
+async function setSuperAdmin(userEmail) {
     try {
-        console.log(`Looking up user: ${email}...`);
-        const user = await admin.auth().getUserByEmail(email);
+        const user = await admin.auth().getUserByEmail(userEmail);
 
-        console.log(`User found: ${user.uid}`);
-        console.log(`Current claims:`, user.customClaims || {});
-
+        // Get existing claims
         const currentClaims = user.customClaims || {};
 
+        // Set superAdmin: true
         await admin.auth().setCustomUserClaims(user.uid, {
             ...currentClaims,
             superAdmin: true
         });
 
-        console.log('-----------------------------------');
-        console.log(`✅ Success! ${email} is now a Super Admin.`);
-        console.log('-----------------------------------');
-        console.log('Please log out and log back in to refresh your token claims.');
+        console.log(`Successfully granted Super Admin access to ${userEmail}`);
+        console.log('User UID:', user.uid);
+        console.log('New Claims:', { ...currentClaims, superAdmin: true });
+        console.log('\nIMPORTANT: The user must sign out and sign back in for changes to take effect.');
         process.exit(0);
     } catch (error) {
-        console.error('Error setting super admin claim:', error);
+        if (error.code === 'auth/user-not-found') {
+            console.error(`User with email ${userEmail} not found.`);
+        } else {
+            console.error('Error setting custom claims:', error);
+        }
         process.exit(1);
     }
 }
 
-setSuperAdmin();
+setSuperAdmin(email);
