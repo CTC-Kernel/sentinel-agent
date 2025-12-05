@@ -21,7 +21,9 @@ import { getPlanLimits } from '../config/plans';
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PdfService } from '../services/PdfService';
-import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
+import { CardSkeleton } from '../components/ui/Skeleton';
+import { DataTable } from '../components/ui/DataTable';
+import { ColumnDef } from '@tanstack/react-table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { generateICS, downloadICS } from '../utils/calendar';
 import { ProjectDashboard } from '../components/projects/ProjectDashboard';
@@ -90,6 +92,7 @@ export const Projects: React.FC = () => {
     const loading = loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers;
 
     const role = user?.role || 'user';
+    const canEdit = canEditResource(user, 'Project');
 
     let projectsTitle = 'Projets SSI';
     let projectsSubtitle = "Pilotage des plans d'actions et mise en conformité.";
@@ -113,6 +116,87 @@ export const Projects: React.FC = () => {
 
     const [creationMode, setCreationMode] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
+
+    const columns = React.useMemo<ColumnDef<Project>[]>(() => [
+        {
+            accessorKey: 'name',
+            header: 'Projet',
+            cell: ({ row }) => (
+                <div>
+                    <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</div>
+                    <div className="text-xs text-slate-500 font-medium line-clamp-1">{row.original.description}</div>
+                </div>
+            )
+        },
+        {
+            accessorKey: 'manager',
+            header: 'Responsable',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400">
+                        {row.original.manager.charAt(0)}
+                    </div>
+                    {row.original.manager}
+                </div>
+            )
+        },
+        {
+            accessorKey: 'status',
+            header: 'Statut',
+            cell: ({ row }) => (
+                <Badge status={row.original.status === 'En cours' ? 'info' : row.original.status === 'Terminé' ? 'success' : row.original.status === 'Suspendu' ? 'error' : 'neutral'} variant="soft" size="sm">
+                    {row.original.status}
+                </Badge>
+            )
+        },
+        {
+            accessorKey: 'progress',
+            header: 'Progression',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-3 w-32">
+                    <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full">
+                        <div className="h-1.5 bg-brand-500 rounded-full" style={{ width: `${row.original.progress}%` }}></div>
+                    </div>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{row.original.progress}%</span>
+                </div>
+            )
+        },
+        {
+            accessorKey: 'dueDate',
+            header: 'Échéance',
+            cell: ({ row }) => (
+                <span className="text-slate-600 dark:text-slate-400 font-medium">
+                    {new Date(row.original.dueDate).toLocaleDateString()}
+                </span>
+            )
+        },
+        {
+            header: 'Tâches',
+            accessorFn: (row) => row.tasks?.length || 0,
+            cell: ({ row }) => (
+                <span className="text-slate-600 dark:text-slate-400 font-medium ml-4">
+                    {row.original.tasks?.length || 0}
+                </span>
+            )
+        },
+        {
+            id: 'actions',
+            cell: ({ row }) => (
+                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                    {canEdit && (
+                        <>
+                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(row.original); }} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
+                                <Edit className="h-4 w-4" />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); initiateDelete(row.original.id, row.original.name); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </>
+                    )}
+                </div>
+            )
+        }
+    ], [canEdit]);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
@@ -131,7 +215,7 @@ export const Projects: React.FC = () => {
     const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
     const [ganttViewMode, setGanttViewMode] = useState<'Day' | 'Week' | 'Month'>('Week');
 
-    const canEdit = canEditResource(user, 'Project');
+    // const [isEditing, setIsEditing] = useState(false); // Removed unused
 
     // Form State
     // const [isEditing, setIsEditing] = useState(false); // Removed unused
@@ -363,14 +447,31 @@ export const Projects: React.FC = () => {
         });
     };
 
+    const performDelete = async (id: string) => {
+        await deleteDoc(doc(db, 'projects', id));
+    };
+
     const handleDeleteProject = async (id: string) => {
         if (!canDeleteResource(user, 'Project')) return;
         try {
-            await deleteDoc(doc(db, 'projects', id));
+            await performDelete(id);
             setSelectedProject(null);
             addToast("Projet supprimé", "info");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleDeleteProject', 'DELETE_FAILED');
+        }
+    };
+
+    const handleBulkDelete = async (ids: string[]) => {
+        if (!canDeleteResource(user, 'Project')) return;
+        if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ces ${ids.length} projets ?`)) return;
+
+        try {
+            await Promise.all(ids.map(performDelete));
+            if (selectedProject?.id && ids.includes(selectedProject.id)) setSelectedProject(null);
+            addToast(`${ids.length} projets supprimés`, "info");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Projects.handleBulkDelete', 'DELETE_FAILED');
         }
     };
 
@@ -786,86 +887,15 @@ export const Projects: React.FC = () => {
 
             {viewMode === 'list' ? (
                 <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
-                                <tr>
-                                    <th className="px-8 py-4">Projet</th>
-                                    <th className="px-6 py-4">Responsable</th>
-                                    <th className="px-6 py-4">Statut</th>
-                                    <th className="px-6 py-4">Progression</th>
-                                    <th className="px-6 py-4">Échéance</th>
-                                    <th className="px-6 py-4">Tâches</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                {loading ? (
-                                    <tr><td colSpan={7}><TableSkeleton rows={5} columns={7} /></td></tr>
-                                ) : filteredProjects.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7}>
-                                            <EmptyState
-                                                icon={FolderKanban}
-                                                title="Aucun projet en cours"
-                                                description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
-                                                actionLabel={filter || !canEdit ? undefined : "Créer un projet"}
-                                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
-                                            />
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredProjects.map(project => (
-                                        <tr key={project.id} onClick={() => openInspector(project)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]">
-                                            <td className="px-8 py-5">
-                                                <div className="font-bold text-slate-900 dark:text-white text-[15px]">{project.name}</div>
-                                                <div className="text-xs text-slate-500 font-medium line-clamp-1">{project.description}</div>
-                                            </td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400">
-                                                        {project.manager.charAt(0)}
-                                                    </div>
-                                                    {project.manager}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <Badge status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'} variant="soft" size="sm">
-                                                    {project.status}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full w-24">
-                                                        <div className="h-1.5 bg-brand-500 rounded-full" style={{ width: `${project.progress}%` }}></div>
-                                                    </div>
-                                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{project.progress}%</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
-                                                {new Date(project.dueDate).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
-                                                {project.tasks?.length || 0}
-                                            </td>
-                                            <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                                {canEdit && (
-                                                    <>
-                                                        <button onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
-                                                            <Edit className="h-4 w-4" />
-                                                        </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); initiateDelete(project.id, project.name); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <DataTable
+                        columns={columns}
+                        data={filteredProjects}
+                        selectable={true}
+                        onBulkDelete={handleBulkDelete}
+                        onRowClick={openInspector}
+                        searchable={false}
+                        loading={loading}
+                    />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

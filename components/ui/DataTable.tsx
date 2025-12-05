@@ -9,7 +9,7 @@ import {
     ColumnDef,
     SortingState,
 } from '@tanstack/react-table';
-import { ChevronUp, ChevronDown, Download, Search, ChevronLeft, ChevronRight } from './Icons';
+import { ChevronUp, ChevronDown, Download, Search, ChevronLeft, ChevronRight, Trash2 } from './Icons';
 import { cn } from '../../lib/utils';
 import { Skeleton } from './Skeleton';
 
@@ -20,44 +20,87 @@ interface DataTableProps<TData, TValue> {
     exportable?: boolean;
     exportFilename?: string;
     searchable?: boolean;
+    selectable?: boolean;
+    onBulkDelete?: (selectedIds: string[]) => void;
     pageSize?: number;
     className?: string;
     loading?: boolean;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends { id: string }, TValue>({
     columns,
     data,
     onRowClick,
     exportable = false,
     exportFilename = 'export',
     searchable = false,
+    selectable = false,
+    onBulkDelete,
     pageSize = 10,
     className,
     loading = false,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
+    const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+
+    // Add selection column if selectable
+    const tableColumns = useMemo(() => {
+        if (!selectable) return columns;
+
+        const selectionColumn: ColumnDef<TData, any> = {
+            id: 'select',
+            header: ({ table }) => (
+                <div className="px-1" onClick={(e) => e.stopPropagation()}>
+                    <input
+                        type="checkbox"
+                        checked={table.getIsAllPageRowsSelected()}
+                        onChange={table.getToggleAllPageRowsSelectedHandler()}
+                        className="rounded border-gray-300 text-brand-600 focus:ring-brand-500 w-4 h-4 cursor-pointer"
+                    />
+                </div>
+            ),
+            cell: ({ row }) => (
+                <div className="px-1" onClick={(e) => e.stopPropagation()}>
+                    <input
+                        type="checkbox"
+                        checked={row.getIsSelected()}
+                        disabled={!row.getCanSelect()}
+                        onChange={row.getToggleSelectedHandler()}
+                        className="rounded border-gray-300 text-brand-600 focus:ring-brand-500 w-4 h-4 cursor-pointer"
+                    />
+                </div>
+            ),
+            enableSorting: false,
+            enableHiding: false,
+            size: 40,
+        };
+
+        return [selectionColumn, ...columns];
+    }, [columns, selectable]);
 
     const tableOptions = useMemo(() => ({
         data,
-        columns,
+        columns: tableColumns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         onSortingChange: setSorting,
         onGlobalFilterChange: setGlobalFilter,
+        onRowSelectionChange: setRowSelection,
         state: {
             sorting,
             globalFilter,
+            rowSelection,
         },
         initialState: {
             pagination: {
                 pageSize,
             },
         },
-    }), [data, columns, sorting, globalFilter, pageSize]);
+        getRowId: (row: any) => row.id, // Important for selection to return IDs
+    }), [data, tableColumns, sorting, globalFilter, rowSelection, pageSize]);
 
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable(tableOptions);
@@ -80,22 +123,35 @@ export function DataTable<TData, TValue>({
         link.click();
     };
 
+    const selectedIds = Object.keys(rowSelection).filter(id => rowSelection[id]);
+
     return (
         <div className={cn("space-y-4", className)}>
             {/* Toolbar */}
-            {(searchable || exportable) && (
-                <div className="flex items-center justify-between gap-4">
-                    {searchable && (
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Rechercher..."
-                                value={globalFilter ?? ''}
-                                onChange={(e) => setGlobalFilter(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
-                            />
-                        </div>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                {searchable && (
+                    <div className="relative flex-1 w-full max-w-md">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Rechercher..."
+                            value={globalFilter ?? ''}
+                            onChange={(e) => setGlobalFilter(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                        />
+                    </div>
+                )}
+
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    {/* Bulk Actions */}
+                    {selectable && selectedIds.length > 0 && onBulkDelete && (
+                        <button
+                            onClick={() => onBulkDelete(selectedIds)}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors animate-fade-in"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            Supprimer ({selectedIds.length})
+                        </button>
                     )}
 
                     {exportable && (
@@ -108,7 +164,7 @@ export function DataTable<TData, TValue>({
                         </button>
                     )}
                 </div>
-            )}
+            </div>
 
             {/* Table */}
             <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900">
@@ -123,7 +179,8 @@ export function DataTable<TData, TValue>({
                                             onClick={header.column.getToggleSortingHandler()}
                                             className={cn(
                                                 "px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400",
-                                                header.column.getCanSort() && "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                header.column.getCanSort() && "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800",
+                                                header.id === 'select' && "w-[50px] px-4"
                                             )}
                                             style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
                                         >
@@ -144,7 +201,7 @@ export function DataTable<TData, TValue>({
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
                                 <tr key={i}>
-                                    {columns.map((_, j) => (
+                                    {tableColumns.map((_, j) => (
                                         <td key={j} className="px-6 py-4">
                                             <Skeleton className="h-4 w-full" />
                                         </td>
@@ -155,10 +212,15 @@ export function DataTable<TData, TValue>({
                             table.getRowModel().rows.map((row) => (
                                 <tr
                                     key={row.id}
-                                    onClick={() => onRowClick?.(row.original)}
+                                    onClick={(e) => {
+                                        // Don't trigger row click if clicking checkbox
+                                        if ((e.target as HTMLElement).closest('input[type="checkbox"]')) return;
+                                        onRowClick?.(row.original);
+                                    }}
                                     className={cn(
                                         "transition-colors",
-                                        onRowClick && "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                        onRowClick && "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50",
+                                        row.getIsSelected() && "bg-brand-50/50 dark:bg-brand-900/10"
                                     )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
@@ -170,7 +232,7 @@ export function DataTable<TData, TValue>({
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={columns.length} className="text-center py-12 text-slate-500 dark:text-slate-400">
+                                <td colSpan={tableColumns.length} className="text-center py-12 text-slate-500 dark:text-slate-400">
                                     Aucune donnée à afficher
                                 </td>
                             </tr>

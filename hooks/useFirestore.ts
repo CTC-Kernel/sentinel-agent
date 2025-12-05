@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
     collection,
     query,
@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface UseFirestoreOptions {
     realtime?: boolean;
@@ -38,79 +39,81 @@ export const useFirestoreCollection = <T = DocumentData>(
     constraints: QueryConstraint[] = [],
     options: UseFirestoreOptions = { realtime: false, logError: true, enabled: true }
 ): UseFirestoreReturn<T & { id: string }> => {
-    const [data, setData] = useState<(T & { id: string })[]>([]);
-    const [loading, setLoading] = useState(options.enabled !== false);
-    const [error, setError] = useState<Error | null>(null);
+    const [realtimeData, setRealtimeData] = useState<(T & { id: string })[]>([]);
+    const [realtimeLoading, setRealtimeLoading] = useState(options.enabled !== false);
+    const [realtimeError, setRealtimeError] = useState<Error | null>(null);
 
-    // Memoize constraints to prevent infinite loops if passed as a new array every render
-    // We stringify the entire constraints array to capture values (e.g. where clauses)
-    const constraintsKey = JSON.stringify(constraints);
+    const queryClient = useQueryClient();
+    const constraintsKey = JSON.stringify(constraints); // Stable string for key
     const { realtime, logError, enabled } = options;
     const isEnabled = enabled !== false;
 
-    const fetchData = useCallback(async () => {
-        if (!isEnabled) {
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-
-        try {
-            const q = query(collection(db, collectionName), ...constraints);
-            const snapshot = await getDocs(q);
-            const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
-            setData(docs);
-        } catch (err: unknown) {
-            const errorObj = err instanceof Error ? err : new Error(String(err));
-            setError(errorObj);
-            if (logError) {
-                ErrorLogger.error(errorObj, `useFirestoreCollection.fetchData.${collectionName}`);
-            }
-        } finally {
-            setLoading(false);
-        }
-    }, [collectionName, constraintsKey, logError, isEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    useEffect(() => {
-        if (!isEnabled) {
-            setLoading(false);
-            return;
-        }
-
-        if (realtime) {
-            setLoading(true);
-            const q = query(collection(db, collectionName), ...constraints);
-            const unsubscribe = onSnapshot(q,
-                (snapshot) => {
-                    const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
-                    setData(docs);
-                    setLoading(false);
-                },
-                (err: unknown) => {
-                    const errorObj = err instanceof Error ? err : new Error(String(err));
-                    setError(errorObj);
-                    if (logError) {
-                        ErrorLogger.error(errorObj, `useFirestoreCollection.onSnapshot.${collectionName}`);
-                    }
-                    setLoading(false);
+    // React Query implementation for non-realtime
+    const {
+        data: queryData,
+        isLoading: queryLoading,
+        error: queryError,
+        refetch
+    } = useQuery({
+        queryKey: ['firestore', collectionName, constraintsKey],
+        queryFn: async () => {
+            try {
+                const q = query(collection(db, collectionName), ...constraints);
+                const snapshot = await getDocs(q);
+                return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
+            } catch (err) {
+                const errorObj = err instanceof Error ? err : new Error(String(err));
+                if (logError) {
+                    ErrorLogger.error(errorObj, `useFirestoreCollection.fetchData.${collectionName}`);
                 }
-            );
-            return () => unsubscribe();
-        } else {
-            fetchData();
+                throw errorObj;
+            }
+        },
+        enabled: isEnabled && !realtime,
+        // Don't refetch on window focus for firestore usually to save reads, but can be configured
+        staleTime: 1000 * 60 * 5 // 5 minutes default
+    });
+
+    // Realtime implementation
+    useEffect(() => {
+        if (!isEnabled || !realtime) {
+            if (!realtime) {
+                setRealtimeLoading(false);
+            }
+            return;
         }
-    }, [collectionName, constraintsKey, realtime, fetchData, isEnabled, logError]); // eslint-disable-line react-hooks/exhaustive-deps
+
+        setRealtimeLoading(true);
+        const q = query(collection(db, collectionName), ...constraints);
+        const unsubscribe = onSnapshot(q,
+            (snapshot) => {
+                const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
+                setRealtimeData(docs);
+                setRealtimeLoading(false);
+            },
+            (err: unknown) => {
+                const errorObj = err instanceof Error ? err : new Error(String(err));
+                setRealtimeError(errorObj);
+                if (logError) {
+                    ErrorLogger.error(errorObj, `useFirestoreCollection.onSnapshot.${collectionName}`);
+                }
+                setRealtimeLoading(false);
+            }
+        );
+        return () => unsubscribe();
+    }, [collectionName, constraintsKey, realtime, isEnabled, logError]);
 
     const add = async (newData: WithFieldValue<DocumentData>) => {
         try {
             const docRef = await addDoc(collection(db, collectionName), newData);
-            if (!options.realtime) await fetchData(); // Manually refresh if not realtime
+            if (!realtime) {
+                // Invalidate query to trigger refetch
+                await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
+            }
             return docRef.id;
         } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
-            if (options.logError) ErrorLogger.error(errorObj, `useFirestoreCollection.add.${collectionName}`);
+            if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.add.${collectionName}`);
             throw errorObj;
         }
     };
@@ -119,10 +122,12 @@ export const useFirestoreCollection = <T = DocumentData>(
         try {
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, updateData);
-            if (!options.realtime) await fetchData();
+            if (!realtime) {
+                await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
+            }
         } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
-            if (options.logError) ErrorLogger.error(errorObj, `useFirestoreCollection.update.${collectionName}`);
+            if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.update.${collectionName}`);
             throw errorObj;
         }
     };
@@ -131,15 +136,34 @@ export const useFirestoreCollection = <T = DocumentData>(
         try {
             const docRef = doc(db, collectionName, id);
             await deleteDoc(docRef);
-            if (!options.realtime) await fetchData();
+            if (!realtime) {
+                await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
+            }
         } catch (err: unknown) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
-            if (options.logError) ErrorLogger.error(errorObj, `useFirestoreCollection.remove.${collectionName}`);
+            if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.remove.${collectionName}`);
             throw errorObj;
         }
     };
 
-    return { data, loading, error, refresh: fetchData, add, update, remove };
+    // Return logic: if realtime, use local state; otherwise use query state
+    if (realtime) {
+        return {
+            data: realtimeData,
+            loading: realtimeLoading,
+            error: realtimeError,
+            refresh: async () => { }, // No-op for realtime
+            add, update, remove
+        };
+    }
+
+    return {
+        data: queryData || [],
+        loading: queryLoading,
+        error: queryError as Error | null,
+        refresh: async () => { await refetch(); },
+        add, update, remove
+    };
 };
 
 export const useFirestoreDocument = <T extends { id: string }>(
@@ -147,69 +171,82 @@ export const useFirestoreDocument = <T extends { id: string }>(
     docId: string | undefined,
     options: UseFirestoreOptions = { realtime: false, logError: true }
 ) => {
-    const [data, setData] = useState<T | null>(null);
-    const [loading, setLoading] = useState(!!docId);
-    const [error, setError] = useState<Error | null>(null);
+    const [realtimeData, setRealtimeData] = useState<T | null>(null);
+    const [realtimeLoading, setRealtimeLoading] = useState(!!docId);
+    const [realtimeError, setRealtimeError] = useState<Error | null>(null);
+
     const { realtime, logError } = options;
 
-    const fetchData = useCallback(async () => {
-        if (!docId) return;
-        setLoading(true);
-
-        try {
-            const docRef = doc(db, collectionName, docId);
-            const snapshot = await getDoc(docRef);
-            if (snapshot.exists()) {
-                setData({ id: snapshot.id, ...snapshot.data() } as T);
-            } else {
-                setData(null);
+    // React Query implementation for non-realtime
+    const {
+        data: queryData,
+        isLoading: queryLoading,
+        error: queryError,
+        refetch
+    } = useQuery({
+        queryKey: ['firestore', collectionName, docId],
+        queryFn: async () => {
+            if (!docId) return null;
+            try {
+                const docRef = doc(db, collectionName, docId);
+                const snapshot = await getDoc(docRef);
+                if (snapshot.exists()) {
+                    return { id: snapshot.id, ...snapshot.data() } as T;
+                }
+                return null;
+            } catch (err) {
+                const errorObj = err instanceof Error ? err : new Error(String(err));
+                if (logError) {
+                    ErrorLogger.error(errorObj, `useFirestoreDocument.fetchData.${collectionName}.${docId}`);
+                }
+                throw errorObj;
             }
-        } catch (err: unknown) {
-            const errorObj = err instanceof Error ? err : new Error(String(err));
-            setError(errorObj);
-            if (logError) {
-                ErrorLogger.error(errorObj, `useFirestoreDocument.fetchData.${collectionName}.${docId}`);
-            }
-        } finally {
-            setLoading(false);
-        }
-    }, [collectionName, docId, logError]);
+        },
+        enabled: !!docId && !realtime,
+        staleTime: 1000 * 60 * 5 // 5 minutes default
+    });
 
-
-
+    // Realtime implementation
     useEffect(() => {
         if (!docId) {
-            setData(null);
-            setLoading(false);
+            setRealtimeData(null);
+            setRealtimeLoading(false);
             return;
         }
 
         if (realtime) {
-            setLoading(true);
+            setRealtimeLoading(true);
             const docRef = doc(db, collectionName, docId);
             const unsubscribe = onSnapshot(docRef,
                 (snapshot) => {
                     if (snapshot.exists()) {
-                        setData({ id: snapshot.id, ...snapshot.data() } as T);
+                        setRealtimeData({ id: snapshot.id, ...snapshot.data() } as T);
                     } else {
-                        setData(null);
+                        setRealtimeData(null);
                     }
-                    setLoading(false);
+                    setRealtimeLoading(false);
                 },
                 (err: unknown) => {
                     const errorObj = err instanceof Error ? err : new Error(String(err));
-                    setError(errorObj);
+                    setRealtimeError(errorObj);
                     if (logError) {
                         ErrorLogger.error(errorObj, `useFirestoreDocument.onSnapshot.${collectionName}.${docId}`);
                     }
-                    setLoading(false);
+                    setRealtimeLoading(false);
                 }
             );
             return () => unsubscribe();
-        } else {
-            fetchData();
         }
-    }, [collectionName, docId, realtime, fetchData, logError]);
+    }, [collectionName, docId, realtime, logError]);
 
-    return { data, loading, error, refresh: fetchData };
+    if (realtime) {
+        return { data: realtimeData, loading: realtimeLoading, error: realtimeError, refresh: async () => { } };
+    }
+
+    return {
+        data: queryData || null,
+        loading: queryLoading,
+        error: queryError as Error | null,
+        refresh: async () => { await refetch(); }
+    };
 };

@@ -12,7 +12,9 @@ import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
+import { CardSkeleton } from '../components/ui/Skeleton';
+import { DataTable } from '../components/ui/DataTable';
+import { ColumnDef } from '@tanstack/react-table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
@@ -26,6 +28,21 @@ import { SupplierForm } from '../components/suppliers/SupplierForm';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { SupplierDashboard } from '../components/suppliers/SupplierDashboard';
 import { SupplierAIAssistant } from '../components/suppliers/SupplierAIAssistant';
+
+const getCriticalityColor = (c: Criticality) => {
+    switch (c) {
+        case Criticality.CRITICAL: return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+        case Criticality.HIGH: return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
+        case Criticality.MEDIUM: return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
+        default: return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+    }
+};
+
+const getScoreColor = (score: number) => {
+    if (score >= 80) return 'bg-emerald-500';
+    if (score >= 50) return 'bg-amber-500';
+    return 'bg-red-500';
+};
 
 export const Suppliers: React.FC = () => {
     const [filter, setFilter] = useState('');
@@ -280,29 +297,46 @@ export const Suppliers: React.FC = () => {
         });
     };
 
+    const performDelete = async (id: string) => {
+        // 1. Delete related assessments
+        const assessmentsQuery = query(collection(db, 'supplierAssessments'), where('supplierId', '==', id));
+        const assessmentsSnap = await getDocs(assessmentsQuery);
+        const deleteAssessments = assessmentsSnap.docs.map(doc => deleteDoc(doc.ref));
+
+        // 2. Delete related incidents
+        const incidentsQuery = query(collection(db, 'supplierIncidents'), where('supplierId', '==', id));
+        const incidentsSnap = await getDocs(incidentsQuery);
+        const deleteIncidents = incidentsSnap.docs.map(doc => deleteDoc(doc.ref));
+
+        // 3. Delete the supplier itself
+        await Promise.all([...deleteAssessments, ...deleteIncidents, deleteDoc(doc(db, 'suppliers', id))]);
+    };
+
     const handleDelete = async (id: string) => {
         if (!canEdit) return;
         if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ? Cette action supprimera également les évaluations et incidents associés.')) return;
 
         try {
-            // 1. Delete related assessments
-            const assessmentsQuery = query(collection(db, 'supplierAssessments'), where('supplierId', '==', id));
-            const assessmentsSnap = await getDocs(assessmentsQuery);
-            const deleteAssessments = assessmentsSnap.docs.map(doc => deleteDoc(doc.ref));
-
-            // 2. Delete related incidents
-            const incidentsQuery = query(collection(db, 'supplierIncidents'), where('supplierId', '==', id));
-            const incidentsSnap = await getDocs(incidentsQuery);
-            const deleteIncidents = incidentsSnap.docs.map(doc => deleteDoc(doc.ref));
-
-            // 3. Delete the supplier itself
-            await Promise.all([...deleteAssessments, ...deleteIncidents, deleteDoc(doc(db, 'suppliers', id))]);
-
+            await performDelete(id);
             addToast('Fournisseur et données associées supprimés', 'success');
             if (selectedSupplier?.id === id) setSelectedSupplier(null);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleDelete');
             addToast('Erreur lors de la suppression', 'error');
+        }
+    };
+
+    const handleBulkDelete = async (selectedIds: string[]) => {
+        if (!canEdit) return;
+        if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ces ${selectedIds.length} fournisseurs ? Cette action est définitive.`)) return;
+
+        try {
+            await Promise.all(selectedIds.map(id => performDelete(id)));
+            addToast(`${selectedIds.length} fournisseurs supprimés`, 'success');
+            setSelectedSupplier(null);
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleBulkDelete');
+            addToast('Erreur lors de la suppression en masse', 'error');
         }
     };
 
@@ -412,20 +446,7 @@ export const Suppliers: React.FC = () => {
         reader.readAsText(file);
     };
 
-    const getCriticalityColor = (c: Criticality) => {
-        switch (c) {
-            case Criticality.CRITICAL: return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-            case Criticality.HIGH: return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
-            case Criticality.MEDIUM: return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
-            default: return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
-        }
-    };
 
-    const getScoreColor = (score: number) => {
-        if (score >= 80) return 'bg-emerald-500';
-        if (score >= 50) return 'bg-amber-500';
-        return 'bg-red-500';
-    };
 
     const filteredSuppliers = suppliers.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()));
 
@@ -446,6 +467,105 @@ export const Suppliers: React.FC = () => {
 
         return crumbs;
     };
+
+    const columns = React.useMemo<ColumnDef<Supplier>[]>(() => [
+        {
+            accessorKey: 'name',
+            header: 'Fournisseur',
+            cell: ({ row }) => (
+                <div className="flex flex-col">
+                    <span className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</span>
+                    {row.original.isICTProvider && (
+                        <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-slate-900/30 dark:text-indigo-300 w-fit">
+                            DORA ICT
+                        </span>
+                    )}
+                </div>
+            )
+        },
+        {
+            accessorKey: 'category',
+            header: 'Catégorie',
+            cell: ({ row }) => (
+                <span className="px-2.5 py-1 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
+                    {row.original.category}
+                </span>
+            )
+        },
+        {
+            accessorKey: 'criticality',
+            header: 'Criticité',
+            cell: ({ row }) => (
+                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(row.original.criticality || Criticality.MEDIUM)}`}>
+                    {row.original.criticality}
+                </span>
+            )
+        },
+        {
+            accessorKey: 'securityScore',
+            header: 'Score Sécurité',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2">
+                    <div className="w-16 bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
+                        <div className={`h-1.5 rounded-full ${getScoreColor(row.original.securityScore || 0)}`} style={{ width: `${row.original.securityScore || 0}%` }}></div>
+                    </div>
+                    <span className={`text-xs font-bold ${getScoreColor(row.original.securityScore || 0).replace('bg-', 'text-')}`}>
+                        {row.original.securityScore || 0}
+                    </span>
+                </div>
+            )
+        },
+        {
+            header: 'Contact',
+            cell: ({ row }) => (
+                <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{row.original.contactName || '-'}</span>
+                    <span className="text-[10px] text-slate-400">{row.original.contactEmail}</span>
+                </div>
+            )
+        },
+        {
+            accessorKey: 'contractEnd',
+            header: 'Fin Contrat',
+            cell: ({ row }) => {
+                const d = row.original.contractEnd;
+                const isExpired = d && new Date(d) < new Date();
+                return d ? (
+                    <span className={`text-sm font-medium ${isExpired ? 'text-red-500' : 'text-slate-600 dark:text-slate-400'}`}>
+                        {new Date(d).toLocaleDateString()}
+                    </span>
+                ) : <span className="text-slate-400">-</span>;
+            }
+        },
+        {
+            accessorKey: 'status',
+            header: 'Statut',
+            cell: ({ row }) => (
+                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${row.original.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-slate-600 border-gray-200'}`}>
+                    {row.original.status}
+                </span>
+            )
+        },
+        {
+            id: 'actions',
+            cell: ({ row }) => (
+                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                    {canEdit && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                initiateDelete(row.original.id, row.original.name);
+                            }}
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                            title="Supprimer"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </button>
+                    )}
+                </div>
+            )
+        }
+    ], [canEdit]);
 
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
@@ -516,107 +636,15 @@ export const Suppliers: React.FC = () => {
 
             {viewMode === 'list' ? (
                 <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-white/5">
-                                <tr>
-                                    <th className="px-8 py-4">Fournisseur</th>
-                                    <th className="px-6 py-4">Catégorie</th>
-                                    <th className="px-6 py-4">Criticité</th>
-                                    <th className="px-6 py-4">Score Sécurité</th>
-                                    <th className="px-6 py-4">Contact</th>
-                                    <th className="px-6 py-4">Fin Contrat</th>
-                                    <th className="px-6 py-4">Statut</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                {loadingSuppliers ? (
-                                    <tr><td colSpan={8}><TableSkeleton rows={5} columns={8} /></td></tr>
-                                ) : filteredSuppliers.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={8}>
-                                            <EmptyState
-                                                icon={Building}
-                                                title="Aucun fournisseur"
-                                                description={filter ? "Aucun fournisseur ne correspond à votre recherche." : "Gérez vos fournisseurs et évaluez leur sécurité."}
-                                                actionLabel={filter || !canEdit ? undefined : "Nouveau Fournisseur"}
-                                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
-                                            />
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredSuppliers.map((supplier) => {
-                                        const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
-                                        return (
-                                            <tr key={supplier.id} onClick={() => openInspector(supplier)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all duration-200 group cursor-pointer hover:scale-[1.002]">
-                                                <td className="px-8 py-5">
-                                                    <div className="font-bold text-slate-900 dark:text-white text-[15px]">{supplier.name}</div>
-                                                    {supplier.isICTProvider && (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-slate-900/30 dark:text-indigo-300 mt-1">
-                                                            DORA ICT
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    <span className="px-2.5 py-1 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
-                                                        {supplier.category}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
-                                                        {supplier.criticality}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-16 bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
-                                                            <div className={`h-1.5 rounded-full transition-all duration-500 ${getScoreColor(supplier.securityScore || 0)}`} style={{ width: `${supplier.securityScore || 0}%` }}></div>
-                                                        </div>
-                                                        <span className={`text-xs font-bold ${getScoreColor(supplier.securityScore || 0).replace('bg-', 'text-')}`}>
-                                                            {supplier.securityScore || 0}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{supplier.contactName || '-'}</span>
-                                                        <span className="text-[10px] text-slate-400">{supplier.contactEmail}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    {supplier.contractEnd ? (
-                                                        <span className={`text-sm font-medium ${isExpired ? 'text-red-500' : 'text-slate-600 dark:text-slate-400'}`}>
-                                                            {new Date(supplier.contractEnd).toLocaleDateString()}
-                                                        </span>
-                                                    ) : <span className="text-slate-400">-</span>}
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-slate-600 border-gray-200'}`}>
-                                                        {supplier.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-5 text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                                    {canEdit && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                initiateDelete(supplier.id, supplier.name);
-                                                            }}
-                                                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
-                                                            title="Supprimer"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <DataTable
+                        columns={columns}
+                        data={filteredSuppliers}
+                        selectable={true}
+                        onBulkDelete={handleBulkDelete}
+                        onRowClick={openInspector}
+                        searchable={false}
+                        loading={loadingSuppliers}
+                    />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
