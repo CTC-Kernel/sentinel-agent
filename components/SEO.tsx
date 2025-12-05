@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 interface SEOProps {
     title: string;
     description?: string;
+    keywords?: string;
     name?: string;
     type?: string;
     image?: string;
@@ -12,10 +13,11 @@ interface SEOProps {
 
 export const SEO: React.FC<SEOProps> = ({
     title,
-    description = "Plateforme de Gouvernance, Risques et Conformité (GRC) optimisée par l'IA.",
+    description = "Plateforme de Gouvernance, Risques et Conformité (GRC) optimisée par l'IA. Pilotez votre conformité ISO 27001, NIS2, DORA et gérez vos risques cyber en temps réel.",
+    keywords = "GRC, ISO 27001, Conformité, Gestion des risques, Cybersécurité, NIS2, DORA, EBIOS RM",
     name = "Sentinel GRC",
     type = "website",
-    image = "/og-image.jpg",
+    image = "https://app.cyber-threat-consulting.com/og-image.jpg",
     url
 }) => {
     const siteUrl = "https://app.cyber-threat-consulting.com";
@@ -27,6 +29,7 @@ export const SEO: React.FC<SEOProps> = ({
             {/* Standard metadata */}
             <title>{fullTitle}</title>
             <meta name="description" content={description} />
+            <meta name="keywords" content={keywords} />
 
             {/* Facebook tags */}
             <meta property="og:type" content={type} />
@@ -34,13 +37,17 @@ export const SEO: React.FC<SEOProps> = ({
             <meta property="og:description" content={description} />
             <meta property="og:image" content={image} />
             <meta property="og:url" content={fullUrl} />
+            <meta property="og:site_name" content={name} />
 
             {/* Twitter tags */}
-            <meta name="twitter:creator" content={name} />
+            <meta name="twitter:creator" content="@SentinelGRC" />
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content={fullTitle} />
             <meta name="twitter:description" content={description} />
             <meta name="twitter:image" content={image} />
+
+            {/* Canonical */}
+            <link rel="canonical" href={fullUrl} />
         </Helmet>
     );
 };

@@ -636,6 +636,7 @@ export const Documents: React.FC = () => {
                     { label: 'Documents' }
                 ]}
                 icon={<FileText className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                trustType="storage"
                 actions={canCreate && (
                     <button
                         onClick={() => {

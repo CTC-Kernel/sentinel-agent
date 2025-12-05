@@ -8,19 +8,19 @@ import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
 import { ErrorLogger } from '../services/errorLogger';
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { CyberNewsWidget } from '../components/dashboard/CyberNewsWidget';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { GettingStartedWidget } from '../components/dashboard/widgets/GettingStartedWidget';
 
 // Widgets
 import { DashboardHeader } from '../components/dashboard/widgets/DashboardHeader';
 import { QuickActions } from '../components/dashboard/widgets/QuickActions';
-import { StatsOverview } from '../components/dashboard/widgets/StatsOverview';
-import { MyWorkspaceWidget } from '../components/dashboard/widgets/MyWorkspaceWidget';
-import { ComplianceEvolutionWidget } from '../components/dashboard/widgets/ComplianceEvolutionWidget';
-import { HealthCheckWidget } from '../components/dashboard/widgets/HealthCheckWidget';
-import { PriorityRisksWidget } from '../components/dashboard/widgets/PriorityRisksWidget';
-import { RecentActivityWidget } from '../components/dashboard/widgets/RecentActivityWidget';
+
+// Role-based Views
+import { AdminDashboardView } from '../components/dashboard/views/AdminDashboardView';
+import { DirectionDashboardView } from '../components/dashboard/views/DirectionDashboardView';
+import { AuditorDashboardView } from '../components/dashboard/views/AuditorDashboardView';
+import { ProjectManagerDashboardView } from '../components/dashboard/views/ProjectManagerDashboardView';
+import { OperationalDashboardView } from '../components/dashboard/views/OperationalDashboardView';
 
 interface HealthIssue { id: string; type: 'warning' | 'danger'; message: string; count: number; link: string; }
 interface ActionItem { id: string; type: 'audit' | 'document' | 'project' | 'policy' | 'incident' | 'risk'; title: string; date: string; status: string; link: string; }
@@ -365,8 +365,9 @@ export const Dashboard: React.FC = () => {
     return (
         <div className="space-y-6 animate-fade-in">
             <SEO
-                title="Tableau de bord"
-                description="Vue d'ensemble de votre conformité et de vos risques."
+                title="Tableau de bord de Gouvernance"
+                description="Vue d'ensemble de votre posture de sécurité et conformité."
+                keywords="Pilotage SSI, Tableau de bord CISO, KPI Cyber, Conformité, Risques, Gouvernance"
             />
 
             <DashboardHeader
@@ -395,102 +396,75 @@ export const Dashboard: React.FC = () => {
             {(() => {
                 const role = user?.role || 'user';
 
-                // 1. Admin / RSSI (Full View)
                 if (['admin', 'rssi'].includes(role)) {
                     return (
-                        <>
-                            <StatsOverview stats={stats} loading={loading} navigate={navigate} t={t} />
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
-                                <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
-                            </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
-                                <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />
-                            </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
-                                <CyberNewsWidget />
-                            </div>
-                        </>
+                        <AdminDashboardView
+                            stats={stats}
+                            loading={loading}
+                            navigate={navigate}
+                            t={t}
+                            theme={theme}
+                            myActionItems={myActionItems}
+                            historyData={historyData}
+                            healthIssues={healthIssues}
+                            topRisks={topRisks}
+                            recentActivity={recentActivity}
+                        />
                     );
                 }
 
-                // 2. Direction (Strategic View - No granular activity/tasks)
                 if (role === 'direction') {
                     return (
-                        <>
-                            <StatsOverview stats={stats} loading={loading} navigate={navigate} t={t} />
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
-                                <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />
-                            </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <div className="lg:col-span-2">
-                                    <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <CyberNewsWidget />
-                                </div>
-                            </div>
-                        </>
+                        <DirectionDashboardView
+                            stats={stats}
+                            loading={loading}
+                            navigate={navigate}
+                            t={t}
+                            theme={theme}
+                            historyData={historyData}
+                            healthIssues={healthIssues}
+                            topRisks={topRisks}
+                        />
                     );
                 }
 
-                // 3. Auditor (Audit & Compliance Focus)
                 if (role === 'auditor') {
                     return (
-                        <>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <div className="lg:col-span-2">
-                                    <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
-                                <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
-                            </div>
-                        </>
+                        <AuditorDashboardView
+                            loading={loading}
+                            navigate={navigate}
+                            t={t}
+                            theme={theme}
+                            myActionItems={myActionItems}
+                            historyData={historyData}
+                            recentActivity={recentActivity}
+                            healthIssues={healthIssues}
+                        />
                     );
                 }
 
-                // 4. Project Manager (Projects & Risks)
                 if (role === 'project_manager') {
                     return (
-                        <>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <div className="lg:col-span-2">
-                                    <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <PriorityRisksWidget topRisks={projectRisks} loading={loading} navigate={navigate} t={t} title="Risques Projets" />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <div className="lg:col-span-2">
-                                    <CyberNewsWidget />
-                                </div>
-                            </div>
-                        </>
+                        <ProjectManagerDashboardView
+                            loading={loading}
+                            navigate={navigate}
+                            t={t}
+                            myActionItems={myActionItems}
+                            projectRisks={projectRisks}
+                        />
                     );
                 }
 
-                // 5. User (Operational)
                 return (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2">
-                            <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
-                        </div>
-                        <div className="lg:col-span-1 space-y-6">
-                            <PriorityRisksWidget topRisks={myRisksList} loading={loading} navigate={navigate} t={t} title="Mes Risques" />
-                            <CyberNewsWidget />
-                        </div>
-                    </div>
+                    <OperationalDashboardView
+                        loading={loading}
+                        navigate={navigate}
+                        t={t}
+                        myActionItems={myActionItems}
+                        myRisksList={myRisksList}
+                    />
                 );
             })()}
-        </div >
+        </div>
     );
 };

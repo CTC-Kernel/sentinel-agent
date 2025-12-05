@@ -1,7 +1,7 @@
 import React from 'react';
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartsRadar, ResponsiveContainer, Tooltip } from 'recharts';
 import { Server, ClipboardCheck, FileText, Zap, ArrowRight, CalendarDays, Download } from '../../ui/Icons';
-import { ChartTooltip } from '../../ui/ChartTooltip';
+import { MaturityRadarWidget } from './MaturityRadarWidget';
+import { SecurityBadge } from '../../ui/SecurityBadge';
 
 interface DashboardHeaderProps {
     user: any;
@@ -190,7 +190,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <div className="absolute inset-0 rounded-[1.5rem] bg-white/20 mix-blend-overlay"></div>
                                 </div>
                                 <div>
-                                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-2">Sentinel GRC</h1>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight font-display">Sentinel GRC</h1>
+                                        <SecurityBadge feature="general" />
+                                    </div>
                                     <div className="flex items-center gap-3">
                                         <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest shadow-sm">
                                             {organizationName || user?.organizationName || t('dashboard.operationalSystem')}
@@ -284,57 +287,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             </div>
                         </div>
 
+
                         {/* Radar Chart Section */}
-                        <div className="relative group/chart flex items-center justify-center">
-                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-100 transition-opacity duration-700"></div>
-                            <div
-                                className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-full border border-slate-200/50 dark:border-white/5 shadow-inner p-4 flex items-center justify-center"
-                                onClick={() => navigate('/compliance')}
-                            >
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                                        <defs>
-                                            <linearGradient id="radarFill" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={theme === 'dark' ? '#3b82f6' : '#0f172a'} stopOpacity={0.5} />
-                                                <stop offset="95%" stopColor={theme === 'dark' ? '#3b82f6' : '#0f172a'} stopOpacity={0.05} />
-                                            </linearGradient>
-                                        </defs>
-                                        <PolarGrid
-                                            stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(15,23,42,0.08)'}
-                                            strokeDasharray="4 4"
-                                        />
-                                        <PolarAngleAxis
-                                            dataKey="subject"
-                                            tick={{
-                                                fill: theme === 'dark' ? 'rgba(255,255,255,0.9)' : 'rgba(15,23,42,0.9)',
-                                                fontSize: 11,
-                                                fontWeight: 700,
-                                                fontFamily: 'var(--font-sans)'
-                                            }}
-                                        />
-                                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                        <RechartsRadar
-                                            name={t('dashboard.maturity')}
-                                            dataKey="A"
-                                            stroke={theme === 'dark' ? '#60a5fa' : '#0f172a'}
-                                            strokeWidth={3}
-                                            fill="url(#radarFill)"
-                                            fillOpacity={1}
-                                            isAnimationActive={true}
-                                        />
-                                        <Tooltip
-                                            content={<ChartTooltip />}
-                                            cursor={{ stroke: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(15,23,42,0.2)', strokeWidth: 1 }}
-                                        />
-                                    </RadarChart>
-                                </ResponsiveContainer>
-                                <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center">
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/70 dark:bg-black/30 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest shadow-sm whitespace-nowrap">
-                                        {t('dashboard.isoMaturity')}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                        {radarData && (
+                            <MaturityRadarWidget
+                                radarData={radarData}
+                                t={t}
+                                theme={theme || 'light'}
+                                navigate={navigate}
+                            />
+                        )}
                     </div>
                 )}
             </div>
