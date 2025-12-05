@@ -123,7 +123,8 @@ import {
   FolderOpen,
   MoreVertical,
   Edit2,
-  Plug
+  Plug,
+  EyeOff
 } from 'lucide-react';
 
 export {
@@ -250,5 +251,6 @@ export {
   FolderOpen,
   MoreVertical,
   Edit2,
-  Plug
+  Plug,
+  EyeOff
 };

@@ -7,12 +7,15 @@ interface BreadcrumbItem {
   path?: string;
 }
 
+import { SecurityBadge, SecurityFeature } from './SecurityBadge';
+
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
   breadcrumbs?: BreadcrumbItem[];
   actions?: React.ReactNode;
   icon?: React.ReactNode;
+  trustType?: SecurityFeature;
 }
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -41,7 +44,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   subtitle,
   breadcrumbs,
   actions,
-  icon
+  icon,
+  trustType
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -118,9 +122,12 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             </div>
           )}
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 dark:text-white tracking-tight">
-              {title}
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 dark:text-white tracking-tight">
+                {title}
+              </h1>
+              {trustType && <SecurityBadge feature={trustType} />}
+            </div>
             {subtitle && (
               <p className="text-base font-medium font-sans text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
                 {subtitle}
