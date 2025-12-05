@@ -590,13 +590,61 @@ exports.verifySuperAdmin = onCall(async (request) => {
     }
 
     const email = request.auth.token.email;
-    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', 'contact@cyber-threat-consulting.com'];
+    const isClaimSuperAdmin = request.auth.token.superAdmin === true;
 
-    if (email && SUPER_ADMIN_EMAILS.includes(email)) {
+    // Legacy/Bootstrap: Hardcoded allowlist
+    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', 'contact@cyber-threat-consulting.com'];
+    const isBootstrapSuperAdmin = email && SUPER_ADMIN_EMAILS.includes(email);
+
+    if (isClaimSuperAdmin || isBootstrapSuperAdmin) {
         return { isSuperAdmin: true };
     }
 
     return { isSuperAdmin: false };
+});
+
+/**
+ * Grants Super Admin status to a user.
+ * Can only be called by an existing Super Admin.
+ */
+exports.grantSuperAdmin = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { targetEmail } = request.data;
+    if (!targetEmail) {
+        throw new HttpsError('invalid-argument', 'Target email is required.');
+    }
+
+    // 1. Verify Caller is Super Admin
+    const callerEmail = request.auth.token.email;
+    const callerIsClaimAdmin = request.auth.token.superAdmin === true;
+    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', 'contact@cyber-threat-consulting.com'];
+    const callerIsBootstrapAdmin = callerEmail && SUPER_ADMIN_EMAILS.includes(callerEmail);
+
+    if (!callerIsClaimAdmin && !callerIsBootstrapAdmin) {
+        throw new HttpsError('permission-denied', 'Only Super Admins can grant this role.');
+    }
+
+    try {
+        // 2. Find target user
+        const userRecord = await admin.auth().getUserByEmail(targetEmail);
+
+        // 3. Set Custom Claim (Preserve existing claims)
+        const currentClaims = userRecord.customClaims || {};
+        await admin.auth().setCustomUserClaims(userRecord.uid, {
+            ...currentClaims,
+            superAdmin: true
+        });
+
+        logger.info(`Super Admin granted to ${targetEmail} by ${callerEmail}`);
+        return { success: true, message: `Super Admin role granted to ${targetEmail}` };
+
+    } catch (error) {
+        logger.error("Error granting Super Admin:", error);
+        throw new HttpsError('internal', 'Failed to grant role: ' + error.message);
+    }
 });
 
 /**

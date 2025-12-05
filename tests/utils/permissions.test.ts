@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canEditResource, hasPermission, Role } from '../../utils/permissions';
+import { canEditResource, hasPermission } from '../../utils/permissions';
 import { UserProfile } from '../../types';
 
 describe('Permissions Utils', () => {
