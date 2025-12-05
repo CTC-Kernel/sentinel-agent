@@ -202,18 +202,38 @@ export const Login: React.FC = () => {
                                 try {
                                     const { Capacitor } = await import('@capacitor/core');
                                     if (Capacitor.isNativePlatform()) {
+                                        alert("Step 1: Starting Native Apple Sign In");
                                         const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
-                                        const result = await FirebaseAuthentication.signInWithApple();
+
+                                        // Add timeout to detect hangs
+                                        const result = await Promise.race([
+                                            FirebaseAuthentication.signInWithApple({
+                                                scopes: ['email', 'name'],
+                                            }),
+                                            new Promise<never>((_, reject) =>
+                                                setTimeout(() => reject(new Error("TIMEOUT: Apple Sign In took too long. Check Provisioning Profile.")), 10000)
+                                            )
+                                        ]) as any; // Cast to avoid TS issues with race
+
+                                        alert("Step 2: Native Sign In Complete. Token: " + (result.credential?.idToken ? "YES" : "NO"));
 
                                         // Sync with Firebase JS SDK
                                         if (result.credential?.idToken) {
+                                            alert("Step 3: Syncing with JS SDK...");
+                                            alert("Result payload: " + JSON.stringify(result)); // Debug log
+
                                             const provider = new OAuthProvider('apple.com');
                                             const credential = provider.credential({
                                                 idToken: result.credential.idToken,
+                                                rawNonce: result.credential.rawNonce, // Restore rawNonce
                                             });
                                             await signInWithCredential(auth, credential);
+                                            alert("Step 4: Sync Complete! Redirecting...");
                                             addToast("Connexion réussie", "success");
-                                            // No need to force reload if we sign in correctly to JS SDK
+                                            // Force reload to ensure auth state sync
+                                            window.location.href = '/';
+                                        } else {
+                                            alert("Error: No ID Token from Apple");
                                         }
                                     } else {
                                         const provider = new OAuthProvider('apple.com');
@@ -223,6 +243,8 @@ export const Login: React.FC = () => {
                                     }
                                 } catch (error: any) {
                                     console.error("Apple Sign In Error:", error);
+                                    console.error("Apple Sign In Error:", error);
+                                    alert("CRITICAL ERROR: " + (error.message || JSON.stringify(error)));
                                     const code = error.code || error.message;
                                     if (code === 'auth/operation-not-allowed') {
                                         setErrorMsg("Apple Sign In non activé dans la console Firebase.");

@@ -18,10 +18,31 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>2.0.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.728667422032-hkdf1pjhttvvnk3pj4tla1rsp9sk19mn</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Sentinel GRC a besoin d'accéder à votre caméra pour prendre une photo de profil.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Sentinel GRC a besoin d'accéder à votre galerie pour enregistrer des images.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Sentinel GRC a besoin d'accéder à votre galerie pour choisir une photo de profil.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -45,22 +66,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<key>NSCameraUsageDescription</key>
-	<string>Sentinel GRC a besoin d'accéder à votre caméra pour prendre une photo de profil.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Sentinel GRC a besoin d'accéder à votre galerie pour choisir une photo de profil.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Sentinel GRC a besoin d'accéder à votre galerie pour enregistrer des images.</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.728667422032-hkdf1pjhttvvnk3pj4tla1rsp9sk19mn</string>
-			</array>
-		</dict>
-	</array>
 </dict>
 </plist>
