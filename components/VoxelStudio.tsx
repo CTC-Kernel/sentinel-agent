@@ -1,7 +1,7 @@
 import React, { useRef, useState, useMemo, useEffect, createContext, useContext, useCallback, Component, ErrorInfo, Suspense } from 'react';
 import { Canvas, useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { OrbitControls, Line, Html, Text, Float, Edges, Environment, Billboard } from '@react-three/drei';
-import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints, Material } from 'three';
+import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints, Material, CanvasTexture } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, VoxelNode } from '../types';
 import { VoxelDetailOverlay } from './VoxelDetailOverlay';
@@ -196,6 +196,20 @@ const StarField: React.FC = () => {
     return array;
   }, []);
 
+  const circleTexture = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const context = canvas.getContext('2d');
+    if (context) {
+      context.beginPath();
+      context.arc(16, 16, 14, 0, 2 * Math.PI);
+      context.fillStyle = 'white';
+      context.fill();
+    }
+    return new CanvasTexture(canvas);
+  }, []);
+
   useFrame((_, delta) => {
     if (starsRef.current) {
       starsRef.current.rotation.y += delta * 0.015;
@@ -214,6 +228,8 @@ const StarField: React.FC = () => {
       </bufferGeometry>
       <pointsMaterial
         transparent
+        map={circleTexture}
+        alphaTest={0.5}
         color="#94a3b8"
         size={0.3}
         sizeAttenuation
