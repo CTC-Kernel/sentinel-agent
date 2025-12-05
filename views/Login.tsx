@@ -231,6 +231,9 @@ export const Login: React.FC = () => {
                                                 credentialParams.rawNonce = result.credential.rawNonce;
                                             }
 
+                                            // DEBUG: Inspect the params causing the error
+                                            alert(`DEBUG PARAMS: idToken length=${credentialParams.idToken?.length}, rawNonce=${credentialParams.rawNonce}`);
+
                                             try {
                                                 const credential = provider.credential(credentialParams);
                                                 await signInWithCredential(auth, credential);
