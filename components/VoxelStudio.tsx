@@ -1,5 +1,5 @@
 import React, { useRef, useState, useMemo, useEffect, createContext, useContext, useCallback, Component, ErrorInfo, Suspense } from 'react';
-import { Canvas, useFrame, ThreeEvent, useThree, useLoader } from '@react-three/fiber';
+import { Canvas, useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Points, PointMaterial, Float, Edges, Environment, Html, Billboard } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints, BufferGeometry } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
