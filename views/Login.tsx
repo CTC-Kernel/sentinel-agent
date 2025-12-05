@@ -7,13 +7,13 @@ import {
     signInWithCredential,
     GoogleAuthProvider,
     OAuthProvider,
-    sendPasswordResetEmail,
     getMultiFactorResolver,
     TotpMultiFactorGenerator,
     MultiFactorResolver,
     MultiFactorError
 } from 'firebase/auth';
-import { auth } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { auth, functions } from '../firebase';
 import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2 } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { useStore } from '../store';
@@ -171,11 +171,12 @@ export const Login: React.FC = () => {
     const handlePasswordReset: SubmitHandler<ResetPasswordFormData> = async (data) => {
         setLoading(true);
         try {
-            await sendPasswordResetEmail(auth, data.email);
+            const requestResetFn = httpsCallable(functions, 'requestPasswordReset');
+            await requestResetFn({ email: data.email });
             setResetSent(true);
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            addToast("Email de réinitialisation envoyé", "success");
         } catch (_error) {
-            addToast("Erreur envoi email de réinitialisation", "error");
+            ErrorLogger.handleErrorWithToast(_error, 'Login.handlePasswordReset');
         } finally {
             setLoading(false);
         }
