@@ -408,13 +408,9 @@ export const Dashboard: React.FC = () => {
                                 <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
                                 <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />
                             </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <div className="lg:col-span-2">
-                                    <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <CyberNewsWidget />
-                                </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
+                                <CyberNewsWidget />
                             </div>
                         </>
                     );
