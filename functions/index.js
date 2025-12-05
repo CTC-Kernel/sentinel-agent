@@ -397,41 +397,91 @@ exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
 
     const userData = snap.data();
     const userId = event.params.userId;
-
-    // Validate organizationId before setting claims
-    if (!userData.organizationId) {
-        logger.warn(`User ${userId} has no organizationId - skipping claims creation`);
-        return;
-    }
+    const userEmail = userData.email;
 
     try {
-        // Fetch organization to check ownership
-        const orgRef = admin.firestore().collection('organizations').doc(userData.organizationId);
-        const orgSnap = await orgRef.get();
-
+        const db = admin.firestore();
+        const userRef = event.data.ref;
+        let updates = {};
+        let organizationId = userData.organizationId;
         let role = userData.role || 'user';
 
-        if (orgSnap.exists) {
-            const orgData = orgSnap.data();
-            // Enforce ADMIN role if user is the owner
-            if (orgData.ownerId === userId) {
-                logger.info(`User ${userId} is owner of org ${userData.organizationId} - Enforcing ADMIN role`);
-                role = 'admin';
+        // 1. Check for Pending Invitations if no organization is set
+        if (!organizationId && userEmail) {
+            const inviteQuery = await db.collection('invitations')
+                .where('email', '==', userEmail)
+                .limit(1)
+                .get();
 
-                // Update Firestore if needed
-                if (userData.role !== 'admin') {
-                    await event.data.ref.update({ role: 'admin' });
-                }
+            if (!inviteQuery.empty) {
+                const inviteDoc = inviteQuery.docs[0];
+                const inviteData = inviteDoc.data();
+
+                logger.info(`Found invitation for user ${userId} to org ${inviteData.organizationId}`);
+
+                // Prepare updates from invitation
+                organizationId = inviteData.organizationId;
+                role = inviteData.role || 'user';
+
+                updates = {
+                    organizationId: organizationId,
+                    organizationName: inviteData.organizationName,
+                    department: inviteData.department || '',
+                    role: role,
+                    onboardingCompleted: false // Require user to confirm details
+                };
+
+                // Delete the used invitation
+                await inviteDoc.ref.delete();
             }
         }
 
-        // Set custom claims with organizationId and role
-        await admin.auth().setCustomUserClaims(userId, {
-            organizationId: userData.organizationId,
-            role: role
-        });
+        // 2. Validate/Enforce Role & Organization
+        if (organizationId) {
+            // Fetch organization to check ownership
+            const orgRef = db.collection('organizations').doc(organizationId);
+            const orgSnap = await orgRef.get();
 
-        logger.info(`Custom claims set for user ${userId}: org=${userData.organizationId}, role=${role}`);
+            if (orgSnap.exists) {
+                const orgData = orgSnap.data();
+                // Enforce ADMIN role if user is the owner
+                if (orgData.ownerId === userId) {
+                    logger.info(`User ${userId} is owner of org ${organizationId} - Enforcing ADMIN role`);
+                    role = 'admin';
+                    updates.role = 'admin';
+                }
+            } else {
+                logger.warn(`Organization ${organizationId} not found for user ${userId}`);
+                // Optional: Detach user from missing org?
+            }
+        } else {
+            // No organization - ensure default role is set
+            if (!userData.role) {
+                updates.role = 'user';
+            }
+        }
+
+        // 3. Apply Firestore Updates if needed
+        if (Object.keys(updates).length > 0) {
+            await userRef.update(updates);
+        }
+
+        // 4. Set Custom Claims
+        // Only set claims if we have an organizationId (or if we want to set 'role' globally)
+        // For now, we stick to the existing pattern: Claims = OrgId + Role
+        if (organizationId) {
+            await admin.auth().setCustomUserClaims(userId, {
+                organizationId: organizationId,
+                role: role
+            });
+            logger.info(`Custom claims set for user ${userId}: org=${organizationId}, role=${role}`);
+        } else {
+            // Clear claims if no org (or set just role if your app supports org-less users)
+            // For Sentinel GRC, users usually need an org.
+            logger.info(`User ${userId} has no organization - skipping custom claims (or clearing them)`);
+            await admin.auth().setCustomUserClaims(userId, { role: 'user' });
+        }
+
     } catch (error) {
         logger.error(`Error setting custom claims for user ${userId}:`, error);
     }
