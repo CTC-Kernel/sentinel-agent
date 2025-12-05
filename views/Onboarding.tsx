@@ -101,21 +101,22 @@ export const Onboarding: React.FC = () => {
             try {
                 const batch = writeBatch(db);
                 for (const email of invitedUsers) {
-                    const newUid = generateUUID();
-                    const ref = doc(db, 'users', newUid);
-                    batch.set(ref, {
-                        uid: newUid,
+                    // Create invitation document instead of user document
+                    const invitationRef = doc(collection(db, 'invitations'));
+                    batch.set(invitationRef, {
                         email,
                         organizationId: user.organizationId,
                         organizationName: user.organizationName || '',
                         role: 'user',
                         invitedBy: user.uid,
                         createdAt: new Date().toISOString(),
-                        onboardingPending: true
+                        status: 'pending'
                     });
+
                     // Trigger email via Cloud Function or API (using client-side service for now)
                     try {
-                        const inviteLink = `${window.location.origin}/login?invite=${newUid}`;
+                        // Link points to login/register, backend handles the rest via email matching
+                        const inviteLink = `${window.location.origin}/login?email=${encodeURIComponent(email)}`;
                         const htmlContent = getInvitationTemplate(
                             user.displayName || user.email || 'Un administrateur',
                             'Collaborateur',
@@ -124,7 +125,7 @@ export const Onboarding: React.FC = () => {
 
                         // Create a minimal user object for the email service
                         const invitedUserContext = {
-                            uid: newUid,
+                            uid: invitationRef.id, // Use invitation ID as temporary UID for logging/tracking
                             email,
                             displayName: 'Invité',
                             organizationId: user.organizationId
@@ -270,17 +271,7 @@ export const Onboarding: React.FC = () => {
         }
     };
 
-    // Helper for UUID generation with fallback
-    const generateUUID = () => {
-        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-            return crypto.randomUUID();
-        }
-        // Fallback for older browsers or insecure contexts
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    };
+
 
     const handleStep1: SubmitHandler<OnboardingFormData> = async (data) => {
 
