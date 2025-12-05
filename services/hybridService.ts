@@ -2,7 +2,7 @@ import { auth } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 
 // Base URL for the OVH-hosted Secure Backend
-const OVH_API_BASE_URL = import.meta.env.VITE_OVH_API_BASE_URL || '/api/v1';
+const OVH_API_BASE_URL = import.meta.env.VITE_OVH_API_BASE_URL || '/api';
 
 interface HybridRequestOptions extends RequestInit {
     requiresAuth?: boolean;
@@ -136,7 +136,7 @@ class HybridService {
      * Log a critical audit event to the SecNumCloud immutable log
      */
     async logCriticalEvent(event: unknown): Promise<HybridResponse> {
-        return this.request('/audit/log', {
+        return this.request('/v1/audit/log', {
             method: 'POST',
             body: JSON.stringify(event),
             silent: true // Background logging should not block or spam errors
@@ -147,7 +147,7 @@ class HybridService {
      * Log user consent for GDPR compliance
      */
     async logConsent(documentType: string, accepted: boolean = true): Promise<HybridResponse> {
-        return this.request('/consent/log', {
+        return this.request('/v1/consent/log', {
             method: 'POST',
             body: JSON.stringify({
                 document_type: documentType,
