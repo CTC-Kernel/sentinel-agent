@@ -74,16 +74,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     generateICal = () => { },
     generateExecutiveReport = () => { }
 }) => {
-    const gradeClass =
-        !scoreGrade
-            ? 'bg-gradient-to-br from-slate-200 to-slate-400 border-slate-200/60 text-slate-900 shadow-slate-400/30'
-            : scoreGrade === 'A'
-                ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 border-emerald-300/50 text-white shadow-emerald-500/30'
-                : scoreGrade === 'B'
-                    ? 'bg-gradient-to-br from-indigo-400 to-indigo-600 border-indigo-300/50 text-white shadow-indigo-500/30'
-                    : scoreGrade === 'C'
-                        ? 'bg-gradient-to-br from-orange-400 to-orange-600 border-orange-300/50 text-white shadow-orange-500/30'
-                        : 'bg-gradient-to-br from-red-400 to-red-600 border-red-300/50 text-white shadow-red-500/30';
+    const gradeColor =
+        !scoreGrade ? 'from-slate-400 to-slate-600 shadow-slate-500/20' :
+            scoreGrade === 'A' ? 'from-emerald-400 to-emerald-600 shadow-emerald-500/30' :
+                scoreGrade === 'B' ? 'from-indigo-400 to-indigo-600 shadow-indigo-500/30' :
+                    scoreGrade === 'C' ? 'from-orange-400 to-orange-600 shadow-orange-500/30' :
+                        'from-red-400 to-red-600 shadow-red-500/30';
 
     const role = user?.role || 'user';
 
@@ -117,179 +113,119 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     const welcomeSubtitle1 = t(welcomeSubtitle1Key);
     const welcomeSubtitle2 = t(welcomeSubtitle2Key);
 
-    let createAssetDescKey = 'dashboard.createAssetDesc';
-    let configureControlsDescKey = 'dashboard.configureControlsDesc';
-    let addDocumentsDescKey = 'dashboard.addDocumentsDesc';
-
-    if (role === 'admin' || role === 'rssi') {
-        createAssetDescKey = 'dashboard.createAssetDesc_rssi';
-        configureControlsDescKey = 'dashboard.configureControlsDesc_rssi';
-        addDocumentsDescKey = 'dashboard.addDocumentsDesc_rssi';
-    } else if (role === 'direction') {
-        createAssetDescKey = 'dashboard.createAssetDesc_direction';
-        configureControlsDescKey = 'dashboard.configureControlsDesc_direction';
-        addDocumentsDescKey = 'dashboard.addDocumentsDesc_direction';
-    } else if (role === 'auditor') {
-        createAssetDescKey = 'dashboard.createAssetDesc_auditor';
-        configureControlsDescKey = 'dashboard.configureControlsDesc_auditor';
-        addDocumentsDescKey = 'dashboard.addDocumentsDesc_auditor';
-    } else if (role === 'project_manager') {
-        createAssetDescKey = 'dashboard.createAssetDesc_project_manager';
-        configureControlsDescKey = 'dashboard.configureControlsDesc_project_manager';
-        addDocumentsDescKey = 'dashboard.addDocumentsDesc_project_manager';
-    } else {
-        createAssetDescKey = 'dashboard.createAssetDesc_user';
-        configureControlsDescKey = 'dashboard.configureControlsDesc_user';
-        addDocumentsDescKey = 'dashboard.addDocumentsDesc_user';
-    }
-
-    const createAssetDesc = t(createAssetDescKey);
-    const configureControlsDesc = t(configureControlsDescKey);
-    const addDocumentsDesc = t(addDocumentsDescKey);
+    const cards = [
+        { title: t('dashboard.createAsset'), desc: role === 'admin' ? t('dashboard.createAssetDesc_rssi') : t('dashboard.createAssetDesc'), icon: Server, color: 'blue', link: '/assets' },
+        { title: t('dashboard.configureControls'), desc: t('dashboard.configureControlsDesc'), icon: ClipboardCheck, color: 'emerald', link: '/compliance' },
+        { title: t('dashboard.addDocuments'), desc: t('dashboard.addDocumentsDesc'), icon: FileText, color: 'purple', link: '/documents' },
+    ];
 
     return (
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-2xl ring-1 ring-slate-200/60 dark:ring-white/5 transition-all duration-500 group">
-            {/* Enhanced Background Effects */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/5 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10 opacity-100"></div>
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
+        <div className="relative overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-2xl ring-1 ring-slate-200/50 dark:ring-white/5 transition-all duration-500 group isolation-auto">
+            {/* Enhanced Background Effects - Premium Gradients */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-50/50 via-white/50 to-slate-100/50 dark:from-slate-900/80 dark:via-slate-900/90 dark:to-slate-950/90 pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/10 dark:bg-brand-400/5 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/10 dark:bg-indigo-400/5 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] dark:opacity-[0.05] mix-blend-overlay pointer-events-none"></div>
 
-            {/* Decorative blobs */}
-            <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-            <div className="relative z-10 p-5 sm:p-8 md:p-10">
+            <div className="relative z-10 p-6 sm:p-8 md:p-10">
                 {isEmpty && !loading ? (
-                    <div className="flex flex-col items-center justify-center text-center py-12">
-                        <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-900/5 dark:bg-white/10 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-8 backdrop-blur-md shadow-sm">
+                    <div className="flex flex-col items-center justify-center text-center py-12 animate-fade-in">
+                        <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-8 backdrop-blur-md shadow-sm">
                             <span className="w-2 h-2 bg-emerald-500 dark:bg-emerald-400 rounded-full mr-2.5 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
                             {organizationName || user?.organizationName || t('dashboard.operationalSystem')}
                         </div>
 
-                        <h2 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-slate-900 via-slate-700 to-slate-600 dark:from-white dark:via-slate-200 dark:to-slate-400 tracking-tight font-display mb-8 drop-shadow-sm">
+                        <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-6 drop-shadow-sm leading-tight">
                             {welcomeTitle}
                         </h2>
-                        <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mb-12 leading-relaxed font-medium">
-                            {welcomeSubtitle1}<br />
-                            {welcomeSubtitle2}
+                        <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mb-12 leading-relaxed font-medium">
+                            {welcomeSubtitle1} {welcomeSubtitle2}
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full mx-auto">
-                            <button
-                                onClick={() => navigate('/assets')}
-                                className="group relative p-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-[2rem] hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 overflow-hidden"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                <div className="flex flex-col items-center gap-5 relative z-10">
-                                    <div className="p-5 bg-blue-50 dark:bg-blue-500/20 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm ring-1 ring-blue-100 dark:ring-blue-500/30">
-                                        <Server className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+                            {cards.map((card, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => navigate(card.link)}
+                                    className={`group relative p-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-[2rem] hover:border-${card.color}-400 dark:hover:border-${card.color}-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 overflow-hidden text-left`}
+                                >
+                                    <div className={`flex flex-col items-center gap-5 relative z-10`}>
+                                        <div className={`p-5 bg-${card.color}-50 dark:bg-${card.color}-500/20 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm ring-1 ring-${card.color}-100 dark:ring-${card.color}-500/30`}>
+                                            <card.icon className={`h-10 w-10 text-${card.color}-600 dark:text-${card.color}-400`} />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{card.title}</h3>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{card.desc}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.createAsset')}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{createAssetDesc}</p>
-                                    </div>
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => navigate('/compliance')}
-                                className="group relative p-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-[2rem] hover:border-emerald-400 dark:hover:border-emerald-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 overflow-hidden"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                <div className="flex flex-col items-center gap-5 relative z-10">
-                                    <div className="p-5 bg-emerald-50 dark:bg-emerald-500/20 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm ring-1 ring-emerald-100 dark:ring-emerald-500/30">
-                                        <ClipboardCheck className="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.configureControls')}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{configureControlsDesc}</p>
-                                    </div>
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => navigate('/documents')}
-                                className="group relative p-8 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-[2rem] hover:border-purple-400 dark:hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 overflow-hidden"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                <div className="flex flex-col items-center gap-5 relative z-10">
-                                    <div className="p-5 bg-purple-50 dark:bg-purple-500/20 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm ring-1 ring-purple-100 dark:ring-purple-500/30">
-                                        <FileText className="h-10 w-10 text-purple-600 dark:text-purple-400" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.addDocuments')}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{addDocumentsDesc}</p>
-                                    </div>
-                                </div>
-                            </button>
+                                </button>
+                            ))}
                         </div>
                     </div>
                 ) : (
-                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 lg:gap-10">
-                        <div className="flex-1 min-w-0 space-y-8">
+                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 lg:gap-14">
+                        <div className="flex-1 min-w-0 space-y-8 w-full">
                             {/* Header Section */}
-                            <div className="flex items-start gap-6">
-                                <div className={`relative flex items-center justify-center w-20 h-20 shrink-0 rounded-[1.5rem] text-5xl font-black shadow-2xl border-[3px] transition-transform duration-500 hover:scale-105 ${gradeClass}`}>
-                                    <span className="drop-shadow-md">{scoreGrade || t('common.na')}</span>
-                                    <div className="absolute inset-0 rounded-[1.5rem] bg-white/20 mix-blend-overlay"></div>
+                            <div className="flex flex-col sm:flex-row items-start gap-6 sm:items-center">
+                                <div className={`relative flex items-center justify-center w-24 h-24 shrink-0 rounded-[2rem] text-6xl font-black shadow-2xl bg-gradient-to-br ${gradeColor} text-white transform transition-transform hover:scale-105 duration-300`}>
+                                    <span className="drop-shadow-lg relative z-10">{scoreGrade || '?'}</span>
+                                    <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-t from-black/20 to-transparent mix-blend-overlay"></div>
+                                    <div className="absolute inset-0 rounded-[2rem] ring-1 ring-inset ring-white/20"></div>
                                 </div>
-                                <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight font-display">Sentinel GRC</h1>
-                                        <SecurityBadge feature="general" />
+                                <div className="space-y-3">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 tracking-tight font-display">
+                                            Sentinel GRC
+                                        </h1>
+                                        <SecurityBadge feature="general" className="scale-90 origin-left" />
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest shadow-sm">
+
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100/80 dark:bg-white/10 border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest shadow-sm backdrop-blur-sm">
                                             {organizationName || user?.organizationName || t('dashboard.operationalSystem')}
-                                        </span>
-                                        <div className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600"></div>
-                                        <span className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                                            <span className={`text-lg ${loading ? 'opacity-50' : ''} text-slate-900 dark:text-white`}>
-                                                {loading ? '...' : activeIncidentsCount}
-                                            </span>
-                                            {t('dashboard.activeIncidents')}
-                                        </span>
-                                        <div className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600"></div>
-                                        <span className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                                            <span className={`text-lg ${loading ? 'opacity-50' : ''} text-slate-900 dark:text-white`}>
-                                                {loading ? '...' : openAuditsCount}
-                                            </span>
-                                            {t('dashboard.openAudits')}
-                                        </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-3 pt-1">
+                                        {/* Metrics Pills */}
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg border border-red-100 dark:border-red-900/30 text-xs font-bold shadow-sm cursor-help transition-all hover:bg-red-100 dark:hover:bg-red-900/30" title="Incidents Actifs">
+                                            <Zap className="h-3.5 w-3.5" />
+                                            {loading ? '...' : activeIncidentsCount} Incidents
+                                        </div>
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg border border-blue-100 dark:border-blue-900/30 text-xs font-bold shadow-sm cursor-help transition-all hover:bg-blue-100 dark:hover:bg-blue-900/30" title="Audits Ouverts">
+                                            <ClipboardCheck className="h-3.5 w-3.5" />
+                                            {loading ? '...' : openAuditsCount} Audits
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Insight Card */}
                             {insight.text && (
-                                <InsightCard insight={insight} navigate={navigate} />
+                                <div className="animate-slide-up">
+                                    <InsightCard insight={insight} navigate={navigate} />
+                                </div>
                             )}
 
                             {/* Actions & Team */}
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                            <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-6 pt-2 border-t border-slate-200/50 dark:border-white/5 mt-4">
                                 {teamSize !== null && (
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex -space-x-2 overflow-hidden">
+                                    <div className="flex items-center gap-4 group cursor-pointer" onClick={() => navigate('/team')}>
+                                        <div className="flex -space-x-3 overflow-hidden p-1">
                                             {[...Array(Math.min(3, teamSize))].map((_, i) => (
-                                                <div key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                <div key={i} className="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm relative z-0 transition-transform hover:z-10 hover:scale-110">
                                                     {String.fromCharCode(65 + i)}
                                                 </div>
                                             ))}
                                             {teamSize > 3 && (
-                                                <div className="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                <div className="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm relative z-0">
                                                     +{teamSize - 3}
                                                 </div>
                                             )}
                                         </div>
                                         <div className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                            <span className="font-bold text-slate-900 dark:text-white">{teamSize}</span> {t('dashboard.teamMembers')}
-                                            {teamSize <= 1 && (
-                                                <button
-                                                    onClick={() => navigate('/team')}
-                                                    className="ml-2 text-blue-600 dark:text-blue-400 hover:underline font-bold"
-                                                >
-                                                    {t('dashboard.inviteTeam')}
-                                                </button>
-                                            )}
+                                            <div className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{teamSize} Membres</div>
+                                            <div>{t('dashboard.teamMembers')}</div>
                                         </div>
                                     </div>
                                 )}
@@ -297,14 +233,14 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={generateICal}
-                                        className="group flex items-center px-4 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-xs font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-all shadow-sm hover:shadow-md"
+                                        className="flex items-center justify-center px-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-xs font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5"
                                     >
-                                        <CalendarDays className="h-4 w-4 mr-2 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
+                                        <CalendarDays className="h-4 w-4 mr-2 text-slate-400" />
                                         {t('dashboard.exportIcal')}
                                     </button>
                                     <button
                                         onClick={generateExecutiveReport}
-                                        className="group flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-white/10 hover:shadow-xl hover:shadow-slate-900/30 dark:hover:shadow-white/20"
+                                        className="flex items-center justify-center px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-2xl hover:scale-105 transition-all shadow-lg shadow-slate-900/20 dark:shadow-white/10 active:scale-95"
                                     >
                                         <Download className="h-4 w-4 mr-2" />
                                         {t('dashboard.executiveReport')}
@@ -314,15 +250,22 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         </div>
 
 
-                        {/* Radar Chart Section */}
+                        {/* Radar Chart Section - Desktop Only */}
                         {radarData && (
-                            <MaturityRadarWidget
-                                radarData={radarData}
-                                t={t}
-                                theme={theme || 'light'}
-                                navigate={navigate}
-                            />
+                            <div className="hidden lg:block relative shrink-0">
+                                {/* Decorator container for Radar to make it look embedded */}
+                                <div className="p-3 bg-slate-50/50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5 backdrop-blur-sm">
+                                    <MaturityRadarWidget
+                                        radarData={radarData}
+                                        t={t}
+                                        theme={theme || 'light'}
+                                        navigate={navigate}
+                                    />
+                                </div>
+                            </div>
                         )}
+
+                        {/* Radar Mobile Substitute - if needed, but usually hidden is fine as it's additional info */}
                     </div>
                 )}
             </div>

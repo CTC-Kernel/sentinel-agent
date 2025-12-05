@@ -92,7 +92,7 @@ export const Compliance: React.FC = () => {
                 const data = await integrationService.getProviders();
                 setProviders(data.filter(p => p.status === 'connected'));
             } catch (error) {
-                console.error('Failed to load providers', error);
+                ErrorLogger.error(error, 'Compliance.loadProviders');
             } finally {
                 setLoadingProviders(false);
             }

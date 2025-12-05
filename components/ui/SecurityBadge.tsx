@@ -5,6 +5,7 @@ export type SecurityFeature = 'general' | 'storage' | 'confidentiality' | 'integ
 
 interface SecurityBadgeProps {
     feature: SecurityFeature;
+    className?: string;
 }
 
 const BADGE_CONFIG: Record<SecurityFeature, {
@@ -44,7 +45,7 @@ const BADGE_CONFIG: Record<SecurityFeature, {
     }
 };
 
-export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature }) => {
+export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature, className = '' }) => {
     const config = BADGE_CONFIG[feature];
     const Icon: any = config.icon;
 
@@ -56,7 +57,7 @@ export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature }) => {
     };
 
     return (
-        <div className="group relative z-20 inline-block pointer-events-auto">
+        <div className={`group relative z-20 inline-block pointer-events-auto ${className}`}>
             <div className={`
                 flex items-center gap-1.5 px-2.5 py-1 
                 rounded-full ring-1 transition-all duration-300 cursor-help

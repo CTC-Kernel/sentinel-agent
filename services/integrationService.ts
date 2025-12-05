@@ -2,6 +2,7 @@
 import { functions, db } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { collection, doc, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
+import { ErrorLogger } from './errorLogger';
 
 export interface IntegrationProvider {
     id: string;
@@ -111,7 +112,7 @@ class IntegrationService {
                 return provider;
             });
         } catch (error) {
-            console.error('Error fetching integrations:', error);
+            ErrorLogger.error(error, "IntegrationService.getProviders");
             return [];
         }
     }
@@ -142,7 +143,7 @@ class IntegrationService {
 
             return true;
         } catch (error) {
-            console.error('Failed to connect provider', error);
+            ErrorLogger.error(error, "IntegrationService.connectProvider");
             throw error;
         }
     }
@@ -162,7 +163,7 @@ class IntegrationService {
             const integrationRef = doc(db, 'organizations', organizationId, 'integrations', providerId);
             await deleteDoc(integrationRef);
         } catch (error) {
-            console.error('Failed to disconnect provider', error);
+            ErrorLogger.error(error, "IntegrationService.disconnectProvider");
             throw error;
         }
     }
@@ -267,7 +268,7 @@ class IntegrationService {
                 source: "CERT-FR"
             }));
         } catch (error) {
-            console.error("Failed to fetch CERT-FR news", error);
+            ErrorLogger.error(error, "IntegrationService.getCyberNews");
             return [];
         }
     }
@@ -301,7 +302,7 @@ class IntegrationService {
                 source: "CNIL"
             }));
         } catch (error) {
-            console.error("Failed to fetch CNIL news", error);
+            ErrorLogger.error(error, "IntegrationService.getCnilNews");
             return [];
         }
     }

@@ -3,6 +3,7 @@ import { orderBy, limit } from 'firebase/firestore';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 
 import { useStore } from '../store';
+import { ErrorLogger } from '../services/errorLogger';
 import { ShieldAlert, Users, Building, Activity, Search } from 'lucide-react';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 
@@ -54,7 +55,7 @@ export const AdminDashboard: React.FC = () => {
                 const data = result.data as { isSuperAdmin: boolean };
                 setIsSuperAdmin(data.isSuperAdmin);
             } catch (error) {
-                console.error('Failed to verify super admin status', error);
+                ErrorLogger.error(error, 'AdminDashboard.verifySuperAdmin');
                 setIsSuperAdmin(false);
             } finally {
                 setCheckingAuth(false);

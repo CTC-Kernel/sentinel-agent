@@ -80,7 +80,6 @@ export const Login: React.FC = () => {
             addToast("Connexion réussie", "success");
         } catch (error) {
             setMfaError("Code incorrect ou expiré.");
-            console.error(error); // Keep console for debugging auth flows locally if needed, but log it too
             ErrorLogger.error(error, 'Login.handleMfaVerification');
         } finally {
             setMfaLoading(false);

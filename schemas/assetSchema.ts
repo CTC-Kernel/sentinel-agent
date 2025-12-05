@@ -29,6 +29,11 @@ export const assetSchema = z.object({
     email: z.string().email("Email invalide").or(z.literal('')).optional(),
     role: z.string().optional(),
     department: z.string().optional(),
+    aiAnalysis: z.object({
+        type: z.string(),
+        response: z.record(z.string(), z.any()),
+        timestamp: z.string()
+    }).optional().nullable(),
 });
 
 export type AssetFormData = z.infer<typeof assetSchema>;
