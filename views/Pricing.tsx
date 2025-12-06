@@ -54,7 +54,7 @@ const Pricing = () => {
     { name: 'Conformité ISO 27001:2022', discovery: true, professional: true, enterprise: true, tooltip: "Suivi complet de l'Annexe A et génération du SoA." },
 
     // Fonctionnalités Avancées
-    { name: 'Assistant IA (Gemini)', discovery: true, professional: true, enterprise: true, tooltip: "Aide à la rédaction de politiques et suggestion de mesures de sécurité." },
+    { name: 'Assistant IA (Sentinel)', discovery: true, professional: true, enterprise: true, tooltip: "Aide à la rédaction de politiques et suggestion de mesures de sécurité." },
     { name: 'Gestion Documentaire', discovery: true, professional: true, enterprise: true, tooltip: "Cycle de vie des documents, versionning et approbation." },
     { name: 'Rapports PDF Standards', discovery: true, professional: true, enterprise: true, tooltip: "Export des rapports d'audit et du SoA au format PDF." },
     { name: 'Rapports Marque Blanche', discovery: false, professional: true, enterprise: true, tooltip: "Suppression du logo Sentinel GRC et personnalisation avec votre logo." },

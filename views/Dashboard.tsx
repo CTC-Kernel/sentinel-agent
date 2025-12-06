@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { collection, getDocs, query, where, doc, setDoc, limit, getCountFromServer, getDoc, orderBy } from 'firebase/firestore';
 import { Risk, Control, Audit, Project, DailyStat, Document, Asset, SystemLog, Supplier, Incident } from '../types';
 import { PdfService } from '../services/PdfService';
+import { aiService } from '../services/aiService';
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
 import { ErrorLogger } from '../services/errorLogger';
@@ -29,6 +30,8 @@ export const Dashboard: React.FC = () => {
     const [manualLoading, setManualLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [organizationName, setOrganizationName] = useState<string>('');
+    const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
+
     const [teamSize, setTeamSize] = useState<number | null>(null);
     const [activeIncidentsCount, setActiveIncidentsCount] = useState(0);
     const [openAuditsCount, setOpenAuditsCount] = useState(0);
@@ -67,7 +70,11 @@ export const Dashboard: React.FC = () => {
                 // Organization Name
                 try {
                     const orgSnap = await getDoc(doc(db, 'organizations', orgId));
-                    if (orgSnap.exists()) setOrganizationName(orgSnap.data().name || '');
+                    if (orgSnap.exists()) {
+                        const data = orgSnap.data();
+                        setOrganizationName(data.name || '');
+                        setOrganizationLogo(data.logoUrl);
+                    }
                     else if (user.organizationName) setOrganizationName(user.organizationName);
                 } catch { if (user.organizationName) setOrganizationName(user.organizationName); }
 
@@ -286,74 +293,101 @@ export const Dashboard: React.FC = () => {
         } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Dashboard.generateICal', 'UNKNOWN_ERROR'); }
     };
 
-    const generateExecutiveReport = () => {
-        PdfService.generateCustomReport(
-            {
-                title: t('dashboard.reportTitle'),
-                subtitle: t('dashboard.generatedOn').replace('{date}', new Date().toLocaleDateString()),
-                filename: t('dashboard.reportFilename')
-            },
-            (doc, startY) => {
-                let y = startY;
+    const generateExecutiveReport = async () => {
+        addToast("Génération du rapport avec l'IA en cours...", "info");
+        try {
+            // Context for AI
+            const context = {
+                organizationName,
+                complianceScore,
+                activeIncidents: activeIncidentsCount,
+                openAudits: openAuditsCount,
+                riskCount: allRisks.length,
+                highRisks: topRisks.filter(r => r.score >= 15).length,
+                financialRisk: stats.financialRisk,
+                criticalRisks: topRisks.slice(0, 3).map(r => ({ threat: r.threat, score: r.score }))
+            };
 
-                // Stats Grid
-                doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
-                doc.text(t('dashboard.keyIndicators'), 14, y);
-                y += 10;
+            const summary = await aiService.generateExecutiveDashboardSummary(context);
 
-                const statsData = [
-                    { label: t('dashboard.complianceScore'), value: `${complianceScore}%` },
-                    { label: t('dashboard.criticalRisks'), value: topRisks.filter(r => r.score >= 15).length.toString() },
-                    { label: t('dashboard.activeIncidents'), value: activeIncidentsCount.toString() },
-                    { label: t('dashboard.openAudits'), value: openAuditsCount.toString() }
-                ];
+            PdfService.generateExecutiveReport(
+                {
+                    title: t('dashboard.reportTitle'),
+                    subtitle: t('dashboard.generatedOn').replace('{date}', new Date().toLocaleDateString()),
+                    filename: `Rapport_Executif_${organizationName}_${new Date().toISOString().split('T')[0]}.pdf`,
+                    organizationName,
+                    organizationLogo,
+                    summary,
+                    author: user?.displayName || 'Sentinel GRC',
+                    orientation: 'portrait'
+                },
+                (doc, startY) => {
+                    let y = startY;
 
-                let x = 14;
-                statsData.forEach(stat => {
-                    doc.setFillColor(248, 250, 252); doc.setDrawColor(226, 232, 240);
-                    doc.rect(x, y, 40, 25, 'FD');
-                    doc.setFontSize(16); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
-                    doc.text(stat.value, x + 20, y + 12, { align: 'center' });
-                    doc.setFontSize(8); doc.setTextColor(100); doc.setFont('helvetica', 'normal');
-                    doc.text(stat.label, x + 20, y + 20, { align: 'center' });
-                    x += 45;
-                });
+                    // Stats Grid
+                    doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
+                    doc.text(t('dashboard.keyIndicators'), 14, y);
+                    y += 10;
 
-                y += 35;
+                    const statsData = [
+                        { label: t('dashboard.complianceScore'), value: `${complianceScore}%` },
+                        { label: t('dashboard.criticalRisks'), value: topRisks.filter(r => r.score >= 15).length.toString() },
+                        { label: t('dashboard.activeIncidents'), value: activeIncidentsCount.toString() },
+                        { label: t('dashboard.openAudits'), value: openAuditsCount.toString() }
+                    ];
 
-                // Top Risks Table
-                doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
-                doc.text(t('dashboard.top5Risks'), 14, y);
-                y += 5;
+                    let x = 14;
+                    statsData.forEach(stat => {
+                        doc.setFillColor(248, 250, 252); doc.setDrawColor(226, 232, 240);
+                        doc.roundedRect(x, y, 40, 25, 2, 2, 'FD');
+                        doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                        doc.text(stat.value, x + 20, y + 12, { align: 'center' });
+                        doc.setFontSize(8); doc.setTextColor(100); doc.setFont('helvetica', 'normal');
+                        doc.text(stat.label, x + 20, y + 20, { align: 'center' });
+                        x += 45;
+                    });
 
-                const riskData = topRisks.map(r => [r.threat, r.score.toString(), r.strategy, r.status]);
-                doc.autoTable({
-                    startY: y,
-                    head: [[t('dashboard.threat'), t('dashboard.score'), t('dashboard.strategy'), t('dashboard.status')]],
-                    body: riskData,
-                    theme: 'grid',
-                    headStyles: { fillColor: [79, 70, 229] },
-                    margin: { left: 14, right: 14 }
-                });
+                    y += 40;
 
-                y = doc.lastAutoTable.finalY + 15;
+                    // Top Risks Table
+                    doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
+                    doc.text(t('dashboard.top5Risks'), 14, y);
+                    y += 5;
 
-                // Compliance Summary
-                doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
-                doc.text(t('dashboard.complianceByDomain'), 14, y);
-                y += 5;
+                    const riskData = topRisks.map(r => [r.threat, r.score.toString(), r.strategy, r.status]);
+                    doc.autoTable({
+                        startY: y,
+                        head: [[t('dashboard.threat'), t('dashboard.score'), t('dashboard.strategy'), t('dashboard.status')]],
+                        body: riskData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [79, 70, 229] },
+                        styles: { fontSize: 8, cellPadding: 2 },
+                        margin: { left: 14, right: 14 }
+                    });
 
-                const complianceData = radarData.map(d => [d.subject, `${d.A}%`]);
-                doc.autoTable({
-                    startY: y,
-                    head: [[t('dashboard.domain'), t('dashboard.score')]],
-                    body: complianceData,
-                    theme: 'grid',
-                    headStyles: { fillColor: [79, 70, 229] },
-                    margin: { left: 14, right: 14 }
-                });
-            }
-        );
+                    y = (doc as any).lastAutoTable.finalY + 15;
+
+                    // Compliance Summary
+                    doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
+                    doc.text(t('dashboard.complianceByDomain'), 14, y);
+                    y += 5;
+
+                    const complianceData = radarData.map(d => [d.subject, `${d.A}%`]);
+                    doc.autoTable({
+                        startY: y,
+                        head: [[t('dashboard.domain'), t('dashboard.score')]],
+                        body: complianceData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [79, 70, 229] },
+                        styles: { fontSize: 8, cellPadding: 2 },
+                        margin: { left: 14, right: 14 }
+                    });
+                }
+            );
+            addToast(t('dashboard.reportGenerated'), "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Dashboard.generateExecutiveReport', 'UNKNOWN_ERROR');
+        }
     };
 
 
