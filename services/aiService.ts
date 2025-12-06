@@ -307,6 +307,33 @@ export const aiService = {
     },
 
     /**
+     * Generates an executive summary for the Continuity (BCP) Report.
+     */
+    async generateContinuityReportSummary(context: Record<string, unknown>): Promise<string> {
+        try {
+            const prompt = `
+                You are a Business Continuity Manager writing an Executive Summary for the Annual Continuity Report.
+                
+                Context Data:
+                ${JSON.stringify(context)}
+
+                Write a professional Executive Summary (in French) of 2-3 paragraphs.
+                - Analyze the current BCP readiness and coverage.
+                - Highlight critical processes and their RTO/RPO status.
+                - Summarize recent drill results and readiness.
+                
+                Tone: Professional, Reassuring, Strategic.
+                Do not use markdown formatting. Just plain text with paragraphs.
+            `;
+
+            return await generateContentSafe(prompt, SMART_MODEL);
+        } catch (error) {
+            ErrorLogger.error(error, 'aiService.generateContinuityReportSummary');
+            return "Impossible de générer le résumé du rapport de continuité.";
+        }
+    },
+
+    /**
      * Generates text based on a prompt.
      */
     async generateText(prompt: string): Promise<string> {
@@ -315,6 +342,43 @@ export const aiService = {
         } catch (error) {
             ErrorLogger.error(error, 'aiService.generateText');
             return "";
+        }
+    },
+    /**
+     * Suggests continuity plan details (RTO, RPO, Priority, Tasks).
+     */
+    async suggestContinuityPlan(processName: string, description: string): Promise<import("../types").ContinuitySuggestion> {
+        try {
+            const prompt = `
+                You are a Business Continuity Expert.
+                Process Name: ${processName}
+                Description: ${description}
+
+                Suggest realistic values for a Business Impact Analysis (BIA) and Recovery Plan.
+                Values to determine:
+                - RTO (Recovery Time Objective): e.g. "4h", "24h", "1h"
+                - RPO (Recovery Point Objective): e.g. "1h", "15m", "0"
+                - Priority: Critique, Élevée, Moyenne, Faible
+                - Recovery Tasks: 3-5 main steps to recover this process.
+
+                Return strictly JSON:
+                {
+                  "rto": "string",
+                  "rpo": "string",
+                  "priority": "Critique" | "Élevée" | "Moyenne" | "Faible",
+                  "recoveryTasks": [
+                    { "title": "string", "owner": "role or job title", "duration": "string e.g. 30m", "description": "optional detail" }
+                  ],
+                  "reasoning": "Short explanation of why this priority/RTO was chosen."
+                }
+            `;
+
+            const text = await generateContentSafe(prompt, SMART_MODEL);
+            const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(jsonString);
+        } catch (error) {
+            ErrorLogger.error(error, 'aiService.suggestContinuityPlan', { metadata: { processName } });
+            throw new Error("Impossible de générer une suggestion de continuité.");
         }
     }
 };
