@@ -1,15 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { aiService } from '../../services/aiService';
-import { Sparkles, X, Send, User, Bot, Loader2, Maximize2, Minimize2 } from '../ui/Icons';
+import { Sparkles, X, Send, User, Bot, Loader2, Maximize2, Minimize2, Zap, Copy, Check } from '../ui/Icons';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
+import { cn } from '../../lib/utils';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface Message {
     id: string;
     role: 'user' | 'assistant';
     content: string;
     timestamp: Date;
+    isError?: boolean;
 }
+
+const QUICK_PROMPTS = [
+    { label: "Analyser les risques", prompt: "Analyse les risques actuels et propose des mesures de mitigation prioritaires." },
+    { label: "Rédiger une politique", prompt: "Rédige une ébauche de politique de sécurité pour le télétravail." },
+    { label: "Checklist audit", prompt: "Génère une checklist pour un audit interne ISO 27001." },
+];
 
 export const GeminiAssistant: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -19,13 +31,15 @@ export const GeminiAssistant: React.FC = () => {
         {
             id: 'welcome',
             role: 'assistant',
-            content: "Bonjour ! Je suis Sentinel AI. Comment puis-je vous aider à sécuriser votre organisation aujourd'hui ?",
+            content: "Bonjour je suis **Sentinel AI**. \n\nComment puis-je vous aider à sécuriser votre organisation aujourd'hui ?",
             timestamp: new Date()
         }
     ]);
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
     const { user } = useStore();
+    const [copiedId, setCopiedId] = useState<string | null>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,16 +47,21 @@ export const GeminiAssistant: React.FC = () => {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, isOpen]);
+        if (isOpen && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [messages, isOpen, isExpanded]);
 
-    const handleSend = async (e?: React.FormEvent) => {
+    const handleSend = async (e?: React.FormEvent, promptOverride?: string) => {
         e?.preventDefault();
-        if (!input.trim() || isLoading) return;
+        const textToSend = promptOverride || input;
+
+        if (!textToSend.trim() || isLoading) return;
 
         const userMsg: Message = {
             id: Date.now().toString(),
             role: 'user',
-            content: input,
+            content: textToSend,
             timestamp: new Date()
         };
 
@@ -51,10 +70,10 @@ export const GeminiAssistant: React.FC = () => {
         setIsLoading(true);
 
         try {
-            // Context could be current page, user role, etc.
             const context = {
                 userRole: user?.role,
-                organizationId: user?.organizationId
+                organizationId: user?.organizationId,
+                currentPage: window.location.hash
             };
 
             const responseText = await aiService.chatWithAI(userMsg.content, context);
@@ -72,8 +91,9 @@ export const GeminiAssistant: React.FC = () => {
             const errorMsg: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: "Désolé, j'ai rencontré une erreur. Veuillez réessayer.",
-                timestamp: new Date()
+                content: "Désolé, j'ai rencontré une erreur lors du traitement de votre demande. Veuillez réessayer.",
+                timestamp: new Date(),
+                isError: true
             };
             setMessages(prev => [...prev, errorMsg]);
         } finally {
@@ -81,14 +101,21 @@ export const GeminiAssistant: React.FC = () => {
         }
     };
 
+    const copyToClipboard = (text: string, id: string) => {
+        navigator.clipboard.writeText(text);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
+
     if (!isOpen) {
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 p-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-indigo-500/30 hover:scale-110 transition-all z-50 group"
+                className="fixed bottom-6 right-6 p-4 bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-full shadow-2xl hover:shadow-indigo-500/40 hover:scale-110 transition-all duration-300 z-50 group border border-white/20"
+                aria-label="Ouvrir l'assistant IA"
             >
                 <Sparkles className="h-6 w-6 animate-pulse" />
-                <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1 bg-slate-900 text-white text-xs font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap pointer-events-none translate-x-2 group-hover:translate-x-0 shadow-lg">
                     Assistant IA
                 </span>
             </button>
@@ -96,86 +123,211 @@ export const GeminiAssistant: React.FC = () => {
     }
 
     return (
-        <div className={`fixed bottom-6 right-6 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 flex flex-col transition-all duration-300 z-50 ${isExpanded ? 'w-[800px] h-[80vh]' : 'w-[400px] h-[600px]'}`}>
+        <div className={cn(
+            "fixed bottom-6 right-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 dark:border-white/10 flex flex-col transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) z-50 overflow-hidden",
+            isExpanded ? "w-[90vw] h-[85vh] md:w-[800px] md:h-[800px]" : "w-[90vw] h-[600px] md:w-[420px]"
+        )}>
             {/* Header */}
-            <div className="p-4 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-t-3xl">
+            <div className="p-4 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-900/20 dark:to-violet-900/20">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm">
-                        <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl shadow-lg shadow-indigo-500/20">
+                        <Sparkles className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-slate-900 dark:text-white">Sentinel AI</h3>
-                        <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> En ligne
+                        <h3 className="font-bold text-slate-900 dark:text-white text-sm">Sentinel AI</h3>
+                        <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            Gemini 3 Pro
                         </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-1">
-                    <button onClick={() => setIsExpanded(!isExpanded)} className="p-2 hover:bg-white/50 dark:hover:bg-white/10 rounded-lg text-slate-500 transition-colors">
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="p-2 hover:bg-slate-200/50 dark:hover:bg-white/10 rounded-xl text-slate-500 dark:text-slate-400 transition-colors"
+                        title={isExpanded ? "Réduire" : "Agrandir"}
+                    >
                         {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </button>
-                    <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/50 dark:hover:bg-white/10 rounded-lg text-slate-500 transition-colors">
+                    <button
+                        onClick={() => setIsOpen(false)}
+                        className="p-2 hover:bg-rose-100/50 dark:hover:bg-rose-900/20 hover:text-rose-600 rounded-xl text-slate-500 dark:text-slate-400 transition-colors"
+                        title="Fermer"
+                    >
                         <X className="h-4 w-4" />
                     </button>
                 </div>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-slate-50/50 dark:bg-black/20">
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar scroll-smooth bg-slate-50/30 dark:bg-black/20">
                 {messages.map((msg) => (
-                    <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-slate-200 dark:bg-slate-700' : 'bg-indigo-100 dark:bg-slate-900/30'}`}>
-                            {msg.role === 'user' ? <User className="h-4 w-4 text-slate-600 dark:text-slate-300" /> : <Bot className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />}
+                    <div key={msg.id} className={cn("flex gap-4 group animate-in slide-in-from-bottom-2 duration-300",
+                        msg.role === 'user' ? "flex-row-reverse" : ""
+                    )}>
+                        <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border",
+                            msg.role === 'user'
+                                ? "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                                : "bg-indigo-100 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-500/30"
+                        )}>
+                            {msg.role === 'user'
+                                ? <User className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                                : <Bot className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                            }
                         </div>
-                        <div className={`max-w-[80%] p-3.5 rounded-2xl text-sm leading-relaxed ${msg.role === 'user'
-                            ? 'bg-indigo-600 text-white rounded-tr-none'
-                            : 'bg-white dark:bg-slate-800 border border-gray-100 dark:border-white/5 text-slate-700 dark:text-slate-200 rounded-tl-none shadow-sm'
-                            }`}>
-                            {msg.content.split('\n').map((line, i) => (
-                                <p key={i} className={i > 0 ? 'mt-2' : ''}>{line}</p>
-                            ))}
-                            <span className={`text-[10px] block mt-1 opacity-70 ${msg.role === 'user' ? 'text-indigo-200' : 'text-slate-400'}`}>
+
+                        <div className="flex flex-col gap-1 max-w-[85%]">
+                            {/* Name Label */}
+                            <span className={cn("text-[10px] font-bold opacity-60 px-1", msg.role === 'user' ? "text-right" : "text-left")}>
+                                {msg.role === 'user' ? 'Vous' : 'Sentinel AI'}
+                            </span>
+
+                            <div className={cn(
+                                "p-4 rounded-2xl text-sm leading-relaxed shadow-sm relative group-hover:shadow-md transition-shadow",
+                                msg.role === 'user'
+                                    ? "bg-slate-900 dark:bg-indigo-600 text-white rounded-tr-none"
+                                    : cn("bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-tl-none", msg.isError && "border-red-200 bg-red-50 text-red-800 dark:bg-red-900/10 dark:text-red-300 dark:border-red-900/30")
+                            )}>
+                                {msg.role === 'assistant' ? (
+                                    <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:p-0 prose-pre:bg-transparent">
+                                        <ReactMarkdown
+                                            remarkPlugins={[remarkGfm]}
+                                            components={{
+                                                code({ node, inline, className, children, ...props }: any) {
+                                                    const match = /language-(\w+)/.exec(className || '')
+                                                    return !inline && match ? (
+                                                        <div className="rounded-lg overflow-hidden my-2 border border-slate-200 dark:border-slate-700">
+                                                            <div className="flex items-center justify-between px-3 py-1 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 text-xs text-slate-500">
+                                                                <span>{match[1]}</span>
+                                                                <button onClick={() => {
+                                                                    navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
+                                                                }} className="hover:text-indigo-500 transition-colors">Copier</button>
+                                                            </div>
+                                                            <SyntaxHighlighter
+                                                                style={vscDarkPlus}
+                                                                language={match[1]}
+                                                                PreTag="div"
+                                                                customStyle={{ margin: 0, borderRadius: 0 }}
+                                                                {...props}
+                                                            >
+                                                                {String(children).replace(/\n$/, '')}
+                                                            </SyntaxHighlighter>
+                                                        </div>
+                                                    ) : (
+                                                        <code className={cn("px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/50 font-mono text-xs text-indigo-600 dark:text-indigo-400", className)} {...props}>
+                                                            {children}
+                                                        </code>
+                                                    )
+                                                }
+                                            }}
+                                        >
+                                            {msg.content}
+                                        </ReactMarkdown>
+
+                                        {!msg.isError && (
+                                            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/50 flex gap-2">
+                                                <button
+                                                    onClick={() => copyToClipboard(msg.content, msg.id)}
+                                                    className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400 hover:text-indigo-600 transition-colors"
+                                                >
+                                                    {copiedId === msg.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                                                    {copiedId === msg.id ? 'Copié' : 'Copier'}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="whitespace-pre-wrap">{msg.content}</div>
+                                )}
+                            </div>
+                            <span className={cn("text-[10px] opacity-40 px-1", msg.role === 'user' ? "text-right" : "text-left")}>
                                 {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                         </div>
                     </div>
                 ))}
+
                 {isLoading && (
-                    <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-slate-900/30 flex items-center justify-center flex-shrink-0">
+                    <div className="flex gap-4 animate-pulse">
+                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center flex-shrink-0">
                             <Bot className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                         </div>
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-gray-100 dark:border-white/5 shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-tl-none border border-slate-200 dark:border-slate-700/50 shadow-sm flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">L'IA réfléchit...</span>
                         </div>
                     </div>
                 )}
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
-            <form onSubmit={handleSend} className="p-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-white/5 rounded-b-3xl">
-                <div className="relative flex items-center">
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Posez une question sur votre sécurité..."
-                        className="w-full pl-4 pr-12 py-3.5 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-medium dark:text-white transition-all"
-                        disabled={isLoading}
-                    />
+            {/* Quick Prompts (Only if empty or start) */}
+            {messages.length < 3 && !isLoading && (
+                <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar mask-gradient-right">
+                    {QUICK_PROMPTS.map((qp, i) => (
+                        <button
+                            key={i}
+                            onClick={(e) => handleSend(e, qp.prompt)}
+                            className="whitespace-nowrap flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:text-indigo-600 dark:hover:text-indigo-300 transition-all"
+                        >
+                            <Zap className="h-3 w-3" />
+                            {qp.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Input Area */}
+            <form onSubmit={(e) => handleSend(e)} className="p-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-t border-slate-100 dark:border-white/5">
+                <div className="relative flex items-center gap-2">
+                    <div className="relative flex-1">
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSend();
+                                }
+                            }}
+                            placeholder="Posez une question..."
+                            className="w-full pl-4 pr-10 py-3.5 bg-slate-100 dark:bg-slate-950 border border-transparent focus:bg-white dark:focus:bg-slate-900 border-slate-200 dark:border-slate-800 focus:border-indigo-500/50 dark:focus:border-indigo-500/50 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm font-medium text-slate-900 dark:text-white transition-all placeholder:text-slate-400"
+                            disabled={isLoading}
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            {isLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                            ) : (
+                                <div className="text-[10px] font-bold text-slate-300 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 pointer-events-none">
+                                    ⏎
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     <button
                         type="submit"
                         disabled={!input.trim() || isLoading}
-                        className="absolute right-2 p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors"
+                        className={cn(
+                            "p-3.5 rounded-2xl transition-all duration-300 shadow-lg",
+                            !input.trim() || isLoading
+                                ? "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
+                                : "bg-gradient-to-br from-indigo-600 to-violet-600 text-white hover:shadow-indigo-500/25 hover:scale-105 active:scale-95"
+                        )}
                     >
-                        <Send className="h-4 w-4" />
+                        <Send className="h-5 w-5" />
                     </button>
                 </div>
-                <p className="text-[10px] text-center text-slate-400 mt-2">
-                    L'IA peut faire des erreurs. Vérifiez les informations importantes.
+                <p className="text-[10px] text-center text-slate-400 mt-3 flex items-center justify-center gap-1.5 opacity-60">
+                    <Sparkles className="h-3 w-3" /> Propulsé par Google Gemini 3 Pro
                 </p>
             </form>
         </div>
     );
 };
+
