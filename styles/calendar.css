@@ -1,0 +1,96 @@
+/* Calendar Custom Styles */
+/* Hide 'Show More' text link that is often hard to click, we will style it as a badge */
+.rbc-show-more {
+    @apply bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/90 text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 inline-block transition-colors hover:bg-slate-200 dark:hover:bg-white/20 !important;
+    text-decoration: none !important;
+    display: block !important;
+    text-align: center;
+    width: fit-content;
+    margin: 2px auto !important;
+    background-color: transparent !important;
+}
+
+/* Ensure the popup (overlay) is glassmorphic and respects dark mode */
+.rbc-overlay {
+    @apply bg-white/80 dark:bg-[#0B1121]/80 backdrop-blur-2xl border border-slate-200/50 dark:border-white/10 shadow-apple-xl rounded-2xl p-4 !important;
+    z-index: 50 !important;
+    animation: scaleIn 0.2s ease-out forwards;
+}
+
+/* Header of the popup (The Date) */
+.rbc-overlay-header {
+    @apply border-b border-slate-100 dark:border-white/5 pb-3 mb-3 text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider font-display !important;
+    text-align: center;
+}
+
+/* The Day Cell Date Number */
+.rbc-date-cell {
+    @apply text-slate-500 dark:text-slate-400/80 font-bold p-2 text-xs uppercase tracking-wide transition-colors !important;
+}
+
+.rbc-date-cell.rbc-now {
+    @apply text-brand-600 dark:text-brand-400 font-black !important;
+}
+
+.rbc-date-cell a {
+    @apply no-underline !important;
+}
+
+/* Current Day Highlight - much softer in dark mode */
+.rbc-day-bg.rbc-today {
+    @apply bg-brand-50/50 dark:bg-brand-500/5 !important;
+}
+
+/* Grid Lines - Barely visible in dark mode for premium feel */
+.rbc-month-view,
+.rbc-time-view,
+.rbc-header,
+.rbc-time-header-content {
+    @apply border-slate-200/60 dark:border-white/5 !important;
+}
+
+.rbc-day-bg+.rbc-day-bg,
+.rbc-month-row+.rbc-month-row,
+.rbc-header+.rbc-header {
+    @apply border-slate-100 dark:border-white/5 !important;
+}
+
+/* Off-range days (previous/next month) */
+.rbc-off-range-bg {
+    @apply bg-slate-50/30 dark:bg-black/20 !important;
+}
+
+.rbc-off-range .rbc-date-cell {
+    @apply text-slate-300 dark:text-slate-700 !important;
+}
+
+/* Events in the view */
+.rbc-event {
+    @apply rounded-md border-none shadow-sm text-[10px] font-bold px-1.5 py-0.5 transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer !important;
+    min-height: 20px !important;
+    margin-bottom: 2px !important;
+    line-height: normal !important;
+}
+
+/* Time Gutter (Day/Week view left side) */
+.rbc-time-gutter .rbc-timeslot-group {
+    @apply border-slate-100 dark:border-white/5 !important;
+}
+
+.rbc-label {
+    @apply text-xs font-medium text-slate-400 dark:text-slate-500 !important;
+}
+
+/* Header of Week/Day View */
+.rbc-header {
+    @apply py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/60 dark:border-white/5 bg-slate-50/30 dark:bg-white/5 !important;
+}
+
+/* Current Time Indicator */
+.rbc-current-time-indicator {
+    @apply bg-brand-500 h-[2px] !important;
+}
+
+.rbc-current-time-indicator::before {
+    @apply bg-brand-500 !important;
+}
