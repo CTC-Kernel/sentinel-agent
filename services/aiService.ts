@@ -402,6 +402,23 @@ export const aiService = {
 
 // --- Helpers ---
 async function generateContentSafe(prompt: string, modelName: string = FAST_MODEL): Promise<string> {
+    // [DEBUG] Log caller for generateContentSafe
+    try {
+        throw new Error('Stack Trace');
+    } catch (e: any) {
+        console.warn('[aiService] generateContentSafe called. Stack:', e.stack);
+    }
+
+    // Prevent loops: Rate limit client-side (1 second debounce)
+    const now = Date.now();
+    // @ts-ignore
+    if (aiService.lastGenCall && (now - aiService.lastGenCall < 2000)) {
+        console.warn('[aiService] Rate limit prevented rapid generateContentSafe call.');
+        return ""; // Return empty string or handle gracefully
+    }
+    // @ts-ignore
+    aiService.lastGenCall = now;
+
     try {
         const functions = getFunctions();
         const callGeminiGenerateContent = httpsCallable(functions, 'callGeminiGenerateContent');
