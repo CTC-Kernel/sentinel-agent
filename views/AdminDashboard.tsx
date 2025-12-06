@@ -21,10 +21,11 @@ export const AdminDashboard: React.FC = () => {
     const { user } = useStore();
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const { data: organizations, loading: orgsLoading } = useFirestoreCollection<OrganizationSummary>(
         'organizations',
-        [orderBy('createdAt', 'desc'), limit(50)],
+        [orderBy('createdAt', 'desc'), limit(1000)],
         { logError: true, realtime: true, enabled: isSuperAdmin }
     );
 
@@ -32,6 +33,11 @@ export const AdminDashboard: React.FC = () => {
         'users',
         [],
         { logError: true, realtime: true, enabled: isSuperAdmin }
+    );
+
+    const filteredOrgs = organizations.filter(org =>
+        org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        org.id.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const stats = {
@@ -51,10 +57,17 @@ export const AdminDashboard: React.FC = () => {
             try {
                 const functions = getFunctions();
                 const verifySuperAdmin = httpsCallable(functions, 'verifySuperAdmin');
-                const result = await verifySuperAdmin();
-                const data = result.data as { isSuperAdmin: boolean };
-                setIsSuperAdmin(data.isSuperAdmin);
+                const verifyResult = await verifySuperAdmin();
+                const data = verifyResult.data as { isSuperAdmin: boolean };
+                if (data.isSuperAdmin) {
+                    setIsSuperAdmin(true);
+                } else {
+                    setIsSuperAdmin(false);
+                }
             } catch (error) {
+                // If it fails (e.g. not found), check custom claim or just assume false
+                // But we can check context claim too?
+                // For now stick to existing logic but safe check
                 ErrorLogger.error(error, 'AdminDashboard.verifySuperAdmin');
                 setIsSuperAdmin(false);
             } finally {
@@ -132,13 +145,15 @@ export const AdminDashboard: React.FC = () => {
             {/* Tenants Table */}
             <div className="glass-panel rounded-2xl overflow-hidden border border-white/10">
                 <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Organisations Récentes</h2>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Organisations Récentes ({filteredOrgs.length})</h2>
                     <div className="relative">
                         <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                         <input
                             type="text"
                             placeholder="Rechercher..."
-                            className="pl-9 pr-4 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-9 pr-4 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none w-64 transition-all"
                         />
                     </div>
                 </div>
@@ -153,13 +168,13 @@ export const AdminDashboard: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200 dark:divide-white/10">
-                            {organizations.map(org => (
-                                <tr key={org.id} className="hover:bg-slate-50 dark:hover:bg-white/5">
-                                    <td className="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">{org.name}</td>
+                            {filteredOrgs.map(org => (
+                                <tr key={org.id} className="hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200">
+                                    <td className="px-6 py-4 text-sm font-medium">{org.name}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700' :
-                                            org.planId === 'professional' ? 'bg-blue-100 text-blue-700' :
-                                                'bg-slate-100 text-slate-700'
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300' :
+                                            org.planId === 'professional' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300' :
+                                                'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
                                             }`}>
                                             {org.planId || 'discovery'}
                                         </span>
@@ -168,7 +183,7 @@ export const AdminDashboard: React.FC = () => {
                                         {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : '-'}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button className="text-brand-600 hover:text-brand-700 text-sm font-medium">
+                                        <button className="text-brand-600 hover:text-brand-500 dark:text-brand-400 text-sm font-medium transition-colors">
                                             Gérer
                                         </button>
                                     </td>
