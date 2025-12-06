@@ -6,9 +6,10 @@ import { auditSchema, AuditFormData } from '../../schemas/auditSchema';
 import { Audit, Control, Asset, Risk, UserProfile, Project } from '../../types';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
-import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { Button } from '../ui/button';
 import { AUDIT_TYPES } from '../../data/auditConstants';
+import { RichTextEditor } from '../ui/RichTextEditor';
+import { DatePicker } from '../ui/DatePicker';
 
 interface AuditFormProps {
     onSubmit: import('react-hook-form').SubmitHandler<AuditFormData>;
@@ -110,11 +111,17 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     />
 
                     <div className="relative">
-                        <FloatingLabelInput
-                            label="Date Prévue"
-                            type="date"
-                            {...register('dateScheduled')}
-                            error={errors.dateScheduled?.message}
+                        <Controller
+                            control={control}
+                            name="dateScheduled"
+                            render={({ field }) => (
+                                <DatePicker
+                                    label="Date Prévue"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.dateScheduled?.message}
+                                />
+                            )}
                         />
                         {watchedDateScheduled && watchedName && (
                             <div className="absolute right-2 top-2 z-10">
@@ -147,12 +154,17 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     )}
                 />
 
-                <FloatingLabelTextarea
-                    label="Description du Périmètre"
-                    {...register('scope')}
-                    placeholder="Décrivez le périmètre de l'audit (ex: Tous les serveurs de production, Processus RH...)"
-                    rows={4}
-                    error={errors.scope?.message}
+                <Controller
+                    name="scope"
+                    control={control}
+                    render={({ field }) => (
+                        <RichTextEditor
+                            label="Description du Périmètre"
+                            value={field.value || ''}
+                            onChange={field.onChange}
+                            error={errors.scope?.message}
+                        />
+                    )}
                 />
 
                 <div className="space-y-4">

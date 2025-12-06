@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20.05% </span>
+                <span class="strong">20.02% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>302/1506</span>
+                <span class='fraction'>302/1508</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20.05% </span>
+                <span class="strong">20.02% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>302/1506</span>
+                <span class='fraction'>302/1508</span>
             </div>
         
             
@@ -1892,7 +1892,11 @@
 <a name='L1827'></a><a href='#L1827'>1827</a>
 <a name='L1828'></a><a href='#L1828'>1828</a>
 <a name='L1829'></a><a href='#L1829'>1829</a>
-<a name='L1830'></a><a href='#L1830'>1830</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L1830'></a><a href='#L1830'>1830</a>
+<a name='L1831'></a><a href='#L1831'>1831</a>
+<a name='L1832'></a><a href='#L1832'>1832</a>
+<a name='L1833'></a><a href='#L1833'>1833</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2665,6 +2669,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -3078,6 +3083,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -3754,6 +3760,7 @@ import { RiskTemplate, createRisksFromTemplate } from '../utils/riskTemplates';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { RiskAIAssistant } from '../components/risks/RiskAIAssistant';
 import { RiskRecommendationsModal } from '../components/risks/RiskRecommendationsModal';
+import { SafeHTML } from '../components/ui/SafeHTML';
 &nbsp;
 &nbsp;
 import { PageHeader } from '../components/ui/PageHeader';
@@ -4492,7 +4499,8 @@ export const Risks: React.FC = () =&gt; {
 <span class="cstat-no" title="statement not covered" >                projects: projects,</span>
 <span class="cstat-no" title="statement not covered" >                audits: audits,</span>
 <span class="cstat-no" title="statement not covered" >                incidents: incidents,</span>
-<span class="cstat-no" title="statement not covered" >                suppliers: suppliers</span>
+<span class="cstat-no" title="statement not covered" >                suppliers: suppliers,</span>
+<span class="cstat-no" title="statement not covered" >                controls: controls</span>
 <span class="cstat-no" title="statement not covered" >            };</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >            const response = await aiService.analyzeGraph(graphData);</span>
@@ -4925,9 +4933,10 @@ export const Risks: React.FC = () =&gt; {
 <span class="cstat-no" title="statement not covered" >                                        &lt;span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide truncate"&gt;{getAssetName(risk.assetId)}&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >                                    &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >                                    &lt;h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2"&gt;{risk.threat}&lt;/h4&gt;</span>
-<span class="cstat-no" title="statement not covered" >                                    &lt;p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900/50 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5"&gt;</span>
-<span class="cstat-no" title="statement not covered" >                                        &lt;span className="font-bold text-xs uppercase text-slate-400 block mb-1"&gt;Vulnérabilité&lt;/span&gt;{risk.vulnerability}</span>
-<span class="cstat-no" title="statement not covered" >                                    &lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >                                    &lt;div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900/50 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5"&gt;</span>
+<span class="cstat-no" title="statement not covered" >                                        &lt;span className="font-bold text-xs uppercase text-slate-400 block mb-1"&gt;Vulnérabilité&lt;/span&gt;</span>
+<span class="cstat-no" title="statement not covered" >                                        &lt;SafeHTML content={risk.vulnerability} className="line-clamp-3" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >                                    &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >                                &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >                                &lt;div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700"&gt;</span>
 <span class="cstat-no" title="statement not covered" >                                    &lt;div className="flex items-center justify-between"&gt;</span>
@@ -5557,7 +5566,7 @@ export const Risks: React.FC = () =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-06T06:57:06.098Z
+                at 2025-12-06T07:53:03.926Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0.57% </span>
+                <span class="strong">0.55% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/348</span>
+                <span class='fraction'>2/363</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0.57% </span>
+                <span class="strong">0.55% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/348</span>
+                <span class='fraction'>2/363</span>
             </div>
         
             
@@ -478,7 +478,27 @@
 <a name='L413'></a><a href='#L413'>413</a>
 <a name='L414'></a><a href='#L414'>414</a>
 <a name='L415'></a><a href='#L415'>415</a>
-<a name='L416'></a><a href='#L416'>416</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L416'></a><a href='#L416'>416</a>
+<a name='L417'></a><a href='#L417'>417</a>
+<a name='L418'></a><a href='#L418'>418</a>
+<a name='L419'></a><a href='#L419'>419</a>
+<a name='L420'></a><a href='#L420'>420</a>
+<a name='L421'></a><a href='#L421'>421</a>
+<a name='L422'></a><a href='#L422'>422</a>
+<a name='L423'></a><a href='#L423'>423</a>
+<a name='L424'></a><a href='#L424'>424</a>
+<a name='L425'></a><a href='#L425'>425</a>
+<a name='L426'></a><a href='#L426'>426</a>
+<a name='L427'></a><a href='#L427'>427</a>
+<a name='L428'></a><a href='#L428'>428</a>
+<a name='L429'></a><a href='#L429'>429</a>
+<a name='L430'></a><a href='#L430'>430</a>
+<a name='L431'></a><a href='#L431'>431</a>
+<a name='L432'></a><a href='#L432'>432</a>
+<a name='L433'></a><a href='#L433'>433</a>
+<a name='L434'></a><a href='#L434'>434</a>
+<a name='L435'></a><a href='#L435'>435</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -736,6 +756,12 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -858,8 +884,20 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -904,6 +942,7 @@ import { Button } from '../ui/button';
 import { Sparkles, AlertTriangle, ShieldCheck } from '../ui/Icons';
 import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
+import { DatePicker } from '../ui/DatePicker';
 import { ASSET_TYPES, ASSET_LIFECYCLE_STATUSES, COMPLIANCE_SCOPES } from '../../data/assetConstants';
 &nbsp;
 interface AssetFormProps {
@@ -1143,10 +1182,16 @@ export const AssetForm: React.FC&lt;AssetFormProps&gt; = <span class="fstat-no" 
                             )}
 <span class="cstat-no" title="statement not covered" >                        /&gt;</span>
 <span class="cstat-no" title="statement not covered" >                        &lt;div&gt;</span>
-<span class="cstat-no" title="statement not covered" >                            &lt;FloatingLabelInput</span>
-<span class="cstat-no" title="statement not covered" >                                type="date"</span>
-<span class="cstat-no" title="statement not covered" >                                label="Expiration Licence"</span>
-<span class="cstat-no" title="statement not covered" >                                {...control.register('licenseExpiry')}</span>
+<span class="cstat-no" title="statement not covered" >                            &lt;Controller</span>
+<span class="cstat-no" title="statement not covered" >                                control={control}</span>
+<span class="cstat-no" title="statement not covered" >                                name="licenseExpiry"</span>
+<span class="cstat-no" title="statement not covered" >                                render={({ field }) =&gt; (</span>
+<span class="cstat-no" title="statement not covered" >                                    &lt;DatePicker</span>
+<span class="cstat-no" title="statement not covered" >                                        label="Expiration Licence"</span>
+<span class="cstat-no" title="statement not covered" >                                        value={field.value}</span>
+<span class="cstat-no" title="statement not covered" >                                        onChange={field.onChange}</span>
+<span class="cstat-no" title="statement not covered" >                                    /&gt;</span>
+                                )}
 <span class="cstat-no" title="statement not covered" >                            /&gt;</span>
 <span class="cstat-no" title="statement not covered" >                        &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;/div&gt;</span>
@@ -1264,17 +1309,29 @@ export const AssetForm: React.FC&lt;AssetFormProps&gt; = <span class="fstat-no" 
 <span class="cstat-no" title="statement not covered" >                        /&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;div&gt;</span>
-<span class="cstat-no" title="statement not covered" >                        &lt;FloatingLabelInput</span>
-<span class="cstat-no" title="statement not covered" >                            type="date"</span>
-<span class="cstat-no" title="statement not covered" >                            label="Date d'achat"</span>
-<span class="cstat-no" title="statement not covered" >                            {...control.register('purchaseDate')}</span>
+<span class="cstat-no" title="statement not covered" >                        &lt;Controller</span>
+<span class="cstat-no" title="statement not covered" >                            control={control}</span>
+<span class="cstat-no" title="statement not covered" >                            name="purchaseDate"</span>
+<span class="cstat-no" title="statement not covered" >                            render={({ field }) =&gt; (</span>
+<span class="cstat-no" title="statement not covered" >                                &lt;DatePicker</span>
+<span class="cstat-no" title="statement not covered" >                                    label="Date d'achat"</span>
+<span class="cstat-no" title="statement not covered" >                                    value={field.value}</span>
+<span class="cstat-no" title="statement not covered" >                                    onChange={field.onChange}</span>
+<span class="cstat-no" title="statement not covered" >                                /&gt;</span>
+                            )}
 <span class="cstat-no" title="statement not covered" >                        /&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;div&gt;</span>
-<span class="cstat-no" title="statement not covered" >                        &lt;FloatingLabelInput</span>
-<span class="cstat-no" title="statement not covered" >                            type="date"</span>
-<span class="cstat-no" title="statement not covered" >                            label="Fin de garantie"</span>
-<span class="cstat-no" title="statement not covered" >                            {...control.register('warrantyEnd')}</span>
+<span class="cstat-no" title="statement not covered" >                        &lt;Controller</span>
+<span class="cstat-no" title="statement not covered" >                            control={control}</span>
+<span class="cstat-no" title="statement not covered" >                            name="warrantyEnd"</span>
+<span class="cstat-no" title="statement not covered" >                            render={({ field }) =&gt; (</span>
+<span class="cstat-no" title="statement not covered" >                                &lt;DatePicker</span>
+<span class="cstat-no" title="statement not covered" >                                    label="Fin de garantie"</span>
+<span class="cstat-no" title="statement not covered" >                                    value={field.value}</span>
+<span class="cstat-no" title="statement not covered" >                                    onChange={field.onChange}</span>
+<span class="cstat-no" title="statement not covered" >                                /&gt;</span>
+                            )}
 <span class="cstat-no" title="statement not covered" >                        /&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;div&gt;</span>
@@ -1315,7 +1372,7 @@ export const AssetForm: React.FC&lt;AssetFormProps&gt; = <span class="fstat-no" 
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-06T06:57:06.098Z
+                at 2025-12-06T07:53:03.926Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

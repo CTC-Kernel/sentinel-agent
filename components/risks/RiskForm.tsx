@@ -7,11 +7,11 @@ import { CheckCircle2 } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
-import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { RiskMatrixSelector } from './RiskMatrixSelector';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { Button } from '../ui/button';
+import { RichTextEditor } from '../ui/RichTextEditor';
 
 import { STANDARD_THREATS, RISK_STRATEGIES, RISK_STATUSES } from '../../data/riskConstants';
 
@@ -199,12 +199,17 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                         </datalist>
                     </div>
                     <div className="relative">
-                        <FloatingLabelTextarea
-                            label="Vulnérabilité"
-                            {...control.register('vulnerability')}
-                            required
-                            rows={3}
-                            error={errors.vulnerability?.message}
+                        <Controller
+                            control={control}
+                            name="vulnerability"
+                            render={({ field }) => (
+                                <RichTextEditor
+                                    label="Vulnérabilité"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.vulnerability?.message}
+                                />
+                            )}
                         />
                         <div className="absolute right-2 top-2 z-10">
                             <AIAssistButton
@@ -322,11 +327,17 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                         </div>
 
                         <div className="space-y-2">
-                            <FloatingLabelTextarea
-                                label="Justification (acceptation de risque, décisions)"
-                                {...control.register('justification')}
-                                rows={3}
-                                error={errors.justification?.message}
+                            <Controller
+                                control={control}
+                                name="justification"
+                                render={({ field }) => (
+                                    <RichTextEditor
+                                        label="Justification (acceptation de risque, décisions)"
+                                        value={field.value || ''}
+                                        onChange={field.onChange}
+                                        error={errors.justification?.message}
+                                    />
+                                )}
                             />
                             {strategy === 'Accepter' && residualScore >= 15 && (
                                 <p className="text-xs text-red-600 dark:text-red-400">

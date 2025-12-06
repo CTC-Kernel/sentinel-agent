@@ -49,7 +49,7 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
                     <Bot className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-slate-900 dark:text-slate-100">Assistant Conformité IA</h3>
-                <span className="px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-500/20 text-[10px] font-bold text-indigo-600 dark:text-indigo-300 uppercase tracking-wider">Gemini 3</span>
+                <span className="px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-500/20 text-[10px] font-bold text-indigo-600 dark:text-indigo-300 uppercase tracking-wider">IA Sentinel</span>
             </div>
 
             {!response && !loading && (

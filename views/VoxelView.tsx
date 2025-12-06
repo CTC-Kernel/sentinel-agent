@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { VoxelStudio } from '../components/VoxelStudio';
 import { db } from '../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIInsight, VoxelNode, DataNode } from '../types';
+import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight, VoxelNode, DataNode } from '../types';
 import { aiService } from '../services/aiService';
 import { ErrorLogger } from '../services/errorLogger';
 import { useStore } from '../store';
@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Network } from '../components/ui/Icons';
 
-type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier';
+type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier' | 'control';
 
 
 
@@ -81,7 +81,8 @@ const layerOptions: { id: LayerType; label: string; hint: string; color: string 
   { id: 'project', label: 'Projets', hint: 'Programmes SSI', color: 'bg-purple-500' },
   { id: 'audit', label: 'Audits', hint: 'Contrôles et revues', color: 'bg-cyan-500' },
   { id: 'incident', label: 'Incidents', hint: 'Alertes SOC', color: 'bg-red-500' },
-  { id: 'supplier', label: 'Fournisseurs', hint: 'Partenaires critiques', color: 'bg-green-500' }
+  { id: 'supplier', label: 'Fournisseurs', hint: 'Partenaires critiques', color: 'bg-green-500' },
+  { id: 'control', label: 'Contrôles', hint: 'Mesures de sécurité', color: 'bg-teal-500' }
 ];
 
 export const VoxelView: React.FC = () => {
@@ -94,10 +95,12 @@ export const VoxelView: React.FC = () => {
   const [audits, setAudits] = useState<Audit[]>([]);
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [controls, setControls] = useState<Control[]>([]);
   const [selectedNode, setSelectedNode] = useState<DataNode | null>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [releaseToken, setReleaseToken] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [impactMode, setImpactMode] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(() => {
     const saved = localStorage.getItem('voxel_navCollapsed');
     return saved !== null ? JSON.parse(saved) : true;
@@ -142,7 +145,8 @@ export const VoxelView: React.FC = () => {
     project: '/projects',
     audit: '/audits',
     incident: '/incidents',
-    supplier: '/suppliers'
+    supplier: '/suppliers',
+    control: '/compliance'
   };
 
 
@@ -195,7 +199,12 @@ export const VoxelView: React.FC = () => {
     incident: (
       <svg viewBox="0 0 64 64" className="w-full h-full text-rose-500 fill-current">
         <path d="M32 8 C32 16 20 18 24 30 C20 28 16 32 16 38 C16 48 24 56 32 56 C40 56 48 48 48 38 C48 28 40 20 36 18 C38 26 32 28 32 20" className="opacity-90" />
-        <path d="M32 28 C26 34 26 44 32 48 C38 44 38 34 32 28" className="text-white fill-current opacity-80" />
+      </svg>
+    ),
+    control: (
+      <svg viewBox="0 0 64 64" className="w-full h-full text-teal-500 fill-current">
+        <rect x="12" y="12" width="40" height="40" rx="8" className="opacity-80" />
+        <path d="M22 32 L30 40 L42 24" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </svg>
     ),
     supplier: (
@@ -229,9 +238,10 @@ export const VoxelView: React.FC = () => {
       ...mapNode(projects, 'project'),
       ...mapNode(audits, 'audit'),
       ...mapNode(incidents, 'incident'),
-      ...mapNode(suppliers, 'supplier')
+      ...mapNode(suppliers, 'supplier'),
+      ...mapNode(controls, 'control')
     ];
-  }, [assets, risks, projects, audits, incidents, suppliers]);
+  }, [assets, risks, projects, audits, incidents, suppliers, controls]);
 
   const currentIndex = useMemo(() => orderedNodes.findIndex(node => node.id === focusedNodeId), [orderedNodes, focusedNodeId]);
 
@@ -247,6 +257,7 @@ export const VoxelView: React.FC = () => {
       audit: audits,
       incident: incidents,
       supplier: suppliers,
+      control: controls,
     };
     return sourceMap[type].find(item => item.id === id);
   };
@@ -299,6 +310,7 @@ export const VoxelView: React.FC = () => {
       audit: audits,
       incident: incidents,
       supplier: suppliers,
+      control: controls,
     };
 
     return layerOptions.map(option => ({
@@ -451,6 +463,21 @@ export const VoxelView: React.FC = () => {
             { label: 'Statut', value: (selectedNode.data as Supplier).status || '—' },
           ],
         };
+      case 'control':
+        return {
+          ...base,
+          badge: 'Contrôle Sécurité',
+          gradient: 'from-teal-500/90 via-emerald-500/80 to-green-500/70',
+          stats: [
+            { label: 'Type', value: (selectedNode.data as Control).type || '—' },
+            { label: 'Statut', value: (selectedNode.data as Control).status },
+            { label: 'Applicabilité', value: (selectedNode.data as Control).applicability || '—' },
+          ],
+          meta: [
+            { label: 'Dernière MàJ', value: formatSafeDate((selectedNode.data as Control).lastUpdated) },
+            { label: 'Preuves', value: String((selectedNode.data as Control).evidenceIds?.length || 0) },
+          ],
+        };
       default:
         return null;
     }
@@ -488,17 +515,38 @@ export const VoxelView: React.FC = () => {
       linkedProjects.forEach(project => items.push({ id: project.id, type: 'project', label: project.name, meta: 'Projet' }));
       const linkedIncidents = incidents.filter(incident => incident.affectedAssetId === (selectedNode.data as Risk).assetId);
       linkedIncidents.forEach(incident => items.push({ id: incident.id, type: 'incident', label: incident.title, meta: 'Incident impacté' }));
+      const linkedControls = controls.filter(c => (c.relatedRiskIds || []).includes(selectedNode.id));
+      linkedControls.forEach(c => items.push({ id: c.id, type: 'control', label: c.name, meta: c.status }));
     } else if (selectedNode.type === 'asset') {
       const linkedRisks = risks.filter(risk => risk.assetId === selectedNode.id);
       linkedRisks.forEach(risk => items.push({ id: risk.id, type: 'risk', label: risk.threat, meta: `Score ${risk.score}` }));
       const linkedIncidents = incidents.filter(incident => incident.affectedAssetId === selectedNode.id);
       linkedIncidents.forEach(incident => items.push({ id: incident.id, type: 'incident', label: incident.title, meta: incident.severity }));
+      controls.forEach(c => {
+        if ((c.relatedAssetIds || []).includes(selectedNode.id)) {
+          items.push({ id: c.id, type: 'control', label: c.name, meta: c.status });
+        }
+      });
     } else if (selectedNode.type === 'incident') {
       const asset = assets.find(a => a.id === (selectedNode.data as Incident).affectedAssetId);
       if (asset) items.push({ id: asset.id, type: 'asset', label: asset.name, meta: 'Actif impacté' });
     } else if (selectedNode.type === 'project') {
       const relatedRisks = risks.filter(risk => ((selectedNode.data as Project).relatedRiskIds || []).includes(risk.id));
       relatedRisks.forEach(risk => items.push({ id: risk.id, type: 'risk', label: risk.threat, meta: 'Risque suivi' }));
+    } else if (selectedNode.type === 'control') {
+      const control = selectedNode.data as Control;
+      if (control.relatedAssetIds) {
+        control.relatedAssetIds.forEach(id => {
+          const asset = assets.find(a => a.id === id);
+          if (asset) items.push({ id: asset.id, type: 'asset', label: asset.name, meta: 'Actif couvert' });
+        });
+      }
+      if (control.relatedRiskIds) {
+        control.relatedRiskIds.forEach(id => {
+          const risk = risks.find(r => r.id === id);
+          if (risk) items.push({ id: risk.id, type: 'risk', label: risk.threat, meta: 'Risque traité' });
+        });
+      }
     }
 
     return items;
@@ -574,14 +622,16 @@ export const VoxelView: React.FC = () => {
           projectsSnap,
           auditsSnap,
           incidentsSnap,
-          suppliersSnap
+          suppliersSnap,
+          controlsSnap
         ] = await Promise.all([
           getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId))),
           getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId))),
           getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId))),
           getDocs(query(collection(db, 'audits'), where('organizationId', '==', orgId))),
           getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId))),
-          getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', orgId)))
+          getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', orgId))),
+          getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId)))
         ]);
 
         setAssets(assetsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Asset[]);
@@ -590,6 +640,7 @@ export const VoxelView: React.FC = () => {
         setAudits(auditsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Audit[]);
         setIncidents(incidentsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Incident[]);
         setSuppliers(suppliersSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Supplier[]);
+        setControls(controlsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Control[]);
 
       } catch (error) {
         ErrorLogger.handleErrorWithToast(error, 'VoxelView.fetchData', 'FETCH_FAILED');
@@ -625,7 +676,9 @@ export const VoxelView: React.FC = () => {
         projects,
         audits,
         incidents,
-        suppliers
+
+        suppliers,
+        controls
       });
 
       setSuggestedLinks(result.suggestions);
@@ -926,6 +979,7 @@ export const VoxelView: React.FC = () => {
           audits={audits}
           incidents={incidents}
           suppliers={suppliers}
+          controls={controls}
           onNodeClick={handleNodeClick}
           className="w-full h-full"
           visibleTypes={activeLayers}
@@ -939,6 +993,7 @@ export const VoxelView: React.FC = () => {
             risks: risks.length,
             projects: projects.length,
             incidents: incidents.length,
+            controls: controls.length,
           }}
 
           releaseToken={releaseToken}
@@ -952,6 +1007,8 @@ export const VoxelView: React.FC = () => {
           relatedElements={relatedElements}
           applyFocus={applyFocus}
           handleOpenSelected={handleOpenSelected}
+          impactMode={impactMode}
+          setImpactMode={setImpactMode}
         />
 
 
@@ -1077,7 +1134,9 @@ export const VoxelView: React.FC = () => {
                   project: '/projects',
                   audit: '/audits',
                   incident: '/incidents',
-                  supplier: '/suppliers'
+
+                  supplier: '/suppliers',
+                  control: '/library'
                 };
                 const route = routes[selectedNode.type];
                 if (route) {

@@ -9,6 +9,8 @@ export enum Criticality {
 export type ResourceType = 'Asset' | 'Risk' | 'Project' | 'Audit' | 'Document' | 'Control' | 'Incident' | 'Supplier' | 'BusinessProcess';
 export type ActionType = 'read' | 'create' | 'update' | 'delete' | 'manage';
 
+
+
 // ... (existing imports, etc)
 
 export interface AIAnalysisResult {
@@ -159,15 +161,18 @@ export interface Control {
   name: string;
   framework?: 'ISO27001' | 'NIS2' | 'DORA' | 'GDPR' | 'SOC2' | 'HDS' | 'PCI_DSS' | 'NIST_CSF';
   description?: string;
-  status: 'Non commencé' | 'Implémenté' | 'Partiel' | 'Non applicable' | 'Exclu' | 'En revue';
+  type?: 'Préventif' | 'Détectif' | 'Correctif';
+  status: 'Non commencé' | 'Implémenté' | 'Partiel' | 'Non applicable' | 'Exclu' | 'En revue' | 'Actif' | 'Inactif' | 'En cours' | 'Non appliqué'; // Merged statuses to be safe
   applicability?: 'Applicable' | 'Non applicable';
   justification?: string;
   evidenceIds?: string[];
   automatedEvidence?: AutomatedEvidence[];
   evidenceStrength?: 'Faible' | 'Forte';
   lastUpdated?: string;
+  owner?: string; // Added owner for compatibility
   assigneeId?: string;
   relatedAssetIds?: string[];
+  relatedRiskIds?: string[]; // Added missing field
   relatedSupplierIds?: string[];
 }
 
@@ -777,7 +782,8 @@ export type DataNode =
   | { id: string; type: 'project'; data: Project }
   | { id: string; type: 'audit'; data: Audit }
   | { id: string; type: 'incident'; data: Incident }
-  | { id: string; type: 'supplier'; data: Supplier };
+  | { id: string; type: 'supplier'; data: Supplier }
+  | { id: string; type: 'control'; data: Control };
 
 export type VoxelNode = DataNode & {
   position: [number, number, number];

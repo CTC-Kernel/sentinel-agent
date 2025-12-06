@@ -2020,7 +2020,7 @@ exports.callGeminiGenerateContent = onCall({
     }
 
     const prompt = request.data?.prompt;
-    const modelName = request.data?.modelName || "gemini-1.5-pro";
+    const modelName = request.data?.modelName || "gemini-3-pro-preview";
 
     if (!prompt || typeof prompt !== 'string') {
         throw new HttpsError('invalid-argument', 'Prompt is required.');
@@ -2087,7 +2087,7 @@ exports.callGeminiChat = onCall({
 
     const systemPrompt = request.data?.systemPrompt;
     const message = request.data?.message;
-    const modelName = request.data?.modelName || "gemini-1.5-pro";
+    const modelName = request.data?.modelName || "gemini-3-pro-preview";
 
     if (!systemPrompt || typeof systemPrompt !== 'string' || !message || typeof message !== 'string') {
         throw new HttpsError('invalid-argument', 'systemPrompt and message are required.');

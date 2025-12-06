@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0.61% </span>
+                <span class="strong">0.59% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/326</span>
+                <span class='fraction'>2/335</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0.61% </span>
+                <span class="strong">0.59% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/326</span>
+                <span class='fraction'>2/335</span>
             </div>
         
             
@@ -456,7 +456,18 @@
 <a name='L391'></a><a href='#L391'>391</a>
 <a name='L392'></a><a href='#L392'>392</a>
 <a name='L393'></a><a href='#L393'>393</a>
-<a name='L394'></a><a href='#L394'>394</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L394'></a><a href='#L394'>394</a>
+<a name='L395'></a><a href='#L395'>395</a>
+<a name='L396'></a><a href='#L396'>396</a>
+<a name='L397'></a><a href='#L397'>397</a>
+<a name='L398'></a><a href='#L398'>398</a>
+<a name='L399'></a><a href='#L399'>399</a>
+<a name='L400'></a><a href='#L400'>400</a>
+<a name='L401'></a><a href='#L401'>401</a>
+<a name='L402'></a><a href='#L402'>402</a>
+<a name='L403'></a><a href='#L403'>403</a>
+<a name='L404'></a><a href='#L404'>404</a>
+<a name='L405'></a><a href='#L405'>405</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -667,6 +678,11 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -785,6 +801,12 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -858,11 +880,11 @@ import { CheckCircle2 } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
-import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { RiskMatrixSelector } from './RiskMatrixSelector';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { Button } from '../ui/button';
+import { RichTextEditor } from '../ui/RichTextEditor';
 &nbsp;
 import { STANDARD_THREATS, RISK_STRATEGIES, RISK_STATUSES } from '../../data/riskConstants';
 &nbsp;
@@ -1050,12 +1072,17 @@ export const RiskForm: React.FC&lt;RiskFormProps&gt; = <span class="fstat-no" ti
 <span class="cstat-no" title="statement not covered" >                        &lt;/datalist&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;div className="relative"&gt;</span>
-<span class="cstat-no" title="statement not covered" >                        &lt;FloatingLabelTextarea</span>
-<span class="cstat-no" title="statement not covered" >                            label="Vulnérabilité"</span>
-<span class="cstat-no" title="statement not covered" >                            {...control.register('vulnerability')}</span>
-<span class="cstat-no" title="statement not covered" >                            required</span>
-<span class="cstat-no" title="statement not covered" >                            rows={3}</span>
-<span class="cstat-no" title="statement not covered" >                            error={errors.vulnerability?.message}</span>
+<span class="cstat-no" title="statement not covered" >                        &lt;Controller</span>
+<span class="cstat-no" title="statement not covered" >                            control={control}</span>
+<span class="cstat-no" title="statement not covered" >                            name="vulnerability"</span>
+<span class="cstat-no" title="statement not covered" >                            render={({ field }) =&gt; (</span>
+<span class="cstat-no" title="statement not covered" >                                &lt;RichTextEditor</span>
+<span class="cstat-no" title="statement not covered" >                                    label="Vulnérabilité"</span>
+<span class="cstat-no" title="statement not covered" >                                    value={field.value}</span>
+<span class="cstat-no" title="statement not covered" >                                    onChange={field.onChange}</span>
+<span class="cstat-no" title="statement not covered" >                                    error={errors.vulnerability?.message}</span>
+<span class="cstat-no" title="statement not covered" >                                /&gt;</span>
+                            )}
 <span class="cstat-no" title="statement not covered" >                        /&gt;</span>
 <span class="cstat-no" title="statement not covered" >                        &lt;div className="absolute right-2 top-2 z-10"&gt;</span>
 <span class="cstat-no" title="statement not covered" >                            &lt;AIAssistButton</span>
@@ -1173,11 +1200,17 @@ export const RiskForm: React.FC&lt;RiskFormProps&gt; = <span class="fstat-no" ti
 <span class="cstat-no" title="statement not covered" >                        &lt;/div&gt;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >                        &lt;div className="space-y-2"&gt;</span>
-<span class="cstat-no" title="statement not covered" >                            &lt;FloatingLabelTextarea</span>
-<span class="cstat-no" title="statement not covered" >                                label="Justification (acceptation de risque, décisions)"</span>
-<span class="cstat-no" title="statement not covered" >                                {...control.register('justification')}</span>
-<span class="cstat-no" title="statement not covered" >                                rows={3}</span>
-<span class="cstat-no" title="statement not covered" >                                error={errors.justification?.message}</span>
+<span class="cstat-no" title="statement not covered" >                            &lt;Controller</span>
+<span class="cstat-no" title="statement not covered" >                                control={control}</span>
+<span class="cstat-no" title="statement not covered" >                                name="justification"</span>
+<span class="cstat-no" title="statement not covered" >                                render={({ field }) =&gt; (</span>
+<span class="cstat-no" title="statement not covered" >                                    &lt;RichTextEditor</span>
+<span class="cstat-no" title="statement not covered" >                                        label="Justification (acceptation de risque, décisions)"</span>
+<span class="cstat-no" title="statement not covered" >                                        value={field.value || ''}</span>
+<span class="cstat-no" title="statement not covered" >                                        onChange={field.onChange}</span>
+<span class="cstat-no" title="statement not covered" >                                        error={errors.justification?.message}</span>
+<span class="cstat-no" title="statement not covered" >                                    /&gt;</span>
+                                )}
 <span class="cstat-no" title="statement not covered" >                            /&gt;</span>
 <span class="cstat-no" title="statement not covered" >                            {strategy === 'Accepter' &amp;&amp; residualScore &gt;= 15 &amp;&amp; (</span>
 <span class="cstat-no" title="statement not covered" >                                &lt;p className="text-xs text-red-600 dark:text-red-400"&gt;</span>
@@ -1249,7 +1282,7 @@ export const RiskForm: React.FC&lt;RiskFormProps&gt; = <span class="fstat-no" ti
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-06T06:57:06.098Z
+                at 2025-12-06T07:53:03.926Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

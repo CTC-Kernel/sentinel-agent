@@ -31,6 +31,7 @@ import { RiskTemplate, createRisksFromTemplate } from '../utils/riskTemplates';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { RiskAIAssistant } from '../components/risks/RiskAIAssistant';
 import { RiskRecommendationsModal } from '../components/risks/RiskRecommendationsModal';
+import { SafeHTML } from '../components/ui/SafeHTML';
 
 
 import { PageHeader } from '../components/ui/PageHeader';
@@ -769,7 +770,8 @@ export const Risks: React.FC = () => {
                 projects: projects,
                 audits: audits,
                 incidents: incidents,
-                suppliers: suppliers
+                suppliers: suppliers,
+                controls: controls
             };
 
             const response = await aiService.analyzeGraph(graphData);
@@ -1202,9 +1204,10 @@ export const Risks: React.FC = () => {
                                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
                                     </div>
                                     <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900/50 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
-                                        <span className="font-bold text-xs uppercase text-slate-400 block mb-1">Vulnérabilité</span>{risk.vulnerability}
-                                    </p>
+                                    <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900/50 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
+                                        <span className="font-bold text-xs uppercase text-slate-400 block mb-1">Vulnérabilité</span>
+                                        <SafeHTML content={risk.vulnerability} className="line-clamp-3" />
+                                    </div>
                                 </div>
                                 <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">
                                     <div className="flex items-center justify-between">
