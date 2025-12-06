@@ -468,7 +468,7 @@ const PulseCore: React.FC = () => {
   );
 };
 
-const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string; opacity?: number; speed?: number }> = ({ start, end, color, opacity = 0.5, speed = 1 }) => {
+const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string; opacity?: number; speed?: number; size?: number }> = ({ start, end, color, opacity = 0.5, speed = 1, size = 0.4 }) => {
   const pointsRef = useRef<ThreePoints>(null);
   const curve = useMemo(() => {
     if (!start || !end) return null;
@@ -542,7 +542,7 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
         color={color}
         transparent
         opacity={opacity}
-        size={0.4}
+        size={size}
         sizeAttenuation
         depthWrite={false}
         blending={AdditiveBlending}
@@ -1280,8 +1280,10 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     // Map Controls (Teal)
     if (visibleTypes.includes('control')) {
       nodes.push(...controls.map((c, i) => {
-        const x = Math.cos(i * 0.4 + 4) * 20; // Outer ring
-        const z = Math.sin(i * 0.4 + 4) * 20;
+        const angle = (i / (controls.length || 1)) * Math.PI * 2;
+        const radius = 35;
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
 
         const connections: string[] = [];
         if (c.relatedAssetIds) connections.push(...c.relatedAssetIds);
@@ -1427,6 +1429,11 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         setTimeout(() => setSelectedNode(node), 0);
         focusOnCardRef.current = true;
         shouldSnapToTarget.current = true;
+        // Force snap even if user interacts, to ensure focus shift
+        isUserInteracting.current = false;
+        if (controlsRef.current) {
+          // Reset controls state to allow new snap
+        }
       }
     }
   }, [focusNodeId, voxelNodes, selectedNode]);
@@ -1582,8 +1589,9 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                     start={new Vector3(...pair.start)}
                     end={new Vector3(...pair.end)}
                     color={pair.type === 'risk' ? '#f87171' : '#94a3b8'} // Red for risk, gray for default
-                    opacity={isRelevant ? 0.8 : 0.1}
-                    speed={isRelevant ? 1.5 : 0.5}
+                    opacity={isRelevant ? 1.0 : 0.05}
+                    speed={isRelevant ? 2.5 : 0.3}
+                    size={isRelevant ? 0.7 : 0.2}
                   />
                 );
               })}

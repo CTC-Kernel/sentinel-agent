@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm, SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { businessProcessSchema, BusinessProcessFormData, bcpDrillSchema, BcpDrillFormData } from '../schemas/continuitySchema';
+import { BusinessProcessFormData, bcpDrillSchema, BcpDrillFormData } from '../schemas/continuitySchema';
 import { canEditResource } from '../utils/permissions';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -9,7 +9,9 @@ import { collection, addDoc, deleteDoc, doc, updateDoc, where, limit, query, get
 import { db } from '../firebase';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { BusinessProcess, Asset, BcpDrill, SystemLog, UserProfile, Risk, Supplier } from '../types';
-import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, History, MessageSquare, Save, LayoutDashboard, FileSpreadsheet, ShieldAlert, Truck } from '../components/ui/Icons';
+import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, History, MessageSquare, LayoutDashboard, FileSpreadsheet, ShieldAlert, Truck, Download } from '../components/ui/Icons';
+import { PdfService } from '../services/PdfService';
+import { aiService } from '../services/aiService';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -18,9 +20,9 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Comments } from '../components/ui/Comments';
 import { ErrorLogger } from '../services/errorLogger';
-import { CustomSelect } from '../components/ui/CustomSelect';
 import { AddToCalendar } from '../components/ui/AddToCalendar';
-import { Controller } from 'react-hook-form';
+import { ProcessFormModal } from '../components/continuity/ProcessFormModal';
+
 
 export const Continuity: React.FC = () => {
     const { user, addToast } = useStore();
@@ -71,28 +73,16 @@ export const Continuity: React.FC = () => {
     const [selectedProcess, setSelectedProcess] = useState<BusinessProcess | null>(null);
     const [inspectorTab, setInspectorTab] = useState<'details' | 'recovery' | 'scenarios' | 'drills' | 'history' | 'comments'>('details');
     const [processHistory, setProcessHistory] = useState<SystemLog[]>([]);
-    const [isEditing, setIsEditing] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+
+
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    const createProcessForm = useForm<BusinessProcessFormData>({
-        resolver: zodResolver(businessProcessSchema),
-        defaultValues: {
-            name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne',
-            supportingAssetIds: [], drpDocumentId: '', relatedRiskIds: [], supplierIds: [], recoveryTasks: []
-        }
-    });
 
-    const editProcessForm = useForm<BusinessProcessFormData>({
-        resolver: zodResolver(businessProcessSchema),
-        defaultValues: {
-            name: '', description: '', owner: '', rto: '', rpo: '', priority: 'Moyenne',
-            supportingAssetIds: [], drpDocumentId: '', relatedRiskIds: [], supplierIds: [], recoveryTasks: []
-        }
-    });
 
     const drillForm = useForm<BcpDrillFormData>({
         resolver: zodResolver(bcpDrillSchema),
@@ -119,6 +109,112 @@ export const Continuity: React.FC = () => {
     const overdueTests = totalProcesses - testedProcesses;
     const failedDrills = drills.filter(d => d.result === 'Échec').length;
 
+    const generateReport = async () => {
+        addToast("Génération du rapport de continuité avec l'IA...", "info");
+        try {
+            const criticalProcessesCount = processes.filter(p => p.priority === 'Critique').length;
+            const totalRTO = processes.reduce((acc, p) => acc + parseInt(p.rto || '0'), 0);
+            const avgRTO = processes.length > 0 ? Math.round(totalRTO / processes.length) : 0;
+
+            const context = {
+                totalProcesses: processes.length,
+                criticalProcesses: criticalProcessesCount,
+                avgRTO,
+                drillsCount: drills.length,
+                lastDrillDate: drills.length > 0 ? drills[0].date : 'Aucun',
+                organizationName: user?.organizationName || 'Organisation'
+            };
+
+            const summary = await aiService.generateContinuityReportSummary(context);
+
+            PdfService.generateExecutiveReport(
+                {
+                    title: "Rapport de Continuité d'Activité",
+                    subtitle: `Généré le ${new Date().toLocaleDateString()}`,
+                    filename: `Plan_Continute_${context.organizationName}_${new Date().toISOString().split('T')[0]}.pdf`,
+                    organizationName: context.organizationName,
+                    summary,
+                    author: user?.displayName || 'Sentinel GRC',
+                    orientation: 'portrait'
+                },
+                (doc, startY) => {
+                    let y = startY;
+
+                    // Metrics
+                    doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
+                    doc.text("Indicateurs Clés", 14, y);
+                    y += 10;
+
+                    const statsData = [
+                        { label: "Processus Totaux", value: processes.length.toString() },
+                        { label: "Processus Critiques", value: criticalProcessesCount.toString() },
+                        { label: "RTO Moyen", value: `${avgRTO}h` },
+                        { label: "Exercices Réalisés", value: drills.length.toString() }
+                    ];
+
+                    let x = 14;
+                    statsData.forEach(stat => {
+                        doc.setFillColor(248, 250, 252); doc.setDrawColor(226, 232, 240);
+                        doc.roundedRect(x, y, 40, 25, 2, 2, 'FD');
+                        doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                        doc.text(stat.value, x + 20, y + 12, { align: 'center' });
+                        doc.setFontSize(8); doc.setTextColor(100); doc.setFont('helvetica', 'normal');
+                        doc.text(stat.label, x + 20, y + 20, { align: 'center' });
+                        x += 45;
+                    });
+
+                    y += 40;
+
+                    // Critical Processes Table
+                    doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
+                    doc.text("Processus Critiques", 14, y);
+                    y += 5;
+
+                    const processData = processes
+                        .filter(p => p.priority === 'Critique')
+                        .map(p => [p.name, p.rto, p.rpo, p.owner]);
+
+                    doc.autoTable({
+                        startY: y,
+                        head: [['Processus', 'RTO', 'RPO', 'Responsable']],
+                        body: processData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [79, 70, 229] },
+                        styles: { fontSize: 8, cellPadding: 2 },
+                        margin: { left: 14, right: 14 }
+                    });
+
+                    y = (doc as any).lastAutoTable.finalY + 15;
+
+                    // Recent Drills
+                    if (drills.length > 0) {
+                        doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
+                        doc.text("Derniers Exercices", 14, y);
+                        y += 5;
+
+                        const drillData = drills.slice(0, 5).map(d => {
+                            const processName = processes.find(p => p.id === d.processId)?.name || 'Inconnu';
+                            return [processName, d.type, new Date(d.date).toLocaleDateString(), d.result];
+                        });
+
+                        doc.autoTable({
+                            startY: y,
+                            head: [['Exercice', 'Type', 'Date', 'Statut']],
+                            body: drillData,
+                            theme: 'grid',
+                            headStyles: { fillColor: [79, 70, 229] },
+                            styles: { fontSize: 8, cellPadding: 2 },
+                            margin: { left: 14, right: 14 }
+                        });
+                    }
+                }
+            );
+            addToast("Rapport généré avec succès", "success");
+        } catch (error) {
+            console.error(error);
+            addToast("Erreur lors de la génération du rapport", "error");
+        }
+    };
 
 
     // ... rest of the component code (openInspector, CRUD, etc.) ...
@@ -126,22 +222,8 @@ export const Continuity: React.FC = () => {
 
     const openInspector = async (proc: BusinessProcess) => {
         setSelectedProcess(proc);
-        editProcessForm.reset({
-            name: proc.name,
-            description: proc.description,
-            owner: proc.owner,
-            rto: proc.rto,
-            rpo: proc.rpo,
-            priority: proc.priority,
-            supportingAssetIds: proc.supportingAssetIds || [],
-            drpDocumentId: proc.drpDocumentId || '',
-            lastTestDate: proc.lastTestDate,
-            relatedRiskIds: proc.relatedRiskIds || [],
-            supplierIds: proc.supplierIds || [],
-            recoveryTasks: proc.recoveryTasks || []
-        });
         setInspectorTab('details');
-        setIsEditing(false);
+
 
         try {
             const q = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), limit(50));
@@ -155,27 +237,28 @@ export const Continuity: React.FC = () => {
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.openInspector', 'FETCH_FAILED'); }
     };
 
-    const handleCreateProcess: SubmitHandler<BusinessProcessFormData> = async (data) => {
+    const handleCreateProcess = async (data: BusinessProcessFormData) => {
         if (!canEdit || !user?.organizationId) return;
         try {
             await addDoc(collection(db, 'business_processes'), { ...data, organizationId: user.organizationId });
             await logAction(user, 'CREATE', 'BCP', `Nouveau Processus: ${data.name} `);
             addToast("Processus créé", "success");
             setShowCreateModal(false);
-            createProcessForm.reset();
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleCreateProcess', 'CREATE_FAILED'); }
     };
 
-    const handleUpdateProcess: SubmitHandler<BusinessProcessFormData> = async (data) => {
+    const handleUpdateProcess = async (data: BusinessProcessFormData) => {
         if (!canEdit || !selectedProcess) return;
         try {
             await updateDoc(doc(db, 'business_processes', selectedProcess.id), data);
             await logAction(user, 'UPDATE', 'BCP', `MAJ Processus: ${data.name} `);
 
-
             setSelectedProcess({ ...selectedProcess, ...data });
-            setIsEditing(false);
             addToast("Processus mis à jour", "success");
+            // Close create modal if it was open (reusing same modal state logic if we had one for edit)
+            // But we will use showCreateModal for create and a new state for edit?
+            // Logic below will clarify.
+            setShowCreateModal(false);
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleUpdateProcess', 'UPDATE_FAILED'); }
     };
 
@@ -241,14 +324,7 @@ export const Continuity: React.FC = () => {
         link.click();
     };
 
-    const toggleAssetSelection = (assetId: string) => {
-        const current = editProcessForm.getValues('supportingAssetIds') || [];
-        if (current.includes(assetId)) {
-            editProcessForm.setValue('supportingAssetIds', current.filter(id => id !== assetId));
-        } else {
-            editProcessForm.setValue('supportingAssetIds', [...current, assetId]);
-        }
-    };
+
 
     const getPriorityColor = (p: string) => {
         switch (p) {
@@ -278,19 +354,35 @@ export const Continuity: React.FC = () => {
                 icon={<HeartPulse className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
                     <div className="flex gap-3">
-                        <button onClick={handleExportCSV} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
-                            <FileSpreadsheet className="h-4 w-4 mr-2" /> Export BIA
+                        <button
+                            onClick={handleExportCSV}
+                            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium"
+                        >
+                            <FileSpreadsheet size={18} />
+                            Export BIA
+                        </button>
+                        <button
+                            onClick={generateReport}
+                            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium"
+                        >
+                            <Download size={18} />
+                            Exporter Rapport
                         </button>
                         {canEdit && (
                             <>
-                                <button onClick={() => { openDrillModal(); }} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
-                                    <Zap className="h-4 w-4 mr-2 text-amber-500" /> Nouvel Exercice
+                                <button
+                                    onClick={() => setShowDrillModal(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors font-medium border border-indigo-100"
+                                >
+                                    <Zap size={18} />
+                                    Nouvel Exercice
                                 </button>
-                                <button onClick={() => {
-                                    createProcessForm.reset({ name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne', supportingAssetIds: [], drpDocumentId: '' });
-                                    setShowCreateModal(true);
-                                }} className="flex items-center px-5 py-2.5 bg-rose-600 text-white rounded-xl text-sm font-bold hover:bg-rose-700 shadow-lg shadow-rose-500/20 transition-transform hover:scale-105">
-                                    <Plus className="h-4 w-4 mr-2" /> Nouveau Processus
+                                <button
+                                    onClick={() => setShowCreateModal(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-colors font-medium shadow-lg shadow-rose-500/20"
+                                >
+                                    <Plus size={18} />
+                                    Nouveau Processus
                                 </button>
                             </>
                         )}
@@ -407,7 +499,6 @@ export const Continuity: React.FC = () => {
                                 description="Commencez par définir vos processus critiques pour l'analyse d'impact (BIA)."
                                 actionLabel="Nouveau Processus"
                                 onAction={() => {
-                                    createProcessForm.reset({ name: '', description: '', owner: user?.displayName || '', rto: '4h', rpo: '1h', priority: 'Moyenne', supportingAssetIds: [], drpDocumentId: '' });
                                     setShowCreateModal(true);
                                 }}
                             />
@@ -443,6 +534,10 @@ export const Continuity: React.FC = () => {
                                     </div>
 
                                     <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-white/10">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="flex items-center font-bold text-slate-400 uppercase tracking-wide"><LayoutDashboard className="h-3 w-3 mr-1.5" /> Responsable</span>
+                                            <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[150px]">{proc.owner}</span>
+                                        </div>
                                         <div className="flex items-center justify-between text-xs">
                                             <span className="flex items-center font-bold text-slate-400 uppercase tracking-wide"><Server className="h-3 w-3 mr-1.5" /> Dépendances</span>
                                             <span className="font-bold text-slate-700 dark:text-slate-200">{proc.supportingAssetIds?.length || 0} actifs</span>
@@ -532,11 +627,8 @@ export const Continuity: React.FC = () => {
                 subtitle={selectedProcess?.priority}
                 actions={
                     <div className="flex gap-2">
-                        {canEdit && !isEditing && (
-                            <button onClick={() => setIsEditing(true)} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"><Edit className="h-4 w-4" /></button>
-                        )}
-                        {canEdit && isEditing && (
-                            <button onClick={editProcessForm.handleSubmit(handleUpdateProcess)} className="p-2 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"><Save className="h-4 w-4" /></button>
+                        {canEdit && (
+                            <button onClick={() => setShowEditModal(true)} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"><Edit className="h-4 w-4" /></button>
                         )}
                         {canEdit && (
                             <button onClick={() => selectedProcess && initiateDelete(selectedProcess.id, selectedProcess.name)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
@@ -571,102 +663,54 @@ export const Continuity: React.FC = () => {
                         <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
                             {inspectorTab === 'details' && (
                                 <div className="space-y-8">
-                                    {isEditing ? (
-                                        <div className="space-y-6">
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('name')} /></div>
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Priorité</label>
-                                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium appearance-none" {...editProcessForm.register('priority')}>
-                                                        {['Critique', 'Élevée', 'Moyenne', 'Faible'].map(p => <option key={p} value={p}>{p}</option>)}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none" rows={3} {...editProcessForm.register('description')} /></div>
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RTO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('rto')} /></div>
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RPO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium" {...editProcessForm.register('rpo')} /></div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Actifs supports</label>
-                                                <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-white/10 rounded-2xl p-2 space-y-1 custom-scrollbar bg-white dark:bg-black/20">
-                                                    {assets.map(asset => (
-                                                        <label key={asset.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl cursor-pointer transition-colors">
-                                                            <input type="checkbox" checked={editProcessForm.watch('supportingAssetIds')?.includes(asset.id)}
-                                                                onChange={() => toggleAssetSelection(asset.id)} className="rounded text-rose-600 focus:ring-rose-500 border-gray-300" />
-                                                            <span className="text-sm font-medium dark:text-white">{asset.name} <span className="text-xs text-slate-400 ml-1">({asset.type})</span></span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Fournisseurs Critiques</label>
-                                                <Controller
-                                                    name="supplierIds"
-                                                    control={editProcessForm.control}
-                                                    render={({ field }) => (
-                                                        <CustomSelect
-                                                            options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
-                                                            value={field.value || []}
-                                                            onChange={field.onChange}
-                                                            placeholder="Sélectionner les fournisseurs..."
-                                                            multiple
-                                                        />
-                                                    )}
-                                                />
-                                            </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm text-center">
+                                            <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">RTO (Objectif Temps)</span>
+                                            <span className="text-3xl font-black text-slate-800 dark:text-white">{selectedProcess.rto}</span>
                                         </div>
-                                    ) : (
-                                        <>
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm text-center">
-                                                    <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">RTO (Objectif Temps)</span>
-                                                    <span className="text-3xl font-black text-slate-800 dark:text-white">{selectedProcess.rto}</span>
+                                        <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm text-center">
+                                            <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">RPO (Objectif Données)</span>
+                                            <span className="text-3xl font-black text-slate-800 dark:text-white">{selectedProcess.rpo}</span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Description</h4>
+                                        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{selectedProcess.description}</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Dépendances Techniques</h4>
+                                            {selectedProcess.supportingAssetIds && selectedProcess.supportingAssetIds.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    {selectedProcess.supportingAssetIds.map(assetId => {
+                                                        const a = assets.find(as => as.id === assetId);
+                                                        return a ? (
+                                                            <div key={assetId} className="flex items-center p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                <Server className="h-4 w-4 mr-3 text-slate-400" />
+                                                                <span className="text-sm font-medium text-slate-700 dark:text-white">{a.name}</span>
+                                                            </div>
+                                                        ) : null;
+                                                    })}
                                                 </div>
-                                                <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm text-center">
-                                                    <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">RPO (Objectif Données)</span>
-                                                    <span className="text-3xl font-black text-slate-800 dark:text-white">{selectedProcess.rpo}</span>
+                                            ) : <p className="text-sm text-slate-400 italic">Aucune dépendance déclarée.</p>}
+                                        </div>
+                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Fournisseurs Critiques</h4>
+                                            {selectedProcess.supplierIds && selectedProcess.supplierIds.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    {selectedProcess.supplierIds.map(sid => {
+                                                        const s = suppliers.find(sup => sup.id === sid);
+                                                        return s ? (
+                                                            <div key={sid} className="flex items-center p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                <Truck className="h-4 w-4 mr-3 text-slate-400" />
+                                                                <span className="text-sm font-medium text-slate-700 dark:text-white">{s.name}</span>
+                                                            </div>
+                                                        ) : null;
+                                                    })}
                                                 </div>
-                                            </div>
-                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Description</h4>
-                                                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{selectedProcess.description}</p>
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Dépendances Techniques</h4>
-                                                    {selectedProcess.supportingAssetIds && selectedProcess.supportingAssetIds.length > 0 ? (
-                                                        <div className="space-y-2">
-                                                            {selectedProcess.supportingAssetIds.map(assetId => {
-                                                                const a = assets.find(as => as.id === assetId);
-                                                                return a ? (
-                                                                    <div key={assetId} className="flex items-center p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                        <Server className="h-4 w-4 mr-3 text-slate-400" />
-                                                                        <span className="text-sm font-medium text-slate-700 dark:text-white">{a.name}</span>
-                                                                    </div>
-                                                                ) : null;
-                                                            })}
-                                                        </div>
-                                                    ) : <p className="text-sm text-slate-400 italic">Aucune dépendance déclarée.</p>}
-                                                </div>
-                                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Fournisseurs Critiques</h4>
-                                                    {selectedProcess.supplierIds && selectedProcess.supplierIds.length > 0 ? (
-                                                        <div className="space-y-2">
-                                                            {selectedProcess.supplierIds.map(sid => {
-                                                                const s = suppliers.find(sup => sup.id === sid);
-                                                                return s ? (
-                                                                    <div key={sid} className="flex items-center p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                        <Truck className="h-4 w-4 mr-3 text-slate-400" />
-                                                                        <span className="text-sm font-medium text-slate-700 dark:text-white">{s.name}</span>
-                                                                    </div>
-                                                                ) : null;
-                                                            })}
-                                                        </div>
-                                                    ) : <p className="text-sm text-slate-400 italic">Aucun fournisseur lié.</p>}
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
+                                            ) : <p className="text-sm text-slate-400 italic">Aucun fournisseur lié.</p>}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -674,86 +718,32 @@ export const Continuity: React.FC = () => {
                                 <div className="space-y-6">
                                     <div className="flex justify-between items-center">
                                         <h3 className="text-sm font-bold text-slate-900 dark:text-white">Plan de Reprise (DRP)</h3>
-                                        {isEditing && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const currentTasks = editProcessForm.getValues('recoveryTasks') || [];
-                                                    editProcessForm.setValue('recoveryTasks', [
-                                                        ...currentTasks,
-                                                        { id: crypto.randomUUID(), title: '', owner: '', duration: '', order: currentTasks.length + 1 }
-                                                    ]);
-                                                }}
-                                                className="text-xs font-bold text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors"
-                                            >
-                                                + Ajouter une étape
-                                            </button>
-                                        )}
                                     </div>
 
-                                    {isEditing ? (
-                                        <div className="space-y-4">
-                                            {editProcessForm.watch('recoveryTasks')?.map((task, index) => (
-                                                <div key={task.id} className="flex gap-4 items-start bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10">
-                                                    <div className="mt-3 text-xs font-bold text-slate-400 w-6">{index + 1}.</div>
-                                                    <div className="flex-1 space-y-3">
-                                                        <input
-                                                            placeholder="Action à effectuer"
-                                                            className="w-full px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm font-medium"
-                                                            {...editProcessForm.register(`recoveryTasks.${index}.title`)}
-                                                        />
-                                                        <div className="flex gap-3">
-                                                            <input
-                                                                placeholder="Responsable"
-                                                                className="flex-1 px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-xs"
-                                                                {...editProcessForm.register(`recoveryTasks.${index}.owner`)}
-                                                            />
-                                                            <input
-                                                                placeholder="Durée (ex: 30m)"
-                                                                className="w-24 px-3 py-2 rounded-lg border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-xs"
-                                                                {...editProcessForm.register(`recoveryTasks.${index}.duration`)}
-                                                            />
+                                    <div className="space-y-4">
+                                        {selectedProcess.recoveryTasks && selectedProcess.recoveryTasks.length > 0 ? (
+                                            selectedProcess.recoveryTasks.sort((a, b) => a.order - b.order).map((task, index) => (
+                                                <div key={task.id} className="flex items-start gap-4 p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/20 text-brand-600 flex items-center justify-center font-bold text-sm">
+                                                        {index + 1}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{task.title}</h4>
+                                                        <div className="flex gap-4 mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                                            <span className="flex items-center"><Server className="h-3 w-3 mr-1" /> {task.owner}</span>
+                                                            <span className="flex items-center"><History className="h-3 w-3 mr-1" /> {task.duration}</span>
                                                         </div>
                                                     </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const tasks = editProcessForm.getValues('recoveryTasks') || [];
-                                                            editProcessForm.setValue('recoveryTasks', tasks.filter((_, i) => i !== index));
-                                                        }}
-                                                        className="text-slate-400 hover:text-red-500 p-1"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            {selectedProcess.recoveryTasks && selectedProcess.recoveryTasks.length > 0 ? (
-                                                selectedProcess.recoveryTasks.sort((a, b) => a.order - b.order).map((task, index) => (
-                                                    <div key={task.id} className="flex items-start gap-4 p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/20 text-brand-600 flex items-center justify-center font-bold text-sm">
-                                                            {index + 1}
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">{task.title}</h4>
-                                                            <div className="flex gap-4 mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                                                <span className="flex items-center"><Server className="h-3 w-3 mr-1" /> {task.owner}</span>
-                                                                <span className="flex items-center"><History className="h-3 w-3 mr-1" /> {task.duration}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <EmptyState
-                                                    icon={ClipboardCheck}
-                                                    title="Aucun plan de reprise"
-                                                    description="Définissez les étapes de reprise pour ce processus."
-                                                />
-                                            )}
-                                        </div>
-                                    )}
+                                            ))
+                                        ) : (
+                                            <EmptyState
+                                                icon={ClipboardCheck}
+                                                title="Aucun plan de reprise"
+                                                description="Définissez les étapes de reprise pour ce processus."
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                             )}
 
@@ -762,49 +752,30 @@ export const Continuity: React.FC = () => {
                                     <div className="flex justify-between items-center">
                                         <h3 className="text-sm font-bold text-slate-900 dark:text-white">Scénarios de Risque</h3>
                                     </div>
-                                    {isEditing ? (
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Lier des Risques</label>
-                                            <Controller
-                                                name="relatedRiskIds"
-                                                control={editProcessForm.control}
-                                                render={({ field }) => (
-                                                    <CustomSelect
-                                                        options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
-                                                        value={field.value || []}
-                                                        onChange={field.onChange}
-                                                        placeholder="Sélectionner les risques..."
-                                                        multiple
-                                                    />
-                                                )}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {selectedProcess.relatedRiskIds && selectedProcess.relatedRiskIds.length > 0 ? (
-                                                selectedProcess.relatedRiskIds.map(rid => {
-                                                    const risk = risks.find(r => r.id === rid);
-                                                    return risk ? (
-                                                        <div key={rid} className="p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex justify-between items-center">
-                                                            <div>
-                                                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</h4>
-                                                                <p className="text-xs text-slate-500">{risk.vulnerability}</p>
-                                                            </div>
-                                                            <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.score >= 15 ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
-                                                                Score: {risk.score}
-                                                            </div>
+                                    <div className="space-y-3">
+                                        {selectedProcess.relatedRiskIds && selectedProcess.relatedRiskIds.length > 0 ? (
+                                            selectedProcess.relatedRiskIds.map(rid => {
+                                                const risk = risks.find(r => r.id === rid);
+                                                return risk ? (
+                                                    <div key={rid} className="p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex justify-between items-center">
+                                                        <div>
+                                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</h4>
+                                                            <p className="text-xs text-slate-500">{risk.vulnerability}</p>
                                                         </div>
-                                                    ) : null;
-                                                })
-                                            ) : (
-                                                <EmptyState
-                                                    icon={ShieldAlert}
-                                                    title="Aucun scénario lié"
-                                                    description="Liez des risques existants à ce processus pour analyser les impacts."
-                                                />
-                                            )}
-                                        </div>
-                                    )}
+                                                        <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.score >= 15 ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
+                                                            Score: {risk.score}
+                                                        </div>
+                                                    </div>
+                                                ) : null;
+                                            })
+                                        ) : (
+                                            <EmptyState
+                                                icon={ShieldAlert}
+                                                title="Aucun scénario lié"
+                                                description="Liez des risques existants à ce processus pour analyser les impacts."
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                             )}
 
@@ -858,45 +829,7 @@ export const Continuity: React.FC = () => {
 
 
             {/* Create Process Modal */}
-            {/* Create Process Drawer */}
-            <Drawer
-                isOpen={showCreateModal}
-                onClose={() => setShowCreateModal(false)}
-                title="Nouveau Processus Critique"
-                subtitle="Définissez un nouveau processus pour l'analyse d'impact."
-                width="max-w-4xl"
-            >
-                <form onSubmit={createProcessForm.handleSubmit(handleCreateProcess)} className="p-8 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom du processus</label>
-                            <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium"
-                                {...createProcessForm.register('name')} placeholder="ex: Gestion des Commandes" />
-                            {createProcessForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{createProcessForm.formState.errors.name.message}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
-                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium appearance-none"
-                                {...createProcessForm.register('owner')}>
-                                <option value="">Sélectionner...</option>
-                                {usersList.map(u => <option key={u.uid} value={u.displayName}>{u.displayName}</option>)}
-                            </select>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-6">
-                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RTO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium" {...createProcessForm.register('rto')} placeholder="4h" /></div>
-                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">RPO</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium" {...createProcessForm.register('rpo')} placeholder="1h" /></div>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
-                        <textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none font-medium resize-none" rows={2} {...createProcessForm.register('description')} />
-                    </div>
-                    <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                        <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                        <button type="submit" className="px-8 py-3 bg-rose-600 text-white rounded-xl hover:bg-rose-700 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-rose-500/30">Créer</button>
-                    </div>
-                </form>
-            </Drawer>
+
 
             {/* Drill Modal */}
             {/* Drill Drawer */}
@@ -961,6 +894,32 @@ export const Continuity: React.FC = () => {
                     </div>
                 </form>
             </Drawer>
+            {/* Create Process Modal */}
+            <ProcessFormModal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                onSubmit={handleCreateProcess}
+                assets={assets}
+                suppliers={suppliers}
+                risks={risks}
+                users={usersList}
+                isEditing={false}
+                title="Nouveau Processus"
+            />
+
+            {/* Edit Process Modal */}
+            <ProcessFormModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                onSubmit={handleUpdateProcess}
+                assets={assets}
+                suppliers={suppliers}
+                risks={risks}
+                users={usersList}
+                initialData={selectedProcess || undefined}
+                isEditing={true}
+                title="Modifier le Processus"
+            />
         </div >
     );
 };
