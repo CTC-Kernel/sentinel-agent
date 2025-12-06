@@ -197,7 +197,7 @@ export const Login: React.FC = () => {
                 <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
             </div>
 
-            <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center">
+            <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center mx-auto">
                 <div className="glass-panel rounded-[2.5rem] p-10 flex flex-col items-center shadow-2xl border border-white/50 dark:border-white/10 bg-white/90 dark:bg-black/60 backdrop-blur-xl">
 
                     {/* Logo */}
