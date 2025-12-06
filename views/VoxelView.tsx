@@ -123,7 +123,15 @@ export const VoxelView: React.FC = () => {
   const [suggestedLinks, setSuggestedLinks] = useState<AISuggestedLink[]>([]);
   const [aiInsights, setAiInsights] = useState<AIInsight[]>([]);
   const [showInsights, setShowInsights] = useState(false);
-  const [isDetailMinimized, setIsDetailMinimized] = useState(false);
+  const [isDetailMinimized, setIsDetailMinimized] = useState(() => {
+    const saved = localStorage.getItem('voxel_detailMinimized');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
+
+  // Persist isDetailMinimized
+  useEffect(() => {
+    localStorage.setItem('voxel_detailMinimized', JSON.stringify(isDetailMinimized));
+  }, [isDetailMinimized]);
   const [presentationMode, setPresentationMode] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');

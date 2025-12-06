@@ -791,3 +791,17 @@ export type VoxelNode = DataNode & {
   size: number;
   connections: string[];
 };
+
+export interface ContinuitySuggestion {
+  rto: string;
+  rpo: string;
+  priority: 'Critique' | 'Élevée' | 'Moyenne' | 'Faible';
+  recoveryTasks: Array<{
+    title: string;
+    owner: string;
+    duration: string;
+    description?: string;
+  }>;
+  reasoning: string;
+}
+
