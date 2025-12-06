@@ -584,9 +584,9 @@ const PLANS = {
 
 
 const AI_LIMITS = {
-    'discovery': 10,
-    'professional': 500,
-    'enterprise': 5000
+    'discovery': 1000,
+    'professional': 5000,
+    'enterprise': 50000
 };
 
 

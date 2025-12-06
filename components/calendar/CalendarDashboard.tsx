@@ -265,7 +265,7 @@ export const CalendarDashboard: React.FC = () => {
     return (
         <div className="flex flex-col space-y-6 md:h-full">
             {/* Filters - Scrollable on mobile */}
-            <div className="flex flex-nowrap md:flex-wrap items-center gap-3 p-1 overflow-x-auto no-scrollbar mask-gradient-right pb-2">
+            <div className="relative z-20 flex flex-nowrap md:flex-wrap items-center gap-3 p-1 overflow-x-auto no-scrollbar mask-gradient-right pb-4 shrink-0">
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 shrink-0">
                     <Filter className="h-4 w-4" />
                 </div>
