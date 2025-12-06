@@ -23,6 +23,7 @@ service cloud.firestore {
     }
 
     function isAdmin() { return hasRole('admin'); }
+    function isSuperAdmin() { return request.auth.token.superAdmin == true; }
     function isRSSI() { return hasRole('rssi'); }
     function isAuditor() { return hasRole('auditor'); }
     function isProjectManager() { return hasRole('project_manager'); }
@@ -74,8 +75,8 @@ service cloud.firestore {
 
     // Organizations
     match /organizations/{orgId} {
-      // Read: Members or Owner
-      allow read: if belongsToOrganization(orgId) || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
+      // Read: Members or Owner or Super Admin
+      allow read: if isSuperAdmin() || belongsToOrganization(orgId) || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
       // Create: Authenticated users (Onboarding)
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
       // Update: Owner or Admin of that org
@@ -87,6 +88,7 @@ service cloud.firestore {
     // Users collection
     match /users/{userId} {
       allow read: if isAuthenticated() && (
+        isSuperAdmin() ||
         request.auth.uid == userId || 
         belongsToOrganization(resource.data.organizationId)
       );

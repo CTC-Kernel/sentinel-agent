@@ -372,6 +372,88 @@ exports.grantSuperAdmin = onCall(async (request) => {
 });
 
 /**
+ * Switch Organization Context (Super Admin Only)
+ * Allows a Super Admin to assume the identity of a member of a target organization.
+ * Updates the user's profile and custom claims.
+ */
+exports.switchOrganization = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { targetOrgId } = request.data;
+    if (!targetOrgId) {
+        throw new HttpsError('invalid-argument', 'Target Organization ID is required.');
+    }
+
+    const callerUid = request.auth.uid;
+    const token = request.auth.token;
+
+    // Verify Super Admin
+    // We check the token claim (fastest) but also could verify via database for extra security if needed.
+    // Given the previous steps established superAdmin claim, we trust it or the hardcoded check from verifySuperAdmin logic.
+    const isSuperAdmin = token.superAdmin === true;
+
+    if (!isSuperAdmin) {
+        throw new HttpsError('permission-denied', 'Only Super Admins can switch organization context.');
+    }
+
+    try {
+        const db = admin.firestore();
+
+        // 1. Verify target organization exists
+        const orgDoc = await db.collection('organizations').doc(targetOrgId).get();
+        if (!orgDoc.exists) {
+            throw new HttpsError('not-found', 'Organization not found.');
+        }
+        const orgData = orgDoc.data();
+
+        // 2. Update User Profile in Firestore
+        // We set role to 'admin' so they have full access in that org context.
+        // We MUST preserve superAdmin status if stored in profile (though it's usually just a claim).
+        await db.collection('users').doc(callerUid).update({
+            organizationId: targetOrgId,
+            organizationName: orgData.name,
+            role: 'admin' // Super admin acts as admin in the target org
+        });
+
+        // 3. Update Custom Claims
+        // We must preserve the 'superAdmin' claim!
+        const newClaims = {
+            ...token,
+            organizationId: targetOrgId,
+            role: 'admin',
+            superAdmin: true
+        };
+
+        // Filter out standard JWT claims (iss, aud, etc.) before setting custom claims?
+        // setCustomUserClaims REPLACES all custom claims.
+        // So we should construct exactly what we want.
+        // 'token' contains standard claims too. Safer to build from scratch or careful merge.
+        // Standard claims: aud, auth_time, email, email_verified, exp, firebase, iat, iss, sub, user_id.
+        // We only want our custom ones.
+
+        const customClaims = {
+            organizationId: targetOrgId,
+            role: 'admin',
+            superAdmin: true,
+            // Preserve acceptedTerms if it exists
+            acceptedTerms: token.acceptedTerms || false
+        };
+
+        await admin.auth().setCustomUserClaims(callerUid, customClaims);
+
+        logger.info(`Super Admin ${callerUid} switched context to organization ${targetOrgId}`);
+
+        return { success: true, message: `Switched to ${orgData.name}` };
+
+    } catch (error) {
+        logger.error("Error switching organization:", error);
+        throw new HttpsError('internal', 'Failed to switch organization: ' + error.message);
+    }
+});
+
+/**
  * Securely create a new organization and assign the creator as Admin.
  */
 exports.createOrganization = onCall(async (request) => {
