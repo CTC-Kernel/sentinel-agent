@@ -15,7 +15,7 @@ const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-th
 
 const admin = require("firebase-admin");
 const crypto = require("crypto");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
 
 const userSecretsKey = defineSecret("USER_SECRETS_ENCRYPTION_KEY");
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
@@ -1342,7 +1342,7 @@ async function getGeminiClientForUser(uid) {
         throw new HttpsError('failed-precondition', 'Gemini API key not configured.');
     }
 
-    return new GoogleGenerativeAI(apiKey);
+    return new GoogleGenAI({ apiKey });
 }
 
 /**
@@ -1737,10 +1737,17 @@ exports.callGeminiGenerateContent = onCall({
         const genAI = await getGeminiClientForUser(uid);
 
         const runGenerate = async (name) => {
-            const model = genAI.getGenerativeModel({ model: name });
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            return response.text();
+            let config = {};
+            if (name.includes("gemini-3")) {
+                config.thinkingConfig = { thinkingLevel: "high" };
+            }
+
+            const response = await genAI.models.generateContent({
+                model: name,
+                contents: prompt,
+                config: config
+            });
+            return response.text;
         };
 
         try {
@@ -1804,16 +1811,23 @@ exports.callGeminiChat = onCall({
         const genAI = await getGeminiClientForUser(uid);
 
         const runChat = async (name) => {
-            const model = genAI.getGenerativeModel({ model: name });
-            const chat = model.startChat({
-                history: [
-                    { role: "user", parts: [{ text: systemPrompt }] },
-                    { role: "model", parts: [{ text: "Bien reçu. Je suis Sentinel AI, prêt à vous assister sur tous les sujets GRC." }] },
-                ],
+            let config = {};
+            if (name.includes("gemini-3")) {
+                config.thinkingConfig = { thinkingLevel: "high" };
+            }
+
+            const contents = [
+                { role: "user", parts: [{ text: systemPrompt }] },
+                { role: "model", parts: [{ text: "Bien reçu. Je suis Sentinel AI, prêt à vous assister sur tous les sujets GRC." }] },
+                { role: "user", parts: [{ text: message }] }
+            ];
+
+            const response = await genAI.models.generateContent({
+                model: name,
+                contents: contents,
+                config: config
             });
-            const result = await chat.sendMessage(message);
-            const response = await result.response;
-            return response.text();
+            return response.text;
         };
 
         try {
