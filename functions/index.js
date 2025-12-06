@@ -1887,8 +1887,12 @@ exports.callGeminiChat = onCall({
         throw new HttpsError('invalid-argument', 'systemPrompt and message are required.');
     }
 
+    // Helper for delay
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
     try {
         // Check and increment usage
+        // ... (existing usage check code if any needed, otherwise kept as is if not in snippet context) ...
         const userDoc = await admin.firestore().collection('users').doc(uid).get();
         const userData = userDoc.data();
         if (userData?.organizationId) {
@@ -1925,11 +1929,30 @@ exports.callGeminiChat = onCall({
             const errMsg = error instanceof Error ? error.message : String(error);
             logger.warn('Primary Gemini chat model failed in callGeminiChat', { error: errMsg });
 
-            if (errMsg.includes('404') || errMsg.includes('not found') || errMsg.includes('429') || errMsg.includes('Too Many Requests')) {
+            if (errMsg.includes('404') || errMsg.includes('not found') || errMsg.includes('429') || errMsg.includes('Too Many Requests') || errMsg.includes('resource exhausted')) {
+                // Wait 1 second before fallback to let quota drain slightly
+                await delay(1000);
+
                 try {
+                    logger.info('Attempting fallback to gemini-1.5-flash');
                     const text = await runChat('gemini-1.5-flash');
                     return { text, model: 'gemini-1.5-flash' };
                 } catch (fallbackError) {
+                    const fbMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+
+                    // If fallback also hits 429, wait longer and try ONE last time
+                    if (fbMsg.includes('429') || fbMsg.includes('Too Many Requests') || fbMsg.includes('resource exhausted')) {
+                        logger.warn('Fallback also hit 429. Retrying one last time after 2s delay...');
+                        await delay(2000);
+                        try {
+                            const text = await runChat('gemini-1.5-flash');
+                            return { text, model: 'gemini-1.5-flash (retry)' };
+                        } catch (finalErr) {
+                            logger.error('Final retry failed', finalErr);
+                            throw new HttpsError('resource-exhausted', 'Le service IA est surchargé. Veuillez réessayer dans quelques instants.');
+                        }
+                    }
+
                     logger.error('Fallback Gemini chat model failed in callGeminiChat', fallbackError);
                     throw fallbackError;
                 }
