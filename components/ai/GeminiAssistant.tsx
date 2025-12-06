@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { aiService } from '../../services/aiService';
@@ -39,6 +40,7 @@ export const GeminiAssistant: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const { user } = useStore();
+    const navigate = useNavigate();
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
     const scrollToBottom = () => {
@@ -86,12 +88,16 @@ export const GeminiAssistant: React.FC = () => {
             };
 
             setMessages(prev => [...prev, aiMsg]);
-        } catch (error) {
+        } catch (error: any) {
             ErrorLogger.error(error, 'GeminiAssistant.handleSend');
+            const isQuotaError = error.message?.includes('Daily AI limit reached') || error.code === 'resource-exhausted';
+
             const errorMsg: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: "Désolé, j'ai rencontré une erreur lors du traitement de votre demande. Veuillez réessayer.",
+                content: isQuotaError
+                    ? `### Quota journalier atteint\nVous avez atteint votre limite de **10 requêtes par jour** (Plan Discovery).\n\nPour continuer à utiliser l'IA sans limite, passez au plan supérieur.`
+                    : "Désolé, j'ai rencontré une erreur lors du traitement de votre demande. Veuillez réessayer.",
                 timestamp: new Date(),
                 isError: true
             };
@@ -140,7 +146,7 @@ export const GeminiAssistant: React.FC = () => {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                             </span>
-                            Gemini 3 Pro
+                            Cyber Threat Consulting
                         </p>
                     </div>
                 </div>
@@ -239,6 +245,20 @@ export const GeminiAssistant: React.FC = () => {
                                                 </button>
                                             </div>
                                         )}
+                                        {msg.isError && msg.content.includes('Quota') && (
+                                            <div className="mt-4 pt-3 border-t border-red-100 dark:border-red-900/30">
+                                                <button
+                                                    onClick={() => {
+                                                        navigate('/settings');
+                                                        setIsOpen(false);
+                                                    }}
+                                                    className="w-full py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                                >
+                                                    <Zap className="h-3 w-3" />
+                                                    Mettre à niveau mon plan
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -324,7 +344,7 @@ export const GeminiAssistant: React.FC = () => {
                     </button>
                 </div>
                 <p className="text-[10px] text-center text-slate-400 mt-3 flex items-center justify-center gap-1.5 opacity-60">
-                    <Sparkles className="h-3 w-3" /> Propulsé par Google Gemini 3 Pro
+                    <Sparkles className="h-3 w-3" /> Propulsé par Cyber Threat Consulting
                 </p>
             </form>
         </div>
