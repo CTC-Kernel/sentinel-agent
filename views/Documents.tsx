@@ -21,6 +21,7 @@ import { FilePreview } from '../components/ui/FilePreview';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { DocumentForm } from '../components/documents/DocumentForm';
+import { SafeHTML } from '../components/ui/SafeHTML';
 import { FolderTree } from '../components/documents/FolderTree';
 import { DocumentFormData } from '../schemas/documentSchema';
 import { getPlanLimits } from '../config/plans';
@@ -1049,6 +1050,21 @@ export const Documents: React.FC = () => {
                                                                 <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Dernière MAJ</span>
                                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{new Date(selectedDocument.updatedAt).toLocaleDateString()}</span>
                                                             </div>
+                                                        </div>
+
+                                                        {/* Description / Content */}
+                                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                                                <FileText className="h-5 w-5 text-blue-500" />
+                                                                Contenu / Description
+                                                            </h3>
+                                                            {selectedDocument.content ? (
+                                                                <SafeHTML content={selectedDocument.content} />
+                                                            ) : (
+                                                                <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                                                                    {selectedDocument.description || "Aucune description."}
+                                                                </p>
+                                                            )}
                                                         </div>
 
                                                         {/* Workflow Actions */}

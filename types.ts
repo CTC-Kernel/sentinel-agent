@@ -176,6 +176,7 @@ export interface Document {
   organizationId: string;
   title: string;
   type: 'Politique' | 'Procédure' | 'Preuve' | 'Rapport' | 'Autre';
+  description?: string;
   version: string;
   status: 'Brouillon' | 'En revue' | 'Approuvé' | 'Rejeté' | 'Publié' | 'Obsolète';
   workflowStatus?: 'Draft' | 'Review' | 'Approved' | 'Rejected';
@@ -200,6 +201,7 @@ export interface Document {
   externalUrl?: string;
   externalId?: string; // ID of the file in the external provider
   folderId?: string;
+  content?: string; // HTML content for rich text policies
 }
 
 export interface DocumentFolder {

@@ -21,6 +21,7 @@ import { IncidentTimeline } from '../components/incidents/IncidentTimeline';
 import { IncidentPlaybook } from '../components/incidents/IncidentPlaybook';
 import { IncidentAIAssistant } from '../components/incidents/IncidentAIAssistant';
 import { IncidentForm } from '../components/incidents/IncidentForm';
+import { SafeHTML } from '../components/ui/SafeHTML';
 import { ThreatIntelChecker } from '../components/incidents/ThreatIntelChecker';
 import { IncidentFormData } from '../schemas/incidentSchema';
 
@@ -411,15 +412,18 @@ export const Incidents: React.FC = () => {
                                         <div className="p-8 space-y-8">
                                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                                 <div className="lg:col-span-2 space-y-8">
-                                                    {/* Description */}
                                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
                                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                                                             <BookOpen className="h-5 w-5 text-brand-500" />
                                                             Description
                                                         </h3>
-                                                        <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                                                            {selectedIncident.description}
-                                                        </p>
+                                                        {selectedIncident.description ? (
+                                                            <SafeHTML content={selectedIncident.description} />
+                                                        ) : (
+                                                            <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                                                                Aucune description.
+                                                            </p>
+                                                        )}
                                                     </div>
 
                                                     {/* Badges & Status */}
