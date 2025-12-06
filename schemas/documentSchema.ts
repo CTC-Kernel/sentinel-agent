@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const documentSchema = z.object({
     title: z.string().min(1, "Le titre est requis"),
     type: z.enum(['Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre']),
+    description: z.string().optional(),
     version: z.string().min(1, "La version est requise"),
     status: z.enum(['Brouillon', 'En revue', 'Approuvé', 'Rejeté', 'Publié', 'Obsolète']),
     workflowStatus: z.enum(['Draft', 'Review', 'Approved', 'Rejected']).optional(),
@@ -21,6 +22,7 @@ export const documentSchema = z.object({
     externalUrl: z.string().url("L'URL doit être valide").optional().or(z.literal('')),
     externalId: z.string().optional(),
     folderId: z.string().optional(),
+    content: z.string().optional(), // HTML Content
     isSecure: z.boolean().optional(),
     hash: z.string().optional(),
     watermarkEnabled: z.boolean().optional()

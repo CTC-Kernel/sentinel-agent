@@ -1,5 +1,6 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { SEO } from './components/SEO';
+import { AnimatedRoutes } from './components/layout/AnimatedRoutes';
 import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { AuthGuard } from './components/auth/AuthGuard';
@@ -10,7 +11,7 @@ import { Toaster } from 'sonner';
 import { Login } from './views/Login';
 import { Onboarding } from './views/Onboarding';
 import { VerifyEmail } from './views/VerifyEmail';
-import { WifiOff, AlertTriangle } from './components/ui/Icons'; // Lock supprimé car dans LoadingScreen
+import { WifiOff } from './components/ui/Icons';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { TopBar } from './components/layout/TopBar';
@@ -31,49 +32,8 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 import { CustomRole } from './types';
 import { VersionCheck } from './components/VersionCheck';
-
-// Lazy Loading des Vues
-const Dashboard = React.lazy(() => import('./views/Dashboard').then(module => ({ default: module.Dashboard })));
-const Assets = React.lazy(() => import('./views/Assets').then(module => ({ default: module.Assets })));
-const Risks = React.lazy(() => import('./views/Risks').then(module => ({ default: module.Risks })));
-const Compliance = React.lazy(() => import('./views/Compliance').then(module => ({ default: module.Compliance })));
-const Audits = React.lazy(() => import('./views/Audits').then(module => ({ default: module.Audits })));
-const Team = React.lazy(() => import('./views/Team').then(module => ({ default: module.Team })));
-const Settings = React.lazy(() => import('./views/Settings').then(module => ({ default: module.Settings })));
-const Documents = React.lazy(() => import('./views/Documents').then(module => ({ default: module.Documents })));
-const Projects = React.lazy(() => import('./views/Projects').then(module => ({ default: module.Projects })));
-const Incidents = React.lazy(() => import('./views/Incidents').then(module => ({ default: module.Incidents })));
-const Suppliers = React.lazy(() => import('./views/Suppliers').then(module => ({ default: module.Suppliers })));
-const Privacy = React.lazy(() => import('./views/Privacy').then(module => ({ default: module.Privacy })));
-const Help = React.lazy(() => import('./views/Help').then(module => ({ default: module.Help })));
-const Continuity = React.lazy(() => import('./views/Continuity').then(module => ({ default: module.Continuity })));
-const VoxelView = React.lazy(() => import('./views/VoxelView').then(module => ({ default: module.VoxelView })));
-const Notifications = React.lazy(() => import('./views/Notifications').then(module => ({ default: module.Notifications })));
-const Search = React.lazy(() => import('./views/Search').then(module => ({ default: module.Search })));
-const KioskPage = React.lazy(() => import('./components/AssetIntake/KioskPage').then(module => ({ default: module.KioskPage })));
-const BackupRestore = React.lazy(() => import('./views/BackupRestore').then(module => ({ default: module.BackupRestore })));
-const AnalyticsDashboard = React.lazy(() => import('./components/dashboard/AnalyticsDashboard').then(module => ({ default: module.AnalyticsDashboard })));
-const InteractiveTimeline = React.lazy(() => import('./components/timeline/InteractiveTimeline').then(module => ({ default: module.InteractiveTimeline })));
-const AuditTrailViewer = React.lazy(() => import('./components/audit/AuditTrailViewer').then(module => ({ default: module.AuditTrailViewer })));
-const CalendarView = React.lazy(() => import('./views/CalendarView').then(module => ({ default: module.CalendarView })));
-const Pricing = React.lazy(() => import('./views/Pricing'));
-const AdminDashboard = React.lazy(() => import('./views/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
-const Integrations = React.lazy(() => import('./views/Integrations').then(module => ({ default: module.Integrations })));
-
-// ... (skipping unchanged parts)
-
-const NotFound = () => (
-    <div className="flex flex-col items-center justify-center h-full text-center p-6">
-        <div className="glass-panel p-12 rounded-[2.5rem] max-w-md shadow-2xl border border-white/40 dark:border-white/5">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/10 flex items-center justify-center mx-auto mb-6 text-slate-400">
-                <AlertTriangle className="h-8 w-8" />
-            </div>
-            <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-3 font-display tracking-tight">404</h1>
-            <p className="text-slate-500 dark:text-slate-400 mb-8 text-lg font-medium">La page que vous cherchez n'existe pas.</p>
-            <a href="#/" className="px-8 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-sm hover:scale-105 transition-transform inline-block shadow-lg">Retour à l'accueil</a>
-        </div>
-    </div>
-);
+import { ContentBlockerError } from './components/ui/ContentBlockerError';
+import { useAuth } from './hooks/useAuth';
 
 // Wrapper to activate global shortcuts inside Router context
 const GlobalShortcutsWrapper: React.FC = () => {
@@ -176,43 +136,13 @@ const AppLayout: React.FC = () => {
                 </div>
             )}
 
-
-
             <div className="flex-1 flex flex-col overflow-hidden relative">
                 <TopBar setMobileOpen={setMobileOpen} />
 
                 <main id="main-content" className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth no-scrollbar bg-[#fafafa] dark:bg-slate-950">
                     <div className="max-w-[1600px] mx-auto animate-fade-in h-full pb-10">
                         <Suspense fallback={<LoadingScreen />}>
-                            <Routes>
-                                <Route path="/" element={<Dashboard />} />
-                                <Route path="/analytics" element={<AnalyticsDashboard />} />
-                                <Route path="/timeline" element={<InteractiveTimeline />} />
-                                <Route path="/audit-trail" element={<AuditTrailViewer />} />
-                                <Route path="/incidents" element={<Incidents />} />
-                                <Route path="/projects" element={<Projects />} />
-                                <Route path="/assets" element={<Assets />} />
-                                <Route path="/risks" element={<Risks />} />
-                                <Route path="/compliance" element={<Compliance />} />
-                                <Route path="/documents" element={<Documents />} />
-                                <Route path="/audits" element={<Audits />} />
-                                <Route path="/team" element={<Team />} />
-                                <Route path="/settings" element={<Settings />} />
-                                <Route path="/suppliers" element={<Suppliers />} />
-                                <Route path="/backup" element={<BackupRestore />} />
-                                <Route path="/privacy" element={<Privacy />} />
-                                <Route path="/continuity" element={<Continuity />} />
-                                <Route path="/ctc-engine" element={<VoxelView />} />
-                                <Route path="/notifications" element={<Notifications />} />
-                                <Route path="/search" element={<Search />} />
-                                <Route path="/help" element={<Help />} />
-                                <Route path="/intake" element={<KioskPage />} />
-                                <Route path="/calendar" element={<CalendarView />} />
-                                <Route path="/pricing" element={<Pricing />} />
-                                <Route path="/admin_management" element={<AdminDashboard />} />
-                                <Route path="/integrations" element={<Integrations />} />
-                                <Route path="*" element={<NotFound />} />
-                            </Routes>
+                            <AnimatedRoutes />
                         </Suspense>
                     </div>
                 </main>
@@ -225,9 +155,6 @@ const AppLayout: React.FC = () => {
     );
 };
 
-import { ContentBlockerError } from './components/ui/ContentBlockerError';
-import { useAuth } from './hooks/useAuth';
-
 const AppContent: React.FC = () => {
     return (
         <Router>
@@ -238,6 +165,8 @@ const AppContent: React.FC = () => {
     );
 };
 
+import { RouteProgressBar } from './components/ui/RouteProgressBar';
+
 const AppInner: React.FC = () => {
     const { isBlocked } = useAuth();
 
@@ -247,6 +176,7 @@ const AppInner: React.FC = () => {
 
     return (
         <>
+            <RouteProgressBar />
             <SkipLink />
             <VersionCheck />
             <GlobalShortcutsWrapper />

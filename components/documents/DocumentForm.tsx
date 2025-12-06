@@ -11,6 +11,7 @@ import { Trash2 } from '../ui/Icons';
 import { externalStorageService } from '../../services/externalStorageService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
+import { RichTextEditor } from '../ui/RichTextEditor';
 
 interface DocumentFormProps {
     onSubmit: (data: DocumentFormData & { fileUrl?: string; fileHash?: string; isSecure?: boolean }) => Promise<void>;
@@ -143,6 +144,21 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                         label="Version"
                         {...register('version')}
                         error={errors.version?.message}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Controller
+                        control={control}
+                        name="content"
+                        render={({ field }) => (
+                            <RichTextEditor
+                                label="Contenu (Éditeur Riche)"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                error={errors.content?.message}
+                            />
+                        )}
                     />
                 </div>
 
