@@ -68,6 +68,7 @@ export interface EscalationCriteria {
 
 export interface IncidentResponse {
   id: string;
+  organizationId: string;
   incidentId: string;
   playbookId: string;
   status: 'initiated' | 'in_progress' | 'completed' | 'abandoned';
@@ -105,10 +106,11 @@ export class IncidentPlaybookService {
   private static readonly RESPONSES_COLLECTION = 'incidentResponses';
 
   // Playbook Management
-  static async createPlaybook(playbook: Omit<IncidentPlaybook, 'id'>): Promise<string> {
+  static async createPlaybook(playbook: Omit<IncidentPlaybook, 'id'>, organizationId: string): Promise<string> {
     try {
       const docRef = await addDoc(collection(db, this.PLAYBOOKS_COLLECTION), {
         ...playbook,
+        organizationId,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       });
@@ -127,12 +129,13 @@ export class IncidentPlaybookService {
     }
   }
 
-  static async getPlaybooks(category?: Incident['category']): Promise<IncidentPlaybook[]> {
+  static async getPlaybooks(organizationId: string, category?: Incident['category']): Promise<IncidentPlaybook[]> {
     try {
       const collectionRef = collection(db, this.PLAYBOOKS_COLLECTION);
+      const orgQuery = query(collectionRef, where('organizationId', '==', organizationId));
 
       if (category) {
-        const q = query(collectionRef, where('category', '==', category));
+        const q = query(orgQuery, where('category', '==', category));
         const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({
           id: doc.id,
@@ -140,7 +143,7 @@ export class IncidentPlaybookService {
         } as IncidentPlaybook));
       }
 
-      const snapshot = await getDocs(collectionRef);
+      const snapshot = await getDocs(orgQuery);
       return snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -208,7 +211,8 @@ export class IncidentPlaybookService {
   static async initiateResponse(
     incidentId: string,
     playbookId: string,
-    assignedTo: string[]
+    assignedTo: string[],
+    organizationId: string
   ): Promise<string> {
     try {
       const playbook = await this.getPlaybook(playbookId);
@@ -218,6 +222,7 @@ export class IncidentPlaybookService {
 
       const response: Omit<IncidentResponse, 'id'> = {
         incidentId,
+        organizationId,
         playbookId,
         status: 'initiated',
         startedAt: new Date().toISOString(),
@@ -414,7 +419,7 @@ export class IncidentPlaybookService {
   }
 
   // Default Playbooks
-  static async initializeDefaultPlaybooks(): Promise<void> {
+  static async initializeDefaultPlaybooks(organizationId: string): Promise<void> {
     const defaultPlaybooks: Omit<IncidentPlaybook, 'id'>[] = [
       {
         category: 'Ransomware',
@@ -537,13 +542,255 @@ export class IncidentPlaybookService {
           }
         ],
         escalationCriteria: []
+      },
+      {
+        category: 'Indisponibilité',
+        title: 'Service Unavailability Response',
+        description: 'Procédure de réponse à une indisponibilité majeure de service',
+        severity: 'High',
+        estimatedDuration: '2-6 hours',
+        requiredResources: ['IT Ops', 'DevOps', 'Communications'],
+        steps: [
+          {
+            id: 'diagnose',
+            order: 1,
+            title: 'Diagnosis',
+            description: 'Identifier la cause racine de la panne',
+            type: 'detection',
+            estimatedTime: '30-45 minutes',
+            requiredRole: 'SRE / Sysadmin',
+            evidenceRequired: ['server_logs', 'error_rates']
+          },
+          {
+            id: 'restore',
+            order: 2,
+            title: 'Service Restoration',
+            description: 'Rétablir le service (failover, restart, rollback)',
+            type: 'recovery',
+            estimatedTime: '1-2 hours',
+            requiredRole: 'SRE / Sysadmin',
+            dependencies: ['diagnose']
+          },
+          {
+            id: 'verify',
+            order: 3,
+            title: 'Verification',
+            description: 'Valider la stabilité du service',
+            type: 'recovery',
+            estimatedTime: '30 minutes',
+            requiredRole: 'QA / Tester'
+          },
+          {
+            id: 'communicate',
+            order: 4,
+            title: 'Status Update',
+            description: 'Informer les utilisateurs du rétablissement',
+            type: 'communication',
+            estimatedTime: '15 minutes',
+            requiredRole: 'Incident Manager'
+          }
+        ],
+        communicationTemplate: {
+          internal: 'Panne majeure en cours d\'investigation - War room ouverte',
+          external: 'Nous rencontrons actuellement des difficultés techniques - Nos équipes sont mobilisées',
+          management: 'Impact business critique - SLA à risque'
+        },
+        checklist: [
+          {
+            id: 'status_page',
+            title: 'Mettre à jour la Status Page',
+            description: 'Publier l\'incident sur la page de statut publique',
+            required: true,
+            category: 'communication'
+          }
+        ],
+        postIncidentActions: [
+          {
+            id: 'post_mortem',
+            title: 'Rédiger le Post-Mortem',
+            description: 'Analyser les causes et définir les actions correctives',
+            priority: 'High',
+            dueDate: '+2 days'
+          }
+        ],
+        escalationCriteria: [
+          {
+            id: 'sla_breach',
+            // Checking previous definition in file: id, condition, action, threshold, timeframe.
+            // Let's stick to the interface.
+            condition: 'Interruption > 1h',
+            action: 'Notifier le CTO',
+            threshold: 60,
+            timeframe: 'minutes'
+          }
+        ]
+      },
+      {
+        category: 'Fuite de Données',
+        title: 'Data Leak Response',
+        description: 'Procédure de réponse à une fuite de données confidentielles',
+        severity: 'Critical',
+        estimatedDuration: '24-48 hours',
+        requiredResources: ['Security', 'Legal', 'DPO', 'Communications'],
+        steps: [
+          {
+            id: 'assess_scope',
+            order: 1,
+            title: 'Scope Assessment',
+            description: 'Identifier les données compromises et les personnes affectées',
+            type: 'detection',
+            estimatedTime: '2-4 hours',
+            requiredRole: 'DPO / Security Analyst',
+            evidenceRequired: ['access_logs', 'exfiltrated_data_sample']
+          },
+          {
+            id: 'contain_leak',
+            order: 2,
+            title: 'Contain Leak',
+            description: 'Fermer la faille ou l\'accès compromis',
+            type: 'containment',
+            estimatedTime: '1 hour',
+            requiredRole: 'Security Engineer'
+          },
+          {
+            id: 'legal_review',
+            order: 3,
+            title: 'Legal Review',
+            description: 'Déterminer les obligations de notification (CNIL, Clients)',
+            type: 'detection', // or containment/recovery? usually part of response
+            estimatedTime: '2 hours',
+            requiredRole: 'Legal Counsel'
+          },
+          {
+            id: 'notify_authorities',
+            order: 4,
+            title: 'Notify Authorities',
+            description: 'Notifier la CNIL (si requis, sous 72h)',
+            type: 'communication',
+            estimatedTime: '1 hour',
+            requiredRole: 'DPO',
+            dependencies: ['legal_review']
+          }
+        ],
+        communicationTemplate: {
+          internal: 'Investigation fuite de données - Protocol confidentiel',
+          external: 'Notification de violation de données',
+          management: 'Risque légal et réputationnel majeur'
+        },
+        checklist: [
+          {
+            id: 'cnil_notification',
+            title: 'Vérifier délai 72h RGPD',
+            description: 'S\'assurer que la notification part dans les temps',
+            required: true,
+            category: 'communication'
+          }
+        ],
+        postIncidentActions: [
+          {
+            id: 'gdpr_audit',
+            title: 'Audit de conformité ciblé',
+            description: 'Revoir les processus liés aux données touchées',
+            priority: 'High',
+            dueDate: '+14 days'
+          }
+        ],
+        escalationCriteria: []
+      },
+      {
+        category: 'Vol Matériel',
+        title: 'Lost/Stolen Device Response',
+        description: 'Procédure en cas de perte ou vol d\'équipement',
+        severity: 'Medium',
+        estimatedDuration: '1-2 hours',
+        requiredResources: ['IT Support', 'Security'],
+        steps: [
+          {
+            id: 'remote_wipe',
+            order: 1,
+            title: 'Remote Wipe',
+            description: 'Lancer l\'effacement à distance du terminal (MDM)',
+            type: 'containment',
+            estimatedTime: '15 minutes',
+            requiredRole: 'IT Administrator',
+            evidenceRequired: ['mdm_logs']
+          },
+          {
+            id: 'revoke_access',
+            order: 2,
+            title: 'Revoke Access',
+            description: 'Révoquer les sessions et changer les mots de passe',
+            type: 'containment',
+            estimatedTime: '30 minutes',
+            requiredRole: 'IT Support'
+          },
+          {
+            id: 'police_report',
+            order: 3,
+            title: 'File Police Report',
+            description: 'Déposer plainte (si vol confirmé)',
+            type: 'recovery',
+            estimatedTime: '1 day',
+            requiredRole: 'Office Manager / HR'
+          }
+        ],
+        communicationTemplate: {
+          internal: 'Signalement vol matériel',
+          management: 'Perte d\'actif - Mesures conservatoires prises'
+        },
+        checklist: [
+          {
+            id: 'inventory_update',
+            title: 'Mise à jour inventaire',
+            description: 'Marquer l\'actif comme volé/perdu',
+            required: true,
+            category: 'recovery'
+          }
+        ],
+        postIncidentActions: [],
+        escalationCriteria: []
+      },
+      {
+        category: 'Autre',
+        title: 'General Incident Response',
+        description: 'Procédure générique pour incident non classifié',
+        severity: 'Medium',
+        estimatedDuration: 'Variable',
+        requiredResources: ['Security Team'],
+        steps: [
+          {
+            id: 'triage',
+            order: 1,
+            title: 'Triage & Classification',
+            description: 'Déterminer la nature et l\'impact de l\'incident',
+            type: 'detection',
+            estimatedTime: '30 minutes',
+            requiredRole: 'Security Analyst'
+          },
+          {
+            id: 'containment_plan',
+            order: 2,
+            title: 'Define Containment Plan',
+            description: 'Établir un plan d\'endiguement ad-hoc',
+            type: 'containment',
+            estimatedTime: '30 minutes',
+            requiredRole: 'Incident Manager'
+          }
+        ],
+        communicationTemplate: {
+          internal: 'Incident en cours de qualification',
+          management: 'Incident détecté - Analyse en cours'
+        },
+        checklist: [],
+        postIncidentActions: [],
+        escalationCriteria: []
       }
     ];
 
     for (const playbook of defaultPlaybooks) {
-      const existing = await this.getPlaybooks(playbook.category);
+      const existing = await this.getPlaybooks(organizationId, playbook.category);
       if (existing.length === 0) {
-        await this.createPlaybook(playbook);
+        await this.createPlaybook(playbook, organizationId);
       }
     }
   }
