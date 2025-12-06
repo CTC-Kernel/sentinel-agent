@@ -41,6 +41,11 @@
     @apply bg-brand-50/50 dark:bg-brand-500/5 !important;
 }
 
+/* Hover effect on cells */
+.rbc-day-bg:not(.rbc-today):hover {
+    @apply bg-slate-50/80 dark:bg-white/[0.02] transition-colors duration-200 cursor-pointer !important;
+}
+
 /* Grid Lines - Barely visible in dark mode for premium feel */
 .rbc-month-view,
 .rbc-time-view,
