@@ -6,7 +6,7 @@ import { Helmet } from 'react-helmet-async';
 
 export const CalendarView: React.FC = () => {
     return (
-        <div className="space-y-8 animate-fade-in h-full flex flex-col">
+        <div className="space-y-8 animate-fade-in flex flex-col lg:h-full">
             <Helmet>
                 <title>Calendrier - Sentinel GRC</title>
             </Helmet>
