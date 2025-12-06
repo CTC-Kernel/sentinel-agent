@@ -3,7 +3,7 @@ import { Canvas, useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { OrbitControls, Line, Html, Text, Float, Edges, Environment, Billboard } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, DoubleSide, CatmullRomCurve3, MeshPhysicalMaterial, Points as ThreePoints, Material, CanvasTexture } from 'three';
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
-import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, VoxelNode } from '../types';
+import { Asset, Risk, Project, Audit, Incident, Supplier, Control, VoxelNode, AISuggestedLink } from '../types';
 import { VoxelDetailOverlay } from './VoxelDetailOverlay';
 
 class VoxelErrorBoundary extends Component<{ children: React.ReactNode, fallback?: React.ReactNode }, { hasError: boolean }> {
@@ -56,6 +56,7 @@ interface VoxelStudioProps {
   audits: Audit[];
   incidents: Incident[];
   suppliers: Supplier[];
+  controls: Control[];
   onNodeClick?: (node: VoxelNode | null) => void;
   className?: string;
   visibleTypes?: VoxelNode['type'][];
@@ -66,6 +67,7 @@ interface VoxelStudioProps {
     risks: number;
     projects: number;
     incidents: number;
+    controls: number;
   };
   xRayMode?: boolean;
   autoRotatePreference?: boolean | null;
@@ -80,6 +82,8 @@ interface VoxelStudioProps {
   relatedElements?: RelatedElement[];
   applyFocus?: (id: string, type: VoxelNode['type']) => void;
   handleOpenSelected?: () => void;
+  impactMode?: boolean;
+  setImpactMode?: (v: boolean) => void;
 }
 
 const safeRender = (value: unknown): React.ReactNode => {
@@ -464,32 +468,86 @@ const PulseCore: React.FC = () => {
   );
 };
 
-const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string; opacity?: number }> = ({ start, end, color, opacity = 0.5 }) => {
+const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string; opacity?: number; speed?: number }> = ({ start, end, color, opacity = 0.5, speed = 1 }) => {
+  const pointsRef = useRef<ThreePoints>(null);
   const curve = useMemo(() => {
     if (!start || !end) return null;
     const mid = new Vector3().addVectors(start, end).multiplyScalar(0.5);
-    mid.y += 2; // Arc height
+    mid.y += Math.max(2, start.distanceTo(end) * 0.2); // Dynamic arc height based on distance
     return new CatmullRomCurve3([start, mid, end]);
   }, [start, end]);
 
-  const points = useMemo(() => {
-    if (!curve) return [];
-    try {
-      return curve.getPoints(50);
-    } catch {
-      return [];
+  // Generate initial particle positions along the curve
+  const { positions, initialOffsets } = useMemo(() => {
+    if (!curve) return { positions: new Float32Array(0), initialOffsets: new Float32Array(0) };
+    const particleCount = 20; // Number of particles per flow
+    const posArray = new Float32Array(particleCount * 3);
+    const offsetArray = new Float32Array(particleCount);
+
+    for (let i = 0; i < particleCount; i++) {
+      const t = i / particleCount;
+      const point = curve.getPoint(t);
+      posArray[i * 3] = point.x;
+      posArray[i * 3 + 1] = point.y;
+      posArray[i * 3 + 2] = point.z;
+      offsetArray[i] = Math.random(); // Random start phase
     }
+    return { positions: posArray, initialOffsets: offsetArray };
   }, [curve]);
 
-  // Geometry validation
-  if (!points || points.length === 0) return null;
-  const isValid = Array.isArray(points) && points.length > 0 && points.every(p => p && !isNaN(p.x) && !isNaN(p.y) && !isNaN(p.z));
-  if (!isValid) return null;
+  const texture = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+      gradient.addColorStop(0, 'rgba(255,255,255,1)');
+      gradient.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 32, 32);
+    }
+    return new CanvasTexture(canvas);
+  }, []);
+
+  useFrame((state) => {
+    if (!pointsRef.current || !curve) return;
+    const time = state.clock.getElapsedTime() * speed;
+    const positionsAttribute = pointsRef.current.geometry.attributes.position;
+
+    for (let i = 0; i < 20; i++) {
+      // Calculate current position along curve based on time and offset
+      const t = (time * 0.5 + initialOffsets[i]) % 1;
+      const point = curve.getPoint(t);
+      positionsAttribute.setXYZ(i, point.x, point.y, point.z);
+    }
+    positionsAttribute.needsUpdate = true;
+  });
+
+  if (!curve) return null;
 
   return (
-    <group>
-      <Line points={points} color={color} opacity={opacity} transparent lineWidth={1} />
-    </group>
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={positions.length / 3}
+          array={positions}
+          itemSize={3}
+          args={[positions, 3]}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        map={texture}
+        color={color}
+        transparent
+        opacity={opacity}
+        size={0.4}
+        sizeAttenuation
+        depthWrite={false}
+        blending={AdditiveBlending}
+      />
+    </points>
   );
 };
 
@@ -497,15 +555,16 @@ const GlassMaterial: React.FC<React.ComponentProps<'meshPhysicalMaterial'> & { i
   <meshPhysicalMaterial
     color={isDimmed ? '#1e293b' : isHighlighted ? '#ffffff' : color}
     emissive={isDimmed ? '#000000' : isHighlighted ? color : emissive}
-    emissiveIntensity={isDimmed ? 0 : isHighlighted ? 2.0 : 0.4}
-    roughness={isDimmed ? 0.9 : isHighlighted ? 0.1 : 0.15}
-    metalness={isDimmed ? 0.1 : isHighlighted ? 0.5 : 0.3}
-    transmission={isDimmed ? 0 : 0.45}
-    thickness={isDimmed ? 0 : 1.5}
+    emissiveIntensity={isDimmed ? 0 : isHighlighted ? 1.8 : 0.6}
+    roughness={isDimmed ? 0.9 : 0.15}
+    metalness={isDimmed ? 0.1 : 0.1}
+    transmission={isDimmed ? 0 : 0.9}
+    thickness={isDimmed ? 0 : 2}
+    ior={1.5}
     clearcoat={isDimmed ? 0 : 1}
     clearcoatRoughness={0.1}
     transparent
-    opacity={isDimmed ? 0.1 : Math.max(Number(opacity || 1), 0.6)}
+    opacity={isDimmed ? 0.1 : 1}
     side={DoubleSide}
     {...props}
   />
@@ -643,13 +702,14 @@ const VoxelMesh: React.FC<{
             color: isDimmed ? '#1e293b' : baseColor,
             emissive: isDimmed ? '#000000' : emissiveColor,
             emissiveIntensity: isDimmed ? 0 : emissiveIntensity,
-            metalness: isDimmed ? 0.1 : 0.3,
-            roughness: isDimmed ? 0.9 : 0.2,
-            transmission: isDimmed ? 0 : 0.5,
-            thickness: isDimmed ? 0 : 1.2,
+            metalness: isDimmed ? 0.1 : 0.1,
+            roughness: isDimmed ? 0.9 : 0.15,
+            transmission: isDimmed ? 0 : 0.9,
+            thickness: isDimmed ? 0 : 2,
+            ior: 1.5,
             clearcoat: isDimmed ? 0 : 1,
             transparent: true,
-            opacity: isDimmed ? 0.1 : Math.max(opacity ?? 1, 0.6),
+            opacity: isDimmed ? 0.1 : 1,
             wireframe: Boolean(xRayMode),
             side: DoubleSide
           });
@@ -1031,6 +1091,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   audits = [],
   incidents = [],
   suppliers = [],
+  controls = [],
   onNodeClick,
   className = "",
   visibleTypes = [],
@@ -1038,17 +1099,10 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   highlightCritical = false,
   summaryStats,
   releaseToken,
-  suggestedLinks = [],
-  xRayMode,
-  presentationMode,
+  suggestedLinks = [], xRayMode, presentationMode,
   // Overlay props
-  selectedNodeDetails,
-  isDetailMinimized,
-  setIsDetailMinimized,
-  handleSelectionClear,
-  relatedElements = [],
-  applyFocus,
-  handleOpenSelected,
+  selectedNodeDetails, isDetailMinimized, setIsDetailMinimized, handleSelectionClear, relatedElements = [], applyFocus, handleOpenSelected,
+  impactMode, setImpactMode
 }) => {
   const [selectedNode, setSelectedNode] = useState<VoxelNode | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -1062,7 +1116,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   const [overlayOffset, setOverlayOffset] = useState({ x: 0, y: 0 });
 
   // Intelligent Features State
-  const [impactMode, setImpactMode] = useState(false);
+  // impactMode is now controlled by props
   const [impactedNodeIds, setImpactedNodeIds] = useState<Set<string>>(new Set());
 
 
@@ -1097,7 +1151,6 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   const safeProjects = useMemo(() => projects ?? [], [projects]);
   const safeAudits = useMemo(() => audits ?? [], [audits]);
   const safeIncidents = useMemo(() => incidents ?? [], [incidents]);
-  const safeSuppliers = useMemo(() => suppliers ?? [], [suppliers]);
 
   // Convert data to voxel nodes
   const voxelNodes = useMemo(() => {
@@ -1167,13 +1220,18 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         const angle = (i / (safeAudits.length || 1)) * Math.PI * 2;
         const radius = 12;
         nodes.push({
+
           id: audit.id,
           position: applySceneOffset(Math.cos(angle) * radius, 8, Math.sin(angle) * radius),
           color: '#06b6d4', // cyan-500
           size: 0.9,
           type: 'audit',
           data: audit,
-          connections: []
+          connections: [
+            ...(audit.relatedAssetIds || []),
+            ...(audit.relatedRiskIds || []),
+            ...(audit.relatedProjectIds || [])
+          ]
         });
       });
     }
@@ -1197,25 +1255,52 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     }
 
     // --- 6. SUPPLIERS (External Orbit) ---
-    if (currentVisible.includes('supplier')) {
-      safeSuppliers.forEach((supplier, i) => {
-        const angle = (i / (safeSuppliers.length || 1)) * Math.PI * 2 + 2;
-        const radius = 20;
-        const supplierColor = supplier.criticality === 'Critique' ? '#dc2626' : supplier.criticality === 'Élevée' ? '#ea580c' : '#22c55e';
-        nodes.push({
-          id: supplier.id,
-          position: applySceneOffset(Math.cos(angle) * radius, 0, Math.sin(angle) * radius),
-          type: 'supplier',
-          color: supplierColor,
-          size: 0.6,
-          data: supplier,
-          connections: []
-        });
-      });
+    // Map Suppliers (Green)
+    if (visibleTypes.includes('supplier')) {
+      nodes.push(...suppliers.map((s, i) => {
+        const x = Math.cos(i * 0.5 + 2) * 16;
+        const z = Math.sin(i * 0.5 + 2) * 16;
+        // Connection logic for Suppliers ...
+        const connections: string[] = [];
+        if (s.relatedAssetIds) connections.push(...s.relatedAssetIds);
+        if (s.relatedProjectIds) connections.push(...s.relatedProjectIds);
+
+        return {
+          id: s.id,
+          type: 'supplier' as const,
+          data: s,
+          position: applySceneOffset(x, 1, z),
+          color: '#22c55e',
+          size: 1.1,
+          connections
+        };
+      }));
+    }
+
+    // Map Controls (Teal)
+    if (visibleTypes.includes('control')) {
+      nodes.push(...controls.map((c, i) => {
+        const x = Math.cos(i * 0.4 + 4) * 20; // Outer ring
+        const z = Math.sin(i * 0.4 + 4) * 20;
+
+        const connections: string[] = [];
+        if (c.relatedAssetIds) connections.push(...c.relatedAssetIds);
+        if (c.relatedRiskIds) connections.push(...c.relatedRiskIds);
+
+        return {
+          id: c.id,
+          type: 'control' as const,
+          data: c,
+          position: applySceneOffset(x, 2, z),
+          color: '#14b8a6', // Teal
+          size: 1.0,
+          connections
+        };
+      }));
     }
 
     return nodes;
-  }, [safeAssets, safeRisks, safeProjects, safeAudits, safeIncidents, safeSuppliers, visibleTypes]);
+  }, [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]);
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -1262,10 +1347,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     return () => clearTimeout(timer);
   }, [selectedNode]);
 
-
-
   const connectionPairs = useMemo(() => {
-    const pairs: { start: [number, number, number]; end: [number, number, number]; strength: number; sourceId: string; targetId: string }[] = [];
+    const pairs: { start: [number, number, number]; end: [number, number, number]; strength: number; sourceId: string; targetId: string; type?: string }[] = [];
     voxelNodes.forEach(node => {
       node.connections.forEach(connectionId => {
         const target = voxelNodes.find(n => n.id === connectionId);
@@ -1276,7 +1359,14 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
             (node.position[2] - target.position[2]) ** 2
           );
           const strength = Math.max(0.3, 1 - distance / 25);
-          pairs.push({ start: node.position, end: target.position, strength, sourceId: node.id, targetId: target.id });
+          pairs.push({
+            start: node.position,
+            end: target.position,
+            strength,
+            sourceId: node.id,
+            targetId: target.id,
+            type: node.type
+          });
         }
       });
     });
@@ -1483,13 +1573,17 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                   pair.sourceId === selectedNode.id ||
                   pair.targetId === selectedNode.id;
 
+                // Don't render irrelevant links if focusing on one node, to reduce noise
+                if (selectedNode && !isRelevant && !impactMode) return null;
+
                 return (
                   <DataFlowParticles
                     key={`conn-${i}`}
                     start={new Vector3(...pair.start)}
                     end={new Vector3(...pair.end)}
-                    color="#94a3b8"
-                    opacity={isRelevant ? 0.5 : 0.05}
+                    color={pair.type === 'risk' ? '#f87171' : '#94a3b8'} // Red for risk, gray for default
+                    opacity={isRelevant ? 0.8 : 0.1}
+                    speed={isRelevant ? 1.5 : 0.5}
                   />
                 );
               })}

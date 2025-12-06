@@ -36,6 +36,7 @@ import { getAuditReminderTemplate } from '../services/emailTemplates';
 import { generateICS, downloadICS } from '../utils/calendar';
 import JSZip from 'jszip';
 import { ErrorLogger } from '../services/errorLogger';
+import { SafeHTML } from '../components/ui/SafeHTML';
 import { getPlanLimits } from '../config/plans';
 import { buildAppUrl } from '../config/appConfig';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
@@ -678,9 +679,11 @@ export const Audits: React.FC = () => {
                     title: 'Rapport d\'Audit',
                     subtitle: selectedAudit.name,
                     filename: `Rapport_Audit_${selectedAudit.name.replace(/\s+/g, '_')}.pdf`,
-                    organizationName: user?.email?.split('@')[1] || 'Sentinel GRC', // Fallback
+                    organizationName: organization?.name || user?.email?.split('@')[1] || 'Sentinel GRC',
+                    organizationLogo: organization?.logoUrl,
                     author: selectedAudit.auditor,
-                    summary: summary
+                    summary: summary,
+                    coverImage: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop' // Audit/Business meeting image
                 },
                 (doc, startY) => {
                     let y = startY;
@@ -690,25 +693,6 @@ export const Audits: React.FC = () => {
                     doc.text("1. Détails de l'Audit", 14, y);
                     y += 8;
 
-                    const details = [
-                        ['Auditeur', selectedAudit.auditor],
-                        ['Date Planifiée', selectedAudit.dateScheduled ? new Date(selectedAudit.dateScheduled).toLocaleDateString() : 'Non planifié'],
-                        ['Statut', selectedAudit.status],
-                        ['Périmètre', selectedAudit.scope || 'Non défini']
-                    ];
-
-                    doc.autoTable({
-                        startY: y,
-                        body: details,
-                        theme: 'plain',
-                        styles: { fontSize: 10, cellPadding: 2 },
-                        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
-                    });
-
-                    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
-
-                    // Findings Section
-                    doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
                     doc.text("2. Constats d'Audit", 14, y);
                     y += 8;
 
@@ -773,8 +757,10 @@ export const Audits: React.FC = () => {
                 title: 'Plan d\'Audit',
                 subtitle: selectedAudit.name,
                 filename: `Plan_Audit_${selectedAudit.name.replace(/\s+/g, '_')}.pdf`,
-                organizationName: user?.email?.split('@')[1] || 'Sentinel GRC',
-                author: selectedAudit.auditor
+                organizationName: organization?.name || user?.email?.split('@')[1] || 'Sentinel GRC',
+                organizationLogo: organization?.logoUrl,
+                author: selectedAudit.auditor,
+                coverImage: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop' // Collaborative working image
             },
             (doc, startY) => {
                 let y = startY;
@@ -1420,6 +1406,10 @@ export const Audits: React.FC = () => {
 
                             {inspectorTab === 'scope' && (
                                 <div className="space-y-8">
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Target className="h-4 w-4 mr-2" /> Description du Périmètre</h4>
+                                        <SafeHTML content={selectedAudit.scope || ''} />
+                                    </div>
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                         <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Server className="h-4 w-4 mr-2" /> Actifs Audités ({selectedAudit.relatedAssetIds?.length || 0})</h4>
                                         <div className="space-y-2">

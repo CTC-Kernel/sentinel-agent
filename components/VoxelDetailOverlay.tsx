@@ -236,7 +236,8 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
                           related.type === 'asset' ? 'bg-blue-400' :
                             related.type === 'incident' ? 'bg-red-400' :
                               related.type === 'project' ? 'bg-purple-400' :
-                                'bg-gray-400'
+                                related.type === 'control' ? 'bg-teal-400' :
+                                  'bg-gray-400'
                           }`} />
                         <span className="font-semibold line-clamp-1">{related.label}</span>
                         {related.meta && <span className="text-white/50 group-hover:text-white/70 text-[10px]">({related.meta})</span>}
