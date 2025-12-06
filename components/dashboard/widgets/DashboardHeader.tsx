@@ -1,7 +1,7 @@
 import React from 'react';
-import { Server, ClipboardCheck, FileText, Zap, ArrowRight, CalendarDays, Download, X, ChevronRight, Activity } from '../../ui/Icons';
+import { Server, ClipboardCheck, FileText, Zap, ArrowRight, CalendarDays, Download, X, ChevronRight, Activity, ShieldCheck, Users, AlertTriangle } from '../../ui/Icons';
 import { MaturityRadarWidget } from './MaturityRadarWidget';
-import { SecurityBadge } from '../../ui/SecurityBadge';
+
 
 const InsightCard: React.FC<{ insight: any, navigate: (path: string) => void }> = ({ insight, navigate }) => {
     const [isVisible, setIsVisible] = React.useState(true);
@@ -9,28 +9,29 @@ const InsightCard: React.FC<{ insight: any, navigate: (path: string) => void }> 
     if (!isVisible) return null;
 
     const styles = {
-        danger: { bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-600 dark:text-red-400', iconBg: 'bg-red-500/20' },
-        warning: { bg: 'bg-orange-500/10', border: 'border-orange-500/20', text: 'text-orange-600 dark:text-orange-400', iconBg: 'bg-orange-500/20' },
-        success: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-500/20' }
+        danger: { bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-600 dark:text-red-400', iconBg: 'bg-red-500/20', icon: AlertTriangle },
+        warning: { bg: 'bg-orange-500/10', border: 'border-orange-500/20', text: 'text-orange-600 dark:text-orange-400', iconBg: 'bg-orange-500/20', icon: AlertTriangle },
+        success: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-500/20', icon: ShieldCheck }
     };
 
     const type = insight.type as keyof typeof styles || 'success';
     const style = styles[type];
+    const Icon = style.icon;
 
     return (
-        <div className={`relative overflow-hidden p-4 rounded-xl border ${style.bg} ${style.border} backdrop-blur-md transition-all duration-300 animate-slide-up group`}>
-            <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-lg shrink-0 ${style.iconBg} ${style.text}`}>
-                    <Zap className="h-4 w-4" fill="currentColor" strokeWidth={0} />
+        <div className={`relative overflow-hidden p-5 rounded-2xl border ${style.bg} ${style.border} backdrop-blur-md transition-all duration-300 animate-slide-up group hover:shadow-lg`}>
+            <div className="flex items-start gap-4">
+                <div className={`p-3 rounded-xl shrink-0 ${style.iconBg} ${style.text} shadow-sm`}>
+                    <Icon className="h-5 w-5" fill="currentColor" fillOpacity={0.2} strokeWidth={2} />
                 </div>
                 <div className="flex-1 min-w-0 pt-0.5">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white mb-0.5 pr-6">{insight.text}</p>
-                    {insight.details && <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed max-w-[90%]">{insight.details}</p>}
+                    <p className="text-base font-bold text-slate-900 dark:text-white mb-1 pr-6 tracking-tight">{insight.text}</p>
+                    {insight.details && <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-[95%] opacity-90">{insight.details}</p>}
 
                     {insight.link && (
                         <button
                             onClick={() => navigate(insight.link!)}
-                            className={`mt-2 inline-flex items-center text-xs font-bold ${style.text} hover:underline decoration-2 underline-offset-4`}
+                            className={`mt-3 inline-flex items-center text-xs font-bold ${style.text} uppercase tracking-wider hover:opacity-80 transition-opacity`}
                         >
                             {insight.action} <ArrowRight className="h-3 w-3 ml-1" />
                         </button>
@@ -38,9 +39,9 @@ const InsightCard: React.FC<{ insight: any, navigate: (path: string) => void }> 
                 </div>
                 <button
                     onClick={(e) => { e.stopPropagation(); setIsVisible(false); }}
-                    className="absolute top-3 right-3 p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                    className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                 >
-                    <X className="h-3.5 w-3.5 text-slate-400" />
+                    <X className="h-4 w-4 text-slate-400" />
                 </button>
             </div>
         </div>
@@ -79,9 +80,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     const getGradeColor = (g?: string) => {
         if (!g) return 'from-slate-500 to-slate-600';
         if (g === 'A') return 'from-emerald-400 to-emerald-600';
-        if (g === 'B') return 'from-indigo-400 to-indigo-600';
+        if (g === 'B') return 'from-blue-400 to-blue-600';
         if (g === 'C') return 'from-orange-400 to-orange-600';
-        return 'from-red-400 to-red-600';
+        return 'from-red-500 to-red-700';
     };
 
     const role = user?.role || 'user';
@@ -97,29 +98,34 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
     if (isEmpty && !loading) {
         return (
-            <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 shadow-glass dark:shadow-none border border-slate-200/50 dark:border-white/5 p-8 md:p-12 text-center animate-fade-in group">
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-transparent dark:from-white/5 pointer-events-none" />
-                <div className="relative z-10 flex flex-col items-center max-w-2xl mx-auto">
-                    <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 mb-8 backdrop-blur-sm">
-                        <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse" />
-                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{organizationName || t('dashboard.operationalSystem')}</span>
+            <div className="relative overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-2xl dark:shadow-none border border-slate-200/50 dark:border-white/5 p-8 md:p-16 text-center animate-fade-in group">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500/10 via-slate-50/50 to-white dark:from-indigo-500/10 dark:via-slate-900/50 dark:to-slate-900 pointer-events-none" />
+                <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto">
+                    <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/60 dark:bg-white/5 border border-slate-200 dark:border-white/10 mb-8 backdrop-blur-md shadow-sm">
+                        <span className="relative flex h-2.5 w-2.5 mr-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">{organizationName || t('dashboard.operationalSystem')}</span>
                     </div>
 
-                    <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-6 font-display">
+                    <h2 className="text-5xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-8 font-display bg-clip-text text-transparent bg-gradient-to-br from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 pb-2">
                         {t(welcomeKey)}
                     </h2>
-                    <p className="text-lg text-slate-600 dark:text-slate-400 mb-12 leading-relaxed">
+                    <p className="text-xl text-slate-600 dark:text-slate-400 mb-16 leading-relaxed max-w-2xl mx-auto font-light">
                         {t(subtitleKey1)} {t(subtitleKey2)}
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
                         {cards.map((card, i) => (
-                            <button key={i} onClick={() => navigate(card.link)} className="group/card relative p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-brand-300 dark:hover:border-brand-500/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                                <div className={`w-12 h-12 rounded-xl bg-${card.color}-50 dark:bg-${card.color}-500/10 flex items-center justify-center mb-4 group-hover/card:scale-110 transition-transform`}>
-                                    <card.icon className={`h-6 w-6 text-${card.color}-600 dark:text-${card.color}-400`} />
+                            <button key={i} onClick={() => navigate(card.link)} className="group/card relative p-8 rounded-3xl bg-white/60 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-brand-500/50 dark:hover:border-brand-400/50 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 overflow-hidden">
+                                <div className={`absolute -right-10 -bottom-10 w-40 h-40 bg-${card.color}-500/10 rounded-full blur-3xl group-hover/card:bg-${card.color}-500/20 transition-all duration-500`} />
+
+                                <div className={`w-14 h-14 rounded-2xl bg-${card.color}-50 dark:bg-${card.color}-500/10 flex items-center justify-center mb-6 group-hover/card:scale-110 transition-transform duration-500 shadow-sm`}>
+                                    <card.icon className={`h-7 w-7 text-${card.color}-600 dark:text-${card.color}-400`} />
                                 </div>
-                                <h3 className="font-bold text-slate-900 dark:text-white mb-2">{card.title}</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">{card.desc}</p>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 tracking-tight group-hover/card:text-brand-600 dark:group-hover/card:text-brand-400 transition-colors">{card.title}</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed relative z-10">{card.desc}</p>
                             </button>
                         ))}
                     </div>
@@ -129,85 +135,116 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     }
 
     return (
-        <div className="group relative rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl shadow-apple dark:shadow-glass-dark border border-white/20 dark:border-white/5 overflow-hidden transition-all duration-500">
-            {/* Subtle Gradient Backdrops - No Noise */}
-            <div className="absolute top-0 right-0 p-32 bg-brand-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 p-24 bg-indigo-500/5 rounded-full blur-3xl -ml-12 -mb-12 pointer-events-none" />
+        <div className="group relative rounded-[2.5rem] bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-2xl shadow-2xl dark:shadow-none border border-white/40 dark:border-white/5 overflow-hidden transition-all duration-700 hover:shadow-3xl">
+            {/* Dynamic Mesh Gradients */}
+            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-gradient-to-b from-brand-500/10 to-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none opacity-60 animate-pulse-slow" />
+            <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-gradient-to-t from-blue-500/10 to-emerald-500/10 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none opacity-60 mix-blend-multiply dark:mix-blend-screen" />
 
-            <div className="relative z-10 p-6 sm:p-8">
-                <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+            {/* Subtle Grid Texture */}
+            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.03] dark:opacity-[0.05] pointer-events-none" />
+
+            <div className="relative z-10 p-8 sm:p-10">
+                <div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
 
                     {/* Left Column: Essential Info */}
-                    <div className="flex-1 space-y-8">
+                    <div className="flex-1 space-y-10">
                         {/* Header Row */}
                         <div className="flex items-start justify-between">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-4 mb-1">
+                                    <h1 className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-slate-400 tracking-tight font-display drop-shadow-sm">
                                         Sentinel GRC
                                     </h1>
-                                    <SecurityBadge feature="general" className="scale-90" />
+                                    <div className="px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-700 dark:text-brand-300 text-xs font-bold uppercase tracking-wider backdrop-blur-sm">PRO</div>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <div className="flex items-center gap-3 text-sm font-medium text-slate-500 dark:text-slate-400 pl-1">
+                                    <span className="relative flex h-2.5 w-2.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                    </span>
                                     {organizationName || user?.organizationName || t('dashboard.operationalSystem')}
+                                    <span className="text-slate-300 dark:text-slate-600">•</span>
+                                    <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
                                 </div>
                             </div>
 
                             {/* Score Box - Mobile */}
                             <div className="lg:hidden">
-                                <div className={`relative flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${getGradeColor(scoreGrade)} shadow-lg`}>
-                                    <span className="text-2xl font-black text-white drop-shadow-md">{scoreGrade || '-'}</span>
+                                <div className={`relative flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br ${getGradeColor(scoreGrade)} shadow-xl ring-4 ring-white dark:ring-slate-800`}>
+                                    <span className="text-3xl font-black text-white drop-shadow-md font-display">{scoreGrade || '-'}</span>
                                     <div className="absolute inset-0 rounded-2xl border border-white/20" />
                                 </div>
                             </div>
                         </div>
 
                         {/* Metrics Grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            <div className="flex flex-col p-4 rounded-2xl bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 backdrop-blur-sm transition-colors hover:bg-slate-100/50 dark:hover:bg-white/10">
-                                <div className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Grade</div>
-                                <div className="text-2xl font-black text-slate-900 dark:text-white">{scoreGrade || '-'}</div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+                            <div className="flex flex-col p-5 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-md transition-all duration-300 hover:bg-white/60 dark:hover:bg-white/10 hover:scale-[1.02] hover:shadow-lg hover:border-brand-200 dark:hover:border-brand-500/30 group/metric">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover/metric:bg-brand-50 group-hover/metric:text-brand-600 transition-colors">
+                                        <Activity className="h-4 w-4" />
+                                    </div>
+                                </div>
+                                <div className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Score Global</div>
+                                <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{scoreGrade || '-'}</div>
                             </div>
-                            <div className="flex flex-col p-4 rounded-2xl bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 backdrop-blur-sm transition-colors hover:bg-slate-100/50 dark:hover:bg-white/10">
-                                <div className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Membres</div>
-                                <div className="text-2xl font-black text-slate-900 dark:text-white">{teamSize || 0}</div>
+
+                            <div className="flex flex-col p-5 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-md transition-all duration-300 hover:bg-white/60 dark:hover:bg-white/10 hover:scale-[1.02] hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-500/30 group/metric">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover/metric:bg-blue-50 group-hover/metric:text-blue-600 transition-colors">
+                                        <Users className="h-4 w-4" />
+                                    </div>
+                                </div>
+                                <div className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Équipe</div>
+                                <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{teamSize || 0}</div>
                             </div>
-                            <div className="flex flex-col p-4 rounded-2xl bg-red-500/5 border border-red-500/10 backdrop-blur-sm transition-colors hover:bg-red-500/10 cursor-pointer" title="Incidents Actifs">
-                                <div className="text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1"><Zap className="h-3 w-3" /> Incidents</div>
-                                <div className="text-2xl font-black text-red-700 dark:text-red-400">{activeIncidentsCount}</div>
+
+                            <div className="flex flex-col p-5 rounded-2xl bg-red-500/5 border border-red-500/10 backdrop-blur-md transition-all duration-300 hover:bg-red-500/10 hover:scale-[1.02] hover:shadow-lg hover:border-red-500/30 cursor-pointer group/metric" title="Incidents Actifs" onClick={() => navigate('/incidents')}>
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="p-2 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 group-hover/metric:bg-red-500/20 transition-colors">
+                                        <Zap className="h-4 w-4" />
+                                    </div>
+                                </div>
+                                <div className="text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-widest mb-1">Incidents</div>
+                                <div className="text-3xl font-black text-red-700 dark:text-red-400 tracking-tight">{activeIncidentsCount}</div>
                             </div>
-                            <div className="flex flex-col p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 backdrop-blur-sm transition-colors hover:bg-blue-500/10 cursor-pointer" title="Audits Ouverts">
-                                <div className="text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1"><ClipboardCheck className="h-3 w-3" /> Audits</div>
-                                <div className="text-2xl font-black text-blue-700 dark:text-blue-400">{openAuditsCount}</div>
+
+                            <div className="flex flex-col p-5 rounded-2xl bg-blue-500/5 border border-blue-500/10 backdrop-blur-md transition-all duration-300 hover:bg-blue-500/10 hover:scale-[1.02] hover:shadow-lg hover:border-blue-500/30 cursor-pointer group/metric" title="Audits Ouverts" onClick={() => navigate('/audits')}>
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover/metric:bg-blue-500/20 transition-colors">
+                                        <ClipboardCheck className="h-4 w-4" />
+                                    </div>
+                                </div>
+                                <div className="text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-1">Audits</div>
+                                <div className="text-3xl font-black text-blue-700 dark:text-blue-400 tracking-tight">{openAuditsCount}</div>
                             </div>
                         </div>
 
                         {/* Insight & Actions */}
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {insight?.text && <InsightCard insight={insight} navigate={navigate} />}
 
-                            <div className="flex flex-wrap items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-4">
                                 <button
                                     onClick={generateExecutiveReport}
-                                    className="flex items-center px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95"
+                                    className="flex items-center px-6 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-sm shadow-xl shadow-slate-900/20 hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95 group"
                                 >
-                                    <Download className="h-4 w-4 mr-2" />
+                                    <Download className="h-4 w-4 mr-2.5 transition-transform group-hover:translate-y-0.5" />
                                     {t('dashboard.executiveReport')}
                                 </button>
                                 <button
                                     onClick={generateICal}
-                                    className="flex items-center px-5 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl font-bold text-sm hover:bg-slate-50 dark:hover:bg-white/10 transition-all"
+                                    className="flex items-center px-6 py-3.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-2xl font-bold text-sm hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all hover:-translate-y-0.5"
                                 >
-                                    <CalendarDays className="h-4 w-4 mr-2 text-slate-400" />
+                                    <CalendarDays className="h-4 w-4 mr-2.5 text-slate-400 group-hover:text-slate-600" />
                                     {t('dashboard.exportIcal')}
                                 </button>
                                 {role === 'admin' && (
                                     <button
                                         onClick={() => navigate('/team')}
-                                        className="flex items-center px-5 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl font-bold text-sm hover:bg-slate-50 dark:hover:bg-white/10 transition-all ml-auto"
+                                        className="flex items-center px-6 py-3.5 bg-transparent border-2 border-dashed border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 rounded-2xl font-bold text-sm hover:border-brand-300 dark:hover:border-brand-500/50 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-500/5 transition-all ml-auto"
                                     >
-                                        Inviter <ChevronRight className="h-3 w-3 ml-2 opacity-50" />
+                                        Inviter un membre <ChevronRight className="h-3 w-3 ml-2 opacity-50 transition-transform group-hover:translate-x-1" />
                                     </button>
                                 )}
                             </div>
@@ -215,32 +252,45 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                     </div>
 
                     {/* Right Column: Radar (Desktop) / Grade (Desktop) */}
-                    {/* Reorganized to feature the Radar elegantly */}
                     {radarData && (
-                        <div className="hidden lg:flex flex-col gap-6 w-[340px] shrink-0">
-                            {/* Grade Card */}
-                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 shadow-xl">
-                                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${getGradeColor(scoreGrade)} blur-2xl opacity-40 -mr-10 -mt-10`} />
-                                <div className="relative z-10 flex items-center justify-between mb-4">
-                                    <span className="text-sm font-bold text-slate-300 uppercase tracking-wider">Score Global</span>
-                                    <Activity className="h-5 w-5 text-slate-400" />
+                        <div className="hidden lg:flex flex-col gap-8 w-[380px] shrink-0">
+                            {/* Grade Card - Premium Glass */}
+                            <div className="group relative overflow-hidden rounded-[2rem] bg-slate-900 text-white p-8 shadow-2xl transition-transform hover:scale-[1.01] duration-500">
+                                <div className={`absolute top-0 right-0 w-48 h-48 bg-gradient-to-br ${getGradeColor(scoreGrade)} blur-[60px] opacity-40 -mr-12 -mt-12 transition-all duration-700 group-hover:opacity-60 group-hover:blur-[80px]`} />
+                                <div className={`absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr ${getGradeColor(scoreGrade)} blur-[50px] opacity-20 -ml-8 -mb-8`} />
+
+                                <div className="relative z-10 flex items-center justify-between mb-8">
+                                    <div>
+                                        <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Gouvernance</span>
+                                        <h3 className="text-xl font-bold text-white">Score Global</h3>
+                                    </div>
+                                    <div className="p-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 shadow-inner">
+                                        <Activity className="h-6 w-6 text-white" />
+                                    </div>
                                 </div>
-                                <div className="relative z-10 flex items-end gap-3">
-                                    <span className="text-6xl font-black tracking-tighter leading-none">{scoreGrade || '-'}</span>
-                                    <div className="mb-2 px-2 py-1 rounded bg-white/10 text-xs font-bold border border-white/10 backdrop-blur-md">
-                                        Niveau {scoreGrade === 'A' ? 'Excel.' : scoreGrade === 'B' ? 'Bon' : scoreGrade === 'C' ? 'Moyen' : 'Critique'}
+
+                                <div className="relative z-10 flex items-end justify-between">
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-7xl font-black tracking-tighter leading-none font-display bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">{scoreGrade || '-'}</span>
+                                        <span className="text-lg font-medium text-slate-400 mb-1.5">/ A</span>
+                                    </div>
+                                    <div className={`mb-2 px-3 py-1.5 rounded-lg bg-white/10 text-sm font-bold border border-white/10 backdrop-blur-md shadow-lg ${scoreGrade === 'A' ? 'text-emerald-300' : scoreGrade === 'B' ? 'text-blue-300' : 'text-orange-300'}`}>
+                                        {scoreGrade === 'A' ? 'Excellent' : scoreGrade === 'B' ? 'Bon' : scoreGrade === 'C' ? 'Moyen' : 'Critique'}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Radar Embedded */}
-                            <div className="flex-1 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 backdrop-blur-sm p-2 flex items-center justify-center">
-                                <MaturityRadarWidget
-                                    radarData={radarData}
-                                    t={t}
-                                    theme={theme || 'light'}
-                                    navigate={navigate}
-                                />
+                            {/* Radar Embedded - Glass Container */}
+                            <div className="flex-1 bg-white/40 dark:bg-white/5 rounded-[2rem] border border-white/60 dark:border-white/5 backdrop-blur-xl p-6 flex flex-col shadow-lg">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Maturité par Domaine</h4>
+                                <div className="flex-1 flex items-center justify-center -ml-2">
+                                    <MaturityRadarWidget
+                                        radarData={radarData}
+                                        t={t}
+                                        theme={theme || 'light'}
+                                        navigate={navigate}
+                                    />
+                                </div>
                             </div>
                         </div>
                     )}
