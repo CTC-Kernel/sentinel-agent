@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
 import QRCode from 'qrcode';
-import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, WifiOff, ArrowRight, FileSpreadsheet, BrainCircuit } from '../components/ui/Icons';
-import { collection, getDocs, query, orderBy, limit, where, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, enableNetwork, disableNetwork, getDoc, QueryDocumentSnapshot } from 'firebase/firestore';
+import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, ArrowRight, FileSpreadsheet, BrainCircuit } from '../components/ui/Icons';
+import { collection, getDocs, query, orderBy, limit, where, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, getDoc, QueryDocumentSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db, storage, auth } from '../firebase';
@@ -18,6 +17,7 @@ import { AccountService } from '../services/accountService';
 import { hybridService } from '../services/hybridService';
 import { Organization } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
+import { DemoDataService } from '../services/demoDataService';
 import { LegalModal } from '../components/ui/LegalModal';
 import { Scale, Crown, ArrowRightLeft } from 'lucide-react';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
@@ -746,6 +746,30 @@ export const Settings: React.FC = () => {
         }
     };
 
+    const initiateDemoMode = () => {
+        setConfirmData({
+            isOpen: true,
+            title: "Activer le Mode Démonstration",
+            message: "Ceci va générer des données fictives complètes (Actifs, Risques, Projets, Audits, Incidents, etc.) pour vous permettre de tester toutes les fonctionnalités. Cela n'effacera pas vos données existantes mais ajoutera de nouvelles entrées.",
+            onConfirm: handleActivateDemoMode
+        });
+    };
+
+    const handleActivateDemoMode = async () => {
+        if (!user || !user.organizationId) return;
+        setMaintenanceLoading(true);
+        try {
+            await DemoDataService.generateDemoData(user.organizationId, user);
+            addToast("Données de démonstration générées avec succès !", "success");
+            // Reload to refresh all views
+            setTimeout(() => window.location.reload(), 1500);
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Settings.handleActivateDemoMode', 'UNKNOWN_ERROR');
+        } finally {
+            setMaintenanceLoading(false);
+        }
+    };
+
     return (
         <div className="max-w-3xl mx-auto pb-12 animate-fade-in pt-6 relative">
             <ConfirmModal
@@ -1079,45 +1103,7 @@ export const Settings: React.FC = () => {
                                     </p>
                                 </div>
 
-                                <div className="pt-4 border-t border-white/5">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 ml-1 flex items-center">
-                                        <Calendar className="h-3 w-3 mr-2" />
-                                        {t('settings.googleCalendar')}
-                                    </h3>
-                                    <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                                            {t('settings.googleCalendarDescription')}
-                                        </p>
-                                        {localStorage.getItem('google_access_token') ? (
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-green-600 dark:text-green-400 flex items-center">
-                                                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                                                    {t('settings.accountConnected')}
-                                                </span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        localStorage.removeItem('google_access_token');
-                                                        addToast(t('settings.disconnectGoogle'), "info");
-                                                        setSavingProfile(prev => !prev); // Force re-render
-                                                    }}
-                                                    className="text-xs text-red-500 hover:text-red-600 font-medium"
-                                                >
-                                                    {t('settings.disconnectGoogle')}
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                onClick={() => loginToGoogle()}
-                                                className="w-full py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-all flex items-center justify-center shadow-sm"
-                                            >
-                                                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 mr-2" />
-                                                {t('settings.connectGoogle')}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
+
                             </div>
                             <button
                                 type="button"
@@ -1243,20 +1229,7 @@ export const Settings: React.FC = () => {
                                 {!exporting && <Download className="h-4 w-4 mr-2" />}
                                 {t('settings.exportJson')}
                             </Button>
-                            <div className="pt-4 border-t border-slate-200 dark:border-white/10">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('settings.offlineMode')}</span>
-                                    <WifiOff className="h-4 w-4 text-slate-400" />
-                                </div>
-                                <div className="flex gap-2">
-                                    <button onClick={async () => { try { await enableNetwork(db); addToast(t('settings.onlineActivated'), "success"); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.enableNetwork', 'NETWORK_ERROR'); } }} className="flex-1 px-3 py-2 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-xs font-bold hover:bg-green-200 dark:hover:bg-green-900/30 transition-colors flex items-center justify-center gap-1">
-                                        <CheckCircle2 className="h-3 w-3" /> {t('common.online')}
-                                    </button>
-                                    <button onClick={async () => { try { await disableNetwork(db); addToast(t('settings.offlineActivated'), "info"); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.disableNetwork', 'NETWORK_ERROR'); } }} className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1">
-                                        <WifiOff className="h-3 w-3" /> {t('common.offline')}
-                                    </button>
-                                </div>
-                            </div>
+
 
                             <div className="pt-4 border-t border-slate-200 dark:border-white/10">
                                 <div className="flex items-center justify-between mb-2">
@@ -1280,7 +1253,51 @@ export const Settings: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                </div >
+
+                    {/* Google Calendar */}
+                    <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm flex flex-col h-full">
+                        <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                                <Calendar className="h-5 w-5 mr-3 text-blue-500" />
+                                {t('settings.googleCalendar')}
+                            </h3>
+                        </div>
+                        <div className="p-6 flex-1 flex flex-col justify-center space-y-6">
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                {t('settings.googleCalendarDescription')}
+                            </p>
+
+                            {localStorage.getItem('google_access_token') ? (
+                                <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-900/20">
+                                    <span className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center">
+                                        <CheckCircle2 className="h-5 w-5 mr-2" />
+                                        {t('settings.accountConnected')}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            localStorage.removeItem('google_access_token');
+                                            addToast(t('settings.disconnectGoogle'), "info");
+                                            setSavingProfile(prev => !prev);
+                                        }}
+                                        className="text-xs bg-white dark:bg-white/10 px-3 py-1.5 rounded-lg text-red-500 hover:text-red-600 font-bold shadow-sm"
+                                    >
+                                        {t('settings.disconnectGoogle')}
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => loginToGoogle()}
+                                    className="w-full py-3.5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-white/10 rounded-2xl text-sm font-bold text-slate-700 dark:text-white hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center shadow-sm group"
+                                >
+                                    <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
+                                    {t('settings.connectGoogle')}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
 
                 {/* Admin / Organization */}
                 {
@@ -1549,6 +1566,29 @@ export const Settings: React.FC = () => {
                         </button>
                     </div>
                 </div>
+
+                {/* Demo Mode - Only for admins or owners */}
+                {(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) && (
+                    <div className="glass-panel rounded-[2.5rem] p-6 border border-indigo-100 dark:border-indigo-900/30 shadow-sm mb-6">
+                        <h3 className="text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-4 flex items-center">
+                            <Database className="h-5 w-5 mr-2" /> Mode Démonstration
+                        </h3>
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/20">
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Peupler avec des données de démo</h4>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Génère un environnement complet (Actifs, Risques, Projets...)</p>
+                            </div>
+                            <Button
+                                onClick={initiateDemoMode}
+                                isLoading={maintenanceLoading}
+                                variant="outline"
+                                className="px-4 py-2 bg-white dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl text-xs hover:bg-indigo-50 dark:hover:bg-indigo-900/40 transition-colors border border-indigo-100 dark:border-indigo-900/30 shadow-sm"
+                            >
+                                {t('common.activate') || 'Activer'}
+                            </Button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Danger Zone - For everyone */}
                 <div className="glass-panel rounded-[2.5rem] p-6 border border-red-100 dark:border-red-900/30 shadow-sm">
