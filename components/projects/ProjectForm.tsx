@@ -9,6 +9,15 @@ import { projectSchema, ProjectFormData } from '../../schemas/projectSchema';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { Button } from '../ui/button';
+import { AIAssistantHeader, Template } from '../ui/AIAssistantHeader';
+import { aiService } from '../../services/aiService';
+import { ErrorLogger } from '../../services/errorLogger';
+
+const PROJECT_TEMPLATES: Template[] = [
+    { name: 'Mise en conformité ISO 27001', description: 'Projet complet d\'implémentation du SMSI.', status: 'En cours', priority: 'Haute' },
+    { name: 'Déploiement MFA Global', description: 'Activation du MFA pour tous les employés.', status: 'Planifié', priority: 'Critique' },
+    { name: 'Migration Cloud Sécurisée', description: 'Migration des serveurs on-premise vers AWS.', status: 'En cours', priority: 'Moyenne' },
+];
 import { PROJECT_STATUSES } from '../../data/projectConstants';
 
 interface ProjectFormProps {
@@ -34,14 +43,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     initialData,
     isLoading = false,
 }) => {
-    const {
-        register,
-        handleSubmit,
-        control,
-        reset,
-        setValue,
-        formState: { errors }
-    } = useForm<ProjectFormData>({
+    const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<ProjectFormData>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(projectSchema) as any,
         defaultValues: {
@@ -56,6 +58,48 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             relatedAssetIds: [],
         }
     });
+
+    const [isGenerating, setIsGenerating] = React.useState(false);
+
+    const handleSelectTemplate = (templateName: string) => {
+        const t = PROJECT_TEMPLATES.find(t => t.name === templateName);
+        if (t) {
+            setValue('name', t.name);
+            setValue('description', t.description);
+            // status and priority are enums in schema, assumed valid
+            if (t.status) setValue('status', t.status as any);
+            // if (t.priority) setValue('priority', t.priority as any); // Priority not in defaultValues/schema apparent here?
+        }
+    };
+
+    const handleAutoGenerate = async () => {
+        const currentName = getValues('name');
+        if (!currentName) return;
+
+        setIsGenerating(true);
+        try {
+            const prompt = `Décris un projet de sécurité intitulé "${currentName}".
+            Format JSON attendu:
+            {
+                "description": "Objectifs et description détaillée",
+                "priority": "Haute, Moyenne ou Basse"
+            }`;
+
+            const resultText = await aiService.generateText(prompt);
+            const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                const data = JSON.parse(jsonMatch[0]);
+                if (data.description) setValue('description', data.description);
+                // if (data.priority) setValue('priority', data.priority);
+            }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'ProjectForm.handleAutoGenerate', 'AI_ERROR');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const isEditing = !!existingProject;
 
     useEffect(() => {
         if (existingProject) {
@@ -94,7 +138,17 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     const relatedRiskIds = useWatch({ control, name: 'relatedRiskIds' });
 
     return (
-        <form onSubmit={handleSubmit(onFormSubmit)} className="p-8 space-y-8 overflow-y-auto custom-scrollbar h-full">
+        <form onSubmit={handleSubmit(onFormSubmit)} className="p-4 sm:p-6 md:p-8 space-y-8 overflow-y-auto custom-scrollbar h-full">
+            {!isEditing && (
+                <AIAssistantHeader
+                    templates={PROJECT_TEMPLATES}
+                    onSelectTemplate={handleSelectTemplate}
+                    onAutoGenerate={handleAutoGenerate}
+                    isGenerating={isGenerating}
+                    title="Assistant Projet"
+                    description="Démarrez votre projet avec un modèle standard ou généré par l'IA."
+                />
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-6">
                     <div className="relative">
@@ -184,7 +238,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                             )}
                         />
                     </div>
-                </div>
+                </div >
 
                 <div className="space-y-6">
                     <Controller
@@ -229,7 +283,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                         )}
                     />
                 </div>
-            </div>
+            </div >
 
             <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
                 <Button
@@ -249,6 +303,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                     {existingProject ? 'Enregistrer' : 'Créer le Projet'}
                 </Button>
             </div>
-        </form>
+        </form >
     );
 };
