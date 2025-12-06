@@ -1757,7 +1757,7 @@ exports.callGeminiGenerateContent = onCall({
             const message = error instanceof Error ? error.message : String(error);
             logger.warn('Primary Gemini model failed in callGeminiGenerateContent', { error: message });
 
-            if (message.includes('404') || message.includes('not found')) {
+            if (message.includes('404') || message.includes('not found') || message.includes('429') || message.includes('Too Many Requests')) {
                 const fallbackModels = ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash'];
                 for (const name of fallbackModels) {
                     try {
@@ -1837,7 +1837,7 @@ exports.callGeminiChat = onCall({
             const errMsg = error instanceof Error ? error.message : String(error);
             logger.warn('Primary Gemini chat model failed in callGeminiChat', { error: errMsg });
 
-            if (errMsg.includes('404') || errMsg.includes('not found')) {
+            if (errMsg.includes('404') || errMsg.includes('not found') || errMsg.includes('429') || errMsg.includes('Too Many Requests')) {
                 try {
                     const text = await runChat('gemini-1.5-flash');
                     return { text, model: 'gemini-1.5-flash' };
