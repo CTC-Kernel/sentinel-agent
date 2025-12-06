@@ -8,6 +8,8 @@ import { ShieldAlert, Users, Building, Activity, Search } from 'lucide-react';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { auth } from '../firebase';
+import { toast } from 'sonner';
 
 interface OrganizationSummary {
     id: string;
@@ -22,6 +24,7 @@ export const AdminDashboard: React.FC = () => {
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [switchingOrg, setSwitchingOrg] = useState<string | null>(null);
 
     const { data: organizations, loading: orgsLoading } = useFirestoreCollection<OrganizationSummary>(
         'organizations',
@@ -48,17 +51,15 @@ export const AdminDashboard: React.FC = () => {
     const loading = checkingAuth || (isSuperAdmin && (orgsLoading || usersLoading));
 
     useEffect(() => {
-        const checkSuperAdmin = async () => {
-            if (!user?.email) {
-                setCheckingAuth(false);
-                return;
-            }
-
+        const verifySuperAdmin = async () => {
             try {
                 const functions = getFunctions();
-                const verifySuperAdmin = httpsCallable(functions, 'verifySuperAdmin');
-                const verifyResult = await verifySuperAdmin();
-                const data = verifyResult.data as { isSuperAdmin: boolean };
+                // Check if user has superAdmin claim OR check via backend function
+                // We use a backend check to be sure
+                const checkAdmin = httpsCallable(functions, 'verifySuperAdmin');
+                const result = await checkAdmin();
+                const data = result.data as { isSuperAdmin: boolean };
+
                 if (data.isSuperAdmin) {
                     setIsSuperAdmin(true);
                 } else {
@@ -75,9 +76,34 @@ export const AdminDashboard: React.FC = () => {
             }
         };
 
-        checkSuperAdmin();
+        if (user) {
+            verifySuperAdmin();
+        } else {
+            setCheckingAuth(false);
+        }
     }, [user]);
 
+    const handleManage = async (orgId: string, orgName: string) => {
+        setSwitchingOrg(orgId);
+        try {
+            const functions = getFunctions();
+            const switchOrgFn = httpsCallable(functions, 'switchOrganization');
+            await switchOrgFn({ targetOrgId: orgId });
+
+            // Force token refresh to pick up new claims
+            if (auth.currentUser) {
+                await auth.currentUser.getIdToken(true);
+            }
+
+            toast.success(`Switched to ${orgName}`);
+            // Redirect to dashboard
+            window.location.href = '/';
+        } catch (error) {
+            ErrorLogger.error(error, 'AdminDashboard.handleManage');
+            toast.error("Failed to switch organization");
+            setSwitchingOrg(null);
+        }
+    };
 
 
     if (checkingAuth) return <LoadingScreen />;
@@ -183,8 +209,12 @@ export const AdminDashboard: React.FC = () => {
                                         {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : '-'}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button className="text-brand-600 hover:text-brand-500 dark:text-brand-400 text-sm font-medium transition-colors">
-                                            Gérer
+                                        <button
+                                            onClick={() => handleManage(org.id, org.name)}
+                                            disabled={switchingOrg === org.id}
+                                            className="text-brand-600 hover:text-brand-500 dark:text-brand-400 text-sm font-medium transition-colors disabled:opacity-50"
+                                        >
+                                            {switchingOrg === org.id ? '...' : 'Gérer'}
                                         </button>
                                     </td>
                                 </tr>

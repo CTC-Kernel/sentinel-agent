@@ -154,6 +154,7 @@ export default {
         'glass-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
         'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
         'apple': '0 8px 30px rgba(0,0,0,0.08)',
+        'apple-xl': '0 20px 40px rgba(0,0,0,0.12)',
         'card': '0 2px 10px rgba(0,0,0,0.03)',
         'float': '0 20px 40px -10px rgba(0,0,0,0.15)',
       },
