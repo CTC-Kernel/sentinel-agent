@@ -472,6 +472,12 @@ async function runChatSafe(systemPrompt: string, message: string, modelName: str
                 metadata: { code, message }
             });
             throw new Error("Le chat IA est temporairement indisponible.");
+        } else if (code === 'resource-exhausted' || message.includes('429') || message.includes('Too Many Requests')) {
+            // New handling for rate limits
+            ErrorLogger.warn('Gemini Rate Limit Hit', 'aiService.runChatSafe', {
+                metadata: { code, message }
+            });
+            throw new Error("L'IA est très sollicitée en ce moment. Veuillez patienter quelques secondes.");
         } else if (code === 'unauthenticated' || code === 'failed-precondition') {
             ErrorLogger.warn('Backend Gemini chat not available', 'aiService.runChatSafe', {
                 metadata: { code, message }
