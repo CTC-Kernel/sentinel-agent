@@ -67,36 +67,7 @@ export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature, className
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">{config.label}</span>
             </div>
 
-            {/* Hover Tooltip/Card */}
-            <div className="absolute left-0 top-full mt-2 w-64 opacity-0 scale-95 invisible group-hover:opacity-100 group-hover:scale-100 group-hover:visible transition-all duration-200 origin-top-left z-50">
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-4 relative overflow-hidden">
-                    {/* Decorative background glow */}
-                    <div className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-10 -mr-10 -mt-10 bg-${config.color}-500`}></div>
 
-                    <div className="relative z-10">
-                        <div className="flex items-start gap-3 mb-2">
-                            <div className={`p-2 rounded-lg bg-${config.color}-50 dark:bg-${config.color}-500/10 shrink-0`}>
-                                <Icon className={`w-4 h-4 text-${config.color}-600 dark:text-${config.color}-400`} />
-                            </div>
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-0.5">{config.label}</h4>
-                                <p className="text-[10px] uppercase tracking-wide text-slate-400 font-bold">Protocoles de Sécurité Actifs</p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-2 mt-3">
-                            <div className="flex items-center gap-2">
-                                <div className={`w-1 h-1 rounded-full bg-${config.color}-500`}></div>
-                                <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">{config.detail}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className={`w-1 h-1 rounded-full bg-${config.color}-500`}></div>
-                                <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">{config.subDetail}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 };
