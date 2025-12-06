@@ -1303,7 +1303,7 @@ function decryptUserSecret(secretObject) {
     return decrypted.toString("utf8");
 }
 
-async function getGeminiClientForUser(uid) {
+async function getGeminiClientForUser(uid, apiVersion) {
     const db = admin.firestore();
     const userKeysRef = db.collection('user_api_keys').doc(uid);
     const userKeysSnap = await userKeysRef.get();
@@ -1346,7 +1346,7 @@ async function getGeminiClientForUser(uid) {
         throw new HttpsError('failed-precondition', 'Gemini API key not configured.');
     }
 
-    return new GoogleGenAI({ apiKey });
+    return new GoogleGenAI({ apiKey, apiVersion });
 }
 
 /**
@@ -1738,7 +1738,8 @@ exports.callGeminiGenerateContent = onCall({
             await checkAndIncrementAiUsage(uid, userData.organizationId);
         }
 
-        const genAI = await getGeminiClientForUser(uid);
+        const apiVersion = modelName.includes('gemini-3') ? 'v1alpha' : undefined;
+        const genAI = await getGeminiClientForUser(uid, apiVersion);
 
         const runGenerate = async (name) => {
             let config = {};
@@ -1798,7 +1799,7 @@ exports.callGeminiChat = onCall({
 
     const systemPrompt = request.data?.systemPrompt;
     const message = request.data?.message;
-    const modelName = request.data?.modelName || "gemini-3-pro-preview";
+    const modelName = request.data?.modelName || "gemini-1.5-pro";
 
     if (!systemPrompt || typeof systemPrompt !== 'string' || !message || typeof message !== 'string') {
         throw new HttpsError('invalid-argument', 'systemPrompt and message are required.');
@@ -1812,7 +1813,8 @@ exports.callGeminiChat = onCall({
             await checkAndIncrementAiUsage(uid, userData.organizationId);
         }
 
-        const genAI = await getGeminiClientForUser(uid);
+        const apiVersion = modelName.includes('gemini-3') ? 'v1alpha' : undefined;
+        const genAI = await getGeminiClientForUser(uid, apiVersion);
 
         const runChat = async (name) => {
             let config = {};
