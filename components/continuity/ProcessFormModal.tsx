@@ -111,7 +111,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-h-[80vh] overflow-y-auto px-1 custom-scrollbar">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-h-[80vh] overflow-y-auto p-4 sm:p-6 custom-scrollbar">
 
                 {/* Header - AI Assistant */}
                 {!isEditing && (

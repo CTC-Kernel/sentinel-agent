@@ -12,6 +12,13 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { integrationService, CompanySearchResult } from '../../services/integrationService';
 import { Search, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
+import { AIAssistantHeader, Template } from '../ui/AIAssistantHeader';
+
+const SUPPLIER_TEMPLATES: Template[] = [
+    { name: 'Hébergeur Cloud Santé (HDS)', description: 'Fournisseur critique hébergeant des données de santé.', category: 'Hébergement', criticality: 'Critique' },
+    { name: 'Fournisseur SaaS RH', description: 'Solution de gestion des congés et paies.', category: 'SaaS', criticality: 'Moyenne' },
+    { name: 'Maintenance Informatique', description: 'Prestataire de maintenance sur site.', category: 'Services IT', criticality: 'Élevée' },
+];
 import { SUPPLIER_CATEGORIES, SUPPLIER_STATUSES, DORA_SERVICE_TYPES, DORA_CRITICALITIES } from '../../data/supplierConstants';
 
 interface SupplierFormProps {
@@ -103,6 +110,50 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
     const selectedOwnerId = useWatch({ control, name: 'ownerId' });
 
+    const [isGenerating, setIsGenerating] = React.useState(false);
+
+    const handleSelectTemplate = (templateName: string) => {
+        const t = SUPPLIER_TEMPLATES.find(t => t.name === templateName);
+        if (t) {
+            setValue('name', t.name);
+            setValue('description', t.description);
+            // category and criticality are enums in schema
+            if (t.category) setValue('category', t.category as any);
+            if (t.criticality) setValue('criticality', t.criticality as any);
+        }
+    };
+
+    const handleAutoGenerate = async () => {
+        const currentName = getValues('name');
+        if (!currentName) return;
+
+        setIsGenerating(true);
+        try {
+            const prompt = `Décris un fournisseur de services intitulé "${currentName}".
+            Format JSON attendu:
+            {
+                "description": "Description des services fournis",
+                "category": "Catégorie probable (SaaS, Hébergement, etc.)",
+                 "criticality": "Critique, Élevée, Moyenne, ou Faible"
+            }`;
+
+            const resultText = await aiService.generateText(prompt);
+            const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                const data = JSON.parse(jsonMatch[0]);
+                if (data.description) setValue('description', data.description);
+                if (data.category) setValue('category', data.category);
+                if (data.criticality) setValue('criticality', data.criticality);
+            }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'SupplierForm.handleAutoGenerate', 'AI_ERROR');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    // const isEditing = !!initialData; // Use initialData to determine if editing
+
     useEffect(() => {
         if (selectedOwnerId) {
             const selectedUser = users.find(u => u.uid === selectedOwnerId);
@@ -149,8 +200,17 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {/* General Info Card */}
+        <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar h-full">
+            {!isEditing && (
+                <AIAssistantHeader
+                    templates={SUPPLIER_TEMPLATES}
+                    onSelectTemplate={handleSelectTemplate}
+                    onAutoGenerate={handleAutoGenerate}
+                    isGenerating={isGenerating}
+                    title="Assistant Fournisseur"
+                    description="Ajoutez un fournisseur type ou laissez l'IA le qualifier."
+                />
+            )}
             <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                     <Building2 className="w-5 h-5 mr-2 text-indigo-500" />

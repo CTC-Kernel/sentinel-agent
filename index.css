@@ -457,6 +457,19 @@ body.voxel-fullscreen header {
 }
 
 .min-h-screen-safe {
-  min-height: 100vh;
   min-height: 100dvh;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 100%;
+  }
+
+  100% {
+    background-position: -100%;
+  }
+}
+
+.animate-shine {
+  animation: shine 5s linear infinite;
 }
