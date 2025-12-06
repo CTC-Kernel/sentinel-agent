@@ -143,6 +143,23 @@ export const aiService = {
      * General chat with the AI assistant.
      */
     async chatWithAI(message: string, context?: Record<string, unknown>): Promise<string> {
+        // [DEBUG] Log caller to identify source of unexpected calls
+        try {
+            throw new Error('Stack Trace');
+        } catch (e: any) {
+            console.warn('[aiService] chatWithAI called. Stack:', e.stack);
+        }
+
+        // Prevent loops: Rate limit client-side (1 second debounce)
+        const now = Date.now();
+        // @ts-ignore - Adding static property for rate limiting
+        if (aiService.lastChatCall && (now - aiService.lastChatCall < 2000)) {
+            console.warn('[aiService] Rate limit prevented rapid call.');
+            return "Veuillez patienter quelques secondes avant de renvoyer un message.";
+        }
+        // @ts-ignore
+        aiService.lastChatCall = now;
+
         const systemPrompt = `Tu es Sentinel AI, un assistant expert en cybersécurité et GRC (Gouvernance, Risque, Conformité).
             Ton rôle est d'aider les utilisateurs à gérer leur sécurité, comprendre les normes (ISO 27001, RGPD) et rédiger des documents.
             Sois professionnel, concis et précis. Réponds toujours en Français.${context ? `\n\nContexte actuel de l'application :\n${JSON.stringify(context)}` : ''}`;
