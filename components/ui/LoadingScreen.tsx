@@ -2,7 +2,7 @@ import React from 'react';
 import { Lock } from 'lucide-react';
 
 export const LoadingScreen: React.FC = () => (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafafa] dark:bg-slate-900 transition-colors relative overflow-hidden">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#fafafa] dark:bg-slate-900 transition-colors overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-brand-200/40 dark:bg-slate-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
         </div>

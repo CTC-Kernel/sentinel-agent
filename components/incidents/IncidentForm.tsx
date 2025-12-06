@@ -7,9 +7,9 @@ import { ShieldAlert } from '../ui/Icons';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { useStore } from '../../store';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
-import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Button } from '../ui/button';
+import { RichTextEditor } from '../ui/RichTextEditor';
 
 import { PLAYBOOKS, INCIDENT_STATUSES, NOTIFICATION_STATUSES } from '../../data/incidentConstants';
 
@@ -128,12 +128,17 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                 </div>
 
                 <div className="relative">
-                    <FloatingLabelTextarea
-                        label="Description détaillée"
-                        {...register('description')}
-                        rows={4}
-                        placeholder="Décrivez les faits, l'heure de découverte, les symptômes..."
-                        error={errors.description?.message}
+                    <Controller
+                        control={control}
+                        name="description"
+                        render={({ field }) => (
+                            <RichTextEditor
+                                label="Description détaillée"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                error={errors.description?.message}
+                            />
+                        )}
                     />
                     <div className="absolute right-2 top-2 z-10">
                         <AIAssistButton
@@ -145,7 +150,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                             }}
                             fieldName="description"
                             onSuggest={(val: string) => setValue('description', val)}
-                            prompt="Rédige une description détaillée et professionnelle pour cet incident de sécurité. Inclus les éléments factuels probables basés sur le titre et la catégorie."
+                            prompt="Rédige une description détaillée et professionnelle pour cet incident de sécurité. Inclus les éléments factuels probables basés sur le titre et la catégorie. Utilise du HTML riche pour la mise en forme."
                         />
                     </div>
                 </div>
