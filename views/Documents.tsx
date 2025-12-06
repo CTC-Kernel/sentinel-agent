@@ -28,6 +28,7 @@ import { getPlanLimits } from '../config/plans';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
+import { EncryptionService } from '../services/encryptionService';
 import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
 import CryptoJS from 'crypto-js';
 import SignatureCanvas from 'react-signature-canvas';
@@ -75,7 +76,15 @@ export const Documents: React.FC = () => {
     );
 
     // Derived State
-    const documents = React.useMemo(() => [...rawDocuments].sort((a, b) => a.title.localeCompare(b.title)), [rawDocuments]);
+    const documents = React.useMemo(() => {
+        return [...rawDocuments]
+            .sort((a, b) => a.title.localeCompare(b.title))
+            .map(doc => ({
+                ...doc,
+                // Transparently decrypt description for UI display
+                description: EncryptionService.decrypt(doc.description || '')
+            }));
+    }, [rawDocuments]);
     const controls = React.useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
     const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
     const audits = React.useMemo(() => [...rawAudits].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime()), [rawAudits]);
@@ -370,6 +379,8 @@ export const Documents: React.FC = () => {
                 url: data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || ''),
                 hash: data.fileHash || '',
                 isSecure: data.isSecure || false,
+                // Encrypt description if Secure Mode is on
+                description: (data.isSecure || false) ? EncryptionService.encrypt(data.description || '') : (data.description || ''),
                 watermarkEnabled: data.isSecure || false,
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
@@ -413,6 +424,10 @@ export const Documents: React.FC = () => {
                 url: newUrl,
                 hash: data.fileHash || selectedDocument.hash,
                 isSecure: data.isSecure ?? selectedDocument.isSecure,
+                // Encrypt description if Secure Mode is ON (either new or existing)
+                description: (data.isSecure ?? selectedDocument.isSecure)
+                    ? EncryptionService.encrypt(data.description || '')
+                    : (data.description || ''),
                 watermarkEnabled: (data.isSecure ?? selectedDocument.isSecure) || false,
                 updatedAt: new Date().toISOString()
             };
