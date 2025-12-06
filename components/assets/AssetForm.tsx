@@ -11,6 +11,14 @@ import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { DatePicker } from '../ui/DatePicker';
 import { ASSET_TYPES, ASSET_LIFECYCLE_STATUSES, COMPLIANCE_SCOPES } from '../../data/assetConstants';
+import { AIAssistantHeader, Template } from '../ui/AIAssistantHeader';
+
+const ASSET_TEMPLATES: Template[] = [
+    { name: 'Serveur de Base de Données', description: 'Serveur SQL critique stockant les données clients.', type: 'Matériel', confidentiality: 'Critique', integrity: 'Critique', availability: 'Élevée' },
+    { name: 'Laptop Développeur', description: 'MacBook Pro pour le développement.', type: 'Matériel', confidentiality: 'Moyenne', integrity: 'Moyenne', availability: 'Moyenne' },
+    { name: 'SaaS CRM Salesforce', description: 'Plateforme CRM cloud.', type: 'Service', confidentiality: 'Élevée', integrity: 'Élevée', availability: 'Élevée' },
+    { name: 'Collaborateur Admin', description: 'Administrateur Système avec accès privilégiés.', type: 'Humain', confidentiality: 'Critique', integrity: 'Critique', availability: 'Moyenne' },
+];
 
 interface AssetFormProps {
     onSubmit: (data: AssetFormData) => Promise<void>;
@@ -84,10 +92,55 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         }
     }, [initialData, reset]);
 
+    const [isGenerating, setIsGenerating] = React.useState(false);
+
+    const handleSelectTemplate = (templateName: string) => {
+        const t = ASSET_TEMPLATES.find(t => t.name === templateName);
+        if (t) {
+            setValue('name', t.name);
+            setValue('type', t.type as any); // Cast for strict enum match if needed
+            setValue('confidentiality', t.confidentiality as Criticality);
+            setValue('integrity', t.integrity as Criticality);
+            setValue('availability', t.availability as Criticality);
+            // Could set other fields if added to template
+        }
+    };
+
+    const handleAutoGenerate = async () => {
+        const currentName = getValues('name');
+        if (!currentName) return; // Simple check
+
+        setIsGenerating(true);
+        try {
+            const prompt = `Suggère les détails pour un actif nommé "${currentName}".
+            Format JSON attendu:
+            {
+                "type": "Matériel" | "Logiciel" | "Données" | "Service" | "Humain",
+                "confidentiality": "Faible" | "Moyenne" | "Élevée" | "Critique",
+                "integrity": "Faible" | "Moyenne" | "Élevée" | "Critique",
+                "availability": "Faible" | "Moyenne" | "Élevée" | "Critique"
+            }`;
+
+            const resultText = await aiService.generateText(prompt);
+            const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                const data = JSON.parse(jsonMatch[0]);
+                if (data.type) setValue('type', data.type);
+                if (data.confidentiality) setValue('confidentiality', data.confidentiality);
+                if (data.integrity) setValue('integrity', data.integrity);
+                if (data.availability) setValue('availability', data.availability);
+            }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'AssetForm.handleAutoGenerate', 'AI_ERROR');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     const handleSuggestField = async (field: keyof AssetFormData) => {
         const currentName = getValues('name');
         if (!currentName && field !== 'name') return;
-
+        // ... existing handleSuggestField logic ...
         setSuggestingField(field);
         try {
             let prompt = '';
@@ -101,12 +154,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
             const suggestion = await aiService.generateText(prompt);
             if (suggestion) {
-                // Clean up suggestion
                 const cleanSuggestion = suggestion.replace(/^["']|["']$/g, '').trim();
-
-                // Validate against enum if needed
+                // ... validation logic ...
                 if (field === 'type' && !['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'].includes(cleanSuggestion)) {
-                    // Fallback or ignore
+                    // Fallback
                 } else if (field === 'confidentiality' && !Object.values(Criticality).includes(cleanSuggestion as Criticality)) {
                     // Fallback
                 } else {
@@ -121,7 +172,15 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-4 sm:p-6">
+            {!isEditing && (
+                <AIAssistantHeader
+                    templates={ASSET_TEMPLATES}
+                    onSelectTemplate={handleSelectTemplate}
+                    onAutoGenerate={handleAutoGenerate}
+                    isGenerating={isGenerating}
+                />
+            )}
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Informations Principales</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

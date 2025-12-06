@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AuroraBackground } from '../components/ui/AuroraBackground';
 import { SEO } from '../components/SEO';
 import {
     signInWithEmailAndPassword,
@@ -184,7 +185,7 @@ export const Login: React.FC = () => {
 
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#E5E7EB] dark:bg-[#000000] relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
+        <AuroraBackground className="min-h-screen flex flex-col items-center justify-center bg-[#E5E7EB] dark:bg-[#000000] relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
             <SEO
                 title="Connexion"
                 description="Connectez-vous à votre espace sécurisé Sentinel GRC."
@@ -484,6 +485,6 @@ export const Login: React.FC = () => {
                 onClose={() => setShowLegalModal(false)}
                 initialTab={legalTab}
             />
-        </div >
+        </AuroraBackground>
     );
 };

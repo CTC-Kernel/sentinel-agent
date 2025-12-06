@@ -1,6 +1,7 @@
 import React from 'react';
 import { Server, ClipboardCheck, FileText, Zap, ArrowRight, CalendarDays, Download, X, ChevronRight, Activity, ShieldCheck, Users, AlertTriangle } from '../../ui/Icons';
 import { MaturityRadarWidget } from './MaturityRadarWidget';
+import { ShinyText } from '../../ui/ShinyText';
 
 
 const InsightCard: React.FC<{ insight: any, navigate: (path: string) => void }> = ({ insight, navigate }) => {
@@ -87,8 +88,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
     const role = user?.role || 'user';
     const welcomeKey = `dashboard.welcomeTitle_${['admin', 'rssi', 'direction', 'auditor', 'project_manager'].includes(role) ? role : 'user'}`;
+
     const subtitleKey1 = `dashboard.welcomeSubtitle1_${['admin', 'rssi', 'direction', 'auditor', 'project_manager'].includes(role) ? role : 'user'}`;
-    const subtitleKey2 = `dashboard.welcomeSubtitle2_${['admin', 'rssi', 'direction', 'auditor', 'project_manager'].includes(role) ? role : 'user'}`;
 
     const cards = [
         { title: t('dashboard.createAsset'), desc: role === 'admin' ? t('dashboard.createAssetDesc_rssi') : t('dashboard.createAssetDesc'), icon: Server, color: 'blue', link: '/assets' },
@@ -109,12 +110,15 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">{organizationName || t('dashboard.operationalSystem')}</span>
                     </div>
 
-                    <h2 className="text-5xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-8 font-display bg-clip-text text-transparent bg-gradient-to-br from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 pb-2">
-                        {t(welcomeKey)}
-                    </h2>
-                    <p className="text-xl text-slate-600 dark:text-slate-400 mb-16 leading-relaxed max-w-2xl mx-auto font-light">
-                        {t(subtitleKey1)} {t(subtitleKey2)}
-                    </p>
+                    <div className="mb-8">
+                        {/* Welcome Text with Shiny Effect */}
+                        <h2 className="text-4xl sm:text-5xl font-black font-display text-slate-900 dark:text-white tracking-tight mb-3">
+                            {t(welcomeKey).split(',')[0]}, <ShinyText speed={3} className="text-slate-900 dark:text-white">{user?.displayName || 'Utilisateur'}</ShinyText>
+                        </h2>
+                        <p className="text-lg font-medium text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
+                            {t(subtitleKey1)}
+                        </p>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
                         {cards.map((card, i) => (
@@ -135,36 +139,36 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     }
 
     return (
-        <div className="group relative rounded-[2.5rem] bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-2xl shadow-2xl dark:shadow-none border border-white/40 dark:border-white/5 overflow-hidden transition-all duration-700 hover:shadow-3xl">
+        <div className="group relative rounded-[2.5rem] bg-white dark:bg-slate-900/50 backdrop-blur-3xl shadow-2xl dark:shadow-none border border-slate-100 dark:border-white/5 overflow-hidden transition-all duration-700 hover:shadow-3xl">
             {/* Dynamic Mesh Gradients */}
-            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-gradient-to-b from-brand-500/10 to-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none opacity-60 animate-pulse-slow" />
-            <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-gradient-to-t from-blue-500/10 to-emerald-500/10 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none opacity-60 mix-blend-multiply dark:mix-blend-screen" />
+            <div className="absolute top-0 right-0 w-[50rem] h-[50rem] bg-gradient-to-b from-brand-500/10 to-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none opacity-40 animate-pulse-slow" />
+            <div className="absolute bottom-0 left-0 w-[40rem] h-[40rem] bg-gradient-to-t from-blue-500/10 to-emerald-500/10 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none opacity-40 mix-blend-multiply dark:mix-blend-screen" />
 
             {/* Subtle Grid Texture */}
-            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.03] dark:opacity-[0.05] pointer-events-none" />
+            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.02] dark:opacity-[0.04] pointer-events-none" />
 
-            <div className="relative z-10 p-8 sm:p-10">
+            <div className="relative z-10 p-8 sm:p-12">
                 <div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
 
                     {/* Left Column: Essential Info */}
                     <div className="flex-1 space-y-10">
                         {/* Header Row */}
                         <div className="flex items-start justify-between">
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <div className="flex items-center gap-4 mb-1">
-                                    <h1 className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-200 dark:to-slate-400 tracking-tight font-display drop-shadow-sm">
-                                        Sentinel GRC
-                                    </h1>
-                                    <div className="px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-700 dark:text-brand-300 text-xs font-bold uppercase tracking-wider backdrop-blur-sm">PRO</div>
+                                    <div className="px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-300 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm">Workspace</div>
                                 </div>
-                                <div className="flex items-center gap-3 text-sm font-medium text-slate-500 dark:text-slate-400 pl-1">
+                                <h1 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight font-display drop-shadow-sm leading-tight">
+                                    Sentinel GRC
+                                </h1>
+                                <div className="flex items-center gap-3 text-sm font-medium text-slate-500 dark:text-slate-400">
                                     <span className="relative flex h-2.5 w-2.5">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                                     </span>
                                     {organizationName || user?.organizationName || t('dashboard.operationalSystem')}
                                     <span className="text-slate-300 dark:text-slate-600">•</span>
-                                    <span className="text-slate-400 dark:text-slate-500 font-mono text-xs">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                                    <span className="text-slate-500 dark:text-slate-500 font-mono text-xs uppercase tracking-wide">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
                                 </div>
                             </div>
 
@@ -179,44 +183,50 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                         {/* Metrics Grid */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-                            <div className="flex flex-col p-5 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-md transition-all duration-300 hover:bg-white/60 dark:hover:bg-white/10 hover:scale-[1.02] hover:shadow-lg hover:border-brand-200 dark:hover:border-brand-500/30 group/metric">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover/metric:bg-brand-50 group-hover/metric:text-brand-600 transition-colors">
+                            <div className="group/metric relative flex flex-col p-5 rounded-3xl bg-white/50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover/metric:bg-brand-50 group-hover/metric:text-brand-600 transition-colors">
                                         <Activity className="h-4 w-4" />
                                     </div>
+                                    <div className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest">Score</div>
                                 </div>
-                                <div className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Score Global</div>
-                                <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{scoreGrade || '-'}</div>
+                                <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{scoreGrade || '-'}</div>
                             </div>
 
-                            <div className="flex flex-col p-5 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-md transition-all duration-300 hover:bg-white/60 dark:hover:bg-white/10 hover:scale-[1.02] hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-500/30 group/metric">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover/metric:bg-blue-50 group-hover/metric:text-blue-600 transition-colors">
+                            <div className="group/metric relative flex flex-col p-5 rounded-3xl bg-white/50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover/metric:bg-blue-50 group-hover/metric:text-blue-600 transition-colors">
                                         <Users className="h-4 w-4" />
                                     </div>
+                                    <div className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest">Équipe</div>
                                 </div>
-                                <div className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Équipe</div>
-                                <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{teamSize || 0}</div>
+                                <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{teamSize || 0}</div>
                             </div>
 
-                            <div className="flex flex-col p-5 rounded-2xl bg-red-500/5 border border-red-500/10 backdrop-blur-md transition-all duration-300 hover:bg-red-500/10 hover:scale-[1.02] hover:shadow-lg hover:border-red-500/30 cursor-pointer group/metric" title="Incidents Actifs" onClick={() => navigate('/incidents')}>
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="p-2 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 group-hover/metric:bg-red-500/20 transition-colors">
+                            <div
+                                onClick={() => navigate('/incidents')}
+                                className="group/metric relative flex flex-col p-5 rounded-3xl bg-red-500/5 border border-red-500/10 backdrop-blur-sm hover:bg-red-500/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer"
+                            >
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 group-hover/metric:bg-red-500/20 transition-colors">
                                         <Zap className="h-4 w-4" />
                                     </div>
+                                    <div className="text-red-600/70 dark:text-red-400/70 text-[10px] font-bold uppercase tracking-widest">Incidents</div>
                                 </div>
-                                <div className="text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-widest mb-1">Incidents</div>
-                                <div className="text-3xl font-black text-red-700 dark:text-red-400 tracking-tight">{activeIncidentsCount}</div>
+                                <div className="text-2xl font-bold text-red-700 dark:text-red-400 tracking-tight">{activeIncidentsCount}</div>
                             </div>
 
-                            <div className="flex flex-col p-5 rounded-2xl bg-blue-500/5 border border-blue-500/10 backdrop-blur-md transition-all duration-300 hover:bg-blue-500/10 hover:scale-[1.02] hover:shadow-lg hover:border-blue-500/30 cursor-pointer group/metric" title="Audits Ouverts" onClick={() => navigate('/audits')}>
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover/metric:bg-blue-500/20 transition-colors">
+                            <div
+                                onClick={() => navigate('/audits')}
+                                className="group/metric relative flex flex-col p-5 rounded-3xl bg-blue-500/5 border border-blue-500/10 backdrop-blur-sm hover:bg-blue-500/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer"
+                            >
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover/metric:bg-blue-500/20 transition-colors">
                                         <ClipboardCheck className="h-4 w-4" />
                                     </div>
+                                    <div className="text-blue-600/70 dark:text-blue-400/70 text-[10px] font-bold uppercase tracking-widest">Audits</div>
                                 </div>
-                                <div className="text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-1">Audits</div>
-                                <div className="text-3xl font-black text-blue-700 dark:text-blue-400 tracking-tight">{openAuditsCount}</div>
+                                <div className="text-2xl font-bold text-blue-700 dark:text-blue-400 tracking-tight">{openAuditsCount}</div>
                             </div>
                         </div>
 
@@ -227,7 +237,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             <div className="flex flex-wrap items-center gap-4">
                                 <button
                                     onClick={generateExecutiveReport}
-                                    className="flex items-center px-6 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-sm shadow-xl shadow-slate-900/20 hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95 group"
+                                    className="flex items-center px-6 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-sm shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95 group"
                                 >
                                     <Download className="h-4 w-4 mr-2.5 transition-transform group-hover:translate-y-0.5" />
                                     {t('dashboard.executiveReport')}
@@ -253,37 +263,39 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                     {/* Right Column: Radar (Desktop) / Grade (Desktop) */}
                     {radarData && (
-                        <div className="hidden lg:flex flex-col gap-8 w-[380px] shrink-0">
+                        <div className="hidden lg:flex flex-col gap-8 w-[420px] shrink-0">
                             {/* Grade Card - Premium Glass */}
-                            <div className="group relative overflow-hidden rounded-[2rem] bg-slate-900 text-white p-8 shadow-2xl transition-transform hover:scale-[1.01] duration-500">
-                                <div className={`absolute top-0 right-0 w-48 h-48 bg-gradient-to-br ${getGradeColor(scoreGrade)} blur-[60px] opacity-40 -mr-12 -mt-12 transition-all duration-700 group-hover:opacity-60 group-hover:blur-[80px]`} />
-                                <div className={`absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr ${getGradeColor(scoreGrade)} blur-[50px] opacity-20 -ml-8 -mb-8`} />
+                            <div className="group relative overflow-hidden rounded-[2.5rem] bg-slate-900 text-white p-10 shadow-2xl transition-all duration-500 hover:shadow-brand-500/20">
+                                <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${getGradeColor(scoreGrade)} blur-[80px] opacity-30 -mr-20 -mt-20 transition-all duration-700 group-hover:opacity-50`} />
+                                <div className={`absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr ${getGradeColor(scoreGrade)} blur-[60px] opacity-10 -ml-16 -mb-16`} />
 
-                                <div className="relative z-10 flex items-center justify-between mb-8">
-                                    <div>
-                                        <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Gouvernance</span>
-                                        <h3 className="text-xl font-bold text-white">Score Global</h3>
+                                <div className="relative z-10">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div>
+                                            <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Gouvernance Score</span>
+                                            <h3 className="text-xl font-bold text-white">Indice de Maturité</h3>
+                                        </div>
+                                        <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                                            <Activity className="h-6 w-6 text-white" />
+                                        </div>
                                     </div>
-                                    <div className="p-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 shadow-inner">
-                                        <Activity className="h-6 w-6 text-white" />
-                                    </div>
-                                </div>
 
-                                <div className="relative z-10 flex items-end justify-between">
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-7xl font-black tracking-tighter leading-none font-display bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">{scoreGrade || '-'}</span>
-                                        <span className="text-lg font-medium text-slate-400 mb-1.5">/ A</span>
-                                    </div>
-                                    <div className={`mb-2 px-3 py-1.5 rounded-lg bg-white/10 text-sm font-bold border border-white/10 backdrop-blur-md shadow-lg ${scoreGrade === 'A' ? 'text-emerald-300' : scoreGrade === 'B' ? 'text-blue-300' : 'text-orange-300'}`}>
-                                        {scoreGrade === 'A' ? 'Excellent' : scoreGrade === 'B' ? 'Bon' : scoreGrade === 'C' ? 'Moyen' : 'Critique'}
+                                    <div className="flex items-end justify-between">
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-8xl font-black tracking-tighter leading-none font-display bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400/80 filter drop-shadow-sm">{scoreGrade || '-'}</span>
+                                            <span className="text-xl font-medium text-slate-500 mb-2">/ A</span>
+                                        </div>
+                                        <div className={`mb-3 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md text-sm font-bold border border-white/10 shadow-lg ${scoreGrade === 'A' ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20' : scoreGrade === 'B' ? 'text-blue-300 bg-blue-500/10 border-blue-500/20' : 'text-orange-300 bg-orange-500/10 border-orange-500/20'}`}>
+                                            {scoreGrade === 'A' ? 'Excellent' : scoreGrade === 'B' ? 'Bon' : scoreGrade === 'C' ? 'Moyen' : 'Critique'}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Radar Embedded - Glass Container */}
-                            <div className="flex-1 bg-white/40 dark:bg-white/5 rounded-[2rem] border border-white/60 dark:border-white/5 backdrop-blur-xl p-6 flex flex-col shadow-lg">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Maturité par Domaine</h4>
-                                <div className="flex-1 flex items-center justify-center -ml-2">
+                            <div className="flex-1 bg-white/40 dark:bg-white/5 rounded-[2.5rem] border border-white/60 dark:border-white/5 backdrop-blur-xl p-8 flex flex-col shadow-xl shadow-slate-200/50 dark:shadow-none">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 text-center">Couverture par Domaine</h4>
+                                <div className="flex-1 flex items-center justify-center -ml-2 min-h-[220px]">
                                     <MaturityRadarWidget
                                         radarData={radarData}
                                         t={t}

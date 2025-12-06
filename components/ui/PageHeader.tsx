@@ -123,7 +123,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           )}
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 dark:text-white tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 dark:text-white tracking-tight animate-blur-in">
                 {title}
               </h1>
               {trustType && <SecurityBadge feature={trustType} />}
