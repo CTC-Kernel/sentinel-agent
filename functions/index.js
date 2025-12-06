@@ -502,7 +502,7 @@ const PLANS = {
 
 
 const AI_LIMITS = {
-    'discovery': 100,
+    'discovery': 10,
     'professional': 500,
     'enterprise': 5000
 };
