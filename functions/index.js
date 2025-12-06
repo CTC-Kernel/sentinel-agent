@@ -500,11 +500,15 @@ const PLANS = {
     }
 };
 
+
 const AI_LIMITS = {
-    'discovery': 5,
-    'professional': 50,
-    'enterprise': 1000
+    'discovery': 100,
+    'professional': 500,
+    'enterprise': 5000
 };
+
+
+
 
 /**
  * Helper to check and increment AI usage for an organization.
