@@ -9,6 +9,7 @@ import { Button } from '../ui/button';
 import { Sparkles, AlertTriangle, ShieldCheck } from '../ui/Icons';
 import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
+import { DatePicker } from '../ui/DatePicker';
 import { ASSET_TYPES, ASSET_LIFECYCLE_STATUSES, COMPLIANCE_SCOPES } from '../../data/assetConstants';
 
 interface AssetFormProps {
@@ -248,10 +249,16 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             )}
                         />
                         <div>
-                            <FloatingLabelInput
-                                type="date"
-                                label="Expiration Licence"
-                                {...control.register('licenseExpiry')}
+                            <Controller
+                                control={control}
+                                name="licenseExpiry"
+                                render={({ field }) => (
+                                    <DatePicker
+                                        label="Expiration Licence"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                    />
+                                )}
                             />
                         </div>
                     </div>
@@ -369,17 +376,29 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                         />
                     </div>
                     <div>
-                        <FloatingLabelInput
-                            type="date"
-                            label="Date d'achat"
-                            {...control.register('purchaseDate')}
+                        <Controller
+                            control={control}
+                            name="purchaseDate"
+                            render={({ field }) => (
+                                <DatePicker
+                                    label="Date d'achat"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                />
+                            )}
                         />
                     </div>
                     <div>
-                        <FloatingLabelInput
-                            type="date"
-                            label="Fin de garantie"
-                            {...control.register('warrantyEnd')}
+                        <Controller
+                            control={control}
+                            name="warrantyEnd"
+                            render={({ field }) => (
+                                <DatePicker
+                                    label="Fin de garantie"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                />
+                            )}
                         />
                     </div>
                     <div>

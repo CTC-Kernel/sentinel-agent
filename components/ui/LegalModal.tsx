@@ -68,8 +68,8 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
                                         <p className="font-medium">Cyber Threat Consulting</p>
                                         <p className="text-sm text-slate-500 mt-1">EURL au capital de 10 000 €</p>
-                                        <p className="text-sm text-slate-500">RCS Paris B 123 456 789</p>
-                                        <p className="text-sm text-slate-500">Siège social : 123 Avenue de la Cybersécurité, 75000 Paris</p>
+                                        <p className="text-sm text-slate-500">SIRET 919 340 794 00024 - TVA FR54 919 340 794</p>
+                                        <p className="text-sm text-slate-500">Siège social : Avenue Rosa Parks, 69009 Lyon</p>
                                         <p className="text-sm text-slate-500 mt-2">Contact : <a href="mailto:***REMOVED***" className="text-brand-600 hover:underline">***REMOVED***</a></p>
                                         <p className="text-sm text-slate-500">Site web : <a href="https://cyber-threat-consulting.com" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">cyber-threat-consulting.com</a></p>
                                     </div>

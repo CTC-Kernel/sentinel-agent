@@ -1,12 +1,12 @@
 
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { Asset, Risk, Project, Audit, Incident, Supplier, AISuggestedLink, AIInsight } from "../types";
+import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight } from "../types";
 import { ErrorLogger } from "./errorLogger";
 
 
 
 const FAST_MODEL = "gemini-1.5-flash";
-const SMART_MODEL = "gemini-1.5-pro";
+const SMART_MODEL = "gemini-3-pro-preview";
 
 interface GraphData {
     assets: Asset[];
@@ -15,6 +15,7 @@ interface GraphData {
     audits: Audit[];
     incidents: Incident[];
     suppliers: Supplier[];
+    controls: Control[];
 }
 
 export const aiService = {
@@ -31,6 +32,7 @@ export const aiService = {
                 risks: data.risks.map(r => ({ id: r.id, threat: r.threat, score: r.score, assetId: r.assetId })),
                 projects: data.projects.map(p => ({ id: p.id, name: p.name, status: p.status })),
                 incidents: data.incidents.map(i => ({ id: i.id, title: i.title, severity: i.severity, affectedAssetId: i.affectedAssetId })),
+                controls: data.controls.map(c => ({ id: c.id, name: c.name, status: c.status, type: c.type })),
             };
 
             const prompt = `
@@ -82,7 +84,7 @@ export const aiService = {
             };
         } catch (error) {
             ErrorLogger.error(error, 'aiService.analyzeGraph');
-            throw new Error("Failed to analyze graph with Gemini.");
+            throw new Error("Failed to analyze graph with Sentinel AI.");
         }
     },
 
@@ -274,6 +276,33 @@ export const aiService = {
         } catch (error) {
             ErrorLogger.error(error, 'aiService.generateRTPSummary');
             return "Impossible de générer le résumé RTP.";
+        }
+    },
+
+    /**
+     * Generates an executive summary for the Main Dashboard Report.
+     */
+    async generateExecutiveDashboardSummary(context: Record<string, unknown>): Promise<string> {
+        try {
+            const prompt = `
+                You are a CISO writing an Executive Summary for the Global Security Board Report.
+                
+                Context Data:
+                ${JSON.stringify(context)}
+
+                Write a professional Executive Summary (in French) of 2-3 paragraphs.
+                - Analyze the overall security score and compliance status.
+                - Highlight key risks and active incidents.
+                - Provide a strategic recommendation for the board.
+                
+                Tone: Professional, Strategic, Concise.
+                Do not use markdown formatting. Just plain text with paragraphs.
+            `;
+
+            return await generateContentSafe(prompt, SMART_MODEL);
+        } catch (error) {
+            ErrorLogger.error(error, 'aiService.generateExecutiveDashboardSummary');
+            return "Impossible de générer le résumé exécutif du tableau de bord.";
         }
     },
 
