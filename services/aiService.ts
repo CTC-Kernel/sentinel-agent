@@ -477,6 +477,12 @@ async function runChatSafe(systemPrompt: string, message: string, modelName: str
             ErrorLogger.warn('Gemini Rate Limit Hit', 'aiService.runChatSafe', {
                 metadata: { code, message }
             });
+
+            // If it's the daily limit, show the specific message from backend
+            if (message.includes('Daily AI limit')) {
+                throw new Error(message);
+            }
+
             throw new Error("L'IA est très sollicitée en ce moment. Veuillez patienter quelques secondes.");
         } else if (code === 'unauthenticated' || code === 'failed-precondition') {
             ErrorLogger.warn('Backend Gemini chat not available', 'aiService.runChatSafe', {

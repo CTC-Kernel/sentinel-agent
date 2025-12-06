@@ -25,6 +25,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     }, [incident.id]);
 
     const loadData = async () => {
+        if (!user?.organizationId) return;
         setLoading(true);
         try {
             // 1. Check for existing response
@@ -38,9 +39,9 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
             } else {
                 // 3. If no response, load available playbooks for this category
                 // First ensure defaults exist (idempotent)
-                await IncidentPlaybookService.initializeDefaultPlaybooks();
+                await IncidentPlaybookService.initializeDefaultPlaybooks(user.organizationId);
 
-                const playbooks = await IncidentPlaybookService.getPlaybooks(incident.category);
+                const playbooks = await IncidentPlaybookService.getPlaybooks(user.organizationId, incident.category);
                 setAvailablePlaybooks(playbooks);
                 if (playbooks.length > 0) {
                     setSelectedPlaybookId(playbooks[0].id);
@@ -54,13 +55,14 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     };
 
     const handleStartResponse = async () => {
-        if (!selectedPlaybookId || !user?.uid) return;
+        if (!selectedPlaybookId || !user?.uid || !user?.organizationId) return;
         try {
             setLoading(true);
             await IncidentPlaybookService.initiateResponse(
                 incident.id,
                 selectedPlaybookId,
-                [user.uid]
+                [user.uid],
+                user.organizationId
             );
             await loadData(); // Reload to show the active response
         } catch (error) {
@@ -149,7 +151,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                     <div className="text-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
                         <p className="text-slate-500">Aucun playbook disponible pour la catégorie "{incident.category}".</p>
                         <button
-                            onClick={() => IncidentPlaybookService.initializeDefaultPlaybooks().then(loadData)}
+                            onClick={() => user?.organizationId && IncidentPlaybookService.initializeDefaultPlaybooks(user.organizationId).then(loadData)}
                             className="mt-2 text-brand-600 hover:underline text-sm"
                         >
                             Générer les playbooks par défaut
