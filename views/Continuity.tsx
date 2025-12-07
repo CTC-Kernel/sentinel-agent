@@ -211,7 +211,7 @@ export const Continuity: React.FC = () => {
             );
             addToast("Rapport généré avec succès", "success");
         } catch (error) {
-            console.error(error);
+            ErrorLogger.handleErrorWithToast(error, 'Continuity.generateReport', 'REPORT_GENERATION_FAILED');
             addToast("Erreur lors de la génération du rapport", "error");
         }
     };
