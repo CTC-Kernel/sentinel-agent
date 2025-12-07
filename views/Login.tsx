@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { AuroraBackground } from '../components/ui/AuroraBackground';
 import { SEO } from '../components/SEO';
+import { Spotlight } from '../components/ui/aceternity/Spotlight';
+import { SparklesCore } from '../components/ui/aceternity/Sparkles';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
@@ -182,8 +184,6 @@ export const Login: React.FC = () => {
         }
     };
 
-
-
     return (
         <AuroraBackground className="min-h-screen flex flex-col items-center justify-center bg-[#E5E7EB] dark:bg-[#000000] relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
             <SEO
@@ -191,10 +191,28 @@ export const Login: React.FC = () => {
                 description="Connectez-vous à votre espace sécurisé Sentinel GRC."
                 keywords="Connexion, Secure Login, MFA, GRC, Sentinel"
             />
-            {/* Ambient Background */}
-            <div className="absolute inset-0 w-full h-full">
+
+            {/* Aceternity Spotlight Effect */}
+            <Spotlight
+                className="-top-40 left-0 md:left-60 md:-top-20"
+                fill="white"
+            />
+
+            {/* Ambient Background & Sparkles */}
+            <div className="absolute inset-0 w-full h-full pointer-events-none">
                 <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float"></div>
                 <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
+
+                {/* Sparkles Layer */}
+                <SparklesCore
+                    id="tsparticlesfullpage"
+                    background="transparent"
+                    minSize={0.6}
+                    maxSize={1.4}
+                    particleDensity={50}
+                    className="w-full h-full absolute inset-0 z-0"
+                    particleColor="#FFFFFF"
+                />
             </div>
 
             <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center mx-auto">

@@ -13,6 +13,7 @@ import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, Mess
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
+import { StaggerContainer, SlideUp } from '../components/ui/Animations';
 
 import { PdfService } from '../services/PdfService';
 
@@ -550,7 +551,7 @@ export const Assets: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in relative pb-10">
+        <StaggerContainer className="space-y-8 relative pb-10">
             <Helmet>
                 <title>{selectedAsset ? `${selectedAsset.name} - Actifs` : 'Inventaire des Actifs - Sentinel GRC'}</title>
             </Helmet>
@@ -559,87 +560,96 @@ export const Assets: React.FC = () => {
 
 
 
-            <PageHeader
-                title={assetsTitle}
-                subtitle={assetsSubtitle}
-                breadcrumbs={[
-                    { label: 'Actifs' }
-                ]}
-                icon={<Server className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                actions={canEdit && (
-                    <>
-                        <button
-                            onClick={generateIntakeLink}
-                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
-                            title="Copier le lien Kiosque"
-                        >
-                            <Link className="h-4 w-4 mr-2 text-brand-500" /> Lien Kiosque
-                        </button>
-                        <button
-                            onClick={() => openInspector(undefined)}
-                            className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                        >
-                            <Plus className="h-4 w-4 mr-2" /> Nouvel Actif
-                        </button>
-                    </>
-                )}
-            />
+            <SlideUp>
+                <PageHeader
+                    title={assetsTitle}
+                    subtitle={assetsSubtitle}
+                    breadcrumbs={[
+                        { label: 'Actifs' }
+                    ]}
+                    icon={<Server className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    actions={canEdit && (
+                        <>
+                            <button
+                                onClick={generateIntakeLink}
+                                className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
+                                title="Copier le lien Kiosque"
+                            >
+                                <Link className="h-4 w-4 mr-2 text-brand-500" /> Lien Kiosque
+                            </button>
+                            <button
+                                onClick={() => openInspector(undefined)}
+                                className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                            >
+                                <Plus className="h-4 w-4 mr-2" /> Nouvel Actif
+                            </button>
+                        </>
+                    )}
+                />
+            </SlideUp>
 
             {/* KPIs */}
+            {/* KPIs */}
             {/* Dashboard */}
-            <AssetDashboard
-                assets={filteredAssets}
-                onFilterChange={(filter) => {
-                    if (filter?.type === 'criticality') {
-                        setActiveFilters(prev => ({ ...prev, criticality: filter.value as Criticality }));
-                    } else if (filter === null) {
-                        setActiveFilters(prev => ({ ...prev, criticality: undefined }));
-                    }
-                }}
-            />
+            <SlideUp>
+                <AssetDashboard
+                    assets={filteredAssets}
+                    onFilterChange={(filter) => {
+                        if (filter?.type === 'criticality') {
+                            setActiveFilters(prev => ({ ...prev, criticality: filter.value as Criticality }));
+                        } else if (filter === null) {
+                            setActiveFilters(prev => ({ ...prev, criticality: undefined }));
+                        }
+                    }}
+                />
+            </SlideUp>
 
             {showAdvancedSearch && (
-                <AdvancedSearch
-                    onSearch={(filters) => { setActiveFilters(filters); setShowAdvancedSearch(false); }}
-                    onClose={() => setShowAdvancedSearch(false)}
-                />
+                <SlideUp>
+                    <AdvancedSearch
+                        onSearch={(filters) => { setActiveFilters(filters); setShowAdvancedSearch(false); }}
+                        onClose={() => setShowAdvancedSearch(false)}
+                    />
+                </SlideUp>
             )}
 
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-                <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
-                    <Search className="h-5 w-5 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Rechercher un actif..."
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-white py-2.5 font-medium placeholder-slate-400"
-                        value={activeFilters.query}
-                        onChange={e => setActiveFilters({ ...activeFilters, query: e.target.value })}
-                    />
-                    <button
-                        onClick={() => setShowAdvancedSearch(true)}
-                        className="px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
-                    >
-                        Filtres Avancés
-                    </button>
-                    <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"><FileSpreadsheet className="h-4 w-4" /></button>
-                    <button onClick={() => generateLabels()} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>
-                </div>
+            <SlideUp>
+                <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+                    <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
+                        <Search className="h-5 w-5 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Rechercher un actif..."
+                            className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-white py-2.5 font-medium placeholder-slate-400"
+                            value={activeFilters.query}
+                            onChange={e => setActiveFilters({ ...activeFilters, query: e.target.value })}
+                        />
+                        <button
+                            onClick={() => setShowAdvancedSearch(true)}
+                            className="px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
+                        >
+                            Filtres Avancés
+                        </button>
+                        <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"><FileSpreadsheet className="h-4 w-4" /></button>
+                        <button onClick={() => generateLabels()} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>
+                    </div>
 
-                <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
-                    <button
-                        onClick={() => setViewMode('grid')}
-                        className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                        <LayoutGrid className="h-4 w-4" />
-                    </button>
-                    <button
-                        onClick={() => setViewMode('list')}
-                        className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                        <List className="h-4 w-4" />
-                    </button>
+                    <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            <LayoutGrid className="h-4 w-4" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            <List className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </SlideUp>
 
             {/* List / Grid */}
             {viewMode === 'list' ? (
@@ -1218,6 +1228,6 @@ export const Assets: React.FC = () => {
                     </>
                 )}
             </Drawer >
-        </div >
+        </StaggerContainer>
     );
 };
