@@ -147,6 +147,17 @@ export const VoxelView: React.FC = () => {
     return () => document.body.classList.remove('voxel-fullscreen');
   }, [isFullscreen]);
 
+  useEffect(() => {
+    // Trigger resize to ensure Canvas fits container after route transition/animation
+    const timers = [
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 100),
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 500),
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 800)
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+
   const detailRoutes: Record<LayerType, string> = {
     asset: '/assets',
     risk: '/risks',
