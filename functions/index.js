@@ -1989,18 +1989,29 @@ exports.callGeminiChat = onCall({
         const genAI = await getGeminiClientForUser(uid, apiVersion);
 
         const runChat = async (name) => {
+            // Determine required API version for this model
+            const apiVersion = (name.includes('gemini-3') || name.includes('gemini-2.0')) ? 'v1alpha' : undefined;
+
+            // Re-get client to ensure we have the right version/config
+            // (getGeminiClientForUser handles efficient client creation)
+            const client = await getGeminiClientForUser(uid, apiVersion);
+
             let config = {};
+            // Enable thinking for newer models if supported/desired
             if (name.includes("gemini-3") || name.includes("gemini-2.0")) {
-                config.thinkingConfig = { thinkingLevel: "high" };
+                // simple-2-0 doesn't always support thinking, but let's keep it safe or empty
+                // config.thinkingConfig = { thinkingLevel: "high" }; 
             }
 
             const contents = [
                 { role: "user", parts: [{ text: systemPrompt }] },
                 { role: "model", parts: [{ text: "Bien reçu. Je suis Sentinel AI, prêt à vous assister sur tous les sujets GRC." }] },
+                // TODO: In a real chat, we should pass history here. 
+                // For now, it's single-turn + system prompt context. 
                 { role: "user", parts: [{ text: message }] }
             ];
 
-            const response = await genAI.models.generateContent({
+            const response = await client.models.generateContent({
                 model: name,
                 contents: contents,
                 config: config
@@ -2028,15 +2039,19 @@ exports.callGeminiChat = onCall({
                 errMsg.includes('quota');
 
             if (isTransient) {
-                // FALLBACK STRATEGY
-                const backoffDelays = [2000, 4000]; // 2s, 4s
+                // FALLBACK STRATEGY: Try different models
+                // We prioritize flash-exp (fast/new) then pro (smarter/slower) then flash again
+                const fallbackModels = ['gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+                const backoffDelays = [1000, 2000, 4000];
 
-                const fallbackModel = 'gemini-1.5-flash';
+                for (let i = 0; i < fallbackModels.length; i++) {
+                    const fallbackModel = fallbackModels[i];
+                    const waitTime = backoffDelays[i] || 3000;
 
-                for (let i = 0; i < backoffDelays.length; i++) {
-                    const waitTime = backoffDelays[i];
+                    // Don't retry the exact same failing model immediately if it's the first retry
+                    if (fallbackModel === modelName && i === 0) continue;
+
                     logger.info(`Retrying with ${fallbackModel} after ${waitTime}ms... (Attempt ${i + 1})`);
-
                     await delay(waitTime);
 
                     try {
@@ -2044,8 +2059,8 @@ exports.callGeminiChat = onCall({
                         return { text, model: `${fallbackModel} (fallback)` };
                     } catch (retryError) {
                         const retryMsg = retryError instanceof Error ? retryError.message : String(retryError);
-                        logger.warn(`Retry attempt ${i + 1} failed: ${retryMsg}`);
-                        // Continue to next retry
+                        logger.warn(`Retry attempt ${i + 1} (${fallbackModel}) failed: ${retryMsg}`);
+                        // Continue to next fallback model
                     }
                 }
 
