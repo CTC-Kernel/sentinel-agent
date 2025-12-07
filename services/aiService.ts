@@ -167,8 +167,15 @@ export const aiService = {
         try {
             return await runChatSafe(systemPrompt, message, FAST_MODEL);
         } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
             ErrorLogger.error(error, 'aiService.chatWithAI');
-            return "Désolé, une erreur est survenue lors de la communication avec l'IA.";
+
+            // If it's a specific backend error or rate limit message, return it to the user
+            if (msg.includes('Erreur IA:') || msg.includes('L\'IA est très sollicitée') || msg.includes('Daily AI limit')) {
+                return msg;
+            }
+
+            return "Désolé, une erreur est survenue lors de la communication avec l'IA. Veuillez réessayer.";
         }
     },
 
