@@ -120,6 +120,11 @@ service cloud.firestore {
       );
       
       allow delete: if belongsToOrganization(resource.data.organizationId) && (isAdmin() || isOrgOwner(resource.data.organizationId));
+
+      // User Conversations (Chat History)
+      match /conversations/{conversationId} {
+        allow read, write: if request.auth.uid == userId;
+      }
     }
     
     // Join Requests

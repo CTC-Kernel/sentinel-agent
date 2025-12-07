@@ -1,5 +1,6 @@
 @import './styles/focus.css';
 @import './styles/calendar.css';
+@import 'lenis/dist/lenis.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

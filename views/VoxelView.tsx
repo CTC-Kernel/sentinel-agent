@@ -8,7 +8,8 @@ import { aiService } from '../services/aiService';
 import { ErrorLogger } from '../services/errorLogger';
 import { useStore } from '../store';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, Search, RotateCw, Minimize2, CheckCheck, MonitorPlay } from '../components/ui/Icons';
+import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, Search, RotateCw, Minimize2, CheckCheck, MonitorPlay, Info } from 'lucide-react';
+import { VoxelGuide } from '../components/VoxelGuide';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Network } from '../components/ui/Icons';
@@ -134,6 +135,8 @@ export const VoxelView: React.FC = () => {
     localStorage.setItem('voxel_detailMinimized', JSON.stringify(isDetailMinimized));
   }, [isDetailMinimized]);
   const [presentationMode, setPresentationMode] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const isInitialized = useRef(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showLayerMenu, setShowLayerMenu] = useState(false);
@@ -582,12 +585,15 @@ export const VoxelView: React.FC = () => {
 
   useEffect(() => {
     if (loading) return;
-    if (selectedNode) return;
+    if (isInitialized.current) return;
     if (!orderedNodes.length) return;
+
+    // Only focus first node on initial load
     const first = orderedNodes[0];
     applyFocus(first.id, first.type as LayerType);
+    isInitialized.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, orderedNodes, selectedNode]);
+  }, [loading, orderedNodes]);
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -874,6 +880,16 @@ export const VoxelView: React.FC = () => {
 
         {/* Unified Command Bar (Dock) */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[10000] flex items-center gap-1.5 p-1.5 rounded-full bg-slate-900/80 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all hover:scale-[1.02] hover:bg-slate-900/90">
+          <button
+            onClick={() => setShowGuide(true)}
+            className="p-3 rounded-full hover:bg-white/10 text-indigo-400 hover:text-white transition tooltip-trigger group relative"
+            title="Guide du module"
+          >
+            <Info className="h-5 w-5" />
+          </button>
+
+          <div className="w-px h-6 bg-white/10 mx-1" />
+
           <button
             onClick={() => { setNavCollapsed(false); setTimeout(() => document.getElementById('voxel-search')?.focus(), 100); }}
             className={`p-3 rounded-full transition tooltip-trigger group relative ${!navCollapsed ? 'bg-white text-slate-900' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
@@ -1279,6 +1295,7 @@ export const VoxelView: React.FC = () => {
           )}
         </div>
       </div>
+      <VoxelGuide isOpen={showGuide} onClose={() => setShowGuide(false)} />
     </div >
   );
 };
