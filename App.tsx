@@ -145,7 +145,7 @@ const AppLayout: React.FC = () => {
                     id="main-content"
                     className={`flex-1 overflow-y-auto scroll-smooth no-scrollbar bg-[#fafafa] dark:bg-slate-950 ${location.pathname === '/ctc-engine' ? 'p-0 overflow-hidden' : 'p-4 md:p-8'}`}
                 >
-                    <div className={`${location.pathname === '/ctc-engine' ? 'w-full h-full animate-fade-in' : 'max-w-[1600px] mx-auto animate-fade-in h-full pb-10'}`}>
+                    <div className={`${location.pathname === '/ctc-engine' ? 'w-full h-full animate-fade-in' : 'max-w-[1600px] mx-auto animate-fade-in min-h-full pb-10'}`}>
                         <Suspense fallback={<LoadingScreen />}>
                             <AnimatedRoutes />
                         </Suspense>
