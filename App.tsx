@@ -26,6 +26,7 @@ import { hasPermission } from './utils/permissions';
 import { SkipLink } from './components/ui/SkipLink';
 import { useHotkeys } from './hooks/useHotkeys';
 import { LoadingScreen } from './components/ui/LoadingScreen';
+import { SmoothScroll } from './components/ui/SmoothScroll';
 import { CookieConsent } from './components/ui/CookieConsent';
 import { ShortcutsHelp } from './components/ui/ShortcutsHelp';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -139,13 +140,13 @@ const AppLayout: React.FC = () => {
             <div className="flex-1 flex flex-col overflow-hidden relative">
                 <TopBar setMobileOpen={setMobileOpen} />
 
-                <main id="main-content" className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth no-scrollbar bg-[#fafafa] dark:bg-slate-950">
+                <SmoothScroll id="main-content" className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth no-scrollbar bg-[#fafafa] dark:bg-slate-950">
                     <div className="max-w-[1600px] mx-auto animate-fade-in h-full pb-10">
                         <Suspense fallback={<LoadingScreen />}>
                             <AnimatedRoutes />
                         </Suspense>
                     </div>
-                </main>
+                </SmoothScroll>
             </div>
 
             <NotificationPermissionBanner />
