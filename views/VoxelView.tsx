@@ -766,7 +766,8 @@ export const VoxelView: React.FC = () => {
       <div
         className={`${isFullscreen
           ? 'fixed !inset-0 !z-[9999] bg-slate-900'
-          : 'relative flex-1 min-h-[500px] max-h-[760px] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto w-full'
+          : 'relative flex-1 min-h-[500px] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto w-full'
+
           }`}
       >
         {isFullscreen && (

@@ -12,6 +12,7 @@ import { CustomSelect } from '../components/ui/CustomSelect';
 import { Badge } from '../components/ui/Badge';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { DataTable } from '../components/ui/DataTable';
+import { StaggerContainer, SlideUp } from '../components/ui/Animations';
 
 import { RiskForm } from '../components/risks/RiskForm';
 import { RelationshipGraph } from '../components/RelationshipGraph';
@@ -827,7 +828,7 @@ export const Risks: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6 relative">
+        <StaggerContainer className="space-y-6 relative">
             <SEO
                 title="Gestion des Risques - Sentinel GRC"
                 description="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005."
@@ -856,144 +857,152 @@ export const Risks: React.FC = () => {
                 message={confirmData.message}
             />
 
-            <PageHeader
-                title={risksTitle}
-                subtitle={risksSubtitle}
-                breadcrumbs={[
-                    { label: 'Risques' }
-                ]}
-                icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                trustType="integrity"
-                actions={(
-                    <>
-                        {canEdit && (
+            <SlideUp>
+                <PageHeader
+                    title={risksTitle}
+                    subtitle={risksSubtitle}
+                    breadcrumbs={[
+                        { label: 'Risques' }
+                    ]}
+                    icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    trustType="integrity"
+                    actions={(
+                        <>
+                            {canEdit && (
+                                <button
+                                    onClick={() => setShowTemplateModal(true)}
+                                    className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+                                >
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Importer Template
+                                </button>
+                            )}
+
                             <button
-                                onClick={() => setShowTemplateModal(true)}
+                                onClick={handleExportRTP}
+                                className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+                            >
+                                <FileText className="h-4 w-4 mr-2 text-red-500" />
+                                RTP (PDF)
+                            </button>
+
+                            <button
+                                onClick={handleExportPDF}
                                 className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
                             >
                                 <Download className="h-4 w-4 mr-2" />
-                                Importer Template
+                                Registre (PDF)
                             </button>
-                        )}
 
-                        <button
-                            onClick={handleExportRTP}
-                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
-                        >
-                            <FileText className="h-4 w-4 mr-2 text-red-500" />
-                            RTP (PDF)
-                        </button>
-
-                        <button
-                            onClick={handleExportPDF}
-                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
-                        >
-                            <Download className="h-4 w-4 mr-2" />
-                            Registre (PDF)
-                        </button>
-
-                        {canEdit && (
-                            <>
-                                <button
-                                    onClick={handleAIAnalysis}
-                                    className="flex items-center px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
-                                >
-                                    <BrainCircuit className="h-4 w-4 mr-2" />
-                                    Analyse IA
-                                </button>
-                                <button onClick={openCreationDrawer} className="flex items-center space-x-2 px-4 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
-                                    <Plus className="w-5 h-5" />
-                                    <span>Nouveau Risque</span>
-                                </button>
-                            </>
-                        )}
-                    </>
-                )}
-            />
+                            {canEdit && (
+                                <>
+                                    <button
+                                        onClick={handleAIAnalysis}
+                                        className="flex items-center px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
+                                    >
+                                        <BrainCircuit className="h-4 w-4 mr-2" />
+                                        Analyse IA
+                                    </button>
+                                    <button onClick={openCreationDrawer} className="flex items-center space-x-2 px-4 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
+                                        <Plus className="w-5 h-5" />
+                                        <span>Nouveau Risque</span>
+                                    </button>
+                                </>
+                            )}
+                        </>
+                    )}
+                />
+            </SlideUp>
 
             {/* Stats */}
             {/* Insight Card (Summary) */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div className="space-y-2">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
-                        <span className="inline-flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
-                        Vue globale des risques
-                    </p>
-                    <div className="flex items-baseline gap-3">
-                        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</h2>
-                        <span className="text-sm font-bold text-slate-500">Risques identifiés</span>
+            <SlideUp>
+                <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                    <div className="space-y-2">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                            <span className="inline-flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                            Vue globale des risques
+                        </p>
+                        <div className="flex items-baseline gap-3">
+                            <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</h2>
+                            <span className="text-sm font-bold text-slate-500">Risques identifiés</span>
+                        </div>
+                    </div>
+
+                    <div className="h-px w-full md:w-px md:h-16 bg-slate-200 dark:bg-white/10" />
+
+                    <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Critiques</p>
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl font-black text-red-500">{stats.critical}</span>
+                                <Badge status="error" variant="soft" size="sm">Score 15+</Badge>
+                            </div>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Score Moyen</p>
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl font-black text-slate-900 dark:text-white">
+                                    {risks.length > 0 ? (risks.reduce((sum, r) => sum + r.score, 0) / risks.length).toFixed(1) : '0'}
+                                </span>
+                                <span className="text-xs font-medium text-slate-400">/ 25</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Non Traités</p>
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl font-black text-amber-500">
+                                    {risks.filter(r => r.strategy === 'Accepter' && r.score >= 10).length}
+                                </span>
+                                <span className="text-xs font-medium text-slate-400">Critiques</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Réduction</p>
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl font-black text-emerald-500">
+                                    {risks.length > 0 ?
+                                        Math.round(((risks.reduce((sum, r) => sum + r.score, 0) - risks.reduce((sum, r) => sum + (r.residualScore || r.score), 0)) / risks.reduce((sum, r) => sum + r.score, 0)) * 100)
+                                        : 0}%
+                                </span>
+                                <TrendingDown className="h-4 w-4 text-emerald-500" />
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </SlideUp>
 
-                <div className="h-px w-full md:w-px md:h-16 bg-slate-200 dark:bg-white/10" />
-
-                <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Critiques</p>
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-black text-red-500">{stats.critical}</span>
-                            <Badge status="error" variant="soft" size="sm">Score 15+</Badge>
-                        </div>
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Score Moyen</p>
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-black text-slate-900 dark:text-white">
-                                {risks.length > 0 ? (risks.reduce((sum, r) => sum + r.score, 0) / risks.length).toFixed(1) : '0'}
-                            </span>
-                            <span className="text-xs font-medium text-slate-400">/ 25</span>
-                        </div>
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Non Traités</p>
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-black text-amber-500">
-                                {risks.filter(r => r.strategy === 'Accepter' && r.score >= 10).length}
-                            </span>
-                            <span className="text-xs font-medium text-slate-400">Critiques</span>
-                        </div>
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Réduction</p>
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-black text-emerald-500">
-                                {risks.length > 0 ?
-                                    Math.round(((risks.reduce((sum, r) => sum + r.score, 0) - risks.reduce((sum, r) => sum + (r.residualScore || r.score), 0)) / risks.reduce((sum, r) => sum + r.score, 0)) * 100)
-                                    : 0}%
-                            </span>
-                            <TrendingDown className="h-4 w-4 text-emerald-500" />
+            <SlideUp>
+                <div className="flex flex-col sm:flex-row justify-between gap-4">
+                    <div className="flex items-center space-x-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 border border-slate-200 dark:border-white/5"><Search className="h-5 w-5 text-slate-400" /><input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
+                    <div className="flex flex-wrap gap-2">
+                        <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+                        <button onClick={handleExportRTP} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><FileText className="h-4 w-4 mr-2" /> RTP (PDF)</button>
+                        <button onClick={handleExportPDF} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Download className="h-4 w-4 mr-2" /> Registre (PDF)</button>
+                        {canEdit && <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>}
+                        <button onClick={handleExportCSV} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"><FileSpreadsheet className="h-4 w-4" /></button>
+                        <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm ml-2">
+                            <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
+                            <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                            <button onClick={() => setViewMode('matrix')} className={`p-2 rounded-lg transition-all ${viewMode === 'matrix' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Matrice"><LayoutDashboard className="h-4 w-4" /></button>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-                <div className="flex items-center space-x-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 border border-slate-200 dark:border-white/5"><Search className="h-5 w-5 text-slate-400" /><input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
-                <div className="flex flex-wrap gap-2">
-                    <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                    <button onClick={handleExportRTP} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><FileText className="h-4 w-4 mr-2" /> RTP (PDF)</button>
-                    <button onClick={handleExportPDF} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><Download className="h-4 w-4 mr-2" /> Registre (PDF)</button>
-                    {canEdit && <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>}
-                    <button onClick={handleExportCSV} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"><FileSpreadsheet className="h-4 w-4" /></button>
-                    <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm ml-2">
-                        <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
-                        <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
-                        <button onClick={() => setViewMode('matrix')} className={`p-2 rounded-lg transition-all ${viewMode === 'matrix' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Matrice"><LayoutDashboard className="h-4 w-4" /></button>
-                    </div>
-                </div>
-            </div>
+            </SlideUp>
 
             {/* Filter Feedback */}
             {matrixFilter && (
-                <div className="flex items-center justify-between bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 animate-slide-up shadow-sm">
-                    <div className="flex items-center gap-3">
-                        <Filter className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-                        <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
-                            Filtrage actif : <span className="bg-white dark:bg-black/20 px-2 py-0.5 rounded-lg shadow-sm">Probabilité {matrixFilter.p}</span> × <span className="bg-white dark:bg-black/20 px-2 py-0.5 rounded-lg shadow-sm">Impact {matrixFilter.i}</span>
-                        </span>
+                <SlideUp>
+                    <div className="flex items-center justify-between bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <Filter className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+                            <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
+                                Filtrage actif : <span className="bg-white dark:bg-black/20 px-2 py-0.5 rounded-lg shadow-sm">Probabilité {matrixFilter.p}</span> × <span className="bg-white dark:bg-black/20 px-2 py-0.5 rounded-lg shadow-sm">Impact {matrixFilter.i}</span>
+                            </span>
+                        </div>
+                        <button onClick={() => setMatrixFilter(null)} className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center bg-white dark:bg-black/20 px-3 py-1.5 rounded-lg shadow-sm transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"><RefreshCw className="h-3 w-3 mr-1.5" /> Réinitialiser</button>
                     </div>
-                    <button onClick={() => setMatrixFilter(null)} className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center bg-white dark:bg-black/20 px-3 py-1.5 rounded-lg shadow-sm transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"><RefreshCw className="h-3 w-3 mr-1.5" /> Réinitialiser</button>
-                </div>
+                </SlideUp>
             )}
 
             {viewMode === 'matrix' ? (
@@ -1827,6 +1836,6 @@ export const Risks: React.FC = () => {
                 )
                 }
             </Drawer >
-        </div >
+        </StaggerContainer>
     );
 };
