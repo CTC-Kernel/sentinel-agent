@@ -1898,13 +1898,13 @@ exports.callGeminiChat = onCall({
             await checkAndIncrementAiUsage(uid, userData.organizationId);
         }
 
-        const apiVersion = modelName.includes('gemini-3') ? 'v1alpha' : undefined;
+        const apiVersion = (modelName.includes('gemini-3') || modelName.includes('gemini-2.0')) ? 'v1alpha' : undefined;
         // Ensure this doesn't throw 500
         const genAI = await getGeminiClientForUser(uid, apiVersion);
 
         const runChat = async (name) => {
             let config = {};
-            if (name.includes("gemini-3")) {
+            if (name.includes("gemini-3") || name.includes("gemini-2.0")) {
                 config.thinkingConfig = { thinkingLevel: "high" };
             }
 
@@ -1935,6 +1935,8 @@ exports.callGeminiChat = onCall({
                 errMsg.includes('resource exhausted') ||
                 errMsg.includes('503') ||
                 errMsg.includes('500') ||
+                errMsg.includes('404') ||
+                errMsg.includes('Not Found') ||
                 errMsg.includes('fetch failed') ||
                 errMsg.includes('network') ||
                 errMsg.includes('quota');
