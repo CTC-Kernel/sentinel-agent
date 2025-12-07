@@ -1899,6 +1899,7 @@ exports.callGeminiChat = onCall({
         }
 
         const apiVersion = modelName.includes('gemini-3') ? 'v1alpha' : undefined;
+        // Ensure this doesn't throw 500
         const genAI = await getGeminiClientForUser(uid, apiVersion);
 
         const runChat = async (name) => {
@@ -1928,15 +1929,21 @@ exports.callGeminiChat = onCall({
             const errMsg = error instanceof Error ? error.message : String(error);
             logger.warn(`Primary Gemini chat model (${modelName}) failed: ${errMsg}`);
 
-            // Only retry on transient errors (429, 503, 500)
-            const isTransient = errMsg.includes('429') || errMsg.includes('Too Many Requests') || errMsg.includes('resource exhausted') || errMsg.includes('503') || errMsg.includes('500');
+            // Widen retry conditions: Include common network/quota keywords
+            const isTransient = errMsg.includes('429') ||
+                errMsg.includes('Too Many Requests') ||
+                errMsg.includes('resource exhausted') ||
+                errMsg.includes('503') ||
+                errMsg.includes('500') ||
+                errMsg.includes('fetch failed') ||
+                errMsg.includes('network') ||
+                errMsg.includes('quota');
 
             if (isTransient) {
                 // FALLBACK STRATEGY
-                const backoffDelays = [2000, 4000]; // Increased delays: 2s, then 4s
+                const backoffDelays = [2000, 4000]; // 2s, 4s
 
-                // If primary was specific high-end model, fallback to flash. If already flash, retry flash.
-                const fallbackModel = modelName.includes('flash') ? 'gemini-1.5-flash' : 'gemini-1.5-flash';
+                const fallbackModel = 'gemini-1.5-flash';
 
                 for (let i = 0; i < backoffDelays.length; i++) {
                     const waitTime = backoffDelays[i];
@@ -1950,22 +1957,27 @@ exports.callGeminiChat = onCall({
                     } catch (retryError) {
                         const retryMsg = retryError instanceof Error ? retryError.message : String(retryError);
                         logger.warn(`Retry attempt ${i + 1} failed: ${retryMsg}`);
-                        // Continue to next retry if available
+                        // Continue to next retry
                     }
                 }
 
-                // If all retries fail
-                throw new HttpsError('resource-exhausted', 'Le service IA est actuellement surchargé malgré plusieurs tentatives. Veuillez réessayer dans une minute.');
+                // If all retries fail, return explicit Resource Exhausted error
+                throw new HttpsError('resource-exhausted', 'Le service IA est actuellement surchargé. Veuillez réessayer plus tard.');
             }
 
-            throw error; // Throw non-transient errors (e.g. 400 Bad Request) immediately
+            // Propagate original error message if not transient (e.g. 400 Bad Request)
+            // But verify it's not a generic Error which maps to 500
+            // We'll wrap it in HttpsError('internal') but with the MESSAGE so frontend sees it.
+            // If it's already HttpsError from checkAndIncrementAiUsage, it will be caught by outer block.
+            throw error;
         }
     } catch (error) {
         logger.error('callGeminiChat failed', error);
         if (error instanceof HttpsError) {
             throw error;
         }
-        throw new HttpsError('internal', 'Une erreur interne est survenue lors de la communication avec l\'IA.');
+        // Return correct error message to help debugging
+        throw new HttpsError('internal', `Erreur IA: ${error.message || 'Erreur inconnue'}`);
     }
 });
 

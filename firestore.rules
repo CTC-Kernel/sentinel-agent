@@ -488,8 +488,8 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId);
-      allow update: if canWrite(resource.data.organizationId);
+        (canWrite(request.resource.data.organizationId) || isUser());
+      allow update: if canWrite(resource.data.organizationId) || isUser();
       allow delete: if canDelete(resource.data.organizationId);
     }
 
