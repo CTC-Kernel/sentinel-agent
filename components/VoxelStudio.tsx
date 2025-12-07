@@ -1526,6 +1526,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         className="bg-slate-950"
         dpr={[1, 2]}
         gl={{ antialias: true }}
+        style={{ width: '100%', height: '100%' }}
       >
         <fog attach="fog" args={['#020617', 40, 90]} />
         <fog attach="fog" args={['#020617', 40, 90]} />
