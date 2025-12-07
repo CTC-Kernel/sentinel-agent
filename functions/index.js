@@ -794,6 +794,92 @@ exports.createPortalSession = onCall({
 /**
  * Stripe Webhook to sync subscription status with Firestore.
  */
+// ... existing code ...
+
+const { GoogleGenAI } = require("@google/genai");
+
+// ... existing code ...
+
+/**
+ * Call Gemini AI for Chat
+ */
+exports.callGeminiChat = onCall({
+    secrets: [geminiApiKey]
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { message, systemPrompt, modelName = "gemini-1.5-flash" } = request.data;
+
+    // Check daily limit (optional, but good practice per plan)
+    // await checkAndIncrementAiUsage(request.auth.uid, request.auth.token.organizationId);
+
+    try {
+        const client = new GoogleGenAI({ apiKey: geminiApiKey.value() });
+        const model = client.getGenerativeModel({ model: modelName });
+
+        // Construct history/content properly
+        // For simple single-turn or simple chat, we can just use generateContent with system instruction if supported
+        // or startChat.
+
+        const chat = model.startChat({
+            history: [
+                {
+                    role: "user",
+                    parts: [{ text: systemPrompt }]
+                },
+                {
+                    role: "model",
+                    parts: [{ text: "Bien reçu. Je suis prêt à vous aider en tant qu'expert Sentinel GRC." }]
+                }
+            ],
+            generationConfig: {
+                maxOutputTokens: 2048,
+            },
+        });
+
+        const result = await chat.sendMessage(message);
+        const response = result.response;
+        const text = response.text();
+
+        return { text };
+    } catch (error) {
+        logger.error("Gemini Chat Error:", error);
+        throw new HttpsError('internal', 'AI Chat failed: ' + error.message);
+    }
+});
+
+/**
+ * Call Gemini AI for Content Generation
+ */
+exports.callGeminiGenerateContent = onCall({
+    secrets: [geminiApiKey]
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { prompt, modelName = "gemini-1.5-flash" } = request.data;
+
+    try {
+        const client = new GoogleGenAI({ apiKey: geminiApiKey.value() });
+        const model = client.getGenerativeModel({ model: modelName });
+
+        const result = await model.generateContent(prompt);
+        const response = result.response;
+        const text = response.text();
+
+        return { text };
+    } catch (error) {
+        logger.error("Gemini Generate Content Error:", error);
+        throw new HttpsError('internal', 'AI Generation failed: ' + error.message);
+    }
+});
+
+/**
+ * Stripe Webhook to sync subscription status with Firestore.
+ */
 exports.stripeWebhook = onRequest({
     secrets: [stripeSecretKey, stripeWebhookSecret]
 }, async (req, res) => {

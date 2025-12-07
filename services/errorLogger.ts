@@ -254,6 +254,7 @@ export const ERROR_MESSAGES = {
   DOCUMENT_NOT_FOUND: "Document introuvable",
   AUDIT_NOT_FOUND: "Audit introuvable",
   SCAN_FAILED: "Erreur lors du scan de sécurité",
+  REPORT_GENERATION_FAILED: "Erreur lors de la génération du rapport",
 
   // IA
   AI_ERROR: "Erreur lors de l'analyse IA",
