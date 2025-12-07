@@ -44,7 +44,7 @@ export const CyberNewsWidget: React.FC = () => {
     };
 
     return (
-        <div className="glass-panel p-6 rounded-[2.5rem] shadow-sm h-full flex flex-col">
+        <div className="glass-panel p-6 rounded-[2.5rem] shadow-sm h-80 flex flex-col">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                     <Shield className="w-5 h-5 mr-2 text-indigo-500" />
@@ -59,7 +59,7 @@ export const CyberNewsWidget: React.FC = () => {
                 </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar" data-lenis-prevent>
                 {loading && news.length === 0 ? (
                     <div className="space-y-4">
                         {[1, 2, 3].map(i => (

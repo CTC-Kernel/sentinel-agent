@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 
 import { VoxelStudio } from '../components/VoxelStudio';
 import { db } from '../firebase';
@@ -87,6 +87,7 @@ const layerOptions: { id: LayerType; label: string; hint: string; color: string 
 
 export const VoxelView: React.FC = () => {
   const { user, addToast } = useStore();
+  const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -148,13 +149,12 @@ export const VoxelView: React.FC = () => {
   }, [isFullscreen]);
 
   useEffect(() => {
-    // Trigger resize to ensure Canvas fits container after route transition/animation
-    const timers = [
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 100),
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 500),
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 800)
-    ];
-    return () => timers.forEach(clearTimeout);
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
   }, []);
 
 
@@ -775,6 +775,7 @@ export const VoxelView: React.FC = () => {
 
       {/* Main Voxel View */}
       <div
+        ref={containerRef}
         data-lenis-prevent
         className={`${isFullscreen
           ? 'fixed !inset-0 !z-[9999] bg-slate-900'
