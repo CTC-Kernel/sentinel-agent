@@ -401,7 +401,7 @@ const ScanRing: React.FC<{ radius: number; color: string; y?: number; speed?: nu
   });
 
   return (
-    <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, y, 0]}>
+    <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, y, 0]} raycast={() => null}>
       <ringGeometry args={[radius - 0.2, radius, 128]} />
       <meshBasicMaterial
         color={color}
@@ -431,11 +431,11 @@ const NeonGrid: React.FC = () => {
 
   return (
     <group position={[0, -10.2, 0]}>
-      <mesh ref={gridRef} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh ref={gridRef} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
         <planeGeometry args={[140, 140, 40, 40]} />
         <meshBasicMaterial color="#1d4ed8" wireframe transparent opacity={0.2} />
       </mesh>
-      <mesh ref={grid2Ref} rotation={[-Math.PI / 2, 0, Math.PI / 4]} position={[0, -0.1, 0]}>
+      <mesh ref={grid2Ref} rotation={[-Math.PI / 2, 0, Math.PI / 4]} position={[0, -0.1, 0]} raycast={() => null}>
         <planeGeometry args={[100, 100, 20, 20]} />
         <meshBasicMaterial color="#3b82f6" wireframe transparent opacity={0.1} />
       </mesh>
@@ -456,7 +456,8 @@ const PulseCore: React.FC = () => {
   });
 
   return (
-    <mesh ref={coreRef} position={[0, -1, 0]}>
+
+    <mesh ref={coreRef} position={[0, -1, 0]} raycast={() => null}>
       <sphereGeometry args={[1.2, 32, 32]} />
       <meshBasicMaterial
         color="#38bdf8"
@@ -958,11 +959,10 @@ const VoxelMesh: React.FC<{
             )}
             <Html
               position={[-5 + overlayOffset.x * 0.01, 1 - overlayOffset.y * 0.01, 0]}
-              zIndexRange={[100, 0]}
+              zIndexRange={[100000, 0]}
               distanceFactor={10}
               occlude={false}
               transform
-              sprite
               style={{ pointerEvents: 'none' }}
             >
               <div style={{ pointerEvents: 'auto', transform: 'translate3d(0, 0, 0)' }}>
