@@ -1049,60 +1049,6 @@ export const Settings: React.FC = () => {
                                     </p>
                                 </div>
 
-                                <div className="pt-4 border-t border-white/5">
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.shodanApiKey')}</label>
-                                    <div className="relative">
-                                        <input
-                                            type="password"
-                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-sm dark:text-white pr-10"
-                                            placeholder="Clé Shodan..."
-                                            {...profileForm.register('shodanApiKey')}
-                                        />
-                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                            <Activity className="h-4 w-4 text-slate-400" />
-                                        </div>
-                                    </div>
-                                    <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
-                                        {t('settings.shodanDescription')}
-                                    </p>
-                                </div>
-
-                                <div className="pt-4 border-t border-white/5">
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.hibpApiKey')}</label>
-                                    <div className="relative">
-                                        <input
-                                            type="password"
-                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-sm dark:text-white pr-10"
-                                            placeholder="Clé HIBP..."
-                                            {...profileForm.register('hibpApiKey')}
-                                        />
-                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                            <ShieldAlert className="h-4 w-4 text-slate-400" />
-                                        </div>
-                                    </div>
-                                    <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
-                                        {t('settings.hibpDescription')}
-                                    </p>
-                                </div>
-
-                                <div className="pt-4 border-t border-white/5">
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.safeBrowsingApiKey')}</label>
-                                    <div className="relative">
-                                        <input
-                                            type="password"
-                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-sm dark:text-white pr-10"
-                                            placeholder="Clé Safe Browsing..."
-                                            {...profileForm.register('safeBrowsingApiKey')}
-                                        />
-                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                            <ShieldAlert className="h-4 w-4 text-slate-400" />
-                                        </div>
-                                    </div>
-                                    <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
-                                        {t('settings.safeBrowsingDescription')}
-                                    </p>
-                                </div>
-
 
                             </div>
                             <button
@@ -1499,7 +1445,7 @@ export const Settings: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div className={`relative border-l border-slate-200 dark:border-white/10 ml-4 space-y-8 pl-8 ${logsExpanded ? 'max-h-[640px]' : 'max-h-[320px]'} overflow-y-auto custom-scrollbar`}>
+                            <div className={`relative border-l border-slate-200 dark:border-white/10 ml-4 space-y-8 pl-8 ${logsExpanded ? 'max-h-[640px]' : 'max-h-[320px]'} overflow-y-auto custom-scrollbar`} data-lenis-prevent>
                                 {logs.map(log => (
                                     <div key={log.id} className="relative group">
                                         <span className="absolute -left-[37px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-black group-hover:bg-brand-500 group-hover:scale-110 transition-all"></span>
