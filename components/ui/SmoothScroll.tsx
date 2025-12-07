@@ -44,7 +44,7 @@ export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children, className,
 
     return (
         <main ref={wrapperRef} id={id} className={className}>
-            <div ref={contentRef}>
+            <div ref={contentRef} className="h-full">
                 {children}
             </div>
         </main>
