@@ -11,6 +11,7 @@ import { ErrorLogger } from '../services/errorLogger';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { DashboardSkeleton } from '../components/skeletons/DashboardSkeleton';
 import { GettingStartedWidget } from '../components/dashboard/widgets/GettingStartedWidget';
+import { StaggerContainer, SlideUp } from '../components/ui/Animations';
 
 // Widgets
 import { DashboardHeader } from '../components/dashboard/widgets/DashboardHeader';
@@ -399,108 +400,118 @@ export const Dashboard: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6 animate-fade-in">
+        <StaggerContainer className="space-y-6">
             <SEO
                 title="Tableau de bord de Gouvernance"
                 description="Vue d'ensemble de votre posture de sécurité et conformité."
                 keywords="Pilotage SSI, Tableau de bord CISO, KPI Cyber, Conformité, Risques, Gouvernance"
             />
 
-            <DashboardHeader
-                user={user}
-                organizationName={organizationName}
-                scoreGrade={scoreGrade}
-                radarData={radarData}
-                teamSize={teamSize}
-                activeIncidentsCount={activeIncidentsCount}
-                openAuditsCount={openAuditsCount}
-                loading={loading}
-                isEmpty={isEmpty}
-                navigate={navigate}
-                t={t}
-                theme={theme}
-                insight={insight}
-                generateICal={generateICal}
-                generateExecutiveReport={generateExecutiveReport}
-            />
+            <SlideUp>
+                <DashboardHeader
+                    user={user}
+                    organizationName={organizationName}
+                    scoreGrade={scoreGrade}
+                    radarData={radarData}
+                    teamSize={teamSize}
+                    activeIncidentsCount={activeIncidentsCount}
+                    openAuditsCount={openAuditsCount}
+                    loading={loading}
+                    isEmpty={isEmpty}
+                    navigate={navigate}
+                    t={t}
+                    theme={theme}
+                    insight={insight}
+                    generateICal={generateICal}
+                    generateExecutiveReport={generateExecutiveReport}
+                />
+            </SlideUp>
 
-            {showGettingStarted && <GettingStartedWidget onClose={() => setShowGettingStarted(false)} />}
+            {showGettingStarted && (
+                <SlideUp>
+                    <GettingStartedWidget onClose={() => setShowGettingStarted(false)} />
+                </SlideUp>
+            )}
 
-            <QuickActions navigate={navigate} t={t} stats={stats} />
+            <SlideUp>
+                <QuickActions navigate={navigate} t={t} stats={stats} />
+            </SlideUp>
 
             {/* Role-based Widget Visibility */}
-            {(() => {
-                const role = user?.role || 'user';
+            <SlideUp>
+                {(() => {
+                    const role = user?.role || 'user';
 
-                if (['admin', 'rssi'].includes(role)) {
+                    if (['admin', 'rssi'].includes(role)) {
+                        return (
+                            <AdminDashboardView
+                                stats={stats}
+                                loading={loading}
+                                navigate={navigate}
+                                t={t}
+                                theme={theme}
+                                myActionItems={myActionItems}
+                                historyData={historyData}
+                                healthIssues={healthIssues}
+                                topRisks={topRisks}
+                                recentActivity={recentActivity}
+                            />
+                        );
+                    }
+
+                    if (role === 'direction') {
+                        return (
+                            <DirectionDashboardView
+                                stats={stats}
+                                loading={loading}
+                                navigate={navigate}
+                                t={t}
+                                theme={theme}
+                                historyData={historyData}
+                                healthIssues={healthIssues}
+                                topRisks={topRisks}
+                            />
+                        );
+                    }
+
+                    if (role === 'auditor') {
+                        return (
+                            <AuditorDashboardView
+                                loading={loading}
+                                navigate={navigate}
+                                t={t}
+                                theme={theme}
+                                myActionItems={myActionItems}
+                                historyData={historyData}
+                                recentActivity={recentActivity}
+                                healthIssues={healthIssues}
+                            />
+                        );
+                    }
+
+                    if (role === 'project_manager') {
+                        return (
+                            <ProjectManagerDashboardView
+                                loading={loading}
+                                navigate={navigate}
+                                t={t}
+                                myActionItems={myActionItems}
+                                projectRisks={projectRisks}
+                            />
+                        );
+                    }
+
                     return (
-                        <AdminDashboardView
-                            stats={stats}
+                        <OperationalDashboardView
                             loading={loading}
                             navigate={navigate}
                             t={t}
-                            theme={theme}
                             myActionItems={myActionItems}
-                            historyData={historyData}
-                            healthIssues={healthIssues}
-                            topRisks={topRisks}
-                            recentActivity={recentActivity}
+                            myRisksList={myRisksList}
                         />
                     );
-                }
-
-                if (role === 'direction') {
-                    return (
-                        <DirectionDashboardView
-                            stats={stats}
-                            loading={loading}
-                            navigate={navigate}
-                            t={t}
-                            theme={theme}
-                            historyData={historyData}
-                            healthIssues={healthIssues}
-                            topRisks={topRisks}
-                        />
-                    );
-                }
-
-                if (role === 'auditor') {
-                    return (
-                        <AuditorDashboardView
-                            loading={loading}
-                            navigate={navigate}
-                            t={t}
-                            theme={theme}
-                            myActionItems={myActionItems}
-                            historyData={historyData}
-                            recentActivity={recentActivity}
-                            healthIssues={healthIssues}
-                        />
-                    );
-                }
-
-                if (role === 'project_manager') {
-                    return (
-                        <ProjectManagerDashboardView
-                            loading={loading}
-                            navigate={navigate}
-                            t={t}
-                            myActionItems={myActionItems}
-                            projectRisks={projectRisks}
-                        />
-                    );
-                }
-
-                return (
-                    <OperationalDashboardView
-                        loading={loading}
-                        navigate={navigate}
-                        t={t}
-                        myActionItems={myActionItems}
-                        myRisksList={myRisksList}
-                    />
-                );
-            })()}
-        </div>
+                })()}
+            </SlideUp>
+        </StaggerContainer>
     );
 };
