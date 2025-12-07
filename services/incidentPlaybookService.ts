@@ -116,11 +116,10 @@ export class IncidentPlaybookService {
       });
 
       await logAction({
-        uid: 'system',
-        email: 'system@sentinel-grc.com',
-        organizationId: 'system'
-      }, 'CREATE', 'IncidentPlaybook', `Playbook créé: ${playbook.title
-      }`);
+        uid: 'user',
+        email: 'user@app',
+        organizationId: organizationId
+      }, 'CREATE', 'IncidentPlaybook', `Playbook créé: ${playbook.title}`);
 
       return docRef.id;
     } catch (error) {
@@ -249,9 +248,9 @@ export class IncidentPlaybookService {
       });
 
       await logAction({
-        uid: 'system',
-        email: 'system@sentinel-grc.com',
-        organizationId: 'system'
+        uid: 'user', // conceptual, will be overridden by auth context in logEvent usually or just unused for auth check if orgId matches
+        email: 'user@app',
+        organizationId: organizationId
       }, 'CREATE', 'IncidentResponse', `Response initiée: ${incidentId} `);
 
       return docRef.id;
