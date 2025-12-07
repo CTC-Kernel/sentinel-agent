@@ -130,7 +130,7 @@ export const Login: React.FC = () => {
             const isNative = Capacitor.isNativePlatform();
 
             if (isNative) {
-                console.log('Starting Native Google Sign In');
+                // console.log('Starting Native Google Sign In');
                 const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
 
                 // Native Google Sign In
@@ -155,7 +155,7 @@ export const Login: React.FC = () => {
                 await signInWithPopup(auth, provider);
             }
         } catch (error: unknown) {
-            console.error("Google Sign In Error:", error);
+            ErrorLogger.error(error, 'Login.handleGoogleLogin');
             ErrorLogger.error(error as Error, 'Login.googleSignIn');
 
             const code = (error as { code?: string })?.code;
@@ -163,7 +163,7 @@ export const Login: React.FC = () => {
                 setErrorMsg("Environnement restreint : Google Auth non disponible ici.");
             } else if (code === 'auth/popup-closed-by-user' || code === 'cancelled-popup-request') {
                 // User cancelled, no error message needed
-                console.log('User cancelled login');
+                // User cancelled login
             } else {
                 setErrorMsg("Erreur Google Auth. Veuillez réessayer.");
             }
@@ -254,10 +254,10 @@ export const Login: React.FC = () => {
                                 try {
                                     const { Capacitor } = await import('@capacitor/core');
                                     const isNative = Capacitor.isNativePlatform();
-                                    console.log('Apple Sign In Debug:', { isNative, platform: Capacitor.getPlatform(), authInitialized: !!auth });
+                                    // console.log('Apple Sign In Debug:', { isNative, platform: Capacitor.getPlatform(), authInitialized: !!auth });
 
                                     if (isNative) {
-                                        console.log('Starting Native Apple Sign In');
+                                        // console.log('Starting Native Apple Sign In');
                                         const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
 
                                         // Add timeout to detect hangs
@@ -270,7 +270,7 @@ export const Login: React.FC = () => {
                                             )
                                         ]) as { credential?: { idToken: string; rawNonce?: string } };
 
-                                        console.log('Native Result:', result);
+                                        // console.log('Native Result:', result);
 
                                         // Sync with Firebase JS SDK
                                         if (result.credential?.idToken) {
@@ -285,28 +285,28 @@ export const Login: React.FC = () => {
 
                                             try {
                                                 const credential = provider.credential(credentialParams);
-                                                console.log('Signing in with credential...');
+                                                // console.log('Signing in with credential...');
                                                 await signInWithCredential(auth, credential);
                                                 addToast("Connexion réussie", "success");
                                                 window.location.href = '/';
                                             } catch (innerError: unknown) {
-                                                console.error("JS Sync Error:", innerError);
+                                                ErrorLogger.error(innerError, 'Login.appleSignIn.jsSync');
                                                 throw innerError;
                                             }
                                         } else {
                                             throw new Error("No ID Token from Apple");
                                         }
                                     } else {
-                                        console.log('Starting Web Apple Sign In');
+                                        // console.log('Starting Web Apple Sign In');
                                         const provider = new OAuthProvider('apple.com');
                                         provider.addScope('email');
                                         provider.addScope('name');
-                                        console.log('Provider created:', provider);
+                                        // console.log('Provider created:', provider);
                                         await signInWithPopup(auth, provider);
-                                        console.log('Web Sign In Successful');
+                                        // console.log('Web Sign In Successful');
                                     }
                                 } catch (error: unknown) {
-                                    console.error("Apple Sign In Error:", error);
+                                    ErrorLogger.error(error, 'Login.handleAppleLogin');
                                     ErrorLogger.error(error, 'Login.appleSignIn');
                                     const code = (error as { code?: string; message?: string })?.code || (error as { message?: string })?.message;
                                     if (code === 'auth/operation-not-allowed') {

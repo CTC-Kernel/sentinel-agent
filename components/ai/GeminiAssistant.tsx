@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { doc, onSnapshot, setDoc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../firebase'; // Assuming db is exported from firebase config
 import { aiService } from '../../services/aiService';
 import { Sparkles, X, Send, User, Bot, Loader2, Maximize2, Minimize2, Zap, Copy, Check } from '../ui/Icons';
 import { useStore } from '../../store';
@@ -43,9 +45,50 @@ export const GeminiAssistant: React.FC = () => {
     const navigate = useNavigate();
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
+    // Persistence: Firestore Ref
+    const conversationRef = React.useMemo(() => {
+        if (!user?.uid) return null;
+        // Use a single 'default' conversation for now, or generate ID based on session
+        // For simplicity and "memory", we stick to one main conversation per user for the assistant.
+        return doc(db, 'users', user.uid, 'conversations', 'default');
+    }, [user?.uid]);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
+
+    // Load messages from Firestore
+    useEffect(() => {
+        if (!conversationRef) return;
+
+        const unsubscribe = onSnapshot(conversationRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.messages && Array.isArray(data.messages)) {
+                    // Convert timestamps back to Date objects
+                    const loadedMessages = data.messages.map((m: any) => ({
+                        ...m,
+                        timestamp: m.timestamp?.toDate ? m.timestamp.toDate() : new Date(m.timestamp)
+                    }));
+                    setMessages(loadedMessages);
+                }
+            } else {
+                // Initialize if not exists
+                setDoc(conversationRef, {
+                    messages: [{
+                        id: 'welcome',
+                        role: 'assistant',
+                        content: "Bonjour je suis **Sentinel AI**. \n\nComment puis-je vous aider à sécuriser votre organisation aujourd'hui ?",
+                        timestamp: new Date()
+                    }],
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+            }
+        });
+
+        return () => unsubscribe();
+    }, [conversationRef]);
 
     useEffect(() => {
         scrollToBottom();
@@ -58,7 +101,7 @@ export const GeminiAssistant: React.FC = () => {
         e?.preventDefault();
         const textToSend = promptOverride || input;
 
-        if (!textToSend.trim() || isLoading) return;
+        if (!textToSend.trim() || isLoading || !conversationRef) return;
 
         const userMsg: Message = {
             id: Date.now().toString(),
@@ -67,11 +110,19 @@ export const GeminiAssistant: React.FC = () => {
             timestamp: new Date()
         };
 
-        setMessages(prev => [...prev, userMsg]);
+        // Optimistic update
+        const newMessages = [...messages, userMsg];
+        setMessages(newMessages);
         setInput('');
         setIsLoading(true);
 
         try {
+            // Save user message to Firestore
+            await updateDoc(conversationRef, {
+                messages: arrayUnion(userMsg),
+                updatedAt: serverTimestamp()
+            });
+
             const context = {
                 userRole: user?.role,
                 organizationId: user?.organizationId,
@@ -87,7 +138,12 @@ export const GeminiAssistant: React.FC = () => {
                 timestamp: new Date()
             };
 
-            setMessages(prev => [...prev, aiMsg]);
+            // Save AI message to Firestore
+            await updateDoc(conversationRef, {
+                messages: arrayUnion(aiMsg),
+                updatedAt: serverTimestamp()
+            });
+
         } catch (error: any) {
             ErrorLogger.error(error, 'GeminiAssistant.handleSend');
             const isQuotaError = error.message?.includes('Daily AI limit reached') || error.code === 'resource-exhausted';
@@ -101,7 +157,13 @@ export const GeminiAssistant: React.FC = () => {
                 timestamp: new Date(),
                 isError: true
             };
-            setMessages(prev => [...prev, errorMsg]);
+
+            // Save error message to Firestore so user sees it persistently? 
+            // Maybe yes, maybe no. Let's save it for consistency.
+            await updateDoc(conversationRef, {
+                messages: arrayUnion(errorMsg),
+                updatedAt: serverTimestamp()
+            });
         } finally {
             setIsLoading(false);
         }
