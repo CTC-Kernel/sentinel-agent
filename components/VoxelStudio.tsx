@@ -274,11 +274,11 @@ const TargetReticle: React.FC<{ position: [number, number, number]; size: number
   const ref3 = useRef<Group>(null);
 
   useFrame((_, delta) => {
-    if (ref1.current) ref1.current.rotation.z -= delta * 0.5;
-    if (ref2.current) ref2.current.rotation.z += delta * 0.3;
+    if (ref1.current) ref1.current.rotation.z -= delta * 0.2;
+    if (ref2.current) ref2.current.rotation.z += delta * 0.1;
     if (ref3.current) {
-      ref3.current.rotation.x += delta * 0.2;
-      ref3.current.rotation.y += delta * 0.2;
+      ref3.current.rotation.x += delta * 0.05;
+      ref3.current.rotation.y += delta * 0.05;
     }
   });
 
@@ -390,7 +390,7 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
   return null;
 };
 
-const ScanRing: React.FC<{ radius: number; color: string; y?: number; speed?: number }> = ({ radius, color, y = -9.5, speed = 0.4 }) => {
+const ScanRing: React.FC<{ radius: number; color: string; y?: number; speed?: number }> = ({ radius, color, y = -9.5, speed = 0.2 }) => {
   const ringRef = useRef<Mesh>(null);
   useFrame((_, delta) => {
     if (!ringRef.current) return;
@@ -419,12 +419,12 @@ const NeonGrid: React.FC = () => {
 
   useFrame((state, delta) => {
     if (gridRef.current) {
-      gridRef.current.rotation.z += delta * 0.02;
-      (gridRef.current.material as MeshBasicMaterial).opacity = 0.15 + (Math.sin(state.clock.elapsedTime * 0.5) + 1) * 0.05;
+      gridRef.current.rotation.z += delta * 0.005;
+      (gridRef.current.material as MeshBasicMaterial).opacity = 0.15 + (Math.sin(state.clock.elapsedTime * 0.2) + 1) * 0.05;
     }
     if (grid2Ref.current) {
-      grid2Ref.current.rotation.z -= delta * 0.01;
-      const scale = 1 + Math.sin(state.clock.elapsedTime * 0.2) * 0.05;
+      grid2Ref.current.rotation.z -= delta * 0.005;
+      const scale = 1 + Math.sin(state.clock.elapsedTime * 0.1) * 0.05;
       grid2Ref.current.scale.set(scale, scale, 1);
     }
   });
@@ -447,7 +447,7 @@ const PulseCore: React.FC = () => {
   const coreRef = useRef<Mesh>(null);
   useFrame(() => {
     if (!coreRef.current) return;
-    const t = Date.now() * 0.0015;
+    const t = Date.now() * 0.0008;
     const scale = 1 + Math.sin(t) * 0.08;
     coreRef.current.scale.set(scale, scale, scale);
     const material = coreRef.current.material;
@@ -1400,6 +1400,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   }, [selectedNode]);
 
   const handleNodeClick = (node: VoxelNode) => {
+    isUserInteracting.current = false;
     setSelectedNode(node);
     focusOnCardRef.current = true;
     shouldSnapToTarget.current = true;
@@ -1560,8 +1561,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
               <StarField />
               <NeonGrid />
               <ScanRing radius={12} color="#0ea5e9" />
-              <ScanRing radius={18} color="#9333ea" speed={0.25} />
-              <ScanRing radius={25} color="#f97316" speed={0.18} />
+              <ScanRing radius={18} color="#9333ea" speed={0.15} />
+              <ScanRing radius={25} color="#f97316" speed={0.1} />
 
               <Environment preset="city" />
 
@@ -1591,7 +1592,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                     end={new Vector3(...pair.end)}
                     color={pair.type === 'risk' ? '#f87171' : '#94a3b8'} // Red for risk, gray for default
                     opacity={isRelevant ? 1.0 : 0.05}
-                    speed={isRelevant ? 2.5 : 0.3}
+                    speed={isRelevant ? 0.8 : 0.15}
                     size={isRelevant ? 0.7 : 0.2}
                   />
                 );
