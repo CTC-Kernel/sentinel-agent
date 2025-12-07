@@ -1,0 +1,52 @@
+import React, { useEffect, useRef } from 'react';
+import Lenis from 'lenis';
+
+interface SmoothScrollProps {
+    children: React.ReactNode;
+    className?: string;
+    id?: string;
+}
+
+export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children, className, id }) => {
+    const wrapperRef = useRef<HTMLElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
+    const lenisRef = useRef<Lenis | null>(null);
+
+    useEffect(() => {
+        if (!wrapperRef.current || !contentRef.current) return;
+
+        const lenis = new Lenis({
+            wrapper: wrapperRef.current,
+            content: contentRef.current,
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // https://www.desmos.com/calculator/brs54l4xou
+            orientation: 'vertical',
+            gestureOrientation: 'vertical',
+            smoothWheel: true,
+            wheelMultiplier: 1,
+            touchMultiplier: 2,
+        });
+
+        lenisRef.current = lenis;
+
+        function raf(time: number) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+
+        requestAnimationFrame(raf);
+
+        return () => {
+            lenis.destroy();
+            lenisRef.current = null;
+        };
+    }, []);
+
+    return (
+        <main ref={wrapperRef} id={id} className={className}>
+            <div ref={contentRef}>
+                {children}
+            </div>
+        </main>
+    );
+};
