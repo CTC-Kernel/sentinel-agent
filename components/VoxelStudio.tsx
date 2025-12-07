@@ -363,11 +363,11 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
       desiredPos.current.copy(focusVec.current).add(offsetVec.current);
       if (!userInteractingRef.current && shouldSnapRef.current) {
         camera.position.lerp(desiredPos.current, 0.04);
+        controls.target.lerp(focusVec.current, 0.08);
         if (camera.position.distanceTo(desiredPos.current) < 0.05) {
           shouldSnapRef.current = false;
         }
       }
-      controls.target.lerp(focusVec.current, 0.08);
     } else if (isResetting.current) {
       // Fly back to global view
       if (userInteractingRef.current) {
