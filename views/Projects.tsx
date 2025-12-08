@@ -753,7 +753,7 @@ export const Projects: React.FC = () => {
                 ]}
                 icon={<FolderKanban className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={canEdit && (
-                    <div className="flex gap-3">
+                    <>
                         <button
                             onClick={() => {
                                 const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
@@ -777,7 +777,7 @@ export const Projects: React.FC = () => {
                             <Plus className="h-4 w-4 mr-2" />
                             Nouveau Projet
                         </button>
-                    </div>
+                    </>
                 )}
             />
 
