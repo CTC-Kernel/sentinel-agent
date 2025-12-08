@@ -1,6 +1,9 @@
-
 const { onDocumentCreated, onDocumentUpdated, onDocumentWritten, onDocumentDeleted } = require("firebase-functions/v2/firestore");
 const { logger } = require("firebase-functions");
+const admin = require("firebase-admin");
+
+admin.initializeApp(); // Initialize immediately to avoid "default Firebase app does not exist" errors
+
 const sgMail = require('@sendgrid/mail');
 // sgMail.setApiKey is now called with secret
 
@@ -14,9 +17,7 @@ const { getMessaging } = require('firebase-admin/messaging');
 
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-threat-consulting.com" });
 
-const admin = require("firebase-admin");
 const crypto = require("crypto");
-// const { GoogleGenAI } = require("@google/genai"); // Remove unused if needed, but keeping for now.
 
 const userSecretsKey = defineSecret("USER_SECRETS_ENCRYPTION_KEY");
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
@@ -33,9 +34,6 @@ const {
     getPasswordResetEmailHtml,
     getWelcomeEmailHtml
 } = require('./services/emailTemplates');
-
-
-admin.initializeApp();
 
 // Email generation logic moved to ./services/emailTemplates.js
 
@@ -534,7 +532,8 @@ exports.switchOrganization = onCall(async (request) => {
         await db.collection('users').doc(callerUid).update({
             organizationId: targetOrgId,
             organizationName: orgData.name,
-            role: 'admin' // Super admin acts as admin in the target org
+            role: 'admin', // Super admin acts as admin in the target org
+            onboardingCompleted: true // Bypass onboarding when switching context
         });
 
         // 3. Update Custom Claims
