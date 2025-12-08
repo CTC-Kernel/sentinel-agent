@@ -675,6 +675,27 @@ export const Audits: React.FC = () => {
                 relatedRisks.map(r => ({ threat: r.threat, score: r.score }))
             );
 
+            // Calculate Metrics
+            const openFindings = findings.filter(f => f.status === 'Ouvert').length;
+            const majorFindings = findings.filter(f => f.type === 'Majeure').length;
+
+            const metrics = [
+                { label: 'Total Constats', value: findings.length.toString() },
+                { label: 'Constats Ouverts', value: openFindings.toString(), subtext: 'Action Requise' },
+                { label: 'Majeurs', value: majorFindings.toString(), subtext: 'Priorité Haute' },
+                { label: 'Risques Liés', value: relatedRisks.length.toString() }
+            ];
+
+            // Calculate Stats (Findings by Type)
+            const typeCounts = { 'Majeure': 0, 'Mineure': 0, 'Opportunité': 0 };
+            findings.forEach(f => { if (typeCounts[f.type as keyof typeof typeCounts] !== undefined) typeCounts[f.type as keyof typeof typeCounts]++; });
+
+            const stats = [
+                { label: 'Majeure', value: typeCounts['Majeure'], color: '#EF4444' }, // Red
+                { label: 'Mineure', value: typeCounts['Mineure'], color: '#F59E0B' }, // Amber
+                { label: 'Opportunité', value: typeCounts['Opportunité'], color: '#10B981' } // Emerald
+            ].filter(s => s.value > 0);
+
             PdfService.generateExecutiveReport(
                 {
                     title: 'Rapport d\'Audit',
@@ -684,6 +705,8 @@ export const Audits: React.FC = () => {
                     organizationLogo: organization?.logoUrl,
                     author: selectedAudit.auditor,
                     summary: summary,
+                    metrics,
+                    stats,
                     coverImage: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop' // Audit/Business meeting image
                 },
                 (doc, startY) => {
