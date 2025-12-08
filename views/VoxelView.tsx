@@ -157,7 +157,16 @@ export const VoxelView: React.FC = () => {
       window.dispatchEvent(new Event('resize'));
     });
     observer.observe(containerRef.current);
-    return () => observer.disconnect();
+
+    // Force a resize event after a short delay to account for animation settlement
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 400);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
   }, []);
 
 
