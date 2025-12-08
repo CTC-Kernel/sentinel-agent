@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 // import { Helmet } from 'react-helmet-async'; // Replaced by SEO component
+import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, limit, addDoc } from 'firebase/firestore';
 import { RiskFormData, riskSchema } from '../schemas/riskSchema';
 import { ProjectFormData } from '../schemas/projectSchema';
@@ -19,6 +20,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
 import { ComplianceAIAssistant } from '../components/compliance/ComplianceAIAssistant';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { Badge } from '../components/ui/Badge';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { Drawer } from '../components/ui/Drawer';
@@ -50,6 +52,7 @@ import { SEO } from '../components/SEO';
 
 export const Compliance: React.FC = () => {
     const { user, addToast, organization, demoMode } = useStore();
+    const navigate = useNavigate();
 
     const canEdit = canEditResource(user, 'Control');
 
@@ -477,15 +480,37 @@ export const Compliance: React.FC = () => {
 
 
     const handleLinkRisk = async (riskId: string) => {
-        if (!selectedControl || !user?.organizationId || !canEditResource(user, 'Risk')) return;
+        if (!selectedControl || !user?.organizationId) return;
         setUpdating(true);
         try {
-            await updateDoc(doc(db, 'risks', riskId), {
-                mitigationControlIds: arrayUnion(selectedControl.id)
-            });
-            addToast("Risque lié avec succès", "success");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkRisk', 'UPDATE_FAILED');
+            const risk = risks.find(r => r.id === riskId);
+            if (!risk) return;
+
+            const newControlIds = [...(risk.mitigationControlIds || []), selectedControl.id];
+            await updateDoc(doc(db, 'risks', riskId), { mitigationControlIds: newControlIds });
+            await logAction(user, 'UPDATE', 'Control', `Lien risque ${risk.threat} -> Contrôle ${selectedControl.code}`);
+            addToast("Risque lié", "success");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Compliance.handleLinkRisk', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const handleUnlinkRisk = async (riskId: string) => {
+        if (!selectedControl || !user?.organizationId) return;
+        setUpdating(true);
+        try {
+            const risk = risks.find(r => r.id === riskId);
+            if (!risk) return;
+
+            const newControlIds = (risk.mitigationControlIds || []).filter(id => id !== selectedControl.id);
+            await updateDoc(doc(db, 'risks', riskId), { mitigationControlIds: newControlIds });
+
+            await logAction(user, 'UPDATE', 'Control', `Délié risque ${risk.threat} de Contrôle ${selectedControl.code}`);
+            addToast("Risque délié", "success");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Compliance.handleUnlinkRisk', 'UPDATE_FAILED');
         } finally {
             setUpdating(false);
         }
@@ -648,6 +673,8 @@ export const Compliance: React.FC = () => {
             setIsLinkingEvidence(false);
         }
     };
+
+
 
     const handleUnlinkAutomatedEvidence = async (evidenceId: string) => {
         if (!selectedControl || !canEdit) return;
@@ -1456,14 +1483,39 @@ export const Compliance: React.FC = () => {
                                             {risks.filter(r => r.mitigationControlIds?.includes(selectedControl.id)).map(risk => (
                                                 <div key={risk.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                                                     <div>
-                                                        <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{risk.threat}</div>
-                                                        <div className="text-xs text-slate-500 mt-0.5">Score: {risk.score} → {risk.residualScore}</div>
+                                                        <div className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</div>
+                                                        <div className="text-xs text-slate-500">Score: {risk.score}</div>
                                                     </div>
-                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${risk.status === 'Ouvert' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>{risk.status}</span>
+                                                    {canEdit && (
+                                                        <button onClick={() => handleUnlinkRisk(risk.id)} disabled={updating} className="p-1 px-2 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded transition-colors">Délier</button>
+                                                    )}
                                                 </div>
                                             ))}
                                             {risks.filter(r => r.mitigationControlIds?.includes(selectedControl.id)).length === 0 && (
-                                                <p className="text-sm text-slate-400 italic">Aucun risque lié.</p>
+                                                <p className="text-xs text-slate-400 italic text-center py-4">Aucun risque lié via un plan de traitement.</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Linked Projects (New) */}
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets de Mise en Conformité</h3>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).map(proj => (
+                                                <div key={proj.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 cursor-pointer hover:bg-slate-100 dark:hover:bg-white/10 transition-colors" onClick={() => navigate('/projects', { state: { voxelSelectedId: proj.id, fromVoxel: true } })}>
+                                                    <div>
+                                                        <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                                            {proj.name}
+                                                            <Badge status={proj.status === 'Terminé' ? 'success' : proj.status === 'En cours' ? 'info' : 'neutral'} size="sm">{proj.status}</Badge>
+                                                        </div>
+                                                        <div className="text-xs text-slate-500">Échéance: {proj.dueDate ? new Date(proj.dueDate).toLocaleDateString() : '-'}</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
+                                                <p className="text-xs text-slate-400 italic text-center py-4">Aucun projet lié.</p>
                                             )}
                                         </div>
                                     </div>

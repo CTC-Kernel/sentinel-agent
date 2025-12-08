@@ -325,12 +325,38 @@ export const Projects: React.FC = () => {
             // Validate data
             const validatedData = projectSchema.parse(projectData);
 
+
             if (editingProject) {
                 // Update existing project
                 await updateDoc(doc(db, 'projects', editingProject.id), {
                     ...validatedData
                 });
                 await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${validatedData.name}`);
+
+                // Check for Project Completion & Control Update
+                if (validatedData.status === 'Terminé' && editingProject.status !== 'Terminé' && validatedData.relatedControlIds && validatedData.relatedControlIds.length > 0) {
+                    const linkedControls = controls.filter(c => validatedData.relatedControlIds?.includes(c.id));
+                    if (linkedControls.length > 0) {
+                        const controlCodes = linkedControls.map(c => c.code).join(', ');
+                        setConfirmData({
+                            isOpen: true,
+                            title: "Mise à jour des contrôles liés",
+                            message: `Ce projet est terminé. Voulez-vous passer les contrôles liés ${controlCodes} au statut "Implémenté" ?`,
+                            onConfirm: async () => {
+                                try {
+                                    for (const control of linkedControls) {
+                                        await updateDoc(doc(db, 'controls', control.id), { status: 'Implémenté' });
+                                    }
+                                    addToast(`${linkedControls.length} contrôles mis à jour à "Implémenté"`, "success");
+                                    setConfirmData({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+                                } catch (err) {
+                                    ErrorLogger.error(err, 'Projects.updateLinkedControls');
+                                    addToast("Erreur lors de la mise à jour des contrôles", "error");
+                                }
+                            }
+                        });
+                    }
+                }
 
                 // Update local state - No longer needed with useFirestoreCollection
                 const updatedProject = { ...editingProject, ...validatedData } as Project;
@@ -1410,6 +1436,17 @@ export const Projects: React.FC = () => {
                     isLoading={isSubmitting}
                 />
             </Drawer>
+
+            <ConfirmModal
+                isOpen={confirmData.isOpen}
+                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                title={confirmData.title}
+                message={confirmData.message}
+                onConfirm={confirmData.onConfirm}
+                type="info"
+                confirmText="Oui, mettre à jour"
+                cancelText="Non, ignorer"
+            />
         </div >
     );
 };

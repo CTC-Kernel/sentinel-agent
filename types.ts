@@ -23,6 +23,19 @@ export interface AIAnalysisResult {
   timestamp: string;
 }
 
+export interface AssetHistory {
+  date: string;
+  userId: string;
+  userName?: string;
+  previousConfidentiality: Criticality;
+  newConfidentiality: Criticality;
+  previousIntegrity: Criticality;
+  newIntegrity: Criticality;
+  previousAvailability: Criticality;
+  newAvailability: Criticality;
+  reason?: string;
+}
+
 export interface Asset {
   id: string;
   organizationId: string;
@@ -55,6 +68,7 @@ export interface Asset {
   hardwareType?: string;
   hardware?: Record<string, unknown>;
   notes?: string;
+  history?: AssetHistory[];
   aiAnalysis?: AIAnalysisResult;
 }
 
@@ -233,6 +247,28 @@ export interface DocumentVersion {
   uploadedBy: string; // User ID
   uploadedAt: string;
   changeLog?: string;
+}
+
+export interface ThreatTemplate {
+  id?: string; // Optional for hardcoded, required for Firestore
+  name: string;
+  description: string;
+  field: string;
+  scenario: string;
+  threat: string;
+  vulnerability: string;
+  probability: number;
+  impact: number;
+  strategy: 'Accepter' | 'Éviter' | 'Transférer' | 'Atténuer';
+  framework: string;
+  treatment?: {
+    strategy: 'Accepter' | 'Éviter' | 'Transférer' | 'Atténuer';
+    description: string;
+    status: 'Planifié' | 'En cours' | 'Terminé' | 'Annulé';
+    estimatedCost: number;
+    dueDate: string;
+  };
+  source?: 'Standard' | 'Custom';
 }
 
 export interface Audit {
