@@ -15,6 +15,7 @@ interface ConfirmModalProps {
   confirmText?: string;
   cancelText?: string;
   loading?: boolean;
+  closeOnConfirm?: boolean;
 }
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -27,7 +28,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   details,
   confirmText = 'Confirmer',
   cancelText = 'Annuler',
-  loading = false
+  loading = false,
+  closeOnConfirm = true
 }) => {
   if (!isOpen) return null;
 
@@ -66,7 +68,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           </Button>
           <div className="w-px bg-gray-100 dark:bg-white/5"></div>
           <Button
-            onClick={() => { onConfirm(); onClose(); }}
+            onClick={() => { onConfirm(); if (closeOnConfirm) onClose(); }}
             isLoading={loading}
             variant="ghost"
             className={`flex-1 py-4 h-auto rounded-none text-sm font-bold ${buttonClass} transition-colors disabled:opacity-50 flex items-center justify-center gap-2`}

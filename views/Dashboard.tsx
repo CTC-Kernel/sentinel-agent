@@ -32,6 +32,7 @@ export const Dashboard: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [organizationName, setOrganizationName] = useState<string>('');
     const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
     const [teamSize, setTeamSize] = useState<number | null>(null);
     const [activeIncidentsCount, setActiveIncidentsCount] = useState(0);
@@ -295,8 +296,10 @@ export const Dashboard: React.FC = () => {
     };
 
     const generateExecutiveReport = async () => {
-        addToast("Génération du rapport avec l'IA en cours...", "info");
+        setIsGeneratingReport(true);
+        addToast(t('dashboard.generatingReport'), "info");
         try {
+            const organizationName = user?.organizationName || 'Organisation';
             // Context for AI
             const context = {
                 organizationName,
@@ -377,7 +380,10 @@ export const Dashboard: React.FC = () => {
             );
             addToast(t('dashboard.reportGenerated'), "success");
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Dashboard.generateExecutiveReport', 'UNKNOWN_ERROR');
+            ErrorLogger.handleErrorWithToast(error, 'Dashboard.generateExecutiveReport', 'REPORT_GENERATION_FAILED');
+            addToast(t('dashboard.reportError'), "error");
+        } finally {
+            setIsGeneratingReport(false);
         }
     };
 
@@ -393,7 +399,7 @@ export const Dashboard: React.FC = () => {
         <StaggerContainer className="space-y-6">
             <SEO
                 title="Tableau de bord de Gouvernance"
-                description="Vue d'ensemble de votre posture de sécurité et conformité."
+                description="Vue d'overview de votre posture de sécurité et conformité."
                 keywords="Pilotage SSI, Tableau de bord CISO, KPI Cyber, Conformité, Risques, Gouvernance"
             />
 
@@ -414,6 +420,7 @@ export const Dashboard: React.FC = () => {
                     insight={insight}
                     generateICal={generateICal}
                     generateExecutiveReport={generateExecutiveReport}
+                    isGeneratingReport={isGeneratingReport}
                 />
             </SlideUp>
 

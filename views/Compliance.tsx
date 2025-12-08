@@ -78,6 +78,7 @@ export const Compliance: React.FC = () => {
     // EUR-Lex State
     const [eurLexQuery, setEurLexQuery] = useState('');
     const [eurLexResult, setEurLexResult] = useState<string | null>(null);
+    const [isSearchingEurLex, setIsSearchingEurLex] = useState(false);
 
     // Automated Evidence State
     const [providers, setProviders] = useState<IntegrationProvider[]>([]);
@@ -85,6 +86,7 @@ export const Compliance: React.FC = () => {
     const [selectedProviderId, setSelectedProviderId] = useState<string>('');
     const [selectedResourceId, setSelectedResourceId] = useState<string>('');
     const [isLinkingEvidence, setIsLinkingEvidence] = useState(false);
+    const [syncingEvidenceId, setSyncingEvidenceId] = useState<string | null>(null);
     const [updating, setUpdating] = useState(false);
 
     useEffect(() => {
@@ -673,6 +675,7 @@ export const Compliance: React.FC = () => {
 
     const handleSyncEvidence = async (evidence: AutomatedEvidence) => {
         if (!selectedControl || !user?.organizationId) return;
+        setSyncingEvidenceId(evidence.id);
         const toastId = toast.loading("Synchronisation...");
         try {
             const result = await integrationService.fetchEvidence(evidence.providerId, evidence.resourceId, user.organizationId, demoMode);
@@ -697,11 +700,14 @@ export const Compliance: React.FC = () => {
             toast.success("Synchronisation réussie", { id: toastId });
         } catch {
             toast.error("Erreur de synchronisation", { id: toastId });
+        } finally {
+            setSyncingEvidenceId(null);
         }
     };
 
     const handleEurLexSearch = async () => {
         if (!eurLexQuery) return;
+        setIsSearchingEurLex(true);
         const toastId = toast.loading("Recherche EUR-Lex en cours...");
         try {
             const result = await integrationService.searchEurLex(eurLexQuery, demoMode);
@@ -709,6 +715,8 @@ export const Compliance: React.FC = () => {
             toast.dismiss(toastId);
         } catch {
             toast.error("Erreur lors de la recherche EUR-Lex", { id: toastId });
+        } finally {
+            setIsSearchingEurLex(false);
         }
     };
 
@@ -1046,9 +1054,11 @@ export const Compliance: React.FC = () => {
                             </div>
                             <button
                                 onClick={handleEurLexSearch}
-                                className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+                                disabled={isSearchingEurLex}
+                                className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2 disabled:opacity-50"
                             >
-                                Rechercher
+                                {isSearchingEurLex ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
+                                {isSearchingEurLex ? "Recherche..." : "Rechercher"}
                             </button>
                         </div>
                     </div>
@@ -1313,10 +1323,11 @@ export const Compliance: React.FC = () => {
                                                                 <div className="flex items-center gap-2">
                                                                     <button
                                                                         onClick={() => handleSyncEvidence(evidence)}
+                                                                        disabled={syncingEvidenceId === evidence.id}
                                                                         className="p-2 text-slate-400 hover:text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all"
                                                                         title="Synchroniser maintenant"
                                                                     >
-                                                                        <RefreshCw className="h-4 w-4" />
+                                                                        {syncingEvidenceId === evidence.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                                                                     </button>
                                                                     {canEdit && (
                                                                         <button

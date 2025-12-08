@@ -54,7 +54,8 @@ export const Suppliers: React.FC = () => {
     const [creationMode, setCreationMode] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
     const [isEditing, setIsEditing] = useState(false);
-    // Removed duplicate/unused states
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
 
 
 
@@ -199,7 +200,7 @@ export const Suppliers: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Confirm Dialog
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
@@ -259,6 +260,7 @@ export const Suppliers: React.FC = () => {
 
     const handleCreate: SubmitHandler<SupplierFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
+        setIsSubmitting(true);
         try {
             await addDoc(collection(db, 'suppliers'), {
                 ...data,
@@ -269,11 +271,16 @@ export const Suppliers: React.FC = () => {
             await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${data.name}`);
             addToast("Fournisseur ajouté", "success");
             setCreationMode(false);
-        } catch { addToast("Erreur enregistrement", "error"); }
+        } catch {
+            addToast("Erreur enregistrement", "error");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleUpdate: SubmitHandler<SupplierFormData> = async (data) => {
         if (!canEdit || !selectedSupplier) return;
+        setIsSubmitting(true);
         try {
             await updateDoc(doc(db, 'suppliers', selectedSupplier.id), {
                 ...data,
@@ -282,9 +289,12 @@ export const Suppliers: React.FC = () => {
             await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${data.name}`);
             setSelectedSupplier({ ...selectedSupplier, ...data, criticality: data.criticality as Criticality });
             setIsEditing(false);
-            setIsEditing(false);
             addToast("Fournisseur mis à jour", "success");
-        } catch { addToast("Erreur mise à jour", "error"); }
+        } catch {
+            addToast("Erreur mise à jour", "error");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const initiateDelete = (id: string, name: string) => {
@@ -293,7 +303,8 @@ export const Suppliers: React.FC = () => {
             isOpen: true,
             title: `Supprimer ${name} ?`,
             message: "Cette action est définitive et supprimera toutes les données associées à ce fournisseur.",
-            onConfirm: () => handleDelete(id)
+            onConfirm: () => handleDelete(id),
+            closeOnConfirm: false
         });
     };
 
@@ -313,16 +324,17 @@ export const Suppliers: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!canEdit) return;
-        if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ? Cette action supprimera également les évaluations et incidents associés.')) return;
-
+        setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await performDelete(id);
             addToast('Fournisseur et données associées supprimés', 'success');
             if (selectedSupplier?.id === id) setSelectedSupplier(null);
+            setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleDelete');
             addToast('Erreur lors de la suppression', 'error');
+        } finally {
+            setConfirmData(prev => ({ ...prev, loading: false }));
         }
     };
 
@@ -405,8 +417,7 @@ export const Suppliers: React.FC = () => {
             const lines = text.split('\n').slice(1).filter(line => line.trim() !== '');
             if (lines.length === 0) { addToast("Fichier vide", "error"); return; }
 
-            if (lines.length === 0) { addToast("Fichier vide", "error"); return; }
-
+            setIsImporting(true);
             addToast("Import en cours...", "info");
             try {
                 const batch = writeBatch(db);
@@ -441,7 +452,12 @@ export const Suppliers: React.FC = () => {
                 await batch.commit();
                 await logAction(user, 'IMPORT', 'Supplier', `Import CSV de ${count} fournisseurs`);
                 addToast(`${count} fournisseurs importés`, "success");
-            } catch { addToast("Erreur import CSV", "error"); } finally { if (fileInputRef.current) fileInputRef.current.value = ''; }
+            } catch {
+                addToast("Erreur import CSV", "error");
+            } finally {
+                setIsImporting(false);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            }
         };
         reader.readAsText(file);
     };
@@ -579,6 +595,8 @@ export const Suppliers: React.FC = () => {
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
+                loading={confirmData.loading}
+                closeOnConfirm={confirmData.closeOnConfirm}
             />
 
             <PageHeader
@@ -593,9 +611,10 @@ export const Suppliers: React.FC = () => {
                         <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
+                            disabled={isImporting}
+                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white disabled:opacity-50"
                         >
-                            <Upload className="h-4 w-4 mr-2" /> Importer
+                            {isImporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />} Importer
                         </button>
                         <button
                             onClick={() => openCreationDrawer()}
@@ -771,6 +790,7 @@ export const Suppliers: React.FC = () => {
                                             assets={assetsRaw}
                                             risks={risksRaw}
                                             documents={documentsRaw}
+                                            isLoading={isSubmitting}
                                         />
                                     ) : (
                                         <>

@@ -79,7 +79,9 @@ export const Incidents: React.FC = () => {
     const [creationMode, setCreationMode] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+    const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean, closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'playbook' | 'timeline' | 'ai'>('details');
     const [inspectorTab, setInspectorTab] = useState<'details' | 'playbook' | 'timeline' | 'ai'>('details');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -173,7 +175,13 @@ export const Incidents: React.FC = () => {
 
     const initiateDelete = (id: string) => {
         if (!canDeleteResource(user, 'Incident')) return;
-        setConfirmData({ isOpen: true, title: "Supprimer l'incident ?", message: "Cette action est définitive.", onConfirm: () => handleDelete(id) });
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer l'incident ?",
+            message: "Cette action est définitive.",
+            onConfirm: () => handleDelete(id),
+            closeOnConfirm: false
+        });
     };
     const performDelete = async (id: string) => {
         await deleteDoc(doc(db, 'incidents', id));
@@ -188,12 +196,16 @@ export const Incidents: React.FC = () => {
 
     const handleDelete = async (id: string) => {
         if (!canDeleteResource(user, 'Incident')) return;
+        setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await performDelete(id);
             if (selectedIncident?.id === id) setSelectedIncident(null);
             addToast("Incident supprimé", "info");
+            setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.handleDelete', 'DELETE_FAILED');
+        } finally {
+            setConfirmData(prev => ({ ...prev, loading: false }));
         }
     };
 
@@ -287,7 +299,7 @@ export const Incidents: React.FC = () => {
                 description="Détection, analyse et réponse aux incidents de sécurité (SOC/CSIRT)."
                 keywords="Incidents, SOC, CSIRT, Cyberattaque, Réponse, Analyse, Playbooks, SIEM"
             />
-            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
+            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} loading={confirmData.loading} closeOnConfirm={confirmData.closeOnConfirm} />
 
             <PageHeader
                 title="Gestion des Incidents"
