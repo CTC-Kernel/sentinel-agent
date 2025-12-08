@@ -14,8 +14,45 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
     const navigate = useNavigate();
     const { user } = useStore();
 
-    // Determine completion status based on store data (simplified for now)
-    // In a real app, we might check specific counts or flags
+    const [status, setStatus] = React.useState({
+        hasTeam: false,
+        hasAssets: false,
+        hasRisks: false
+    });
+
+    React.useEffect(() => {
+        const checkStatus = async () => {
+            if (!user?.organizationId) return;
+            try {
+                const db = await import('../../../firebase').then(m => m.db);
+                const { collection, query, where, getCountFromServer } = await import('firebase/firestore');
+
+                const usersColl = collection(db, 'users');
+                const assetsColl = collection(db, 'assets');
+                const risksColl = collection(db, 'risks');
+
+                const qUsers = query(usersColl, where('organizationId', '==', user.organizationId));
+                const qAssets = query(assetsColl, where('organizationId', '==', user.organizationId));
+                const qRisks = query(risksColl, where('organizationId', '==', user.organizationId));
+
+                const [usersSnap, assetsSnap, risksSnap] = await Promise.all([
+                    getCountFromServer(qUsers),
+                    getCountFromServer(qAssets),
+                    getCountFromServer(qRisks)
+                ]);
+
+                setStatus({
+                    hasTeam: usersSnap.data().count > 1,
+                    hasAssets: assetsSnap.data().count > 0,
+                    hasRisks: risksSnap.data().count > 0
+                });
+            } catch (error) {
+                console.error("Failed to check getting started status", error);
+            }
+        };
+        checkStatus();
+    }, [user?.organizationId]);
+
     const steps: Step[] = [
         {
             id: 'org',
@@ -27,19 +64,19 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
             id: 'team',
             label: 'Inviter votre équipe',
             path: '/team',
-            isCompleted: false // TODO: Check if team members > 1
+            isCompleted: status.hasTeam
         },
         {
             id: 'asset',
             label: 'Ajouter votre premier actif',
             path: '/assets',
-            isCompleted: false // TODO: Check asset count
+            isCompleted: status.hasAssets
         },
         {
             id: 'risk',
             label: 'Identifier un risque',
             path: '/risks',
-            isCompleted: false // TODO: Check risk count
+            isCompleted: status.hasRisks
         }
     ];
 
