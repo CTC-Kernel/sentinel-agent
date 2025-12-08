@@ -79,9 +79,7 @@ export const Incidents: React.FC = () => {
     const [creationMode, setCreationMode] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
-    const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean, closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'playbook' | 'timeline' | 'ai'>('details');
     const [inspectorTab, setInspectorTab] = useState<'details' | 'playbook' | 'timeline' | 'ai'>('details');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
