@@ -659,6 +659,29 @@ export const Risks: React.FC = () => {
                 filteredRisks.map(r => ({ threat: r.threat, score: r.score, strategy: r.strategy, status: r.status }))
             );
 
+            // Metrics
+            const totalRisks = filteredRisks.length;
+            const avgReduction = Math.round(filteredRisks.reduce((acc, r) => acc + (r.score - (r.residualScore || r.score)), 0) / (totalRisks || 1));
+            const residualCritical = filteredRisks.filter(r => (r.residualScore || r.score) >= 15).length;
+
+            const metrics = [
+                { label: 'Risques Traités', value: totalRisks.toString() },
+                { label: 'Réduction Moy.', value: `-${avgReduction} pts`, subtext: 'Efficacité Traitement' },
+                { label: 'Critiques Résiduels', value: residualCritical.toString(), subtext: 'Attention Requise' },
+                { label: 'Taux Couverture', value: `${Math.round((filteredRisks.filter(r => r.strategy !== 'Accepter').length / totalRisks) * 100)}%` }
+            ];
+
+            // Stats (Strategy)
+            const stratCounts = { 'Atténuer': 0, 'Éviter': 0, 'Transférer': 0, 'Accepter': 0 };
+            filteredRisks.forEach(r => { if (stratCounts[r.strategy as keyof typeof stratCounts] !== undefined) stratCounts[r.strategy as keyof typeof stratCounts]++; });
+
+            const stats = [
+                { label: 'Atténuer', value: stratCounts['Atténuer'], color: '#3B82F6' },
+                { label: 'Éviter', value: stratCounts['Éviter'], color: '#10B981' },
+                { label: 'Transférer', value: stratCounts['Transférer'], color: '#F59E0B' },
+                { label: 'Accepter', value: stratCounts['Accepter'], color: '#64748B' }
+            ].filter(s => s.value > 0);
+
             PdfService.generateExecutiveReport(
                 {
                     title: 'Plan de Traitement des Risques (RTP)',
@@ -668,6 +691,8 @@ export const Risks: React.FC = () => {
                     organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
                     author: user?.displayName || 'RSSI',
                     summary: summary,
+                    metrics,
+                    stats,
                     coverImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop' // AI/Tech themed image
                 },
                 (doc, startY) => {

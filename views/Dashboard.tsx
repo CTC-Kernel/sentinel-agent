@@ -311,6 +311,19 @@ export const Dashboard: React.FC = () => {
 
             const summary = await aiService.generateExecutiveDashboardSummary(context);
 
+            const metrics = [
+                { label: t('dashboard.complianceScore'), value: `${complianceScore}%` },
+                { label: t('dashboard.criticalRisks'), value: topRisks.filter(r => r.score >= 15).length.toString() },
+                { label: t('dashboard.activeIncidents'), value: activeIncidentsCount.toString() },
+                { label: t('dashboard.openAudits'), value: openAuditsCount.toString() }
+            ];
+
+            const chartStats = radarData.map((d, i) => ({
+                label: d.subject,
+                value: d.A,
+                color: ['#0F172A', '#334155', '#475569', '#64748B'][i % 4]
+            }));
+
             PdfService.generateExecutiveReport(
                 {
                     title: t('dashboard.reportTitle'),
@@ -319,36 +332,13 @@ export const Dashboard: React.FC = () => {
                     organizationName,
                     organizationLogo,
                     summary,
+                    metrics,
+                    stats: chartStats,
                     author: user?.displayName || 'Sentinel GRC',
                     orientation: 'portrait'
                 },
                 (doc, startY) => {
                     let y = startY;
-
-                    // Stats Grid
-                    doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
-                    doc.text(t('dashboard.keyIndicators'), 14, y);
-                    y += 10;
-
-                    const statsData = [
-                        { label: t('dashboard.complianceScore'), value: `${complianceScore}%` },
-                        { label: t('dashboard.criticalRisks'), value: topRisks.filter(r => r.score >= 15).length.toString() },
-                        { label: t('dashboard.activeIncidents'), value: activeIncidentsCount.toString() },
-                        { label: t('dashboard.openAudits'), value: openAuditsCount.toString() }
-                    ];
-
-                    let x = 14;
-                    statsData.forEach(stat => {
-                        doc.setFillColor(248, 250, 252); doc.setDrawColor(226, 232, 240);
-                        doc.roundedRect(x, y, 40, 25, 2, 2, 'FD');
-                        doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
-                        doc.text(stat.value, x + 20, y + 12, { align: 'center' });
-                        doc.setFontSize(8); doc.setTextColor(100); doc.setFont('helvetica', 'normal');
-                        doc.text(stat.label, x + 20, y + 20, { align: 'center' });
-                        x += 45;
-                    });
-
-                    y += 40;
 
                     // Top Risks Table
                     doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
