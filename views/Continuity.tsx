@@ -128,6 +128,23 @@ export const Continuity: React.FC = () => {
 
             const summary = await aiService.generateContinuityReportSummary(context);
 
+            const metrics = [
+                { label: "Total Processus", value: processes.length.toString() },
+                { label: "Critiques", value: criticalProcessesCount.toString(), subtext: 'Priorité Haute' },
+                { label: "RTO Moyen", value: `${avgRTO}h` },
+                { label: "Exercices", value: drills.length.toString() }
+            ];
+
+            const priorityCounts = { 'Critique': 0, 'Elevée': 0, 'Moyenne': 0, 'Faible': 0 };
+            processes.forEach(p => { if (priorityCounts[p.priority as keyof typeof priorityCounts] !== undefined) priorityCounts[p.priority as keyof typeof priorityCounts]++; });
+
+            const stats = [
+                { label: 'Critique', value: priorityCounts['Critique'], color: '#EF4444' },
+                { label: 'Elevée', value: priorityCounts['Elevée'], color: '#F97316' },
+                { label: 'Moyenne', value: priorityCounts['Moyenne'], color: '#F59E0B' },
+                { label: 'Faible', value: priorityCounts['Faible'], color: '#10B981' }
+            ].filter(s => s.value > 0);
+
             PdfService.generateExecutiveReport(
                 {
                     title: "Rapport de Continuité d'Activité",
@@ -135,36 +152,13 @@ export const Continuity: React.FC = () => {
                     filename: `Plan_Continute_${context.organizationName}_${new Date().toISOString().split('T')[0]}.pdf`,
                     organizationName: context.organizationName,
                     summary,
+                    metrics,
+                    stats,
                     author: user?.displayName || 'Sentinel GRC',
                     orientation: 'portrait'
                 },
                 (doc, startY) => {
                     let y = startY;
-
-                    // Metrics
-                    doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
-                    doc.text("Indicateurs Clés", 14, y);
-                    y += 10;
-
-                    const statsData = [
-                        { label: "Processus Totaux", value: processes.length.toString() },
-                        { label: "Processus Critiques", value: criticalProcessesCount.toString() },
-                        { label: "RTO Moyen", value: `${avgRTO}h` },
-                        { label: "Exercices Réalisés", value: drills.length.toString() }
-                    ];
-
-                    let x = 14;
-                    statsData.forEach(stat => {
-                        doc.setFillColor(248, 250, 252); doc.setDrawColor(226, 232, 240);
-                        doc.roundedRect(x, y, 40, 25, 2, 2, 'FD');
-                        doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
-                        doc.text(stat.value, x + 20, y + 12, { align: 'center' });
-                        doc.setFontSize(8); doc.setTextColor(100); doc.setFont('helvetica', 'normal');
-                        doc.text(stat.label, x + 20, y + 20, { align: 'center' });
-                        x += 45;
-                    });
-
-                    y += 40;
 
                     // Critical Processes Table
                     doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
