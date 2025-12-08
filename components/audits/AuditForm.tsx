@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { AddToCalendar } from '../ui/AddToCalendar';
@@ -10,6 +11,10 @@ import { Button } from '../ui/button';
 import { AIAssistantHeader, Template } from '../ui/AIAssistantHeader';
 import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
+import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
+import { FloatingLabelSelect } from '../ui/FloatingLabelSelect';
+
+
 
 const AUDIT_TEMPLATES: Template[] = [
     { name: 'Audit Interne ISO 27001', description: 'Vérification de conformité annuelle sur le périmètre complet.', type: 'Interne', standard: 'ISO 27001', scope: 'Organisation Globale' },
@@ -54,6 +59,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             dateScheduled: new Date().toISOString().split('T')[0],
             status: 'Planifié',
             scope: '',
+            framework: undefined,
             relatedAssetIds: [],
             relatedRiskIds: [],
             relatedControlIds: [],
@@ -74,6 +80,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 dateScheduled: existingAudit.dateScheduled,
                 status: existingAudit.status,
                 scope: existingAudit.scope || '',
+                framework: existingAudit.framework,
                 relatedAssetIds: existingAudit.relatedAssetIds || [],
                 relatedRiskIds: existingAudit.relatedRiskIds || [],
                 relatedControlIds: existingAudit.relatedControlIds || [],
@@ -87,6 +94,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 dateScheduled: initialData?.dateScheduled || new Date().toISOString().split('T')[0],
                 status: initialData?.status || 'Planifié',
                 scope: initialData?.scope || '',
+                framework: initialData?.framework,
                 relatedAssetIds: initialData?.relatedAssetIds || [],
                 relatedRiskIds: initialData?.relatedRiskIds || [],
                 relatedControlIds: initialData?.relatedControlIds || [],
@@ -110,7 +118,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             // If not, the instruction might be based on an incomplete understanding of the schema.
             // I will add them as per the instruction.
             // setValue('description', t.description); // This field is not in AuditFormData based on defaultValues
-            // setValue('standard', t.standard); // This field is not in AuditFormData based on defaultValues
+            setValue('framework', t.standard); // This field is not in AuditFormData based on defaultValues
             setValue('type', t.type as any); // Assuming type is compatible or string
             setValue('scope', t.scope);
         }
@@ -138,7 +146,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 // If not, these lines will cause type errors or be ignored.
                 // I will add them as per the instruction.
                 // if (data.description) setValue('description', data.description); // Not in AuditFormData
-                // if (data.standard) setValue('standard', data.standard); // Not in AuditFormData
+                if (data.standard) setValue('framework', data.standard); // Not in AuditFormData
                 if (data.scope) setValue('scope', data.scope);
             }
         } catch (error) {
@@ -184,6 +192,17 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                         )}
                     />
 
+                    <div className="md:col-span-2">
+                        <FloatingLabelSelect
+                            label="Référentiel / Standard (Optionnel)"
+                            {...register('framework')}
+                            options={FRAMEWORK_OPTIONS}
+                            error={errors.framework?.message}
+                        />
+                    </div>
+
+
+
                     <div className="relative">
                         <Controller
                             control={control}
@@ -202,7 +221,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                                 <AddToCalendar
                                     event={{
                                         title: watchedName,
-                                        description: `Audit ${watchedType} - ${watchedScope}`,
+                                        description: `Audit ${watchedType} - ${watchedScope} `,
                                         start: new Date(watchedDateScheduled),
                                         end: new Date(watchedDateScheduled),
                                         location: 'Sentinel GRC'
@@ -277,7 +296,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                                 label="Risques concernés"
                                 value={field.value || []}
                                 onChange={field.onChange}
-                                options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
+                                options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score} ` }))}
                                 multiple
                             />
                         )}

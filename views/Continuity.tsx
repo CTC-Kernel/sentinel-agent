@@ -7,6 +7,7 @@ import { canEditResource } from '../utils/permissions';
 import { Drawer } from '../components/ui/Drawer';
 import { collection, addDoc, deleteDoc, doc, updateDoc, where, limit, query, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { BusinessProcess, Asset, BcpDrill, SystemLog, UserProfile, Risk, Supplier } from '../types';
 import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, History, MessageSquare, LayoutDashboard, FileSpreadsheet, ShieldAlert, Truck, Download } from '../components/ui/Icons';
@@ -353,7 +354,7 @@ export const Continuity: React.FC = () => {
                 ]}
                 icon={<HeartPulse className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-3 w-full sm:w-auto">
                         <button
                             onClick={handleExportCSV}
                             className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium"
@@ -478,13 +479,15 @@ export const Continuity: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit border border-slate-200 dark:border-white/5">
-                <button onClick={() => setActiveTab('bia')} className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'bia' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
-                    Analyse d'Impact (BIA)
-                </button>
-                <button onClick={() => setActiveTab('drills')} className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'drills' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
-                    Exercices & Tests
-                </button>
+            <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit border border-slate-200 dark:border-white/5 min-w-max">
+                    <button onClick={() => setActiveTab('bia')} className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'bia' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
+                        Analyse d'Impact (BIA)
+                    </button>
+                    <button onClick={() => setActiveTab('drills')} className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'drills' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
+                        Exercices & Tests
+                    </button>
+                </div>
             </div>
 
             {activeTab === 'bia' && (
@@ -640,24 +643,20 @@ export const Continuity: React.FC = () => {
                 {selectedProcess && (
                     <div className="flex flex-col h-full">
 
-                        <div className="px-8 border-b border-gray-100 dark:border-white/5 flex gap-8 bg-white/30 dark:bg-white/5">
-                            {[
-                                { id: 'details', label: 'Détails', icon: LayoutDashboard },
-                                { id: 'recovery', label: 'Plan de Reprise', icon: ClipboardCheck },
-                                { id: 'scenarios', label: 'Scénarios (Risques)', icon: ShieldAlert },
-                                { id: 'drills', label: 'Exercices', icon: Zap },
-                                { id: 'history', label: 'Historique', icon: History },
-                                { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                            ].map(tab => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setInspectorTab(tab.id as typeof inspectorTab)}
-                                    className={`py-4 text-sm font-semibold flex items-center border-b-2 transition-all ${inspectorTab === tab.id ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-                                >
-                                    <tab.icon className={`h-4 w-4 mr-2.5 ${inspectorTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
-                                    {tab.label}
-                                </button>
-                            ))}
+                        <div className="border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                            <ScrollableTabs
+                                tabs={[
+                                    { id: 'details', label: 'Détails', icon: LayoutDashboard },
+                                    { id: 'recovery', label: 'Plan de Reprise', icon: ClipboardCheck },
+                                    { id: 'scenarios', label: 'Scénarios (Risques)', icon: ShieldAlert },
+                                    { id: 'drills', label: 'Exercices', icon: Zap },
+                                    { id: 'history', label: 'Historique', icon: History },
+                                    { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                                ]}
+                                activeTab={inspectorTab}
+                                onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
+                                className="px-8"
+                            />
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">

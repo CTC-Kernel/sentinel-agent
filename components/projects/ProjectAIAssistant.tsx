@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Project, Risk, Control } from '../../types';
 import { aiService } from '../../services/aiService';
 import { Sparkles, Bot, FileText, Loader2, Target, AlertTriangle } from '../ui/Icons';
@@ -115,7 +116,9 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                 <div className="animate-fade-in relative z-10 flex-1 flex flex-col min-h-0">
                     <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-6 text-sm text-slate-700 dark:text-slate-300 leading-relaxed shadow-sm border border-white/50 dark:border-white/5 mb-4 overflow-y-auto custom-scrollbar flex-1">
                         <div className="prose dark:prose-invert max-w-none text-sm">
-                            {response.split('\n').map((line, i) => <p key={i} className="mb-2 last:mb-0">{line}</p>)}
+                            <ReactMarkdown>
+                                {response}
+                            </ReactMarkdown>
                         </div>
                     </div>
                     <button onClick={() => setResponse(null)} className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
