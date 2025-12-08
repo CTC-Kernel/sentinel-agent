@@ -10,7 +10,7 @@ import { db } from '../firebase';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { BusinessProcess, Asset, BcpDrill, SystemLog, UserProfile, Risk, Supplier } from '../types';
-import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, History, MessageSquare, LayoutDashboard, FileSpreadsheet, ShieldAlert, Truck, Download } from '../components/ui/Icons';
+import { Plus, HeartPulse, Trash2, Edit, Zap, ClipboardCheck, Server, CalendarDays, AlertTriangle, History, MessageSquare, LayoutDashboard, FileSpreadsheet, ShieldAlert, Truck, Download, Loader2 } from '../components/ui/Icons';
 import { PdfService } from '../services/PdfService';
 import { aiService } from '../services/aiService';
 import { useStore } from '../store';
@@ -75,11 +75,12 @@ export const Continuity: React.FC = () => {
     const [inspectorTab, setInspectorTab] = useState<'details' | 'recovery' | 'scenarios' | 'drills' | 'history' | 'comments'>('details');
     const [processHistory, setProcessHistory] = useState<SystemLog[]>([]);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
 
 
     // Confirm Dialog
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
@@ -95,6 +96,7 @@ export const Continuity: React.FC = () => {
     const watchedDrillDate = useWatch({ control: drillForm.control, name: 'date' });
     const watchedDrillType = useWatch({ control: drillForm.control, name: 'type' });
     const watchedDrillProcessId = useWatch({ control: drillForm.control, name: 'processId' });
+    const { isSubmitting: isDrillSubmitting } = drillForm.formState;
 
     // Metrics for Summary Card
     const totalProcesses = processes.length;
@@ -111,6 +113,7 @@ export const Continuity: React.FC = () => {
     const failedDrills = drills.filter(d => d.result === 'Échec').length;
 
     const generateReport = async () => {
+        setIsGeneratingReport(true);
         addToast("Génération du rapport de continuité avec l'IA...", "info");
         try {
             const criticalProcessesCount = processes.filter(p => p.priority === 'Critique').length;
@@ -208,6 +211,8 @@ export const Continuity: React.FC = () => {
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Continuity.generateReport', 'REPORT_GENERATION_FAILED');
             addToast("Erreur lors de la génération du rapport", "error");
+        } finally {
+            setIsGeneratingReport(false);
         }
     };
 
@@ -263,19 +268,26 @@ export const Continuity: React.FC = () => {
             isOpen: true,
             title: "Supprimer le processus ?",
             message: "Le processus et son historique seront supprimés.",
-            onConfirm: () => handleDeleteProcess(id, name)
+            onConfirm: () => handleDeleteProcess(id, name),
+            closeOnConfirm: false
         });
     };
 
     const handleDeleteProcess = async (id: string, name: string) => {
         if (!canEdit) return;
+        setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await deleteDoc(doc(db, 'business_processes', id));
 
             setSelectedProcess(null);
             await logAction(user, 'DELETE', 'BCP', `Suppression: ${name} `);
             addToast("Processus supprimé", "info");
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Continuity.handleDeleteProcess', 'DELETE_FAILED'); }
+            setConfirmData(prev => ({ ...prev, isOpen: false }));
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Continuity.handleDeleteProcess', 'DELETE_FAILED');
+        } finally {
+            setConfirmData(prev => ({ ...prev, loading: false }));
+        }
     };
 
     const openDrillModal = () => {
@@ -338,6 +350,8 @@ export const Continuity: React.FC = () => {
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
+                loading={confirmData.loading}
+                closeOnConfirm={confirmData.closeOnConfirm}
             />
 
             <PageHeader
@@ -358,9 +372,10 @@ export const Continuity: React.FC = () => {
                         </button>
                         <button
                             onClick={generateReport}
-                            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium"
+                            disabled={isGeneratingReport}
+                            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium disabled:opacity-50"
                         >
-                            <Download size={18} />
+                            {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download size={18} />}
                             Exporter Rapport
                         </button>
                         {canEdit && (
@@ -882,8 +897,11 @@ export const Continuity: React.FC = () => {
                             {...drillForm.register('notes')} placeholder="Le RTO a-t-il été respecté ?" />
                     </div>
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                        <button type="button" onClick={() => setShowDrillModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                        <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg">Enregistrer</button>
+                        <button type="button" onClick={() => setShowDrillModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors" disabled={isDrillSubmitting}>Annuler</button>
+                        <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg disabled:opacity-50 flex items-center gap-2" disabled={isDrillSubmitting}>
+                            {isDrillSubmitting && <Loader2 className="h-4 w-4 animate-spin text-white dark:text-slate-900" />}
+                            Enregistrer
+                        </button>
                     </div>
                 </form>
             </Drawer>

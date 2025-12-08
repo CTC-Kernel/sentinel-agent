@@ -163,6 +163,7 @@ export const Risks: React.FC = () => {
     const [riskHistory, setRiskHistory] = useState<SystemLog[]>([]);
     const [riskScoreHistory, setRiskScoreHistory] = useState<RiskHistory[]>([]);
     const [stats, setStats] = useState({ total: 0, critical: 0, mitigated: 0, reviewDue: 0 });
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [importing, setImporting] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [updating, setUpdating] = useState(false);
@@ -653,6 +654,7 @@ export const Risks: React.FC = () => {
         const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
         const canWhiteLabel = limits.features.whiteLabelReports;
 
+        setIsGeneratingReport(true);
         addToast("Génération du RTP avec analyse IA...", "info");
         try {
             const summary = await aiService.generateRTPSummary(
@@ -722,8 +724,9 @@ export const Risks: React.FC = () => {
             );
             addToast("RTP généré avec succès", "success");
         } catch (error) {
-            ErrorLogger.error(error, 'Risks.generateRTP');
-            addToast("Erreur lors de la génération du RTP", "error");
+            ErrorLogger.handleErrorWithToast(error, 'Risks.handleExportRTP', 'REPORT_GENERATION_FAILED');
+        } finally {
+            setIsGeneratingReport(false);
         }
     };
 
@@ -921,9 +924,10 @@ export const Risks: React.FC = () => {
 
                             <button
                                 onClick={handleExportRTP}
-                                className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+                                disabled={isGeneratingReport}
+                                className="bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2Rounded-xl border border-slate-200 dark:border-slate-700 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 disabled:opacity-50"
                             >
-                                <FileText className="h-4 w-4 mr-2 text-red-500" />
+                                {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-red-500" />}
                                 RTP (PDF)
                             </button>
 

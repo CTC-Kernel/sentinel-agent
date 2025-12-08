@@ -17,6 +17,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     const [response, setResponse] = useState<IncidentResponse | null>(null);
     const [playbook, setPlaybook] = useState<IPlaybook | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isStarting, setIsStarting] = useState(false);
     const [availablePlaybooks, setAvailablePlaybooks] = useState<IPlaybook[]>([]);
     const [selectedPlaybookId, setSelectedPlaybookId] = useState<string>('');
 
@@ -57,7 +58,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     const handleStartResponse = async () => {
         if (!selectedPlaybookId || !user?.uid || !user?.organizationId) return;
         try {
-            setLoading(true);
+            setIsStarting(true);
             await IncidentPlaybookService.initiateResponse(
                 incident.id,
                 selectedPlaybookId,
@@ -67,7 +68,8 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
             await loadData(); // Reload to show the active response
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybook.handleStartResponse', 'CREATE_FAILED');
-            setLoading(false);
+        } finally {
+            setIsStarting(false);
         }
     };
 
@@ -141,9 +143,10 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
 
                         <button
                             onClick={handleStartResponse}
-                            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
+                            disabled={isStarting}
+                            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                            <MonitorPlay className="h-5 w-5" />
+                            {isStarting ? <span className="animate-spin">⏳</span> : <MonitorPlay className="h-5 w-5" />}
                             Démarrer la réponse
                         </button>
                     </div>
