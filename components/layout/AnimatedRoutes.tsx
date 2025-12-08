@@ -30,6 +30,7 @@ const CalendarView = React.lazy(() => import('../../views/CalendarView').then(mo
 const Pricing = React.lazy(() => import('../../views/Pricing'));
 const AdminDashboard = React.lazy(() => import('../../views/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
 const Integrations = React.lazy(() => import('../../views/Integrations').then(module => ({ default: module.Integrations })));
+const ThreatRegistry = React.lazy(() => import('../../views/ThreatRegistry').then(module => ({ default: module.ThreatRegistry })));
 
 import { AlertTriangle } from '../ui/Icons';
 
@@ -60,6 +61,7 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/projects" element={<AnimatedPage><Projects /></AnimatedPage>} />
                 <Route path="/assets" element={<AnimatedPage><Assets /></AnimatedPage>} />
                 <Route path="/risks" element={<AnimatedPage><Risks /></AnimatedPage>} />
+                <Route path="/threat-library" element={<AnimatedPage><ThreatRegistry /></AnimatedPage>} />
                 <Route path="/compliance" element={<AnimatedPage><Compliance /></AnimatedPage>} />
                 <Route path="/documents" element={<AnimatedPage><Documents /></AnimatedPage>} />
                 <Route path="/audits" element={<AnimatedPage><Audits /></AnimatedPage>} />

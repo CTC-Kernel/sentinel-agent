@@ -185,13 +185,13 @@ class IntegrationService {
         throw new Error('Sync not implemented for production yet.');
     }
 
-    async searchEurLex(_query: string, isDemoMode: boolean = false): Promise<string> {
+    async searchEurLex(query: string, isDemoMode: boolean = false): Promise<string> {
         if (isDemoMode) {
             await new Promise(resolve => setTimeout(resolve, 1000));
-            return `https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679&qid=${Date.now()}`;
+            return `https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32016R0679&qid=${Date.now()}`;
         }
-        // Real implementation would call EUR-Lex API
-        return '';
+        // Return a direct search URL for the user to view results
+        return `https://eur-lex.europa.eu/search.html?scope=EURLEX&text=${encodeURIComponent(query)}&lang=fr&type=quick&qid=${Date.now()}`;
     }
 
     async getCommonMitreTechniques(_query: string, isDemoMode: boolean = false): Promise<MitreTechnique[]> {

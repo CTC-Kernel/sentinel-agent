@@ -20,6 +20,11 @@ import { AIAssistantHeader } from '../ui/AIAssistantHeader';
 import { aiService } from '../../services/aiService';
 
 import { RISK_TEMPLATES } from '../../data/riskTemplates';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { ThreatTemplate } from '../../types';
+import { Modal } from '../ui/Modal';
+import { Search, BookOpen, Shield } from '../ui/Icons';
 
 interface RiskFormProps {
     onSubmit: (data: RiskFormData) => Promise<void>;
@@ -121,6 +126,40 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             }
         }
     };
+
+    const [showLibraryModal, setShowLibraryModal] = React.useState(false);
+    const [libraryThreats, setLibraryThreats] = React.useState<ThreatTemplate[]>([]);
+    const [searchTerm, setSearchTerm] = React.useState('');
+
+    useEffect(() => {
+        if (showLibraryModal && libraryThreats.length === 0) {
+            const fetchThreats = async () => {
+                const snap = await getDocs(collection(db, 'threat_library'));
+                const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as ThreatTemplate));
+                setLibraryThreats(list);
+            };
+            fetchThreats();
+        }
+    }, [showLibraryModal, libraryThreats.length]);
+
+    const handleSelectThreatFromLibrary = (t: ThreatTemplate) => {
+        setValue('threat', t.name, { shouldDirty: true });
+        setValue('scenario', t.scenario || '', { shouldDirty: true });
+        setValue('vulnerability', t.vulnerability || '', { shouldDirty: true });
+        // Map framework if possible, or keep current
+        if (t.framework) setValue('framework', t.framework as any, { shouldDirty: true });
+        if (t.probability) setValue('probability', t.probability as any, { shouldDirty: true });
+        if (t.impact) setValue('impact', t.impact as any, { shouldDirty: true });
+        if (t.strategy) setValue('strategy', t.strategy as any, { shouldDirty: true });
+        if (t.field) setValue('scenario', `${t.scenario}\n\nDomaine: ${t.field}`, { shouldDirty: true }); // Append field to scenario or elsewhere
+
+        setShowLibraryModal(false);
+    };
+
+    const filteredLibraryThreats = libraryThreats.filter(t =>
+        t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.threat.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const handleAutoGenerate = async () => {
         const currentThreat = getValues('threat');
@@ -287,7 +326,16 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 required
                                 error={errors.threat?.message}
                             />
-                            <div className="absolute right-2 top-2 z-10">
+                            <div className="absolute right-2 top-2 z-10 flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowLibraryModal(true)}
+                                    className="p-1 px-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-lg text-xs font-bold transition-colors flex items-center border border-purple-200"
+                                    title="Sélectionner depuis la bibliothèque"
+                                >
+                                    <BookOpen className="h-3 w-3 mr-1" />
+                                    Bibliothèque
+                                </button>
                                 <AIAssistButton
                                     context={{ asset: assets.find(a => a.id === getValues('assetId')), existingThreats: STANDARD_THREATS }}
                                     fieldName="Menace"
@@ -486,6 +534,54 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                 <Button type="button" onClick={onCancel} variant="ghost" disabled={isLoading} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</Button>
                 <Button type="submit" isLoading={isLoading} className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none">{isEditing ? 'Enregistrer les modifications' : 'Créer le Risque'}</Button>
             </div>
+
+            <Modal
+                isOpen={showLibraryModal}
+                onClose={() => setShowLibraryModal(false)}
+                title="Bibliothèque de Menaces"
+                maxWidth="max-w-4xl"
+            >
+                <div className="p-4">
+                    <div className="relative mb-4">
+                        <Search className="h-5 w-5 text-slate-400 absolute left-3 top-3" />
+                        <input
+                            type="text"
+                            placeholder="Rechercher..."
+                            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="max-h-[60vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {filteredLibraryThreats.map((t) => (
+                            <div
+                                key={t.id}
+                                onClick={() => handleSelectThreatFromLibrary(t)}
+                                className="border border-slate-200 dark:border-white/10 p-4 rounded-xl hover:border-brand-500 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:shadow-md group"
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <Shield className="h-4 w-4 text-brand-500" />
+                                        <span className="font-bold text-slate-900 dark:text-white line-clamp-1">{t.name}</span>
+                                    </div>
+                                    <span className="text-[10px] uppercase font-bold text-slate-400 border px-1.5 py-0.5 rounded">{t.framework}</span>
+                                </div>
+                                <p className="text-xs text-slate-500 line-clamp-2 mb-2">{t.description}</p>
+                                <div className="flex gap-2 text-[10px] text-slate-400">
+                                    <span className="bg-slate-50 dark:bg-slate-900 px-2 py-1 rounded">Score Ref: {t.probability * t.impact}</span>
+                                    <span className="bg-slate-50 dark:bg-slate-900 px-2 py-1 rounded truncate flex-1">{t.strategy}</span>
+                                </div>
+                            </div>
+                        ))}
+                        {filteredLibraryThreats.length === 0 && (
+                            <div className="col-span-2 text-center py-10 text-slate-400">
+                                Aucune menace trouvée dans la bibliothèque.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </Modal>
         </form >
     );
 };
