@@ -21,6 +21,7 @@ export const projectSchema = z.object({
     name: z.string().min(1, "Le nom du projet est requis"),
     description: z.string().min(1, "La description est requise"),
     manager: z.string().min(1, "Le manager est requis"),
+    framework: z.enum(['ISO27001', 'ISO27005', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF', 'OWASP', 'EBIOS', 'COBIT', 'ITIL']).optional(),
     status: z.enum(['Planifié', 'En cours', 'Terminé', 'Suspendu']).default('Planifié'),
     startDate: z.string().optional(),
     dueDate: z.string().min(1, "La date d'échéance est requise"),

@@ -59,9 +59,9 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8">
-                <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+            <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-xl border border-white/20 dark:border-white/5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden">
+                <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
                 </div>
 
                 {/* Global Score */}

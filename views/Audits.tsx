@@ -15,7 +15,7 @@ import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
 import { QuestionnaireList } from '../components/audits/QuestionnaireList';
 import { AuditTeam } from '../components/audits/AuditTeam';
 import { Comments } from '../components/ui/Comments';
-import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, LayoutGrid, List, BrainCircuit } from '../components/ui/Icons';
+import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, LayoutGrid, List, BrainCircuit, Loader2 } from '../components/ui/Icons';
 
 import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
@@ -55,6 +55,7 @@ export const Audits: React.FC = () => {
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('audits_view_mode', 'grid');
 
     const role = user?.role || 'user';
+    const [isValidating, setIsValidating] = useState(false);
 
     let auditsTitle = "Programme d'Audit";
     let auditsSubtitle = "Planification, exécution et suivi des audits internes et externes.";
@@ -1113,7 +1114,6 @@ export const Audits: React.FC = () => {
                             )}
                             <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-2"></div>
 
-                            {/* Validation Button (Segregation of Duties) */}
                             {selectedAudit.status !== 'Validé' && canEdit && (
                                 <button
                                     onClick={async () => {
@@ -1121,6 +1121,7 @@ export const Audits: React.FC = () => {
                                             addToast("Ségrégation des tâches : Vous ne pouvez pas valider un audit que vous avez créé.", "error");
                                             return;
                                         }
+                                        setIsValidating(true);
                                         try {
                                             await updateDoc(doc(db, 'audits', selectedAudit.id), { status: 'Validé' });
                                             await logAction(user, 'VALIDATE', 'Audit', `Audit validé: ${selectedAudit.name}`);
@@ -1129,13 +1130,16 @@ export const Audits: React.FC = () => {
                                             setSelectedAudit({ ...selectedAudit, status: 'Validé' });
                                         } catch (e) {
                                             ErrorLogger.handleErrorWithToast(e, 'Audits.validate', 'UPDATE_FAILED');
+                                        } finally {
+                                            setIsValidating(false);
                                         }
                                     }}
-                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-colors shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+                                    disabled={isValidating}
+                                    className={`px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-colors shadow-lg shadow-indigo-500/20 flex items-center gap-2 ${isValidating ? 'opacity-75 cursor-wait' : ''}`}
                                     title={selectedAudit.createdBy === user?.uid ? "Vous ne pouvez pas valider votre propre audit" : "Valider l'audit"}
                                 >
-                                    <CheckCheck className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Valider</span>
+                                    {isValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCheck className="h-4 w-4" />}
+                                    <span className="hidden sm:inline">{isValidating ? 'Validation...' : 'Valider'}</span>
                                 </button>
                             )}
 

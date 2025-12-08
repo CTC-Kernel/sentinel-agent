@@ -3,6 +3,8 @@ import { z } from 'zod';
 export const riskSchema = z.object({
     assetId: z.string().min(1, "L'actif est requis"),
     threat: z.string().min(3, "La menace doit contenir au moins 3 caractères"),
+    scenario: z.string().optional(),
+    framework: z.enum(['ISO27001', 'ISO27005', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF', 'OWASP', 'EBIOS', 'COBIT', 'ITIL']).optional(),
     vulnerability: z.string().min(3, "La vulnérabilité doit contenir au moins 3 caractères"),
     probability: z.number().min(1).max(5),
     impact: z.number().min(1).max(5),

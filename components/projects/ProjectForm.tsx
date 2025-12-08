@@ -7,18 +7,22 @@ import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectSchema, ProjectFormData } from '../../schemas/projectSchema';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { FloatingLabelSelect } from '../ui/FloatingLabelSelect';
+import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
+
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { Button } from '../ui/button';
 import { AIAssistantHeader, Template } from '../ui/AIAssistantHeader';
 import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 
+import { PROJECT_STATUSES } from '../../data/projectConstants';
+
 const PROJECT_TEMPLATES: Template[] = [
     { name: 'Mise en conformité ISO 27001', description: 'Projet complet d\'implémentation du SMSI.', status: 'En cours', priority: 'Haute' },
     { name: 'Déploiement MFA Global', description: 'Activation du MFA pour tous les employés.', status: 'Planifié', priority: 'Critique' },
     { name: 'Migration Cloud Sécurisée', description: 'Migration des serveurs on-premise vers AWS.', status: 'En cours', priority: 'Moyenne' },
 ];
-import { PROJECT_STATUSES } from '../../data/projectConstants';
 
 interface ProjectFormProps {
     onSubmit: (project: ProjectFormData) => void;
@@ -56,6 +60,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             relatedRiskIds: [],
             relatedControlIds: [],
             relatedAssetIds: [],
+            framework: undefined,
         }
     });
 
@@ -113,6 +118,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 relatedRiskIds: existingProject.relatedRiskIds || [],
                 relatedControlIds: existingProject.relatedControlIds || [],
                 relatedAssetIds: existingProject.relatedAssetIds || [],
+                framework: existingProject.framework,
             });
         } else {
             reset({
@@ -125,6 +131,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 relatedRiskIds: initialData?.relatedRiskIds || [],
                 relatedControlIds: initialData?.relatedControlIds || [],
                 relatedAssetIds: initialData?.relatedAssetIds || [],
+                framework: initialData?.framework,
             });
         }
     }, [existingProject, initialData, reset]);
@@ -184,7 +191,17 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <FloatingLabelSelect
+                            label="Référentiel Associé (Optionnel)"
+                            {...register('framework')}
+                            options={FRAMEWORK_OPTIONS}
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Controller
                             name="manager"
                             control={control}
@@ -238,52 +255,52 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                             )}
                         />
                     </div>
-                </div >
 
-                <div className="space-y-6">
-                    <Controller
-                        name="relatedRiskIds"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomSelect
-                                label="Risques liés"
-                                value={field.value || []}
-                                onChange={field.onChange}
-                                options={availableRisks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
-                                multiple
-                            />
-                        )}
-                    />
+                    <div className="space-y-6">
+                        <Controller
+                            name="relatedRiskIds"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Risques liés"
+                                    value={field.value || []}
+                                    onChange={field.onChange}
+                                    options={availableRisks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
+                                    multiple
+                                />
+                            )}
+                        />
 
-                    <Controller
-                        name="relatedControlIds"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomSelect
-                                label="Contrôles liés"
-                                value={field.value || []}
-                                onChange={field.onChange}
-                                options={availableControls.map(c => ({ value: c.id, label: c.code, subLabel: c.name }))}
-                                multiple
-                            />
-                        )}
-                    />
+                        <Controller
+                            name="relatedControlIds"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Contrôles liés"
+                                    value={field.value || []}
+                                    onChange={field.onChange}
+                                    options={availableControls.map(c => ({ value: c.id, label: c.code, subLabel: c.name }))}
+                                    multiple
+                                />
+                            )}
+                        />
 
-                    <Controller
-                        name="relatedAssetIds"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomSelect
-                                label="Actifs concernés"
-                                value={field.value || []}
-                                onChange={field.onChange}
-                                options={availableAssets.map(a => ({ value: a.id, label: a.name }))}
-                                multiple
-                            />
-                        )}
-                    />
+                        <Controller
+                            name="relatedAssetIds"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Actifs concernés"
+                                    value={field.value || []}
+                                    onChange={field.onChange}
+                                    options={availableAssets.map(a => ({ value: a.id, label: a.name }))}
+                                    multiple
+                                />
+                            )}
+                        />
+                    </div>
                 </div>
-            </div >
+            </div>
 
             <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
                 <Button
@@ -303,6 +320,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                     {existingProject ? 'Enregistrer' : 'Créer le Projet'}
                 </Button>
             </div>
-        </form >
+        </form>
     );
 };

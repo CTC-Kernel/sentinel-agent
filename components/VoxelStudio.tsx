@@ -361,12 +361,15 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
       offsetVec.current.copy(horizontalDir.multiplyScalar(magnitude * 1.2));
       offsetVec.current.y = magnitude * verticalFactor + 2;
       desiredPos.current.copy(focusVec.current).add(offsetVec.current);
-      if (!userInteractingRef.current && shouldSnapRef.current) {
-        camera.position.lerp(desiredPos.current, 0.04);
-        controls.target.lerp(focusVec.current, 0.08);
-        if (camera.position.distanceTo(desiredPos.current) < 0.05) {
-          shouldSnapRef.current = false;
+      if (!userInteractingRef.current) {
+        if (shouldSnapRef.current) {
+          camera.position.lerp(desiredPos.current, 0.04);
+          if (camera.position.distanceTo(desiredPos.current) < 0.05) {
+            shouldSnapRef.current = false;
+          }
         }
+        // Always track target if not interacting, even after snap
+        controls.target.lerp(focusVec.current, 0.08);
       }
     } else if (isResetting.current) {
       // Fly back to global view
