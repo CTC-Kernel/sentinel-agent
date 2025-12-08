@@ -8,6 +8,7 @@ const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https")
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineString, defineSecret } = require("firebase-functions/params");
 const nodemailer = require("nodemailer");
+const { getMessaging } = require('firebase-admin/messaging');
 
 // Hardcoded secrets for Zero Config deployment (User requested)
 
@@ -15,7 +16,7 @@ const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-th
 
 const admin = require("firebase-admin");
 const crypto = require("crypto");
-const { GoogleGenAI } = require("@google/genai");
+// const { GoogleGenAI } = require("@google/genai"); // Remove unused if needed, but keeping for now.
 
 const userSecretsKey = defineSecret("USER_SECRETS_ENCRYPTION_KEY");
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
@@ -24,6 +25,7 @@ const stripeWebhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
 const sendGridApiKey = defineSecret("SENDGRID_API_KEY");
 
 const { generateAuditTrigger } = require('./services/auditTriggers'); // Import Audit Factory
+const { BackupManager } = require('./services/backupManager');
 const {
     getJoinRequestEmailHtml,
     getApprovedEmailHtml,
@@ -37,7 +39,125 @@ admin.initializeApp();
 
 // Email generation logic moved to ./services/emailTemplates.js
 
+/**
+ * Scheduled Backup (Runs every 24 hours)
+ */
+exports.scheduledBackup = onSchedule("every 24 hours", async (event) => {
+    logger.info("Starting scheduled backup check (Hourly)...");
 
+    // We can also check specific schedules in Firestore if we want per-tenant scheduling
+    // For now, we'll iterate over all organizations that have backup enabled or just run for all.
+    // Ideally, we query 'backup_schedules' collection.
+
+    const db = admin.firestore();
+    const now = new Date();
+
+    try {
+        const schedulesSnap = await db.collection('backup_schedules')
+            .where('nextBackupAt', '<=', now.toISOString())
+            .get();
+
+        if (schedulesSnap.empty) {
+            logger.info("No backups scheduled for execution.");
+            return;
+        }
+
+        const promises = schedulesSnap.docs.map(async (doc) => {
+            const schedule = doc.data();
+            try {
+                // Trigger Backup
+                logger.info(`Triggering backup for Org ${schedule.organizationId}`);
+                await BackupManager.createBackup(schedule.organizationId, schedule.config);
+
+                // Update Next Run
+                let nextRun = new Date();
+                if (schedule.frequency === 'daily') nextRun.setDate(nextRun.getDate() + 1);
+                else if (schedule.frequency === 'weekly') nextRun.setDate(nextRun.getDate() + 7);
+                else if (schedule.frequency === 'monthly') nextRun.setMonth(nextRun.getMonth() + 1);
+
+                await doc.ref.update({
+                    lastBackupAt: now.toISOString(),
+                    nextBackupAt: nextRun.toISOString()
+                });
+
+            } catch (err) {
+                logger.error(`Failed to run backup for schedule ${doc.id}`, err);
+            }
+        });
+
+        await Promise.all(promises);
+        logger.info(`Completed execution of ${schedulesSnap.size} scheduled backups.`);
+
+    } catch (error) {
+        logger.error("Error in scheduledBackup function", error);
+    }
+});
+
+/**
+ * Generic Push Notification Trigger
+ * Listens to new docs in 'notifications' collection and sends FCM push.
+ */
+exports.onNotificationCreated = onDocumentCreated("notifications/{notificationId}", async (event) => {
+    const snap = event.data;
+    if (!snap) return;
+    const notification = snap.data();
+    const userId = notification.userId;
+
+    if (!userId) return;
+
+    try {
+        // 1. Get User's FCM Tokens
+        const userDoc = await admin.firestore().collection('users').doc(userId).get();
+        if (!userDoc.exists) return;
+
+        const userData = userDoc.data();
+        const tokens = userData.fcmTokens;
+
+        if (!tokens || tokens.length === 0) {
+            logger.info(`No FCM tokens found for user ${userId}`);
+            return;
+        }
+
+        // 2. Prepare Payload
+        const payload = {
+            notification: {
+                title: notification.title,
+                body: notification.message,
+            },
+            data: {
+                url: notification.link || '/',
+                notificationId: event.params.notificationId
+            }
+        };
+
+        // 3. Send Multicast
+        const response = await getMessaging().sendEachForMulticast({
+            tokens: tokens,
+            notification: payload.notification,
+            data: payload.data
+        });
+
+        logger.info(`Sent push notification to user ${userId}: ${response.successCount} success, ${response.failureCount} failed.`);
+
+        // Cleanup invalid tokens
+        if (response.failureCount > 0) {
+            const failedTokens = [];
+            response.responses.forEach((resp, idx) => {
+                if (!resp.success) {
+                    failedTokens.push(tokens[idx]);
+                }
+            });
+            if (failedTokens.length > 0) {
+                await userDoc.ref.update({
+                    fcmTokens: admin.firestore.FieldValue.arrayRemove(...failedTokens)
+                });
+            }
+        }
+
+    } catch (error) {
+        logger.error("Error sending push notification", error);
+    }
+});
 
 exports.onJoinRequestCreated = onDocumentCreated("join_requests/{requestId}", async (event) => {
     const snap = event.data;
