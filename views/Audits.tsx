@@ -56,6 +56,7 @@ export const Audits: React.FC = () => {
 
     const role = user?.role || 'user';
     const [isValidating, setIsValidating] = useState(false);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
     let auditsTitle = "Programme d'Audit";
     let auditsSubtitle = "Planification, exécution et suivi des audits internes et externes.";
@@ -658,9 +659,12 @@ export const Audits: React.FC = () => {
         );
     };
 
+
+
     const generateAuditReport = async () => {
         if (!selectedAudit) return;
-        addToast("Génération du rapport avec analyse IA...", "info");
+        setIsGeneratingReport(true);
+        addToast("Génération du rapport d'audit avec l'IA...", "info");
 
         try {
             const findings = selectedAudit.findings || [];
@@ -768,8 +772,10 @@ export const Audits: React.FC = () => {
             );
             addToast("Rapport généré avec succès", "success");
         } catch (error) {
-            ErrorLogger.error(error, 'Audits.generateAuditReport');
+            ErrorLogger.handleErrorWithToast(error, 'Audits.generateAuditReport', 'REPORT_GENERATION_FAILED');
             addToast("Erreur lors de la génération du rapport", "error");
+        } finally {
+            setIsGeneratingReport(false);
         }
     };
 
@@ -1166,8 +1172,13 @@ export const Audits: React.FC = () => {
                                 </button>
                             )}
 
-                            <button onClick={generateAuditReport} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-blue-500" title="Rapport d'Audit">
-                                <FileText className="h-5 w-5" />
+                            <button
+                                onClick={generateAuditReport}
+                                disabled={isGeneratingReport}
+                                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium disabled:opacity-50"
+                            >
+                                {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText size={18} />}
+                                Rapport Exécutif
                             </button>
                             <button onClick={generateAuditPlan} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-purple-500" title="Plan d'Audit">
                                 <Calendar className="h-5 w-5" />

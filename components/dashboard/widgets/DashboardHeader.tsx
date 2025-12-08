@@ -1,5 +1,5 @@
 import React from 'react';
-import { Server, ClipboardCheck, FileText, Zap, ArrowRight, CalendarDays, Download, X, ChevronRight, Activity, ShieldCheck, Users, AlertTriangle } from '../../ui/Icons';
+import { Server, ClipboardCheck, FileText, Zap, ArrowRight, CalendarDays, Download, X, ChevronRight, Activity, ShieldCheck, Users, AlertTriangle, Loader2 } from '../../ui/Icons';
 import { MaturityRadarWidget } from './MaturityRadarWidget';
 import { ShinyText } from '../../ui/ShinyText';
 
@@ -66,6 +66,7 @@ interface DashboardHeaderProps {
     openAuditsCount: number;
     generateICal?: () => void;
     generateExecutiveReport?: () => void;
+    isGeneratingReport?: boolean;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -75,7 +76,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     theme, insight, teamSize,
     activeIncidentsCount, openAuditsCount,
     generateICal = () => { },
-    generateExecutiveReport = () => { }
+    generateExecutiveReport = () => { },
+    isGeneratingReport = false
 }) => {
     // Determine gradient based on score
     const getGradeColor = (g?: string) => {
@@ -237,9 +239,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             <div className="flex flex-wrap items-center gap-4">
                                 <button
                                     onClick={generateExecutiveReport}
-                                    className="flex items-center px-6 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-sm shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95 group"
+                                    disabled={isGeneratingReport}
+                                    className="flex items-center px-6 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-sm shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95 group disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <Download className="h-4 w-4 mr-2.5 transition-transform group-hover:translate-y-0.5" />
+                                    {isGeneratingReport ? <Loader2 className="h-4 w-4 mr-2.5 animate-spin" /> : <Download className="h-4 w-4 mr-2.5 transition-transform group-hover:translate-y-0.5" />}
                                     {t('dashboard.executiveReport')}
                                 </button>
                                 <button

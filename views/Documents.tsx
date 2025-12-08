@@ -134,7 +134,7 @@ export const Documents: React.FC = () => {
     const validationRate = totalDocs > 0 ? (publishedDocs / totalDocs) * 100 : 0;
 
     // Confirm Dialog
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
@@ -502,7 +502,8 @@ export const Documents: React.FC = () => {
                 isOpen: true,
                 title: "Supprimer le document ?",
                 message: "Cette action est définitive.",
-                onConfirm: () => handleDelete(id, title)
+                onConfirm: () => handleDelete(id, title),
+                closeOnConfirm: false
             });
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Documents.initiateDelete');
@@ -512,14 +513,18 @@ export const Documents: React.FC = () => {
 
     const handleDelete = async (id: string, title: string) => {
         if (!canEditResource(user, 'Document', selectedDocument?.ownerId || selectedDocument?.owner)) return;
+        setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await deleteDoc(doc(db, 'documents', id));
             setSelectedDocument(null);
             await logAction(user, 'DELETE', 'Document', `Suppression: ${title}`);
             addToast("Document supprimé", "info");
+            setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
             ErrorLogger.error(error, 'Documents.handleDelete');
             addToast("Erreur lors de la suppression", "error");
+        } finally {
+            setConfirmData(prev => ({ ...prev, loading: false }));
         }
     };
 
@@ -651,6 +656,8 @@ export const Documents: React.FC = () => {
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
+                loading={confirmData.loading}
+                closeOnConfirm={confirmData.closeOnConfirm}
             />
 
             <PageHeader

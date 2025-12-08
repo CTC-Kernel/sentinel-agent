@@ -7,9 +7,9 @@ interface FolderTreeProps {
     folders: DocumentFolder[];
     selectedFolderId: string | null;
     onSelectFolder: (folderId: string | null) => void;
-    onCreateFolder: (name: string, parentId?: string) => void;
+    onCreateFolder: (name: string, parentId?: string) => Promise<void>;
     onUpdateFolder: (id: string, name: string) => void;
-    onDeleteFolder: (id: string) => void;
+    onDeleteFolder: (id: string) => Promise<void>;
 }
 
 export const FolderTree: React.FC<FolderTreeProps> = ({
@@ -26,7 +26,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [createParentId, setCreateParentId] = useState<string | undefined>(undefined);
     const [contextMenu, setContextMenu] = useState<{ id: string, x: number, y: number } | null>(null);
-    const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, id: string }>({ isOpen: false, id: '' });
+    const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, id: string, loading?: boolean }>({ isOpen: false, id: '' });
+    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
     const toggleExpand = (folderId: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -35,12 +36,17 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         );
     };
 
-    const handleCreateSubmit = (e: React.FormEvent) => {
+    const handleCreateSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newFolderName.trim()) {
-            onCreateFolder(newFolderName.trim(), createParentId);
-            setNewFolderName('');
-            setShowCreateModal(false);
+            setIsCreatingFolder(true);
+            try {
+                await onCreateFolder(newFolderName.trim(), createParentId);
+                setNewFolderName('');
+                setShowCreateModal(false);
+            } finally {
+                setIsCreatingFolder(false);
+            }
         }
     };
 
@@ -155,8 +161,10 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                 autoFocus
                             />
                             <div className="flex justify-end gap-2">
-                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-3 py-1.5 text-sm font-medium text-slate-500">Annuler</button>
-                                <button type="submit" className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-bold">Créer</button>
+                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-3 py-1.5 text-sm font-medium text-slate-500" disabled={isCreatingFolder}>Annuler</button>
+                                <button type="submit" className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center" disabled={isCreatingFolder}>
+                                    {isCreatingFolder && <span className="animate-spin mr-2">⏳</span>} Créer
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -209,12 +217,19 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
             <ConfirmModal
                 isOpen={confirmDelete.isOpen}
                 onClose={() => setConfirmDelete({ isOpen: false, id: '' })}
-                onConfirm={() => {
-                    onDeleteFolder(confirmDelete.id);
-                    setConfirmDelete({ isOpen: false, id: '' });
+                onConfirm={async () => {
+                    setConfirmDelete(prev => ({ ...prev, loading: true }));
+                    try {
+                        await onDeleteFolder(confirmDelete.id);
+                        setConfirmDelete({ isOpen: false, id: '' });
+                    } finally {
+                        setConfirmDelete(prev => ({ ...prev, loading: false }));
+                    }
                 }}
                 title="Supprimer le dossier ?"
                 message="Tous les sous-dossiers seront également supprimés. Les documents seront déplacés à la racine."
+                loading={confirmDelete.loading}
+                closeOnConfirm={false}
             />
         </div>
     );

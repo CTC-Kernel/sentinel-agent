@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { sendEmailVerification, signOut, reload } from 'firebase/auth';
 import { useStore } from '../store';
-import { Mail, RefreshCw, LogOut, CheckCircle2, AlertTriangle } from '../components/ui/Icons';
+import { Mail, RefreshCw, LogOut, CheckCircle2, AlertTriangle, Loader2 } from '../components/ui/Icons';
 import { useNavigate } from 'react-router-dom';
 import { ErrorLogger } from '../services/errorLogger';
 
@@ -107,7 +107,7 @@ export const VerifyEmail: React.FC = () => {
                             disabled={loading}
                             className="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center"
                         >
-                            {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                                 <>
                                     <RefreshCw className="mr-2 h-5 w-5" />
                                     J'ai vérifié mon email
@@ -120,7 +120,7 @@ export const VerifyEmail: React.FC = () => {
                             disabled={loading || emailSent}
                             className="w-full py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
                         >
-                            Renvoyer l'email
+                            {loading ? <Loader2 className="h-5 w-5 animate-spin mx-auto text-slate-500" /> : "Renvoyer l'email"}
                         </button>
                     </div>
 

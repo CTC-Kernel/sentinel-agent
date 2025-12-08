@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
 import QRCode from 'qrcode';
-import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, ArrowRight, FileSpreadsheet, BrainCircuit } from '../components/ui/Icons';
+import { Moon, Sun, ShieldAlert, Database, History, Download, Users, Camera, LogOut, Server, FileText, Trash2, Activity, CheckCircle2, AlertTriangle, Key, Building, ArrowRight, FileSpreadsheet, BrainCircuit, Loader2 } from '../components/ui/Icons';
 import { collection, getDocs, query, orderBy, limit, where, updateDoc, doc, startAfter, getCountFromServer, writeBatch, deleteDoc, getDoc, QueryDocumentSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -102,9 +102,11 @@ export const Settings: React.FC = () => {
 
     // Maintenance State
     const [maintenanceLoading, setMaintenanceLoading] = useState(false);
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
+
+    const [updatingUserIds, setUpdatingUserIds] = useState<Set<string>>(new Set());
 
     // Subscription State
     const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
@@ -183,11 +185,30 @@ export const Settings: React.FC = () => {
 
     const handleUpdateUserRole = async (targetUserId: string, newRole: UserProfile['role']) => {
         if (!hasPermission(user, 'User', 'manage')) return;
+        setUpdatingUserIds(prev => new Set(prev).add(targetUserId));
         try {
             await updateDoc(doc(db, 'users', targetUserId), { role: newRole });
             setUsersList(prev => prev.map(u => u.uid === targetUserId ? { ...u, role: newRole } : u));
             addToast(t('settings.roleUpdated'), "success");
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.handleUpdateUserRole', 'UPDATE_FAILED'); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Settings.handleUpdateUserRole', 'UPDATE_FAILED');
+        } finally {
+            setUpdatingUserIds(prev => {
+                const next = new Set(prev);
+                next.delete(targetUserId);
+                return next;
+            });
+        }
+    };
+
+    const initiateRemoveUser = (targetUserId: string) => {
+        setConfirmData({
+            isOpen: true,
+            title: t('settings.confirmRemoveUser'),
+            message: t('settings.removeUserMessage') || "Cet utilisateur n'aura plus accès à votre organisation.",
+            onConfirm: () => handleRemoveUser(targetUserId),
+            closeOnConfirm: false
+        });
     };
 
     const handleRemoveUser = async (targetUserId: string) => {
@@ -196,13 +217,18 @@ export const Settings: React.FC = () => {
             addToast(t('settings.cannotDeleteSelf'), "error");
             return;
         }
-        if (!confirm(t('settings.confirmRemoveUser'))) return;
 
+        setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await updateDoc(doc(db, 'users', targetUserId), { organizationId: '', organizationName: '', role: '' });
             setUsersList(prev => prev.filter(u => u.uid !== targetUserId));
             addToast(t('settings.userRemoved'), "success");
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.handleRemoveUser', 'DELETE_FAILED'); }
+            setConfirmData(prev => ({ ...prev, isOpen: false }));
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Settings.handleRemoveUser', 'DELETE_FAILED');
+        } finally {
+            setConfirmData(prev => ({ ...prev, loading: false }));
+        }
     };
 
 
@@ -610,13 +636,14 @@ export const Settings: React.FC = () => {
             isOpen: true,
             title: t('settings.purgeLogsTitle'),
             message: t('settings.purgeLogsMessage'),
-            onConfirm: handlePurgeLogs
+            onConfirm: handlePurgeLogs,
+            closeOnConfirm: false
         });
     };
 
     const handlePurgeLogs = async () => {
         if (!user?.organizationId || !hasPermission(user, 'Settings', 'manage')) return;
-        setMaintenanceLoading(true);
+        setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             const q = query(collection(db, 'system_logs'), where('organizationId', '==', user.organizationId), limit(500));
             const snap = await getDocs(q);
@@ -626,6 +653,7 @@ export const Settings: React.FC = () => {
 
             if (toDelete.length === 0) {
                 addToast(t('settings.noLogsToPurgeInfo'), "info");
+                setConfirmData(prev => ({ ...prev, isOpen: false }));
             } else {
                 // Use deleteDoc for individual deletions or batch for multiple
                 if (toDelete.length < 10) {
@@ -642,8 +670,13 @@ export const Settings: React.FC = () => {
                 addToast(t('settings.logsPurged').replace('{count}', toDelete.length.toString()), "success");
                 fetchLogs(true);
                 fetchSystemStats();
+                setConfirmData(prev => ({ ...prev, isOpen: false }));
             }
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Settings.handlePurgeLogs', 'DELETE_FAILED'); } finally { setMaintenanceLoading(false); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Settings.handlePurgeLogs', 'DELETE_FAILED');
+        } finally {
+            setConfirmData(prev => ({ ...prev, loading: false }));
+        }
     };
 
 
@@ -654,12 +687,14 @@ export const Settings: React.FC = () => {
             isOpen: true,
             title: t('settings.leaveOrgTitle'),
             message: t('settings.leaveOrgMessage'),
-            onConfirm: handleLeaveOrg
+            onConfirm: handleLeaveOrg,
+            closeOnConfirm: false
         });
     };
 
     const handleLeaveOrg = async () => {
         if (!user) return;
+        setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             const userRef = doc(db, 'users', user.uid);
             await updateDoc(userRef, {
@@ -670,10 +705,10 @@ export const Settings: React.FC = () => {
                 onboardingCompleted: false
             });
             // Local state update handled by onSnapshot in App.tsx, forcing redirect to Onboarding
-            // Local state update handled by onSnapshot in App.tsx, forcing redirect to Onboarding
             window.location.reload();
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Settings.handleLeaveOrg', 'UPDATE_FAILED');
+            setConfirmData(prev => ({ ...prev, loading: false })); // Only stop loading on error, otherwise we reload
         }
     };
 
@@ -707,6 +742,7 @@ export const Settings: React.FC = () => {
             message: t('settings.deleteAccountMessage'),
             onConfirm: async () => {
                 if (!user || !auth.currentUser) return;
+                setConfirmData(prev => ({ ...prev, loading: true }));
                 try {
                     await AccountService.deleteAccount(user, auth.currentUser);
                     addToast(t('settings.accountDeleted'), "success");
@@ -718,8 +754,10 @@ export const Settings: React.FC = () => {
                     } else {
                         ErrorLogger.handleErrorWithToast(e, 'Settings.handleDeleteAccount', 'DELETE_FAILED');
                     }
+                    setConfirmData(prev => ({ ...prev, loading: false }));
                 }
-            }
+            },
+            closeOnConfirm: false
         });
     };
 
@@ -751,13 +789,14 @@ export const Settings: React.FC = () => {
             isOpen: true,
             title: "Activer le Mode Démonstration",
             message: "Ceci va générer des données fictives complètes (Actifs, Risques, Projets, Audits, Incidents, etc.) pour vous permettre de tester toutes les fonctionnalités. Cela n'effacera pas vos données existantes mais ajoutera de nouvelles entrées.",
-            onConfirm: handleActivateDemoMode
+            onConfirm: handleActivateDemoMode,
+            closeOnConfirm: false
         });
     };
 
     const handleActivateDemoMode = async () => {
         if (!user || !user.organizationId) return;
-        setMaintenanceLoading(true);
+        setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await DemoDataService.generateDemoData(user.organizationId, user);
             addToast("Données de démonstration générées avec succès !", "success");
@@ -765,8 +804,7 @@ export const Settings: React.FC = () => {
             setTimeout(() => window.location.reload(), 1500);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Settings.handleActivateDemoMode', 'UNKNOWN_ERROR');
-        } finally {
-            setMaintenanceLoading(false);
+            setConfirmData(prev => ({ ...prev, loading: false }));
         }
     };
 
@@ -778,6 +816,8 @@ export const Settings: React.FC = () => {
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
+                loading={confirmData.loading}
+                closeOnConfirm={confirmData.closeOnConfirm}
             />
 
             <div className="mb-10 text-center">
@@ -1373,8 +1413,8 @@ export const Settings: React.FC = () => {
                                             <select
                                                 value={u.role}
                                                 onChange={(e) => handleUpdateUserRole(u.uid, e.target.value as UserProfile['role'])}
-                                                disabled={u.uid === user.uid || currentOrg?.ownerId === u.uid}
-                                                className="text-xs font-bold bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500"
+                                                disabled={u.uid === user.uid || currentOrg?.ownerId === u.uid || updatingUserIds.has(u.uid)}
+                                                className={`text-xs font-bold bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500 ${updatingUserIds.has(u.uid) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             >
                                                 <option value="admin">Admin</option>
                                                 <option value="rssi">RSSI</option>
@@ -1401,11 +1441,12 @@ export const Settings: React.FC = () => {
                                                 {/* Remove Member Button */}
                                                 {(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) && u.uid !== user?.uid && currentOrg?.ownerId !== u.uid && (
                                                     <button
-                                                        onClick={() => handleRemoveUser(u.uid)}
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                        onClick={() => initiateRemoveUser(u.uid)}
+                                                        disabled={updatingUserIds.has(u.uid)}
+                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
                                                         title={t('settings.removeMember')}
                                                     >
-                                                        <Trash2 size={18} />
+                                                        {updatingUserIds.has(u.uid) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 size={18} />}
                                                     </button>
                                                 )}
                                             </div>

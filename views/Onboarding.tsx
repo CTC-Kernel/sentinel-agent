@@ -3,7 +3,7 @@ import { useStore } from '../store';
 import { doc, setDoc, collection, query, where, getDocs, addDoc, writeBatch, updateDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { auth, db, functions } from '../firebase';
-import { ArrowRight, User as UserIcon, Building, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server } from '../components/ui/Icons';
+import { ArrowRight, User as UserIcon, Building, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2 } from '../components/ui/Icons';
 import { sendEmail } from '../services/emailService';
 import { getInvitationTemplate } from '../services/emailTemplates';
 import { PLANS } from '../config/plans';
@@ -444,7 +444,7 @@ export const Onboarding: React.FC = () => {
                                             disabled={loading || !searchQuery}
                                             className="absolute right-2 top-2 px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs shadow-lg disabled:opacity-50"
                                         >
-                                            {loading ? '...' : 'Rechercher'}
+                                            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Rechercher'}
                                         </button>
                                     </form>
 
@@ -457,9 +457,10 @@ export const Onboarding: React.FC = () => {
                                                 </div>
                                                 <button
                                                     onClick={() => handleJoinRequest(org.id, org.name)}
-                                                    className="px-4 py-2 bg-blue-50 dark:bg-slate-900 text-blue-600 dark:bg-slate-900/20 dark:text-blue-400 rounded-xl text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                                    disabled={loading}
+                                                    className="px-4 py-2 bg-blue-50 dark:bg-slate-900 text-blue-600 dark:bg-slate-900/20 dark:text-blue-400 rounded-xl text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors disabled:opacity-50"
                                                 >
-                                                    Rejoindre
+                                                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Rejoindre'}
                                                 </button>
                                             </div>
                                         ))}
@@ -575,7 +576,7 @@ export const Onboarding: React.FC = () => {
                                             Retour
                                         </button>
                                         <button type="submit" disabled={loading || (!user?.organizationId && !form.watch('organizationName'))} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
-                                            {loading ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <>Continuer <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Continuer <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>
                                 </form>
@@ -649,7 +650,7 @@ export const Onboarding: React.FC = () => {
                                             className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                                         >
                                             {loading ? (
-                                                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
                                             ) : (
                                                 <>
                                                     Continuer
@@ -693,8 +694,8 @@ export const Onboarding: React.FC = () => {
 
                                     <div className="pt-4 flex gap-3">
                                         <button onClick={() => setStep(2)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Retour</button>
-                                        <button onClick={handleStep3} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group">
-                                            {loading ? '...' : <>Continuer <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                        <button onClick={handleStep3} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
+                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Continuer <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>
                                 </div>
@@ -742,8 +743,8 @@ export const Onboarding: React.FC = () => {
 
                                     <div className="pt-4 flex gap-3">
                                         <button onClick={() => setStep(3)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Retour</button>
-                                        <button onClick={handleStep4} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group">
-                                            {loading ? '...' : <>{invitedUsers.length > 0 ? 'Inviter & Continuer' : 'Passer cette étape'} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                        <button onClick={handleStep4} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
+                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{invitedUsers.length > 0 ? 'Inviter & Continuer' : 'Passer cette étape'} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>
                                 </div>
