@@ -8,7 +8,7 @@ import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, Pro
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target, ShieldAlert } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target, ShieldAlert, Loader2 } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -419,6 +419,7 @@ export const Projects: React.FC = () => {
             return;
         }
 
+        setIsSubmitting(true);
         try {
             const newProjData = {
                 ...selectedProject,
@@ -434,6 +435,8 @@ export const Projects: React.FC = () => {
             addToast("Projet dupliqué", "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleDuplicate', 'CREATE_FAILED');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -978,7 +981,9 @@ export const Projects: React.FC = () => {
                         <>
                             <button onClick={generateReport} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Télécharger Rapport"><Download className="h-5 w-5" /></button>
                             {canEdit && (
-                                <button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer"><Copy className="h-5 w-5" /></button>
+                                <button onClick={handleDuplicate} disabled={isSubmitting} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50" title="Dupliquer">
+                                    {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Copy className="h-5 w-5" />}
+                                </button>
                             )}
                             {canEdit && (
                                 <button onClick={() => openEditDrawer(selectedProject)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>

@@ -7,7 +7,7 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality, Incident, MitreTechnique } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit, LayoutGrid, List } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit, LayoutGrid, List, Loader2 } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { Badge } from '../components/ui/Badge';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -165,6 +165,7 @@ export const Risks: React.FC = () => {
     const [stats, setStats] = useState({ total: 0, critical: 0, mitigated: 0, reviewDue: 0 });
     const [importing, setImporting] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [updating, setUpdating] = useState(false);
     const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || projectsLoading || auditsLoading || incidentsLoading || importing;
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
@@ -522,6 +523,7 @@ export const Risks: React.FC = () => {
 
     const handleStatusChange = async (risk: Risk, newStatus: Risk['status']) => {
         if (!canEdit) return;
+        setUpdating(true);
         try {
             await updateDoc(doc(db, 'risks', risk.id), { status: newStatus });
 
@@ -538,11 +540,16 @@ export const Risks: React.FC = () => {
             refreshRisks();
             if (selectedRisk?.id === risk.id) setSelectedRisk({ ...selectedRisk, status: newStatus });
             addToast(`Statut changé`, "success");
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleStatusChange', 'UPDATE_FAILED'); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Risks.handleStatusChange', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const handleStrategyChange = async (risk: Risk, newStrategy: Risk['strategy']) => {
         if (!canEdit) return;
+        setUpdating(true);
         try {
             await updateDoc(doc(db, 'risks', risk.id), { strategy: newStrategy });
 
@@ -559,11 +566,16 @@ export const Risks: React.FC = () => {
             refreshRisks();
             if (selectedRisk?.id === risk.id) setSelectedRisk({ ...selectedRisk, strategy: newStrategy });
             addToast(`Stratégie changée`, "success");
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleStrategyChange', 'UPDATE_FAILED'); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Risks.handleStrategyChange', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const handleReview = async () => {
         if (!canEdit || !selectedRisk) return;
+        setUpdating(true);
         const today = new Date().toISOString();
         try {
             await updateDoc(doc(db, 'risks', selectedRisk.id), { lastReviewDate: today });
@@ -572,7 +584,11 @@ export const Risks: React.FC = () => {
             setSelectedRisk({ ...selectedRisk, lastReviewDate: today });
             addToast("Revue du risque validée", "success");
             refreshRisks();
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleReview', 'UPDATE_FAILED'); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Risks.handleReview', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const handleImportTemplate = async (template: RiskTemplate, owner: string) => {
@@ -736,7 +752,7 @@ export const Risks: React.FC = () => {
     const getAssetName = (id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu';
 
     const filteredRisks = risks.filter(r => {
-        const matchesSearch = r.threat.toLowerCase().includes(filter.toLowerCase()) || r.vulnerability.toLowerCase().includes(filter.toLowerCase());
+        const matchesSearch = r.threat.toLowerCase().includes(filter.toLowerCase()) || r.vulnerability.toLowerCase().includes(filter.toLowerCase()) || (r.scenario || '').toLowerCase().includes(filter.toLowerCase());
         // Matrix filtering logic: Only show if no filter set OR if matches specific probability AND impact
         const matchesMatrix = matrixFilter ? (r.probability === matrixFilter.p && r.impact === matrixFilter.i) : true;
         return matchesSearch && matchesMatrix;
@@ -1368,11 +1384,27 @@ export const Risks: React.FC = () => {
                                                     {canEdit ? (
                                                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                                                             {['Ouvert', 'En cours', 'Fermé'].map(s => (
-                                                                <button key={s} onClick={() => handleStatusChange(selectedRisk, s as Risk['status'])} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'}`}>{s}</button>
+                                                                <button
+                                                                    key={s}
+                                                                    onClick={() => handleStatusChange(selectedRisk, s as Risk['status'])}
+                                                                    disabled={updating}
+                                                                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
+                                                                >
+                                                                    {s}
+                                                                </button>
                                                             ))}
                                                         </div>
                                                     ) : <Badge status={selectedRisk.status === 'Ouvert' ? 'error' : selectedRisk.status === 'En cours' ? 'warning' : 'success'} variant="soft">{selectedRisk.status}</Badge>}
-                                                    {canEdit && (<button onClick={handleReview} className="flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto"><CalendarDays className="h-3.5 w-3.5 mr-2" /> Valider la revue</button>)}
+                                                    {canEdit && (
+                                                        <button
+                                                            onClick={handleReview}
+                                                            disabled={updating}
+                                                            className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto ${updating ? 'opacity-70 cursor-wait' : ''}`}
+                                                        >
+                                                            {updating ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CalendarDays className="h-3.5 w-3.5 mr-2" />}
+                                                            Valider la revue
+                                                        </button>
+                                                    )}
                                                 </div>
                                                 {selectedRisk.lastReviewDate && (<p className="text-xs text-slate-400 mt-3 text-right">Dernière revue le : {new Date(selectedRisk.lastReviewDate).toLocaleDateString()}</p>)}
                                             </div>
@@ -1394,16 +1426,16 @@ export const Risks: React.FC = () => {
                                                             key={s}
                                                             type="button"
                                                             onClick={() => handleStrategyChange(selectedRisk, s as Risk['strategy'])}
-                                                            disabled={!canEdit}
+                                                            disabled={!canEdit || updating}
                                                             className={`
                                                         px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
                                                         ${selectedRisk.strategy === s
                                                                     ? 'bg-brand-500 text-white border-brand-500 shadow-lg shadow-brand-500/20'
                                                                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-50 dark:hover:bg-brand-900/10'}
-                                                        ${!canEdit ? 'opacity-50 cursor-not-allowed' : ''}
+                                                        ${(!canEdit || updating) ? 'opacity-50 cursor-not-allowed' : ''}
                                                     `}
                                                         >
-                                                            {s}
+                                                            {updating && selectedRisk.strategy === s ? <span className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />{s}</span> : s}
                                                         </button>
                                                     ))}
                                                 </div>
@@ -1419,10 +1451,11 @@ export const Risks: React.FC = () => {
                                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Échéance (Due Date)</label>
                                                             <input
                                                                 type="date"
-                                                                className="w-full px-4 py-3 rounded-xl border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium text-sm"
+                                                                className="w-full px-4 py-3 rounded-xl border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium text-sm disabled:opacity-50"
                                                                 value={selectedRisk.treatment?.dueDate || ''}
                                                                 onChange={async (e) => {
                                                                     if (!canEdit) return;
+                                                                    setUpdating(true);
                                                                     const newDate = e.target.value;
                                                                     const treatment = { ...selectedRisk.treatment, dueDate: newDate };
 
@@ -1443,9 +1476,13 @@ export const Risks: React.FC = () => {
                                                                         setSelectedRisk({ ...selectedRisk, treatment });
                                                                         refreshRisks();
                                                                         addToast("Échéance mise à jour", "success");
-                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateDueDate', 'UPDATE_FAILED'); }
+                                                                    } catch (err) {
+                                                                        ErrorLogger.handleErrorWithToast(err, 'Risks.updateDueDate', 'UPDATE_FAILED');
+                                                                    } finally {
+                                                                        setUpdating(false);
+                                                                    }
                                                                 }}
-                                                                disabled={!canEdit}
+                                                                disabled={!canEdit || updating}
                                                             />
                                                         </div>
                                                         <div>
@@ -1455,16 +1492,21 @@ export const Risks: React.FC = () => {
                                                                 value={selectedRisk.treatment?.ownerId || ''}
                                                                 onChange={async (val) => {
                                                                     if (!canEdit) return;
+                                                                    setUpdating(true);
                                                                     const treatment = { ...selectedRisk.treatment, ownerId: val as string };
                                                                     try {
                                                                         await updateDoc(doc(db, 'risks', selectedRisk.id), { treatment });
                                                                         setSelectedRisk({ ...selectedRisk, treatment });
                                                                         refreshRisks();
                                                                         addToast("Responsable mis à jour", "success");
-                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateOwner', 'UPDATE_FAILED'); }
+                                                                    } catch (err) {
+                                                                        ErrorLogger.handleErrorWithToast(err, 'Risks.updateOwner', 'UPDATE_FAILED');
+                                                                    } finally {
+                                                                        setUpdating(false);
+                                                                    }
                                                                 }}
                                                                 placeholder="Sélectionner un responsable..."
-                                                                disabled={!canEdit}
+                                                                disabled={!canEdit || updating}
                                                             />
                                                         </div>
                                                     </div>
@@ -1473,10 +1515,11 @@ export const Risks: React.FC = () => {
                                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Avancement</label>
                                                         <div className="flex items-center gap-4">
                                                             <select
-                                                                className="flex-1 px-4 py-3 rounded-xl border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium text-sm appearance-none"
+                                                                className="flex-1 px-4 py-3 rounded-xl border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium text-sm appearance-none disabled:opacity-50"
                                                                 value={selectedRisk.treatment?.status || 'Planifié'}
                                                                 onChange={async (e) => {
                                                                     if (!canEdit) return;
+                                                                    setUpdating(true);
                                                                     const newStatus = e.target.value as RiskTreatment['status'];
                                                                     const treatment = {
                                                                         ...selectedRisk.treatment,
@@ -1488,9 +1531,13 @@ export const Risks: React.FC = () => {
                                                                         setSelectedRisk({ ...selectedRisk, treatment });
                                                                         refreshRisks();
                                                                         addToast("Statut d'avancement mis à jour", "success");
-                                                                    } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.updateTreatmentStatus', 'UPDATE_FAILED'); }
+                                                                    } catch (err) {
+                                                                        ErrorLogger.handleErrorWithToast(err, 'Risks.updateTreatmentStatus', 'UPDATE_FAILED');
+                                                                    } finally {
+                                                                        setUpdating(false);
+                                                                    }
                                                                 }}
-                                                                disabled={!canEdit}
+                                                                disabled={!canEdit || updating}
                                                             >
                                                                 <option value="Planifié">Planifié</option>
                                                                 <option value="En cours">En cours</option>
@@ -1520,17 +1567,22 @@ export const Risks: React.FC = () => {
                                                     value={selectedRisk.affectedProcessIds || []}
                                                     onChange={async (val) => {
                                                         if (!selectedRisk || !canEdit) return;
+                                                        setUpdating(true);
                                                         const newIds = Array.isArray(val) ? val : [val];
                                                         try {
                                                             await updateDoc(doc(db, 'risks', selectedRisk.id), { affectedProcessIds: newIds });
                                                             setSelectedRisk({ ...selectedRisk, affectedProcessIds: newIds });
                                                             refreshRisks();
                                                             addToast("Processus mis à jour", "success");
-                                                        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.updateProcesses', 'UPDATE_FAILED'); }
+                                                        } catch (e) {
+                                                            ErrorLogger.handleErrorWithToast(e, 'Risks.updateProcesses', 'UPDATE_FAILED');
+                                                        } finally {
+                                                            setUpdating(false);
+                                                        }
                                                     }}
                                                     placeholder="Sélectionner les processus impactés..."
                                                     multiple
-                                                    disabled={!canEdit}
+                                                    disabled={!canEdit || updating}
                                                 />
                                             </div>
 
@@ -1542,17 +1594,22 @@ export const Risks: React.FC = () => {
                                                     value={selectedRisk.relatedSupplierIds || []}
                                                     onChange={async (val) => {
                                                         if (!selectedRisk || !canEdit) return;
+                                                        setUpdating(true);
                                                         const newIds = Array.isArray(val) ? val : [val];
                                                         try {
                                                             await updateDoc(doc(db, 'risks', selectedRisk.id), { relatedSupplierIds: newIds });
                                                             setSelectedRisk({ ...selectedRisk, relatedSupplierIds: newIds });
                                                             refreshRisks();
                                                             addToast("Fournisseurs mis à jour", "success");
-                                                        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.updateSuppliers', 'UPDATE_FAILED'); }
+                                                        } catch (e) {
+                                                            ErrorLogger.handleErrorWithToast(e, 'Risks.updateSuppliers', 'UPDATE_FAILED');
+                                                        } finally {
+                                                            setUpdating(false);
+                                                        }
                                                     }}
                                                     placeholder="Sélectionner les fournisseurs concernés..."
                                                     multiple
-                                                    disabled={!canEdit}
+                                                    disabled={!canEdit || updating}
                                                 />
 
                                                 {/* Display Reverse Linked Suppliers (if any are not already in direct links) */}

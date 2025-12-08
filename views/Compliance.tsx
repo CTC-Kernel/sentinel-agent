@@ -7,7 +7,7 @@ import { AuditFormData } from '../schemas/auditSchema';
 import { db } from '../firebase';
 import { toast } from 'sonner';
 import { analyticsService } from '../services/analyticsService';
-import { Control, Document, Risk, Finding, UserProfile, SystemLog, Asset, Supplier, Project, Audit, BusinessProcess, AutomatedEvidence } from '../types';
+import { Control, Document, Risk, Finding, UserProfile, SystemLog, Asset, Supplier, Project, Audit, BusinessProcess, AutomatedEvidence, Framework } from '../types';
 import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet, RefreshCw, Loader2, CheckCircle2, XCircle, Plug, MessageSquare } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -34,6 +34,7 @@ import { ProjectForm } from '../components/projects/ProjectForm';
 
 
 import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS, DORA_DOMAINS, DORA_SEED_CONTROLS, GDPR_DOMAINS, GDPR_SEED_CONTROLS, SOC2_DOMAINS, SOC2_SEED_CONTROLS, HDS_DOMAINS, HDS_SEED_CONTROLS, PCI_DSS_DOMAINS, PCI_DSS_SEED_CONTROLS, NIST_CSF_DOMAINS, NIST_CSF_SEED_CONTROLS } from '../data/complianceData';
+import { FRAMEWORK_OPTIONS } from '../data/frameworks';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { Globe } from '../components/ui/Icons';
 
@@ -62,7 +63,7 @@ export const Compliance: React.FC = () => {
     const [filter, setFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState<string | null>(null);
     const [showMissingEvidence, setShowMissingEvidence] = useState(false);
-    const [currentFramework, setCurrentFramework] = useState<'ISO27001' | 'NIS2' | 'DORA' | 'GDPR' | 'SOC2' | 'HDS' | 'PCI_DSS' | 'NIST_CSF'>('ISO27001');
+    const [currentFramework, setCurrentFramework] = useState<Framework>('ISO27001');
     const [expandedDomains, setExpandedDomains] = useState<string[]>([]); // Default empty, open first on load
 
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -84,6 +85,7 @@ export const Compliance: React.FC = () => {
     const [selectedProviderId, setSelectedProviderId] = useState<string>('');
     const [selectedResourceId, setSelectedResourceId] = useState<string>('');
     const [isLinkingEvidence, setIsLinkingEvidence] = useState(false);
+    const [updating, setUpdating] = useState(false);
 
     useEffect(() => {
         const loadProviders = async () => {
@@ -283,6 +285,7 @@ export const Compliance: React.FC = () => {
 
     const handleAssign = async (assigneeId: string) => {
         if (!selectedControl || !user?.organizationId || !canEdit) return;
+        setUpdating(true);
         try {
             await updateDoc(doc(db, 'controls', selectedControl.id), { assigneeId });
 
@@ -303,11 +306,14 @@ export const Compliance: React.FC = () => {
             addToast("Assignation mise à jour", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleAssign', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
         }
     };
 
     const handleStatusChange = async (control: Control, newStatus: Control['status']) => {
         if (!user?.organizationId || !canEdit) return;
+        setUpdating(true);
         try {
             const applicability: 'Applicable' | 'Non applicable' =
                 (newStatus === 'Non applicable' || newStatus === 'Exclu') ? 'Non applicable' : 'Applicable';
@@ -326,11 +332,14 @@ export const Compliance: React.FC = () => {
             addToast("Statut mis à jour", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleStatusChange', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
         }
     };
 
     const handleJustificationSave = async () => {
         if (!selectedControl || !user?.organizationId || !canEdit) return;
+        setUpdating(true);
         try {
             await updateDoc(doc(db, 'controls', selectedControl.id), {
                 justification: editJustification,
@@ -345,11 +354,14 @@ export const Compliance: React.FC = () => {
             addToast("Justification enregistrée", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleJustificationSave', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
         }
     };
 
     const linkDocument = async (docId: string) => {
         if (!selectedControl || !canEdit) return;
+        setUpdating(true);
         try {
             if (selectedControl.evidenceIds?.includes(docId)) return;
             await updateDoc(doc(db, 'controls', selectedControl.id), { evidenceIds: arrayUnion(docId) });
@@ -361,6 +373,8 @@ export const Compliance: React.FC = () => {
         } catch (e) {
             ErrorLogger.error(e, 'Compliance.linkDocument');
             addToast("Erreur lors de la liaison", "error");
+        } finally {
+            setUpdating(false);
         }
     };
 
@@ -376,6 +390,7 @@ export const Compliance: React.FC = () => {
 
     const unlinkDocument = async (docId: string) => {
         if (!selectedControl || !canEdit) return;
+        setUpdating(true);
         try {
             const newEvidence = (selectedControl.evidenceIds || []).filter(id => id !== docId);
             await updateDoc(doc(db, 'controls', selectedControl.id), { evidenceIds: newEvidence });
@@ -385,11 +400,14 @@ export const Compliance: React.FC = () => {
         } catch (e) {
             ErrorLogger.error(e, 'Compliance.unlinkDocument');
             addToast("Erreur suppression lien", "error");
+        } finally {
+            setUpdating(false);
         }
     };
 
     const handleLinkAsset = async (assetId: string) => {
         if (!selectedControl || !user?.organizationId || !canEdit) return;
+        setUpdating(true);
         try {
             if (selectedControl.relatedAssetIds?.includes(assetId)) return;
             await updateDoc(doc(db, 'controls', selectedControl.id), { relatedAssetIds: arrayUnion(assetId) });
@@ -398,22 +416,32 @@ export const Compliance: React.FC = () => {
             setSelectedControl({ ...selectedControl, relatedAssetIds: newAssets });
             await logAction(user, 'LINK', 'Compliance', `Actif lié au contrôle ${selectedControl.code}`);
             addToast("Actif lié", "success");
-        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkAsset', 'UPDATE_FAILED'); }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkAsset', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const handleUnlinkAsset = async (assetId: string) => {
         if (!selectedControl || !user?.organizationId || !canEdit) return;
+        setUpdating(true);
         try {
             const newAssets = (selectedControl.relatedAssetIds || []).filter(id => id !== assetId);
             await updateDoc(doc(db, 'controls', selectedControl.id), { relatedAssetIds: newAssets });
             refreshControls();
             setSelectedControl({ ...selectedControl, relatedAssetIds: newAssets });
             addToast("Lien actif retiré", "info");
-        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkAsset', 'UPDATE_FAILED'); }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkAsset', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const handleLinkSupplier = async (supplierId: string) => {
         if (!selectedControl || !user?.organizationId || !canEdit) return;
+        setUpdating(true);
         try {
             if (selectedControl.relatedSupplierIds?.includes(supplierId)) return;
             await updateDoc(doc(db, 'controls', selectedControl.id), { relatedSupplierIds: arrayUnion(supplierId) });
@@ -422,23 +450,33 @@ export const Compliance: React.FC = () => {
             setSelectedControl({ ...selectedControl, relatedSupplierIds: newSuppliers });
             await logAction(user, 'LINK', 'Compliance', `Fournisseur lié au contrôle ${selectedControl.code}`);
             addToast("Fournisseur lié", "success");
-        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkSupplier', 'UPDATE_FAILED'); }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkSupplier', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const handleUnlinkSupplier = async (supplierId: string) => {
         if (!selectedControl || !user?.organizationId || !canEdit) return;
+        setUpdating(true);
         try {
             const newSuppliers = (selectedControl.relatedSupplierIds || []).filter(id => id !== supplierId);
             await updateDoc(doc(db, 'controls', selectedControl.id), { relatedSupplierIds: newSuppliers });
             refreshControls();
             setSelectedControl({ ...selectedControl, relatedSupplierIds: newSuppliers });
             addToast("Lien fournisseur retiré", "info");
-        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkSupplier', 'UPDATE_FAILED'); }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkSupplier', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
+        }
     };
 
 
     const handleLinkRisk = async (riskId: string) => {
         if (!selectedControl || !user?.organizationId || !canEditResource(user, 'Risk')) return;
+        setUpdating(true);
         try {
             await updateDoc(doc(db, 'risks', riskId), {
                 mitigationControlIds: arrayUnion(selectedControl.id)
@@ -446,11 +484,14 @@ export const Compliance: React.FC = () => {
             addToast("Risque lié avec succès", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkRisk', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
         }
     };
 
     const handleCreateRisk = async (data: RiskFormData) => {
         if (!selectedControl || !user?.organizationId || !hasPermission(user, 'Risk', 'create')) return;
+        setUpdating(true);
         try {
             const validatedData = riskSchema.parse(data);
 
@@ -489,11 +530,14 @@ export const Compliance: React.FC = () => {
             addToast("Nouveau risque créé et lié", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleCreateRisk', 'CREATE_FAILED');
+        } finally {
+            setUpdating(false);
         }
     };
 
     const handleLinkProject = async (projectId: string) => {
         if (!selectedControl || !user?.organizationId || !canEditResource(user, 'Project')) return;
+        setUpdating(true);
         try {
             await updateDoc(doc(db, 'projects', projectId), {
                 relatedControlIds: arrayUnion(selectedControl.id)
@@ -501,11 +545,14 @@ export const Compliance: React.FC = () => {
             addToast("Projet lié avec succès", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkProject', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
         }
     };
 
     const handleCreateProject = async (data: ProjectFormData) => {
         if (!selectedControl || !user?.organizationId || !hasPermission(user, 'Project', 'create')) return;
+        setUpdating(true);
         try {
             await addDoc(collection(db, 'projects'), {
                 ...data,
@@ -519,11 +566,14 @@ export const Compliance: React.FC = () => {
             addToast("Nouveau projet créé et lié", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleCreateProject', 'CREATE_FAILED');
+        } finally {
+            setUpdating(false);
         }
     };
 
     const handleLinkAudit = async (auditId: string) => {
         if (!selectedControl || !user?.organizationId || !canEditResource(user, 'Audit')) return;
+        setUpdating(true);
         try {
             await updateDoc(doc(db, 'audits', auditId), {
                 relatedControlIds: arrayUnion(selectedControl.id)
@@ -531,11 +581,14 @@ export const Compliance: React.FC = () => {
             addToast("Audit lié avec succès", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkAudit', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
         }
     };
 
     const handleCreateAudit = async (data: AuditFormData) => {
         if (!selectedControl || !user?.organizationId || !hasPermission(user, 'Audit', 'create')) return;
+        setUpdating(true);
         try {
             await addDoc(collection(db, 'audits'), {
                 ...data,
@@ -549,6 +602,8 @@ export const Compliance: React.FC = () => {
             addToast("Nouvel audit créé et lié", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleCreateAudit', 'CREATE_FAILED');
+        } finally {
+            setUpdating(false);
         }
     };
 
@@ -594,14 +649,10 @@ export const Compliance: React.FC = () => {
 
     const handleUnlinkAutomatedEvidence = async (evidenceId: string) => {
         if (!selectedControl || !canEdit) return;
+        setUpdating(true);
         try {
             const evidenceToRemove = selectedControl.automatedEvidence?.find(e => e.id === evidenceId);
             if (!evidenceToRemove) return;
-
-            await updateDoc(doc(db, 'controls', selectedControl.id), {
-                automatedEvidence: arrayUnion(evidenceToRemove) // This is tricky with arrayUnion/Remove for objects.
-                // Better to read, filter, and set.
-            });
 
             // Correct approach for object array removal in Firestore is usually reading and writing back the filtered array
             // But since we have selectedControl, we can just filter and set.
@@ -615,6 +666,8 @@ export const Compliance: React.FC = () => {
             addToast("Preuve automatisée retirée", "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleUnlinkAutomatedEvidence', 'UPDATE_FAILED');
+        } finally {
+            setUpdating(false);
         }
     };
 
@@ -799,19 +852,14 @@ export const Compliance: React.FC = () => {
                         {viewMode === 'compliance' && (
                             <>
                                 {/* Framework Switcher - Tabs Style */}
-                                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10 overflow-x-auto w-full max-w-[calc(100vw-3rem)] md:w-auto md:max-w-[400px] custom-scrollbar">
-                                    {(['ISO27001', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF'] as const).map(fw => (
+                                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10 overflow-x-auto w-full max-w-[calc(100vw-3rem)] md:w-auto md:max-w-[800px] custom-scrollbar">
+                                    {FRAMEWORK_OPTIONS.map(opt => (
                                         <button
-                                            key={fw}
-                                            onClick={() => setCurrentFramework(fw)}
-                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap ${currentFramework === fw ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                            key={opt.value}
+                                            onClick={() => setCurrentFramework(opt.value as Framework)}
+                                            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap ${currentFramework === opt.value ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                                         >
-                                            {fw === 'ISO27001' ? 'ISO 27001' :
-                                                fw === 'NIS2' ? 'NIS 2' :
-                                                    fw === 'DORA' ? 'DORA' :
-                                                        fw === 'PCI_DSS' ? 'PCI DSS' :
-                                                            fw === 'NIST_CSF' ? 'NIST CSF' :
-                                                                fw}
+                                            {opt.label}
                                         </button>
                                     ))}
                                 </div>
@@ -1113,11 +1161,13 @@ export const Compliance: React.FC = () => {
                                                         <button
                                                             key={s}
                                                             onClick={() => handleStatusChange(selectedControl, s)}
+                                                            disabled={updating}
                                                             className={`px-2 py-2 rounded-lg text-[10px] font-bold border transition-all duration-200 flex items-center justify-center ${selectedControl.status === s
                                                                 ? 'bg-brand-600 text-white border-brand-600 shadow-md'
                                                                 : 'bg-slate-50 dark:bg-slate-800/50 border-transparent text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'
-                                                                }`}
+                                                                } ${updating ? 'opacity-50 cursor-wait' : ''}`}
                                                         >
+                                                            {updating && selectedControl.status === s ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
                                                             {s}
                                                         </button>
                                                     ))}
@@ -1136,6 +1186,7 @@ export const Compliance: React.FC = () => {
                                                     onChange={(val) => handleAssign(val as string)}
                                                     options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                                                     placeholder="Sélectionner un responsable..."
+                                                    disabled={updating}
                                                 />
                                             ) : (
                                                 <div className="flex items-center p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
@@ -1160,7 +1211,7 @@ export const Compliance: React.FC = () => {
                                                     return asset ? (
                                                         <div key={assetId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
                                                             <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
-                                                            {canEdit && <button onClick={() => handleUnlinkAsset(assetId)} className="text-slate-400 hover:text-red-500"><X className="h-3.5 w-3.5" /></button>}
+                                                            {canEdit && <button onClick={() => handleUnlinkAsset(assetId)} disabled={updating} className="text-slate-400 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
                                                         </div>
                                                     ) : null;
                                                 })}
@@ -1173,6 +1224,7 @@ export const Compliance: React.FC = () => {
                                                     onChange={(val) => handleLinkAsset(val as string)}
                                                     options={assets.filter(a => !selectedControl.relatedAssetIds?.includes(a.id)).map(a => ({ value: a.id, label: a.name }))}
                                                     placeholder="Lier un actif..."
+                                                    disabled={updating}
                                                 />
                                             )}
                                         </div>
@@ -1184,7 +1236,7 @@ export const Compliance: React.FC = () => {
                                                     return supplier ? (
                                                         <div key={supplierId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
                                                             <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
-                                                            {canEdit && <button onClick={() => handleUnlinkSupplier(supplierId)} className="text-slate-400 hover:text-red-500"><X className="h-3.5 w-3.5" /></button>}
+                                                            {canEdit && <button onClick={() => handleUnlinkSupplier(supplierId)} disabled={updating} className="text-slate-400 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
                                                         </div>
                                                     ) : null;
                                                 })}
@@ -1197,6 +1249,7 @@ export const Compliance: React.FC = () => {
                                                     onChange={(val) => handleLinkSupplier(val as string)}
                                                     options={suppliers.filter(s => !selectedControl.relatedSupplierIds?.includes(s.id)).map(s => ({ value: s.id, label: s.name }))}
                                                     placeholder="Lier un fournisseur..."
+                                                    disabled={updating}
                                                 />
                                             )}
                                         </div>
@@ -1219,10 +1272,11 @@ export const Compliance: React.FC = () => {
                                                 />
                                                 <button
                                                     onClick={handleJustificationSave}
-                                                    className="absolute bottom-4 right-4 p-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+                                                    disabled={updating}
+                                                    className={`absolute bottom-4 right-4 p-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl shadow-lg transition-all hover:scale-110 ${updating ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                                                     title="Sauvegarder"
                                                 >
-                                                    <Save className="h-4 w-4" />
+                                                    {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                                                 </button>
                                             </div>
                                         ) : (
@@ -1267,8 +1321,9 @@ export const Compliance: React.FC = () => {
                                                                     {canEdit && (
                                                                         <button
                                                                             onClick={() => handleUnlinkAutomatedEvidence(evidence.id)}
-                                                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all"
+                                                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all disabled:opacity-50"
                                                                             title="Délier"
+                                                                            disabled={updating}
                                                                         >
                                                                             <X className="h-4 w-4" />
                                                                         </button>
@@ -1332,9 +1387,14 @@ export const Compliance: React.FC = () => {
                                                                 <div className="p-2 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-lg mr-3 text-blue-500"><File className="h-4 w-4" /></div>
                                                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[200px]">{docObj.title}</span>
                                                             </div>
-                                                            <div className="flex gap-2">
+                                                            <div className="flex gap-2 items-center">
+                                                                {docObj.nextReviewDate && new Date(docObj.nextReviewDate) < new Date() && (
+                                                                    <CustomTooltip content="Document expiré / à revoir" position="top">
+                                                                        <div className="text-red-500"><AlertTriangle className="h-4 w-4" /></div>
+                                                                    </CustomTooltip>
+                                                                )}
                                                                 {docObj.url && <a href={docObj.url} target="_blank" rel="noreferrer" className="p-2 text-slate-400 hover:text-brand-600 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm"><ExternalLink className="h-3.5 w-3.5" /></a>}
-                                                                {canEdit && <button onClick={() => initiateUnlinkDocument(docId)} className="p-2 text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm"><X className="h-3.5 w-3.5" /></button>}
+                                                                {canEdit && <button onClick={() => initiateUnlinkDocument(docId)} disabled={updating} className="p-2 text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
                                                             </div>
                                                         </div>
                                                     ) : null;
@@ -1345,8 +1405,8 @@ export const Compliance: React.FC = () => {
                                                     <label className="text-[10px] font-bold text-slate-400 mb-3 block uppercase tracking-wide">Ajouter une preuve existante</label>
                                                     <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-1 bg-gray-50/50 dark:bg-black/20 p-2 rounded-2xl border border-gray-100 dark:border-white/5">
                                                         {documents.filter(d => !selectedControl.evidenceIds?.includes(d.id)).map(d => (
-                                                            <button key={d.id} onClick={() => linkDocument(d.id)} className="w-full text-left text-xs p-2.5 hover:bg-white dark:hover:bg-white/10 rounded-xl flex items-center text-slate-600 dark:text-slate-300 transition-all font-medium">
-                                                                <Plus className="h-3 w-3 mr-2 text-brand-500" /> {d.title}
+                                                            <button key={d.id} onClick={() => linkDocument(d.id)} disabled={updating} className="w-full text-left text-xs p-2.5 hover:bg-white dark:hover:bg-white/10 rounded-xl flex items-center text-slate-600 dark:text-slate-300 transition-all font-medium disabled:opacity-50">
+                                                                {updating ? <Loader2 className="h-3 w-3 mr-2 animate-spin text-brand-500" /> : <Plus className="h-3 w-3 mr-2 text-brand-500" />} {d.title}
                                                             </button>
                                                         ))}
                                                     </div>
@@ -1371,6 +1431,7 @@ export const Compliance: React.FC = () => {
                                                         onChange={(val) => handleLinkRisk(val as string)}
                                                         placeholder="Lier existant..."
                                                         className="w-40"
+                                                        disabled={updating}
                                                     />
                                                 )}
                                                 {hasPermission(user, 'Risk', 'create') && (
@@ -1408,6 +1469,7 @@ export const Compliance: React.FC = () => {
                                                         onChange={(val) => handleLinkProject(val as string)}
                                                         placeholder="Lier existant..."
                                                         className="w-40"
+                                                        disabled={updating}
                                                     />
                                                 )}
                                                 {hasPermission(user, 'Project', 'create') && (
@@ -1445,6 +1507,7 @@ export const Compliance: React.FC = () => {
                                                         onChange={(val) => handleLinkAudit(val as string)}
                                                         placeholder="Lier existant..."
                                                         className="w-40"
+                                                        disabled={updating}
                                                     />
                                                 )}
                                                 {hasPermission(user, 'Audit', 'create') && (

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Incident } from '../../types';
 import { aiService } from '../../services/aiService';
 import { Sparkles, BrainCircuit, Loader2 } from '../ui/Icons';
@@ -73,10 +74,12 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
                             <Loader2 className={`h-4 w-4 ${analyzing ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm prose dark:prose-invert max-w-none text-sm">
-                        {aiAnalysis.split('\n').map((line, i) => (
-                            <p key={i} className="mb-2 last:mb-0">{line}</p>
-                        ))}
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+                        <div className="prose dark:prose-invert max-w-none text-sm">
+                            <ReactMarkdown>
+                                {aiAnalysis}
+                            </ReactMarkdown>
+                        </div>
                     </div>
                 </div>
             )}
