@@ -66,17 +66,17 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
                                         type="button"
                                         onClick={() => onChange(p, i)}
                                         className={`
-                                            w-full h-full rounded-md transition-all duration-200 relative
+                                            w-full h-full rounded-lg transition-all duration-300 relative
                                             ${getCellColor(p, i)}
                                             ${isSelected
-                                                ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white scale-110 z-10 shadow-lg'
-                                                : 'opacity-30 hover:opacity-80 hover:scale-105'}
+                                                ? 'ring-4 ring-offset-2 ring-slate-900/10 dark:ring-white/20 scale-110 z-10 shadow-xl'
+                                                : 'opacity-40 hover:opacity-100 hover:scale-105 hover:shadow-md'}
                                         `}
                                         title={`Probabilité: ${p}, Impact: ${i}, Score: ${p * i}`}
                                     >
                                         {isSelected && (
                                             <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="w-1.5 h-1.5 bg-white rounded-full shadow-sm" />
+                                                <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse" />
                                             </div>
                                         )}
                                     </button>
@@ -85,6 +85,11 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
                         </div>
                     ))}
                 </div>
+            </div>
+            {/* Legend/Helper */}
+            <div className="flex justify-between items-center text-[10px] text-slate-400 px-2 mt-2">
+                <span>Faible (1-4)</span>
+                <span>Critique (15-25)</span>
             </div>
         </div>
     );

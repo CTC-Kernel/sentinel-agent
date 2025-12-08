@@ -586,6 +586,10 @@ export const VoxelView: React.FC = () => {
   useEffect(() => {
     if (loading) return;
     if (isInitialized.current) return;
+    if (focusedNodeId) {
+      isInitialized.current = true;
+      return;
+    }
     if (!orderedNodes.length) return;
 
     // Only focus first node on initial load

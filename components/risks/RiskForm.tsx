@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
+
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
@@ -13,15 +14,12 @@ import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { Button } from '../ui/button';
 import { RichTextEditor } from '../ui/RichTextEditor';
 
+import React, { useEffect } from 'react';
 import { STANDARD_THREATS, RISK_STRATEGIES, RISK_STATUSES } from '../../data/riskConstants';
-import { AIAssistantHeader, Template } from '../ui/AIAssistantHeader';
+import { AIAssistantHeader } from '../ui/AIAssistantHeader';
 import { aiService } from '../../services/aiService';
 
-const RISK_TEMPLATES: Template[] = [
-    { name: 'Phishing Ciblé', description: 'Attaque par email visant à voler des identifiants.', field: 'Ingénierie Sociale', scenario: 'Un employé clique sur un lien malveillant dans un email de phishing.', probability: 'Probable', impact: 'Majeur' },
-    { name: 'Panne Serveur', description: 'Indisponibilité critique d\'un serveur de production.', field: 'Technique', scenario: 'Panne matérielle du disque dur principal entraînant un arrêt de service.', probability: 'Possible', impact: 'Critique' },
-    { name: 'Vol de Données', description: 'Exfiltration de données sensibles par un tiers.', field: 'Sécurité de l\'information', scenario: 'Un attaquant exploite une vulnérabilité non patchée pour extraire la base client.', probability: 'Peu Probable', impact: 'Critique' },
-];
+import { RISK_TEMPLATES } from '../../data/riskTemplates';
 
 interface RiskFormProps {
     onSubmit: (data: RiskFormData) => Promise<void>;
@@ -55,6 +53,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         defaultValues: {
             assetId: '',
             threat: '',
+            scenario: '',
+            framework: 'ISO27005',
             vulnerability: '',
             probability: 3,
             impact: 3,
@@ -68,6 +68,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             relatedSupplierIds: []
         }
     });
+
+    const framework = useWatch({ control, name: 'framework' }); // Watch framework for filtering templates
 
     // Watch values for score calculation
     const probability = useWatch({ control, name: 'probability' });
@@ -99,32 +101,24 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const handleSelectTemplate = (templateName: string) => {
         const t = RISK_TEMPLATES.find(t => t.name === templateName);
         if (t) {
-            setValue('threat', t.name);
-            // Assuming 'description' is a field in RiskFormData, if not, this line might cause an error or be ignored.
-            // For now, I'll assume it's a valid field based on the instruction's context.
-            // If 'description' is not a direct field, it might need to be mapped to 'vulnerability' or another field.
-            // The instruction implies 'description' is a field to be set.
-            // If RiskFormData does not have 'description', this line should be adjusted.
-            // For now, I'll add it as per instruction.
-            // setValue('description', t.description); // This line is commented out as 'description' is not in RiskFormData based on schema.
-            // The instruction implies setting 'description' but it's not in RiskFormData.
-            // I will interpret 'description' from the template as potentially mapping to 'vulnerability' or a new field if added.
-            // For now, I'll only set 'threat' as it's explicitly in RiskFormData.
-            // If the user intended to add a 'description' field to RiskFormData, that would be a prerequisite.
-            // Given the prompt for `handleAutoGenerate` also mentions `description`, I will assume it's meant to be set,
-            // but since it's not in the schema, I'll keep it as a placeholder or map it if a suitable field exists.
-            // For now, I'll map it to vulnerability if it makes sense, or just ignore if no direct mapping.
-            // The instruction specifically says `setValue('description', t.description);`
-            // I will add it, but it might not have an effect if 'description' is not a field in RiskFormData.
-            // Let's check the schema: riskSchema has threat, vulnerability, treatment. No 'description'.
-            // I will add it as per instruction, but it will likely be a no-op or cause a type error if not handled by useForm.
-            // For the purpose of faithfully following the instruction, I will include it.
-            // However, the `handleAutoGenerate` part of the instruction also implies setting `description`.
-            // I will assume `description` is intended to be a field in the form, even if not explicitly in the provided schema snippet.
-            // To make it syntactically correct and functional, I will map `t.description` to `vulnerability` as it's the closest available field for descriptive text.
-            setValue('vulnerability', t.description, { shouldDirty: true });
-            // Some fields might need casting or specialized handling if RiskFormData structure differs slightly
-            // We assume standard string fields for text inputs
+            // Populate Context & Scenario
+            setValue('threat', t.threat || t.name, { shouldDirty: true });
+            setValue('scenario', t.scenario || '', { shouldDirty: true });
+            setValue('vulnerability', t.vulnerability || t.description, { shouldDirty: true });
+
+            // Populate Assessment
+            if (typeof t.probability === 'number') setValue('probability', t.probability as any, { shouldDirty: true });
+            if (typeof t.impact === 'number') setValue('impact', t.impact as any, { shouldDirty: true });
+
+            // Populate Strategy & Treatment
+            if (t.strategy) setValue('strategy', t.strategy as any, { shouldDirty: true });
+
+            if (t.treatment) {
+                setValue('treatment', {
+                    ...t.treatment,
+                    dueDate: t.treatment.dueDate || undefined // Ensure correct type
+                } as any, { shouldDirty: true });
+            }
         }
     };
 
@@ -170,6 +164,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             reset({
                 assetId: existingRisk.assetId,
                 threat: existingRisk.threat,
+                scenario: existingRisk.scenario || '',
+                framework: existingRisk.framework || 'ISO27005',
                 vulnerability: existingRisk.vulnerability,
                 probability: existingRisk.probability,
                 impact: existingRisk.impact,
@@ -188,6 +184,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             reset({
                 assetId: initialData?.assetId || '',
                 threat: initialData?.threat || '',
+                scenario: initialData?.scenario || '',
+                framework: initialData?.framework || 'ISO27005',
                 vulnerability: initialData?.vulnerability || '',
                 probability: initialData?.probability || 3,
                 impact: initialData?.impact || 3,
@@ -236,17 +234,37 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-4 sm:p-6">
             {!isEditing && (
                 <AIAssistantHeader
-                    templates={RISK_TEMPLATES}
+                    templates={RISK_TEMPLATES.filter(t => !t.framework || t.framework === (framework || 'ISO27005'))}
                     onSelectTemplate={handleSelectTemplate}
                     onAutoGenerate={handleAutoGenerate}
                     isGenerating={isGenerating}
-                    title="Assistant Risques & Menaces"
-                    description="Sélectionnez un scénario de risque type ou laissez l'IA analyser votre menace."
+                    title={`Modèles de Risques (${framework || 'ISO27005'})`}
+                    description="Sélectionnez un modèle standard ajusté au référentiel choisi."
                 />
             )}
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     <div className="space-y-6">
+                        <Controller
+                            name="framework"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Référentiel / Standard"
+                                    value={field.value || ''}
+                                    onChange={(val) => {
+                                        const selected = val as string;
+                                        field.onChange(selected);
+                                        // Reset template if framework changes
+                                        setValue('threat', '');
+                                        setValue('vulnerability', '');
+                                    }}
+                                    options={FRAMEWORK_OPTIONS}
+                                    placeholder="Sélectionner un référentiel..."
+                                    required
+                                />
+                            )}
+                        />
                         <Controller
                             name="assetId"
                             control={control}
@@ -280,6 +298,29 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             <datalist id="threatsList">
                                 {STANDARD_THREATS.map((t, i) => <option key={i} value={t} />)}
                             </datalist>
+                        </div>
+
+                        <div className="relative">
+                            <Controller
+                                control={control}
+                                name="scenario"
+                                render={({ field }) => (
+                                    <div className="space-y-1">
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            Scénario de Risque (ISO 27005)
+                                        </label>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                                            Décrivez comment la menace exploite la vulnérabilité et les conséquences attendues.
+                                        </p>
+                                        <textarea
+                                            {...field}
+                                            rows={3}
+                                            className="w-full rounded-xl border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-brand-500"
+                                            placeholder="Ex: Un attaquant exploite une faille non corrigée pour exfiltrer la base de données clients..."
+                                        />
+                                    </div>
+                                )}
+                            />
                         </div>
                         <div className="relative">
                             <Controller

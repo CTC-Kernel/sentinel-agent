@@ -12,6 +12,10 @@ export type ActionType = 'read' | 'create' | 'update' | 'delete' | 'manage';
 
 
 // ... (existing imports, etc)
+// import { Timestamp } from 'firebase/firestore'; // Removed unused import
+
+export type Framework = 'ISO27001' | 'ISO27005' | 'NIS2' | 'DORA' | 'GDPR' | 'SOC2' | 'HDS' | 'PCI_DSS' | 'NIST_CSF' | 'OWASP' | 'EBIOS' | 'COBIT' | 'ITIL';
+
 
 export interface AIAnalysisResult {
   type: string;
@@ -97,6 +101,8 @@ export interface Risk {
   organizationId: string;
   assetId: string;
   threat: string;
+  scenario?: string; // Scénario de risque (ISO 27005)
+  framework?: Framework;
   vulnerability: string;
   probability: 1 | 2 | 3 | 4 | 5;
   impact: 1 | 2 | 3 | 4 | 5;
@@ -159,7 +165,7 @@ export interface Control {
   organizationId: string;
   code: string;
   name: string;
-  framework?: 'ISO27001' | 'NIS2' | 'DORA' | 'GDPR' | 'SOC2' | 'HDS' | 'PCI_DSS' | 'NIST_CSF';
+  framework?: Framework;
   description?: string;
   type?: 'Préventif' | 'Détectif' | 'Correctif';
   status: 'Non commencé' | 'Implémenté' | 'Partiel' | 'Non applicable' | 'Exclu' | 'En revue' | 'Actif' | 'Inactif' | 'En cours' | 'Non appliqué'; // Merged statuses to be safe
@@ -239,6 +245,7 @@ export interface Audit {
   status: 'Planifié' | 'En cours' | 'Terminé' | 'Validé';
   findingsCount: number;
   scope?: string;
+  framework?: Framework;
   relatedAssetIds?: string[];
   relatedRiskIds?: string[];
   relatedProjectIds?: string[];
@@ -398,6 +405,7 @@ export interface Project {
   name: string;
   description: string;
   manager: string;
+  framework?: Framework;
   status: 'Planifié' | 'En cours' | 'Terminé' | 'Suspendu';
   startDate?: string; // Added for Gantt chart
   dueDate: string;
