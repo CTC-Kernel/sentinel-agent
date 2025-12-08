@@ -149,9 +149,11 @@ export const Assets: React.FC = () => {
 
 
     const [showInspector, setShowInspector] = useState(false);
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGeneratingLabels, setIsGeneratingLabels] = useState(false);
+    const [isAddingMaintenance, setIsAddingMaintenance] = useState(false);
 
 
 
@@ -333,6 +335,7 @@ export const Assets: React.FC = () => {
 
     const handleAddMaintenance = async () => {
         if (!selectedAsset || !newMaintenance.description || !canEdit) return;
+        setIsAddingMaintenance(true);
         try {
             await addDoc(collection(db, 'assets', selectedAsset.id, 'maintenance'), newMaintenance);
             if (newMaintenance.type === 'Préventive') {
@@ -346,7 +349,11 @@ export const Assets: React.FC = () => {
                 addToast("Intervention enregistrée", "success");
             }
             setNewMaintenance({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.handleAddMaintenance', 'CREATE_FAILED'); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Assets.handleAddMaintenance', 'CREATE_FAILED');
+        } finally {
+            setIsAddingMaintenance(false);
+        }
     };
 
     const initiateDelete = async (id: string, name: string) => {
@@ -375,18 +382,30 @@ export const Assets: React.FC = () => {
 
             return addToast(msg, "error");
         }
-        setConfirmData({ isOpen: true, title: "Supprimer l'actif ?", message: `Voulez-vous vraiment supprimer "${name}" ?`, onConfirm: () => handleDeleteAsset(id, name) });
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer l'actif ?",
+            message: `Voulez-vous vraiment supprimer "${name}" ?`,
+            onConfirm: () => handleDeleteAsset(id, name),
+            closeOnConfirm: false
+        });
     };
 
     const handleDeleteAsset = async (id: string, name: string) => {
         if (!canDeleteResource(user, 'Asset')) return;
+        setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await deleteDoc(doc(db, 'assets', id));
             await logAction(user, 'DELETE', 'Asset', `Suppression actif: ${name}`);
             refreshAssets();
             setSelectedAsset(null);
+            setShowInspector(false);
             addToast("Actif supprimé", "info");
-        } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Assets.handleDeleteAsset', 'DELETE_FAILED'); }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Assets.handleDeleteAsset', 'DELETE_FAILED');
+        } finally {
+            setConfirmData(prev => ({ ...prev, isOpen: false, loading: false }));
+        }
     };
 
     const handleScanAsset = async () => {
@@ -455,6 +474,7 @@ export const Assets: React.FC = () => {
 
     const generateLabels = async (targetAsset?: Asset) => {
         const assetsToPrint = targetAsset ? [targetAsset] : assets;
+        setIsGeneratingLabels(true);
 
         try {
             // Pre-generate QR codes
@@ -518,6 +538,8 @@ export const Assets: React.FC = () => {
             addToast("Étiquettes générées avec succès", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Assets.generateLabels', 'CREATE_FAILED');
+        } finally {
+            setIsGeneratingLabels(false);
         }
     };
 
@@ -556,7 +578,7 @@ export const Assets: React.FC = () => {
                 <title>{selectedAsset ? `${selectedAsset.name} - Actifs` : 'Inventaire des Actifs - Sentinel GRC'}</title>
             </Helmet>
             {/* Confirm Modal */}
-            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
+            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} loading={confirmData.loading} closeOnConfirm={confirmData.closeOnConfirm} />
 
 
 
@@ -631,7 +653,9 @@ export const Assets: React.FC = () => {
                             Filtres Avancés
                         </button>
                         <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"><FileSpreadsheet className="h-4 w-4" /></button>
-                        <button onClick={() => generateLabels()} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors" title="Imprimer Étiquette"><QrCode className="h-4 w-4" /></button>
+                        <button disabled={isGeneratingLabels} onClick={() => generateLabels()} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50" title="Imprimer Étiquette">
+                            {isGeneratingLabels ? <span className="animate-spin">⏳</span> : <QrCode className="h-4 w-4" />}
+                        </button>
                     </div>
 
                     <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
@@ -719,8 +743,8 @@ export const Assets: React.FC = () => {
                                 header: '',
                                 cell: ({ row }) => (
                                     <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                        <button onClick={() => generateLabels(row.original)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all" title="Imprimer Étiquette">
-                                            <QrCode className="h-4 w-4" />
+                                        <button disabled={isGeneratingLabels} onClick={() => generateLabels(row.original)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all disabled:opacity-50" title="Imprimer Étiquette">
+                                            {isGeneratingLabels ? <span className="animate-spin text-xs">⏳</span> : <QrCode className="h-4 w-4" />}
                                         </button>
                                         {canDeleteResource(user, 'Asset') && (
                                             <button onClick={() => initiateDelete(row.original.id, row.original.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Supprimer">
@@ -1091,7 +1115,7 @@ export const Assets: React.FC = () => {
                                             )}
                                         </div>
                                     </div>
-                                    <div><div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500" /> Historique Maintenance</h3></div>{canEdit && (<div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm"><div className="grid grid-cols-2 gap-4 mb-4"><input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({ ...newMaintenance, date: e.target.value })} /><select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({ ...newMaintenance, type: e.target.value as MaintenanceRecord['type'] })}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select></div><div className="flex gap-4 mb-4"><input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })} /><input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })} /></div><button onClick={handleAddMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform">Ajouter Intervention</button></div>)}<div className="space-y-3">{maintenanceRecords.length === 0 ? <p className="text-sm text-slate-400 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (<div key={rec.id} className="flex items-start p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all"><div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div><div className="flex-1"><div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-300 font-bold">{rec.type}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p><div className="flex justify-between mt-2"><span className="text-[10px] text-slate-400 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[10px] font-bold text-slate-500">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div></div></div>))}</div></div>
+                                    <div><div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500" /> Historique Maintenance</h3></div>{canEdit && (<div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm"><div className="grid grid-cols-2 gap-4 mb-4"><input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({ ...newMaintenance, date: e.target.value })} /><select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({ ...newMaintenance, type: e.target.value as MaintenanceRecord['type'] })}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select></div><div className="flex gap-4 mb-4"><input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })} /><input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })} /></div><button onClick={handleAddMaintenance} disabled={isAddingMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center">{isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention</button></div>)}<div className="space-y-3">{maintenanceRecords.length === 0 ? <p className="text-sm text-slate-400 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (<div key={rec.id} className="flex items-start p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all"><div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div><div className="flex-1"><div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-300 font-bold">{rec.type}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p><div className="flex justify-between mt-2"><span className="text-[10px] text-slate-400 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[10px] font-bold text-slate-500">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div></div></div>))}</div></div>
                                 </div>
                             )}
                             {inspectorTab === 'security' && (

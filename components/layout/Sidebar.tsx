@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
-import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar } from '../ui/Icons';
+import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar, Loader2 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Scale } from 'lucide-react';
 import { hasPermission } from '../../utils/permissions';
@@ -12,6 +12,7 @@ import { useStore } from '../../store';
 export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean) => void }> = ({ mobileOpen, setMobileOpen }) => {
   const { user, t } = useStore();
   const [showLegalModal, setShowLegalModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const navGroups = [
     {
@@ -80,10 +81,12 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
   };
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       await signOut(auth);
     } catch (error) {
       ErrorLogger.error(error, 'Sidebar.handleLogout');
+      setIsLoggingOut(false);
     }
   };
 
@@ -205,10 +208,11 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
           </NavLink>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-[14px] font-semibold rounded-2xl transition-all duration-200 text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
+            disabled={isLoggingOut}
+            className="w-full flex items-center gap-3 px-4 py-3 text-[14px] font-semibold rounded-2xl transition-all duration-200 text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 disabled:opacity-50"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-300 group-hover:bg-red-100 group-hover:text-red-600">
-              <LogOut className="h-4.5 w-4.5" strokeWidth={2} />
+              {isLoggingOut ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : <LogOut className="h-4.5 w-4.5" strokeWidth={2} />}
             </span>
             <span className="flex-1 text-left">{t('common.logout')}</span>
           </button>
