@@ -43,7 +43,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
 
   const loadPlaybooks = useCallback(async () => {
     try {
-      const availablePlaybooks = await IncidentPlaybookService.getPlaybooks(incident.category);
+      const availablePlaybooks = await IncidentPlaybookService.getPlaybooks(incident.category || 'Other');
       setPlaybooks(availablePlaybooks);
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybookView.loadPlaybooks', 'FETCH_FAILED');
@@ -72,14 +72,15 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   }, [loadPlaybooks, loadResponse]);
 
   const handleInitiateResponse = async () => {
-    if (!selectedPlaybook || !user) return;
+    if (!selectedPlaybook || !user || !user.organizationId) return;
 
     setInitiating(true);
     try {
       await IncidentPlaybookService.initiateResponse(
         incident.id,
         selectedPlaybook.id,
-        [user.uid]
+        [user.uid],
+        user.organizationId
       );
 
       await loadResponse();

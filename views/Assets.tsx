@@ -6,7 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot, writeBatch } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db } from '../firebase';
-import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, BusinessProcess, Supplier, Audit, Vulnerability } from '../types';
+import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, BusinessProcess, Supplier, Audit, Vulnerability, AssetHistory } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, LayoutGrid, List, BrainCircuit } from '../components/ui/Icons';
@@ -278,10 +278,30 @@ export const Assets: React.FC = () => {
         try {
             const validatedData = assetSchema.parse(data);
             const cleanData = sanitizeData(validatedData);
-            await updateDoc(doc(db, 'assets', selectedAsset.id), cleanData);
+            // Track History if Criticality Changes
+            const prev = selectedAsset;
+            let dataToUpdate: any = { ...cleanData };
+
+            if (prev.confidentiality !== cleanData.confidentiality || prev.integrity !== cleanData.integrity || prev.availability !== cleanData.availability) {
+                const historyEntry: AssetHistory = {
+                    date: new Date().toISOString(),
+                    userId: user.uid,
+                    userName: user.displayName || user.email || 'Unknown',
+                    previousConfidentiality: prev.confidentiality,
+                    newConfidentiality: cleanData.confidentiality as Criticality,
+                    previousIntegrity: prev.integrity,
+                    newIntegrity: cleanData.integrity as Criticality,
+                    previousAvailability: prev.availability,
+                    newAvailability: cleanData.availability as Criticality,
+                    reason: 'Mise à jour des criticités (DIC)'
+                };
+                dataToUpdate.history = [...(prev.history || []), historyEntry];
+            }
+
+            await updateDoc(doc(db, 'assets', selectedAsset.id), dataToUpdate);
             await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${cleanData.name}`);
 
-            const updatedAsset = { ...selectedAsset, ...cleanData, currentValue: calculateDepreciation(cleanData.purchasePrice || 0, cleanData.purchaseDate || '') } as Asset;
+            const updatedAsset = { ...selectedAsset, ...dataToUpdate, currentValue: calculateDepreciation(cleanData.purchasePrice || 0, cleanData.purchaseDate || '') } as Asset;
             setSelectedAsset(updatedAsset);
             addToast("Modifications enregistrées", "success");
 
@@ -1233,7 +1253,73 @@ export const Assets: React.FC = () => {
                                 </div>
                             )}
 
-                            {inspectorTab === 'history' && (<div className="relative border-l-2 border-slate-200 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">{assetHistory.map((log, i) => (<div key={i} className="relative"><span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-900"><div className="h-2 w-2 rounded-full bg-brand-500"></div></span><div><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span><p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p><p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p><div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-slate-500">{log.userEmail}</div></div></div>))}</div>)}
+                            {inspectorTab === 'history' && selectedAsset && (
+                                <div className="space-y-8">
+                                    {/* DICP History */}
+                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center">
+                                            <History className="h-4 w-4 mr-2" /> Historique DICP
+                                        </h3>
+                                        {!selectedAsset.history || selectedAsset.history.length === 0 ? (
+                                            <p className="text-sm text-slate-400 italic">Aucune modification enregistrée.</p>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                {selectedAsset.history.slice().reverse().map((h, i) => (
+                                                    <div key={i} className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{new Date(h.date).toLocaleString()}</span>
+                                                            <span className="text-xs font-medium text-slate-400">par {h.userName}</span>
+                                                        </div>
+                                                        <div className="grid grid-cols-3 gap-2 text-xs">
+                                                            <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
+                                                                <span className="text-[10px] text-slate-400 uppercase">Confidentialité</span>
+                                                                <div className="flex items-center gap-1 mt-1">
+                                                                    <span className="line-through opacity-50">{h.previousConfidentiality}</span>
+                                                                    <span>→</span>
+                                                                    <span className="font-bold">{h.newConfidentiality}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
+                                                                <span className="text-[10px] text-slate-400 uppercase">Intégrité</span>
+                                                                <div className="flex items-center gap-1 mt-1">
+                                                                    <span className="line-through opacity-50">{h.previousIntegrity}</span>
+                                                                    <span>→</span>
+                                                                    <span className="font-bold">{h.newIntegrity}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
+                                                                <span className="text-[10px] text-slate-400 uppercase">Disponibilité</span>
+                                                                <div className="flex items-center gap-1 mt-1">
+                                                                    <span className="line-through opacity-50">{h.previousAvailability}</span>
+                                                                    <span>→</span>
+                                                                    <span className="font-bold">{h.newAvailability}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* System Logs */}
+                                    <div className="relative border-l-2 border-slate-200 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
+                                        {assetHistory.map((log, i) => (
+                                            <div key={i} className="relative">
+                                                <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-900">
+                                                    <div className="h-2 w-2 rounded-full bg-brand-500"></div>
+                                                </span>
+                                                <div>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
+                                                    <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-slate-500">{log.userEmail}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             {inspectorTab === 'graph' && selectedAsset && (
                                 <div className="h-[500px]">
                                     <RelationshipGraph rootId={selectedAsset.id} rootType="Asset" />

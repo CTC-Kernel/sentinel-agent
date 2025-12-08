@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { FRAMEWORK_OPTIONS } from '../data/frameworks';
 import { SEO } from '../components/SEO';
 import { RiskFormData, riskSchema } from '../schemas/riskSchema';
 import { z } from 'zod';
@@ -145,6 +146,7 @@ export const Risks: React.FC = () => {
     const [creationMode, setCreationMode] = useState(false);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [filter, setFilter] = usePersistedState<string>('risks_filter', '');
+    const [frameworkFilter, setFrameworkFilter] = usePersistedState<string>('risks_framework_filter', '');
     const [viewMode, setViewMode] = usePersistedState<'list' | 'grid' | 'matrix'>('risks_view_mode_v2', 'grid');
 
     // Matrix Filter State
@@ -781,12 +783,13 @@ export const Risks: React.FC = () => {
 
     const filteredRisks = risks.filter(r => {
         const matchesSearch = r.threat.toLowerCase().includes(filter.toLowerCase()) || r.vulnerability.toLowerCase().includes(filter.toLowerCase()) || (r.scenario || '').toLowerCase().includes(filter.toLowerCase());
+        const matchesFramework = frameworkFilter ? r.framework === frameworkFilter : true;
         // Matrix filtering logic: Only show if no filter set OR if matches specific probability AND impact
         const matchesMatrix = matrixFilter ? (r.probability === matrixFilter.p && r.impact === matrixFilter.i) : true;
-        return matchesSearch && matchesMatrix;
+        return matchesSearch && matchesMatrix && matchesFramework;
     });
 
-    const getRisksForCell = (prob: number, impact: number) => risks.filter(r => r.probability === prob && r.impact === impact);
+    const getRisksForCell = (prob: number, impact: number) => risks.filter(r => r.probability === prob && r.impact === impact && (!frameworkFilter || r.framework === frameworkFilter));
 
     const getCellColor = (prob: number, impact: number) => { const score = prob * impact; if (score >= 15) return 'bg-rose-500 shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]'; if (score >= 10) return 'bg-orange-500 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'; if (score >= 5) return 'bg-amber-400'; return 'bg-emerald-500'; };
 
@@ -1019,7 +1022,21 @@ export const Risks: React.FC = () => {
 
             <SlideUp>
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div className="flex items-center space-x-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 border border-slate-200 dark:border-white/5"><Search className="h-5 w-5 text-slate-400" /><input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} /></div>
+                    <div className="flex items-center space-x-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 border border-slate-200 dark:border-white/5">
+                        <Search className="h-5 w-5 text-slate-400" />
+                        <input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} />
+                        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+                        <select
+                            value={frameworkFilter}
+                            onChange={(e) => setFrameworkFilter(e.target.value)}
+                            className="bg-transparent border-none text-sm font-bold text-slate-600 dark:text-slate-300 focus:ring-0 cursor-pointer min-w-[150px]"
+                        >
+                            <option value="">Tous référentiels</option>
+                            {FRAMEWORK_OPTIONS.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
+                    </div>
                     <div className="flex flex-wrap gap-2">
                         <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                         <button onClick={handleExportRTP} className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"><FileText className="h-4 w-4 mr-2" /> RTP (PDF)</button>
