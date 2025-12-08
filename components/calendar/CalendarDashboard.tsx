@@ -11,7 +11,8 @@ import { GoogleCalendarService } from '../../services/googleCalendarService';
 import { AddToCalendar } from '../ui/AddToCalendar';
 import { Drawer } from '../ui/Drawer';
 import { CreateEventModal } from './CreateEventModal';
-import { Clock, ChevronLeft, ChevronRight, Plus, ShieldAlert, FileText, Briefcase, Wrench, Siren, ShieldCheck, Filter, MapPin } from 'lucide-react';
+import { generateICS, downloadICS } from '../../utils/calendar';
+import { Clock, ChevronLeft, ChevronRight, Plus, ShieldAlert, FileText, Briefcase, Wrench, Siren, ShieldCheck, Filter, MapPin, Download } from 'lucide-react';
 import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from 'sonner';
 
@@ -246,17 +247,43 @@ export const CalendarDashboard: React.FC = () => {
                         ))}
                     </div>
 
-                    <button
-                        onClick={() => {
-                            setSelectedDate(new Date());
-                            setIsCreateModalOpen(true);
-                        }}
-                        className="w-full md:w-auto flex items-center justify-center px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-brand-500/25 transition-all hover:scale-105 active:scale-95 shrink-0"
-                    >
-                        <Plus className="h-5 w-5 mr-2" />
-                        <span className="md:hidden">Ajouter</span>
-                        <span className="hidden md:inline">Nouvel Événement</span>
-                    </button>
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const allEvents = await CalendarService.fetchAllEvents(organizationId || '');
+                                    const mappedEvents = allEvents.map(e => ({
+                                        title: e.title,
+                                        description: e.description,
+                                        startDate: e.start,
+                                        endDate: e.end,
+                                        location: e.location
+                                    }));
+                                    const icsContent = generateICS(mappedEvents);
+                                    downloadICS('sentinel_calendar_export.ics', icsContent);
+                                    toast.success('Calendrier exporté');
+                                } catch (error) {
+                                    ErrorLogger.error(error, "CalendarExport");
+                                    toast.error("Erreur lors de l'export");
+                                }
+                            }}
+                            className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-300 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
+                            title="Exporter le calendrier"
+                        >
+                            <Download className="h-5 w-5" />
+                        </button>
+                        <button
+                            onClick={() => {
+                                setSelectedDate(new Date());
+                                setIsCreateModalOpen(true);
+                            }}
+                            className="w-full md:w-auto flex-1 flex items-center justify-center px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-brand-500/25 transition-all hover:scale-105 active:scale-95 shrink-0"
+                        >
+                            <Plus className="h-5 w-5 mr-2" />
+                            <span className="md:hidden">Ajouter</span>
+                            <span className="hidden md:inline">Nouvel Événement</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         );

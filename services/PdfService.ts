@@ -19,13 +19,17 @@ interface ReportOptions {
 }
 
 export class PdfService {
-    // Brand Palette - Modern & Professional
-    private static readonly BRAND_PRIMARY = '#4F46E5'; // Indigo 600
-    private static readonly BRAND_SECONDARY = '#312E81'; // Indigo 900
-    private static readonly ACCENT_COLOR = '#EEF2FF'; // Indigo 50
-    private static readonly TEXT_PRIMARY = '#1E293B'; // Slate 800
-    private static readonly TEXT_SECONDARY = '#64748B'; // Slate 500
+    // Brand Palette - Modern & Professional (Slate/Black/Corporate Blue)
+    private static readonly BRAND_PRIMARY = '#0F172A'; // Slate 900 (Deep Black/Navy)
+    private static readonly BRAND_SECONDARY = '#334155'; // Slate 700 (Professional Grey)
+    private static readonly ACCENT_COLOR = '#F8FAFC'; // Slate 50 (Very light grey background)
+    private static readonly TEXT_PRIMARY = '#020617'; // Slate 950 (High contrast text)
+    private static readonly TEXT_SECONDARY = '#64748B'; // Slate 500 (Subtle text)
     private static readonly BORDER_COLOR = '#E2E8F0'; // Slate 200
+
+    // Chart Colors
+    private static readonly CHART_COLORS = ['#0F172A', '#3B82F6', '#10B981', '#F59E0B', '#EF4444'];
+
 
     /**
      * Initialize a new PDF document with standard settings
@@ -233,6 +237,8 @@ export class PdfService {
             organizationName?: string;
             author?: string;
             summary?: string;
+            stats?: { label: string; value: number; color?: string }[];
+            metrics?: { label: string; value: string | number; subtext?: string }[];
         },
         renderContent: (doc: jsPDF, startY: number) => void
     ): jsPDF {
@@ -369,12 +375,35 @@ export class PdfService {
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'normal');
 
-            // Add a light background box for the summary
-            doc.setFillColor(this.ACCENT_COLOR);
-            doc.roundedRect(14, 60, pageWidth - 28, 100, 4, 4, 'F');
-
             const splitSummary = doc.splitTextToSize(options.summary, pageWidth - 38);
             doc.text(splitSummary, 19, 70);
+
+            let currentY = 70 + (splitSummary.length * 5) + 15;
+
+            // --- METRICS ROW ---
+            if (options.metrics && options.metrics.length > 0) {
+                const cardWidth = 45;
+                const cardGap = 10;
+                let cardX = 19;
+
+                options.metrics.forEach(metric => {
+                    if (cardX + cardWidth > pageWidth - 14) return; // Prevent overflow
+                    this.drawMetricCard(doc, cardX, currentY, cardWidth, 25, metric.label, metric.value, metric.subtext);
+                    cardX += cardWidth + cardGap;
+                });
+                currentY += 35;
+            }
+
+            // --- STATS CHART ---
+            if (options.stats && options.stats.length > 0) {
+                doc.setFontSize(14);
+                doc.setTextColor(this.BRAND_SECONDARY);
+                doc.setFont('helvetica', 'bold');
+                doc.text("Analyses", 19, currentY);
+                currentY += 10;
+
+                this.drawBarChart(doc, 19, currentY, pageWidth - 38, 60, options.stats);
+            }
         }
 
         // --- CONTENT PAGES ---
@@ -396,5 +425,150 @@ export class PdfService {
             doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
         }
         return doc;
+    }
+
+    /**
+     * Draw a modern Bar Chart
+     */
+    static drawBarChart(
+        doc: jsPDF,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        data: { label: string; value: number; color?: string }[],
+        title?: string
+    ) {
+        if (title) {
+            doc.setFontSize(12);
+            doc.setTextColor(this.TEXT_PRIMARY);
+            doc.setFont('helvetica', 'bold');
+            doc.text(title, x, y - 5);
+        }
+
+        const maxValue = Math.max(...data.map(d => d.value)) || 100;
+        const barWidth = (width / data.length) * 0.6;
+        const spacing = (width / data.length) * 0.4;
+        let currentX = x;
+
+        // Draw Axis Line
+        doc.setDrawColor(this.BORDER_COLOR);
+        doc.setLineWidth(0.1);
+        doc.line(x, y + height, x + width, y + height);
+
+        data.forEach((item, index) => {
+            const barHeight = (item.value / maxValue) * height;
+            const color = item.color || this.CHART_COLORS[index % this.CHART_COLORS.length];
+
+            // Bar Background (Optional opacity effect)
+            doc.setFillColor(this.ACCENT_COLOR);
+            doc.roundedRect(currentX, y, barWidth, height, 1, 1, 'F');
+
+            // Actual Bar
+            if (barHeight > 0) {
+                doc.setFillColor(color);
+                // Draw from bottom up
+                doc.roundedRect(currentX, y + height - barHeight, barWidth, barHeight, 1, 1, 'F');
+            }
+
+            // Label
+            doc.setFontSize(8);
+            doc.setTextColor(this.TEXT_SECONDARY);
+            doc.setFont('helvetica', 'normal');
+            const labelWidth = doc.getTextWidth(item.label);
+            // Truncate or Center label
+            if (labelWidth > barWidth + 5) {
+                doc.text(item.label.substring(0, 3) + '.', currentX + barWidth / 2, y + height + 5, { align: 'center' });
+            } else {
+                doc.text(item.label, currentX + barWidth / 2, y + height + 5, { align: 'center' });
+            }
+
+            // Value
+            doc.setFontSize(7);
+            doc.setTextColor(this.TEXT_PRIMARY);
+            doc.text(item.value.toString(), currentX + barWidth / 2, y + height - barHeight - 2, { align: 'center' });
+
+            currentX += barWidth + spacing;
+        });
+    }
+
+    /**
+     * Draw a horizontal progress bar
+     */
+    static drawProgressBar(
+        doc: jsPDF,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        value: number, // 0 to 100
+        label: string,
+        color: string = this.BRAND_PRIMARY
+    ) {
+        // Label above
+        doc.setFontSize(9);
+        doc.setTextColor(this.TEXT_PRIMARY);
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, x, y - 2);
+
+        // Value match
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(this.TEXT_SECONDARY);
+        doc.text(`${Math.round(value)}%`, x + width, y - 2, { align: 'right' });
+
+        // Background Track
+        doc.setFillColor(this.BORDER_COLOR);
+        doc.roundedRect(x, y, width, height, height / 2, height / 2, 'F');
+
+        // Progress Fill
+        const fillWidth = (value / 100) * width;
+        if (fillWidth > 0) {
+            doc.setFillColor(color);
+            doc.roundedRect(x, y, fillWidth, height, height / 2, height / 2, 'F');
+        }
+    }
+
+    /**
+     * Draw a modern Metric Card
+     */
+    static drawMetricCard(
+        doc: jsPDF,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        label: string,
+        value: string | number,
+        subtext?: string,
+        accentColor: string = this.BRAND_PRIMARY
+    ) {
+        // Card Background
+        doc.setDrawColor(this.BORDER_COLOR);
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(x, y, width, height, 2, 2, 'FD');
+
+        // Accent Bar (Left)
+        doc.setFillColor(accentColor);
+        doc.rect(x, y + 2, 1.5, height - 4, 'F');
+
+        // Label
+        doc.setFontSize(9);
+        doc.setTextColor(this.TEXT_SECONDARY);
+        doc.setFont('helvetica', 'bold');
+        doc.text(label.toUpperCase(), x + 6, y + 10);
+
+        // Value
+        doc.setFontSize(18);
+        doc.setTextColor(this.TEXT_PRIMARY);
+        doc.setFont('helvetica', 'bold');
+        doc.text(value.toString(), x + 6, y + 22);
+
+        // Subtext
+        if (subtext) {
+            doc.setFontSize(8);
+            doc.setTextColor(this.TEXT_SECONDARY);
+            doc.setFont('helvetica', 'normal');
+            doc.text(subtext, x + 6, y + 30);
+        }
     }
 }
