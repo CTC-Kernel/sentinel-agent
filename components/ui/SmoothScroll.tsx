@@ -45,7 +45,7 @@ export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children, className,
 
     return (
         <main ref={wrapperRef} id={id} className={className}>
-            <div ref={contentRef} className="w-full min-h-full flex flex-col">
+            <div ref={contentRef} className={`w-full flex flex-col ${enabled ? 'min-h-full' : 'h-full'}`}>
                 {children}
             </div>
         </main>
