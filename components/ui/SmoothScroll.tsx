@@ -5,15 +5,16 @@ interface SmoothScrollProps {
     children: React.ReactNode;
     className?: string;
     id?: string;
+    enabled?: boolean;
 }
 
-export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children, className, id }) => {
+export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children, className, id, enabled = true }) => {
     const wrapperRef = useRef<HTMLElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const lenisRef = useRef<Lenis | null>(null);
 
     useEffect(() => {
-        if (!wrapperRef.current || !contentRef.current) return;
+        if (!enabled || !wrapperRef.current || !contentRef.current) return;
 
         const lenis = new Lenis({
             wrapper: wrapperRef.current,
