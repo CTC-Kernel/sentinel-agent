@@ -343,7 +343,7 @@ export const Continuity: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-8 sm:px-12 pt-8">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 sm:pt-8">
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}

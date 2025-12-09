@@ -36,7 +36,7 @@ import { AuditForm } from '../components/audits/AuditForm';
 import { ProjectForm } from '../components/projects/ProjectForm';
 
 
-import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS, DORA_DOMAINS, DORA_SEED_CONTROLS, GDPR_DOMAINS, GDPR_SEED_CONTROLS, SOC2_DOMAINS, SOC2_SEED_CONTROLS, HDS_DOMAINS, HDS_SEED_CONTROLS, PCI_DSS_DOMAINS, PCI_DSS_SEED_CONTROLS, NIST_CSF_DOMAINS, NIST_CSF_SEED_CONTROLS } from '../data/complianceData';
+import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS, DORA_DOMAINS, DORA_SEED_CONTROLS, GDPR_DOMAINS, GDPR_SEED_CONTROLS, SOC2_DOMAINS, SOC2_SEED_CONTROLS, HDS_DOMAINS, HDS_SEED_CONTROLS, PCI_DSS_DOMAINS, PCI_DSS_SEED_CONTROLS, NIST_CSF_DOMAINS, NIST_CSF_SEED_CONTROLS, ISO22301_DOMAINS, ISO22301_SEED_CONTROLS } from '../data/complianceData';
 import { FRAMEWORKS } from '../data/frameworks';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { Globe } from '../components/ui/Icons';
@@ -197,6 +197,7 @@ export const Compliance: React.FC = () => {
             let seedControls: { code: string; name: string }[] = [];
             switch (currentFramework) {
                 case 'ISO27001': seedControls = ISO_SEED_CONTROLS; break;
+                case 'ISO22301': seedControls = ISO22301_SEED_CONTROLS; break;
                 case 'NIS2': seedControls = NIS2_SEED_CONTROLS; break;
                 case 'DORA': seedControls = DORA_SEED_CONTROLS; break;
                 case 'GDPR': seedControls = GDPR_SEED_CONTROLS; break;
@@ -246,6 +247,7 @@ export const Compliance: React.FC = () => {
         let domains: { id: string }[] = [];
         switch (currentFramework) {
             case 'ISO27001': domains = ISO_DOMAINS; break;
+            case 'ISO22301': domains = ISO22301_DOMAINS; break;
             case 'NIS2': domains = NIS2_DOMAINS; break;
             case 'DORA': domains = DORA_DOMAINS; break;
             case 'GDPR': domains = GDPR_DOMAINS; break;
@@ -817,13 +819,14 @@ export const Compliance: React.FC = () => {
             crumbs.push({ label: currentFramework, onClick: () => { setIsDrawerOpen(false); } });
 
             const domains = currentFramework === 'ISO27001' ? ISO_DOMAINS :
-                currentFramework === 'NIS2' ? NIS2_DOMAINS :
-                    currentFramework === 'DORA' ? DORA_DOMAINS :
-                        currentFramework === 'GDPR' ? GDPR_DOMAINS :
-                            currentFramework === 'SOC2' ? SOC2_DOMAINS :
-                                currentFramework === 'HDS' ? HDS_DOMAINS :
-                                    currentFramework === 'PCI_DSS' ? PCI_DSS_DOMAINS :
-                                        NIST_CSF_DOMAINS;
+                currentFramework === 'ISO22301' ? ISO22301_DOMAINS :
+                    currentFramework === 'NIS2' ? NIS2_DOMAINS :
+                        currentFramework === 'DORA' ? DORA_DOMAINS :
+                            currentFramework === 'GDPR' ? GDPR_DOMAINS :
+                                currentFramework === 'SOC2' ? SOC2_DOMAINS :
+                                    currentFramework === 'HDS' ? HDS_DOMAINS :
+                                        currentFramework === 'PCI_DSS' ? PCI_DSS_DOMAINS :
+                                            NIST_CSF_DOMAINS;
 
             const domain = domains.find(d => selectedControl.code.startsWith(d.id));
             if (domain) {
@@ -841,7 +844,7 @@ export const Compliance: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-8 sm:px-12 pt-8">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 sm:pt-8">
             <SEO
                 title={selectedControl ? `${selectedControl.code} - Conformité` : 'Conformité & Standards'}
                 description="Suivez votre conformité aux normes ISO 27001, NIS 2, DORA et gérez vos audits."
@@ -854,23 +857,25 @@ export const Compliance: React.FC = () => {
                 <PageHeader
                     title={
                         currentFramework === 'ISO27001' ? "Déclaration d'Applicabilité" :
-                            currentFramework === 'NIS2' ? "Conformité NIS2" :
-                                currentFramework === 'DORA' ? "Conformité DORA" :
-                                    currentFramework === 'GDPR' ? "Conformité RGPD" :
-                                        currentFramework === 'SOC2' ? "Conformité SOC 2" :
-                                            currentFramework === 'HDS' ? "Conformité HDS" :
-                                                currentFramework === 'PCI_DSS' ? "Conformité PCI DSS" :
-                                                    "Conformité NIST CSF"
+                            currentFramework === 'ISO22301' ? "Continuité d'Activité" :
+                                currentFramework === 'NIS2' ? "Conformité NIS2" :
+                                    currentFramework === 'DORA' ? "Conformité DORA" :
+                                        currentFramework === 'GDPR' ? "Conformité RGPD" :
+                                            currentFramework === 'SOC2' ? "Conformité SOC 2" :
+                                                currentFramework === 'HDS' ? "Conformité HDS" :
+                                                    currentFramework === 'PCI_DSS' ? "Conformité PCI DSS" :
+                                                        "Conformité NIST CSF"
                     }
                     subtitle={
                         currentFramework === 'ISO27001' ? "Pilotage de la conformité ISO 27001:2022." :
-                            currentFramework === 'NIS2' ? "Suivi de la directive NIS2." :
-                                currentFramework === 'DORA' ? "Règlement sur la résilience opérationnelle numérique." :
-                                    currentFramework === 'GDPR' ? "Règlement Général sur la Protection des Données." :
-                                        currentFramework === 'SOC2' ? "Service Organization Control 2." :
-                                            currentFramework === 'HDS' ? "Hébergement de Données de Santé." :
-                                                currentFramework === 'PCI_DSS' ? "Payment Card Industry Data Security Standard." :
-                                                    "NIST Cybersecurity Framework 2.0."
+                            currentFramework === 'ISO22301' ? "Système de Management de la Continuité d'Activité (SMCA)." :
+                                currentFramework === 'NIS2' ? "Suivi de la directive NIS2." :
+                                    currentFramework === 'DORA' ? "Règlement sur la résilience opérationnelle numérique." :
+                                        currentFramework === 'GDPR' ? "Règlement Général sur la Protection des Données." :
+                                            currentFramework === 'SOC2' ? "Service Organization Control 2." :
+                                                currentFramework === 'HDS' ? "Hébergement de Données de Santé." :
+                                                    currentFramework === 'PCI_DSS' ? "Payment Card Industry Data Security Standard." :
+                                                        "NIST Cybersecurity Framework 2.0."
                     }
                     breadcrumbs={[
                         { label: 'Conformité' }
@@ -898,7 +903,7 @@ export const Compliance: React.FC = () => {
                             {viewMode === 'compliance' && (
                                 <>
                                     {/* Framework Switcher - ScrollableTabs */}
-                                    <div className="w-full md:w-auto overflow-hidden">
+                                    <div className="w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
                                         <ScrollableTabs
                                             tabs={complianceFrameworks.map(f => ({ id: f.value, label: f.label }))}
                                             activeTab={currentFramework}
@@ -986,6 +991,7 @@ export const Compliance: React.FC = () => {
                                         let domains: { id: string, title: string, description: string }[] = [];
                                         switch (currentFramework) {
                                             case 'ISO27001': domains = ISO_DOMAINS; break;
+                                            case 'ISO22301': domains = ISO22301_DOMAINS; break;
                                             case 'NIS2': domains = NIS2_DOMAINS; break;
                                             case 'DORA': domains = DORA_DOMAINS; break;
                                             case 'GDPR': domains = GDPR_DOMAINS; break;

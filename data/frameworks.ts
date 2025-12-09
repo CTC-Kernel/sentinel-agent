@@ -1,5 +1,6 @@
 export const FRAMEWORKS = [
     { id: 'ISO27001', label: 'ISO 27001 (Sécurité du SI)', type: 'Compliance' },
+    { id: 'ISO22301', label: 'ISO 22301 (Continuité)', type: 'Compliance' },
     { id: 'ISO27005', label: 'ISO 27005 (Gestion des Risques)', type: 'Risk' },
     { id: 'NIS2', label: 'NIS 2 (Cybersécurité EU)', type: 'Compliance' },
     { id: 'DORA', label: 'DORA (Résilience Financière)', type: 'Compliance' },
