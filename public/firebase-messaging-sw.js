@@ -48,3 +48,10 @@ self.addEventListener('notificationclick', function (event) {
         })
     );
 });
+
+// Basic Fetch implementation for PWA capabilities
+self.addEventListener('fetch', (event) => {
+    // Basic pass-through to ensure PWA installability criteria are met
+    // Future: Add Workbox or custom caching logic here
+    event.respondWith(fetch(event.request));
+});
