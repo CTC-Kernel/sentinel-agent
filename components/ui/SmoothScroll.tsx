@@ -41,7 +41,7 @@ export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children, className,
             lenis.destroy();
             lenisRef.current = null;
         };
-    }, []);
+    }, [enabled]);
 
     return (
         <main ref={wrapperRef} id={id} className={className}>
