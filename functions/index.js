@@ -12,6 +12,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineString, defineSecret } = require("firebase-functions/params");
 const nodemailer = require("nodemailer");
 const { getMessaging } = require('firebase-admin/messaging');
+const { GoogleGenAI } = require("@google/generative-ai");
 
 // Hardcoded secrets for Zero Config deployment (User requested)
 
