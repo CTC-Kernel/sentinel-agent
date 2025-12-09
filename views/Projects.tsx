@@ -232,10 +232,10 @@ export const Projects: React.FC = () => {
         setCreationMode(true);
     };
 
-    const openEditDrawer = (project: Project) => {
+    const openEditDrawer = React.useCallback((project: Project) => {
         setEditingProject(project);
         setCreationMode(false);
-    };
+    }, []);
 
     // Unified handler for ProjectFormModal submission (create or update)
     const handleProjectFormSubmit = async (projectData: Omit<Project, 'id' | 'organizationId' | 'tasks' | 'progress' | 'createdAt'>) => {
@@ -387,21 +387,11 @@ export const Projects: React.FC = () => {
         }
     };
 
-    const initiateDelete = (id: string, name: string) => {
-        if (!canDeleteResource(user, 'Project')) return;
-        setConfirmData({
-            isOpen: true,
-            title: "Supprimer le projet ?",
-            message: `Le projet "${name}" et tout son suivi seront supprimés.`,
-            onConfirm: () => handleDeleteProject(id)
-        });
-    };
-
-    const performDelete = async (id: string) => {
+    const performDelete = React.useCallback(async (id: string) => {
         await deleteDoc(doc(db, 'projects', id));
-    };
+    }, []);
 
-    const handleDeleteProject = async (id: string) => {
+    const handleDeleteProject = React.useCallback(async (id: string) => {
         if (!canDeleteResource(user, 'Project')) return;
         try {
             await performDelete(id);
@@ -410,7 +400,17 @@ export const Projects: React.FC = () => {
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.handleDeleteProject', 'DELETE_FAILED');
         }
-    };
+    }, [user, performDelete, addToast]);
+
+    const initiateDelete = React.useCallback((id: string, name: string) => {
+        if (!canDeleteResource(user, 'Project')) return;
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer le projet ?",
+            message: `Le projet "${name}" et tout son suivi seront supprimés.`,
+            onConfirm: () => handleDeleteProject(id)
+        });
+    }, [user, handleDeleteProject]);
 
     const handleBulkDelete = async (ids: string[]) => {
         if (!canDeleteResource(user, 'Project')) return;

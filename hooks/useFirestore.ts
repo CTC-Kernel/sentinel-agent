@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     collection,
     query,
@@ -103,7 +103,7 @@ export const useFirestoreCollection = <T = DocumentData>(
         return () => unsubscribe();
     }, [collectionName, constraintsKey, realtime, isEnabled, logError]);
 
-    const add = async (newData: WithFieldValue<DocumentData>) => {
+    const add = useCallback(async (newData: WithFieldValue<DocumentData>) => {
         try {
             const docRef = await addDoc(collection(db, collectionName), newData);
             if (!realtime) {
@@ -116,9 +116,9 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.add.${collectionName}`);
             throw errorObj;
         }
-    };
+    }, [collectionName, logError, queryClient, realtime]);
 
-    const update = async (id: string, updateData: UpdateData<DocumentData>) => {
+    const update = useCallback(async (id: string, updateData: UpdateData<DocumentData>) => {
         try {
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, updateData);
@@ -130,9 +130,9 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.update.${collectionName}`);
             throw errorObj;
         }
-    };
+    }, [collectionName, logError, queryClient, realtime]);
 
-    const remove = async (id: string) => {
+    const remove = useCallback(async (id: string) => {
         try {
             const docRef = doc(db, collectionName, id);
             await deleteDoc(docRef);
@@ -144,7 +144,12 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.remove.${collectionName}`);
             throw errorObj;
         }
-    };
+    }, [collectionName, logError, queryClient, realtime]);
+
+    // Stable refresh function
+    const refresh = useCallback(async () => {
+        if (!realtime) await refetch();
+    }, [realtime, refetch]);
 
     // Return logic: if realtime, use local state; otherwise use query state
     if (realtime) {
@@ -152,7 +157,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             data: realtimeData,
             loading: realtimeLoading,
             error: realtimeError,
-            refresh: async () => { }, // No-op for realtime
+            refresh,
             add, update, remove
         };
     }
@@ -161,7 +166,7 @@ export const useFirestoreCollection = <T = DocumentData>(
         data: queryData || [],
         loading: queryLoading,
         error: queryError as Error | null,
-        refresh: async () => { await refetch(); },
+        refresh,
         add, update, remove
     };
 };

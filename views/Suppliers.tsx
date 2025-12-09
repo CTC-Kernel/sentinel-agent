@@ -297,18 +297,7 @@ export const Suppliers: React.FC = () => {
         }
     };
 
-    const initiateDelete = (id: string, name: string) => {
-        if (!canEdit) return;
-        setConfirmData({
-            isOpen: true,
-            title: `Supprimer ${name} ?`,
-            message: "Cette action est définitive et supprimera toutes les données associées à ce fournisseur.",
-            onConfirm: () => handleDelete(id),
-            closeOnConfirm: false
-        });
-    };
-
-    const performDelete = async (id: string) => {
+    const performDelete = React.useCallback(async (id: string) => {
         // 1. Delete related assessments
         const assessmentsQuery = query(collection(db, 'supplierAssessments'), where('supplierId', '==', id));
         const assessmentsSnap = await getDocs(assessmentsQuery);
@@ -321,9 +310,9 @@ export const Suppliers: React.FC = () => {
 
         // 3. Delete the supplier itself
         await Promise.all([...deleteAssessments, ...deleteIncidents, deleteDoc(doc(db, 'suppliers', id))]);
-    };
+    }, []);
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = React.useCallback(async (id: string) => {
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await performDelete(id);
@@ -336,7 +325,18 @@ export const Suppliers: React.FC = () => {
         } finally {
             setConfirmData(prev => ({ ...prev, loading: false }));
         }
-    };
+    }, [performDelete, addToast, selectedSupplier]);
+
+    const initiateDelete = React.useCallback((id: string, name: string) => {
+        if (!canEdit) return;
+        setConfirmData({
+            isOpen: true,
+            title: `Supprimer ${name} ?`,
+            message: "Cette action est définitive et supprimera toutes les données associées à ce fournisseur.",
+            onConfirm: () => handleDelete(id),
+            closeOnConfirm: false
+        });
+    }, [canEdit, handleDelete]);
 
     const handleBulkDelete = async (selectedIds: string[]) => {
         if (!canEdit) return;
