@@ -12,7 +12,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineString, defineSecret } = require("firebase-functions/params");
 const nodemailer = require("nodemailer");
 const { getMessaging } = require('firebase-admin/messaging');
-const { GoogleGenAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Hardcoded secrets for Zero Config deployment (User requested)
 
@@ -1586,7 +1586,7 @@ async function getGeminiClientForUser(uid, apiVersion) {
         throw new HttpsError('failed-precondition', 'Gemini API key not configured.');
     }
 
-    return new GoogleGenAI({ apiKey, apiVersion });
+    return new GoogleGenerativeAI(apiKey);
 }
 
 /**
@@ -1987,12 +1987,10 @@ exports.callGeminiGenerateContent = onCall({
                 config.thinkingConfig = { thinkingLevel: "high" };
             }
 
-            const response = await genAI.models.generateContent({
-                model: name,
-                contents: prompt,
-                config: config
-            });
-            return response.text;
+            const model = genAI.getGenerativeModel({ model: name });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            return response.text();
         };
 
         try {
@@ -2083,12 +2081,10 @@ exports.callGeminiChat = onCall({
                 { role: "user", parts: [{ text: message }] }
             ];
 
-            const response = await client.models.generateContent({
-                model: name,
-                contents: contents,
-                config: config
-            });
-            return response.text;
+            const model = client.getGenerativeModel({ model: name });
+            const result = await model.generateContent({ contents });
+            const response = await result.response;
+            return response.text();
         };
 
         try {
