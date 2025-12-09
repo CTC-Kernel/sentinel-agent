@@ -16,6 +16,7 @@ interface PageHeaderProps {
   actions?: React.ReactNode;
   icon?: React.ReactNode;
   trustType?: SecurityFeature;
+  className?: string;
 }
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -45,7 +46,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   breadcrumbs,
   actions,
   icon,
-  trustType
+  trustType,
+  className = ''
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -83,7 +85,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   })();
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
+    <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 ${className}`}>
       <div className="flex-1">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 mb-4" aria-label="Breadcrumb">

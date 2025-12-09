@@ -13,7 +13,7 @@ import { CustomSelect } from '../components/ui/CustomSelect';
 import { Badge } from '../components/ui/Badge';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { DataTable } from '../components/ui/DataTable';
-import { StaggerContainer, SlideUp } from '../components/ui/Animations';
+import { SlideUp } from '../components/ui/Animations';
 
 import { RiskForm } from '../components/risks/RiskForm';
 import { RelationshipGraph } from '../components/RelationshipGraph';
@@ -354,6 +354,8 @@ export const Risks: React.FC = () => {
             setSubmitting(false);
         }
     };
+
+
 
     const handleUpdate = async (data: RiskFormData) => {
         if (!user?.organizationId || !selectedRisk || !canEdit) return;
@@ -875,7 +877,7 @@ export const Risks: React.FC = () => {
     }
 
     return (
-        <StaggerContainer className="space-y-8 relative pb-10">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-8 sm:px-12 pt-8">
             <SEO
                 title="Gestion des Risques - Sentinel GRC"
                 description="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005."
@@ -903,64 +905,65 @@ export const Risks: React.FC = () => {
                 title={confirmData.title}
                 message={confirmData.message}
             />
-
-            <SlideUp>
-                <PageHeader
-                    title={risksTitle}
-                    subtitle={risksSubtitle}
-                    breadcrumbs={[
-                        { label: 'Risques' }
-                    ]}
-                    icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                    trustType="integrity"
-                    actions={(
-                        <>
-                            {canEdit && (
-                                <button
-                                    onClick={() => setShowTemplateModal(true)}
-                                    className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
-                                >
-                                    <Download className="h-4 w-4 mr-2" />
-                                    Importer Template
-                                </button>
-                            )}
-
+            <PageHeader
+                title={risksTitle}
+                subtitle={risksSubtitle}
+                icon={<ShieldAlert className="h-6 w-6 text-white" />}
+                breadcrumbs={[
+                    { label: 'Tableau de bord', path: '/' },
+                    { label: 'Risques' }
+                ]}
+                trustType="integrity"
+                actions={
+                    <>
+                        {canEdit && (
                             <button
-                                onClick={handleExportRTP}
-                                disabled={isGeneratingReport}
-                                className="bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2Rounded-xl border border-slate-200 dark:border-slate-700 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 disabled:opacity-50"
-                            >
-                                {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-red-500" />}
-                                RTP (PDF)
-                            </button>
-
-                            <button
-                                onClick={handleExportPDF}
-                                className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+                                onClick={() => setShowTemplateModal(true)}
+                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
                             >
                                 <Download className="h-4 w-4 mr-2" />
-                                Registre (PDF)
+                                <span>Importer Template</span>
                             </button>
+                        )}
 
-                            {canEdit && (
-                                <>
-                                    <button
-                                        onClick={handleAIAnalysis}
-                                        className="flex items-center px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
-                                    >
-                                        <BrainCircuit className="h-4 w-4 mr-2" />
-                                        Analyse IA
-                                    </button>
-                                    <button onClick={openCreationDrawer} className="flex items-center space-x-2 px-4 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
-                                        <Plus className="w-5 h-5" />
-                                        <span>Nouveau Risque</span>
-                                    </button>
-                                </>
-                            )}
-                        </>
-                    )}
-                />
-            </SlideUp>
+                        <button
+                            onClick={handleExportRTP}
+                            disabled={isGeneratingReport}
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
+                        >
+                            {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-red-500" />}
+                            <span>RTP (PDF)</span>
+                        </button>
+
+                        <button
+                            onClick={handleExportPDF}
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
+                        >
+                            <Download className="h-4 w-4 mr-2" />
+                            <span>Registre (PDF)</span>
+                        </button>
+
+                        {canEdit && (
+                            <>
+                                <button
+                                    onClick={handleAIAnalysis}
+                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-medium text-sm"
+                                >
+                                    <BrainCircuit className="h-4 w-4 mr-2" />
+                                    <span>Analyse IA</span>
+                                </button>
+                                <button
+                                    onClick={() => setCreationMode(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-lg shadow-brand-500/25 transition-all hover:scale-105 active:scale-95 font-medium text-sm"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    <span>Nouveau Risque</span>
+                                </button>
+                            </>
+                        )}
+                    </>
+                }
+            />
 
             {/* Stats */}
             {/* Insight Card (Summary) */}
@@ -1051,264 +1054,268 @@ export const Risks: React.FC = () => {
             </SlideUp>
 
             {/* Filter Feedback */}
-            {matrixFilter && (
-                <SlideUp>
-                    <div className="flex items-center justify-between bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <Filter className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-                            <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
-                                Filtrage actif : <span className="bg-white dark:bg-black/20 px-2 py-0.5 rounded-lg shadow-sm">Probabilité {matrixFilter.p}</span> × <span className="bg-white dark:bg-black/20 px-2 py-0.5 rounded-lg shadow-sm">Impact {matrixFilter.i}</span>
-                            </span>
-                        </div>
-                        <button onClick={() => setMatrixFilter(null)} className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center bg-white dark:bg-black/20 px-3 py-1.5 rounded-lg shadow-sm transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"><RefreshCw className="h-3 w-3 mr-1.5" /> Réinitialiser</button>
-                    </div>
-                </SlideUp>
-            )}
-
-            {viewMode === 'matrix' ? (
-                <div className="glass-panel p-8 rounded-[2.5rem] shadow-xl overflow-x-auto animate-fade-in border border-white/50 dark:border-white/5">
-                    <div className="min-w-[700px]">
-                        <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Matrice de Criticité</h3>
-                            <div className="flex flex-wrap gap-2 text-xs font-medium">
-                                <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-rose-500 mr-2"></span>Critique</span>
-                                <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>Élevé</span>
-                                <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-amber-400 mr-2"></span>Moyen</span>
-                                <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-emerald-500 mr-2"></span>Faible</span>
+            {
+                matrixFilter && (
+                    <SlideUp>
+                        <div className="flex items-center justify-between bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 shadow-sm">
+                            <div className="flex items-center gap-3">
+                                <Filter className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+                                <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
+                                    Filtrage actif : <span className="bg-white dark:bg-black/20 px-2 py-0.5 rounded-lg shadow-sm">Probabilité {matrixFilter?.p}</span> × <span className="bg-white dark:bg-black/20 px-2 py-0.5 rounded-lg shadow-sm">Impact {matrixFilter?.i}</span>
+                                </span>
                             </div>
+                            <button onClick={() => setMatrixFilter(null)} className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center bg-white dark:bg-black/20 px-3 py-1.5 rounded-lg shadow-sm transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"><RefreshCw className="h-3 w-3 mr-1.5" /> Réinitialiser</button>
                         </div>
-                        <div className="grid grid-cols-[auto_1fr] gap-6">
-                            <div className="flex items-center justify-center -rotate-90 font-bold text-xs text-slate-400 uppercase tracking-widest h-[500px] w-8">Probabilité</div>
-                            <div className="grid grid-rows-5 grid-cols-5 gap-3 h-[500px]">
-                                {[5, 4, 3, 2, 1].map(prob => (
-                                    <React.Fragment key={prob}>
-                                        {[1, 2, 3, 4, 5].map(impact => {
-                                            const cellRisks = getRisksForCell(prob, impact);
-                                            const hasRisks = cellRisks.length > 0;
-                                            const isSelected = matrixFilter?.p === prob && matrixFilter?.i === impact;
+                    </SlideUp>
+                )
+            }
 
-                                            return (
-                                                <CustomTooltip key={`${prob}-${impact}`} content={`Prob: ${prob}, Impact: ${impact}, Risques: ${cellRisks.length}`} position="top">
-                                                    <div
-                                                        onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
-                                                        className={`
+            {
+                viewMode === 'matrix' ? (
+                    <div className="glass-panel p-8 rounded-[2.5rem] shadow-xl overflow-x-auto animate-fade-in border border-white/50 dark:border-white/5">
+                        <div className="min-w-[700px]">
+                            <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Matrice de Criticité</h3>
+                                <div className="flex flex-wrap gap-2 text-xs font-medium">
+                                    <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-rose-500 mr-2"></span>Critique</span>
+                                    <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>Élevé</span>
+                                    <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-amber-400 mr-2"></span>Moyen</span>
+                                    <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-emerald-500 mr-2"></span>Faible</span>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-[auto_1fr] gap-6">
+                                <div className="flex items-center justify-center -rotate-90 font-bold text-xs text-slate-400 uppercase tracking-widest h-[500px] w-8">Probabilité</div>
+                                <div className="grid grid-rows-5 grid-cols-5 gap-3 h-[500px]">
+                                    {[5, 4, 3, 2, 1].map(prob => (
+                                        <React.Fragment key={prob}>
+                                            {[1, 2, 3, 4, 5].map(impact => {
+                                                const cellRisks = getRisksForCell(prob, impact);
+                                                const hasRisks = cellRisks.length > 0;
+                                                const isSelected = matrixFilter?.p === prob && matrixFilter?.i === impact;
+
+                                                return (
+                                                    <CustomTooltip key={`${prob}-${impact}`} content={`Prob: ${prob}, Impact: ${impact}, Risques: ${cellRisks.length}`} position="top">
+                                                        <div
+                                                            onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
+                                                            className={`
                                                   relative rounded-2xl flex items-center justify-center transition-all duration-300 border cursor-pointer border-white/20 dark:border-black/10 group
                                                   ${getCellColor(prob, impact)}
                                                   ${hasRisks ? 'hover:scale-[1.02] hover:z-10 hover:shadow-xl cursor-pointer' : 'opacity-40 scale-95 grayscale cursor-default'}
                                                   ${isSelected ? 'ring-4 ring-slate-900 dark:ring-white scale-[1.05] z-20 shadow-2xl opacity-100 animate-pulse' : matrixFilter && hasRisks ? 'opacity-40' : ''}
                                               `}
-                                                    >
-                                                        {hasRisks && (
-                                                            <>
-                                                                <span className="text-3xl font-black text-white drop-shadow-md">{cellRisks.length}</span>
-                                                                <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </CustomTooltip>
-                                            )
-                                        })}
-                                    </React.Fragment>
-                                ))}
+                                                        >
+                                                            {hasRisks && (
+                                                                <>
+                                                                    <span className="text-3xl font-black text-white drop-shadow-md">{cellRisks.length}</span>
+                                                                    <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </CustomTooltip>
+                                                )
+                                            })}
+                                        </React.Fragment>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-[auto_1fr] gap-6 mt-4">
+                                <div className="w-8"></div>
+                                <div className="text-center font-bold text-xs text-slate-400 uppercase tracking-widest">Impact</div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-[auto_1fr] gap-6 mt-4">
-                            <div className="w-8"></div>
-                            <div className="text-center font-bold text-xs text-slate-400 uppercase tracking-widest">Impact</div>
-                        </div>
                     </div>
-                </div>
-            ) : viewMode === 'list' ? (
-                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
-                    <DataTable
-                        columns={[
-                            {
-                                header: 'Menace',
-                                accessorKey: 'threat',
-                                cell: ({ row }) => (
-                                    <div className="flex items-center">
-                                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300">
-                                            <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
+                ) : viewMode === 'list' ? (
+                    <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                        <DataTable
+                            columns={[
+                                {
+                                    header: 'Menace',
+                                    accessorKey: 'threat',
+                                    cell: ({ row }) => (
+                                        <div className="flex items-center">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300">
+                                                <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.threat}</div>
+                                                <div className="text-xs text-slate-500 font-medium">{row.original.owner || 'Non assigné'}</div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.threat}</div>
-                                            <div className="text-xs text-slate-500 font-medium">{row.original.owner || 'Non assigné'}</div>
+                                    ),
+                                },
+                                {
+                                    header: 'Vulnérabilité',
+                                    accessorKey: 'vulnerability',
+                                    cell: ({ row }) => (
+                                        <div className="max-w-xs truncate" title={row.original.vulnerability}>
+                                            {row.original.vulnerability}
                                         </div>
-                                    </div>
-                                ),
-                            },
-                            {
-                                header: 'Vulnérabilité',
-                                accessorKey: 'vulnerability',
-                                cell: ({ row }) => (
-                                    <div className="max-w-xs truncate" title={row.original.vulnerability}>
-                                        {row.original.vulnerability}
-                                    </div>
-                                ),
-                            },
-                            {
-                                header: 'Actif',
-                                accessorFn: (row) => getAssetName(row.assetId),
-                                cell: ({ row }) => (
-                                    <span className="text-slate-600 dark:text-slate-400 font-medium">
-                                        {getAssetName(row.original.assetId)}
-                                    </span>
-                                ),
-                            },
-                            {
-                                header: 'Score',
-                                accessorKey: 'score',
-                                cell: ({ row }) => (
-                                    <Badge status={getRiskLevel(row.original.score).status} variant="soft" size="sm">
-                                        {row.original.score}
-                                    </Badge>
-                                ),
-                            },
-                            {
-                                header: 'Stratégie',
-                                accessorKey: 'strategy',
-                                cell: ({ row }) => (
-                                    <span className="text-slate-600 dark:text-slate-400 font-medium">
-                                        {row.original.strategy}
-                                    </span>
-                                ),
-                            },
-                            {
-                                header: 'Statut',
-                                accessorKey: 'status',
-                                cell: ({ row }) => (
-                                    <div className="flex flex-col items-start gap-1">
-                                        <Badge status={row.original.status === 'Ouvert' ? 'error' : row.original.status === 'En cours' ? 'warning' : 'success'} variant="outline">
-                                            {row.original.status}
+                                    ),
+                                },
+                                {
+                                    header: 'Actif',
+                                    accessorFn: (row) => getAssetName(row.assetId),
+                                    cell: ({ row }) => (
+                                        <span className="text-slate-600 dark:text-slate-400 font-medium">
+                                            {getAssetName(row.original.assetId)}
+                                        </span>
+                                    ),
+                                },
+                                {
+                                    header: 'Score',
+                                    accessorKey: 'score',
+                                    cell: ({ row }) => (
+                                        <Badge status={getRiskLevel(row.original.score).status} variant="soft" size="sm">
+                                            {row.original.score}
                                         </Badge>
-                                        {isReviewOverdue(row.original) && (
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
-                                                <Clock className="h-3 w-3 mr-1" /> Revue en retard
-                                            </span>
-                                        )}
-                                    </div>
-                                ),
-                            },
-                            {
-                                id: 'actions',
-                                header: '',
-                                cell: ({ row }) => (
-                                    <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                        {canEdit && (
-                                            <>
-                                                <button onClick={() => { setSelectedRisk(row.original); setIsEditing(true); }} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all" title="Modifier">
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
-                                                <button onClick={() => initiateDelete(row.original.id, row.original.threat)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Supprimer">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
-                                ),
-                            },
-                        ]}
-                        data={filteredRisks}
-                        selectable={canEdit}
-                        onRowClick={(risk) => openInspector(risk)}
-                        searchable={false}
-                        exportable={false}
-                        loading={loading}
-                        onBulkDelete={async (selectedIds) => {
-                            if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} risques ? Cette action est irréversible.`)) {
-                                return;
-                            }
-
-                            try {
-                                const batch = writeBatch(db);
-                                selectedIds.forEach(id => {
-                                    const ref = doc(db, 'risks', id);
-                                    batch.delete(ref);
-                                });
-                                await batch.commit();
-
-                                addToast(`${selectedIds.length} risques supprimés avec succès`, 'success');
-                                refreshRisks();
-                            } catch (error) {
-                                ErrorLogger.handleErrorWithToast(error, 'Risks.bulkDelete', 'DELETE_FAILED');
-                            }
-                        }}
-                    />
-                </div>
-            ) : (
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in">
-                    {loading ? (
-                        <div className="col-span-full"><CardSkeleton count={3} /></div>
-                    ) : filteredRisks.length === 0 ? (
-                        <div className="col-span-full">
-                            <EmptyState
-                                icon={ShieldAlert}
-                                title="Aucun risque identifié"
-                                description={filter ? "Aucun risque ne correspond à votre recherche." : "Identifiez et évaluez les risques pour protéger votre organisation."}
-                                actionLabel={filter || !canEdit ? undefined : "Nouveau Risque"}
-                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
-                            />
-                        </div>
-                    ) : filteredRisks.map(risk => {
-                        const level = getRiskLevel(risk.score);
-                        const residualScore = risk.residualScore || risk.score;
-                        const isMitigated = residualScore < risk.score;
-                        const trend = risk.previousScore && risk.score > risk.previousScore ? 'up' : risk.previousScore && risk.score < risk.previousScore ? 'down' : 'stable';
-
-                        return (
-                            <div key={risk.id} onClick={() => openInspector(risk)} className="group glass-panel p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5">
-                                <div className="flex justify-between items-start mb-5">
-                                    <div className="flex items-center gap-2">
-                                        <Badge status={level.status} variant="soft" size="sm">
-                                            {level.label} {risk.score}
-                                        </Badge>
-                                        {trend === 'up' && <span className="text-red-500" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
-                                        {trend === 'down' && <span className="text-emerald-500" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
-                                        {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-400" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
-                                    </div>
-                                </div>
-                                <div className="mb-4 flex-1">
-                                    <div className="flex items-center mb-3">
-                                        <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
-                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
-                                    </div>
-                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
-                                    <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900/50 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
-                                        <span className="font-bold text-xs uppercase text-slate-400 block mb-1">Vulnérabilité</span>
-                                        <SafeHTML content={risk.vulnerability} className="line-clamp-3" />
-                                    </div>
-                                </div>
-                                <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
-                                        <div className="flex items-center gap-2">
-                                            {risk.treatment?.slaStatus && risk.treatment.status !== 'Terminé' && (
-                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-red-100 text-red-700 border-red-200' :
-                                                    risk.treatment.slaStatus === 'At Risk' ? 'bg-orange-100 text-orange-700 border-orange-200' :
-                                                        'bg-emerald-100 text-emerald-700 border-emerald-200'
-                                                    }`}>
-                                                    SLA: {risk.treatment.slaStatus}
+                                    ),
+                                },
+                                {
+                                    header: 'Stratégie',
+                                    accessorKey: 'strategy',
+                                    cell: ({ row }) => (
+                                        <span className="text-slate-600 dark:text-slate-400 font-medium">
+                                            {row.original.strategy}
+                                        </span>
+                                    ),
+                                },
+                                {
+                                    header: 'Statut',
+                                    accessorKey: 'status',
+                                    cell: ({ row }) => (
+                                        <div className="flex flex-col items-start gap-1">
+                                            <Badge status={row.original.status === 'Ouvert' ? 'error' : row.original.status === 'En cours' ? 'warning' : 'success'} variant="outline">
+                                                {row.original.status}
+                                            </Badge>
+                                            {isReviewOverdue(row.original) && (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
+                                                    <Clock className="h-3 w-3 mr-1" /> Revue en retard
                                                 </span>
                                             )}
-                                            <Badge
-                                                status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'}
-                                                variant="outline"
-                                            >
-                                                {risk.status}
+                                        </div>
+                                    ),
+                                },
+                                {
+                                    id: 'actions',
+                                    header: '',
+                                    cell: ({ row }) => (
+                                        <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                                            {canEdit && (
+                                                <>
+                                                    <button onClick={() => { setSelectedRisk(row.original); setIsEditing(true); }} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all" title="Modifier">
+                                                        <Edit className="h-4 w-4" />
+                                                    </button>
+                                                    <button onClick={() => initiateDelete(row.original.id, row.original.threat)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Supprimer">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    ),
+                                },
+                            ]}
+                            data={filteredRisks}
+                            selectable={canEdit}
+                            onRowClick={(risk) => openInspector(risk)}
+                            searchable={false}
+                            exportable={false}
+                            loading={loading}
+                            onBulkDelete={async (selectedIds) => {
+                                if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} risques ? Cette action est irréversible.`)) {
+                                    return;
+                                }
+
+                                try {
+                                    const batch = writeBatch(db);
+                                    selectedIds.forEach(id => {
+                                        const ref = doc(db, 'risks', id);
+                                        batch.delete(ref);
+                                    });
+                                    await batch.commit();
+
+                                    addToast(`${selectedIds.length} risques supprimés avec succès`, 'success');
+                                    refreshRisks();
+                                } catch (error) {
+                                    ErrorLogger.handleErrorWithToast(error, 'Risks.bulkDelete', 'DELETE_FAILED');
+                                }
+                            }}
+                        />
+                    </div>
+                ) : (
+                    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in">
+                        {loading ? (
+                            <div className="col-span-full"><CardSkeleton count={3} /></div>
+                        ) : filteredRisks.length === 0 ? (
+                            <div className="col-span-full">
+                                <EmptyState
+                                    icon={ShieldAlert}
+                                    title="Aucun risque identifié"
+                                    description={filter ? "Aucun risque ne correspond à votre recherche." : "Identifiez et évaluez les risques pour protéger votre organisation."}
+                                    actionLabel={filter || !canEdit ? undefined : "Nouveau Risque"}
+                                    onAction={filter || !canEdit ? undefined : openCreationDrawer}
+                                />
+                            </div>
+                        ) : filteredRisks.map(risk => {
+                            const level = getRiskLevel(risk.score);
+                            const residualScore = risk.residualScore || risk.score;
+                            const isMitigated = residualScore < risk.score;
+                            const trend = risk.previousScore && risk.score > risk.previousScore ? 'up' : risk.previousScore && risk.score < risk.previousScore ? 'down' : 'stable';
+
+                            return (
+                                <div key={risk.id} onClick={() => openInspector(risk)} className="group glass-panel p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5">
+                                    <div className="flex justify-between items-start mb-5">
+                                        <div className="flex items-center gap-2">
+                                            <Badge status={level.status} variant="soft" size="sm">
+                                                {level.label} {risk.score}
                                             </Badge>
+                                            {trend === 'up' && <span className="text-red-500" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
+                                            {trend === 'down' && <span className="text-emerald-500" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
+                                            {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-400" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
                                         </div>
                                     </div>
-                                    {isReviewOverdue(risk) && (
-                                        <div className="flex items-center justify-between">
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
-                                                <Clock className="h-3 w-3 mr-1" /> Revue en retard
-                                            </span>
+                                    <div className="mb-4 flex-1">
+                                        <div className="flex items-center mb-3">
+                                            <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
+                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
                                         </div>
-                                    )}
-                                </div>
-                            </div>)
-                    })}</div>
-            )}
+                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
+                                        <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900/50 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
+                                            <span className="font-bold text-xs uppercase text-slate-400 block mb-1">Vulnérabilité</span>
+                                            <SafeHTML content={risk.vulnerability} className="line-clamp-3" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
+                                            <div className="flex items-center gap-2">
+                                                {risk.treatment?.slaStatus && risk.treatment.status !== 'Terminé' && (
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-red-100 text-red-700 border-red-200' :
+                                                        risk.treatment.slaStatus === 'At Risk' ? 'bg-orange-100 text-orange-700 border-orange-200' :
+                                                            'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                                        }`}>
+                                                        SLA: {risk.treatment.slaStatus}
+                                                    </span>
+                                                )}
+                                                <Badge
+                                                    status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'}
+                                                    variant="outline"
+                                                >
+                                                    {risk.status}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                        {isReviewOverdue(risk) && (
+                                            <div className="flex items-center justify-between">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
+                                                    <Clock className="h-3 w-3 mr-1" /> Revue en retard
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>)
+                        })}</div>
+                )
+            }
 
             {/* Inspector & Creation Drawer */}
             <Drawer
@@ -1529,6 +1536,7 @@ export const Risks: React.FC = () => {
                                                                 disabled={!canEdit || updating}
                                                             />
                                                         </div>
+
                                                         <div>
                                                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable du traitement</label>
                                                             <CustomSelect
@@ -1825,33 +1833,36 @@ export const Risks: React.FC = () => {
                                                     <p className="text-sm text-slate-400 italic">Aucune technique liée.</p>
                                                 ) : (
                                                     <div className="space-y-3">
-                                                        {selectedRisk.mitreTechniques.map((tech) => (
-                                                            <div key={tech.id} className="flex justify-between items-start p-3 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                <div>
-                                                                    <div className="font-bold text-slate-900 dark:text-white text-sm">
-                                                                        {tech.name} <span className="text-slate-400 font-mono text-xs ml-2">({tech.id})</span>
+                                                        {selectedRisk.mitreTechniques.map(tech => {
+                                                            if (!selectedRisk) return null; // Guard selectedRisk
+                                                            return (
+                                                                <div key={tech.id} className="flex justify-between items-start p-3 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                    <div>
+                                                                        <div className="font-bold text-slate-900 dark:text-white text-sm">
+                                                                            {tech.name} <span className="text-slate-400 font-mono text-xs ml-2">({tech.id})</span>
+                                                                        </div>
+                                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{tech.description}</p>
                                                                     </div>
-                                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{tech.description}</p>
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            if (!canEdit || !selectedRisk) return; // Guard selectedRisk
+                                                                            const updatedTechniques = selectedRisk.mitreTechniques?.filter(t => t.id !== tech.id) || [];
+                                                                            try {
+                                                                                await updateDoc(doc(db, 'risks', selectedRisk.id), { mitreTechniques: updatedTechniques });
+                                                                                setSelectedRisk({ ...selectedRisk, mitreTechniques: updatedTechniques });
+                                                                                refreshRisks();
+                                                                                addToast("Technique retirée", "success");
+                                                                            } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.removeMitreTechnique'); }
+                                                                        }}
+                                                                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                                                                        title="Retirer"
+                                                                        disabled={!canEdit}
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </button>
                                                                 </div>
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        if (!canEdit) return;
-                                                                        const updatedTechniques = selectedRisk.mitreTechniques?.filter(t => t.id !== tech.id) || [];
-                                                                        try {
-                                                                            await updateDoc(doc(db, 'risks', selectedRisk.id), { mitreTechniques: updatedTechniques });
-                                                                            setSelectedRisk({ ...selectedRisk, mitreTechniques: updatedTechniques });
-                                                                            refreshRisks();
-                                                                            addToast("Technique retirée", "success");
-                                                                        } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.removeMitreTechnique'); }
-                                                                    }}
-                                                                    className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                                                                    title="Retirer"
-                                                                    disabled={!canEdit}
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
-                                                        ))}
+                                                            );
+                                                        })}
                                                     </div>
                                                 )}
                                             </div>
@@ -1898,7 +1909,7 @@ export const Risks: React.FC = () => {
                                                                         </h4>
                                                                         <button
                                                                             onClick={async () => {
-                                                                                if (!canEdit || isLinked) return;
+                                                                                if (!canEdit || isLinked || !selectedRisk) return;
                                                                                 const currentTechniques = selectedRisk.mitreTechniques || [];
                                                                                 const updatedTechniques = [...currentTechniques, technique];
                                                                                 try {
@@ -1934,9 +1945,9 @@ export const Risks: React.FC = () => {
                             </>
                         )}
                     </div>
-                )
-                }
-            </Drawer >
-        </StaggerContainer>
+                )}
+            </Drawer>
+        </div>
     );
 };
+
