@@ -78,7 +78,7 @@ export const useFirestoreCollection = <T = DocumentData>(
     useEffect(() => {
         if (!isEnabled || !realtime) {
             if (!realtime) {
-                setRealtimeLoading(p => p ? false : p);
+                setTimeout(() => setRealtimeLoading(false), 0);
             }
             return;
         }
@@ -214,8 +214,10 @@ export const useFirestoreDocument = <T extends { id: string }>(
     // Realtime implementation
     useEffect(() => {
         if (!docId) {
-            setRealtimeData(p => p ? null : p);
-            setRealtimeLoading(p => p ? false : p);
+            setTimeout(() => {
+                setRealtimeData(null);
+                setRealtimeLoading(false);
+            }, 0);
             return;
         }
 

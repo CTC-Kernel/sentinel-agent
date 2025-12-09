@@ -26,7 +26,7 @@ export interface IntegrationConnection {
     updatedAt: Date;
 }
 
-const MOCK_PROVIDERS: IntegrationProvider[] = [
+const INTEGRATION_CATALOG: IntegrationProvider[] = [
     {
         id: 'aws',
         name: 'Amazon Web Services',
@@ -102,7 +102,7 @@ class IntegrationService {
             });
 
             // Merge with static list
-            return MOCK_PROVIDERS.map(provider => {
+            return INTEGRATION_CATALOG.map(provider => {
                 const connection = connectedIntegrations.get(provider.id);
                 if (connection) {
                     return {
