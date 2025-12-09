@@ -494,7 +494,12 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
       posArray[i * 3] = point.x;
       posArray[i * 3 + 1] = point.y;
       posArray[i * 3 + 2] = point.z;
-      offsetArray[i] = Math.random(); // Random start phase
+      // Pseudo-random but deterministic based on index to satisfy purity
+      const pseudoRandom = (seed: number) => {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+      };
+      offsetArray[i] = pseudoRandom(i + 1234);
     }
     return { positions: posArray, initialOffsets: offsetArray };
   }, [curve]);
@@ -1064,10 +1069,10 @@ const PresentationManager: React.FC<{
 
   // Reset index when mode disabled
   useEffect(() => {
-    if (!presentationMode) {
+    if (!presentationMode && presentationIndex !== 0) {
       setPresentationIndex(0);
     }
-  }, [presentationMode]);
+  }, [presentationMode, presentationIndex, setPresentationIndex]);
 
   useFrame((state) => {
     if (presentationMode && criticalNodes.length > 0) {
@@ -1305,7 +1310,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     }
 
     return nodes;
-  }, [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]);
+  }, [safeAssets, safeRisks, safeProjects, safeAudits, safeIncidents, suppliers, controls, visibleTypes, applySceneOffset]);
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -1515,11 +1520,15 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   useEffect(() => {
     if (impactMode && selectedNode) {
       const impacted = calculateBlastRadius(selectedNode.id);
-      setImpactedNodeIds(impacted);
+      // Only update if size changed or first run logic (simplified check)
+      setImpactedNodeIds(prev => {
+        if (prev.size === impacted.size && [...prev].every(id => impacted.has(id))) return prev;
+        return impacted;
+      });
     } else {
-      setImpactedNodeIds(new Set());
+      setImpactedNodeIds(prev => prev.size === 0 ? prev : new Set());
     }
-  }, [impactMode, selectedNode, calculateBlastRadius]);
+  }, [impactMode, selectedNode, calculateBlastRadius, setImpactedNodeIds]);
 
 
 

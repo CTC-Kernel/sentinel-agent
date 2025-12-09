@@ -254,10 +254,10 @@ export const Audits: React.FC = () => {
         setEditingAudit(null);
     };
 
-    const openEditDrawer = (audit: Audit) => {
+    const openEditDrawer = React.useCallback((audit: Audit) => {
         setEditingAudit(audit);
         setCreationMode(false);
-    };
+    }, []);
 
     const handleAuditFormSubmit: SubmitHandler<AuditFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
@@ -383,17 +383,7 @@ export const Audits: React.FC = () => {
         }
     };
 
-    const initiateDeleteAudit = (id: string, name: string) => {
-        if (!canDeleteResource(user, 'Audit')) return;
-        setConfirmData({
-            isOpen: true,
-            title: "Supprimer l'audit ?",
-            message: "L'audit et tous ses constats seront supprimés.",
-            onConfirm: () => handleDeleteAudit(id, name)
-        });
-    };
-
-    const performDelete = async (id: string) => {
+    const performDelete = React.useCallback(async (id: string) => {
         // Delete findings first (Cascade)
         const findingsQ = query(collection(db, 'findings'), where('auditId', '==', id));
         const findingsSnap = await getDocs(findingsQ);
@@ -401,9 +391,9 @@ export const Audits: React.FC = () => {
         await Promise.all(deletePromises);
 
         await deleteDoc(doc(db, 'audits', id));
-    };
+    }, []);
 
-    const handleDeleteAudit = async (id: string, name: string) => {
+    const handleDeleteAudit = React.useCallback(async (id: string, name: string) => {
         if (!canDeleteResource(user, 'Audit')) return;
         try {
             await performDelete(id);
@@ -418,7 +408,17 @@ export const Audits: React.FC = () => {
             ErrorLogger.handleErrorWithToast(error, 'Audits.handleDeleteAudit', 'DELETE_FAILED');
             addToast("Erreur suppression", "error");
         }
-    };
+    }, [user, performDelete, refreshAudits, selectedAudit, addToast]);
+
+    const initiateDeleteAudit = React.useCallback((id: string, name: string) => {
+        if (!canDeleteResource(user, 'Audit')) return;
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer l'audit ?",
+            message: "L'audit et tous ses constats seront supprimés.",
+            onConfirm: () => handleDeleteAudit(id, name)
+        });
+    }, [user, handleDeleteAudit]);
 
     const handleBulkDelete = async (ids: string[]) => {
         if (!canDeleteResource(user, 'Audit')) return;
