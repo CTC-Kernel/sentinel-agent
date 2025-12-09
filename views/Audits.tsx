@@ -146,82 +146,7 @@ export const Audits: React.FC = () => {
 
     const loading = auditsLoading || controlsLoading || assetsLoading || risksLoading || usersLoading || docsLoading || projectsLoading || findingsLoading;
 
-    const columns = React.useMemo<ColumnDef<Audit>[]>(() => [
-        {
-            accessorKey: 'name',
-            header: 'Audit',
-            cell: ({ row }) => (
-                <div>
-                    <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</div>
-                    <div className="text-xs text-slate-500 font-medium">{row.original.type}</div>
-                </div>
-            )
-        },
-        {
-            accessorKey: 'auditor',
-            header: 'Auditeur',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-medium">
-                    <User className="h-4 w-4" />
-                    {row.original.auditor || 'Non assigné'}
-                </div>
-            )
-        },
-        {
-            accessorKey: 'status',
-            header: 'Statut',
-            cell: ({ row }) => {
-                const colors = {
-                    'Planifié': 'bg-blue-100 text-blue-800 border-blue-200',
-                    'En cours': 'bg-indigo-100 text-indigo-800 border-indigo-200',
-                    'Validé': 'bg-green-100 text-green-800 border-green-200',
-                    'Retard': 'bg-red-100 text-red-800 border-red-200',
-                    'Annulé': 'bg-gray-100 text-gray-800 border-gray-200'
-                };
-                return (
-                    <span className={`px-2 py-1 rounded-md text-xs font-bold border ${colors[row.original.status as keyof typeof colors] || 'bg-gray-100 text-gray-800'}`}>
-                        {row.original.status}
-                    </span>
-                );
-            }
-        },
-        {
-            accessorKey: 'findingsCount',
-            header: 'Écarts',
-            cell: ({ row }) => (
-                <div className="flex items-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg w-fit">
-                    <AlertOctagon className="h-3.5 w-3.5 mr-1.5" /> {row.original.findingsCount || 0}
-                </div>
-            )
-        },
-        {
-            accessorKey: 'dateScheduled',
-            header: 'Date Prévue',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-medium">
-                    <CalendarDays className="h-4 w-4" />
-                    {new Date(row.original.dateScheduled).toLocaleDateString()}
-                </div>
-            )
-        },
-        {
-            id: 'actions',
-            cell: ({ row }) => (
-                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                    {canEdit && (
-                        <>
-                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(row.original); }} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
-                                <Edit className="h-4 w-4" />
-                            </button>
-                            <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(row.original.id, row.original.name); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
-                                <Trash2 className="h-4 w-4" />
-                            </button>
-                        </>
-                    )}
-                </div>
-            )
-        }
-    ], [canEdit]);
+
 
     const [creationMode, setCreationMode] = useState(false);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
@@ -995,6 +920,83 @@ export const Audits: React.FC = () => {
 
         return crumbs;
     };
+
+    const columns = React.useMemo<ColumnDef<Audit>[]>(() => [
+        {
+            accessorKey: 'name',
+            header: 'Audit',
+            cell: ({ row }) => (
+                <div>
+                    <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</div>
+                    <div className="text-xs text-slate-500 font-medium">{row.original.type}</div>
+                </div>
+            )
+        },
+        {
+            accessorKey: 'auditor',
+            header: 'Auditeur',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-medium">
+                    <User className="h-4 w-4" />
+                    {row.original.auditor || 'Non assigné'}
+                </div>
+            )
+        },
+        {
+            accessorKey: 'status',
+            header: 'Statut',
+            cell: ({ row }) => {
+                const colors = {
+                    'Planifié': 'bg-blue-100 text-blue-800 border-blue-200',
+                    'En cours': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+                    'Validé': 'bg-green-100 text-green-800 border-green-200',
+                    'Retard': 'bg-red-100 text-red-800 border-red-200',
+                    'Annulé': 'bg-gray-100 text-gray-800 border-gray-200'
+                };
+                return (
+                    <span className={`px-2 py-1 rounded-md text-xs font-bold border ${colors[row.original.status as keyof typeof colors] || 'bg-gray-100 text-gray-800'}`}>
+                        {row.original.status}
+                    </span>
+                );
+            }
+        },
+        {
+            accessorKey: 'findingsCount',
+            header: 'Écarts',
+            cell: ({ row }) => (
+                <div className="flex items-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg w-fit">
+                    <AlertOctagon className="h-3.5 w-3.5 mr-1.5" /> {row.original.findingsCount || 0}
+                </div>
+            )
+        },
+        {
+            accessorKey: 'dateScheduled',
+            header: 'Date Prévue',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-medium">
+                    <CalendarDays className="h-4 w-4" />
+                    {new Date(row.original.dateScheduled).toLocaleDateString()}
+                </div>
+            )
+        },
+        {
+            id: 'actions',
+            cell: ({ row }) => (
+                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                    {canEdit && (
+                        <>
+                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(row.original); }} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
+                                <Edit className="h-4 w-4" />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(row.original.id, row.original.name); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </>
+                    )}
+                </div>
+            )
+        }
+    ], [canEdit, openEditDrawer, initiateDeleteAudit]);
 
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">

@@ -14,13 +14,7 @@ export const Integrations: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
-    useEffect(() => {
-        if (user?.organizationId) {
-            loadProviders();
-        }
-    }, [user?.organizationId]);
-
-    const loadProviders = async () => {
+    const loadProviders = React.useCallback(async () => {
         if (!user?.organizationId) return;
         try {
             const data = await integrationService.getProviders(user.organizationId);
@@ -30,7 +24,15 @@ export const Integrations: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user?.organizationId]);
+
+    useEffect(() => {
+        if (user?.organizationId) {
+            loadProviders();
+        }
+    }, [user?.organizationId, loadProviders]);
+
+
 
     const handleConnect = async (provider: IntegrationProvider) => {
         if (!user?.organizationId) {

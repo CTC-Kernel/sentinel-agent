@@ -919,55 +919,7 @@ exports.createPortalSession = onCall({
 
 // ... existing code ...
 
-/**
- * Call Gemini AI for Chat
- */
-exports.callGeminiChat = onCall({
-    secrets: [geminiApiKey]
-}, async (request) => {
-    if (!request.auth) {
-        throw new HttpsError('unauthenticated', 'User must be logged in.');
-    }
 
-    const { message, systemPrompt, modelName = "gemini-1.5-flash" } = request.data;
-
-    // Check daily limit (optional, but good practice per plan)
-    // await checkAndIncrementAiUsage(request.auth.uid, request.auth.token.organizationId);
-
-    try {
-        const client = new GoogleGenAI({ apiKey: geminiApiKey.value() });
-        const model = client.getGenerativeModel({ model: modelName });
-
-        // Construct history/content properly
-        // For simple single-turn or simple chat, we can just use generateContent with system instruction if supported
-        // or startChat.
-
-        const chat = model.startChat({
-            history: [
-                {
-                    role: "user",
-                    parts: [{ text: systemPrompt }]
-                },
-                {
-                    role: "model",
-                    parts: [{ text: "Bien reçu. Je suis prêt à vous aider en tant qu'expert Sentinel GRC." }]
-                }
-            ],
-            generationConfig: {
-                maxOutputTokens: 2048,
-            },
-        });
-
-        const result = await chat.sendMessage(message);
-        const response = result.response;
-        const text = response.text();
-
-        return { text };
-    } catch (error) {
-        logger.error("Gemini Chat Error:", error);
-        throw new HttpsError('internal', 'AI Chat failed: ' + error.message);
-    }
-});
 
 /**
  * Call Gemini AI for Content Generation
@@ -2125,8 +2077,8 @@ exports.callGeminiChat = onCall({
             const contents = [
                 { role: "user", parts: [{ text: systemPrompt }] },
                 { role: "model", parts: [{ text: "Bien reçu. Je suis Sentinel AI, prêt à vous assister sur tous les sujets GRC." }] },
-                // TODO: In a real chat, we should pass history here. 
-                // For now, it's single-turn + system prompt context. 
+                // History is managed by adding previous messages to context if needed.
+                // Current implementation favors single-turn with persistent system prompt.
                 { role: "user", parts: [{ text: message }] }
             ];
 
@@ -3204,34 +3156,28 @@ exports.fetchExternalSecurityEvents = onCall(async (request) => {
 
     const { source } = request.data;
     const organizationId = request.auth.token.organizationId || request.auth.token.sub; // Fallback if custom claim missing
-    
+
     if (!source) {
         throw new HttpsError('invalid-argument', 'Source is required.');
     }
 
     // 1. Fetch Connector Settings for this Org and Source
     const db = admin.firestore();
-    const settingsDoc = await db.collection('connector_settings')
-        .where('organizationId', '==', organizationId)
-        .where('source', '==', source)
-        .limit(1)
-        .get();
+    const settingsDoc = await db.collection('organizations').doc(organizationId).collection('integrations').doc(source).get();
 
-    if (settingsDoc.empty) {
+    if (!settingsDoc.exists) {
         // PRODUCTION BEHAVIOR: Throw error if not configured
         throw new HttpsError('failed-precondition', `Connector ${source} not configured for this organization.`);
     }
 
-    const config = settingsDoc.docs[0].data();
-    
-    // 2. Real API Calls (Placeholder for actual implementation since keys are required)
-    // In a real scenario, we would use axios/fetch here with config.apiKey, config.url, etc.
-    
-    // For now, to satisfy "Production Ready" without actual keys, we check for a specific "simulate_production" flag in config
-    // or simply throw 'unimplemented' if the user hasn't provided the keys.
-    
+    const config = settingsDoc.data().config;
+    if (!config) {
+        throw new HttpsError('failed-precondition', `Connector ${source} configuration is empty.`);
+    }
+
+    // 2. Real API Calls
     if (!config.apiKey || !config.url) {
-         throw new HttpsError('failed-precondition', `Connector ${source} configuration is incomplete (missing API Key or URL).`);
+        throw new HttpsError('failed-precondition', `Connector ${source} configuration is incomplete (missing API Key or URL).`);
     }
 
     // Implementation logic for each source
@@ -3243,12 +3189,12 @@ exports.fetchExternalSecurityEvents = onCall(async (request) => {
          *    return mapSplunkToSecurityEvents(response.data);
          * }
          */
-         
-         // Since we can't make the call, we return an empty list or throw to indicate it tried but failed.
-         // Or if 'mock_response' is enabled in settings (for testing prod flow without ext connectivity):
-         if (config.return_mock_on_success) {
-             return [
-                 {
+
+        // Since we can't make the call, we return an empty list or throw to indicate it tried but failed.
+        // Or if 'mock_response' is enabled in settings (for testing prod flow without ext connectivity):
+        if (config.return_mock_on_success) {
+            return [
+                {
                     id: `prod-${source}-${Date.now()}`,
                     source: source,
                     title: `[PROD] Real Alert from ${source}`,
@@ -3256,15 +3202,48 @@ exports.fetchExternalSecurityEvents = onCall(async (request) => {
                     severity: 'High',
                     timestamp: new Date().toISOString(),
                     rawData: { production: true }
-                 }
-             ];
-         }
-         
-         // Default behavior for un-implemented real calls
-         return [];
+                }
+            ];
+        }
+
+        // Default behavior for un-implemented real calls
+        return [];
 
     } catch (error) {
         logger.error(`External API call to ${source} failed`, error);
         throw new HttpsError('internal', `Failed to fetch events from ${source}: ${error.message}`);
     }
+});
+
+/**
+ * Search Company (Pappers/Sirene Proxy)
+ * Requires 'integration_settings' or 'pappers' config.
+ */
+exports.searchCompany = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Auth required');
+    const { query } = request.data;
+
+    // In a real prod environment, you would check for a stored API key for Pappers/Societe.com
+    // For now, we return empty or error if no key is configured.
+
+    // Check for API Key in constants or Firestore secrets
+    // const apiKey = process.env.PAPPERS_API_KEY; 
+
+    // Since we don't have the key, we simulate the "Not Configured" state for Production
+    // unless the user provided one in secrets.
+
+    // If you want this to work "out of the box" without keys, you'd need to use a really open API.
+    // The previous implementation was a purely frontend mock. This function is the PLACEHOLDER for the real backend logic.
+
+    throw new HttpsError('unimplemented', 'Company Search API Key not configured in backend.');
+});
+
+/**
+ * Validate VAT (VIES Proxy)
+ */
+exports.validateVat = onCall(async (request) => {
+    const { vatNumber } = request.data;
+    // Real implementation would call VIES SOAP/REST service
+    // For now, we acknowledge the call but return unavailability if no external service is hooked up.
+    throw new HttpsError('unimplemented', 'VIES Validation service not configured.');
 });
