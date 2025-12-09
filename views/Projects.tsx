@@ -697,7 +697,7 @@ export const Projects: React.FC = () => {
     ], [canEdit, openEditDrawer, initiateDelete]);
 
     return (
-        <div className="space-y-6 relative">
+        <div className="space-y-8 animate-fade-in pb-10 relative">
             <Helmet>
                 <title>Gestion de Projets - Sentinel GRC</title>
                 <meta name="description" content="Suivez vos projets de mise en conformité et d'amélioration continue." />
@@ -1449,6 +1449,6 @@ export const Projects: React.FC = () => {
                 confirmText="Oui, mettre à jour"
                 cancelText="Non, ignorer"
             />
-        </div >
+        </div>
     );
 };

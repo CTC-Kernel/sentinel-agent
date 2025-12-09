@@ -13,7 +13,7 @@ import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, Mess
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
-import { StaggerContainer, SlideUp } from '../components/ui/Animations';
+import { SlideUp } from '../components/ui/Animations';
 
 import { PdfService } from '../services/PdfService';
 
@@ -619,7 +619,7 @@ export const Assets: React.FC = () => {
     }
 
     return (
-        <StaggerContainer className="space-y-8 relative pb-10">
+        <div className="space-y-8 animate-fade-in pb-10 relative">
             <Helmet>
                 <title>{selectedAsset ? `${selectedAsset.name} - Actifs` : 'Inventaire des Actifs - Sentinel GRC'}</title>
             </Helmet>
@@ -1373,6 +1373,6 @@ export const Assets: React.FC = () => {
                     </>
                 )}
             </Drawer >
-        </StaggerContainer>
+        </div>
     );
 };
