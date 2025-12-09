@@ -8,6 +8,9 @@ import { ErrorLogger } from "./errorLogger";
 const FAST_MODEL = "gemini-1.5-flash";
 const SMART_MODEL = "gemini-3-pro-preview";
 
+let lastChatCall = 0;
+let lastGenCall = 0;
+
 interface GraphData {
     assets: Asset[];
     risks: Risk[];
@@ -152,13 +155,11 @@ export const aiService = {
 
         // Prevent loops: Rate limit client-side (1 second debounce)
         const now = Date.now();
-        // @ts-ignore - Adding static property for rate limiting
-        if (aiService.lastChatCall && (now - aiService.lastChatCall < 2000)) {
+        if (lastChatCall && (now - lastChatCall < 2000)) {
             console.warn('[aiService] Rate limit prevented rapid call.');
             return "Veuillez patienter quelques secondes avant de renvoyer un message.";
         }
-        // @ts-ignore
-        aiService.lastChatCall = now;
+        lastChatCall = now;
 
         const systemPrompt = `Tu es Sentinel AI, un assistant expert en cybersécurité et GRC (Gouvernance, Risque, Conformité).
             Ton rôle est d'aider les utilisateurs à gérer leur sécurité, comprendre les normes (ISO 27001, RGPD) et rédiger des documents.
@@ -418,13 +419,11 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
 
     // Prevent loops: Rate limit client-side (1 second debounce)
     const now = Date.now();
-    // @ts-ignore
-    if (aiService.lastGenCall && (now - aiService.lastGenCall < 2000)) {
+    if (lastGenCall && (now - lastGenCall < 2000)) {
         console.warn('[aiService] Rate limit prevented rapid generateContentSafe call.');
         return ""; // Return empty string or handle gracefully
     }
-    // @ts-ignore
-    aiService.lastGenCall = now;
+    lastGenCall = now;
 
     try {
         const functions = getFunctions();

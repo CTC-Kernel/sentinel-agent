@@ -311,27 +311,35 @@ class IntegrationService {
 
     // --- Added for SupplierForm compatibility ---
 
-    async searchCompany(query: string): Promise<CompanySearchResult[]> {
-        // Mock implementation for demo/build
-        // In production, integrate with Pappers or Sirene API
-        if (query.length < 3) return [];
+    async searchCompany(query: string, isDemoMode: boolean = false): Promise<CompanySearchResult[]> {
+        if (isDemoMode) {
+            if (query.length < 3) return [];
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate net lag
+            return [
+                {
+                    name: `${query.toUpperCase()} SOLUTIONS`,
+                    siren: '123456789',
+                    address: '10 Avenue des Champs-Élysées, 75008 Paris',
+                    activity: 'Conseil en systèmes et logiciels informatiques'
+                },
+                {
+                    name: `${query.toUpperCase()} TECH`,
+                    siren: '987654321',
+                    address: 'Station F, 75013 Paris',
+                    activity: 'Édition de logiciels applicatifs'
+                }
+            ];
+        }
 
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate net lag
-
-        return [
-            {
-                name: `${query.toUpperCase()} SOLUTIONS`,
-                siren: '123456789',
-                address: '10 Avenue des Champs-Élysées, 75008 Paris',
-                activity: 'Conseil en systèmes et logiciels informatiques'
-            },
-            {
-                name: `${query.toUpperCase()} TECH`,
-                siren: '987654321',
-                address: 'Station F, 75013 Paris',
-                activity: 'Édition de logiciels applicatifs'
-            }
-        ];
+        try {
+            const searchCompanyFn = httpsCallable<{ query: string }, CompanySearchResult[]>(functions, 'searchCompany');
+            const result = await searchCompanyFn({ query });
+            return result.data;
+        } catch (error) {
+            console.error("Error searching company:", error);
+            // Fail gracefully or return empty
+            return [];
+        }
     }
 
     async fetchSecurityEvents(source: 'splunk' | 'crowdstrike' | 'sentinelone' | 'microsoft', isDemoMode: boolean = false): Promise<SecurityEvent[]> {
@@ -426,18 +434,22 @@ class IntegrationService {
         return `https://logo.clearbit.com/${domain}`;
     }
 
-    async validateVat(vatNumber: string): Promise<{ valid: boolean, message: string }> {
-        // Basic Regex Validation for common EU formats (Simplified)
-        // In prod, call VIES API
-        const vatRegex = /^[A-Z]{2}[0-9A-Z]+$/;
-
-        if (!vatRegex.test(vatNumber)) {
-            return { valid: false, message: 'Format de TVA invalide' };
+    async validateVat(vatNumber: string, isDemoMode: boolean = false): Promise<{ valid: boolean, message: string }> {
+        if (isDemoMode) {
+            const vatRegex = /^[A-Z]{2}[0-9A-Z]+$/;
+            if (!vatRegex.test(vatNumber)) return { valid: false, message: 'Format de TVA invalide' };
+            await new Promise(resolve => setTimeout(resolve, 300));
+            return { valid: true, message: 'Numéro de TVA valide (Simulé)' };
         }
 
-        // Mock async check
-        await new Promise(resolve => setTimeout(resolve, 300));
-        return { valid: true, message: 'Numéro de TVA valide (Simulé)' };
+        try {
+            const validateVatFn = httpsCallable<{ vatNumber: string }, { valid: boolean, message: string }>(functions, 'validateVat');
+            const result = await validateVatFn({ vatNumber });
+            return result.data;
+        } catch (error) {
+            console.error("Error validating VAT:", error);
+            return { valid: false, message: 'Impossible de vérifier la TVA (Service indisponible)' };
+        }
     }
 }
 

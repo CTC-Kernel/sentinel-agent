@@ -366,7 +366,7 @@ export const VoxelView: React.FC = () => {
         };
       }).filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase())),
     }));
-  }, [assets, risks, projects, audits, incidents, suppliers, searchQuery]);
+  }, [assets, risks, projects, audits, incidents, suppliers, controls, searchQuery]);
 
   const selectedNodeDetails = useMemo(() => {
     if (!selectedNode) return null;
@@ -581,7 +581,7 @@ export const VoxelView: React.FC = () => {
     }
 
     return items;
-  }, [selectedNode, assets, risks, incidents, projects]);
+  }, [selectedNode, assets, risks, incidents, projects, controls]);
 
   const handleLayerToggle = (layer: LayerType) => {
     setActiveLayers(prev => {
