@@ -46,7 +46,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     documents,
     isLoading = false
 }) => {
-    const { addToast } = useStore();
+    const { addToast, demoMode } = useStore();
     const { register, handleSubmit, control, setValue, formState: { errors }, getValues } = useForm<SupplierFormData>({
         resolver: zodResolver(supplierSchema),
         defaultValues: initialData || {
@@ -69,7 +69,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         }
         setSearching(true);
         try {
-            const results = await integrationService.searchCompany(query);
+            const results = await integrationService.searchCompany(query, demoMode);
             setSearchResults(results);
         } catch (error) {
             ErrorLogger.error(error, "SupplierForm.handleCompanySearch");

@@ -280,7 +280,7 @@ export const Assets: React.FC = () => {
             const cleanData = sanitizeData(validatedData);
             // Track History if Criticality Changes
             const prev = selectedAsset;
-            let dataToUpdate: any = { ...cleanData };
+            const dataToUpdate: any = { ...cleanData };
 
             if (prev.confidentiality !== cleanData.confidentiality || prev.integrity !== cleanData.integrity || prev.availability !== cleanData.availability) {
                 const historyEntry: AssetHistory = {
