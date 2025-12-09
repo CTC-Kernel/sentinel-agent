@@ -80,6 +80,7 @@ export const ThreatRegistry: React.FC = () => {
             addToast("Menace supprimée", "success");
             await logAction(user!, 'DELETE', 'ThreatLibrary', `Suppression menace ${id}`);
         } catch (error) {
+            console.error("Delete threat error:", error);
             addToast("Erreur lors de la suppression", "error");
         }
     };
@@ -105,7 +106,7 @@ export const ThreatRegistry: React.FC = () => {
 
             if (isEditing && selectedThreat?.id) {
                 // remove id from update payload
-                const { id, ...updateData } = dataToSave;
+                const { id: _id, ...updateData } = dataToSave;
                 await updateDoc(doc(db, 'threat_library', selectedThreat.id), updateData);
                 addToast("Menace modifiée", "success");
                 await logAction(user!, 'UPDATE', 'ThreatLibrary', `Modification menace ${selectedThreat.name}`);
@@ -130,7 +131,7 @@ export const ThreatRegistry: React.FC = () => {
     );
 
     return (
-        <div className="p-8">
+        <div className="animate-fade-in space-y-8">
             <Helmet>
                 <title>Bibliothèque de Menaces | Sentinel GRC</title>
             </Helmet>

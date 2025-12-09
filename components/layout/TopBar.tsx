@@ -47,129 +47,131 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
     };
 
     return (
-        <header className="h-16 pt-safe flex items-center justify-between px-6 z-20 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800/70 transition-all duration-300">
-            {/* Left: Mobile Menu & Search Trigger */}
-            <div className="flex items-center flex-1 gap-4">
-                <button
-                    onClick={() => setMobileOpen(true)}
-                    className="p-2 -ml-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
-                >
-                    <Menu className="h-5 w-5" />
-                </button>
-
-                {/* Modern Search Bar Trigger */}
-                <button
-                    onClick={openCommandPalette}
-                    className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl text-sm text-slate-500 dark:text-slate-400 transition-all duration-200 group w-full max-w-md shadow-sm hover:shadow-md"
-                >
-                    <Search className="h-4 w-4 text-slate-400 group-hover:text-brand-500 transition-colors" />
-                    <span className="flex-1 text-left font-medium">Rechercher...</span>
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white dark:bg-white/10 border border-slate-200 dark:border-white/5 text-[10px] font-bold text-slate-400 shadow-sm">
-                        <Command className="h-3 w-3" />
-                        <span>K</span>
-                    </div>
-                </button>
-
-                {/* Mobile Search Icon */}
-                <button
-                    onClick={openCommandPalette}
-                    className="md:hidden p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
-                >
-                    <Search className="h-5 w-5" />
-                </button>
-            </div>
-
-            {/* Right: Actions & Profile */}
-            <div className="flex items-center gap-2 sm:gap-4">
-                <NotificationCenter />
-
-                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block"></div>
-
-                <button
-                    onClick={async () => {
-                        toggleTheme();
-                        if (user) {
-                            try {
-                                const newTheme = theme === 'light' ? 'dark' : 'light';
-                                await updateDoc(doc(db, 'users', user.uid), { theme: newTheme });
-                            } catch (e) {
-                                ErrorLogger.error(e, 'TopBar.toggleTheme');
-                            }
-                        }
-                    }}
-                    className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-                    aria-label="Toggle Theme"
-                >
-                    {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
-                </button>
-
-                <div className="relative" ref={userMenuRef}>
+        <header className="h-16 pt-safe z-20 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800/70 transition-all duration-300 px-4 md:px-8">
+            <div className="h-full max-w-[1600px] mx-auto flex items-center justify-between">
+                {/* Left: Mobile Menu & Search Trigger */}
+                <div className="flex items-center flex-1 gap-4">
                     <button
-                        className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-slate-50 dark:hover:bg-white/5 transition-all group focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-                        onClick={() => setShowUserMenu(!showUserMenu)}
+                        onClick={() => setMobileOpen(true)}
+                        className="p-2 -ml-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
                     >
-                        <div className="hidden sm:flex flex-col items-end mr-1">
-                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none">{user?.displayName}</span>
-                            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
-                        </div>
-                        {user?.photoURL ? (
-                            <img
-                                src={user.photoURL}
-                                alt="Profile"
-                                className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md group-hover:scale-105 transition-transform"
-                            />
-                        ) : (
-                            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-white dark:ring-slate-800 group-hover:scale-105 transition-transform">
-                                {user?.displayName?.charAt(0).toUpperCase()}
-                            </div>
-                        )}
+                        <Menu className="h-5 w-5" />
                     </button>
 
-                    {/* Dropdown Menu */}
-                    {showUserMenu && (
-                        <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-scale-in origin-top-right">
-                            <div className="p-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-slate-700">
-                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.displayName}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>
-                            </div>
-                            <div className="p-2 space-y-1">
-                                <Link
-                                    to="/settings"
-                                    onClick={() => setShowUserMenu(false)}
-                                    className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
-                                >
-                                    <User className="h-4 w-4 mr-3 text-slate-400" />
-                                    Mon Profil
-                                </Link>
-                                <Link
-                                    to="/settings"
-                                    onClick={() => setShowUserMenu(false)}
-                                    className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
-                                >
-                                    <SettingsIcon className="h-4 w-4 mr-3 text-slate-400" />
-                                    Paramètres
-                                </Link>
-                                <Link
-                                    to="/pricing"
-                                    onClick={() => setShowUserMenu(false)}
-                                    className="flex items-center px-3 py-2.5 text-sm font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/10 rounded-xl transition-colors"
-                                >
-                                    <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[10px]">€</span>
-                                    Plans & Facturation
-                                </Link>
-                            </div>
-                            <div className="h-px bg-slate-100 dark:bg-white/5 mx-2"></div>
-                            <div className="p-2">
-                                <button
-                                    onClick={() => { handleLogout(); setShowUserMenu(false); }}
-                                    className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors"
-                                >
-                                    <LogOut className="h-4 w-4 mr-3" />
-                                    Déconnexion
-                                </button>
-                            </div>
+                    {/* Modern Search Bar Trigger */}
+                    <button
+                        onClick={openCommandPalette}
+                        className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl text-sm text-slate-500 dark:text-slate-400 transition-all duration-200 group w-full max-w-md shadow-sm hover:shadow-md"
+                    >
+                        <Search className="h-4 w-4 text-slate-400 group-hover:text-brand-500 transition-colors" />
+                        <span className="flex-1 text-left font-medium">Rechercher...</span>
+                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white dark:bg-white/10 border border-slate-200 dark:border-white/5 text-[10px] font-bold text-slate-400 shadow-sm">
+                            <Command className="h-3 w-3" />
+                            <span>K</span>
                         </div>
-                    )}
+                    </button>
+
+                    {/* Mobile Search Icon */}
+                    <button
+                        onClick={openCommandPalette}
+                        className="md:hidden p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+                    >
+                        <Search className="h-5 w-5" />
+                    </button>
+                </div>
+
+                {/* Right: Actions & Profile */}
+                <div className="flex items-center gap-2 sm:gap-4">
+                    <NotificationCenter />
+
+                    <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block"></div>
+
+                    <button
+                        onClick={async () => {
+                            toggleTheme();
+                            if (user) {
+                                try {
+                                    const newTheme = theme === 'light' ? 'dark' : 'light';
+                                    await updateDoc(doc(db, 'users', user.uid), { theme: newTheme });
+                                } catch (e) {
+                                    ErrorLogger.error(e, 'TopBar.toggleTheme');
+                                }
+                            }
+                        }}
+                        className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                        aria-label="Toggle Theme"
+                    >
+                        {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
+                    </button>
+
+                    <div className="relative" ref={userMenuRef}>
+                        <button
+                            className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-slate-50 dark:hover:bg-white/5 transition-all group focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                            onClick={() => setShowUserMenu(!showUserMenu)}
+                        >
+                            <div className="hidden sm:flex flex-col items-end mr-1">
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none">{user?.displayName}</span>
+                                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
+                            </div>
+                            {user?.photoURL ? (
+                                <img
+                                    src={user.photoURL}
+                                    alt="Profile"
+                                    className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md group-hover:scale-105 transition-transform"
+                                />
+                            ) : (
+                                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-white dark:ring-slate-800 group-hover:scale-105 transition-transform">
+                                    {user?.displayName?.charAt(0).toUpperCase()}
+                                </div>
+                            )}
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {showUserMenu && (
+                            <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-scale-in origin-top-right">
+                                <div className="p-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-slate-700">
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.displayName}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>
+                                </div>
+                                <div className="p-2 space-y-1">
+                                    <Link
+                                        to="/settings"
+                                        onClick={() => setShowUserMenu(false)}
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                    >
+                                        <User className="h-4 w-4 mr-3 text-slate-400" />
+                                        Mon Profil
+                                    </Link>
+                                    <Link
+                                        to="/settings"
+                                        onClick={() => setShowUserMenu(false)}
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                    >
+                                        <SettingsIcon className="h-4 w-4 mr-3 text-slate-400" />
+                                        Paramètres
+                                    </Link>
+                                    <Link
+                                        to="/pricing"
+                                        onClick={() => setShowUserMenu(false)}
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/10 rounded-xl transition-colors"
+                                    >
+                                        <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[10px]">€</span>
+                                        Plans & Facturation
+                                    </Link>
+                                </div>
+                                <div className="h-px bg-slate-100 dark:bg-white/5 mx-2"></div>
+                                <div className="p-2">
+                                    <button
+                                        onClick={() => { handleLogout(); setShowUserMenu(false); }}
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors"
+                                    >
+                                        <LogOut className="h-4 w-4 mr-3" />
+                                        Déconnexion
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </header>
