@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 // import { Helmet } from 'react-helmet-async'; // Replaced by SEO component
-import { StaggerContainer, SlideUp } from '../components/ui/Animations'; // Added Layout Animations
+import { SlideUp } from '../components/ui/Animations'; // Added Layout Animations
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, limit, addDoc } from 'firebase/firestore';
 import { RiskFormData, riskSchema } from '../schemas/riskSchema';
@@ -841,7 +841,7 @@ export const Compliance: React.FC = () => {
     }
 
     return (
-        <StaggerContainer className="space-y-8 relative pb-10">
+        <div className="space-y-8 animate-fade-in pb-10 relative">
             <SEO
                 title={selectedControl ? `${selectedControl.code} - Conformité` : 'Conformité & Standards'}
                 description="Suivez votre conformité aux normes ISO 27001, NIS 2, DORA et gérez vos audits."
@@ -1651,7 +1651,7 @@ export const Compliance: React.FC = () => {
                 ))}
 
             </Drawer >
-        </StaggerContainer >
+        </div>
     );
 };
 
