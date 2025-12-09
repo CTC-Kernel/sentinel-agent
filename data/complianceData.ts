@@ -281,3 +281,55 @@ export const NIST_CSF_SEED_CONTROLS = [
     { code: 'RS.CO-01', name: 'Communication sur les incidents' },
     { code: 'RC.RP-01', name: 'Plan de rétablissement' }
 ];
+
+export const ISO22301_DOMAINS = [
+    { id: 'ISO22301.4', title: 'Contexte de l\'organisme', description: 'Enjeux, parties intéressées, domaine d\'application...' },
+    { id: 'ISO22301.5', title: 'Leadership', description: 'Engagement, politique, rôles et responsabilités...' },
+    { id: 'ISO22301.6', title: 'Planification', description: 'Risques, opportunités, objectifs de continuité...' },
+    { id: 'ISO22301.7', title: 'Support', description: 'Ressources, compétences, communication, info doc...' },
+    { id: 'ISO22301.8', title: 'Fonctionnement', description: 'BIA, stratégies, plans de continuité, exercices...' },
+    { id: 'ISO22301.9', title: 'Évaluation des performances', description: 'Surveillance, audit interne, revue de direction...' },
+    { id: 'ISO22301.10', title: 'Amélioration', description: 'Non-conformités, actions correctives, amélioration continue...' }
+];
+
+export const ISO22301_SEED_CONTROLS = [
+    // 4. Contexte
+    { code: 'ISO22301.4.1', name: 'Compréhension de l\'organisme et de son contexte' },
+    { code: 'ISO22301.4.2', name: 'Compréhension des besoins des parties intéressées' },
+    { code: 'ISO22301.4.3', name: 'Détermination du domaine d\'application du SMCA' },
+    { code: 'ISO22301.4.4', name: 'Système de management de la continuité d\'activité' },
+
+    // 5. Leadership
+    { code: 'ISO22301.5.1', name: 'Leadership et engagement' },
+    { code: 'ISO22301.5.2', name: 'Politique de continuité d\'activité' },
+    { code: 'ISO22301.5.3', name: 'Rôles, responsabilités et autorités' },
+
+    // 6. Planification
+    { code: 'ISO22301.6.1', name: 'Actions face aux risques et opportunités' },
+    { code: 'ISO22301.6.2', name: 'Objectifs de continuité d\'activité et planification' },
+    { code: 'ISO22301.6.3', name: 'Planification des modifications du SMCA' },
+
+    // 7. Support
+    { code: 'ISO22301.7.1', name: 'Ressources' },
+    { code: 'ISO22301.7.2', name: 'Compétences' },
+    { code: 'ISO22301.7.3', name: 'Sensibilisation' },
+    { code: 'ISO22301.7.4', name: 'Communication' },
+    { code: 'ISO22301.7.5', name: 'Informations documentées' },
+
+    // 8. Fonctionnement
+    { code: 'ISO22301.8.1', name: 'Planification et contrôle opérationnels' },
+    { code: 'ISO22301.8.2', name: 'Analyse d\'impact sur l\'activité (BIA)' },
+    { code: 'ISO22301.8.3', name: 'Appréciation des risques' },
+    { code: 'ISO22301.8.4', name: 'Stratégies et solutions de continuité d\'activité' },
+    { code: 'ISO22301.8.5', name: 'Plans et procédures de continuité d\'activité' },
+    { code: 'ISO22301.8.6', name: 'Évaluation de la documentation et des capacités' },
+
+    // 9. Évaluation
+    { code: 'ISO22301.9.1', name: 'Surveillance, mesure, analyse et évaluation' },
+    { code: 'ISO22301.9.2', name: 'Audit interne' },
+    { code: 'ISO22301.9.3', name: 'Revue de direction' },
+
+    // 10. Amélioration
+    { code: 'ISO22301.10.1', name: 'Non-conformité et actions correctives' },
+    { code: 'ISO22301.10.2', name: 'Amélioration continue' }
+];
