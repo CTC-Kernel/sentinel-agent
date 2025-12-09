@@ -11,7 +11,7 @@ import { ErrorLogger } from '../services/errorLogger';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { DashboardSkeleton } from '../components/skeletons/DashboardSkeleton';
 import { GettingStartedWidget } from '../components/dashboard/widgets/GettingStartedWidget';
-import { StaggerContainer, SlideUp } from '../components/ui/Animations';
+import { SlideUp } from '../components/ui/Animations';
 
 // Widgets
 import { DashboardHeader } from '../components/dashboard/widgets/DashboardHeader';
@@ -396,7 +396,7 @@ export const Dashboard: React.FC = () => {
     }
 
     return (
-        <StaggerContainer className="space-y-6">
+        <div className="space-y-8 animate-fade-in pb-10 relative">
             <SEO
                 title="Tableau de bord de Gouvernance"
                 description="Vue d'overview de votre posture de sécurité et conformité."
@@ -509,6 +509,6 @@ export const Dashboard: React.FC = () => {
                     );
                 })()}
             </SlideUp>
-        </StaggerContainer>
+        </div>
     );
 };
