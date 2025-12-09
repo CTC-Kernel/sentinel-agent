@@ -36,10 +36,9 @@ import { ProjectForm } from '../components/projects/ProjectForm';
 
 
 import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS, DORA_DOMAINS, DORA_SEED_CONTROLS, GDPR_DOMAINS, GDPR_SEED_CONTROLS, SOC2_DOMAINS, SOC2_SEED_CONTROLS, HDS_DOMAINS, HDS_SEED_CONTROLS, PCI_DSS_DOMAINS, PCI_DSS_SEED_CONTROLS, NIST_CSF_DOMAINS, NIST_CSF_SEED_CONTROLS } from '../data/complianceData';
-import { FRAMEWORK_OPTIONS } from '../data/frameworks';
+import { FRAMEWORKS } from '../data/frameworks';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { Globe } from '../components/ui/Icons';
-
 
 
 
@@ -91,6 +90,16 @@ export const Compliance: React.FC = () => {
     const [isLinkingEvidence, setIsLinkingEvidence] = useState(false);
     const [syncingEvidenceId, setSyncingEvidenceId] = useState<string | null>(null);
     const [updating, setUpdating] = useState(false);
+
+    // Filter FRAMEWORKS for Compliance only
+    const complianceFrameworks = FRAMEWORKS.filter(f => f.type === 'Compliance').map(f => ({ value: f.id, label: f.label }));
+
+    // ... (rest of imports/logic until the return) ...
+    // Note: I will only replace the top section to add import and the render section to fix width and usage.
+    // I need to split this into two replacements or one big one if I copy enough context.
+    // Actually, I can just replace the import and then the render. 
+    // First tool call: Import
+
 
     useEffect(() => {
         const loadProviders = async () => {
@@ -887,8 +896,8 @@ export const Compliance: React.FC = () => {
                         {viewMode === 'compliance' && (
                             <>
                                 {/* Framework Switcher - Tabs Style */}
-                                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10 overflow-x-auto w-full max-w-[calc(100vw-3rem)] md:w-auto md:max-w-[800px] custom-scrollbar">
-                                    {FRAMEWORK_OPTIONS.map(opt => (
+                                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10 overflow-x-auto w-full max-w-[calc(100vw-3rem)] md:w-auto custom-scrollbar">
+                                    {complianceFrameworks.map(opt => (
                                         <button
                                             key={opt.value}
                                             onClick={() => setCurrentFramework(opt.value as Framework)}

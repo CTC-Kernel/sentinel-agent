@@ -334,6 +334,92 @@ class IntegrationService {
         ];
     }
 
+    async fetchSecurityEvents(source: 'splunk' | 'crowdstrike' | 'sentinelone' | 'microsoft', isDemoMode: boolean = false): Promise<SecurityEvent[]> {
+        if (isDemoMode) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            const now = new Date();
+            if (source === 'splunk') {
+                return [
+                    {
+                        id: `splunk-${Date.now()}-1`,
+                        source: 'Splunk',
+                        title: 'Multiple Failed Login Attempts (Admin)',
+                        description: 'Detected 15 failed login attempts from IP 192.168.1.50 in 5 minutes.',
+                        severity: 'High',
+                        timestamp: new Date(now.getTime() - 1000 * 60 * 30).toISOString(), // 30 mins ago
+                        rawData: { ip: '192.168.1.50', count: 15, user: 'admin' }
+                    },
+                    {
+                        id: `splunk-${Date.now()}-2`,
+                        source: 'Splunk',
+                        title: 'Unusual Data Egress',
+                        description: 'Large file transfer (2GB) detected to unknown external IP.',
+                        severity: 'Medium',
+                        timestamp: new Date(now.getTime() - 1000 * 60 * 120).toISOString(), // 2 hours ago
+                        rawData: { dest_ip: '45.33.22.11', size: '2GB' }
+                    }
+                ];
+            } else if (source === 'microsoft') {
+                return [
+                    {
+                        id: `ms-${Date.now()}-1`,
+                        source: 'Microsoft Sentinel',
+                        title: 'Suspicious PowerShell Execution',
+                        description: 'Defender for Endpoint detected obfuscated PowerShell command.',
+                        severity: 'High',
+                        timestamp: new Date(now.getTime() - 1000 * 60 * 60).toISOString(),
+                        rawData: { device: 'Workstation-HR-04', user: 'jdoe' }
+                    },
+                    {
+                        id: `ms-${Date.now()}-2`,
+                        source: 'Microsoft Sentinel',
+                        title: 'Impossible Travel Detected',
+                        description: 'User login from New York and Tokyo within 10 minutes.',
+                        severity: 'Medium',
+                        timestamp: new Date(now.getTime() - 1000 * 60 * 10).toISOString(),
+                        rawData: { user: 'admin', locations: ['US', 'JP'] }
+                    }
+                ];
+            } else if (source === 'crowdstrike') {
+                return [
+                    {
+                        id: `cs-${Date.now()}-1`,
+                        source: 'CrowdStrike',
+                        title: 'Malware Detected: Ransom.Wannacry',
+                        description: 'Falcon sensor blocked execution of known ransomware signature.',
+                        severity: 'Critical',
+                        timestamp: new Date(now.getTime() - 1000 * 60 * 15).toISOString(),
+                        rawData: { file: 'invoice.exe', path: 'C:\\Users\\JohnDoe\\Downloads\\' }
+                    }
+                ];
+            }
+            else if (source === 'sentinelone') {
+                return [
+                    {
+                        id: `s1-${Date.now()}-1`,
+                        source: 'SentinelOne',
+                        title: 'Scripting Attack Blocked',
+                        description: 'PowerShell script attempted to download unknown payload.',
+                        severity: 'High',
+                        timestamp: new Date(now.getTime() - 1000 * 60 * 45).toISOString(),
+                        rawData: { cmd: 'Invoke-WebRequest ...' }
+                    }
+                ];
+            }
+            return [];
+        } else {
+            // Production Mode - Call Cloud Function
+            try {
+                const fetchExternalSecurityEvents = httpsCallable<{ source: string }, SecurityEvent[]>(functions, 'fetchExternalSecurityEvents');
+                const result = await fetchExternalSecurityEvents({ source });
+                return result.data;
+            } catch (error) {
+                console.error("Error fetching external security events:", error);
+                throw error;
+            }
+        }
+    }
+
     getLogoUrl(domain: string): string {
         // Use Clearbit's free logo API as a robust placeholder
         if (!domain) return '';
@@ -356,3 +442,13 @@ class IntegrationService {
 }
 
 export const integrationService = new IntegrationService();
+
+export interface SecurityEvent {
+    id: string;
+    source: string;
+    title: string;
+    description: string;
+    severity: 'Low' | 'Medium' | 'High' | 'Critical';
+    timestamp: string;
+    rawData?: any;
+}
