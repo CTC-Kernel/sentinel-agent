@@ -184,7 +184,7 @@ export const Login: React.FC = () => {
     };
 
     return (
-        <AuroraBackground className="min-h-screen flex flex-col items-center justify-center bg-[#E5E7EB] dark:bg-[#000000] relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
+        <AuroraBackground className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/80 dark:bg-[#000000] relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
             <SEO
                 title="Connexion"
                 description="Connectez-vous à votre espace sécurisé Sentinel GRC."
@@ -215,7 +215,7 @@ export const Login: React.FC = () => {
             </div>
 
             <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center mx-auto">
-                <div className="glass-panel rounded-[2.5rem] p-10 flex flex-col items-center shadow-2xl border border-white/50 dark:border-white/10 bg-white/90 dark:bg-black/60 backdrop-blur-xl">
+                <div className="glass-panel rounded-[2.5rem] p-10 flex flex-col items-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-black/60 backdrop-blur-xl">
 
                     {/* Logo */}
                     <div className="mb-10 flex flex-col items-center">
@@ -333,7 +333,7 @@ export const Login: React.FC = () => {
                                     <Mail className="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                                     <input
                                         type="email"
-                                        className={`w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-inner ${errors.email ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
+                                        className={`w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-sm ${errors.email ? 'border-red-500' : 'border-slate-200/60 dark:border-white/10'}`}
                                         placeholder="nom@entreprise.com"
                                         {...register('email')}
                                     />
@@ -354,7 +354,7 @@ export const Login: React.FC = () => {
                                     <Lock className="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                                     <input
                                         type="password"
-                                        className={`w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-inner ${errors.password ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
+                                        className={`w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-sm ${errors.password ? 'border-red-500' : 'border-slate-200/60 dark:border-white/10'}`}
                                         placeholder="••••••••"
                                         {...register('password')}
                                     />
