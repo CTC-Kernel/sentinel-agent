@@ -1,10 +1,10 @@
-import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
 
+import React, { useEffect, useState } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
-import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier, Criticality } from '../../types';
-import { CheckCircle2 } from '../ui/Icons';
+import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier, Criticality, ThreatTemplate } from '../../types';
+import { BookOpen, Shield, Search, LayoutGrid, FileText, Activity, Layers } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -13,18 +13,14 @@ import { AIAssistButton } from '../ai/AIAssistButton';
 import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { Button } from '../ui/button';
 import { RichTextEditor } from '../ui/RichTextEditor';
-
-import React, { useEffect } from 'react';
 import { STANDARD_THREATS, RISK_STRATEGIES, RISK_STATUSES } from '../../data/riskConstants';
 import { AIAssistantHeader } from '../ui/AIAssistantHeader';
 import { aiService } from '../../services/aiService';
-
 import { RISK_TEMPLATES } from '../../data/riskTemplates';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { ThreatTemplate } from '../../types';
 import { Modal } from '../ui/Modal';
-import { Search, BookOpen, Shield } from '../ui/Icons';
+import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
 
 interface RiskFormProps {
     onSubmit: (data: RiskFormData) => Promise<void>;
@@ -40,6 +36,13 @@ interface RiskFormProps {
     isLoading?: boolean;
 }
 
+const TABS = [
+    { id: 'context', label: 'Contexte & Actifs', icon: LayoutGrid },
+    { id: 'identification', label: 'Identification', icon: FileText },
+    { id: 'assessment', label: 'Évaluation', icon: Activity },
+    { id: 'treatment', label: 'Traitement & Contrôles', icon: Layers },
+];
+
 export const RiskForm: React.FC<RiskFormProps> = ({
     onSubmit,
     onCancel,
@@ -53,6 +56,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     isEditing = false,
     isLoading = false
 }) => {
+    const [activeTab, setActiveTab] = useState('context');
     const { control, handleSubmit, reset, formState: { errors }, setValue, getValues } = useForm<RiskFormData>({
         resolver: zodResolver(riskSchema),
         defaultValues: {
@@ -70,13 +74,12 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             ownerId: '',
             mitigationControlIds: [],
             affectedProcessIds: [],
-            relatedSupplierIds: []
+            relatedSupplierIds: [],
+            ...initialData
         }
     });
 
-    const framework = useWatch({ control, name: 'framework' }); // Watch framework for filtering templates
-
-    // Watch values for score calculation
+    const framework = useWatch({ control, name: 'framework' });
     const probability = useWatch({ control, name: 'probability' });
     const impact = useWatch({ control, name: 'impact' });
     const residualProbability = useWatch({ control, name: 'residualProbability' });
@@ -85,11 +88,6 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const strategy = useWatch({ control, name: 'strategy' });
     const status = useWatch({ control, name: 'status' });
     const assetId = useWatch({ control, name: 'assetId' });
-
-    // const residualScore =
-    //     (residualProbability || probability) && (residualImpact || impact)
-    //         ? (residualProbability || probability) * (residualImpact || impact)
-    //         : 0;
 
     const mapCriticalityToImpact = (crit: Criticality): number => {
         switch (crit) {
@@ -102,31 +100,6 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     };
 
     const [isGenerating, setIsGenerating] = React.useState(false);
-
-    const handleSelectTemplate = (templateName: string) => {
-        const t = RISK_TEMPLATES.find(t => t.name === templateName);
-        if (t) {
-            // Populate Context & Scenario
-            setValue('threat', t.threat || t.name, { shouldDirty: true });
-            setValue('scenario', t.scenario || '', { shouldDirty: true });
-            setValue('vulnerability', t.vulnerability || t.description, { shouldDirty: true });
-
-            // Populate Assessment
-            if (typeof t.probability === 'number') setValue('probability', t.probability as any, { shouldDirty: true });
-            if (typeof t.impact === 'number') setValue('impact', t.impact as any, { shouldDirty: true });
-
-            // Populate Strategy & Treatment
-            if (t.strategy) setValue('strategy', t.strategy as any, { shouldDirty: true });
-
-            if (t.treatment) {
-                setValue('treatment', {
-                    ...t.treatment,
-                    dueDate: t.treatment.dueDate || undefined // Ensure correct type
-                } as any, { shouldDirty: true });
-            }
-        }
-    };
-
     const [showLibraryModal, setShowLibraryModal] = React.useState(false);
     const [libraryThreats, setLibraryThreats] = React.useState<ThreatTemplate[]>([]);
     const [searchTerm, setSearchTerm] = React.useState('');
@@ -142,29 +115,39 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         }
     }, [showLibraryModal, libraryThreats.length]);
 
+    const handleSelectTemplate = (templateName: string) => {
+        const t = RISK_TEMPLATES.find(t => t.name === templateName);
+        if (t) {
+            setValue('threat', t.threat || t.name, { shouldDirty: true });
+            setValue('scenario', t.scenario || '', { shouldDirty: true });
+            setValue('vulnerability', t.vulnerability || t.description, { shouldDirty: true });
+            if (typeof t.probability === 'number') setValue('probability', t.probability as any, { shouldDirty: true });
+            if (typeof t.impact === 'number') setValue('impact', t.impact as any, { shouldDirty: true });
+            if (t.strategy) setValue('strategy', t.strategy as any, { shouldDirty: true });
+            if (t.treatment) {
+                setValue('treatment', {
+                    ...t.treatment,
+                    dueDate: t.treatment.dueDate || undefined
+                } as any, { shouldDirty: true });
+            }
+        }
+    };
+
     const handleSelectThreatFromLibrary = (t: ThreatTemplate) => {
         setValue('threat', t.name, { shouldDirty: true });
         setValue('scenario', t.scenario || '', { shouldDirty: true });
         setValue('vulnerability', t.vulnerability || '', { shouldDirty: true });
-        // Map framework if possible, or keep current
         if (t.framework) setValue('framework', t.framework as any, { shouldDirty: true });
         if (t.probability) setValue('probability', t.probability as any, { shouldDirty: true });
         if (t.impact) setValue('impact', t.impact as any, { shouldDirty: true });
         if (t.strategy) setValue('strategy', t.strategy as any, { shouldDirty: true });
-        if (t.field) setValue('scenario', `${t.scenario}\n\nDomaine: ${t.field}`, { shouldDirty: true }); // Append field to scenario or elsewhere
-
+        if (t.field) setValue('scenario', `${t.scenario}\n\nDomaine: ${t.field}`, { shouldDirty: true });
         setShowLibraryModal(false);
     };
-
-    const filteredLibraryThreats = libraryThreats.filter(t =>
-        t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.threat.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     const handleAutoGenerate = async () => {
         const currentThreat = getValues('threat');
         if (!currentThreat) return;
-
         setIsGenerating(true);
         try {
             const prompt = `Analayse le risque de menace "${currentThreat}".
@@ -174,15 +157,12 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                 "vulnerability": "Vulnérabilité exploitée potentielle",
                 "consequences": "Impact principal"
             }`;
-
             const resultText = await aiService.generateText(prompt);
             const jsonMatch = resultText.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
                 const data = JSON.parse(jsonMatch[0]);
-                // Assuming 'description' from AI output maps to 'vulnerability' in the form
                 if (data.description) setValue('vulnerability', data.description, { shouldDirty: true });
-                if (data.vulnerability) setValue('vulnerability', data.vulnerability, { shouldDirty: true }); // Assuming field exists
-                // Add more fields if available in RiskFormData
+                if (data.vulnerability) setValue('vulnerability', data.vulnerability, { shouldDirty: true });
             }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'RiskForm.handleAutoGenerate', 'AI_ERROR');
@@ -193,54 +173,23 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
     useEffect(() => {
         if (existingRisk) {
-            // Resolve ownerId if missing (backward compatibility)
             let resolvedOwnerId = existingRisk.ownerId || '';
             if (!resolvedOwnerId && existingRisk.owner) {
                 const foundUser = usersList.find(u => u.displayName === existingRisk.owner);
                 if (foundUser) resolvedOwnerId = foundUser.uid;
             }
-
             reset({
-                assetId: existingRisk.assetId,
-                threat: existingRisk.threat,
+                ...existingRisk,
+                ownerId: resolvedOwnerId,
                 scenario: existingRisk.scenario || '',
                 framework: existingRisk.framework || 'ISO27005',
-                vulnerability: existingRisk.vulnerability,
-                probability: existingRisk.probability,
-                impact: existingRisk.impact,
-                residualProbability: existingRisk.residualProbability || existingRisk.probability,
-                residualImpact: existingRisk.residualImpact || existingRisk.impact,
-                strategy: existingRisk.strategy,
-                status: existingRisk.status,
-                ownerId: resolvedOwnerId,
                 mitigationControlIds: existingRisk.mitigationControlIds || [],
                 affectedProcessIds: existingRisk.affectedProcessIds || [],
                 relatedSupplierIds: existingRisk.relatedSupplierIds || [],
-                treatment: existingRisk.treatment,
                 isSecureStorage: existingRisk.isSecureStorage || false
             });
-        } else {
-            reset({
-                assetId: initialData?.assetId || '',
-                threat: initialData?.threat || '',
-                scenario: initialData?.scenario || '',
-                framework: initialData?.framework || 'ISO27005',
-                vulnerability: initialData?.vulnerability || '',
-                probability: initialData?.probability || 3,
-                impact: initialData?.impact || 3,
-                residualProbability: initialData?.residualProbability || 3,
-                residualImpact: initialData?.residualImpact || 3,
-                strategy: initialData?.strategy || 'Atténuer',
-                status: initialData?.status || 'Ouvert',
-                ownerId: initialData?.ownerId || '',
-                mitigationControlIds: initialData?.mitigationControlIds || [],
-                affectedProcessIds: initialData?.affectedProcessIds || [],
-                relatedSupplierIds: initialData?.relatedSupplierIds || [],
-                treatment: initialData?.treatment,
-                isSecureStorage: initialData?.isSecureStorage || false
-            });
         }
-    }, [existingRisk, initialData, reset, usersList]);
+    }, [existingRisk, reset, usersList]);
 
     useEffect(() => {
         if (!assetId) return;
@@ -260,6 +209,11 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         }
     }, [assetId, assets, getValues, isEditing, setValue]);
 
+    const filteredLibraryThreats = libraryThreats.filter(t =>
+        t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.threat.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const toggleControlSelection = (controlId: string) => {
         const currentIds = getValues('mitigationControlIds') || [];
         if (currentIds.includes(controlId)) {
@@ -269,77 +223,153 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         }
     };
 
+
+
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-4 sm:p-6">
-            {!isEditing && (
-                <AIAssistantHeader
-                    templates={RISK_TEMPLATES.filter(t => !t.framework || t.framework === (framework || 'ISO27005'))}
-                    onSelectTemplate={handleSelectTemplate}
-                    onAutoGenerate={handleAutoGenerate}
-                    isGenerating={isGenerating}
-                    title={`Modèles de Risques (${framework || 'ISO27005'})`}
-                    description="Sélectionnez un modèle standard ajusté au référentiel choisi."
-                />
-            )}
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                    <div className="space-y-6">
-                        <Controller
-                            name="framework"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Référentiel / Standard"
-                                    value={field.value || ''}
-                                    onChange={(val) => {
-                                        const selected = val as string;
-                                        field.onChange(selected);
-                                        // Reset template if framework changes
-                                        setValue('threat', '');
-                                        setValue('vulnerability', '');
-                                    }}
-                                    options={FRAMEWORK_OPTIONS}
-                                    placeholder="Sélectionner un référentiel..."
-                                    required
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="assetId"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Actif concerné"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    options={assets.map(a => ({ value: a.id, label: a.name }))}
-                                    required
-                                    error={errors.assetId?.message}
-                                />
-                            )}
-                        />
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full bg-slate-50 dark:bg-slate-900/50">
+            {/* Header Tabs */}
+            <div className="flex border-b border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 px-6 pt-4">
+                {TABS.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${isActive
+                                ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                                }`}
+                        >
+                            <Icon className="h-4 w-4" />
+                            {tab.label}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {!isEditing && activeTab === 'context' && (
+                    <AIAssistantHeader
+                        templates={RISK_TEMPLATES.filter(t => !t.framework || t.framework === (framework || 'ISO27005'))}
+                        onSelectTemplate={handleSelectTemplate}
+                        onAutoGenerate={handleAutoGenerate}
+                        isGenerating={isGenerating}
+                        title={`Modèles de Risques (${framework || 'ISO27005'})`}
+                        description="Sélectionnez un modèle standard ajusté au référentiel choisi."
+                    />
+                )}
+
+                {/* TAB: CONTEXT */}
+                {activeTab === 'context' && (
+                    <div className="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <LayoutGrid className="h-5 w-5 text-brand-500" /> Le Contexte du Risque
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Controller
+                                name="framework"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Référentiel / Standard"
+                                        value={field.value || ''}
+                                        onChange={(val) => {
+                                            field.onChange(val);
+                                            setValue('threat', '');
+                                            setValue('vulnerability', '');
+                                        }}
+                                        options={FRAMEWORK_OPTIONS}
+                                        placeholder="Sélectionner un référentiel..."
+                                        required
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="assetId"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Actif Principal Concerné"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        options={assets.map(a => ({ value: a.id, label: a.name, subLabel: a.type }))}
+                                        required
+                                        error={errors.assetId?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="ownerId"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Propriétaire du Risque"
+                                        value={field.value || ''}
+                                        onChange={field.onChange}
+                                        options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="affectedProcessIds"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Processus Métier Impactés"
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        options={processes.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
+                                        multiple
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="relatedSupplierIds"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Fournisseurs / Tiers Concernés"
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
+                                        multiple
+                                    />
+                                )}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* TAB: IDENTIFICATION */}
+                {activeTab === 'identification' && (
+                    <div className="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-brand-500" /> Identification de la Menace
+                        </h3>
                         <div className="relative">
                             <FloatingLabelInput
-                                label="Menace"
+                                label="Menace (Cause Potentielle)"
                                 {...control.register('threat')}
                                 list="threatsList"
                                 required
                                 error={errors.threat?.message}
+                                placeholder="Ex: Attaque par ingénierie sociale..."
                             />
                             <div className="absolute right-2 top-2 z-10 flex gap-2">
                                 <button
                                     type="button"
                                     onClick={() => setShowLibraryModal(true)}
                                     className="p-1 px-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-lg text-xs font-bold transition-colors flex items-center border border-purple-200"
-                                    title="Sélectionner depuis la bibliothèque"
                                 >
-                                    <BookOpen className="h-3 w-3 mr-1" />
-                                    Bibliothèque
+                                    <BookOpen className="h-3 w-3 mr-1" /> Biblio
                                 </button>
                                 <AIAssistButton
                                     context={{ asset: assets.find(a => a.id === getValues('assetId')), existingThreats: STANDARD_THREATS }}
                                     fieldName="Menace"
-                                    prompt="Suggère une menace de sécurité pertinente pour cet actif (Asset). Réponds uniquement par le titre de la menace, court et précis."
+                                    prompt="Suggère une menace de sécurité pertinente pour cet actif. Réponds uniquement par le titre."
                                     onSuggest={(val: string) => setValue('threat', val, { shouldDirty: true })}
                                 />
                             </div>
@@ -351,32 +381,10 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                         <div className="relative">
                             <Controller
                                 control={control}
-                                name="scenario"
-                                render={({ field }) => (
-                                    <div className="space-y-1">
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                            Scénario de Risque (ISO 27005)
-                                        </label>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-                                            Décrivez comment la menace exploite la vulnérabilité et les conséquences attendues.
-                                        </p>
-                                        <textarea
-                                            {...field}
-                                            rows={3}
-                                            className="w-full rounded-xl border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-brand-500"
-                                            placeholder="Ex: Un attaquant exploite une faille non corrigée pour exfiltrer la base de données clients..."
-                                        />
-                                    </div>
-                                )}
-                            />
-                        </div>
-                        <div className="relative">
-                            <Controller
-                                control={control}
                                 name="vulnerability"
                                 render={({ field }) => (
                                     <RichTextEditor
-                                        label="Vulnérabilité"
+                                        label="Vulnérabilité (Faiblesse)"
                                         value={field.value}
                                         onChange={field.onChange}
                                         error={errors.vulnerability?.message}
@@ -387,109 +395,90 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 <AIAssistButton
                                     context={{ asset: assets.find(a => a.id === getValues('assetId')), threat: getValues('threat') }}
                                     fieldName="Vulnérabilité"
-                                    prompt="Décris une vulnérabilité technique ou organisationnelle qui pourrait permettre la réalisation de cette menace sur cet actif. Soyez concis."
+                                    prompt="Décris une vulnérabilité qui permettrait cette menace. Sois concis."
                                     onSuggest={(val: string) => setValue('vulnerability', val, { shouldDirty: true })}
                                 />
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 gap-4">
-                            <Controller
-                                name="ownerId"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        label="Propriétaire"
-                                        value={field.value || ''}
-                                        onChange={field.onChange}
-                                        options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                                    />
-                                )}
+
+                        <div className="relative">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Scénario de Risque & Conséquences
+                            </label>
+                            <textarea
+                                {...control.register('scenario')}
+                                rows={4}
+                                className="w-full rounded-xl border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm focus:ring-2 focus:ring-brand-500"
+                                placeholder="Décrivez le déroulement de l'incident et ses impacts potentiels..."
                             />
+                        </div>
+                    </div>
+                )}
 
-                            <Controller
-                                name="affectedProcessIds"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        label="Processus Impactés"
-                                        value={field.value || []}
-                                        onChange={field.onChange}
-                                        options={processes.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
-                                        multiple
-                                    />
-                                )}
+                {/* TAB: ASSESSMENT */}
+                {activeTab === 'assessment' && (
+                    <div className="space-y-8 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <Activity className="h-5 w-5 text-brand-500" /> Évaluation par Matrices
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <RiskMatrixSelector
+                                label="Évaluation du Risque Brut (Inhérent)"
+                                probability={probability}
+                                impact={impact}
+                                onChange={(p, i) => {
+                                    setValue('probability', p, { shouldDirty: true });
+                                    setValue('impact', i, { shouldDirty: true });
+                                }}
                             />
-
-                            <Controller
-                                name="relatedSupplierIds"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        label="Fournisseurs Concernés"
-                                        value={field.value || []}
-                                        onChange={field.onChange}
-                                        options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
-                                        multiple
-                                    />
-                                )}
+                            <RiskMatrixSelector
+                                label="Objectif / Risque Résiduel (Cible)"
+                                probability={residualProbability || probability}
+                                impact={residualImpact || impact}
+                                onChange={(p, i) => {
+                                    setValue('residualProbability', p, { shouldDirty: true });
+                                    setValue('residualImpact', i, { shouldDirty: true });
+                                }}
                             />
+                        </div>
+                    </div>
+                )}
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <RiskMatrixSelector
-                                    label="Évaluation du Risque Brut"
-                                    probability={probability}
-                                    impact={impact}
-                                    onChange={(p, i) => {
-                                        setValue('probability', p, { shouldDirty: true });
-                                        setValue('impact', i, { shouldDirty: true });
-                                    }}
-                                />
-                                <RiskMatrixSelector
-                                    label="Évaluation du Risque Résiduel"
-                                    probability={residualProbability || probability}
-                                    impact={residualImpact || impact}
-                                    onChange={(p, i) => {
-                                        setValue('residualProbability', p, { shouldDirty: true });
-                                        setValue('residualImpact', i, { shouldDirty: true });
-                                    }}
-                                />
-                            </div>
+                {/* TAB: TREATMENT */}
+                {activeTab === 'treatment' && (
+                    <div className="space-y-8 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <Layers className="h-5 w-5 text-brand-500" /> Décision & Plan de Traitement
+                        </h3>
 
-                            <div className="space-y-4">
-                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Stratégie de traitement</label>
-                                <div className="grid grid-cols-2 gap-3">
+                        {/* Strategy & Status */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Stratégie</label>
+                                <div className="grid grid-cols-2 gap-2">
                                     {RISK_STRATEGIES.map(s => (
                                         <button
                                             key={s}
                                             type="button"
                                             onClick={() => setValue('strategy', s as Risk['strategy'], { shouldDirty: true })}
-                                            className={`
-                                        px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
-                                        ${strategy === s
-                                                    ? 'bg-brand-500 text-white border-brand-500 shadow-lg shadow-brand-500/20'
-                                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-50 dark:hover:bg-brand-900/10'}
-                                    `}
+                                            className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all ${strategy === s ? 'bg-brand-500 text-white border-brand-500' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700'
+                                                }`}
                                         >
                                             {s}
                                         </button>
                                     ))}
                                 </div>
                             </div>
-
-                            <div className="space-y-4">
-                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Statut</label>
-                                <div className="flex gap-3">
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Statut Actuel</label>
+                                <div className="flex gap-2">
                                     {RISK_STATUSES.map(s => (
                                         <button
                                             key={s}
                                             type="button"
                                             onClick={() => setValue('status', s as Risk['status'], { shouldDirty: true })}
-                                            className={`
-                                        flex-1 px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200
-                                        ${status === s
-                                                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-lg'
-                                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}
-                                    `}
+                                            className={`flex-1 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700'
+                                                }`}
                                         >
                                             {s}
                                         </button>
@@ -498,43 +487,78 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar max-h-[300px]">
-                            <label className="flex items-center text-xs font-bold uppercase tracking-widest text-brand-600 mb-4">
-                                <CheckCircle2 className="h-4 w-4 mr-2" /> Contrôles d'atténuation
+                        {/* Existing Controls */}
+                        <div className="space-y-3">
+                            <label className="flex items-center text-sm font-bold text-slate-900 dark:text-white">
+                                <Shield className="h-4 w-4 mr-2 text-brand-500" />
+                                Mesures de Sécurité Existantes (Contrôles)
                             </label>
-                            {controls.map(ctrl => (
-                                <label key={ctrl.id} className={`flex items-start space-x-3 p-3.5 rounded-xl cursor-pointer transition-all border ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 border-brand-200 dark:border-brand-800 shadow-md' : 'border-transparent hover:bg-white dark:hover:bg-slate-800'}`}>
-                                    <div className={`mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-brand-500 border-brand-500' : 'border-gray-300 bg-white dark:bg-black/20'}`}>
-                                        {mitigationControlIds?.includes(ctrl.id) && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                                    </div>
-                                    <input type="checkbox" className="hidden" checked={mitigationControlIds?.includes(ctrl.id) || false} onChange={() => toggleControlSelection(ctrl.id)} />
-                                    <div>
-                                        <span className="text-xs font-bold text-slate-900 dark:text-white block mb-0.5">{ctrl.code}</span>
-                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug block">{ctrl.name}</span>
-                                    </div>
-                                </label>
-                            ))}
+                            <div className="border border-slate-200 dark:border-slate-700 rounded-xl max-h-[250px] overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/50">
+                                {controls.length > 0 ? (
+                                    controls.map(ctrl => (
+                                        <label key={ctrl.id} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 shadow-sm' : ''}`}>
+                                            <input
+                                                type="checkbox"
+                                                className="mt-1 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                                                checked={mitigationControlIds?.includes(ctrl.id) || false}
+                                                onChange={() => toggleControlSelection(ctrl.id)}
+                                            />
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{ctrl.code}</span>
+                                                    {ctrl.status === 'Implémenté' && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 rounded-full">Implémenté</span>}
+                                                </div>
+                                                <span className="text-xs text-slate-500 dark:text-slate-400">{ctrl.name}</span>
+                                            </div>
+                                        </label>
+                                    ))
+                                ) : (
+                                    <div className="p-4 text-center text-xs text-slate-400">Aucun contrôle disponible.</div>
+                                )}
+                            </div>
+                            <p className="text-[10px] text-slate-400">Sélectionnez les contrôles déjà en place réduisant le risque.</p>
+                        </div>
+
+                        <div className="border-t border-slate-200 dark:border-white/10 pt-6">
+                            <RiskTreatmentPlan
+                                risk={{ ...existingRisk, ...getValues() } as Risk}
+                                users={usersList}
+                                onUpdate={(treatment) => {
+                                    setValue('strategy', treatment.strategy || 'Atténuer', { shouldDirty: true });
+                                    setValue('status', treatment.status === 'Terminé' ? 'Fermé' : treatment.status === 'En cours' ? 'En cours' : 'Ouvert', { shouldDirty: true });
+                                    setValue('treatment', treatment, { shouldDirty: true });
+                                }}
+                            />
                         </div>
                     </div>
-                </div>
-
-                <div className="mt-8 bg-slate-50/80 dark:bg-slate-900/30 rounded-3xl p-6 border border-gray-100 dark:border-white/5 flex flex-col space-y-6">
-                    <RiskTreatmentPlan
-                        risk={{ ...existingRisk, ...getValues() } as Risk}
-                        users={usersList}
-                        onUpdate={(treatment) => {
-                            setValue('strategy', treatment.strategy || 'Atténuer', { shouldDirty: true });
-                            setValue('status', treatment.status === 'Terminé' ? 'Fermé' : treatment.status === 'En cours' ? 'En cours' : 'Ouvert', { shouldDirty: true });
-                            setValue('treatment', treatment, { shouldDirty: true });
-                        }}
-                    />
-                </div>
-            </div>
-            <div className="flex justify-end space-x-4 pt-8 mt-4 border-t border-gray-100 dark:border-white/5">
-                <Button type="button" onClick={onCancel} variant="ghost" disabled={isLoading} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</Button>
-                <Button type="submit" isLoading={isLoading} className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none">{isEditing ? 'Enregistrer les modifications' : 'Créer le Risque'}</Button>
+                )}
             </div>
 
+            {/* Footer Buttons */}
+            <div className="border-t border-slate-200 dark:border-white/10 p-6 bg-white dark:bg-slate-800 flex justify-between items-center">
+                <Button type="button" onClick={onCancel} variant="ghost">Annuler</Button>
+                <div className="flex gap-3">
+                    {/* Navigation Buttons */}
+                    {activeTab !== 'context' && (
+                        <Button type="button" variant="secondary" onClick={() => {
+                            const idx = TABS.findIndex(t => t.id === activeTab);
+                            if (idx > 0) setActiveTab(TABS[idx - 1].id);
+                        }}>Précédent</Button>
+                    )}
+                    {activeTab !== 'treatment' ? (
+                        <Button type="button" onClick={() => {
+                            const idx = TABS.findIndex(t => t.id === activeTab);
+                            if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1].id);
+                        }}>Suivant</Button>
+                    ) : (
+                        <Button type="submit" isLoading={isLoading} className="bg-brand-600 hover:bg-brand-700 text-white">
+                            {isEditing ? 'Sauvegarder' : 'Créer le Risque'}
+                        </Button>
+                    )}
+                </div>
+            </div>
+
+            {/* Threat Library Modal */}
             <Modal
                 isOpen={showLibraryModal}
                 onClose={() => setShowLibraryModal(false)}
@@ -546,7 +570,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                         <Search className="h-5 w-5 text-slate-400 absolute left-3 top-3" />
                         <input
                             type="text"
-                            placeholder="Rechercher..."
+                            placeholder="Rechercher une menace type..."
                             className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
@@ -574,14 +598,10 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 </div>
                             </div>
                         ))}
-                        {filteredLibraryThreats.length === 0 && (
-                            <div className="col-span-2 text-center py-10 text-slate-400">
-                                Aucune menace trouvée dans la bibliothèque.
-                            </div>
-                        )}
                     </div>
                 </div>
             </Modal>
-        </form >
+        </form>
     );
 };
+
