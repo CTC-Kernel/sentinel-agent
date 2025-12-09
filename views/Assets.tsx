@@ -485,6 +485,32 @@ export const Assets: React.FC = () => {
         }
     };
 
+    const handleCreateRiskFromVuln = async (vuln: Vulnerability) => {
+        if (!selectedAsset || !user?.organizationId) return;
+        try {
+            await addDoc(collection(db, 'risks'), {
+                organizationId: user.organizationId,
+                assetId: selectedAsset.id,
+                threat: `Vulnérabilité ${vuln.cveId}`,
+                vulnerability: vuln.description,
+                consequences: "Compromission de la confidentialité, intégrité ou disponibilité de l'actif.",
+                probability: 3, // Default Medium
+                impact: vuln.severity === 'High' || vuln.severity === 'Critical' ? 4 : 2,
+                score: (vuln.severity === 'High' || vuln.severity === 'Critical' ? 4 : 2) * 3,
+                status: 'Identifié',
+                owner: user.displayName || 'Système',
+                createdAt: new Date().toISOString(),
+                history: []
+            });
+            await logAction(user, 'CREATE', 'Risk', `Création auto risque pour CVE ${vuln.cveId} sur ${selectedAsset.name}`);
+            addToast(`Risque créé pour ${vuln.cveId}`, "success");
+            // Refresh risks
+            setLinkedRisks(prev => [...prev]); // Trigger refresh implicitly if using real-time listener, but here we might need manual refresh or just wait for listener.
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Assets.handleCreateRiskFromVuln');
+        }
+    };
+
     const handleExportCSV = () => {
         const headers = ["Nom", "Type", "Propriétaire", "Confidentialité", "Intégrité", "Disponibilité", "Localisation", "Statut", "Valeur Actuelle"];
         const rows = filteredAssets.map(a => [a.name, a.type, a.owner, a.confidentiality, a.integrity, a.availability, a.location, a.lifecycleStatus || 'Neuf', a.currentValue || 0]);
@@ -1186,7 +1212,16 @@ export const Assets: React.FC = () => {
                                                     <div key={vuln.cveId} className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-red-100 dark:border-red-900/20 shadow-sm">
                                                         <div className="flex justify-between items-start mb-1">
                                                             <span className="text-sm font-bold text-red-700 dark:text-red-400">{vuln.cveId}</span>
-                                                            <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-800 rounded">{vuln.severity} ({vuln.score})</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-800 rounded">{vuln.severity} ({vuln.score})</span>
+                                                                <button
+                                                                    onClick={() => handleCreateRiskFromVuln(vuln)}
+                                                                    className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-red-600 dark:text-red-400 transition-colors"
+                                                                    title="Créer un risque"
+                                                                >
+                                                                    <Plus className="h-4 w-4" />
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                         <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2" title={vuln.description}>{vuln.description}</p>
                                                     </div>

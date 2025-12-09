@@ -28,6 +28,8 @@ import { IncidentFormData } from '../schemas/incidentSchema';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { canEditResource, hasPermission, canDeleteResource } from '../utils/permissions';
 import { hybridService } from '../services/hybridService';
+import { IncidentImportModal } from '../components/incidents/IncidentImportModal';
+import { SecurityEvent } from '../services/integrationService';
 
 
 import { SEO } from '../components/SEO';
@@ -82,6 +84,46 @@ export const Incidents: React.FC = () => {
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean, closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [inspectorTab, setInspectorTab] = useState<'details' | 'playbook' | 'timeline' | 'ai'>('details');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [importModalOpen, setImportModalOpen] = useState(false);
+
+    const handleImportFromEvents = async (events: SecurityEvent[]) => {
+        if (!user?.organizationId) return;
+        setIsSubmitting(true);
+        try {
+            const mapSeverity = (sev: string): Criticality => {
+                switch (sev) {
+                    case 'Low': return Criticality.LOW;
+                    case 'Medium': return Criticality.MEDIUM;
+                    case 'High': return Criticality.HIGH;
+                    case 'Critical': return Criticality.CRITICAL;
+                    default: return Criticality.MEDIUM;
+                }
+            };
+
+            const batch = events.map(event => ({
+                organizationId: user.organizationId,
+                title: event.title,
+                description: event.description + `\n\n**Source**: ${event.source}\n**Raw Data**: ${JSON.stringify(event.rawData)}`,
+                severity: mapSeverity(event.severity),
+                dateReported: new Date().toISOString(),
+                status: 'Analyse',
+                type: 'SecurityAlert',
+                reporter: 'Connecteur ' + event.source,
+                category: 'Intrusion', // Default
+                financialImpact: 0,
+                history: []
+            }));
+
+            await Promise.all(batch.map(data => addDoc(collection(db, 'incidents'), data)));
+            await logAction(user, 'IMPORT', 'Incident', `Import de ${events.length} incidents depuis ${events[0]?.source}`);
+
+            addToast(`${events.length} incidents importés avec succès`, "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Incidents.handleImportFromEvents');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
 
     useEffect(() => {
@@ -306,15 +348,30 @@ export const Incidents: React.FC = () => {
                 trustType="confidentiality"
                 actions={
                     hasPermission(user, 'Incident', 'create') && (
-                        <button
-                            onClick={() => setCreationMode(true)}
-                            className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
-                        >
-                            <Plus className="h-5 w-5 mr-2" />
-                            Déclarer un incident
-                        </button>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setImportModalOpen(true)}
+                                className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 px-4 py-2 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center shadow-sm"
+                            >
+                                <BrainCircuit className="h-4 w-4 mr-2" />
+                                Importer SIEM/EDR
+                            </button>
+                            <button
+                                onClick={() => setCreationMode(true)}
+                                className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
+                            >
+                                <Plus className="h-5 w-5 mr-2" />
+                                Déclarer un incident
+                            </button>
+                        </div>
                     )
                 }
+            />
+
+            <IncidentImportModal
+                isOpen={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
+                onImport={handleImportFromEvents}
             />
 
             {/* Carte de synthèse Incidents */}
