@@ -1069,10 +1069,10 @@ const PresentationManager: React.FC<{
 
   // Reset index when mode disabled
   useEffect(() => {
-    if (!presentationMode && presentationIndex !== 0) {
+    if (!presentationMode) {
       setPresentationIndex(0);
     }
-  }, [presentationMode, presentationIndex, setPresentationIndex]);
+  }, [presentationMode, setPresentationIndex]);
 
   useFrame((state) => {
     if (presentationMode && criticalNodes.length > 0) {
@@ -1125,7 +1125,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
   // Intelligent Features State
   // impactMode is now controlled by props
-  const [impactedNodeIds, setImpactedNodeIds] = useState<Set<string>>(new Set());
+  // impactedNodeIds is now a computed value derived from useMemo
 
 
   const handleOverlayPositionChange = (x: number, y: number) => {
@@ -1517,18 +1517,12 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     return visited;
   }, [voxelNodes]);
 
-  useEffect(() => {
+  const impactedNodeIds = useMemo(() => {
     if (impactMode && selectedNode) {
-      const impacted = calculateBlastRadius(selectedNode.id);
-      // Only update if size changed or first run logic (simplified check)
-      setImpactedNodeIds(prev => {
-        if (prev.size === impacted.size && [...prev].every(id => impacted.has(id))) return prev;
-        return impacted;
-      });
-    } else {
-      setImpactedNodeIds(prev => prev.size === 0 ? prev : new Set());
+      return calculateBlastRadius(selectedNode.id);
     }
-  }, [impactMode, selectedNode, calculateBlastRadius, setImpactedNodeIds]);
+    return new Set<string>();
+  }, [impactMode, selectedNode, calculateBlastRadius]);
 
 
 

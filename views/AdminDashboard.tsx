@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { orderBy, limit } from 'firebase/firestore';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 
+import { UserProfile } from '../types';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { ShieldAlert, Users, Building, Activity, Search } from 'lucide-react';
@@ -32,7 +33,7 @@ export const AdminDashboard: React.FC = () => {
         { logError: true, realtime: true, enabled: isSuperAdmin }
     );
 
-    const { data: users, loading: usersLoading } = useFirestoreCollection<any>(
+    const { data: users, loading: usersLoading } = useFirestoreCollection<UserProfile>(
         'users',
         [],
         { logError: true, realtime: true, enabled: isSuperAdmin }
@@ -95,7 +96,7 @@ export const AdminDashboard: React.FC = () => {
                 await auth.currentUser.getIdToken(true);
             }
 
-            toast.success(`Switched to ${orgName}`);
+            toast.success(`Switched to ${orgName} `);
             // Redirect to dashboard
             window.location.href = '/';
         } catch (error) {
@@ -123,7 +124,7 @@ export const AdminDashboard: React.FC = () => {
     if (loading) return <LoadingScreen />;
 
     return (
-        <div className="p-8 space-y-8">
+        <div className="space-y-8">
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Super Admin Dashboard</h1>
@@ -198,10 +199,10 @@ export const AdminDashboard: React.FC = () => {
                                 <tr key={org.id} className="hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200">
                                     <td className="px-6 py-4 text-sm font-medium">{org.name}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300' :
+                                        <span className={`px - 2 py - 1 rounded - full text - xs font - bold ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300' :
                                             org.planId === 'professional' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300' :
                                                 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
-                                            }`}>
+                                            } `}>
                                             {org.planId || 'discovery'}
                                         </span>
                                     </td>

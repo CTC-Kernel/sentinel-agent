@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User, CheckCircle2, ArrowRight } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
+import { DashboardCard } from '../DashboardCard';
 
 interface ActionItem {
     id: string;
@@ -19,19 +20,28 @@ interface MyWorkspaceWidgetProps {
 }
 
 export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionItems, loading, navigate, t }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    // Filter items for compact view (show max 5)
+    const displayItems = isExpanded ? myActionItems : myActionItems.slice(0, 5);
+
     return (
-        <div className="glass-panel p-0 rounded-[2rem] overflow-hidden shadow-sm flex flex-col h-full min-h-[450px] group hover:shadow-md transition-shadow">
-            <div className="px-8 pt-8 pb-6 bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/60 dark:border-white/5 flex justify-between items-center backdrop-blur-sm">
-                <div><h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{t('dashboard.myWorkspace')}</h3><p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{t('dashboard.todoThisWeek')}</p></div>
-                <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm"><User className="w-5 h-5 text-slate-600 dark:text-slate-300" /></div>
-            </div>
-            <div className="flex-1 p-0 overflow-y-auto custom-scrollbar bg-white/40 dark:bg-slate-900/20">
+        <DashboardCard
+            title={t('dashboard.myWorkspace')}
+            subtitle={t('dashboard.todoThisWeek')}
+            icon={<User className="w-5 h-5" />}
+            isExpanded={isExpanded}
+            onToggleExpand={() => setIsExpanded(!isExpanded)}
+            expandable={true}
+            className="min-h-[400px]"
+        >
+            <div className={`h-full overflow-y-auto custom-scrollbar ${isExpanded ? 'p-0' : 'p-0'}`}>
                 {loading ? <Skeleton className="h-full w-full m-4" /> : myActionItems.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full p-8 text-center"><CheckCircle2 className="h-12 w-12 text-emerald-500/30 mb-4" /><p className="text-sm font-bold text-slate-500">{t('dashboard.nothingToReport')}</p></div>
                 ) : (
                     <div className="divide-y divide-slate-100 dark:divide-white/5">
-                        {myActionItems.map(item => (
-                            <div key={item.id} onClick={() => navigate(item.link)} className="p-5 hover:bg-white dark:hover:bg-white/5 cursor-pointer group/item transition-all flex items-center gap-4">
+                        {displayItems.map(item => (
+                            <div key={item.id} onClick={() => navigate(item.link)} className="p-4 hover:bg-white dark:hover:bg-white/5 cursor-pointer group/item transition-all flex items-center gap-4">
                                 <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${item.type === 'audit' ? 'bg-blue-500' :
                                     item.type === 'policy' ? 'bg-red-500' :
                                         item.type === 'incident' ? 'bg-rose-600' :
@@ -64,6 +74,11 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
                     </div>
                 )}
             </div>
-        </div>
+            {!isExpanded && myActionItems.length > 5 && (
+                <div className="p-3 bg-slate-50/50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 text-center">
+                    <span className="text-xs font-semibold text-slate-500">{myActionItems.length - 5} {t('common.more').toLowerCase()}...</span>
+                </div>
+            )}
+        </DashboardCard>
     );
 };

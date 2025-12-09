@@ -875,7 +875,7 @@ export const Risks: React.FC = () => {
     }
 
     return (
-        <StaggerContainer className="space-y-6 relative">
+        <StaggerContainer className="space-y-8 relative">
             <SEO
                 title="Gestion des Risques - Sentinel GRC"
                 description="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005."
