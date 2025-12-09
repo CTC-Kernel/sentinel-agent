@@ -581,7 +581,7 @@ export const Suppliers: React.FC = () => {
                 </div>
             )
         }
-    ], [canEdit]);
+    ], [canEdit, initiateDelete]);
 
     return (
         <div className="space-y-8 animate-fade-in pb-10 relative">
