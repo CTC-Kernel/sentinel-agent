@@ -345,8 +345,8 @@ export const Risks: React.FC = () => {
             setCreationMode(false);
             refreshRisks();
         } catch (error) {
-            if (error instanceof z.ZodError) {
-                addToast((error as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+            if (error instanceof z.ZodError && (error as any).errors?.length > 0) {
+                addToast((error as any).errors[0].message, "error");
             } else {
                 ErrorLogger.handleErrorWithToast(error, 'Risks.onSubmit', 'CREATE_FAILED');
             }
@@ -462,8 +462,8 @@ export const Risks: React.FC = () => {
             setIsEditing(false);
             refreshRisks();
         } catch (error) {
-            if (error instanceof z.ZodError) {
-                addToast((error as unknown as { errors: { message: string }[] }).errors[0].message, "error");
+            if (error instanceof z.ZodError && (error as any).errors?.length > 0) {
+                addToast((error as any).errors[0].message, "error");
             } else {
                 ErrorLogger.handleErrorWithToast(error, 'Risks.handleUpdate', 'UPDATE_FAILED');
             }
