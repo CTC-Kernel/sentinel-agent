@@ -841,7 +841,7 @@ export const Compliance: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-8 sm:px-12 pt-8">
             <SEO
                 title={selectedControl ? `${selectedControl.code} - Conformité` : 'Conformité & Standards'}
                 description="Suivez votre conformité aux normes ISO 27001, NIS 2, DORA et gérez vos audits."

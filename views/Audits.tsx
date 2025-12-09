@@ -999,7 +999,7 @@ export const Audits: React.FC = () => {
     ], [canEdit, openEditDrawer, initiateDeleteAudit]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-8 sm:px-12 pt-8">
             <Helmet>
                 <title>Gestion des Audits - Sentinel GRC</title>
                 <meta name="description" content="Planifiez et réalisez vos audits internes et externes ISO 27001." />
