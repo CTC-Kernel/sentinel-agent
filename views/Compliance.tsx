@@ -1495,7 +1495,7 @@ export const Compliance: React.FC = () => {
                                 <div className="space-y-6 max-w-3xl mx-auto">
                                     {/* Linked Risks */}
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <div className="flex items-center justify-between mb-4">
+                                        <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
                                             <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><ShieldAlert className="h-3.5 w-3.5 mr-2" /> Risques Atténués</h3>
                                             <div className="flex gap-2">
                                                 {canEditResource(user, 'Risk') && (
@@ -1535,7 +1535,7 @@ export const Compliance: React.FC = () => {
 
                                     {/* Linked Projects (New) */}
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <div className="flex items-center justify-between mb-4">
+                                        <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
                                             <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets de Mise en Conformité</h3>
                                         </div>
                                         <div className="space-y-2">
@@ -1558,7 +1558,7 @@ export const Compliance: React.FC = () => {
 
                                     {/* Linked Projects */}
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <div className="flex items-center justify-between mb-4">
+                                        <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
                                             <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets Liés</h3>
                                             <div className="flex gap-2">
                                                 {canEditResource(user, 'Project') && (
@@ -1596,7 +1596,7 @@ export const Compliance: React.FC = () => {
 
                                     {/* Linked Audits */}
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <div className="flex items-center justify-between mb-4">
+                                        <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
                                             <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> Audits Liés</h3>
                                             <div className="flex gap-2">
                                                 {canEditResource(user, 'Audit') && (
