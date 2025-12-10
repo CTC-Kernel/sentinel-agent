@@ -810,7 +810,7 @@ export const VoxelView: React.FC = () => {
         )}
 
         {/* Sidebar Navigation (Available in all modes) */}
-        <aside className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-100'} bg-slate-950/80 border-l border-white/10 backdrop-blur-2xl z-[10000] p-5 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}>
+        <aside className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-100'} bg-slate-950/80 border-l border-white/10 backdrop-blur-2xl z-[10000] p-5 overflow-hidden transition-all duration-500 ease-custom-ease flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}>
           <div className="flex items-center justify-between text-white mb-6 shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">

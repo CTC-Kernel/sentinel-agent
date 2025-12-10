@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const DemoDataService = {
     async generateDemoData(organizationId: string, currentUser: UserProfile) {
-        console.log('Starting Demo Data Generation...');
+        if (import.meta.env.DEV) console.log('Starting Demo Data Generation...');
         const batch = writeBatch(db);
         const now = new Date();
         const userId = currentUser.uid;
@@ -330,7 +330,7 @@ export const DemoDataService = {
             });
 
             await batch.commit();
-            console.log('Demo data generated successfully!');
+            if (import.meta.env.DEV) console.log('Demo data generated successfully!');
             return { success: true, count: assets.length + risks.length + projects.length };
         } catch (error) {
             console.error('Error generating demo data:', error);
