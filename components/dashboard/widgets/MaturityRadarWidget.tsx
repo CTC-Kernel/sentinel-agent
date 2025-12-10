@@ -55,7 +55,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                     </RadarChart>
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/70 dark:bg-black/30 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest shadow-sm whitespace-nowrap">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/70 dark:bg-black/30 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-[9px] sm:text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest shadow-sm whitespace-nowrap">
                         {t('dashboard.isoMaturity')}
                     </span>
                 </div>

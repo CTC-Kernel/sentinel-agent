@@ -115,7 +115,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="text-center">
                     <ShieldAlert className="h-16 w-16 text-red-500 mx-auto mb-4" />
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Accès Refusé</h1>
-                    <p className="text-slate-500 mt-2">Vous n'avez pas les droits Super Admin.</p>
+                    <p className="text-slate-600 mt-2">Vous n'avez pas les droits Super Admin.</p>
                 </div>
             </div>
         );
@@ -128,7 +128,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Super Admin Dashboard</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Vue globale de l'instance Sentinel GRC</p>
+                    <p className="text-slate-600 dark:text-slate-400">Vue globale de l'instance Sentinel GRC</p>
                 </div>
             </div>
 
@@ -140,7 +140,7 @@ export const AdminDashboard: React.FC = () => {
                             <Building className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Organisations</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Organisations</p>
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.totalOrgs}</p>
                         </div>
                     </div>
@@ -151,7 +151,7 @@ export const AdminDashboard: React.FC = () => {
                             <Users className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Utilisateurs Total</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Utilisateurs Total</p>
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.totalUsers}</p>
                         </div>
                     </div>
@@ -162,7 +162,7 @@ export const AdminDashboard: React.FC = () => {
                             <Activity className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Santé Système</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Santé Système</p>
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">Opérationnel</p>
                         </div>
                     </div>
@@ -174,7 +174,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">Organisations Récentes ({filteredOrgs.length})</h2>
                     <div className="relative">
-                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                         <input
                             type="text"
                             placeholder="Rechercher..."
@@ -188,10 +188,10 @@ export const AdminDashboard: React.FC = () => {
                     <table className="w-full">
                         <thead className="bg-slate-50 dark:bg-slate-800/50">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Nom</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Plan</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Création</th>
-                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase">Actions</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Nom</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Plan</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Création</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200 dark:divide-white/10">
@@ -206,7 +206,7 @@ export const AdminDashboard: React.FC = () => {
                                             {org.planId || 'discovery'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-slate-500">
+                                    <td className="px-6 py-4 text-sm text-slate-600">
                                         {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : '-'}
                                     </td>
                                     <td className="px-6 py-4 text-right">

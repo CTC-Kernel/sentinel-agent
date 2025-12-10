@@ -37,7 +37,7 @@ export const KioskPage: React.FC = () => {
                     <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-3 font-display">
                         Enregistré !
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 mb-8 text-lg">
+                    <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">
                         L'équipement a été ajouté avec succès à l'inventaire. Vous pouvez fermer cette fenêtre.
                     </p>
                     <button
@@ -71,7 +71,7 @@ export const KioskPage: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white/50 dark:bg-black/20 backdrop-blur-md rounded-full border border-white/20 dark:border-white/5">
-                    <Lock className="h-3 w-3 text-slate-500" />
+                    <Lock className="h-3 w-3 text-slate-600" />
                     <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Connexion Sécurisée</span>
                 </div>
             </header>
@@ -82,7 +82,7 @@ export const KioskPage: React.FC = () => {
                     <div className="text-center animate-fade-in">
                         <div className="w-16 h-16 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto mb-6"></div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Analyse du matériel...</h2>
-                        <p className="text-slate-500 dark:text-slate-400">Veuillez patienter pendant que nous détectons la configuration.</p>
+                        <p className="text-slate-600 dark:text-slate-400">Veuillez patienter pendant que nous détectons la configuration.</p>
                     </div>
                 ) : (
                     <div className="w-full max-w-2xl animate-slide-up">
@@ -90,7 +90,7 @@ export const KioskPage: React.FC = () => {
                             <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-3 font-display">
                                 Nouvel Équipement
                             </h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-lg">
+                            <p className="text-slate-600 dark:text-slate-400 text-lg">
                                 Vérifiez les informations détectées et complétez la fiche.
                             </p>
                         </div>
@@ -107,7 +107,7 @@ export const KioskPage: React.FC = () => {
             </main>
 
             {/* Footer */}
-            <footer className="relative z-10 py-6 text-center text-xs text-slate-400 dark:text-slate-600">
+            <footer className="relative z-10 py-6 text-center text-xs text-slate-500 dark:text-slate-600">
                 &copy; {new Date().getFullYear()} Sentinel GRC. Tous droits réservés.
             </footer>
         </div>

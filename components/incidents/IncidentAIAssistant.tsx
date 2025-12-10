@@ -47,7 +47,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
                 <div className="bg-slate-50 dark:bg-white/5 p-8 rounded-3xl border border-dashed border-slate-200 dark:border-white/10 text-center">
                     <BrainCircuit className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                     <h3 className="font-bold text-slate-900 dark:text-white mb-2">Analyse IA de l'incident</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 max-w-md mx-auto">
                         L'IA peut analyser les détails de l'incident pour identifier la cause racine probable et suggérer des mesures correctives.
                     </p>
                     <button
@@ -68,7 +68,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
                         <button
                             onClick={handleAnalyzeIncident}
                             disabled={analyzing}
-                            className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                            className="p-2 text-slate-500 hover:text-indigo-500 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
                             title="Relancer l'analyse"
                         >
                             <Loader2 className={`h-4 w-4 ${analyzing ? 'animate-spin' : ''}`} />

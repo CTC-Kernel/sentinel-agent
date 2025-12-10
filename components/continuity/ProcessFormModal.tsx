@@ -158,7 +158,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom du Processus</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom du Processus</label>
                             <input
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"
                                 placeholder="Ex: Paiement Fournisseurs"
@@ -168,7 +168,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable</label>
                             <select
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium transition-all"
                                 {...register('owner')}
@@ -183,7 +183,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Description</label>
                         <textarea
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium resize-none h-[124px] transition-all"
                             placeholder="Description complète des activités..."
@@ -195,20 +195,20 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
 
                 <div className="grid grid-cols-3 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
                     <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Priorité</label>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Priorité</label>
                         <select className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500" {...register('priority')}>
                             {['Critique', 'Élevée', 'Moyenne', 'Faible'].map(p => <option key={p} value={p}>{p}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">RTO (Temps)</label>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">RTO (Temps)</label>
                         <input
                             className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500"
                             {...register('rto')}
                         />
                     </div>
                     <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">RPO (Données)</label>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">RPO (Données)</label>
                         <input
                             className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500"
                             {...register('rpo')}
@@ -218,10 +218,10 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Dépendances Critiques</label>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">Dépendances Critiques</label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <span className="text-xs font-semibold text-slate-400 mb-2 block flex items-center gap-1"><Server className="h-3 w-3" /> Actifs Internes</span>
+                                <span className="text-xs font-semibold text-slate-500 mb-2 block flex items-center gap-1"><Server className="h-3 w-3" /> Actifs Internes</span>
                                 <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-white/10 rounded-xl p-2 bg-white dark:bg-black/20 custom-scrollbar">
                                     {assets.map(asset => (
                                         <label key={asset.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
@@ -234,11 +234,11 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                             <span className="text-sm font-medium dark:text-white truncate">{asset.name}</span>
                                         </label>
                                     ))}
-                                    {assets.length === 0 && <p className="text-xs text-slate-400 p-2 italic">Aucun actif disponible</p>}
+                                    {assets.length === 0 && <p className="text-xs text-slate-500 p-2 italic">Aucun actif disponible</p>}
                                 </div>
                             </div>
                             <div>
-                                <span className="text-xs font-semibold text-slate-400 mb-2 block flex items-center gap-1"><Truck className="h-3 w-3" /> Fournisseurs</span>
+                                <span className="text-xs font-semibold text-slate-500 mb-2 block flex items-center gap-1"><Truck className="h-3 w-3" /> Fournisseurs</span>
                                 <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-white/10 rounded-xl p-2 bg-white dark:bg-black/20 custom-scrollbar">
                                     <Controller
                                         name="supplierIds"
@@ -260,7 +260,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                                         <span className="text-sm font-medium dark:text-white truncate">{s.name}</span>
                                                     </label>
                                                 ))}
-                                                {suppliers.length === 0 && <p className="text-xs text-slate-400 p-2 italic">Aucun fournisseur disponible</p>}
+                                                {suppliers.length === 0 && <p className="text-xs text-slate-500 p-2 italic">Aucun fournisseur disponible</p>}
                                             </div>
                                         )}
                                     />
@@ -271,7 +271,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                 </div>
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Scénarios de Risques</label>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">Scénarios de Risques</label>
                         <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-white/10 rounded-xl p-2 bg-white dark:bg-black/20 custom-scrollbar">
                             <Controller
                                 name="relatedRiskIds"
@@ -292,11 +292,11 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                                 />
                                                 <div className="truncate">
                                                     <span className="text-sm font-medium dark:text-white block truncate">{r.threat}</span>
-                                                    <span className="text-[10px] text-slate-400 block truncate">{r.vulnerability}</span>
+                                                    <span className="text-[10px] text-slate-500 block truncate">{r.vulnerability}</span>
                                                 </div>
                                             </label>
                                         ))}
-                                        {risks.length === 0 && <p className="text-xs text-slate-400 p-2 italic">Aucun risque disponible</p>}
+                                        {risks.length === 0 && <p className="text-xs text-slate-500 p-2 italic">Aucun risque disponible</p>}
                                     </div>
                                 )}
                             />
@@ -306,7 +306,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
 
                 <div>
                     <div className="flex justify-between items-center mb-3">
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Plan de Reprise (Étapes)</label>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">Plan de Reprise (Étapes)</label>
                         <button type="button" onClick={addRecoveryTask} className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1">
                             <Plus className="h-3 w-3" /> Ajouter une étape
                         </button>
@@ -314,7 +314,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                     <div className="space-y-3">
                         {watchedRecoveryTasks?.map((_, index) => (
                             <div key={index} className="flex gap-3 items-start bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10">
-                                <div className="mt-2.5 text-[10px] font-bold text-slate-400 w-5 text-center bg-white dark:bg-black/20 rounded h-5 leading-5 border border-slate-200 dark:border-white/10">{index + 1}</div>
+                                <div className="mt-2.5 text-[10px] font-bold text-slate-500 w-5 text-center bg-white dark:bg-black/20 rounded h-5 leading-5 border border-slate-200 dark:border-white/10">{index + 1}</div>
                                 <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
                                     <div className="md:col-span-6">
                                         <input placeholder="Action" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm" {...register(`recoveryTasks.${index}.title` as const)} />
@@ -326,14 +326,14 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                         <input placeholder="Durée" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm" {...register(`recoveryTasks.${index}.duration` as const)} />
                                     </div>
                                 </div>
-                                <button type="button" onClick={() => removeRecoveryTask(index)} className="mt-2 text-slate-400 hover:text-red-500">
+                                <button type="button" onClick={() => removeRecoveryTask(index)} className="mt-2 text-slate-500 hover:text-red-500">
                                     <Trash2 className="h-4 w-4" />
                                 </button>
                             </div>
                         ))}
                         {(!watchedRecoveryTasks || watchedRecoveryTasks.length === 0) && (
                             <div className="text-center p-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl">
-                                <p className="text-sm text-slate-400">Aucune étape définie. Utilisez l'assistant IA ou ajoutez-les manuellement.</p>
+                                <p className="text-sm text-slate-500">Aucune étape définie. Utilisez l'assistant IA ou ajoutez-les manuellement.</p>
                             </div>
                         )}
                     </div>

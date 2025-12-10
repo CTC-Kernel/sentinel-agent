@@ -546,7 +546,7 @@ export const Suppliers: React.FC = () => {
             cell: ({ row }) => (
                 <div className="flex flex-col">
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{row.original.contactName || '-'}</span>
-                    <span className="text-[10px] text-slate-400">{row.original.contactEmail}</span>
+                    <span className="text-[10px] text-slate-500">{row.original.contactEmail}</span>
                 </div>
             )
         },
@@ -560,7 +560,7 @@ export const Suppliers: React.FC = () => {
                     <span className={`text-sm font-medium ${isExpired ? 'text-red-500' : 'text-slate-600 dark:text-slate-400'}`}>
                         {new Date(d).toLocaleDateString()}
                     </span>
-                ) : <span className="text-slate-400">-</span>;
+                ) : <span className="text-slate-500">-</span>;
             }
         },
         {
@@ -582,7 +582,7 @@ export const Suppliers: React.FC = () => {
                                 e.stopPropagation();
                                 initiateDelete(row.original.id, row.original.name);
                             }}
-                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                            className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
                             title="Supprimer"
                         >
                             <Trash2 className="h-4 w-4" />
@@ -648,18 +648,18 @@ export const Suppliers: React.FC = () => {
             />
 
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5">
-                <Search className="h-5 w-5 text-slate-400" />
+                <Search className="h-5 w-5 text-slate-500" />
                 <input type="text" placeholder="Rechercher un fournisseur..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                     value={filter} onChange={e => setFilter(e.target.value)} />
-                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
+                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
                 <button onClick={handleExportDORARegister} className="p-2.5 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors ml-2" title="Exporter Registre DORA">
                     <ShieldAlert className="h-4 w-4" />
                 </button>
                 <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm ml-2">
-                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
-                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
                 </div>
             </div>
 
@@ -715,7 +715,7 @@ export const Suppliers: React.FC = () => {
 
                                     <div className="mb-6 bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
                                         <div className="flex justify-between text-xs mb-2">
-                                            <span className="text-slate-500 dark:text-slate-400 flex items-center font-bold uppercase tracking-wide"><ShieldAlert className="h-3.5 w-3.5 mr-1.5" /> Sécurité</span>
+                                            <span className="text-slate-600 dark:text-slate-400 flex items-center font-bold uppercase tracking-wide"><ShieldAlert className="h-3.5 w-3.5 mr-1.5" /> Sécurité</span>
                                             <span className={`font-black ${getScoreColor(supplier.securityScore || 0).replace('bg-', 'text-')}`}>{supplier.securityScore || 0}/100</span>
                                         </div>
                                         <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
@@ -726,20 +726,20 @@ export const Suppliers: React.FC = () => {
                                     <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
                                         <div className="flex items-center justify-between text-xs">
                                             <div className="flex items-center font-medium text-slate-600 dark:text-slate-300">
-                                                <Handshake className="h-3.5 w-3.5 mr-2 text-slate-400" /> {supplier.contactName || 'Non spécifié'}
+                                                <Handshake className="h-3.5 w-3.5 mr-2 text-slate-500" /> {supplier.contactName || 'Non spécifié'}
                                             </div>
                                             {supplier.contractEnd && (
-                                                <div className={`flex items-center font-bold ${isExpired ? 'text-red-500' : 'text-slate-400'}`}>
+                                                <div className={`flex items-center font-bold ${isExpired ? 'text-red-500' : 'text-slate-500'}`}>
                                                     <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                                                     {new Date(supplier.contractEnd).toLocaleDateString()}
                                                 </div>
                                             )}
                                         </div>
                                         <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
-                                            <FileText className="h-3.5 w-3.5 mr-2 text-slate-400" />
+                                            <FileText className="h-3.5 w-3.5 mr-2 text-slate-500" />
                                             {linkedDoc ? (
                                                 <span className="text-brand-600 truncate max-w-[180px] hover:underline">{linkedDoc.title}</span>
-                                            ) : <span className="text-slate-400 italic">Aucun contrat lié</span>}
+                                            ) : <span className="text-slate-500 italic">Aucun contrat lié</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -760,13 +760,13 @@ export const Suppliers: React.FC = () => {
                 actions={
                     <div className="flex gap-2">
                         {canEdit && !isEditing && (
-                            <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                            <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                         )}
                         {canEdit && isEditing && (
                             <button onClick={editForm.handleSubmit(handleUpdate)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
                         )}
                         {canEdit && (
-                            <button onClick={() => initiateDelete(selectedSupplier!.id, selectedSupplier!.name)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                            <button onClick={() => initiateDelete(selectedSupplier!.id, selectedSupplier!.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
                         )}
                     </div>
                 }
@@ -806,18 +806,18 @@ export const Suppliers: React.FC = () => {
                                         <>
                                             <div className="grid grid-cols-2 gap-6">
                                                 <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
-                                                    <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Criticité</span>
+                                                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">Criticité</span>
                                                     <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase border ${getCriticalityColor(selectedSupplier.criticality || Criticality.MEDIUM)}`}>{selectedSupplier.criticality}</span>
                                                 </div>
                                                 <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
-                                                    <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Score Sécurité</span>
+                                                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">Score Sécurité</span>
                                                     <span className={`font-bold text-xl ${selectedSupplier.securityScore! >= 50 ? 'text-emerald-500' : 'text-red-500'}`}>{selectedSupplier.securityScore}/100</span>
                                                 </div>
                                             </div>
                                             <div className="p-6 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Contact</h4>
-                                                <div className="flex items-center mb-3 text-sm font-medium text-slate-900 dark:text-white"><Handshake className="h-4 w-4 mr-3 text-slate-400" /> {selectedSupplier.contactName}</div>
-                                                <div className="flex items-center text-sm font-medium text-slate-900 dark:text-white"><Mail className="h-4 w-4 mr-3 text-slate-400" /> {selectedSupplier.contactEmail}</div>
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-4">Contact</h4>
+                                                <div className="flex items-center mb-3 text-sm font-medium text-slate-900 dark:text-white"><Handshake className="h-4 w-4 mr-3 text-slate-500" /> {selectedSupplier.contactName}</div>
+                                                <div className="flex items-center text-sm font-medium text-slate-900 dark:text-white"><Mail className="h-4 w-4 mr-3 text-slate-500" /> {selectedSupplier.contactEmail}</div>
                                             </div>
                                             <div className="p-6 bg-blue-50/80 dark:bg-slate-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm">
                                                 <div className="flex justify-between items-center mb-4">
@@ -845,18 +845,18 @@ export const Suppliers: React.FC = () => {
                                                     </h4>
                                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                                         <div>
-                                                            <span className="block text-xs text-slate-500 mb-1">Type Service</span>
+                                                            <span className="block text-xs text-slate-600 mb-1">Type Service</span>
 
                                                             <span className="font-bold text-slate-900 dark:text-white">{selectedSupplier.serviceType || 'N/A'}</span>
                                                         </div>
                                                         <div>
-                                                            <span className="block text-xs text-slate-500 mb-1">Fonction Critique</span>
+                                                            <span className="block text-xs text-slate-600 mb-1">Fonction Critique</span>
                                                             <span className={`font-bold ${selectedSupplier.supportsCriticalFunction ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
                                                                 {selectedSupplier.supportsCriticalFunction ? 'OUI' : 'NON'}
                                                             </span>
                                                         </div>
                                                         <div>
-                                                            <span className="block text-xs text-slate-500 mb-1">Criticité DORA</span>
+                                                            <span className="block text-xs text-slate-600 mb-1">Criticité DORA</span>
                                                             <span className="font-bold text-slate-900 dark:text-white">{selectedSupplier.doraCriticality || 'None'}</span>
                                                         </div>
                                                     </div>
@@ -874,7 +874,7 @@ export const Suppliers: React.FC = () => {
                                                             return process ? (
                                                                 <div key={pid} className="flex items-center justify-between text-sm p-2 bg-white dark:bg-slate-800 rounded-lg border border-purple-100 dark:border-purple-900/20">
                                                                     <span className="font-medium text-slate-700 dark:text-slate-300">{process.name}</span>
-                                                                    <span className="text-xs text-slate-500">RTO: {process.rto}</span>
+                                                                    <span className="text-xs text-slate-600">RTO: {process.rto}</span>
                                                                 </div>
                                                             ) : null;
                                                         })}
@@ -884,18 +884,18 @@ export const Suppliers: React.FC = () => {
 
                                             {/* Linked Assets */}
                                             <div className="p-6 bg-slate-50/80 dark:bg-slate-800/30 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm mt-6">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center">
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-4 flex items-center">
                                                     <Server className="h-4 w-4 mr-2" /> Actifs Fournis ({assetsRaw.filter(a => a.supplierId === selectedSupplier.id || selectedSupplier.relatedAssetIds?.includes(a.id)).length})
                                                 </h4>
                                                 <div className="space-y-2">
                                                     {assetsRaw.filter(a => a.supplierId === selectedSupplier.id || selectedSupplier.relatedAssetIds?.includes(a.id)).map(asset => (
                                                         <div key={asset.id} className="flex items-center justify-between text-sm p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-white/5">
                                                             <span className="font-medium text-slate-700 dark:text-slate-300">{asset.name}</span>
-                                                            <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-500">{asset.type}</span>
+                                                            <span className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-600">{asset.type}</span>
                                                         </div>
                                                     ))}
                                                     {assetsRaw.filter(a => a.supplierId === selectedSupplier.id || selectedSupplier.relatedAssetIds?.includes(a.id)).length === 0 && (
-                                                        <p className="text-sm text-slate-400 italic">Aucun actif associé.</p>
+                                                        <p className="text-sm text-slate-500 italic">Aucun actif associé.</p>
                                                     )}
                                                 </div>
                                             </div>
@@ -913,7 +913,7 @@ export const Suppliers: React.FC = () => {
                                                         </div>
                                                     ))}
                                                     {risksRaw.filter(r => r.relatedSupplierIds?.includes(selectedSupplier.id) || selectedSupplier.relatedRiskIds?.includes(r.id)).length === 0 && (
-                                                        <p className="text-sm text-slate-400 italic">Aucun risque associé.</p>
+                                                        <p className="text-sm text-slate-500 italic">Aucun risque associé.</p>
                                                     )}
                                                 </div>
                                             </div>
@@ -931,7 +931,7 @@ export const Suppliers: React.FC = () => {
                                                         </div>
                                                     ))}
                                                     {projectsRaw.filter(p => selectedSupplier.relatedProjectIds?.includes(p.id)).length === 0 && (
-                                                        <p className="text-sm text-slate-400 italic">Aucun projet associé.</p>
+                                                        <p className="text-sm text-slate-500 italic">Aucun projet associé.</p>
                                                     )}
                                                 </div>
                                             </div>
@@ -981,7 +981,7 @@ export const Suppliers: React.FC = () => {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <p className="text-sm text-slate-500 italic text-center py-4">Mode lecture seule. Contactez un administrateur pour modifier.</p>
+                                                <p className="text-sm text-slate-600 italic text-center py-4">Mode lecture seule. Contactez un administrateur pour modifier.</p>
                                             )}
 
                                             {isEditing && (
@@ -997,17 +997,17 @@ export const Suppliers: React.FC = () => {
                             {
                                 inspectorTab === 'history' && (
                                     <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                        {supplierHistory.length === 0 ? <p className="text-sm text-slate-500 pl-6">Aucun historique récent.</p> :
+                                        {supplierHistory.length === 0 ? <p className="text-sm text-slate-600 pl-6">Aucun historique récent.</p> :
                                             supplierHistory.map((log, i) => (
                                                 <div key={i} className="relative">
                                                     <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
                                                         <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                                     </span>
                                                     <div>
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                         <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                        <p className="text-[10px] text-slate-400 mt-1">Par: {log.userEmail}</p>
+                                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
+                                                        <p className="text-[10px] text-slate-500 mt-1">Par: {log.userEmail}</p>
                                                     </div>
                                                 </div>
                                             ))}

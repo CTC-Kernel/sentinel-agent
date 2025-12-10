@@ -167,13 +167,13 @@ export const MigrationTool: React.FC = () => {
                 </div>
                 <div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Migration & Intégrité</h3>
-                    <p className="text-sm text-slate-500">Vérifier et réparer la cohérence des données multi-tenant.</p>
+                    <p className="text-sm text-slate-600">Vérifier et réparer la cohérence des données multi-tenant.</p>
                 </div>
             </div>
 
             <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 mb-6 font-mono text-xs h-48 overflow-y-auto border border-slate-200 dark:border-slate-700">
                 {logs.length === 0 ? (
-                    <span className="text-slate-400 italic">Prêt à démarrer...</span>
+                    <span className="text-slate-500 italic">Prêt à démarrer...</span>
                 ) : (
                     logs.map((l, i) => <div key={i} className="mb-1 text-slate-600 dark:text-slate-300">{l}</div>)
                 )}

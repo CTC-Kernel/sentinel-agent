@@ -116,7 +116,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Santé du Projet</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
                             {projectHealth.status === 'good' ? 'Le projet est sur la bonne voie.' : projectHealth.status === 'warning' ? 'Attention requise sur certains points.' : 'Situation critique, action immédiate requise.'}
                         </p>
                     </div>
@@ -126,19 +126,19 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                 <div className="flex-1 grid grid-cols-2 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <TrendingUp className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Progression</div>
+                            <TrendingUp className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Progression</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{Math.round(projectHealth.progressRate)}%</div>
                         <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${projectHealth.progressRate}%` }}></div>
                         </div>
-                        <div className="text-xs text-slate-500 mt-1">Attendue: {Math.round(projectHealth.expectedProgress)}%</div>
+                        <div className="text-xs text-slate-600 mt-1">Attendue: {Math.round(projectHealth.expectedProgress)}%</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <Target className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Jalons</div>
+                            <Target className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Jalons</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{milestones.filter(m => m.status === 'achieved').length}/{milestones.length}</div>
                         <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
@@ -259,7 +259,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                 <div className="flex-1">
                                     <div className="flex items-center justify-between">
                                         <span className="font-bold text-sm text-slate-900 dark:text-white">{milestone.title}</span>
-                                        <span className="text-xs text-slate-500">
+                                        <span className="text-xs text-slate-600">
                                             {new Date(milestone.targetDate).toLocaleDateString('fr-FR')}
                                         </span>
                                     </div>

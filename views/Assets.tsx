@@ -687,7 +687,7 @@ export const Assets: React.FC = () => {
             <SlideUp>
                 <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
                     <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
-                        <Search className="h-5 w-5 text-slate-400" />
+                        <Search className="h-5 w-5 text-slate-500" />
                         <input
                             type="text"
                             placeholder="Rechercher un actif..."
@@ -701,8 +701,8 @@ export const Assets: React.FC = () => {
                         >
                             Filtres Avancés
                         </button>
-                        <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"><FileSpreadsheet className="h-4 w-4" /></button>
-                        <button disabled={isGeneratingLabels} onClick={() => generateLabels()} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50" title="Imprimer Étiquette">
+                        <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"><FileSpreadsheet className="h-4 w-4" /></button>
+                        <button disabled={isGeneratingLabels} onClick={() => generateLabels()} className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50" title="Imprimer Étiquette">
                             {isGeneratingLabels ? <span className="animate-spin">⏳</span> : <QrCode className="h-4 w-4" />}
                         </button>
                     </div>
@@ -710,13 +710,13 @@ export const Assets: React.FC = () => {
                     <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
                         <button
                             onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}
                         >
                             <LayoutGrid className="h-4 w-4" />
                         </button>
                         <button
                             onClick={() => setViewMode('list')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}
                         >
                             <List className="h-4 w-4" />
                         </button>
@@ -738,13 +738,13 @@ export const Assets: React.FC = () => {
                                     const maintenanceOverdue = asset.nextMaintenance && new Date(asset.nextMaintenance) < new Date();
                                     return (
                                         <div className="flex items-center">
-                                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-600 dark:text-slate-300">
                                                 <Server className="h-5 w-5" strokeWidth={1.5} />
                                             </div>
                                             <div>
                                                 <div className="font-bold text-slate-900 dark:text-white text-[15px]">{asset.name}</div>
                                                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                                    <span className="text-xs text-slate-500 font-medium">{asset.owner}</span>
+                                                    <span className="text-xs text-slate-600 font-medium">{asset.owner}</span>
                                                     {warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}
                                                     {maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-900 px-1.5 py-0.5 rounded font-bold flex items-center"><Clock className="h-2.5 w-2.5 mr-1" />Maint.</span>}
                                                     {asset.scope && asset.scope.map(s => <span key={s} className="text-[9px] bg-indigo-50 dark:bg-slate-900 text-indigo-600 border border-indigo-100 dark:bg-slate-900/30 dark:text-indigo-400 dark:border-indigo-900 px-1.5 py-0.5 rounded font-bold">{s}</span>)}
@@ -785,18 +785,18 @@ export const Assets: React.FC = () => {
                             {
                                 header: 'Localisation',
                                 accessorKey: 'location',
-                                cell: ({ row }) => <span className="text-slate-500 dark:text-slate-400 font-medium text-xs">{row.original.location}</span>,
+                                cell: ({ row }) => <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">{row.original.location}</span>,
                             },
                             {
                                 id: 'actions',
                                 header: '',
                                 cell: ({ row }) => (
                                     <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                        <button disabled={isGeneratingLabels} onClick={() => generateLabels(row.original)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all disabled:opacity-50" title="Imprimer Étiquette">
+                                        <button disabled={isGeneratingLabels} onClick={() => generateLabels(row.original)} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all disabled:opacity-50" title="Imprimer Étiquette">
                                             {isGeneratingLabels ? <span className="animate-spin text-xs">⏳</span> : <QrCode className="h-4 w-4" />}
                                         </button>
                                         {canDeleteResource(user, 'Asset') && (
-                                            <button onClick={() => initiateDelete(row.original.id, row.original.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Supprimer">
+                                            <button onClick={() => initiateDelete(row.original.id, row.original.name)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Supprimer">
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         )}
@@ -861,7 +861,7 @@ export const Assets: React.FC = () => {
                                         </div>
                                     </div>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{asset.name}</h3>
-                                    <p className="text-xs text-slate-500 font-medium mb-4">{asset.type} • {asset.owner}</p>
+                                    <p className="text-xs text-slate-600 font-medium mb-4">{asset.type} • {asset.owner}</p>
 
                                     <div className="mt-auto pt-4 border-t border-dashed border-slate-200 dark:border-white/10 flex justify-between items-center">
                                         <div className="flex items-center gap-2">
@@ -906,16 +906,16 @@ export const Assets: React.FC = () => {
                                 <>
                                     {canEdit && (
                                         <>
-                                            <button onClick={() => setIsEditing(true)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-brand-500">
+                                            <button onClick={() => setIsEditing(true)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-brand-500">
                                                 <Edit className="h-5 w-5" />
                                             </button>
-                                            <button onClick={() => handleDuplicate()} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-blue-500">
+                                            <button onClick={() => handleDuplicate()} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-blue-500">
                                                 <Copy className="h-5 w-5" />
                                             </button>
                                         </>
                                     )}
                                     {canDeleteResource(user, 'Asset') && (
-                                        <button onClick={() => selectedAsset && initiateDelete(selectedAsset.id, selectedAsset.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-red-500">
+                                        <button onClick={() => selectedAsset && initiateDelete(selectedAsset.id, selectedAsset.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-red-500">
                                             <Trash2 className="h-5 w-5" />
                                         </button>
                                     )}
@@ -964,7 +964,7 @@ export const Assets: React.FC = () => {
                             {inspectorTab === 'details' && selectedAsset && (
                                 <div className="space-y-8">
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Informations Principales</h3>
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Informations Principales</h3>
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="col-span-2">
                                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Nom de l'actif</label>
@@ -989,9 +989,9 @@ export const Assets: React.FC = () => {
                                                     return sup ? (
                                                         <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                                                             <div className="font-bold text-slate-900 dark:text-white">{sup.name}</div>
-                                                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{sup.category}</div>
+                                                            <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">{sup.category}</div>
                                                         </div>
-                                                    ) : <p className="text-sm text-slate-400 italic">Aucun fournisseur lié.</p>;
+                                                    ) : <p className="text-sm text-slate-500 italic">Aucun fournisseur lié.</p>;
                                                 })()}
                                             </div>
                                         </div>
@@ -1000,7 +1000,7 @@ export const Assets: React.FC = () => {
                                     {/* Specific Details based on Type */}
                                     {(selectedAsset.type === 'Matériel' || selectedAsset.type === 'Logiciel' || selectedAsset.type === 'Humain') && (
                                         <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">
                                                 Détails {selectedAsset.type}
                                             </h3>
                                             <div className="grid grid-cols-2 gap-6">
@@ -1059,7 +1059,7 @@ export const Assets: React.FC = () => {
                                         <div className="grid grid-cols-3 gap-4">
                                             {['confidentiality', 'integrity', 'availability'].map((field) => (
                                                 <div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5">
-                                                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
+                                                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
                                                     <div className={`text-sm font-bold ${getCriticalityColor(selectedAsset[field as 'confidentiality' | 'integrity' | 'availability'])} px-2 py-1 rounded-lg inline-block`}>
                                                         {selectedAsset[field as 'confidentiality' | 'integrity' | 'availability']}
                                                     </div>
@@ -1069,7 +1069,7 @@ export const Assets: React.FC = () => {
                                     </div>
 
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center">
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 flex items-center">
                                             <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
                                         </h3>
                                         <div className="flex flex-wrap gap-3">
@@ -1077,13 +1077,13 @@ export const Assets: React.FC = () => {
                                                 <span key={scope} className="px-4 py-2 rounded-xl bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-bold">
                                                     {scope.replace('_', ' ')}
                                                 </span>
-                                            )) : <p className="text-sm text-slate-400 italic">Aucun périmètre défini.</p>}
+                                            )) : <p className="text-sm text-slate-500 italic">Aucun périmètre défini.</p>}
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center">
                                                 <HeartPulse className="h-4 w-4 mr-2" /> Processus Supportés
                                             </h3>
                                             {(() => {
@@ -1097,7 +1097,7 @@ export const Assets: React.FC = () => {
                                                             </div>
                                                         ))}
                                                     </div>
-                                                ) : <p className="text-sm text-slate-400 italic">Cet actif ne supporte aucun processus critique.</p>;
+                                                ) : <p className="text-sm text-slate-500 italic">Cet actif ne supporte aucun processus critique.</p>;
                                             })()}
                                         </div>
                                     </div>
@@ -1106,7 +1106,7 @@ export const Assets: React.FC = () => {
                             {inspectorTab === 'lifecycle' && (
                                 <div className="space-y-8">
                                     <div className="bg-white dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-x-auto">
-                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-8">Timeline du cycle de vie</h3>
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-8">Timeline du cycle de vie</h3>
                                         <div className="min-w-[600px] px-4">
                                             <LifecycleTimeline
                                                 status={selectedAsset?.lifecycleStatus || 'Neuf'}
@@ -1123,10 +1123,10 @@ export const Assets: React.FC = () => {
                                         </div>
                                         <div className="space-y-4">
                                             <div className="grid grid-cols-2 gap-6 pt-2">
-                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Date d'achat</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchaseDate ? new Date(selectedAsset.purchaseDate).toLocaleDateString() : '-'}</div></div>
-                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Fin de garantie</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.warrantyEnd ? new Date(selectedAsset.warrantyEnd).toLocaleDateString() : '-'}</div></div>
-                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Prix d'achat (€)</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchasePrice ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(selectedAsset.purchasePrice) : '-'}</div></div>
-                                                <div><label className="block text-xs font-bold uppercase text-slate-400 mb-2">Coût Maintenance (€)</label><div className="px-4 py-3 rounded-2xl bg-gray-50 dark:bg-white/5 text-sm font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(maintenanceRecords.reduce((acc, m) => acc + (m.cost || 0), 0))}</div></div>
+                                                <div><label className="block text-xs font-bold uppercase text-slate-500 mb-2">Date d'achat</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchaseDate ? new Date(selectedAsset.purchaseDate).toLocaleDateString() : '-'}</div></div>
+                                                <div><label className="block text-xs font-bold uppercase text-slate-500 mb-2">Fin de garantie</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.warrantyEnd ? new Date(selectedAsset.warrantyEnd).toLocaleDateString() : '-'}</div></div>
+                                                <div><label className="block text-xs font-bold uppercase text-slate-500 mb-2">Prix d'achat (€)</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchasePrice ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(selectedAsset.purchasePrice) : '-'}</div></div>
+                                                <div><label className="block text-xs font-bold uppercase text-slate-500 mb-2">Coût Maintenance (€)</label><div className="px-4 py-3 rounded-2xl bg-gray-50 dark:bg-white/5 text-sm font-bold">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(maintenanceRecords.reduce((acc, m) => acc + (m.cost || 0), 0))}</div></div>
                                             </div>
 
                                             {/* Financial Charts */}
@@ -1142,7 +1142,7 @@ export const Assets: React.FC = () => {
                                                             <p className="text-xl font-black text-blue-700 dark:text-blue-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateTCO())}</p>
                                                         </div>
                                                     </div>
-                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Courbe d'amortissement (5 ans)</h4>
+                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Courbe d'amortissement (5 ans)</h4>
                                                     <div className="h-40 w-full">
                                                         <ResponsiveContainer width="100%" height="100%">
                                                             <AreaChart data={getDepreciationData()}>
@@ -1164,7 +1164,7 @@ export const Assets: React.FC = () => {
                                             )}
                                         </div>
                                     </div>
-                                    <div><div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500" /> Historique Maintenance</h3></div>{canEdit && (<div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm"><div className="grid grid-cols-2 gap-4 mb-4"><input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({ ...newMaintenance, date: e.target.value })} /><select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({ ...newMaintenance, type: e.target.value as MaintenanceRecord['type'] })}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select></div><div className="flex gap-4 mb-4"><input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })} /><input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })} /></div><button onClick={handleAddMaintenance} disabled={isAddingMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center">{isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention</button></div>)}<div className="space-y-3">{maintenanceRecords.length === 0 ? <p className="text-sm text-slate-400 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (<div key={rec.id} className="flex items-start p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all"><div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div><div className="flex-1"><div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-300 font-bold">{rec.type}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p><div className="flex justify-between mt-2"><span className="text-[10px] text-slate-400 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[10px] font-bold text-slate-500">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div></div></div>))}</div></div>
+                                    <div><div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500" /> Historique Maintenance</h3></div>{canEdit && (<div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm"><div className="grid grid-cols-2 gap-4 mb-4"><input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({ ...newMaintenance, date: e.target.value })} /><select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({ ...newMaintenance, type: e.target.value as MaintenanceRecord['type'] })}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select></div><div className="flex gap-4 mb-4"><input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })} /><input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })} /></div><button onClick={handleAddMaintenance} disabled={isAddingMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center">{isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention</button></div>)}<div className="space-y-3">{maintenanceRecords.length === 0 ? <p className="text-sm text-slate-500 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (<div key={rec.id} className="flex items-start p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all"><div className={`mt-1.5 w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'}`}></div><div className="flex-1"><div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-300 font-bold">{rec.type}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p><div className="flex justify-between mt-2"><span className="text-[10px] text-slate-500 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[10px] font-bold text-slate-600">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div></div></div>))}</div></div>
                                 </div>
                             )}
                             {inspectorTab === 'security' && (
@@ -1196,10 +1196,10 @@ export const Assets: React.FC = () => {
                                                 <Server className="h-4 w-4 mr-2" /> Résultat Shodan
                                             </h3>
                                             <div className="space-y-2 text-sm font-mono">
-                                                <p><span className="text-slate-400">IP:</span> {shodanResult.ip_str}</p>
-                                                <p><span className="text-slate-400">OS:</span> {shodanResult.os || 'N/A'}</p>
-                                                <p><span className="text-slate-400">Ports:</span> {shodanResult.ports?.join(', ') || 'None'}</p>
-                                                <p><span className="text-slate-400">Org:</span> {shodanResult.org || 'N/A'}</p>
+                                                <p><span className="text-slate-500">IP:</span> {shodanResult.ip_str}</p>
+                                                <p><span className="text-slate-500">OS:</span> {shodanResult.os || 'N/A'}</p>
+                                                <p><span className="text-slate-500">Ports:</span> {shodanResult.ports?.join(', ') || 'None'}</p>
+                                                <p><span className="text-slate-500">Org:</span> {shodanResult.org || 'N/A'}</p>
                                             </div>
                                         </div>
                                     )}
@@ -1233,13 +1233,13 @@ export const Assets: React.FC = () => {
                                         </div>
                                     )}
 
-                                    <div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})</h3>{linkedRisks.length === 0 ? (<p className="text-sm text-slate-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>) : (<div className="grid gap-4">{linkedRisks.map(risk => (<div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span><span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{risk.vulnerability}</p>{risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}</div>))}</div>)}</div><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})</h3>{linkedIncidents.length === 0 ? (<p className="text-sm text-slate-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>) : (<div className="grid gap-4">{linkedIncidents.map(inc => (<div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span><span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span></div><p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p></div>))}</div>)}</div></div>
+                                    <div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})</h3>{linkedRisks.length === 0 ? (<p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>) : (<div className="grid gap-4">{linkedRisks.map(risk => (<div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span><span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span></div><p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{risk.vulnerability}</p>{risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}</div>))}</div>)}</div><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})</h3>{linkedIncidents.length === 0 ? (<p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>) : (<div className="grid gap-4">{linkedIncidents.map(inc => (<div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span><span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span></div><p className="text-xs text-slate-600 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p></div>))}</div>)}</div></div>
                             )}
                             {inspectorTab === 'projects' && (
                                 <div className="space-y-8">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Liés ({linkedProjects.length})</h3>
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Liés ({linkedProjects.length})</h3>
                                     {linkedProjects.length === 0 ? (
-                                        <p className="text-sm text-slate-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé.</p>
+                                        <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé.</p>
                                     ) : (
                                         <div className="grid gap-4">
                                             {linkedProjects.map(proj => (
@@ -1248,7 +1248,7 @@ export const Assets: React.FC = () => {
                                                         <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
                                                         <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{proj.status}</span>
                                                     </div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{proj.description}</p>
+                                                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{proj.description}</p>
                                                     <div className="flex items-center justify-between">
                                                         <div className="w-full bg-slate-200 rounded-full h-1.5 mr-4 max-w-[100px]">
                                                             <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${proj.progress}%` }}></div>
@@ -1263,9 +1263,9 @@ export const Assets: React.FC = () => {
                             )}
                             {inspectorTab === 'audits' && (
                                 <div className="space-y-8">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><CheckSquare className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><CheckSquare className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
                                     {linkedAudits.length === 0 ? (
-                                        <p className="text-sm text-slate-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé.</p>
+                                        <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé.</p>
                                     ) : (
                                         <div className="grid gap-4">
                                             {linkedAudits.map(audit => (
@@ -1275,11 +1275,11 @@ export const Assets: React.FC = () => {
                                                         <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{audit.status}</span>
                                                     </div>
                                                     <div className="flex items-center gap-4 mt-2">
-                                                        <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                                        <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1">
                                                             <CalendarClock className="h-3 w-3" />
                                                             {new Date(audit.dateScheduled).toLocaleDateString()}
                                                         </div>
-                                                        <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                                        <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1">
                                                             <AlertTriangle className="h-3 w-3" />
                                                             {audit.findingsCount} constats
                                                         </div>
@@ -1295,22 +1295,22 @@ export const Assets: React.FC = () => {
                                 <div className="space-y-8">
                                     {/* DICP History */}
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center">
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 flex items-center">
                                             <History className="h-4 w-4 mr-2" /> Historique DICP
                                         </h3>
                                         {!selectedAsset.history || selectedAsset.history.length === 0 ? (
-                                            <p className="text-sm text-slate-400 italic">Aucune modification enregistrée.</p>
+                                            <p className="text-sm text-slate-500 italic">Aucune modification enregistrée.</p>
                                         ) : (
                                             <div className="space-y-4">
                                                 {selectedAsset.history.slice().reverse().map((h, i) => (
                                                     <div key={i} className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                                                         <div className="flex justify-between items-center mb-2">
-                                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{new Date(h.date).toLocaleString()}</span>
-                                                            <span className="text-xs font-medium text-slate-400">par {h.userName}</span>
+                                                            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{new Date(h.date).toLocaleString()}</span>
+                                                            <span className="text-xs font-medium text-slate-500">par {h.userName}</span>
                                                         </div>
                                                         <div className="grid grid-cols-3 gap-2 text-xs">
                                                             <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
-                                                                <span className="text-[10px] text-slate-400 uppercase">Confidentialité</span>
+                                                                <span className="text-[10px] text-slate-500 uppercase">Confidentialité</span>
                                                                 <div className="flex items-center gap-1 mt-1">
                                                                     <span className="line-through opacity-50">{h.previousConfidentiality}</span>
                                                                     <span>→</span>
@@ -1318,7 +1318,7 @@ export const Assets: React.FC = () => {
                                                                 </div>
                                                             </div>
                                                             <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
-                                                                <span className="text-[10px] text-slate-400 uppercase">Intégrité</span>
+                                                                <span className="text-[10px] text-slate-500 uppercase">Intégrité</span>
                                                                 <div className="flex items-center gap-1 mt-1">
                                                                     <span className="line-through opacity-50">{h.previousIntegrity}</span>
                                                                     <span>→</span>
@@ -1326,7 +1326,7 @@ export const Assets: React.FC = () => {
                                                                 </div>
                                                             </div>
                                                             <div className="flex flex-col items-center p-2 rounded bg-white dark:bg-black/20">
-                                                                <span className="text-[10px] text-slate-400 uppercase">Disponibilité</span>
+                                                                <span className="text-[10px] text-slate-500 uppercase">Disponibilité</span>
                                                                 <div className="flex items-center gap-1 mt-1">
                                                                     <span className="line-through opacity-50">{h.previousAvailability}</span>
                                                                     <span>→</span>
@@ -1348,10 +1348,10 @@ export const Assets: React.FC = () => {
                                                     <div className="h-2 w-2 rounded-full bg-brand-500"></div>
                                                 </span>
                                                 <div>
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                    <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-slate-500">{log.userEmail}</div>
+                                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
+                                                    <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-slate-600">{log.userEmail}</div>
                                                 </div>
                                             </div>
                                         ))}

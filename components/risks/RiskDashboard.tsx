@@ -96,7 +96,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Réduction du Risque</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
                             Efficacité globale des stratégies de traitement.
                         </p>
                     </div>
@@ -106,22 +106,22 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
                     <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.(null)}>
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <ShieldAlert className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</div>
+                            <ShieldAlert className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{totalRisks}</div>
                     </div>
                     <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.({ type: 'level', value: 'Critique' })}>
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <AlertTriangle className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Critiques</div>
+                            <AlertTriangle className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Critiques</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{criticalRisks}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <Target className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Score Moy.</div>
+                            <Target className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Score Moy.</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{avgScore.toFixed(1)}</div>
                     </div>
@@ -300,7 +300,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <div className="text-right">
-                                            <div className="text-xs text-slate-500">Score</div>
+                                            <div className="text-xs text-slate-600">Score</div>
                                             <div className="text-lg font-bold text-red-600 dark:text-red-400">{risk.score}</div>
                                         </div>
                                         <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.strategy === 'Atténuer' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :

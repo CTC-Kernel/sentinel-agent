@@ -96,7 +96,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                                 <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                                                     {template.description}
                                                 </p>
-                                                <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
+                                                <div className="flex items-center gap-4 mt-3 text-xs text-slate-600">
                                                     <span className="flex items-center gap-1">
                                                         <Calendar className="h-3 w-3" />
                                                         {template.estimatedDuration} jours

@@ -932,7 +932,7 @@ export const Audits: React.FC = () => {
             cell: ({ row }) => (
                 <div>
                     <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</div>
-                    <div className="text-xs text-slate-500 font-medium">{row.original.type}</div>
+                    <div className="text-xs text-slate-600 font-medium">{row.original.type}</div>
                 </div>
             )
         },
@@ -989,10 +989,10 @@ export const Audits: React.FC = () => {
                 <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
                     {canEdit && (
                         <>
-                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(row.original); }} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
+                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(row.original); }} className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
                                 <Edit className="h-4 w-4" />
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(row.original.id, row.original.name); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
+                            <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(row.original.id, row.original.name); }} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
                                 <Trash2 className="h-4 w-4" />
                             </button>
                         </>
@@ -1047,18 +1047,18 @@ export const Audits: React.FC = () => {
             )}
 
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
-                <Search className="h-5 w-5 text-slate-400" />
+                <Search className="h-5 w-5 text-slate-500" />
                 <input type="text" placeholder="Rechercher un audit..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                     value={filter} onChange={e => setFilter(e.target.value)} />
-                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
+                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
-                <button onClick={handleExportCalendar} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter Calendrier">
+                <button onClick={handleExportCalendar} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter Calendrier">
                     <CalendarDays className="h-4 w-4" />
                 </button>
                 <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm ml-2">
-                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
-                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
                 </div>
             </div>
 
@@ -1101,12 +1101,12 @@ export const Audits: React.FC = () => {
                                 </div>
 
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{audit.name}</h3>
-                                <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                <div className="flex items-center text-sm text-slate-600 dark:text-slate-400 mb-4">
                                     <User className="h-3.5 w-3.5 mr-2" /> {audit.auditor}
                                 </div>
 
                                 <div className="flex justify-between items-center pt-4 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
-                                    <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400">
+                                    <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-400">
                                         <CalendarDays className="h-3.5 w-3.5 mr-1.5" /> {new Date(audit.dateScheduled).toLocaleDateString() || 'Non planifié'}
                                     </div>
                                     <div className="flex items-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">
@@ -1116,10 +1116,10 @@ export const Audits: React.FC = () => {
 
                                 {canEdit && (
                                     <div className="absolute top-6 right-6 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={(e) => { e.stopPropagation(); openEditDrawer(audit); }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-400 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
+                                        <button onClick={(e) => { e.stopPropagation(); openEditDrawer(audit); }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
                                             <Edit className="h-4 w-4" />
                                         </button>
-                                        <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(audit.id, audit.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-400 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
+                                        <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(audit.id, audit.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
                                             <Trash2 className="h-4 w-4" />
                                         </button>
                                     </div>
@@ -1143,7 +1143,7 @@ export const Audits: React.FC = () => {
                     selectedAudit && (
                         <>
                             {canDeleteResource(user, 'Audit') && (
-                                <button onClick={() => selectedAudit && initiateDeleteAudit(selectedAudit.id, selectedAudit.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-red-500">
+                                <button onClick={() => selectedAudit && initiateDeleteAudit(selectedAudit.id, selectedAudit.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-red-500">
                                     <Trash2 className="h-5 w-5" />
                                 </button>
                             )}
@@ -1186,13 +1186,13 @@ export const Audits: React.FC = () => {
                                 {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText size={18} />}
                                 Rapport Exécutif
                             </button>
-                            <button onClick={generateAuditPlan} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-purple-500" title="Plan d'Audit">
+                            <button onClick={generateAuditPlan} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-purple-500" title="Plan d'Audit">
                                 <Calendar className="h-5 w-5" />
                             </button>
-                            <button onClick={generateNonConformityReport} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-orange-500" title="Rapport Non-Conformités">
+                            <button onClick={generateNonConformityReport} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-orange-500" title="Rapport Non-Conformités">
                                 <AlertTriangle className="h-5 w-5" />
                             </button>
-                            <button onClick={handleExportPack} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-emerald-500" title="Pack Complet (ZIP)">
+                            <button onClick={handleExportPack} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-emerald-500" title="Pack Complet (ZIP)">
                                 <Download className="h-5 w-5" />
                             </button>
                         </>
@@ -1224,7 +1224,7 @@ export const Audits: React.FC = () => {
                                 <>
                                     {canEdit && (
                                         <form onSubmit={findingForm.handleSubmit(handleAddFinding)} className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm mb-8">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest flex items-center"><Plus className="h-3.5 w-3.5 mr-2" /> Ajouter un constat</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest flex items-center"><Plus className="h-3.5 w-3.5 mr-2" /> Ajouter un constat</h3>
                                             <div className="space-y-6">
                                                 <div className="flex flex-col gap-1">
                                                     <div className="flex justify-end">
@@ -1295,7 +1295,7 @@ export const Audits: React.FC = () => {
                                                 </div>
 
                                                 <div>
-                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Ou téléverser une nouvelle preuve</label>
+                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Ou téléverser une nouvelle preuve</label>
                                                     <FileUploader
                                                         onUploadComplete={handleEvidenceUpload}
                                                         category="evidence"
@@ -1311,9 +1311,9 @@ export const Audits: React.FC = () => {
                                     )}
 
                                     <div className="space-y-4">
-                                        <h3 className="text-xs font-bold uppercase text-slate-400 mb-2 tracking-widest px-2">Constats ({findings.length})</h3>
+                                        <h3 className="text-xs font-bold uppercase text-slate-500 mb-2 tracking-widest px-2">Constats ({findings.length})</h3>
                                         {findings.length === 0 ? (
-                                            <div className="text-center py-8 text-slate-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic text-sm">Aucun écart relevé pour le moment.</div>
+                                            <div className="text-center py-8 text-slate-500 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10 italic text-sm">Aucun écart relevé pour le moment.</div>
                                         ) : (
                                             findings.map(finding => (
                                                 <div key={finding.id} className="p-5 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm card-hover group relative">
@@ -1322,14 +1322,14 @@ export const Audits: React.FC = () => {
                                                             {finding.type}
                                                         </span>
                                                         {canEdit && (
-                                                            <button onClick={() => initiateDeleteFinding(finding.id)} className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                                            <button onClick={() => initiateDeleteFinding(finding.id)} className="text-slate-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
                                                                 <Trash2 className="h-4 w-4" />
                                                             </button>
                                                         )}
                                                     </div>
                                                     <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3 leading-relaxed">{finding.description}</p>
                                                     {finding.relatedControlId && (
-                                                        <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-black/20 px-3 py-1.5 rounded-lg w-fit">
+                                                        <div className="flex items-center text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-black/20 px-3 py-1.5 rounded-lg w-fit">
                                                             <ShieldAlert className="h-3 w-3 mr-1.5" />
                                                             {controls.find(c => c.id === finding.relatedControlId)?.code || 'Contrôle Inconnu'}
                                                         </div>
@@ -1363,7 +1363,7 @@ export const Audits: React.FC = () => {
                                         <div className="text-center py-12">
                                             <ClipboardCheck className="h-16 w-16 mx-auto text-slate-300 mb-4" />
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucune checklist générée</h3>
-                                            <p className="text-slate-500 mb-6 max-w-xs mx-auto">Générez une checklist basée sur les contrôles ISO 27001 pour guider votre audit.</p>
+                                            <p className="text-slate-600 mb-6 max-w-xs mx-auto">Générez une checklist basée sur les contrôles ISO 27001 pour guider votre audit.</p>
                                             {canEdit && (
                                                 <button onClick={generateChecklist} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">Générer la Checklist ISO 27001</button>
                                             )}
@@ -1385,7 +1385,7 @@ export const Audits: React.FC = () => {
                                                     <div className="flex justify-between items-start mb-3">
                                                         <span className="text-xs font-bold bg-slate-100 dark:bg-white/10 px-2 py-1 rounded text-slate-600 dark:text-slate-300">{q.controlCode}</span>
                                                         <select
-                                                            className={`text-xs font-bold px-2 py-1 rounded border-none outline-none cursor-pointer ${q.response === 'Conforme' ? 'text-green-600 bg-green-50' : q.response === 'Non-conforme' ? 'text-red-600 bg-red-50' : 'text-slate-500 bg-slate-100'}`}
+                                                            className={`text-xs font-bold px-2 py-1 rounded border-none outline-none cursor-pointer ${q.response === 'Conforme' ? 'text-green-600 bg-green-50' : q.response === 'Non-conforme' ? 'text-red-600 bg-red-50' : 'text-slate-600 bg-slate-100'}`}
                                                             value={q.response}
                                                             onChange={(e) => handleChecklistAnswer(q.id, e.target.value as AuditQuestion['response'])}
                                                             disabled={!canEdit}
@@ -1451,26 +1451,26 @@ export const Audits: React.FC = () => {
                             {inspectorTab === 'scope' && (
                                 <div className="space-y-8">
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Target className="h-4 w-4 mr-2" /> Description du Périmètre</h4>
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><Target className="h-4 w-4 mr-2" /> Description du Périmètre</h4>
                                         <SafeHTML content={selectedAudit.scope || ''} />
                                     </div>
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Server className="h-4 w-4 mr-2" /> Actifs Audités ({selectedAudit.relatedAssetIds?.length || 0})</h4>
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><Server className="h-4 w-4 mr-2" /> Actifs Audités ({selectedAudit.relatedAssetIds?.length || 0})</h4>
                                         <div className="space-y-2">
                                             {selectedAudit.relatedAssetIds?.map(aid => {
                                                 const asset = assets.find(a => a.id === aid);
                                                 return asset ? (
                                                     <div key={aid} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
                                                         <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{asset.name}</span>
-                                                        <span className="text-xs text-slate-500">{asset.type}</span>
+                                                        <span className="text-xs text-slate-600">{asset.type}</span>
                                                     </div>
                                                 ) : null;
                                             })}
-                                            {(!selectedAudit.relatedAssetIds || selectedAudit.relatedAssetIds.length === 0) && <p className="text-sm text-slate-400 italic">Aucun actif lié.</p>}
+                                            {(!selectedAudit.relatedAssetIds || selectedAudit.relatedAssetIds.length === 0) && <p className="text-sm text-slate-500 italic">Aucun actif lié.</p>}
                                         </div>
                                     </div>
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><Flame className="h-4 w-4 mr-2" /> Risques Audités ({selectedAudit.relatedRiskIds?.length || 0})</h4>
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><Flame className="h-4 w-4 mr-2" /> Risques Audités ({selectedAudit.relatedRiskIds?.length || 0})</h4>
                                         <div className="space-y-2">
                                             {selectedAudit.relatedRiskIds?.map(rid => {
                                                 const risk = risks.find(r => r.id === rid);
@@ -1481,12 +1481,12 @@ export const Audits: React.FC = () => {
                                                     </div>
                                                 ) : null;
                                             })}
-                                            {(!selectedAudit.relatedRiskIds || selectedAudit.relatedRiskIds.length === 0) && <p className="text-sm text-slate-400 italic">Aucun risque lié.</p>}
+                                            {(!selectedAudit.relatedRiskIds || selectedAudit.relatedRiskIds.length === 0) && <p className="text-sm text-slate-500 italic">Aucun risque lié.</p>}
                                         </div>
                                     </div>
 
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Contrôles Audités ({selectedAudit.relatedControlIds?.length || 0})</h4>
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Contrôles Audités ({selectedAudit.relatedControlIds?.length || 0})</h4>
                                         <div className="space-y-2">
                                             {selectedAudit.relatedControlIds?.map(cid => {
                                                 const control = controls.find(c => c.id === cid);
@@ -1497,12 +1497,12 @@ export const Audits: React.FC = () => {
                                                     </div>
                                                 ) : null;
                                             })}
-                                            {(!selectedAudit.relatedControlIds || selectedAudit.relatedControlIds.length === 0) && <p className="text-sm text-slate-400 italic">Aucun contrôle lié.</p>}
+                                            {(!selectedAudit.relatedControlIds || selectedAudit.relatedControlIds.length === 0) && <p className="text-sm text-slate-500 italic">Aucun contrôle lié.</p>}
                                         </div>
                                     </div>
 
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Audités ({selectedAudit.relatedProjectIds?.length || 0})</h4>
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Audités ({selectedAudit.relatedProjectIds?.length || 0})</h4>
                                         <div className="space-y-2">
                                             {selectedAudit.relatedProjectIds?.map(pid => {
                                                 const project = rawProjects.find(p => p.id === pid);
@@ -1513,7 +1513,7 @@ export const Audits: React.FC = () => {
                                                     </div>
                                                 ) : null;
                                             })}
-                                            {(!selectedAudit.relatedProjectIds || selectedAudit.relatedProjectIds.length === 0) && <p className="text-sm text-slate-400 italic">Aucun projet lié.</p>}
+                                            {(!selectedAudit.relatedProjectIds || selectedAudit.relatedProjectIds.length === 0) && <p className="text-sm text-slate-500 italic">Aucun projet lié.</p>}
                                         </div>
                                     </div>
                                 </div>

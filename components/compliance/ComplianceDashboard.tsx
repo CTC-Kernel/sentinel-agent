@@ -157,7 +157,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Score de Conformité</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">Niveau global de conformité sur tous les référentiels actifs.</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">Niveau global de conformité sur tous les référentiels actifs.</p>
                         {trend !== undefined && (
                             <div className={`text-xs font-bold mt-2 px-2 py-0.5 rounded-full w-fit ${trend >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
                                 {trend > 0 ? '+' : ''}{trend}% vs 30j
@@ -169,21 +169,21 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 {/* Framework Breakdown */}
                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 border-t border-b sm:border-t-0 sm:border-b-0 sm:border-l sm:border-r border-slate-200 dark:border-white/10 py-6 sm:py-0 sm:px-6 sm:mx-2 my-2 sm:my-0">
                     <div className="text-center flex items-center justify-between sm:block">
-                        <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-0 sm:mb-1">ISO 27001</div>
+                        <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-0 sm:mb-1">ISO 27001</div>
                         <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{Math.round(isoScore)}%</div>
                         <div className="hidden sm:block h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${isoScore}%` }}></div>
                         </div>
                     </div>
                     <div className="text-center flex items-center justify-between sm:block">
-                        <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-0 sm:mb-1">RGPD</div>
+                        <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-0 sm:mb-1">RGPD</div>
                         <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{Math.round(rgpdScore)}%</div>
                         <div className="hidden sm:block h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-purple-500 rounded-full" style={{ width: `${rgpdScore}%` }}></div>
                         </div>
                     </div>
                     <div className="text-center flex items-center justify-between sm:block">
-                        <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-0 sm:mb-1">DORA</div>
+                        <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-0 sm:mb-1">DORA</div>
                         <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{Math.round(doraScore)}%</div>
                         <div className="hidden sm:block h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${doraScore}%` }}></div>
@@ -310,10 +310,10 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             ) : (
                 <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/5 border-dashed">
                     <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-full mb-4">
-                        <TrendingUp className="h-8 w-8 text-slate-400" />
+                        <TrendingUp className="h-8 w-8 text-slate-500" />
                     </div>
                     <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">Aucune donnée de conformité</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-center max-w-md">
+                    <p className="text-slate-600 dark:text-slate-400 text-center max-w-md">
                         Commencez par importer ou créer des contrôles pour visualiser les graphiques de conformité.
                     </p>
                 </div>
@@ -354,7 +354,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                             <div key={domain} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/5">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="font-bold text-slate-900 dark:text-slate-100">{domain}</span>
-                                    <span className="text-xs font-bold text-slate-500">{data.implemented}/{data.total}</span>
+                                    <span className="text-xs font-bold text-slate-600">{data.implemented}/{data.total}</span>
                                 </div>
                                 <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mb-2">
                                     <div

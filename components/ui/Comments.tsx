@@ -45,7 +45,7 @@ export const Comments: React.FC<CommentsProps> = ({ collectionName, documentId }
   return (
     <div className="flex flex-col h-full">
       {comments.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-slate-400 opacity-60 py-8">
+        <div className="flex-1 flex flex-col items-center justify-center text-slate-500 opacity-60 py-8">
           <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center mb-3">
             <MessageSquare className="h-6 w-6 text-slate-300" />
           </div>
@@ -67,7 +67,7 @@ export const Comments: React.FC<CommentsProps> = ({ collectionName, documentId }
                   : 'bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-bl-none'
                   }`}>
                   <p className="whitespace-pre-wrap leading-relaxed">{comment.content}</p>
-                  <span className={`text-[9px] font-medium block mt-1 text-right ${isMe ? 'text-brand-100' : 'text-slate-400'}`}>
+                  <span className={`text-[9px] font-medium block mt-1 text-right ${isMe ? 'text-brand-100' : 'text-slate-500'}`}>
                     {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>

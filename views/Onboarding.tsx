@@ -382,7 +382,7 @@ export const Onboarding: React.FC = () => {
                                             step === 3 ? 'Pilotage & Conformité' :
                                                 step === 4 ? 'Votre Équipe' : 'Cartographie Initiale'}
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">
+                        <p className="text-slate-600 dark:text-slate-400 font-medium text-lg">
                             {mode === 'select' ? 'Comment souhaitez-vous commencer ?' :
                                 mode === 'join' ? 'Recherchez votre organisation.' :
                                     step === 1 ? 'Créez votre espace organisationnel.' :
@@ -404,7 +404,7 @@ export const Onboarding: React.FC = () => {
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Créer une nouvelle organisation</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Je suis responsable et je veux configurer un nouvel espace.</p>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Je suis responsable et je veux configurer un nouvel espace.</p>
                                     </div>
                                 </div>
                             </button>
@@ -419,7 +419,7 @@ export const Onboarding: React.FC = () => {
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Rejoindre une organisation existante</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Mon équipe utilise déjà Sentinel GRC.</p>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Mon équipe utilise déjà Sentinel GRC.</p>
                                     </div>
                                 </div>
                             </button>
@@ -431,10 +431,10 @@ export const Onboarding: React.FC = () => {
                             {!joinRequestSent ? (
                                 <>
                                     <form onSubmit={handleSearchOrg} className="relative">
-                                        <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                        <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
                                         <input
                                             type="text"
-                                            className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400"
+                                            className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500"
                                             placeholder="Rechercher par nom..."
                                             value={searchQuery}
                                             onChange={e => setSearchQuery(e.target.value)}
@@ -453,7 +453,7 @@ export const Onboarding: React.FC = () => {
                                             <div key={org.id} className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5">
                                                 <div>
                                                     <h4 className="font-bold text-slate-900 dark:text-white">{org.name}</h4>
-                                                    <p className="text-xs text-slate-500">{org.industry || 'Non spécifié'}</p>
+                                                    <p className="text-xs text-slate-600">{org.industry || 'Non spécifié'}</p>
                                                 </div>
                                                 <button
                                                     onClick={() => handleJoinRequest(org.id, org.name)}
@@ -465,7 +465,7 @@ export const Onboarding: React.FC = () => {
                                             </div>
                                         ))}
                                         {searchResults.length === 0 && searchQuery && !loading && (
-                                            <p className="text-center text-slate-500 text-sm py-4">Aucune organisation trouvée.</p>
+                                            <p className="text-center text-slate-600 text-sm py-4">Aucune organisation trouvée.</p>
                                         )}
                                     </div>
                                 </>
@@ -475,7 +475,7 @@ export const Onboarding: React.FC = () => {
                                         <Check className="h-8 w-8" strokeWidth={3} />
                                     </div>
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Demande envoyée !</h3>
-                                    <p className="text-slate-500 dark:text-slate-400">
+                                    <p className="text-slate-600 dark:text-slate-400">
                                         Un administrateur de l'organisation doit approuver votre demande. Vous recevrez un email dès que l'accès sera validé.
                                     </p>
                                     <button
@@ -490,7 +490,7 @@ export const Onboarding: React.FC = () => {
                             {!joinRequestSent && (
                                 <button
                                     onClick={() => setMode('select')}
-                                    className="w-full py-4 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-bold transition-colors"
+                                    className="w-full py-4 text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 font-bold transition-colors"
                                 >
                                     Retour
                                 </button>
@@ -504,38 +504,38 @@ export const Onboarding: React.FC = () => {
                                 <form onSubmit={form.handleSubmit(handleStep1)} className="space-y-6">
                                     {!user?.organizationId && (
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom de l'Organisation</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Nom de l'Organisation</label>
                                             <div className="relative">
-                                                <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                                <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Ex: Acme Corp"
+                                                <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
+                                                <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Ex: Acme Corp"
                                                     {...form.register('organizationName')} />
                                                 {form.formState.errors.organizationName && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.organizationName.message}</p>}
                                             </div>
                                         </div>
                                     )}
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Nom complet</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Nom complet</label>
                                         <div className="relative">
-                                            <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                            <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Votre nom"
+                                            <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
+                                            <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Votre nom"
                                                 {...form.register('displayName')} />
                                             {form.formState.errors.displayName && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.displayName.message}</p>}
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-5">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Département</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Département</label>
                                             <div className="relative">
-                                                <Briefcase className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                                                <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400" placeholder="Ex: IT / Sécurité"
+                                                <Briefcase className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
+                                                <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Ex: IT / Sécurité"
                                                     {...form.register('department')} />
                                                 {form.formState.errors.department && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.department.message}</p>}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Rôle Principal</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Rôle Principal</label>
                                             <div className="relative">
-                                                <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                                <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
                                                 <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
                                                     {...form.register('role')}>
                                                     <option value="admin">Administrateur</option>
@@ -548,9 +548,9 @@ export const Onboarding: React.FC = () => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Secteur</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Secteur</label>
                                         <div className="relative">
-                                            <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                            <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
                                             <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
                                                 {...form.register('industry')}>
                                                 <option value="">Sélectionner...</option>
@@ -600,7 +600,7 @@ export const Onboarding: React.FC = () => {
                                                             <h3 className={`font-bold text-lg ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
                                                                 {plan.name}
                                                             </h3>
-                                                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
+                                                            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-1">
                                                                 {plan.description}
                                                             </p>
                                                         </div>
@@ -608,7 +608,7 @@ export const Onboarding: React.FC = () => {
                                                             <span className={`block text-xl font-bold font-display tracking-tight ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
                                                                 {plan.priceMonthly === 0 ? 'Gratuit' : `${plan.priceMonthly}€`}
                                                             </span>
-                                                            {plan.priceMonthly > 0 && <span className="text-xs text-slate-400 font-medium">/ mois</span>}
+                                                            {plan.priceMonthly > 0 && <span className="text-xs text-slate-500 font-medium">/ mois</span>}
                                                         </div>
                                                     </div>
 
@@ -617,7 +617,7 @@ export const Onboarding: React.FC = () => {
                                                     <ul className="space-y-2">
                                                         {plan.featuresList.slice(0, 3).map((f, i) => (
                                                             <li key={i} className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
-                                                                <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-blue-100 dark:bg-slate-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
+                                                                <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-blue-100 dark:bg-slate-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-600'}`}>
                                                                     <Check className="h-2.5 w-2.5" strokeWidth={3} />
                                                                 </div>
                                                                 {f}
@@ -665,7 +665,7 @@ export const Onboarding: React.FC = () => {
                             {step === 3 && (
                                 <div className="space-y-6 animate-fade-in">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 ml-1 flex items-center gap-2">
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-4 ml-1 flex items-center gap-2">
                                             <ShieldCheck className="h-4 w-4" /> Standards & Normes
                                         </label>
                                         <div className="grid grid-cols-2 gap-3">
@@ -683,11 +683,11 @@ export const Onboarding: React.FC = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Périmètre (Scope)</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Périmètre (Scope)</label>
                                         <textarea
                                             value={scope}
                                             onChange={e => setScope(e.target.value)}
-                                            className="w-full p-4 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-400 min-h-[100px]"
+                                            className="w-full p-4 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500 min-h-[100px]"
                                             placeholder="Décrivez le périmètre de votre ISMS (ex: Toute l'entreprise, Service IT uniquement...)"
                                         />
                                     </div>
@@ -704,10 +704,10 @@ export const Onboarding: React.FC = () => {
                             {step === 4 && (
                                 <div className="space-y-6 animate-fade-in">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Inviter des membres</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Inviter des membres</label>
                                         <div className="flex gap-2">
                                             <div className="relative flex-1">
-                                                <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                                <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
                                                 <input
                                                     type="email"
                                                     value={inviteEmail}
@@ -733,7 +733,7 @@ export const Onboarding: React.FC = () => {
                                                         </div>
                                                         <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{email}</span>
                                                     </div>
-                                                    <button onClick={() => handleRemoveInvite(email)} className="text-slate-400 hover:text-red-500 transition-colors">
+                                                    <button onClick={() => handleRemoveInvite(email)} className="text-slate-500 hover:text-red-500 transition-colors">
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 </div>
@@ -753,10 +753,10 @@ export const Onboarding: React.FC = () => {
                             {step === 5 && (
                                 <div className="space-y-6 animate-fade-in">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Ajouter un actif critique</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Ajouter un actif critique</label>
                                         <div className="grid grid-cols-3 gap-2">
                                             <div className="col-span-2 relative">
-                                                <Server className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                                <Server className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
                                                 <input
                                                     type="text"
                                                     value={assetName}
@@ -791,10 +791,10 @@ export const Onboarding: React.FC = () => {
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-slate-700 dark:text-white text-sm">{asset.name}</p>
-                                                            <p className="text-xs text-slate-500">{asset.type}</p>
+                                                            <p className="text-xs text-slate-600">{asset.type}</p>
                                                         </div>
                                                     </div>
-                                                    <button onClick={() => handleRemoveAsset(idx)} className="text-slate-400 hover:text-red-500 transition-colors">
+                                                    <button onClick={() => handleRemoveAsset(idx)} className="text-slate-500 hover:text-red-500 transition-colors">
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 </div>

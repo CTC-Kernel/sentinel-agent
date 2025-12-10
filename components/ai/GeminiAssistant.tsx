@@ -203,7 +203,7 @@ export const GeminiAssistant: React.FC = () => {
                     </div>
                     <div>
                         <h3 className="font-bold text-slate-900 dark:text-white text-sm">Sentinel AI</h3>
-                        <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                        <p className="text-[10px] font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -215,14 +215,14 @@ export const GeminiAssistant: React.FC = () => {
                 <div className="flex items-center gap-1">
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="p-2 hover:bg-slate-200/50 dark:hover:bg-white/10 rounded-xl text-slate-500 dark:text-slate-400 transition-colors"
+                        className="p-2 hover:bg-slate-200/50 dark:hover:bg-white/10 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
                         title={isExpanded ? "Réduire" : "Agrandir"}
                     >
                         {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </button>
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="p-2 hover:bg-rose-100/50 dark:hover:bg-rose-900/20 hover:text-rose-600 rounded-xl text-slate-500 dark:text-slate-400 transition-colors"
+                        className="p-2 hover:bg-rose-100/50 dark:hover:bg-rose-900/20 hover:text-rose-600 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
                         title="Fermer"
                     >
                         <X className="h-4 w-4" />
@@ -269,7 +269,7 @@ export const GeminiAssistant: React.FC = () => {
                                                     const match = /language-(\w+)/.exec(className || '')
                                                     return !inline && match ? (
                                                         <div className="rounded-lg overflow-hidden my-2 border border-slate-200 dark:border-slate-700">
-                                                            <div className="flex items-center justify-between px-3 py-1 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 text-xs text-slate-500">
+                                                            <div className="flex items-center justify-between px-3 py-1 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 text-xs text-slate-600">
                                                                 <span>{match[1]}</span>
                                                                 <button onClick={() => {
                                                                     navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
@@ -300,7 +300,7 @@ export const GeminiAssistant: React.FC = () => {
                                             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/50 flex gap-2">
                                                 <button
                                                     onClick={() => copyToClipboard(msg.content, msg.id)}
-                                                    className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400 hover:text-indigo-600 transition-colors"
+                                                    className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500 hover:text-indigo-600 transition-colors"
                                                 >
                                                     {copiedId === msg.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                                                     {copiedId === msg.id ? 'Copié' : 'Copier'}
@@ -340,7 +340,7 @@ export const GeminiAssistant: React.FC = () => {
                         </div>
                         <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-tl-none border border-slate-200 dark:border-slate-700/50 shadow-sm flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
-                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">L'IA réfléchit...</span>
+                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">L'IA réfléchit...</span>
                         </div>
                     </div>
                 )}
@@ -379,12 +379,12 @@ export const GeminiAssistant: React.FC = () => {
                                 }
                             }}
                             placeholder="Posez une question..."
-                            className="w-full pl-4 pr-10 py-3.5 bg-slate-100 dark:bg-slate-950 border border-transparent focus:bg-white dark:focus:bg-slate-900 border-slate-200 dark:border-slate-800 focus:border-indigo-500/50 dark:focus:border-indigo-500/50 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm font-medium text-slate-900 dark:text-white transition-all placeholder:text-slate-400"
+                            className="w-full pl-4 pr-10 py-3.5 bg-slate-100 dark:bg-slate-950 border border-transparent focus:bg-white dark:focus:bg-slate-900 border-slate-200 dark:border-slate-800 focus:border-indigo-500/50 dark:focus:border-indigo-500/50 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none text-sm font-medium text-slate-900 dark:text-white transition-all placeholder:text-slate-500"
                             disabled={isLoading}
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             {isLoading ? (
-                                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                                <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
                             ) : (
                                 <div className="text-[10px] font-bold text-slate-300 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 pointer-events-none">
                                     ⏎
@@ -398,14 +398,14 @@ export const GeminiAssistant: React.FC = () => {
                         className={cn(
                             "p-3.5 rounded-2xl transition-all duration-300 shadow-lg",
                             !input.trim() || isLoading
-                                ? "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
+                                ? "bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed"
                                 : "bg-gradient-to-br from-indigo-600 to-violet-600 text-white hover:shadow-indigo-500/25 hover:scale-105 active:scale-95"
                         )}
                     >
                         <Send className="h-5 w-5" />
                     </button>
                 </div>
-                <p className="text-[10px] text-center text-slate-400 mt-3 flex items-center justify-center gap-1.5 opacity-60">
+                <p className="text-[10px] text-center text-slate-500 mt-3 flex items-center justify-center gap-1.5 opacity-60">
                     <Sparkles className="h-3 w-3" /> Propulsé par Cyber Threat Consulting
                 </p>
             </form>

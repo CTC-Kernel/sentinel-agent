@@ -425,7 +425,7 @@ export const Team: React.FC = () => {
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Taux d'Activité</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
                             Utilisateurs actifs au cours des 30 derniers jours.
                         </p>
                     </div>
@@ -435,22 +435,22 @@ export const Team: React.FC = () => {
                 <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <Users className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</div>
+                            <Users className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{totalUsers}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <User className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Admins</div>
+                            <User className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Admins</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{admins}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <Mail className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Invités</div>
+                            <Mail className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Invités</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{pendingInvites}</div>
                     </div>
@@ -480,7 +480,7 @@ export const Team: React.FC = () => {
                     onClick={() => setActiveTab('members')}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'members'
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                         }`}
                 >
                     Membres
@@ -489,7 +489,7 @@ export const Team: React.FC = () => {
                     onClick={() => setActiveTab('roles')}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'roles'
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                         }`}
                 >
                     Rôles & Permissions
@@ -516,7 +516,7 @@ export const Team: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="font-bold text-slate-900 dark:text-white">{req.displayName}</p>
-                                                <p className="text-xs text-slate-500">{req.userEmail}</p>
+                                                <p className="text-xs text-slate-600">{req.userEmail}</p>
                                             </div>
                                         </div>
                                         <div className="mt-auto flex gap-2 pt-3">
@@ -558,11 +558,11 @@ export const Team: React.FC = () => {
                                 {canAdmin && (
                                     <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         {!u.isPending && (
-                                            <button onClick={() => openEditModal(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all">
+                                            <button onClick={() => openEditModal(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all">
                                                 <Edit className="h-4 w-4" />
                                             </button>
                                         )}
-                                        <button onClick={() => initiateDelete(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-400 hover:text-red-500 shadow-sm hover:scale-105 transition-all">
+                                        <button onClick={() => initiateDelete(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-red-500 shadow-sm hover:scale-105 transition-all">
                                             <Trash2 className="h-4 w-4" />
                                         </button>
                                     </div>
@@ -572,7 +572,7 @@ export const Team: React.FC = () => {
                                     {u.photoURL ? (
                                         <img src={u.photoURL} alt={u.displayName} className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50 grayscale' : ''}`} />
                                     ) : (
-                                        <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-3xl font-bold text-slate-500 dark:text-slate-300 shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50' : ''}`}>
+                                        <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-3xl font-bold text-slate-600 dark:text-slate-300 shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50' : ''}`}>
                                             {u.displayName ? u.displayName.charAt(0).toUpperCase() : 'U'}
                                         </div>
                                     )}
@@ -582,7 +582,7 @@ export const Team: React.FC = () => {
                                 </div>
 
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{u.displayName}</h3>
-                                <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
+                                <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
                                     <Mail className="h-3 w-3 mr-1.5 opacity-70" /> {u.email}
                                 </div>
 
@@ -596,11 +596,11 @@ export const Team: React.FC = () => {
                                 ) : (
                                     <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center text-xs mt-auto">
                                         <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
-                                            <Building className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
+                                            <Building className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
                                             {u.department || 'Général'}
                                         </div>
                                         {u.lastLogin && (
-                                            <div className="flex items-center text-slate-400 font-medium" title="Dernière connexion">
+                                            <div className="flex items-center text-slate-500 font-medium" title="Dernière connexion">
                                                 <Clock className="h-3.5 w-3.5 mr-1.5" />
                                                 {new Date(u.lastLogin).toLocaleDateString()}
                                             </div>
@@ -628,19 +628,19 @@ export const Team: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom complet (Optionnel)</label>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom complet (Optionnel)</label>
                         <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                             {...inviteForm.register('displayName')} placeholder="Jean Dupont" />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email professionnel</label>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Email professionnel</label>
                         <input type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                             {...inviteForm.register('email')} placeholder="jean@entreprise.com" />
                         {inviteForm.formState.errors.email && <p className="text-red-500 text-xs mt-1">{inviteForm.formState.errors.email.message}</p>}
                     </div>
                     <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Rôle</label>
                             <Controller
                                 control={inviteForm.control}
                                 name="role"
@@ -663,13 +663,13 @@ export const Team: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Département</label>
                             <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                                 {...inviteForm.register('department')} placeholder="IT" />
                         </div>
                     </div>
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                        <button type="button" onClick={() => setShowInviteModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                        <button type="button" onClick={() => setShowInviteModal(false)} className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
                         <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">Envoyer</button>
                     </div>
                 </form>
@@ -686,19 +686,19 @@ export const Team: React.FC = () => {
                 {selectedUser && (
                     <form onSubmit={editForm.handleSubmit(handleUpdateUser)} className="p-8 space-y-6">
                         <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl mb-4">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Compte</p>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Compte</p>
                             <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedUser.email}</p>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom d'affichage</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom d'affichage</label>
                             <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                                 {...editForm.register('displayName')} />
                         </div>
 
                         <div className="grid grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rôle</label>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Rôle</label>
                                 <Controller
                                     control={editForm.control}
                                     name="role"
@@ -721,14 +721,14 @@ export const Team: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Département</label>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Département</label>
                                 <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                                     {...editForm.register('department')} />
                             </div>
                         </div>
 
                         <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                            <button type="button" onClick={() => setShowEditModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                            <button type="button" onClick={() => setShowEditModal(false)} className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
                             <button type="submit" className="px-8 py-3 bg-brand-600 text-white rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">Enregistrer</button>
                         </div>
                     </form>

@@ -71,7 +71,7 @@ export const Pagination: React.FC<PaginationProps> = ({
 
                 {showItemsPerPage && onItemsPerPageChange && (
                     <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-500 dark:text-slate-500 font-medium">Afficher:</span>
+                        <span className="text-xs text-slate-600 dark:text-slate-500 font-medium">Afficher:</span>
                         <div className="relative">
                             <select
                                 value={itemsPerPage}
@@ -82,7 +82,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                     <option key={option} value={option}>{option}</option>
                                 ))}
                             </select>
-                            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400 pointer-events-none" />
+                            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-500 pointer-events-none" />
                         </div>
                     </div>
                 )}
@@ -102,7 +102,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                     {getPageNumbers().map((page, index) => {
                         if (page === '...') {
                             return (
-                                <span key={`ellipsis-${index}`} className="px-3 py-1.5 text-slate-400 dark:text-slate-600 font-medium">
+                                <span key={`ellipsis-${index}`} className="px-3 py-1.5 text-slate-500 dark:text-slate-600 font-medium">
                                     ...
                                 </span>
                             );

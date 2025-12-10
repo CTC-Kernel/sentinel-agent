@@ -51,7 +51,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 absolute left-4 transition-all duration-200 pointer-events-none z-10
                                 ${(open || selectedOptions.length > 0)
                                     ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded text-brand-600'
-                                    : 'top-3.5 text-sm font-medium text-slate-500'
+                                    : 'top-3.5 text-sm font-medium text-slate-600'
                                 }
                                 ${error ? '!text-red-500' : ''}
                             `}>
@@ -70,12 +70,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                         : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/5'
                                 }
                             `}>
-                                <span className={`block truncate font-medium ${selectedOptions.length === 0 ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+                                <span className={`block truncate font-medium ${selectedOptions.length === 0 ? 'text-slate-500' : 'text-slate-900 dark:text-white'}`}>
                                     {displayValue}
                                 </span>
                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
                                     <ChevronDown
-                                        className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                                        className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
                                         aria-hidden="true"
                                     />
                                 </span>

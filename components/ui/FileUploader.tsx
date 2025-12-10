@@ -134,16 +134,16 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 >
                     {disabled ? (
                         <div className="text-center">
-                            <AlertTriangle className="h-8 w-8 text-slate-400 mb-2 mx-auto" />
-                            <p className="text-sm font-medium text-slate-500">{disabledMessage}</p>
+                            <AlertTriangle className="h-8 w-8 text-slate-500 mb-2 mx-auto" />
+                            <p className="text-sm font-medium text-slate-600">{disabledMessage}</p>
                         </div>
                     ) : (
                         <>
-                            <Upload className="h-8 w-8 text-slate-400 mb-2" />
+                            <Upload className="h-8 w-8 text-slate-500 mb-2" />
                             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
                                 Cliquez pour sélectionner un fichier
                             </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                            <p className="text-xs text-slate-600 dark:text-slate-500 mt-1">
                                 Max {maxSizeMB}MB • PDF, Images, Excel
                             </p>
                         </>
@@ -163,7 +163,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                 <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
                                     {selectedFile.name}
                                 </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
                                     {formatFileSize(selectedFile.size)}
                                 </p>
                             </div>
@@ -173,7 +173,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                 onClick={handleCancel}
                                 className="ml-2 p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                             >
-                                <X className="h-4 w-4 text-slate-400" />
+                                <X className="h-4 w-4 text-slate-500" />
                             </button>
                         )}
                     </div>
@@ -182,10 +182,10 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     {!uploading && (
                         <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 mb-4">
                             <div className="flex items-center gap-2">
-                                <ShieldCheck className={`h-5 w-5 ${isSecure ? 'text-emerald-500' : 'text-slate-400'}`} />
+                                <ShieldCheck className={`h-5 w-5 ${isSecure ? 'text-emerald-500' : 'text-slate-500'}`} />
                                 <div>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">Document Stratégique</p>
-                                    <p className="text-[10px] text-slate-500">Active le filigrane et la vérification d'intégrité</p>
+                                    <p className="text-[10px] text-slate-600">Active le filigrane et la vérification d'intégrité</p>
                                 </div>
                             </div>
                             <button
@@ -206,7 +206,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                     style={{ width: `${progress}%` }}
                                 />
                             </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                                 Upload en cours... {progress}%
                             </p>
                         </div>
