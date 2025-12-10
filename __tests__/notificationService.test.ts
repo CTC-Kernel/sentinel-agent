@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NotificationService } from '../services/notificationService';
+import { NotificationService } from '@services/notificationService';
 import { collection, doc, getDocs, query, where, orderBy, limit, updateDoc, addDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { UserProfile } from '../types';
+import { db } from '@firebase';
+import { UserProfile } from '@types';
 
 // Mock Firebase
 vi.mock('../firebase', () => ({

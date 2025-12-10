@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { hasPermission, canEditResource, getRoleName, getRoleDescription, PERMISSIONS } from '../../utils/permissions';
-import { UserProfile } from '../../types';
+import { hasPermission, canEditResource, getRoleName, getRoleDescription, PERMISSIONS } from '@/utils/permissions';
+import { UserProfile } from '@/types';
 
 describe('permissions', () => {
   const mockUser = (role: UserProfile['role'], uid = 'user-123', displayName = 'Test User', email = 'test@example.com'): UserProfile => ({
