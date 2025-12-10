@@ -8,7 +8,7 @@ const { defineString } = require("firebase-functions/params");
  * Shared Styles & Layout
  */
 const styles = {
-    body: `
+  body: `
     margin: 0;
     padding: 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -17,12 +17,12 @@ const styles = {
     color: #334155; /* Slate 700 */
     -webkit-font-smoothing: antialiased;
   `,
-    wrapper: `
+  wrapper: `
     width: 100%;
     background-color: #f1f5f9;
     padding: 40px 0;
   `,
-    container: `
+  container: `
     margin: 0 auto;
     width: 600px;
     max-width: 90%;
@@ -32,25 +32,25 @@ const styles = {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     border: 1px solid #e2e8f0;
   `,
-    header: `
+  header: `
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     padding: 40px;
     text-align: center;
   `,
-    logoText: `
+  logoText: `
     color: #ffffff;
     font-size: 24px;
     font-weight: 700;
     text-decoration: none;
     letter-spacing: -0.5px;
   `,
-    logoAccent: `
+  logoAccent: `
     color: #3b82f6; /* Blue 500 */
   `,
-    content: `
+  content: `
     padding: 40px;
   `,
-    title: `
+  title: `
     margin: 0 0 24px 0;
     color: #0f172a; /* Slate 900 */
     font-size: 24px;
@@ -58,16 +58,16 @@ const styles = {
     letter-spacing: -0.5px;
     line-height: 1.3;
   `,
-    text: `
+  text: `
     margin: 0 0 16px 0;
     font-size: 16px;
     color: #475569; /* Slate 600 */
   `,
-    buttonContainer: `
+  buttonContainer: `
     margin: 32px 0;
     text-align: center;
   `,
-    button: `
+  button: `
     display: inline-block;
     padding: 16px 36px;
     background-color: #2563eb; /* Blue 600 */
@@ -82,26 +82,26 @@ const styles = {
     border: none;
     box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
   `,
-    footer: `
+  footer: `
     background-color: #f8fafc; /* Slate 50 */
     padding: 32px;
     text-align: center;
     border-top: 1px solid #e2e8f0;
   `,
-    footerText: `
+  footerText: `
     margin: 0;
     font-size: 13px;
     color: #94a3b8; /* Slate 400 */
     line-height: 1.5;
   `,
-    highlightBox: `
+  highlightBox: `
     background-color: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 24px;
     margin: 24px 0;
   `,
-    alertBox: `
+  alertBox: `
     padding: 16px;
     border-radius: 8px;
     margin-bottom: 24px;
@@ -116,9 +116,9 @@ const styles = {
  * Base Email Generator
  */
 const generateEmailHtml = ({ title, content, actionLabel, actionUrl, footerText }) => {
-    const year = new Date().getFullYear();
+  const year = new Date().getFullYear();
 
-    return `
+  return `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -206,8 +206,8 @@ const generateEmailHtml = ({ title, content, actionLabel, actionUrl, footerText 
  * Access Request Email (To Admin)
  */
 const getJoinRequestEmailHtml = (requesterName, requesterEmail, orgName, link) => generateEmailHtml({
-    title: "Une nouvelle demande d'accès nécessite votre attention",
-    content: `
+  title: "Une nouvelle demande d'accès nécessite votre attention",
+  content: `
     <p style="${styles.text}">Bonjour,</p>
     <p style="${styles.text}"><strong>${requesterName}</strong> (${requesterEmail}) a demandé à rejoindre votre organisation <strong>${orgName}</strong> sur Sentinel GRC.</p>
     
@@ -216,16 +216,16 @@ const getJoinRequestEmailHtml = (requesterName, requesterEmail, orgName, link) =
       <p style="margin: 4px 0 0 0; font-size: 14px; color: #334155;">Veuillez examiner cette demande pour accorder ou refuser l'accès aux ressources de l'organisation.</p>
     </div>
   `,
-    actionLabel: "Examiner la demande",
-    actionUrl: link
+  actionLabel: "Examiner la demande",
+  actionUrl: link
 });
 
 /**
  * Request Approved Email (To User)
  */
 const getApprovedEmailHtml = (userName, orgName, link) => generateEmailHtml({
-    title: "Bienvenue dans l'équipe !",
-    content: `
+  title: "Bienvenue dans l'équipe !",
+  content: `
     <p style="${styles.text}">Bonjour <strong>${userName}</strong>,</p>
     <p style="${styles.text}">Excellente nouvelle ! Votre demande pour rejoindre l'organisation <strong>${orgName}</strong> a été validée par un administrateur.</p>
     
@@ -235,16 +235,16 @@ const getApprovedEmailHtml = (userName, orgName, link) => generateEmailHtml({
     
     <p style="${styles.text}">Cliquez ci-dessous pour configurer votre profil et commencer.</p>
   `,
-    actionLabel: "Accéder à mon espace",
-    actionUrl: link
+  actionLabel: "Accéder à mon espace",
+  actionUrl: link
 });
 
 /**
  * Request Rejected Email (To User)
  */
 const getRejectedEmailHtml = (userName, orgName) => generateEmailHtml({
-    title: "Mise à jour de votre demande",
-    content: `
+  title: "Mise à jour de votre demande",
+  content: `
     <p style="${styles.text}">Bonjour ${userName},</p>
     <p style="${styles.text}">Nous vous informons que votre demande pour rejoindre l'organisation <strong>${orgName}</strong> n'a pas pu être acceptée pour le moment.</p>
     
@@ -258,8 +258,8 @@ const getRejectedEmailHtml = (userName, orgName) => generateEmailHtml({
  * Password Reset Email
  */
 const getPasswordResetEmailHtml = (userName, link) => generateEmailHtml({
-    title: "Réinitialisez votre mot de passe",
-    content: `
+  title: "Réinitialisez votre mot de passe",
+  content: `
     <p style="${styles.text}">Bonjour ${userName},</p>
     <p style="${styles.text}">Nous avons reçu une demande pour réinitialiser le mot de passe de votre compte Sentinel GRC.</p>
     
@@ -269,17 +269,17 @@ const getPasswordResetEmailHtml = (userName, link) => generateEmailHtml({
 
     <p style="${styles.text}">Pour votre sécurité, ce lien expire dans 1 heure.</p>
   `,
-    actionLabel: "Choisir un nouveau mot de passe",
-    actionUrl: link,
-    footerText: "Si vous n'avez pas demandé cette réinitialisation, ignorez cet e-mail. Votre compte reste sécurisé."
+  actionLabel: "Choisir un nouveau mot de passe",
+  actionUrl: link,
+  footerText: "Si vous n'avez pas demandé cette réinitialisation, ignorez cet e-mail. Votre compte reste sécurisé."
 });
 
 /**
  * Welcome Email (New Org Creator)
  */
 const getWelcomeEmailHtml = (userName, orgName, link) => generateEmailHtml({
-    title: "Bienvenue sur Sentinel GRC",
-    content: `
+  title: "Bienvenue sur Sentinel GRC",
+  content: `
     <p style="${styles.text}">Bonjour <strong>${userName}</strong>,</p>
     <p style="${styles.text}">Félicitations pour la création de votre organisation <strong>${orgName}</strong>.</p>
     <p style="${styles.text}">Sentinel GRC est prêt à orchestrer votre gouvernance. Vous disposez d'un accès administrateur complet pour inviter vos collaborateurs, cartographier vos actifs et piloter votre conformité ISO 27001.</p>
@@ -293,14 +293,147 @@ const getWelcomeEmailHtml = (userName, orgName, link) => generateEmailHtml({
       </ul>
     </div>
   `,
-    actionLabel: "Démarrer maintenant",
-    actionUrl: link
+  actionLabel: "Démarrer maintenant",
+  actionUrl: link
 });
 
 module.exports = {
-    getJoinRequestEmailHtml,
-    getApprovedEmailHtml,
-    getRejectedEmailHtml,
-    getPasswordResetEmailHtml,
-    getWelcomeEmailHtml
+  getJoinRequestEmailHtml,
+  getApprovedEmailHtml,
+  getRejectedEmailHtml,
+  getPasswordResetEmailHtml,
+  getWelcomeEmailHtml,
+
+  // New templates ported from frontend
+  getInvitationHtml: (inviterName, role, link) => generateEmailHtml({
+    title: 'Invitation à rejoindre Sentinel GRC',
+    content: `
+      <p style="${styles.text}">Bonjour,</p>
+      <p style="${styles.text}"><strong>${inviterName}</strong> vous invite à rejoindre l'espace de travail <strong>Sentinel GRC</strong> en tant que <strong>${role}</strong>.</p>
+      <div style="${styles.highlightBox}">
+        <p style="margin: 0; font-size: 14px; color: #64748b;">En acceptant cette invitation, vous accéderez à une plateforme de pilotage SSI dédiée à la gestion des risques, des contrôles ISO 27001 et des plans d'actions.</p>
+      </div>
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 24px;">Ce lien est personnel et confidentiel. Si vous n'êtes pas à l'origine de cette invitation, vous pouvez ignorer cet email.</p>
+    `,
+    actionLabel: "Accepter l'invitation",
+    actionUrl: link
+  }),
+
+  getIncidentAlertHtml: (title, severity, reporter, link) => {
+    const alertColor = severity === 'Critique' ? '#dc2626' : severity === 'Élevée' ? '#ea580c' : '#0284c7';
+    return generateEmailHtml({
+      title: '⚠️ Nouvel Incident de Sécurité',
+      content: `
+        <div style="${styles.alertBox}; border-color: ${alertColor}; background-color: ${severity === 'Critique' ? '#fef2f2' : severity === 'Élevée' ? '#fff7ed' : '#f0f9ff'}; color: ${alertColor}">
+          <h3 style="margin: 0; font-size: 16px;">Sévérité : ${severity}</h3>
+        </div>
+        <p style="${styles.text}">Un incident a été déclaré par <strong>${reporter}</strong>.</p>
+        <p style="${styles.text}"><strong>Titre :</strong> ${title}</p>
+        <p style="${styles.text}"><strong>Date :</strong> ${new Date().toLocaleString()}</p>
+        <p style="${styles.text}">Une action immédiate ou une analyse peut être requise selon le niveau de criticité.</p>
+      `,
+      actionLabel: "Voir l'incident",
+      actionUrl: link
+    });
+  },
+
+  getDocumentReviewHtml: (docTitle, ownerName, dueDate, link) => generateEmailHtml({
+    title: 'Révision Documentaire Requise',
+    content: `
+      <p style="${styles.text}">Bonjour ${ownerName},</p>
+      <p style="${styles.text}">Le document <strong>"${docTitle}"</strong> arrive à échéance de révision.</p>
+      <div style="${styles.highlightBox}; text-align: center;">
+        <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date d'échéance</span>
+        <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(dueDate).toLocaleDateString()}</div>
+      </div>
+      <p style="${styles.text}">Conformément à la norme ISO 27001, les politiques et procédures doivent être revues périodiquement pour assurer leur pertinence.</p>
+    `,
+    actionLabel: "Accéder au document",
+    actionUrl: link
+  }),
+
+  getTaskAssignmentHtml: (taskTitle, projectName, manager, link) => generateEmailHtml({
+    title: 'Nouvelle tâche assignée',
+    content: `
+      <p style="${styles.text}">Une nouvelle tâche vous a été assignée dans le projet <strong>${projectName}</strong> géré par ${manager}.</p>
+      <div style="${styles.highlightBox}">
+        <h3 style="margin: 0; font-size: 16px;">${taskTitle}</h3>
+      </div>
+    `,
+    actionLabel: "Voir la tâche",
+    actionUrl: link
+  }),
+
+  getAuditReminderHtml: (auditName, auditorName, scheduledDate, link) => generateEmailHtml({
+    title: '📋 Rappel d\'Audit Planifié',
+    content: `
+      <p style="${styles.text}">Bonjour ${auditorName},</p>
+      <p style="${styles.text}">Un audit est planifié dans les prochains jours et nécessite votre attention.</p>
+      <div style="${styles.highlightBox}">
+        <h3 style="margin: 0 0 8px 0; font-size: 16px;">${auditName}</h3>
+        <p style="margin: 0; font-size: 14px;">Date prévue : <strong>${new Date(scheduledDate).toLocaleDateString()}</strong></p>
+      </div>
+      <p style="${styles.text}">Assurez-vous d'avoir préparé tous les documents et preuves nécessaires pour cet audit.</p>
+    `,
+    actionLabel: "Voir l'audit",
+    actionUrl: link
+  }),
+
+  getRiskTreatmentDueHtml: (riskTitle, dueDate, responsiblePerson, link) => generateEmailHtml({
+    title: '⏰ Échéance de Traitement de Risque',
+    content: `
+      <p style="${styles.text}">Bonjour ${responsiblePerson},</p>
+      <p style="${styles.text}">Le plan de traitement du risque suivant arrive à échéance :</p>
+      <div style="${styles.alertBox}">
+        <h3 style="margin: 0; font-size: 16px;">${riskTitle}</h3>
+        <p style="margin: 8px 0 0 0;">Date limite : <strong>${new Date(dueDate).toLocaleDateString()}</strong></p>
+      </div>
+      <p style="${styles.text}">Veuillez mettre à jour le statut du traitement ou demander une extension si nécessaire.</p>
+    `,
+    actionLabel: "Gérer le risque",
+    actionUrl: link
+  }),
+
+  getComplianceAlertHtml: (controlCode, controlName, issue, link) => generateEmailHtml({
+    title: '🚨 Alerte de Non-Conformité',
+    content: `
+      <div style="${styles.alertBox}; border-color: #dc2626; background-color: #fef2f2; color: #991b1b;">
+        <h3 style="margin: 0; font-size: 16px;">Action requise</h3>
+      </div>
+      <p style="${styles.text}">Un contrôle ISO 27001 nécessite une action immédiate.</p>
+      <p style="${styles.text}"><strong>Contrôle :</strong> ${controlCode} - ${controlName}</p>
+      <p style="${styles.text}; color: #dc2626;"><strong>Problème :</strong> ${issue}</p>
+      <p style="${styles.text}">La conformité ISO 27001 exige une résolution rapide de cette non-conformité.</p>
+    `,
+    actionLabel: "Voir le contrôle",
+    actionUrl: link
+  }),
+
+  getMaintenanceHtml: (assetName, maintenanceDate, ownerName, link) => generateEmailHtml({
+    title: '🛠️ Maintenance Planifiée',
+    content: `
+      <p style="${styles.text}">Bonjour ${ownerName},</p>
+      <p style="${styles.text}">Une maintenance est prévue prochainement pour l'actif <strong>${assetName}</strong>.</p>
+      <div style="${styles.highlightBox}; text-align: center;">
+        <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date de maintenance</span>
+        <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(maintenanceDate).toLocaleDateString()}</div>
+      </div>
+      <p style="${styles.text}">Veuillez vous assurer que tout est prêt pour cette intervention.</p>
+    `,
+    actionLabel: "Voir l'actif",
+    actionUrl: link
+  }),
+
+  getAuditInvitationHtml: (inviterName, auditName, role, link) => generateEmailHtml({
+    title: 'Invitation à collaborer sur un audit',
+    content: `
+      <p style="${styles.text}">Bonjour,</p>
+      <p style="${styles.text}"><strong>${inviterName}</strong> vous invite à participer à l'audit <strong>"${auditName}"</strong> en tant que <strong>${role}</strong>.</p>
+      <div style="${styles.highlightBox}">
+        <p style="margin: 0; color: #64748b; font-size: 14px;">Vous aurez accès aux constats, aux preuves et à la checklist associée afin de contribuer à l'évaluation et à la conformité ISO 27001.</p>
+      </div>
+    `,
+    actionLabel: "Accéder à l'audit",
+    actionUrl: link
+  })
 };

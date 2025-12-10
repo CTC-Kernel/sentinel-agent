@@ -30,7 +30,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
         setLoading(true);
         try {
             // 1. Check for existing response
-            const existingResponse = await IncidentPlaybookService.getResponse(incident.id);
+            const existingResponse = await IncidentPlaybookService.getResponse(incident.id, user.organizationId);
             setResponse(existingResponse);
 
             if (existingResponse) {
