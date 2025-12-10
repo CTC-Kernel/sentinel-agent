@@ -1003,7 +1003,7 @@ export const Audits: React.FC = () => {
     ], [canEdit, openEditDrawer, initiateDeleteAudit]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative overflow-x-hidden px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 sm:pt-8">
+        <div className="space-y-8 animate-fade-in pb-10 relative overflow-x-hidden px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 sm:pt-8 w-full max-w-full">
             <Helmet>
                 <title>Gestion des Audits - Sentinel GRC</title>
                 <meta name="description" content="Planifiez et réalisez vos audits internes et externes ISO 27001." />
@@ -1063,7 +1063,7 @@ export const Audits: React.FC = () => {
             </div>
 
             {viewMode === 'list' ? (
-                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
                     <DataTable
                         columns={columns}
                         data={filteredAudits}
