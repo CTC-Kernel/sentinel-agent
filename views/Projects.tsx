@@ -245,12 +245,14 @@ export const Projects: React.FC = () => {
         try {
             // Validate data
             const validatedData = projectSchema.parse(projectData);
+            // Sanitize data to remove undefined values
+            const cleanData = sanitizeData(validatedData);
 
 
             if (editingProject) {
                 // Update existing project
                 await updateDoc(doc(db, 'projects', editingProject.id), {
-                    ...validatedData
+                    ...cleanData
                 });
                 await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${validatedData.name}`);
 
@@ -326,7 +328,7 @@ export const Projects: React.FC = () => {
             } else {
                 // Create new project
                 const newProjectRef = await addDoc(collection(db, 'projects'), {
-                    ...validatedData,
+                    ...cleanData,
                     organizationId: user.organizationId,
                     progress: 0,
                     tasks: [],
