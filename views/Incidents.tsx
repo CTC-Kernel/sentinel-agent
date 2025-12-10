@@ -100,7 +100,7 @@ export const Incidents: React.FC = () => {
                 }
             };
 
-            const batch = events.map(event => ({
+            const batch = events.map(event => sanitizeData({
                 organizationId: user.organizationId,
                 title: event.title,
                 description: event.description + `\n\n**Source**: ${event.source}\n**Raw Data**: ${JSON.stringify(event.rawData)}`,
@@ -333,7 +333,7 @@ export const Incidents: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative">
+        <div className="space-y-8 animate-fade-in pb-10 relative w-full max-w-full overflow-x-hidden">
             <SEO
                 title="Gestion des Incidents"
                 description="Détection, analyse et réponse aux incidents de sécurité (SOC/CSIRT)."

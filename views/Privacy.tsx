@@ -9,6 +9,7 @@ import { ProcessingActivity, SystemLog, UserProfile } from '../types';
 import { Plus, Search, Fingerprint, Trash2, Edit, GlobeLock, Scale, FileSpreadsheet, CheckCircle2, Clock, AlertTriangle, History, MessageSquare, Save, LayoutDashboard, Upload } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Comments } from '../components/ui/Comments';
 import { CardSkeleton } from '../components/ui/Skeleton';
@@ -148,7 +149,7 @@ export const Privacy: React.FC = () => {
     const handleCreate: SubmitHandler<ProcessingActivityFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
         try {
-            await addDoc(collection(db, 'processing_activities'), { ...data, organizationId: user.organizationId, createdAt: new Date().toISOString() });
+            await addDoc(collection(db, 'processing_activities'), sanitizeData({ ...data, organizationId: user.organizationId, createdAt: new Date().toISOString() }));
             await logAction(user, 'CREATE', 'Privacy', `Nouveau Traitement: ${data.name}`);
             addToast("Traitement ajouté au registre", "success");
             setShowCreateModal(false);
@@ -162,7 +163,7 @@ export const Privacy: React.FC = () => {
     const handleUpdate: SubmitHandler<ProcessingActivityFormData> = async (data) => {
         if (!canEdit || !selectedActivity) return;
         try {
-            await updateDoc(doc(db, 'processing_activities', selectedActivity.id), data);
+            await updateDoc(doc(db, 'processing_activities', selectedActivity.id), sanitizeData(data));
             await logAction(user, 'UPDATE', 'Privacy', `MAJ Traitement: ${data.name}`);
             setActivities(prev => prev.map(a => a.id === selectedActivity.id ? { ...a, ...data } : a));
             setSelectedActivity({ ...selectedActivity, ...data });

@@ -269,7 +269,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
 
             {/* Incident list */}
             {viewMode === 'list' ? (
-                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm">
+                <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm">
                     <DataTable
                         columns={columns}
                         data={filteredIncidents}

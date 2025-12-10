@@ -15,6 +15,7 @@ import { PdfService } from '../services/PdfService';
 import { aiService } from '../services/aiService';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton, TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -240,7 +241,7 @@ export const Continuity: React.FC = () => {
     const handleCreateProcess = async (data: BusinessProcessFormData) => {
         if (!canEdit || !user?.organizationId) return;
         try {
-            await addDoc(collection(db, 'business_processes'), { ...data, organizationId: user.organizationId });
+            await addDoc(collection(db, 'business_processes'), sanitizeData({ ...data, organizationId: user.organizationId }));
             await logAction(user, 'CREATE', 'BCP', `Nouveau Processus: ${data.name} `);
             addToast("Processus créé", "success");
             setShowCreateModal(false);
@@ -250,7 +251,7 @@ export const Continuity: React.FC = () => {
     const handleUpdateProcess = async (data: BusinessProcessFormData) => {
         if (!canEdit || !selectedProcess) return;
         try {
-            await updateDoc(doc(db, 'business_processes', selectedProcess.id), data);
+            await updateDoc(doc(db, 'business_processes', selectedProcess.id), sanitizeData(data));
             await logAction(user, 'UPDATE', 'BCP', `MAJ Processus: ${data.name} `);
 
             setSelectedProcess({ ...selectedProcess, ...data });
@@ -304,7 +305,7 @@ export const Continuity: React.FC = () => {
     const handleSubmitDrill: SubmitHandler<BcpDrillFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
         try {
-            await addDoc(collection(db, 'bcp_drills'), { ...data, organizationId: user.organizationId, createdAt: new Date().toISOString() });
+            await addDoc(collection(db, 'bcp_drills'), sanitizeData({ ...data, organizationId: user.organizationId, createdAt: new Date().toISOString() }));
             if (data.processId) {
                 await updateDoc(doc(db, 'business_processes', data.processId), { lastTestDate: data.date });
             }
