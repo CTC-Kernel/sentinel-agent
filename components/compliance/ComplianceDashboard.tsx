@@ -220,7 +220,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             {totalControls > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Status Distribution */}
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm min-w-0">
                         <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Distribution par Statut</h4>
                         <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
@@ -252,7 +252,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
 
                     {/* Domain Progress */}
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm min-w-0">
                         <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Conformité par Domaine (Annexe A)</h4>
                         <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
@@ -284,7 +284,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
 
                     {/* Radar Chart */}
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 lg:col-span-2 shadow-sm">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 lg:col-span-2 shadow-sm min-w-0">
                         <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Vue Radar - Maturité par Domaine</h4>
                         <div className="h-[350px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
