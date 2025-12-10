@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateAsset, validateRisk } from '../../utils/formValidation';
+import { validateAsset, validateRisk } from '@/utils/formValidation';
 
 describe('formValidation', () => {
   describe('validateAsset', () => {
