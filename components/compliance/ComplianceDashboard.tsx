@@ -167,25 +167,25 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 </div>
 
                 {/* Framework Breakdown */}
-                <div className="flex-1 grid grid-cols-3 gap-2 sm:gap-4 md:border-l md:border-r border-t border-b md:border-t-0 md:border-b-0 border-slate-200 dark:border-white/10 py-6 md:py-0 md:px-6 md:mx-2 my-2 md:my-0">
-                    <div className="text-center">
-                        <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">ISO 27001</div>
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 border-t border-b sm:border-t-0 sm:border-b-0 sm:border-l sm:border-r border-slate-200 dark:border-white/10 py-6 sm:py-0 sm:px-6 sm:mx-2 my-2 sm:my-0">
+                    <div className="text-center flex items-center justify-between sm:block">
+                        <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-0 sm:mb-1">ISO 27001</div>
                         <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{Math.round(isoScore)}%</div>
-                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                        <div className="hidden sm:block h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${isoScore}%` }}></div>
                         </div>
                     </div>
-                    <div className="text-center">
-                        <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">RGPD</div>
+                    <div className="text-center flex items-center justify-between sm:block">
+                        <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-0 sm:mb-1">RGPD</div>
                         <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{Math.round(rgpdScore)}%</div>
-                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                        <div className="hidden sm:block h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-purple-500 rounded-full" style={{ width: `${rgpdScore}%` }}></div>
                         </div>
                     </div>
-                    <div className="text-center">
-                        <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">DORA</div>
+                    <div className="text-center flex items-center justify-between sm:block">
+                        <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-0 sm:mb-1">DORA</div>
                         <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{Math.round(doraScore)}%</div>
-                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                        <div className="hidden sm:block h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${doraScore}%` }}></div>
                         </div>
                     </div>
