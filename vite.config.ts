@@ -5,6 +5,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 import type { InlineConfig } from 'vitest';
 import type { UserConfig } from 'vite';
 
+import tsconfigPaths from 'vite-tsconfig-paths';
+
 interface VitestConfigExport extends UserConfig {
   test: InlineConfig;
 }
@@ -12,6 +14,7 @@ interface VitestConfigExport extends UserConfig {
 export default defineConfig({
   plugins: [
     react(),
+    tsconfigPaths(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
@@ -57,9 +60,9 @@ export default defineConfig({
     })
   ],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: [
+      { find: '@', replacement: path.resolve(process.cwd(), 'src') }
+    ],
   },
   define: {
     __BUILD_DATE__: JSON.stringify(new Date().toISOString().split('T')[0].replace(/-/g, '')),
@@ -97,8 +100,8 @@ export default defineConfig({
     }
   },
   test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './tests/setup.ts',
+    setupFiles: ['./tests/setup.ts'],
+    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}', 'tests/utils/**/*.{test,spec}.{js,ts}', 'tests/services/**/*.{test,spec}.{js,ts}'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**', 'tests/e2e/**'],
   }
 } as VitestConfigExport);
