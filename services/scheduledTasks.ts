@@ -5,33 +5,12 @@ import { NotificationService } from '../services/notificationService';
  * This should be deployed as a scheduled Firebase Cloud Function
  * running every 6 hours
  */
-export const scheduledNotificationChecks = async () => {
-    try {
-        // Get all organizations
-        const { db } = await import('../firebase');
-        const { collection, getDocs } = await import('firebase/firestore');
-
-        const orgsSnapshot = await getDocs(collection(db, 'users'));
-        const organizationIds = new Set<string>();
-
-        orgsSnapshot.docs.forEach((doc) => {
-            const data = doc.data();
-            if (data.organizationId) {
-                organizationIds.add(data.organizationId);
-            }
-        });
-
-        // Run checks for each organization
-        const promises = Array.from(organizationIds).map((orgId) =>
-            NotificationService.runAutomatedChecks(orgId)
-        );
-
-        await Promise.allSettled(promises);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
-        // Error handled silently
-    }
-};
+/**
+ * Cloud Function to run automated notification checks
+ * MOVED TO BACKEND: functions/services/NotificationManager.js
+ * The previous client-side implementation was insecure and removed.
+ */
+// export const scheduledNotificationChecks = async () => { ... } - REMOVED
 
 /**
  * Manual trigger for notification checks (for testing)

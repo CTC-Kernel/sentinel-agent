@@ -93,6 +93,15 @@ exports.scheduledBackup = onSchedule("every 24 hours", async (event) => {
 });
 
 /**
+ * Scheduled Notification Checks (Runs every 6 hours)
+ * Checks for upcoming audits, document reviews, expired risks, etc.
+ */
+exports.scheduledNotificationChecks = onSchedule("every 6 hours", async (event) => {
+    const { NotificationManager } = require('./services/notificationManager');
+    await NotificationManager.runAutomatedChecks();
+});
+
+/**
  * Generic Push Notification Trigger
  * Listens to new docs in 'notifications' collection and sends FCM push.
  */

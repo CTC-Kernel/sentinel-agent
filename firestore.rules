@@ -83,6 +83,12 @@ service cloud.firestore {
       allow update: if belongsToOrganization(orgId) && (isAdmin() || resource.data.ownerId == request.auth.uid);
       // Delete: Owner ONLY (via special process usually, but allowed here for consistency)
       allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+
+      // Integrations Subcollection
+      match /integrations/{integrationId} {
+        allow read: if belongsToOrganization(orgId);
+        allow write: if belongsToOrganization(orgId) && isAdmin();
+      }
     }
 
     // Users collection
