@@ -184,7 +184,10 @@ export const Settings: React.FC = () => {
     }, [user?.organizationId]);
 
     const handleUpdateUserRole = async (targetUserId: string, newRole: UserProfile['role']) => {
-        if (!hasPermission(user, 'User', 'manage')) return;
+        if (!hasPermission(user, 'User', 'manage')) {
+            addToast("Vous n'avez pas la permission de gérer les utilisateurs.", "error");
+            return;
+        }
         setUpdatingUserIds(prev => new Set(prev).add(targetUserId));
         try {
             await updateDoc(doc(db, 'users', targetUserId), { role: newRole });
@@ -212,7 +215,10 @@ export const Settings: React.FC = () => {
     };
 
     const handleRemoveUser = async (targetUserId: string) => {
-        if (!hasPermission(user, 'User', 'manage')) return;
+        if (!hasPermission(user, 'User', 'manage')) {
+            addToast("Vous n'avez pas la permission de supprimer des utilisateurs.", "error");
+            return;
+        }
         if (targetUserId === user!.uid) {
             addToast(t('settings.cannotDeleteSelf'), "error");
             return;

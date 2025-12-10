@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import 'jspdf-autotable';
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, limit, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, limit, where, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, ProjectMilestone, ProjectTemplate, Audit, Supplier } from '../types';
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
@@ -254,6 +254,45 @@ export const Projects: React.FC = () => {
                 });
                 await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${validatedData.name}`);
 
+                // Sync Bidirectional Links (Risks)
+                const newRisks = validatedData.relatedRiskIds || [];
+                const oldRisks = editingProject.relatedRiskIds || [];
+                const addedRisks = newRisks.filter(id => !oldRisks.includes(id));
+                const removedRisks = oldRisks.filter(id => !newRisks.includes(id));
+
+                for (const riskId of addedRisks) {
+                    await updateDoc(doc(db, 'risks', riskId), { relatedProjectIds: arrayUnion(editingProject.id) });
+                }
+                for (const riskId of removedRisks) {
+                    await updateDoc(doc(db, 'risks', riskId), { relatedProjectIds: arrayRemove(editingProject.id) });
+                }
+
+                // Sync Bidirectional Links (Controls)
+                const newControls = validatedData.relatedControlIds || [];
+                const oldControls = editingProject.relatedControlIds || [];
+                const addedControls = newControls.filter(id => !oldControls.includes(id));
+                const removedControls = oldControls.filter(id => !newControls.includes(id));
+
+                for (const controlId of addedControls) {
+                    await updateDoc(doc(db, 'controls', controlId), { relatedProjectIds: arrayUnion(editingProject.id) });
+                }
+                for (const controlId of removedControls) {
+                    await updateDoc(doc(db, 'controls', controlId), { relatedProjectIds: arrayRemove(editingProject.id) });
+                }
+
+                // Sync Bidirectional Links (Assets)
+                const newAssets = validatedData.relatedAssetIds || [];
+                const oldAssets = editingProject.relatedAssetIds || [];
+                const addedAssets = newAssets.filter(id => !oldAssets.includes(id));
+                const removedAssets = oldAssets.filter(id => !newAssets.includes(id));
+
+                for (const assetId of addedAssets) {
+                    await updateDoc(doc(db, 'assets', assetId), { relatedProjectIds: arrayUnion(editingProject.id) });
+                }
+                for (const assetId of removedAssets) {
+                    await updateDoc(doc(db, 'assets', assetId), { relatedProjectIds: arrayRemove(editingProject.id) });
+                }
+
                 // Check for Project Completion & Control Update
                 if (validatedData.status === 'Terminé' && editingProject.status !== 'Terminé' && validatedData.relatedControlIds && validatedData.relatedControlIds.length > 0) {
                     const linkedControls = controls.filter(c => validatedData.relatedControlIds?.includes(c.id));
@@ -286,13 +325,32 @@ export const Projects: React.FC = () => {
                 }
             } else {
                 // Create new project
-                await addDoc(collection(db, 'projects'), {
+                const newProjectRef = await addDoc(collection(db, 'projects'), {
                     ...validatedData,
                     organizationId: user.organizationId,
                     progress: 0,
                     tasks: [],
                     createdAt: new Date().toISOString()
                 });
+
+                // Sync Bidirectional Links for New Project
+                const pId = newProjectRef.id;
+                if (validatedData.relatedRiskIds?.length) {
+                    for (const id of validatedData.relatedRiskIds) {
+                        await updateDoc(doc(db, 'risks', id), { relatedProjectIds: arrayUnion(pId) });
+                    }
+                }
+                if (validatedData.relatedControlIds?.length) {
+                    for (const id of validatedData.relatedControlIds) {
+                        await updateDoc(doc(db, 'controls', id), { relatedProjectIds: arrayUnion(pId) });
+                    }
+                }
+                if (validatedData.relatedAssetIds?.length) {
+                    for (const id of validatedData.relatedAssetIds) {
+                        await updateDoc(doc(db, 'assets', id), { relatedProjectIds: arrayUnion(pId) });
+                    }
+                }
+
                 await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${validatedData.name}`);
                 addToast("Projet créé avec succès", "success");
             }

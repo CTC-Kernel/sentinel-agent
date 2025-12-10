@@ -4,7 +4,7 @@ export const riskSchema = z.object({
     assetId: z.string().min(1, "L'actif est requis"),
     threat: z.string().min(3, "La menace doit contenir au moins 3 caractères"),
     scenario: z.string().optional(),
-    framework: z.enum(['ISO27001', 'ISO27005', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF', 'OWASP', 'EBIOS', 'COBIT', 'ITIL']).optional(),
+    framework: z.enum(['ISO27001', 'ISO22301', 'ISO27005', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF', 'OWASP', 'EBIOS', 'COBIT', 'ITIL']).optional(),
     vulnerability: z.string().min(3, "La vulnérabilité doit contenir au moins 3 caractères"),
     probability: z.number().min(1).max(5),
     impact: z.number().min(1).max(5),
@@ -40,6 +40,18 @@ export const riskSchema = z.object({
         response: z.record(z.string(), z.any()),
         timestamp: z.string()
     }).optional().nullable(),
+}).refine((data) => {
+    // Validate that Residual Risk is not higher than Inherent Risk (Gross)
+    // Only check if residual values are present
+    if (data.residualProbability && data.residualImpact) {
+        const initialScore = data.probability * data.impact;
+        const residualScore = data.residualProbability * data.residualImpact;
+        return residualScore <= initialScore;
+    }
+    return true;
+}, {
+    message: "Le risque résiduel (cible) ne peut pas être supérieur au risque brut (inhérent). Vérifiez vos évaluations.",
+    path: ["residualImpact"] // Show error on this field
 });
 
 export type RiskFormData = z.infer<typeof riskSchema>;
