@@ -46,7 +46,7 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Risk: ['read', 'update'],
         Project: ['read'],
         Asset: ['read', 'update'],
-        Control: ['read'],
+        Control: ['read', 'update'],
         Incident: ['read'],
         Supplier: ['read', 'update'],
         BusinessProcess: ['read', 'update'],
