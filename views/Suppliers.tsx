@@ -258,12 +258,18 @@ export const Suppliers: React.FC = () => {
         setSelectedSupplier(null);
     };
 
+    const cleanData = (data: any) => {
+        // Simple trick to remove undefined values which Firestore hates
+        return JSON.parse(JSON.stringify(data));
+    };
+
     const handleCreate: SubmitHandler<SupplierFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
         setIsSubmitting(true);
         try {
+            const sanitizedData = cleanData(data);
             await addDoc(collection(db, 'suppliers'), {
-                ...data,
+                ...sanitizedData,
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -271,8 +277,10 @@ export const Suppliers: React.FC = () => {
             await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${data.name}`);
             addToast("Fournisseur ajouté", "success");
             setCreationMode(false);
-        } catch {
-            addToast("Erreur enregistrement", "error");
+        } catch (error) {
+            console.error("Error creating supplier:", error);
+            ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleCreate');
+            // addToast("Erreur enregistrement", "error"); // ErrorLogger does this
         } finally {
             setIsSubmitting(false);
         }
@@ -282,16 +290,18 @@ export const Suppliers: React.FC = () => {
         if (!canEdit || !selectedSupplier) return;
         setIsSubmitting(true);
         try {
+            const sanitizedData = cleanData(data);
             await updateDoc(doc(db, 'suppliers', selectedSupplier.id), {
-                ...data,
+                ...sanitizedData,
                 updatedAt: new Date().toISOString()
             });
             await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${data.name}`);
             setSelectedSupplier({ ...selectedSupplier, ...data, criticality: data.criticality as Criticality });
             setIsEditing(false);
             addToast("Fournisseur mis à jour", "success");
-        } catch {
-            addToast("Erreur mise à jour", "error");
+        } catch (error) {
+            console.error("Error updating supplier:", error);
+            ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleUpdate');
         } finally {
             setIsSubmitting(false);
         }
