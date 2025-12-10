@@ -194,6 +194,7 @@ export interface Control {
   relatedAssetIds?: string[];
   relatedRiskIds?: string[]; // Added missing field
   relatedSupplierIds?: string[];
+  relatedProjectIds?: string[];
 }
 
 export interface Document {
