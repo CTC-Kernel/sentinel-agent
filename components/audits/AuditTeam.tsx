@@ -106,7 +106,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
             {/* Internal Team */}
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center">
+                    <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center">
                         <Shield className="h-3.5 w-3.5 mr-2" /> Équipe Interne
                     </h3>
                     {canEdit && !isAddingInternal && (
@@ -143,11 +143,11 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                                         </div>
                                         <div>
                                             <div className="text-sm font-bold text-slate-900 dark:text-white">{userObj?.displayName || 'Utilisateur inconnu'}</div>
-                                            <div className="text-xs text-slate-500">{userObj?.email}</div>
+                                            <div className="text-xs text-slate-600">{userObj?.email}</div>
                                         </div>
                                     </div>
                                     {canEdit && (
-                                        <button onClick={() => handleRemoveInternal(userId)} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+                                        <button onClick={() => handleRemoveInternal(userId)} className="p-1.5 text-slate-500 hover:text-red-500 transition-colors">
                                             <Trash2 className="h-4 w-4" />
                                         </button>
                                     )}
@@ -155,7 +155,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                             );
                         })
                     ) : (
-                        <p className="text-sm text-slate-400 italic">Aucun collaborateur interne.</p>
+                        <p className="text-sm text-slate-500 italic">Aucun collaborateur interne.</p>
                     )}
                 </div>
             </div>
@@ -163,7 +163,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
             {/* External Auditors */}
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center">
+                    <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center">
                         <ExternalLink className="h-3.5 w-3.5 mr-2" /> Auditeurs Externes
                     </h3>
                     {canEdit && !isAddingExternal && (
@@ -198,18 +198,18 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                                     </div>
                                     <div>
                                         <div className="text-sm font-bold text-slate-900 dark:text-white">{email}</div>
-                                        <div className="text-xs text-slate-500">Accès restreint</div>
+                                        <div className="text-xs text-slate-600">Accès restreint</div>
                                     </div>
                                 </div>
                                 {canEdit && (
-                                    <button onClick={() => handleRemoveExternal(email)} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+                                    <button onClick={() => handleRemoveExternal(email)} className="p-1.5 text-slate-500 hover:text-red-500 transition-colors">
                                         <Trash2 className="h-4 w-4" />
                                     </button>
                                 )}
                             </div>
                         ))
                     ) : (
-                        <p className="text-sm text-slate-400 italic">Aucun auditeur externe invité.</p>
+                        <p className="text-sm text-slate-500 italic">Aucun auditeur externe invité.</p>
                     )}
                 </div>
             </div>

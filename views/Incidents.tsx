@@ -377,7 +377,7 @@ export const Incidents: React.FC = () => {
             {/* Carte de synthèse Incidents */}
             <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div className="space-y-2">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
                         <span className="inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
                         Vue globale des incidents
                     </p>
@@ -385,9 +385,9 @@ export const Incidents: React.FC = () => {
                         <p className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">
                             {incidentStats.open}
                         </p>
-                        <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">incidents actifs</span>
+                        <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">incidents actifs</span>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
                         sur <span className="font-semibold text-slate-700 dark:text-slate-200">{incidentStats.total}</span> incidents enregistrés au registre
                     </p>
                 </div>
@@ -496,7 +496,7 @@ export const Incidents: React.FC = () => {
                                                     {/* Badges & Status */}
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                                                            <span className="text-xs text-slate-400 block mb-1">Sévérité</span>
+                                                            <span className="text-xs text-slate-500 block mb-1">Sévérité</span>
                                                             <Badge
                                                                 status={selectedIncident.severity === Criticality.CRITICAL ? 'error' : selectedIncident.severity === Criticality.HIGH ? 'warning' : 'info'}
                                                                 variant="soft"
@@ -505,17 +505,17 @@ export const Incidents: React.FC = () => {
                                                             </Badge>
                                                         </div>
                                                         <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                                                            <span className="text-xs text-slate-400 block mb-1">Statut</span>
+                                                            <span className="text-xs text-slate-500 block mb-1">Statut</span>
                                                             <Badge status={selectedIncident.status === 'Résolu' ? 'success' : 'info'} variant="outline">
                                                                 {selectedIncident.status}
                                                             </Badge>
                                                         </div>
                                                         <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                                                            <span className="text-xs text-slate-400 block mb-1">Impact Financier</span>
+                                                            <span className="text-xs text-slate-500 block mb-1">Impact Financier</span>
                                                             <span className="font-bold text-slate-900 dark:text-white">{selectedIncident.financialImpact ? `${selectedIncident.financialImpact} €` : '-'}</span>
                                                         </div>
                                                         <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                                                            <span className="text-xs text-slate-400 block mb-1">Reporter</span>
+                                                            <span className="text-xs text-slate-500 block mb-1">Reporter</span>
                                                             <span className="font-bold text-slate-900 dark:text-white">{selectedIncident.reporter}</span>
                                                         </div>
                                                     </div>
@@ -538,11 +538,11 @@ export const Incidents: React.FC = () => {
                                                                                 <span className="font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
                                                                                 <Badge status="neutral" size="sm">{asset.type}</Badge>
                                                                             </div>
-                                                                        ) : <p className="text-sm text-slate-500 italic">Actif introuvable</p>;
+                                                                        ) : <p className="text-sm text-slate-600 italic">Actif introuvable</p>;
                                                                     })()}
                                                                 </div>
                                                             ) : (
-                                                                <p className="text-sm text-slate-500 italic">Aucun actif lié</p>
+                                                                <p className="text-sm text-slate-600 italic">Aucun actif lié</p>
                                                             )}
                                                         </div>
 
@@ -559,11 +559,11 @@ export const Incidents: React.FC = () => {
                                                                             <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
                                                                                 <span className="font-medium text-slate-700 dark:text-slate-200">{proc.name}</span>
                                                                             </div>
-                                                                        ) : <p className="text-sm text-slate-500 italic">Processus introuvable</p>;
+                                                                        ) : <p className="text-sm text-slate-600 italic">Processus introuvable</p>;
                                                                     })()}
                                                                 </div>
                                                             ) : (
-                                                                <p className="text-sm text-slate-500 italic">Aucun service lié</p>
+                                                                <p className="text-sm text-slate-600 italic">Aucun service lié</p>
                                                             )}
                                                         </div>
                                                     </div>
@@ -573,13 +573,13 @@ export const Incidents: React.FC = () => {
                                                     {/* Meta Info */}
                                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm space-y-4">
                                                         <div>
-                                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Déclaré le</label>
+                                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Déclaré le</label>
                                                             <p className="font-medium text-slate-900 dark:text-white mt-1">
                                                                 {new Date(selectedIncident.dateReported).toLocaleString()}
                                                             </p>
                                                         </div>
                                                         <div>
-                                                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Déclaré par</label>
+                                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Déclaré par</label>
                                                             <div className="flex items-center gap-2 mt-1">
                                                                 <div className="h-6 w-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400">
                                                                     {selectedIncident.reporter.charAt(0)}

@@ -78,7 +78,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                         <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex flex-wrap items-start justify-between gap-y-4 bg-white/50 dark:bg-white/5 shrink-0">
                             <div className="flex-1 min-w-0 mr-4">
                                 {breadcrumbs && breadcrumbs.length > 0 && (
-                                    <nav className="flex items-center text-xs font-medium text-slate-500 mb-2" aria-label="Breadcrumb">
+                                    <nav className="flex items-center text-xs font-medium text-slate-600 mb-2" aria-label="Breadcrumb">
                                         <ol className="flex items-center space-x-2">
                                             {breadcrumbs.map((crumb, index) => (
                                                 <li key={index} className="flex items-center">
@@ -96,13 +96,13 @@ export const Drawer: React.FC<DrawerProps> = ({
                                     </nav>
                                 )}
                                 {title && <h2 id="drawer-title" className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight truncate">{title}</h2>}
-                                {subtitle && <div className="text-sm font-medium text-slate-500 mt-1">{subtitle}</div>}
+                                {subtitle && <div className="text-sm font-medium text-slate-600 mt-1">{subtitle}</div>}
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                                 {actions}
                                 <button
                                     onClick={onClose}
-                                    className="p-2.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"
+                                    className="p-2.5 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"
                                     aria-label="Fermer"
                                 >
                                     <X className="h-5 w-5" />

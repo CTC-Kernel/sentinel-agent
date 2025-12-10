@@ -970,13 +970,13 @@ export const Risks: React.FC = () => {
             <SlideUp>
                 <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                     <div className="space-y-2">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
                             <span className="inline-flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
                             Vue globale des risques
                         </p>
                         <div className="flex items-baseline gap-3">
                             <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</h2>
-                            <span className="text-sm font-bold text-slate-500">Risques identifiés</span>
+                            <span className="text-sm font-bold text-slate-600">Risques identifiés</span>
                         </div>
                     </div>
 
@@ -984,32 +984,32 @@ export const Risks: React.FC = () => {
 
                     <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Critiques</p>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Critiques</p>
                             <div className="flex items-center gap-2">
                                 <span className="text-2xl font-black text-red-500">{stats.critical}</span>
                                 <Badge status="error" variant="soft" size="sm">Score 15+</Badge>
                             </div>
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Score Moyen</p>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Score Moyen</p>
                             <div className="flex items-center gap-2">
                                 <span className="text-2xl font-black text-slate-900 dark:text-white">
                                     {risks.length > 0 ? (risks.reduce((sum, r) => sum + r.score, 0) / risks.length).toFixed(1) : '0'}
                                 </span>
-                                <span className="text-xs font-medium text-slate-400">/ 25</span>
+                                <span className="text-xs font-medium text-slate-500">/ 25</span>
                             </div>
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Non Traités</p>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Non Traités</p>
                             <div className="flex items-center gap-2">
                                 <span className="text-2xl font-black text-amber-500">
                                     {risks.filter(r => r.strategy === 'Accepter' && r.score >= 10).length}
                                 </span>
-                                <span className="text-xs font-medium text-slate-400">Critiques</span>
+                                <span className="text-xs font-medium text-slate-500">Critiques</span>
                             </div>
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Réduction</p>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Réduction</p>
                             <div className="flex items-center gap-2">
                                 <span className="text-2xl font-black text-emerald-500">
                                     {risks.length > 0 ?
@@ -1026,7 +1026,7 @@ export const Risks: React.FC = () => {
             <SlideUp>
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                     <div className="flex items-center space-x-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 border border-slate-200 dark:border-white/5">
-                        <Search className="h-5 w-5 text-slate-400" />
+                        <Search className="h-5 w-5 text-slate-500" />
                         <input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} />
                         <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
                         <select
@@ -1042,12 +1042,12 @@ export const Risks: React.FC = () => {
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                        {canEdit && <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>}
-                        <button onClick={handleExportCSV} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"><FileSpreadsheet className="h-4 w-4" /></button>
+                        {canEdit && <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>}
+                        <button onClick={handleExportCSV} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"><FileSpreadsheet className="h-4 w-4" /></button>
                         <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm ml-2">
-                            <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
-                            <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
-                            <button onClick={() => setViewMode('matrix')} className={`p-2 rounded-lg transition-all ${viewMode === 'matrix' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Matrice"><LayoutDashboard className="h-4 w-4" /></button>
+                            <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
+                            <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                            <button onClick={() => setViewMode('matrix')} className={`p-2 rounded-lg transition-all ${viewMode === 'matrix' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Matrice"><LayoutDashboard className="h-4 w-4" /></button>
                         </div>
                     </div>
                 </div>
@@ -1084,7 +1084,7 @@ export const Risks: React.FC = () => {
                                 </div>
                             </div>
                             <div className="grid grid-cols-[auto_1fr] gap-6">
-                                <div className="flex items-center justify-center -rotate-90 font-bold text-xs text-slate-400 uppercase tracking-widest h-[500px] w-8">Probabilité</div>
+                                <div className="flex items-center justify-center -rotate-90 font-bold text-xs text-slate-500 uppercase tracking-widest h-[500px] w-8">Probabilité</div>
                                 <div className="grid grid-rows-5 grid-cols-5 gap-3 h-[500px]">
                                     {[5, 4, 3, 2, 1].map(prob => (
                                         <React.Fragment key={prob}>
@@ -1120,7 +1120,7 @@ export const Risks: React.FC = () => {
                             </div>
                             <div className="grid grid-cols-[auto_1fr] gap-6 mt-4">
                                 <div className="w-8"></div>
-                                <div className="text-center font-bold text-xs text-slate-400 uppercase tracking-widest">Impact</div>
+                                <div className="text-center font-bold text-xs text-slate-500 uppercase tracking-widest">Impact</div>
                             </div>
                         </div>
                     </div>
@@ -1133,12 +1133,12 @@ export const Risks: React.FC = () => {
                                     accessorKey: 'threat',
                                     cell: ({ row }) => (
                                         <div className="flex items-center">
-                                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-500 dark:text-slate-300">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-600 dark:text-slate-300">
                                                 <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
                                             </div>
                                             <div>
                                                 <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.threat}</div>
-                                                <div className="text-xs text-slate-500 font-medium">{row.original.owner || 'Non assigné'}</div>
+                                                <div className="text-xs text-slate-600 font-medium">{row.original.owner || 'Non assigné'}</div>
                                             </div>
                                         </div>
                                     ),
@@ -1202,10 +1202,10 @@ export const Risks: React.FC = () => {
                                         <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
                                             {canEdit && (
                                                 <>
-                                                    <button onClick={() => { setSelectedRisk(row.original); setIsEditing(true); }} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all" title="Modifier">
+                                                    <button onClick={() => { setSelectedRisk(row.original); setIsEditing(true); }} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all" title="Modifier">
                                                         <Edit className="h-4 w-4" />
                                                     </button>
-                                                    <button onClick={() => initiateDelete(row.original.id, row.original.threat)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Supprimer">
+                                                    <button onClick={() => initiateDelete(row.original.id, row.original.threat)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Supprimer">
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 </>
@@ -1270,23 +1270,23 @@ export const Risks: React.FC = () => {
                                             </Badge>
                                             {trend === 'up' && <span className="text-red-500" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
                                             {trend === 'down' && <span className="text-emerald-500" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
-                                            {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-400" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
+                                            {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-500" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
                                         </div>
                                     </div>
                                     <div className="mb-4 flex-1">
                                         <div className="flex items-center mb-3">
-                                            <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
-                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
+                                            <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
+                                            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
                                         </div>
                                         <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
-                                        <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900/50 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
-                                            <span className="font-bold text-xs uppercase text-slate-400 block mb-1">Vulnérabilité</span>
+                                        <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900/50 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
+                                            <span className="font-bold text-xs uppercase text-slate-500 block mb-1">Vulnérabilité</span>
                                             <SafeHTML content={risk.vulnerability} className="line-clamp-3" />
                                         </div>
                                     </div>
                                     <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
+                                            <span className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
                                             <div className="flex items-center gap-2">
                                                 {risk.treatment?.slaStatus && risk.treatment.status !== 'Terminé' && (
                                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-red-100 text-red-700 border-red-200' :
@@ -1336,13 +1336,13 @@ export const Risks: React.FC = () => {
                         <>
                             {canEdit && selectedRisk && (
                                 <>
-                                    <button onClick={handleDuplicate} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer" aria-label="Dupliquer le risque">
+                                    <button onClick={handleDuplicate} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer" aria-label="Dupliquer le risque">
                                         <Copy className="h-5 w-5" />
                                     </button>
-                                    <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Modifier" aria-label="Modifier le risque">
+                                    <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Modifier" aria-label="Modifier le risque">
                                         <Edit className="h-5 w-5" />
                                     </button>
-                                    <button onClick={() => initiateDelete(selectedRisk.id, selectedRisk.threat)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm" aria-label="Supprimer le risque">
+                                    <button onClick={() => initiateDelete(selectedRisk.id, selectedRisk.threat)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm" aria-label="Supprimer le risque">
                                         <Trash2 className="h-5 w-5" />
                                     </button>
                                 </>
@@ -1407,12 +1407,12 @@ export const Risks: React.FC = () => {
                                                 <div className="p-6 bg-red-50/80 dark:bg-red-900/10 rounded-3xl border border-red-100 dark:border-red-900/30 shadow-sm">
                                                     <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4">Risque Brut</h4>
                                                     <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{selectedRisk.score}</div>
-                                                    <div className="text-xs font-medium text-slate-500">Prob: {selectedRisk.probability} × Impact: {selectedRisk.impact}</div>
+                                                    <div className="text-xs font-medium text-slate-600">Prob: {selectedRisk.probability} × Impact: {selectedRisk.impact}</div>
                                                 </div>
                                                 <div className="p-6 bg-emerald-50/80 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
                                                     <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4">Risque Résiduel</h4>
                                                     <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{selectedRisk.residualScore || selectedRisk.score}</div>
-                                                    <div className="text-xs font-medium text-slate-500">Prob: {selectedRisk.residualProbability || selectedRisk.probability} × Impact: {selectedRisk.residualImpact || selectedRisk.impact}</div>
+                                                    <div className="text-xs font-medium text-slate-600">Prob: {selectedRisk.residualProbability || selectedRisk.probability} × Impact: {selectedRisk.residualImpact || selectedRisk.impact}</div>
                                                 </div>
                                             </div>
 
@@ -1422,15 +1422,15 @@ export const Risks: React.FC = () => {
                                             />
 
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Stratégie de Traitement</h4>
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Stratégie de Traitement</h4>
                                                 <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.strategy}</div>
                                             </div>
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Propriétaire</h4>
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Propriétaire</h4>
                                                 <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.owner || 'Non assigné'}</div>
                                             </div>
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Statut Actuel</h4>
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Statut Actuel</h4>
                                                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                                                     {canEdit ? (
                                                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
@@ -1457,7 +1457,7 @@ export const Risks: React.FC = () => {
                                                         </button>
                                                     )}
                                                 </div>
-                                                {selectedRisk.lastReviewDate && (<p className="text-xs text-slate-400 mt-3 text-right">Dernière revue le : {new Date(selectedRisk.lastReviewDate).toLocaleDateString()}</p>)}
+                                                {selectedRisk.lastReviewDate && (<p className="text-xs text-slate-500 mt-3 text-right">Dernière revue le : {new Date(selectedRisk.lastReviewDate).toLocaleDateString()}</p>)}
                                             </div>
                                         </div>
                                     )}
@@ -1495,11 +1495,11 @@ export const Risks: React.FC = () => {
                                             {/* SLA & Treatment Plan Details */}
                                             {selectedRisk.strategy !== 'Accepter' && (
                                                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
-                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center"><Clock className="h-4 w-4 mr-2" /> Plan de Traitement (SLA)</h4>
+                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><Clock className="h-4 w-4 mr-2" /> Plan de Traitement (SLA)</h4>
 
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                         <div>
-                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Échéance (Due Date)</label>
+                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Échéance (Due Date)</label>
                                                             <input
                                                                 type="date"
                                                                 className="w-full px-4 py-3 rounded-xl border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium text-sm disabled:opacity-50"
@@ -1538,7 +1538,7 @@ export const Risks: React.FC = () => {
                                                         </div>
 
                                                         <div>
-                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable du traitement</label>
+                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable du traitement</label>
                                                             <CustomSelect
                                                                 options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                                                                 value={selectedRisk.treatment?.ownerId || ''}
@@ -1564,7 +1564,7 @@ export const Risks: React.FC = () => {
                                                     </div>
 
                                                     <div>
-                                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Avancement</label>
+                                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Avancement</label>
                                                         <div className="flex items-center gap-4">
                                                             <select
                                                                 className="flex-1 px-4 py-3 rounded-xl border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium text-sm appearance-none disabled:opacity-50"
@@ -1672,12 +1672,12 @@ export const Risks: React.FC = () => {
                                                     if (reverseLinked.length > 0) {
                                                         return (
                                                             <div className="mt-2 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
-                                                                <h5 className="text-xs font-bold uppercase text-slate-400 mb-2">Liés depuis la fiche Fournisseur</h5>
+                                                                <h5 className="text-xs font-bold uppercase text-slate-500 mb-2">Liés depuis la fiche Fournisseur</h5>
                                                                 <div className="space-y-2">
                                                                     {reverseLinked.map(s => (
                                                                         <div key={s.id} className="flex justify-between items-center">
                                                                             <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{s.name}</span>
-                                                                            <span className="text-xs text-slate-500">{s.category}</span>
+                                                                            <span className="text-xs text-slate-600">{s.category}</span>
                                                                         </div>
                                                                     ))}
                                                                 </div>
@@ -1704,7 +1704,7 @@ export const Risks: React.FC = () => {
                                                     })}
                                                 </div>
                                             ) : (
-                                                <div className="text-center py-12 text-slate-400 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10">
+                                                <div className="text-center py-12 text-slate-500 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10">
                                                     <ShieldAlert className="h-10 w-10 mx-auto mb-3 opacity-30" />
                                                     Aucun contrôle d'atténuation lié.
                                                 </div>
@@ -1721,9 +1721,9 @@ export const Risks: React.FC = () => {
 
                                     {inspectorTab === 'projects' && (
                                         <div className="space-y-8">
-                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
                                             {linkedProjects.length === 0 ? (
-                                                <p className="text-sm text-slate-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé à ce risque.</p>
+                                                <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé à ce risque.</p>
                                             ) : (
                                                 <div className="grid gap-4">
                                                     {linkedProjects.map(proj => (
@@ -1732,7 +1732,7 @@ export const Risks: React.FC = () => {
                                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
                                                                 <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{proj.status}</span>
                                                             </div>
-                                                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{proj.description}</p>
+                                                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{proj.description}</p>
                                                             <div className="flex items-center justify-between">
                                                                 <div className="w-full bg-slate-200 rounded-full h-1.5 mr-4 max-w-[100px]">
                                                                     <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${proj.progress}%` }}></div>
@@ -1748,9 +1748,9 @@ export const Risks: React.FC = () => {
 
                                     {inspectorTab === 'audits' && (
                                         <div className="space-y-8">
-                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
                                             {linkedAudits.length === 0 ? (
-                                                <p className="text-sm text-slate-400 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé à ce risque.</p>
+                                                <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé à ce risque.</p>
                                             ) : (
                                                 <div className="grid gap-4">
                                                     {linkedAudits.map(audit => (
@@ -1759,8 +1759,8 @@ export const Risks: React.FC = () => {
                                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{audit.name}</span>
                                                                 <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{audit.status}</span>
                                                             </div>
-                                                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Auditeur: {audit.auditor}</p>
-                                                            <div className="flex items-center text-xs text-slate-500">
+                                                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">Auditeur: {audit.auditor}</p>
+                                                            <div className="flex items-center text-xs text-slate-600">
                                                                 <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                                                                 {new Date(audit.dateScheduled).toLocaleDateString()}
                                                             </div>
@@ -1780,35 +1780,35 @@ export const Risks: React.FC = () => {
                                     {inspectorTab === 'history' && (
                                         <div className="space-y-8">
                                             <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Évolution du Score</h4>
-                                                {riskScoreHistory.length === 0 ? <p className="text-sm text-slate-400 italic">Aucun changement de score enregistré.</p> : riskScoreHistory.map((h, i) => (
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Évolution du Score</h4>
+                                                {riskScoreHistory.length === 0 ? <p className="text-sm text-slate-500 italic">Aucun changement de score enregistré.</p> : riskScoreHistory.map((h, i) => (
                                                     <div key={i} className="relative">
                                                         <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900">
                                                             <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                                                         </span>
                                                         <div>
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(h.date).toLocaleString()}</span>
+                                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(h.date).toLocaleString()}</span>
                                                             <div className="flex items-center gap-2 mt-1">
-                                                                <span className="text-sm font-bold text-slate-500">Score:</span>
+                                                                <span className="text-sm font-bold text-slate-600">Score:</span>
                                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{h.previousScore} ➔ {h.newScore}</span>
                                                             </div>
-                                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Par: {h.changedBy}</p>
+                                                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Par: {h.changedBy}</p>
                                                         </div>
                                                     </div>
                                                 ))}
                                             </div>
                                             <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Journal d'Audit</h4>
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Journal d'Audit</h4>
                                                 {riskHistory.map((log, i) => (
                                                     <div key={i} className="relative">
                                                         <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
                                                             <div className="h-2 w-2 rounded-full bg-brand-500"></div>
                                                         </span>
                                                         <div>
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                             <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                            <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-slate-500">{log.userEmail}</div>
+                                                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
+                                                            <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-slate-600">{log.userEmail}</div>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -1826,11 +1826,11 @@ export const Risks: React.FC = () => {
                                         <div className="space-y-6">
                                             {/* Linked Techniques */}
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center">
+                                                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-600 mb-4 flex items-center">
                                                     Techniques Liées ({selectedRisk.mitreTechniques?.length || 0})
                                                 </h3>
                                                 {!selectedRisk.mitreTechniques || selectedRisk.mitreTechniques.length === 0 ? (
-                                                    <p className="text-sm text-slate-400 italic">Aucune technique liée.</p>
+                                                    <p className="text-sm text-slate-500 italic">Aucune technique liée.</p>
                                                 ) : (
                                                     <div className="space-y-3">
                                                         {selectedRisk.mitreTechniques.map(tech => {
@@ -1839,9 +1839,9 @@ export const Risks: React.FC = () => {
                                                                 <div key={tech.id} className="flex justify-between items-start p-3 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5">
                                                                     <div>
                                                                         <div className="font-bold text-slate-900 dark:text-white text-sm">
-                                                                            {tech.name} <span className="text-slate-400 font-mono text-xs ml-2">({tech.id})</span>
+                                                                            {tech.name} <span className="text-slate-500 font-mono text-xs ml-2">({tech.id})</span>
                                                                         </div>
-                                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{tech.description}</p>
+                                                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">{tech.description}</p>
                                                                     </div>
                                                                     <button
                                                                         onClick={async () => {
@@ -1854,7 +1854,7 @@ export const Risks: React.FC = () => {
                                                                                 addToast("Technique retirée", "success");
                                                                             } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.removeMitreTechnique'); }
                                                                         }}
-                                                                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                                                                        className="text-slate-500 hover:text-red-500 transition-colors p-1"
                                                                         title="Retirer"
                                                                         disabled={!canEdit}
                                                                     >
@@ -1873,7 +1873,7 @@ export const Risks: React.FC = () => {
                                                     <ShieldAlert className="w-5 h-5 mr-2 text-red-500" />
                                                     Rechercher MITRE ATT&CK
                                                 </h3>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
                                                     Recherchez des techniques pour les lier à ce risque.
                                                 </p>
 
@@ -1887,7 +1887,7 @@ export const Risks: React.FC = () => {
                                                             onChange={(e) => setMitreQuery(e.target.value)}
                                                             onKeyDown={(e) => e.key === 'Enter' && integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults)}
                                                         />
-                                                        <Search className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
+                                                        <Search className="absolute left-3 top-3.5 w-5 h-5 text-slate-500" />
                                                     </div>
                                                     <button
                                                         onClick={() => integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults)}
@@ -1905,7 +1905,7 @@ export const Risks: React.FC = () => {
                                                                 <div key={technique.id} className="p-4 bg-white dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500 transition-colors group">
                                                                     <div className="flex justify-between items-start mb-2">
                                                                         <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-500 transition-colors">
-                                                                            {technique.name} <span className="text-slate-400 font-mono text-xs ml-2">({technique.id})</span>
+                                                                            {technique.name} <span className="text-slate-500 font-mono text-xs ml-2">({technique.id})</span>
                                                                         </h4>
                                                                         <button
                                                                             onClick={async () => {
@@ -1928,12 +1928,12 @@ export const Risks: React.FC = () => {
                                                                             {isLinked ? 'Lié' : 'Ajouter'}
                                                                         </button>
                                                                     </div>
-                                                                    <p className="text-sm text-slate-500 dark:text-slate-400">{technique.description}</p>
+                                                                    <p className="text-sm text-slate-600 dark:text-slate-400">{technique.description}</p>
                                                                 </div>
                                                             );
                                                         })
                                                     ) : (
-                                                        <div className="text-center py-8 text-slate-400 italic">
+                                                        <div className="text-center py-8 text-slate-500 italic">
                                                             Aucun résultat. Essayez de rechercher "Phishing" ou "Exploit".
                                                         </div>
                                                     )}

@@ -34,21 +34,21 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-end">
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">
                     {label}
                 </label>
                 <div className="text-right">
-                    <span className="text-xs font-medium text-slate-400 block">Score: {currentScore}</span>
+                    <span className="text-xs font-medium text-slate-500 block">Score: {currentScore}</span>
                     <span className={`text-sm font-black uppercase ${level.color}`}>{level.label}</span>
                 </div>
             </div>
 
             <div className="relative">
                 {/* Labels */}
-                <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                     Probabilité
                 </div>
-                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                     Impact
                 </div>
 
@@ -87,7 +87,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
                 </div>
             </div>
             {/* Legend/Helper */}
-            <div className="flex justify-between items-center text-[10px] text-slate-400 px-2 mt-2">
+            <div className="flex justify-between items-center text-[10px] text-slate-500 px-2 mt-2">
                 <span>Faible (1-4)</span>
                 <span>Critique (15-25)</span>
             </div>

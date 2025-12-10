@@ -19,7 +19,7 @@ export const ChartTooltip: React.FC<ChartTooltipProps> = ({ active, payload, lab
     if (active && payload && payload.length) {
         return (
             <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 shadow-xl rounded-xl p-3 animate-in fade-in zoom-in-95 duration-200">
-                {label && <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">{label}</p>}
+                {label && <p className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wider">{label}</p>}
                 <div className="space-y-1">
                     {payload.map((entry: TooltipPayload, index: number) => (
                         <div key={index} className="flex items-center gap-2 text-sm">

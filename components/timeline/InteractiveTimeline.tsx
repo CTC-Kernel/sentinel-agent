@@ -315,7 +315,7 @@ export const InteractiveTimeline: React.FC = () => {
                     onClick={() => toggleFilter('incidents')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.incidents
                         ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                        : 'bg-slate-100 text-slate-400 dark:bg-slate-800'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
                         }`}
                 >
                     <Siren className="h-4 w-4" />
@@ -326,7 +326,7 @@ export const InteractiveTimeline: React.FC = () => {
                     onClick={() => toggleFilter('audits')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.audits
                         ? 'bg-blue-100 text-blue-700 dark:bg-slate-900/20 dark:text-blue-400'
-                        : 'bg-slate-100 text-slate-400 dark:bg-slate-800'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
                         }`}
                 >
                     <Activity className="h-4 w-4" />
@@ -337,7 +337,7 @@ export const InteractiveTimeline: React.FC = () => {
                     onClick={() => toggleFilter('projects')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.projects
                         ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400'
-                        : 'bg-slate-100 text-slate-400 dark:bg-slate-800'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
                         }`}
                 >
                     <FolderKanban className="h-4 w-4" />
@@ -348,7 +348,7 @@ export const InteractiveTimeline: React.FC = () => {
                     onClick={() => toggleFilter('risks')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.risks
                         ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
-                        : 'bg-slate-100 text-slate-400 dark:bg-slate-800'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
                         }`}
                 >
                     <ShieldAlert className="h-4 w-4" />
@@ -359,7 +359,7 @@ export const InteractiveTimeline: React.FC = () => {
                     onClick={() => toggleFilter('documents')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.documents
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                        : 'bg-slate-100 text-slate-400 dark:bg-slate-800'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
                         }`}
                 >
                     <FileText className="h-4 w-4" />

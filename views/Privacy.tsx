@@ -327,13 +327,13 @@ export const Privacy: React.FC = () => {
             {/* Insight Card (Summary) */}
             <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div className="space-y-2">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
                         <span className="inline-flex h-2 w-2 rounded-full bg-purple-500 animate-pulse" />
                         Registre des Traitements
                     </p>
                     <div className="flex items-baseline gap-3">
                         <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</h2>
-                        <span className="text-sm font-bold text-slate-500">Traitements identifiés</span>
+                        <span className="text-sm font-bold text-slate-600">Traitements identifiés</span>
                     </div>
                 </div>
 
@@ -341,32 +341,32 @@ export const Privacy: React.FC = () => {
 
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Données Sensibles</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Données Sensibles</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-orange-500">{stats.sensitive}</span>
                             <Badge status="warning" variant="soft" size="sm">Prioritaire</Badge>
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">DPIA Requis</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">DPIA Requis</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.dpiaMissing}
                             </span>
-                            <span className="text-xs font-medium text-slate-400">à réaliser</span>
+                            <span className="text-xs font-medium text-slate-500">à réaliser</span>
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">En Projet</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">En Projet</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-blue-500">
                                 {stats.review}
                             </span>
-                            <span className="text-xs font-medium text-slate-400">Traitements</span>
+                            <span className="text-xs font-medium text-slate-500">Traitements</span>
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Conformité Actifs</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Conformité Actifs</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-emerald-500">
                                 {stats.total > 0 ? Math.round(((stats.total - stats.review) / stats.total) * 100) : 0}%
@@ -378,10 +378,10 @@ export const Privacy: React.FC = () => {
             </div>
 
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-purple-500/20 transition-all border border-slate-200 dark:border-white/5">
-                <Search className="h-5 w-5 text-slate-400" />
+                <Search className="h-5 w-5 text-slate-500" />
                 <input type="text" placeholder="Rechercher un traitement (ex: Paie, CRM)..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                     value={filter} onChange={e => setFilter(e.target.value)} />
-                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter le Registre">
+                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter le Registre">
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
             </div>
@@ -415,21 +415,21 @@ export const Privacy: React.FC = () => {
                             </div>
 
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{activity.name}</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 flex-1 leading-relaxed">{activity.purpose}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 flex-1 leading-relaxed">{activity.purpose}</p>
 
                             <div className="space-y-3 pt-5 border-t border-dashed border-gray-200 dark:border-white/10">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center"><Scale className="h-3 w-3 mr-1.5" />Base Légale</span>
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center"><Scale className="h-3 w-3 mr-1.5" />Base Légale</span>
                                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-lg">{activity.legalBasis}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center"><GlobeLock className="h-3 w-3 mr-1.5" />Catégories</span>
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center"><GlobeLock className="h-3 w-3 mr-1.5" />Catégories</span>
                                     <span className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate max-w-[150px]">
                                         {activity.dataCategories.length > 0 ? activity.dataCategories.join(', ') : '-'}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center"><Clock className="h-3 w-3 mr-1.5" />Conservation</span>
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center"><Clock className="h-3 w-3 mr-1.5" />Conservation</span>
                                     <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{activity.retentionPeriod}</span>
                                 </div>
                             </div>
@@ -442,7 +442,7 @@ export const Privacy: React.FC = () => {
 
                             {canEdit && (
                                 <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={(e) => { e.stopPropagation(); initiateDelete(activity.id, activity.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-400 hover:text-red-50 shadow-sm backdrop-blur-sm"><Trash2 className="h-4 w-4" /></button>
+                                    <button onClick={(e) => { e.stopPropagation(); initiateDelete(activity.id, activity.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-50 shadow-sm backdrop-blur-sm"><Trash2 className="h-4 w-4" /></button>
                                 </div>
                             )}
                         </div>
@@ -467,13 +467,13 @@ export const Privacy: React.FC = () => {
                     selectedActivity && (
                         <>
                             {canEdit && !isEditing && (
-                                <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                             )}
                             {canEdit && isEditing && (
                                 <button onClick={editActivityForm.handleSubmit(handleUpdate)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
                             )}
                             {canEdit && (
-                                <button onClick={() => initiateDelete(selectedActivity.id, selectedActivity.name)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                                <button onClick={() => initiateDelete(selectedActivity.id, selectedActivity.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
                             )}
                         </>
                     )
@@ -500,9 +500,9 @@ export const Privacy: React.FC = () => {
                                     {isEditing ? (
                                         <>
                                             <div className="grid grid-cols-2 gap-6">
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('name')} /></div>
+                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('name')} /></div>
                                                 <div>
-                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
+                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable</label>
                                                     <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
                                                         {...editActivityForm.register('managerId')}
                                                         onChange={e => {
@@ -515,25 +515,25 @@ export const Privacy: React.FC = () => {
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Finalité</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none" rows={3} {...editActivityForm.register('purpose')} /></div>
+                                            <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Finalité</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none" rows={3} {...editActivityForm.register('purpose')} /></div>
                                             <div className="grid grid-cols-2 gap-6">
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Base Légale</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('legalBasis')}>{['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('status')}> <option value="Actif">Actif</option><option value="En projet">En projet</option><option value="Archivé">Archivé</option></select></div>
+                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Base Légale</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('legalBasis')}>{['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Statut</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('status')}> <option value="Actif">Actif</option><option value="En projet">En projet</option><option value="Archivé">Archivé</option></select></div>
                                             </div>
                                         </>
                                     ) : (
                                         <>
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Finalité</h4>
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Finalité</h4>
                                                 <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{selectedActivity.purpose}</p>
                                             </div>
                                             <div className="grid grid-cols-2 gap-6">
                                                 <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm text-center">
-                                                    <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Base Légale</span>
+                                                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">Base Légale</span>
                                                     <span className="text-lg font-bold text-slate-900 dark:text-white">{selectedActivity.legalBasis}</span>
                                                 </div>
                                                 <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm text-center">
-                                                    <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Responsable</span>
+                                                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">Responsable</span>
                                                     <span className="text-lg font-bold text-slate-900 dark:text-white">{selectedActivity.manager}</span>
                                                 </div>
                                             </div>
@@ -547,7 +547,7 @@ export const Privacy: React.FC = () => {
                                     {isEditing ? (
                                         <>
                                             <div>
-                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Catégories de données</label>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">Catégories de données</label>
                                                 <div className="grid grid-cols-2 gap-3">
                                                     {['État civil', 'Vie personnelle', 'Bancaire / Financier', 'Connexion / Trace', 'Santé (Sensible)', 'Biométrique', 'Judiciaire'].map(cat => (
                                                         <label key={cat} className={`flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition-all ${editActivityForm.watch('dataCategories')?.includes(cat) ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' : 'border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'}`}>
@@ -558,7 +558,7 @@ export const Privacy: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-6">
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Durée Conservation</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('retentionPeriod')} /></div>
+                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Durée Conservation</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('retentionPeriod')} /></div>
                                                 <div className="flex items-end pb-4">
                                                     <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 w-full transition-colors">
                                                         <input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-gray-300" checked={editActivityForm.watch('hasDPIA')} onChange={e => editActivityForm.setValue('hasDPIA', e.target.checked)} />
@@ -570,7 +570,7 @@ export const Privacy: React.FC = () => {
                                     ) : (
                                         <>
                                             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Catégories de Données</h4>
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Catégories de Données</h4>
                                                 <div className="flex flex-wrap gap-2">
                                                     {selectedActivity.dataCategories.map(c => (
                                                         <span key={c} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-600">
@@ -601,10 +601,10 @@ export const Privacy: React.FC = () => {
                                                 <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                             </span>
                                             <div>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                 <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                <p className="text-[10px] text-slate-400 mt-1">Par: {log.userEmail}</p>
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
+                                                <p className="text-[10px] text-slate-500 mt-1">Par: {log.userEmail}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -632,13 +632,13 @@ export const Privacy: React.FC = () => {
                 <form onSubmit={createActivityForm.handleSubmit(handleCreate)} className="p-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom du traitement</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom du traitement</label>
                             <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium"
                                 {...createActivityForm.register('name')} placeholder="ex: Gestion Paie" />
                             {createActivityForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{createActivityForm.formState.errors.name.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Responsable</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable</label>
                             <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
                                 {...createActivityForm.register('managerId')}
                                 onChange={e => {
@@ -652,16 +652,16 @@ export const Privacy: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Finalité principale</label>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Finalité principale</label>
                         <textarea rows={2} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none"
                             {...createActivityForm.register('purpose')} placeholder="ex: Payer les salaires et déclarations sociales" />
                     </div>
                     <div className="grid grid-cols-2 gap-6">
-                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Base Légale</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...createActivityForm.register('legalBasis')}>{['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Statut</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...createActivityForm.register('status')}> <option value="Actif">Actif</option><option value="En projet">En projet</option><option value="Archivé">Archivé</option></select></div>
+                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Base Légale</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...createActivityForm.register('legalBasis')}>{['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Statut</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...createActivityForm.register('status')}> <option value="Actif">Actif</option><option value="En projet">En projet</option><option value="Archivé">Archivé</option></select></div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Catégories de données</label>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">Catégories de données</label>
                         <div className="grid grid-cols-2 gap-3">
                             {['État civil', 'Vie personnelle', 'Bancaire / Financier', 'Connexion / Trace', 'Santé (Sensible)', 'Biométrique', 'Judiciaire'].map(cat => (
                                 <label key={cat} className={`flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition-all ${createActivityForm.watch('dataCategories')?.includes(cat) ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' : 'border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'}`}>
@@ -672,11 +672,11 @@ export const Privacy: React.FC = () => {
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-6">
-                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Durée Conservation</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...createActivityForm.register('retentionPeriod')} placeholder="ex: 5 ans après départ" /></div>
+                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Durée Conservation</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...createActivityForm.register('retentionPeriod')} placeholder="ex: 5 ans après départ" /></div>
                         <div className="flex items-end pb-4"><label className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 w-full transition-colors"><input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-gray-300" checked={createActivityForm.watch('hasDPIA')} onChange={e => createActivityForm.setValue('hasDPIA', e.target.checked)} /><span className="text-sm font-bold text-slate-900 dark:text-white">DPIA Requis ?</span></label></div>
                     </div>
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                        <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                        <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
                         <button type="submit" className="px-8 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-purple-500/30">Enregistrer</button>
                     </div>
                 </form>

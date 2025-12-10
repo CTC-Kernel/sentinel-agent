@@ -89,7 +89,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
                                                     {template.description}
                                                 </p>
-                                                <div className="flex items-center gap-3 text-xs text-slate-500">
+                                                <div className="flex items-center gap-3 text-xs text-slate-600">
                                                     <span className="flex items-center gap-1">
                                                         <AlertTriangle className="h-3 w-3" />
                                                         {template.risks.length} risques
@@ -148,7 +148,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                 {risk.threat}
                                             </span>
                                             <div className="flex items-center gap-2">
-                                                {/* <span className="text-slate-500">{(risk as any).category || 'N/A'}</span> */}
+                                                {/* <span className="text-slate-600">{(risk as any).category || 'N/A'}</span> */}
                                                 <span className={`px-2 py-0.5 rounded font-bold ${risk.score >= 15 ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
                                                     risk.score >= 10 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400' :
                                                         risk.score >= 5 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400' :

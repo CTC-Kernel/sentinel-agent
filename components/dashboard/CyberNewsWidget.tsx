@@ -62,7 +62,7 @@ export const CyberNewsWidget: React.FC = () => {
                         e.stopPropagation();
                         fetchNews();
                     }}
-                    className={`p-2 rounded-lg hover:bg-white dark:hover:bg-white/10 transition-colors text-slate-400 hover:text-indigo-500 ${loading ? 'animate-spin' : ''}`}
+                    className={`p-2 rounded-lg hover:bg-white dark:hover:bg-white/10 transition-colors text-slate-500 hover:text-indigo-500 ${loading ? 'animate-spin' : ''}`}
                     title={t('dashboard.refresh')}
                 >
                     <RefreshCw className="w-4 h-4" />
@@ -90,9 +90,9 @@ export const CyberNewsWidget: React.FC = () => {
                                     <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 line-clamp-2 mb-2">
                                         {item.title}
                                     </h4>
-                                    <ExternalLink className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
+                                    <ExternalLink className="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
                                 </div>
-                                <div className="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
+                                <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
                                     <span className="bg-slate-200 dark:bg-white/10 px-2 py-0.5 rounded text-[10px] font-bold">
                                         {item.source}
                                     </span>
@@ -104,13 +104,13 @@ export const CyberNewsWidget: React.FC = () => {
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center text-slate-500 py-8 text-sm">
+                    <div className="text-center text-slate-600 py-8 text-sm">
                         {t('dashboard.noNews')}
                     </div>
                 )}
                 {!isExpanded && news.length > 5 && (
                     <div className="mt-3 text-center">
-                        <span className="text-xs font-semibold text-slate-400 hover:text-slate-600 cursor-pointer" onClick={() => setIsExpanded(true)}>
+                        <span className="text-xs font-semibold text-slate-500 hover:text-slate-600 cursor-pointer" onClick={() => setIsExpanded(true)}>
                             +{news.length - 5} {t('common.more').toLowerCase()}
                         </span>
                     </div>

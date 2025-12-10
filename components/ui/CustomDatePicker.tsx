@@ -132,10 +132,10 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                 `}
             >
                 <div className="w-full px-4 py-3.5 flex items-center justify-between">
-                    <span className={`font-medium ${value ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>
+                    <span className={`font-medium ${value ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
                         {value ? new Date(value).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sélectionner une date...'}
                     </span>
-                    <CalendarIcon className={`h-4 w-4 text-slate-400 transition-colors ${isOpen ? 'text-brand-500' : ''}`} />
+                    <CalendarIcon className={`h-4 w-4 text-slate-500 transition-colors ${isOpen ? 'text-brand-500' : ''}`} />
                 </div>
 
                 <label
@@ -143,7 +143,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                         absolute left-4 transition-all duration-200 pointer-events-none
                         ${(isOpen || value)
                             ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded text-brand-600'
-                            : 'top-3.5 text-sm font-medium text-slate-500'
+                            : 'top-3.5 text-sm font-medium text-slate-600'
                         }
                         ${error ? '!text-red-500' : ''}
                     `}
@@ -168,7 +168,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
 
                     <div className="grid grid-cols-7 gap-1 mb-2">
                         {days.map(d => (
-                            <div key={d} className="h-8 w-8 flex items-center justify-center text-[10px] font-bold text-slate-400">
+                            <div key={d} className="h-8 w-8 flex items-center justify-center text-[10px] font-bold text-slate-500">
                                 {d}
                             </div>
                         ))}

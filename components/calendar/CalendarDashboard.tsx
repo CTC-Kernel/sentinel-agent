@@ -240,7 +240,7 @@ export const CalendarDashboard: React.FC = () => {
                             <button
                                 key={opt.v}
                                 onClick={() => { setView(opt.v); toolbar.onView(opt.v); }}
-                                className={`px-4 md:px-5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap ${view === opt.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                                className={`px-4 md:px-5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap ${view === opt.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5'}`}
                             >
                                 {opt.l}
                             </button>
@@ -293,7 +293,7 @@ export const CalendarDashboard: React.FC = () => {
         <div className="flex flex-col space-y-6 md:h-full">
             {/* Filters - Scrollable on mobile */}
             <div className="relative z-20 flex flex-nowrap md:flex-wrap items-center gap-3 p-1 overflow-x-auto no-scrollbar mask-gradient-right pb-4 shrink-0">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 shrink-0">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 shrink-0">
                     <Filter className="h-4 w-4" />
                 </div>
                 {Object.keys(filters).map(key => (
@@ -309,7 +309,7 @@ export const CalendarDashboard: React.FC = () => {
                                             : key === 'incident' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/20 shadow-red-500/10'
                                                 : key === 'drill' ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/20 shadow-orange-500/10'
                                                     : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                                : 'bg-transparent text-slate-400 border-slate-200 dark:text-slate-600 dark:border-white/5 grayscale opacity-60 hover:opacity-100 hover:grayscale-0'
+                                : 'bg-transparent text-slate-500 border-slate-200 dark:text-slate-600 dark:border-white/5 grayscale opacity-60 hover:opacity-100 hover:grayscale-0'
                             }
                         `}
                     >
@@ -409,7 +409,7 @@ export const CalendarDashboard: React.FC = () => {
 
                         {selectedEvent.description && (
                             <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
                                     <FileText className="h-4 w-4" /> Description
                                 </div>
                                 <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-line leading-relaxed pl-6">
@@ -420,7 +420,7 @@ export const CalendarDashboard: React.FC = () => {
 
                         {selectedEvent.location && (
                             <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
                                     <MapPin className="h-4 w-4" /> Lieu
                                 </div>
                                 <p className="text-sm text-slate-600 dark:text-slate-300 pl-6 font-medium">

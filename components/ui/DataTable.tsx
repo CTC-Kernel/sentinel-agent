@@ -131,7 +131,7 @@ export function DataTable<TData extends { id: string }, TValue>({
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 {searchable && (
                     <div className="relative flex-1 w-full max-w-md">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                         <input
                             type="text"
                             placeholder="Rechercher..."
@@ -178,7 +178,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             key={header.id}
                                             onClick={header.column.getToggleSortingHandler()}
                                             className={cn(
-                                                "px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap",
+                                                "px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 whitespace-nowrap",
                                                 header.column.getCanSort() && "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800",
                                                 header.id === 'select' && "w-[50px] px-4"
                                             )}
@@ -232,7 +232,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={tableColumns.length} className="text-center py-12 text-slate-500 dark:text-slate-400">
+                                <td colSpan={tableColumns.length} className="text-center py-12 text-slate-600 dark:text-slate-400">
                                     Aucune donnée à afficher
                                 </td>
                             </tr>
@@ -244,7 +244,7 @@ export function DataTable<TData extends { id: string }, TValue>({
             {/* Pagination */}
             {table.getPageCount() > 1 && (
                 <div className="flex items-center justify-between">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
                         Affichage {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} à {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, data.length)} sur {data.length} résultats
                     </p>
 
