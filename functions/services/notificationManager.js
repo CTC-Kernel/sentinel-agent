@@ -158,14 +158,15 @@ class NotificationManager {
     }
 
     /**
-     * 3. Check Risk Treatments Due
+     * 3. Check Risk Treatments Due & Enforce SLA
+     * - Checks for treatments due today (Notification)
+     * - Checks for treatments overdue (Update Status -> Retard, SLA -> Breached + Notification)
      */
     static async checkRiskTreatments(db, orgId, orgName) {
         const today = new Date().toISOString().split('T')[0];
 
         try {
-            // Risks are stored, and treatments might be in a subcollection or array.
-            // If treatments are in an array inside the risk document:
+            // Get open or in-progress risks
             const risksSnap = await db.collection('risks')
                 .where('organizationId', '==', orgId)
                 .where('status', 'in', ['Ouvert', 'En cours'])
@@ -174,24 +175,55 @@ class NotificationManager {
             if (risksSnap.empty) return;
 
             const batch = db.batch();
+            let updatesCount = 0;
 
             for (const doc of risksSnap.docs) {
                 const risk = doc.data();
-                if (risk.treatmentPlan) {
-                    // Check main due date
-                    if (risk.treatmentPlan.dueDate === today && risk.treatmentPlan.ownerId) {
+                if (risk.treatment) {
+                    const treatment = risk.treatment;
+
+                    if (!treatment.dueDate || !treatment.ownerId) continue;
+
+                    // CASE 1: OVERDUE (Enforce SLA)
+                    if (treatment.dueDate < today && treatment.status !== 'Terminé' && treatment.status !== 'Retard') {
+                        // Update Risk Document
+                        const riskRef = db.collection('risks').doc(doc.id);
+                        batch.update(riskRef, {
+                            'treatment.status': 'Retard',
+                            'treatment.slaStatus': 'Breached',
+                            'updatedAt': new Date().toISOString()
+                        });
+                        updatesCount++;
+
+                        // Notify Owner
                         await this.queueNotification(batch, db, {
-                            userId: risk.treatmentPlan.ownerId,
-                            title: "Échéance de Traitement",
-                            message: `Le plan de traitement pour "${risk.name}" arrive à échéance.`,
-                            link: `/risk-assessment`, // Or specific risk link
-                            type: 'RISK_TREATMENT',
-                            emailHtml: getRiskTreatmentDueHtml(risk.name, risk.treatmentPlan.dueDate, "Responsable", `${appBaseUrl.value()}/risk-assessment`)
+                            userId: treatment.ownerId,
+                            title: "⚠️ Traitement en Retard (SLA Rompu)",
+                            message: `Le plan de traitement pour "${risk.name}" est en retard. Statut mis à jour.`,
+                            link: `/risk-assessment`,
+                            type: 'RISK_SLA_BREACH',
+                            emailHtml: getRiskTreatmentDueHtml(risk.name, treatment.dueDate, "Responsable", `${appBaseUrl.value()}/risk-assessment`)
+                        });
+                    }
+
+                    // CASE 2: DUE TODAY (Reminder)
+                    else if (treatment.dueDate === today && treatment.status !== 'Terminé') {
+                        await this.queueNotification(batch, db, {
+                            userId: treatment.ownerId,
+                            title: "Échéance de Traitement Aujourd'hui",
+                            message: `Le plan de traitement pour "${risk.name}" doit être terminé ce soir.`,
+                            link: `/risk-assessment`,
+                            type: 'RISK_TREATMENT_DUE',
+                            emailHtml: getRiskTreatmentDueHtml(risk.name, treatment.dueDate, "Responsable", `${appBaseUrl.value()}/risk-assessment`)
                         });
                     }
                 }
             }
+
             await batch.commit();
+            if (updatesCount > 0) {
+                logger.info(`Updated ${updatesCount} overdue risks for org ${orgId}`);
+            }
 
         } catch (error) {
             logger.error(`Error checking risks for org ${orgId}`, error);

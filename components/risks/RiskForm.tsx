@@ -4,7 +4,7 @@ import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
 import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier, Criticality, ThreatTemplate } from '../../types';
-import { BookOpen, Shield, Search, LayoutGrid, FileText, Activity, Layers } from '../ui/Icons';
+import { BookOpen, Shield, Search, LayoutGrid, FileText, Activity, Layers, AlertTriangle } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -441,6 +441,15 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 }}
                             />
                         </div>
+
+                        {/* Validation Warning */}
+                        {(residualProbability && residualImpact && probability && impact) &&
+                            (residualProbability * residualImpact > probability * impact) && (
+                                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-xl border border-red-200 dark:border-red-900/50 text-sm font-bold flex items-center animate-pulse">
+                                    <AlertTriangle className="h-5 w-5 mr-2" />
+                                    Attention: Le risque résiduel ({residualProbability * residualImpact}) ne peut pas être supérieur au risque brut ({probability * impact}).
+                                </div>
+                            )}
                     </div>
                 )}
 
@@ -601,7 +610,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     </div>
                 </div>
             </Modal>
-        </form>
+        </form >
     );
 };
 

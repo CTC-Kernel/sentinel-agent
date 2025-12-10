@@ -36,7 +36,9 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
                 // Default start date logic if missing
                 if (!task.startDate) {
-                    startDate.setDate(endDate.getDate() - 7);
+                    // Default to 1 day duration if start date is missing, ending on due date
+                    startDate = new Date(endDate);
+                    startDate.setDate(endDate.getDate() - 1);
                 }
 
                 // Ensure start < end

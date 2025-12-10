@@ -28,6 +28,23 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user?.organizationId) return;
+
+        // Validate dates
+        if (currentMilestone.targetDate) {
+            const milkestoneDate = new Date(currentMilestone.targetDate);
+            const projectStart = project.startDate ? new Date(project.startDate) : null;
+            const projectEnd = project.dueDate ? new Date(project.dueDate) : null;
+
+            if (projectStart && milkestoneDate < projectStart) {
+                addToast("La date du jalon ne peut pas être avant le début du projet.", "error");
+                return;
+            }
+            if (projectEnd && milkestoneDate > projectEnd) {
+                addToast("La date du jalon ne peut pas être après la fin du projet.", "error");
+                return;
+            }
+        }
+
         setLoading(true);
 
         try {
