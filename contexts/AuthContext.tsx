@@ -107,6 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let unsubscribeProfile: (() => void) | undefined;
         let unsubscribeOrg: (() => void) | undefined;
 
+
         // Sécurité : Timeout pour éviter le chargement infini
         const safetyTimeout = setTimeout(() => {
             if (loading) {

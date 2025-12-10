@@ -261,11 +261,12 @@ export class IncidentPlaybookService {
     }
   }
 
-  static async getResponse(incidentId: string): Promise<IncidentResponse | null> {
+  static async getResponse(incidentId: string, organizationId: string): Promise<IncidentResponse | null> {
     try {
       const q = query(
         collection(db, this.RESPONSES_COLLECTION),
-        where('incidentId', '==', incidentId)
+        where('incidentId', '==', incidentId),
+        where('organizationId', '==', organizationId)
       );
       const snapshot = await getDocs(q);
 
