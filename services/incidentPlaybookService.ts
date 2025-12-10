@@ -4,6 +4,7 @@ import { Incident } from '../types';
 import { logAction } from './logger';
 import { ErrorLogger } from './errorLogger';
 import { PLAYBOOK_TEMPLATES } from '../data/playbookTemplates';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 
 export interface IncidentPlaybook {
@@ -109,12 +110,12 @@ export class IncidentPlaybookService {
   // Playbook Management
   static async createPlaybook(playbook: Omit<IncidentPlaybook, 'id'>, organizationId: string): Promise<string> {
     try {
-      const docRef = await addDoc(collection(db, this.PLAYBOOKS_COLLECTION), {
+      const docRef = await addDoc(collection(db, this.PLAYBOOKS_COLLECTION), sanitizeData({
         ...playbook,
         organizationId,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
-      });
+      }));
 
       await logAction({
         uid: 'user',
@@ -176,10 +177,10 @@ export class IncidentPlaybookService {
   static async updatePlaybook(id: string, updates: Partial<IncidentPlaybook>): Promise<void> {
     try {
       const docRef = doc(db, this.PLAYBOOKS_COLLECTION, id);
-      await updateDoc(docRef, {
+      await updateDoc(docRef, sanitizeData({
         ...updates,
         updatedAt: Timestamp.now()
-      });
+      }));
 
       await logAction({
         uid: 'system',
@@ -240,7 +241,7 @@ export class IncidentPlaybookService {
         }]
       };
 
-      const docRef = await addDoc(collection(db, this.RESPONSES_COLLECTION), response);
+      const docRef = await addDoc(collection(db, this.RESPONSES_COLLECTION), sanitizeData(response));
 
       // Update incident status
       await updateDoc(doc(db, 'incidents', incidentId), {
@@ -333,7 +334,7 @@ export class IncidentPlaybookService {
         ];
       }
 
-      await updateDoc(doc(db, this.RESPONSES_COLLECTION, responseId), updates);
+      await updateDoc(doc(db, this.RESPONSES_COLLECTION, responseId), sanitizeData(updates));
 
       // Update incident playbook steps
       const incidentRef = doc(db, 'incidents', response.incidentId);
@@ -370,7 +371,7 @@ export class IncidentPlaybookService {
         ]
       };
 
-      await updateDoc(doc(db, this.RESPONSES_COLLECTION, responseId), updates);
+      await updateDoc(doc(db, this.RESPONSES_COLLECTION, responseId), sanitizeData(updates));
 
       // Update incident severity if needed
       await updateDoc(doc(db, 'incidents', response.incidentId), {
@@ -404,14 +405,14 @@ export class IncidentPlaybookService {
         ]
       };
 
-      await updateDoc(doc(db, this.RESPONSES_COLLECTION, responseId), updates);
+      await updateDoc(doc(db, this.RESPONSES_COLLECTION, responseId), sanitizeData(updates));
 
       // Update incident status
-      await updateDoc(doc(db, 'incidents', response.incidentId), {
+      await updateDoc(doc(db, 'incidents', response.incidentId), sanitizeData({
         status: 'Résolu',
         dateResolved: new Date().toISOString(),
         lessonsLearned
-      });
+      }));
 
     } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookService.completeResponse');

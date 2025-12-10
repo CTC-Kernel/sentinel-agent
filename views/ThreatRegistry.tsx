@@ -11,6 +11,7 @@ import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
 import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
 import { logAction } from '../services/logger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { StaggerContainer, SlideUp } from '../components/ui/Animations';
 
 export const ThreatRegistry: React.FC = () => {
@@ -96,13 +97,13 @@ export const ThreatRegistry: React.FC = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const dataToSave = {
+            const dataToSave = sanitizeData({
                 ...formData,
                 organizationId: user!.organizationId,
                 source: formData.source || 'Custom',
                 // cast to any to allow extra fields like createdAt if not in interface
                 createdAt: (formData as any).createdAt || new Date().toISOString()
-            } as any;
+            } as any);
 
             if (isEditing && selectedThreat?.id) {
                 // remove id from update payload
