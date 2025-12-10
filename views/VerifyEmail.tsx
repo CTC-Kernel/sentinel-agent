@@ -84,7 +84,7 @@ export const VerifyEmail: React.FC = () => {
                     </div>
 
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Vérifiez votre email</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mb-8">
+                    <p className="text-slate-600 dark:text-slate-400 mb-8">
                         Un lien de vérification a été envoyé à <strong>{auth.currentUser?.email}</strong>.<br />
                         Veuillez cliquer sur le lien pour activer votre compte.
                     </p>
@@ -120,13 +120,13 @@ export const VerifyEmail: React.FC = () => {
                             disabled={loading || emailSent}
                             className="w-full py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
                         >
-                            {loading ? <Loader2 className="h-5 w-5 animate-spin mx-auto text-slate-500" /> : "Renvoyer l'email"}
+                            {loading ? <Loader2 className="h-5 w-5 animate-spin mx-auto text-slate-600" /> : "Renvoyer l'email"}
                         </button>
                     </div>
 
                     <button
                         onClick={handleLogout}
-                        className="mt-8 text-sm font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center transition-colors"
+                        className="mt-8 text-sm font-bold text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 flex items-center transition-colors"
                     >
                         <LogOut className="mr-2 h-4 w-4" />
                         Se déconnecter

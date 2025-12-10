@@ -888,13 +888,13 @@ export const Compliance: React.FC = () => {
                             <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10">
                                 <button
                                     onClick={() => setViewMode('compliance')}
-                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'compliance' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'compliance' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-700'}`}
                                 >
                                     Conformité
                                 </button>
                                 <button
                                     onClick={() => setViewMode('watch')}
-                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'watch' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'watch' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-700'}`}
                                 >
                                     Veille
                                 </button>
@@ -903,7 +903,7 @@ export const Compliance: React.FC = () => {
                             {viewMode === 'compliance' && (
                                 <button
                                     onClick={generateSoAReport}
-                                    className="hidden md:flex p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+                                    className="hidden md:flex p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-600 transition-colors"
                                     title="Générer SoA"
                                 >
                                     <Download className="h-5 w-5" />
@@ -938,11 +938,11 @@ export const Compliance: React.FC = () => {
                         <SlideUp>
                             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-col md:flex-row gap-4 shadow-sm">
                                 <div className="flex-1 relative group flex items-center">
-                                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
                                     <input
                                         type="text"
                                         placeholder="Rechercher un contrôle (ex: A.5.1, Accès)..."
-                                        className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus:ring-0 text-sm font-medium transition-all placeholder:text-slate-400 text-slate-700 dark:text-white"
+                                        className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus:ring-0 text-sm font-medium transition-all placeholder:text-slate-500 text-slate-700 dark:text-white"
                                         value={filter}
                                         onChange={e => setFilter(e.target.value)}
                                     />
@@ -1020,12 +1020,12 @@ export const Compliance: React.FC = () => {
                                                             </div>
                                                             <div>
                                                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">{domain.title}</h3>
-                                                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">{domain.description} • <span className="text-slate-700 dark:text-slate-300">{stats.total} contrôles</span></p>
+                                                                <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">{domain.description} • <span className="text-slate-700 dark:text-slate-300">{stats.total} contrôles</span></p>
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 w-full md:w-auto pl-[4.25rem] md:pl-0">
                                                             <div className="w-full md:w-40">
-                                                                <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+                                                                <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
                                                                     <span>Progression</span>
                                                                     <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
                                                                 </div>
@@ -1033,7 +1033,7 @@ export const Compliance: React.FC = () => {
                                                                     <div className={`h-full rounded-full transition-all duration-500 ${stats.progress === 100 ? 'bg-emerald-500' : 'bg-brand-500'}`} style={{ width: `${stats.progress}%` }}></div>
                                                                 </div>
                                                             </div>
-                                                            <div className={`p-2 rounded-full transition-all duration-300 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-sm rotate-180 text-slate-900 dark:text-white' : 'text-slate-400'}`}>
+                                                            <div className={`p-2 rounded-full transition-all duration-300 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-sm rotate-180 text-slate-900 dark:text-white' : 'text-slate-500'}`}>
                                                                 <ChevronDown className="h-5 w-5" />
                                                             </div>
                                                         </div>
@@ -1048,7 +1048,7 @@ export const Compliance: React.FC = () => {
                                                                     <CustomTooltip key={control.id} content={`Cliquez pour voir les détails de ${control.code}`} position="top" className="w-full">
                                                                         <div onClick={() => openInspector(control)} className="p-4 sm:p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-4 pl-4 sm:pl-8 active:scale-[0.99] duration-200">
                                                                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 flex-1 min-w-0">
-                                                                                <div className="min-w-[50px]"><span className="text-xs font-black text-slate-400 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
+                                                                                <div className="min-w-[50px]"><span className="text-xs font-black text-slate-500 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
                                                                                 <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
                                                                                     <div className="flex flex-wrap items-center mt-2 gap-2 text-xs">
                                                                                         {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-md text-[11px]"><Paperclip className="h-3 w-3 mr-1.5" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium bg-orange-50 dark:bg-orange-900/10 px-2.5 py-1 rounded-md text-[11px]"><AlertTriangle className="h-3 w-3 mr-1.5" /> Preuve manquante</span>) : null}
@@ -1058,8 +1058,8 @@ export const Compliance: React.FC = () => {
                                                                                 </div>
                                                                             </div>
                                                                             <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto mt-2 sm:mt-0">
-                                                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800' : 'text-slate-500 bg-slate-100 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}`}>{control.status}</span>
-                                                                                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors hidden sm:block" />
+                                                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800' : 'text-slate-600 bg-slate-100 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}`}>{control.status}</span>
+                                                                                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-600 transition-colors hidden sm:block" />
                                                                             </div>
                                                                         </div>
                                                                     </CustomTooltip>
@@ -1087,14 +1087,14 @@ export const Compliance: React.FC = () => {
                                 <Globe className="w-8 h-8" />
                             </div>
                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Veille Réglementaire EUR-Lex</h2>
-                            <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-8">
+                            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-8">
                                 Recherchez les dernières réglementations européennes (Directives, Règlements) directement depuis la source officielle EUR-Lex.
                             </p>
 
 
                             <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
                                 <div className="relative flex-1 text-left">
-                                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
                                     <input
                                         type="text"
                                         placeholder="Ex: Intelligence Artificielle, DORA, NIS2..."
@@ -1136,7 +1136,7 @@ export const Compliance: React.FC = () => {
                                         <Globe className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                                     </div>
                                     <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Résultats disponibles sur EUR-Lex</h4>
-                                    <p className="text-slate-500 dark:text-slate-400 max-w-md mb-6">
+                                    <p className="text-slate-600 dark:text-slate-400 max-w-md mb-6">
                                         Pour des raisons de sécurité, le portail EUR-Lex ne permet pas l'affichage direct dans cette fenêtre.
                                     </p>
                                     <a
@@ -1227,7 +1227,7 @@ export const Compliance: React.FC = () => {
                                     {/* Status & Assignment */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Statut d'implémentation</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Statut d'implémentation</h3>
                                             {canEdit ? (
                                                 <div className="grid grid-cols-2 gap-2">
                                                     {(['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => (
@@ -1237,7 +1237,7 @@ export const Compliance: React.FC = () => {
                                                             disabled={updating}
                                                             className={`px-2 py-2 rounded-lg text-[10px] font-bold border transition-all duration-200 flex items-center justify-center ${selectedControl.status === s
                                                                 ? 'bg-brand-600 text-white border-brand-600 shadow-md'
-                                                                : 'bg-slate-50 dark:bg-slate-800/50 border-transparent text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'
+                                                                : 'bg-slate-50 dark:bg-slate-800/50 border-transparent text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'
                                                                 } ${updating ? 'opacity-50 cursor-wait' : ''}`}
                                                         >
                                                             {updating && selectedControl.status === s ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
@@ -1251,7 +1251,7 @@ export const Compliance: React.FC = () => {
                                         </div>
 
                                         <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Responsable</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Responsable</h3>
                                             {canEdit ? (
                                                 <CustomSelect
                                                     label="Assigné à"
@@ -1277,18 +1277,18 @@ export const Compliance: React.FC = () => {
                                     {/* Linked Resources */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Actifs Liés</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Actifs Liés</h3>
                                             <div className="space-y-2 mb-4">
                                                 {selectedControl.relatedAssetIds?.map(assetId => {
                                                     const asset = assets.find(a => a.id === assetId);
                                                     return asset ? (
                                                         <div key={assetId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
                                                             <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
-                                                            {canEdit && <button onClick={() => handleUnlinkAsset(assetId)} disabled={updating} className="text-slate-400 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                                            {canEdit && <button onClick={() => handleUnlinkAsset(assetId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
                                                         </div>
                                                     ) : null;
                                                 })}
-                                                {(!selectedControl.relatedAssetIds || selectedControl.relatedAssetIds.length === 0) && <p className="text-xs text-slate-400 italic">Aucun actif lié.</p>}
+                                                {(!selectedControl.relatedAssetIds || selectedControl.relatedAssetIds.length === 0) && <p className="text-xs text-slate-500 italic">Aucun actif lié.</p>}
                                             </div>
                                             {canEdit && (
                                                 <CustomSelect
@@ -1302,18 +1302,18 @@ export const Compliance: React.FC = () => {
                                             )}
                                         </div>
                                         <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Fournisseurs Liés</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Fournisseurs Liés</h3>
                                             <div className="space-y-2 mb-4">
                                                 {selectedControl.relatedSupplierIds?.map(supplierId => {
                                                     const supplier = suppliers.find(s => s.id === supplierId);
                                                     return supplier ? (
                                                         <div key={supplierId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
                                                             <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
-                                                            {canEdit && <button onClick={() => handleUnlinkSupplier(supplierId)} disabled={updating} className="text-slate-400 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                                            {canEdit && <button onClick={() => handleUnlinkSupplier(supplierId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
                                                         </div>
                                                     ) : null;
                                                 })}
-                                                {(!selectedControl.relatedSupplierIds || selectedControl.relatedSupplierIds.length === 0) && <p className="text-xs text-slate-400 italic">Aucun fournisseur lié.</p>}
+                                                {(!selectedControl.relatedSupplierIds || selectedControl.relatedSupplierIds.length === 0) && <p className="text-xs text-slate-500 italic">Aucun fournisseur lié.</p>}
                                             </div>
                                             {canEdit && (
                                                 <CustomSelect
@@ -1331,7 +1331,7 @@ export const Compliance: React.FC = () => {
                                     {/* Justification */}
                                     <div>
                                         <div className="flex justify-between items-end mb-3 px-2">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 flex items-center tracking-widest"><FileText className="h-3.5 w-3.5 mr-2" /> Justification SoA</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 flex items-center tracking-widest"><FileText className="h-3.5 w-3.5 mr-2" /> Justification SoA</h3>
                                             {selectedControl.status === 'Exclu' && <span className="text-[10px] text-red-500 font-bold uppercase bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded">Obligatoire</span>}
                                         </div>
                                         {canEdit ? (
@@ -1365,7 +1365,7 @@ export const Compliance: React.FC = () => {
                                     <div className="space-y-6 max-w-3xl mx-auto">
                                         {/* Automated Evidence Section */}
                                         <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 p-6 shadow-sm">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 flex items-center tracking-widest"><Plug className="h-3.5 w-3.5 mr-2" /> Preuves Automatisées</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 flex items-center tracking-widest"><Plug className="h-3.5 w-3.5 mr-2" /> Preuves Automatisées</h3>
 
                                             <div className="space-y-3 mb-6">
                                                 {selectedControl.automatedEvidence && selectedControl.automatedEvidence.length > 0 ? (
@@ -1379,15 +1379,15 @@ export const Compliance: React.FC = () => {
                                                                     </div>
                                                                     <div>
                                                                         <div className="font-bold text-slate-900 dark:text-white text-sm">{provider.name}</div>
-                                                                        <div className="text-xs text-slate-500 font-medium">{evidence.details}</div>
-                                                                        <div className="text-[10px] text-slate-400 mt-1">Dernière synchro: {new Date(evidence.lastSync).toLocaleString()}</div>
+                                                                        <div className="text-xs text-slate-600 font-medium">{evidence.details}</div>
+                                                                        <div className="text-[10px] text-slate-500 mt-1">Dernière synchro: {new Date(evidence.lastSync).toLocaleString()}</div>
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
                                                                     <button
                                                                         onClick={() => handleSyncEvidence(evidence)}
                                                                         disabled={syncingEvidenceId === evidence.id}
-                                                                        className="p-2 text-slate-400 hover:text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all"
+                                                                        className="p-2 text-slate-500 hover:text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all"
                                                                         title="Synchroniser maintenant"
                                                                     >
                                                                         {syncingEvidenceId === evidence.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -1395,7 +1395,7 @@ export const Compliance: React.FC = () => {
                                                                     {canEdit && (
                                                                         <button
                                                                             onClick={() => handleUnlinkAutomatedEvidence(evidence.id)}
-                                                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all disabled:opacity-50"
+                                                                            className="p-2 text-slate-500 hover:text-red-500 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all disabled:opacity-50"
                                                                             title="Délier"
                                                                             disabled={updating}
                                                                         >
@@ -1407,7 +1407,7 @@ export const Compliance: React.FC = () => {
                                                         );
                                                     })
                                                 ) : (
-                                                    <p className="text-xs text-slate-400 italic text-center py-4 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl">Aucune preuve automatisée liée.</p>
+                                                    <p className="text-xs text-slate-500 italic text-center py-4 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl">Aucune preuve automatisée liée.</p>
                                                 )}
                                             </div>
 
@@ -1451,7 +1451,7 @@ export const Compliance: React.FC = () => {
                                         </div>
 
                                         <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 p-6 shadow-sm">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 mb-4 flex items-center tracking-widest"><Link className="h-3.5 w-3.5 mr-2" /> Preuves Documentaires</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 flex items-center tracking-widest"><Link className="h-3.5 w-3.5 mr-2" /> Preuves Documentaires</h3>
                                             <div className="space-y-2 mb-4">
                                                 {selectedControl.evidenceIds && selectedControl.evidenceIds.length > 0 ? selectedControl.evidenceIds.map(docId => {
                                                     const docObj = documents.find(d => d.id === docId);
@@ -1467,16 +1467,16 @@ export const Compliance: React.FC = () => {
                                                                         <div className="text-red-500"><AlertTriangle className="h-4 w-4" /></div>
                                                                     </CustomTooltip>
                                                                 )}
-                                                                {docObj.url && <a href={docObj.url} target="_blank" rel="noreferrer" className="p-2 text-slate-400 hover:text-brand-600 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm"><ExternalLink className="h-3.5 w-3.5" /></a>}
-                                                                {canEdit && <button onClick={() => initiateUnlinkDocument(docId)} disabled={updating} className="p-2 text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                                                {docObj.url && <a href={docObj.url} target="_blank" rel="noreferrer" className="p-2 text-slate-500 hover:text-brand-600 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm"><ExternalLink className="h-3.5 w-3.5" /></a>}
+                                                                {canEdit && <button onClick={() => initiateUnlinkDocument(docId)} disabled={updating} className="p-2 text-slate-500 hover:text-red-500 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
                                                             </div>
                                                         </div>
                                                     ) : null;
-                                                }) : <p className="text-xs text-slate-400 italic text-center py-4 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl">Aucune preuve liée.</p>}
+                                                }) : <p className="text-xs text-slate-500 italic text-center py-4 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl">Aucune preuve liée.</p>}
                                             </div>
                                             {canEdit && (
                                                 <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/5">
-                                                    <label className="text-[10px] font-bold text-slate-400 mb-3 block uppercase tracking-wide">Ajouter une preuve existante</label>
+                                                    <label className="text-[10px] font-bold text-slate-500 mb-3 block uppercase tracking-wide">Ajouter une preuve existante</label>
                                                     <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-1 bg-gray-50/50 dark:bg-black/20 p-2 rounded-2xl border border-gray-100 dark:border-white/5">
                                                         {documents.filter(d => !selectedControl.evidenceIds?.includes(d.id)).map(d => (
                                                             <button key={d.id} onClick={() => linkDocument(d.id)} disabled={updating} className="w-full text-left text-xs p-2.5 hover:bg-white dark:hover:bg-white/10 rounded-xl flex items-center text-slate-600 dark:text-slate-300 transition-all font-medium disabled:opacity-50">
@@ -1496,7 +1496,7 @@ export const Compliance: React.FC = () => {
                                     {/* Linked Risks */}
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                         <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><ShieldAlert className="h-3.5 w-3.5 mr-2" /> Risques Atténués</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><ShieldAlert className="h-3.5 w-3.5 mr-2" /> Risques Atténués</h3>
                                             <div className="flex gap-2">
                                                 {canEditResource(user, 'Risk') && (
                                                     <CustomSelect
@@ -1520,7 +1520,7 @@ export const Compliance: React.FC = () => {
                                                 <div key={risk.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                                                     <div>
                                                         <div className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</div>
-                                                        <div className="text-xs text-slate-500">Score: {risk.score}</div>
+                                                        <div className="text-xs text-slate-600">Score: {risk.score}</div>
                                                     </div>
                                                     {canEdit && (
                                                         <button onClick={() => handleUnlinkRisk(risk.id)} disabled={updating} className="p-1 px-2 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded transition-colors">Délier</button>
@@ -1528,7 +1528,7 @@ export const Compliance: React.FC = () => {
                                                 </div>
                                             ))}
                                             {risks.filter(r => r.mitigationControlIds?.includes(selectedControl.id)).length === 0 && (
-                                                <p className="text-xs text-slate-400 italic text-center py-4">Aucun risque lié via un plan de traitement.</p>
+                                                <p className="text-xs text-slate-500 italic text-center py-4">Aucun risque lié via un plan de traitement.</p>
                                             )}
                                         </div>
                                     </div>
@@ -1536,7 +1536,7 @@ export const Compliance: React.FC = () => {
                                     {/* Linked Projects (New) */}
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                         <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets de Mise en Conformité</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets de Mise en Conformité</h3>
                                         </div>
                                         <div className="space-y-2">
                                             {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).map(proj => (
@@ -1546,12 +1546,12 @@ export const Compliance: React.FC = () => {
                                                             {proj.name}
                                                             <Badge status={proj.status === 'Terminé' ? 'success' : proj.status === 'En cours' ? 'info' : 'neutral'} size="sm">{proj.status}</Badge>
                                                         </div>
-                                                        <div className="text-xs text-slate-500">Échéance: {proj.dueDate ? new Date(proj.dueDate).toLocaleDateString() : '-'}</div>
+                                                        <div className="text-xs text-slate-600">Échéance: {proj.dueDate ? new Date(proj.dueDate).toLocaleDateString() : '-'}</div>
                                                     </div>
                                                 </div>
                                             ))}
                                             {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
-                                                <p className="text-xs text-slate-400 italic text-center py-4">Aucun projet lié.</p>
+                                                <p className="text-xs text-slate-500 italic text-center py-4">Aucun projet lié.</p>
                                             )}
                                         </div>
                                     </div>
@@ -1559,7 +1559,7 @@ export const Compliance: React.FC = () => {
                                     {/* Linked Projects */}
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                         <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets Liés</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets Liés</h3>
                                             <div className="flex gap-2">
                                                 {canEditResource(user, 'Project') && (
                                                     <CustomSelect
@@ -1583,13 +1583,13 @@ export const Compliance: React.FC = () => {
                                                 <div key={project.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                                                     <div>
                                                         <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{project.name}</div>
-                                                        <div className="text-xs text-slate-500 mt-0.5">{project.description?.substring(0, 50)}...</div>
+                                                        <div className="text-xs text-slate-600 mt-0.5">{project.description?.substring(0, 50)}...</div>
                                                     </div>
                                                     <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${project.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>{project.status}</span>
                                                 </div>
                                             ))}
                                             {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
-                                                <p className="text-sm text-slate-400 italic">Aucun projet lié.</p>
+                                                <p className="text-sm text-slate-500 italic">Aucun projet lié.</p>
                                             )}
                                         </div>
                                     </div>
@@ -1597,7 +1597,7 @@ export const Compliance: React.FC = () => {
                                     {/* Linked Audits */}
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                         <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
-                                            <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center"><FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> Audits Liés</h3>
+                                            <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> Audits Liés</h3>
                                             <div className="flex gap-2">
                                                 {canEditResource(user, 'Audit') && (
                                                     <CustomSelect
@@ -1621,13 +1621,13 @@ export const Compliance: React.FC = () => {
                                                 <div key={audit.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                                                     <div>
                                                         <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{audit.name}</div>
-                                                        <div className="text-xs text-slate-500 mt-0.5">{new Date(audit.dateScheduled).toLocaleDateString()}</div>
+                                                        <div className="text-xs text-slate-600 mt-0.5">{new Date(audit.dateScheduled).toLocaleDateString()}</div>
                                                     </div>
                                                     <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${audit.status === 'Terminé' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{audit.status}</span>
                                                 </div>
                                             ))}
                                             {audits.filter(a => a.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
-                                                <p className="text-sm text-slate-400 italic">Aucun audit lié.</p>
+                                                <p className="text-sm text-slate-500 italic">Aucun audit lié.</p>
                                             )}
                                         </div>
                                     </div>
@@ -1646,17 +1646,17 @@ export const Compliance: React.FC = () => {
                                 inspectorTab === 'history' && (
                                     <div className="space-y-8 max-w-3xl mx-auto">
                                         <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Journal d'Activité</h4>
-                                            {controlHistory.length === 0 ? <p className="text-sm text-slate-400 italic">Aucune activité enregistrée.</p> : controlHistory.map((log, i) => (
+                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Journal d'Activité</h4>
+                                            {controlHistory.length === 0 ? <p className="text-sm text-slate-500 italic">Aucune activité enregistrée.</p> : controlHistory.map((log, i) => (
                                                 <div key={i} className="relative">
                                                     <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
                                                         <div className="h-2 w-2 rounded-full bg-brand-500"></div>
                                                     </span>
                                                     <div>
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                         <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                        <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-slate-500">{log.userEmail}</div>
+                                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
+                                                        <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-slate-600">{log.userEmail}</div>
                                                     </div>
                                                 </div>
                                             ))}

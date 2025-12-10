@@ -64,7 +64,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
                         {Math.round(progress)}%
                     </span>
                     {label && (
-                        <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        <span className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                             {label}
                         </span>
                     )}

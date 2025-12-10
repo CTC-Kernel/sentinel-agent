@@ -203,7 +203,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
             </div>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-600"
+              className="text-slate-500 hover:text-slate-600"
             >
               <XCircle className="h-6 w-6" />
             </button>
@@ -218,8 +218,8 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               <h3 className="text-lg font-semibold mb-4">Sélectionner un Playbook</h3>
               {playbooks.length === 0 ? (
                 <div className="text-center py-8">
-                  <AlertTriangle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-500">Aucun playbook disponible pour cette catégorie</p>
+                  <AlertTriangle className="h-12 w-12 text-slate-500 mx-auto mb-4" />
+                  <p className="text-slate-600">Aucun playbook disponible pour cette catégorie</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -240,17 +240,17 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(playbook.severity)}`}>
                               {playbook.severity}
                             </span>
-                            <span className="text-sm text-slate-500 flex items-center">
+                            <span className="text-sm text-slate-600 flex items-center">
                               <Timer className="h-3 w-3 mr-1" />
                               {playbook.estimatedDuration}
                             </span>
-                            <span className="text-sm text-slate-500 flex items-center">
+                            <span className="text-sm text-slate-600 flex items-center">
                               <Users className="h-3 w-3 mr-1" />
                               {playbook.requiredResources.length} ressources
                             </span>
                           </div>
                         </div>
-                        <ChevronRight className="h-5 w-5 text-slate-400" />
+                        <ChevronRight className="h-5 w-5 text-slate-500" />
                       </div>
                     </div>
                   ))}
@@ -279,7 +279,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                     {selectedPlaybook?.title} - Progression
                   </h3>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-500">
+                    <span className="text-sm text-slate-600">
                       Étape {currentStep + 1} sur {selectedPlaybook?.steps.length}
                     </span>
                     <div className="w-32 bg-gray-200 rounded-full h-2">
@@ -337,7 +337,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                       </div>
                       <p className="text-sm text-slate-600 mb-3">{step.description}</p>
 
-                      <div className="flex items-center gap-4 text-sm text-slate-500">
+                      <div className="flex items-center gap-4 text-sm text-slate-600">
                         <span className="flex items-center">
                           <Timer className="h-3 w-3 mr-1" />
                           {step.estimatedTime}
@@ -405,7 +405,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{event.type}</span>
-                          <span className="text-slate-500">
+                          <span className="text-slate-600">
                             {new Date(event.timestamp).toLocaleString()}
                           </span>
                         </div>

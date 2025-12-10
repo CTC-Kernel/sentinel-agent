@@ -83,7 +83,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                         <MessageSquare className="w-6 h-6 text-brand-600" />
                         Votre Avis Compte
                     </h2>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                    <button onClick={onClose} className="text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                         <X className="w-6 h-6" />
                     </button>
                 </div>

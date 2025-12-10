@@ -239,7 +239,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${isActive
                                 ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                                : 'border-transparent text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                         >
                             <Icon className="h-4 w-4" />
@@ -517,15 +517,15 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{ctrl.code}</span>
                                                     {ctrl.status === 'Implémenté' && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 rounded-full">Implémenté</span>}
                                                 </div>
-                                                <span className="text-xs text-slate-500 dark:text-slate-400">{ctrl.name}</span>
+                                                <span className="text-xs text-slate-600 dark:text-slate-400">{ctrl.name}</span>
                                             </div>
                                         </label>
                                     ))
                                 ) : (
-                                    <div className="p-4 text-center text-xs text-slate-400">Aucun contrôle disponible.</div>
+                                    <div className="p-4 text-center text-xs text-slate-500">Aucun contrôle disponible.</div>
                                 )}
                             </div>
-                            <p className="text-[10px] text-slate-400">Sélectionnez les contrôles déjà en place réduisant le risque.</p>
+                            <p className="text-[10px] text-slate-500">Sélectionnez les contrôles déjà en place réduisant le risque.</p>
                         </div>
 
                         <div className="border-t border-slate-200 dark:border-white/10 pt-6">
@@ -576,7 +576,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             >
                 <div className="p-4">
                     <div className="relative mb-4">
-                        <Search className="h-5 w-5 text-slate-400 absolute left-3 top-3" />
+                        <Search className="h-5 w-5 text-slate-500 absolute left-3 top-3" />
                         <input
                             type="text"
                             placeholder="Rechercher une menace type..."
@@ -598,10 +598,10 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                         <Shield className="h-4 w-4 text-brand-500" />
                                         <span className="font-bold text-slate-900 dark:text-white line-clamp-1">{t.name}</span>
                                     </div>
-                                    <span className="text-[10px] uppercase font-bold text-slate-400 border px-1.5 py-0.5 rounded">{t.framework}</span>
+                                    <span className="text-[10px] uppercase font-bold text-slate-500 border px-1.5 py-0.5 rounded">{t.framework}</span>
                                 </div>
-                                <p className="text-xs text-slate-500 line-clamp-2 mb-2">{t.description}</p>
-                                <div className="flex gap-2 text-[10px] text-slate-400">
+                                <p className="text-xs text-slate-600 line-clamp-2 mb-2">{t.description}</p>
+                                <div className="flex gap-2 text-[10px] text-slate-500">
                                     <span className="bg-slate-50 dark:bg-slate-900 px-2 py-1 rounded">Score Ref: {t.probability * t.impact}</span>
                                     <span className="bg-slate-50 dark:bg-slate-900 px-2 py-1 rounded truncate flex-1">{t.strategy}</span>
                                 </div>

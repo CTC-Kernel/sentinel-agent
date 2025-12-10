@@ -43,7 +43,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                         <span className="text-xs font-bold tracking-[0.2em] text-indigo-400 uppercase">CTC Engine</span>
                                     </div>
                                     <h2 className="text-2xl font-bold text-white mb-2">Votre Centre de Commandement</h2>
-                                    <p className="text-slate-400 text-sm max-w-md">
+                                    <p className="text-slate-500 text-sm max-w-md">
                                         Une interface neuro-spatiale conçue pour transformer la complexité GRC en décisions stratégiques immédiates.
                                     </p>
                                 </div>
@@ -64,7 +64,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                     <Map className="w-5 h-5" />
                                 </div>
                                 <h3 className="text-white font-semibold mb-2">Topologie Stratégique</h3>
-                                <p className="text-xs text-slate-400 leading-relaxed">
+                                <p className="text-xs text-slate-500 leading-relaxed">
                                     Une <span className="text-slate-200">carte unifiée</span> de votre territoire numérique. Vos actifs sont les fondations, vos projets les blocs, et vos risques les menaces en lévitation.
                                 </p>
                             </div>
@@ -75,7 +75,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                     <Share2 className="w-5 h-5" />
                                 </div>
                                 <h3 className="text-white font-semibold mb-2">Liens Invisibles</h3>
-                                <p className="text-xs text-slate-400 leading-relaxed">
+                                <p className="text-xs text-slate-500 leading-relaxed">
                                     Révélez les <span className="text-slate-200">dépendances cachées</span>. Suivez les flux de données pour comprendre comment l'arrêt d'un actif critique impacte toute la chaîne.
                                 </p>
                             </div>
@@ -86,7 +86,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                     <Zap className="w-5 h-5" />
                                 </div>
                                 <h3 className="text-white font-semibold mb-2">Radar de Priorité</h3>
-                                <p className="text-xs text-slate-400 leading-relaxed">
+                                <p className="text-xs text-slate-500 leading-relaxed">
                                     Ne cherchez plus l'urgence : elle pulse en rouge. <span className="text-slate-200">Taille et couleur</span> dictent l'action. Identifiez vos Quick Wins en une seconde.
                                 </p>
                             </div>
@@ -94,7 +94,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
 
                         {/* Footer */}
                         <div className="p-6 bg-white/5 border-t border-white/10 flex items-center justify-between">
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs text-slate-600">
                                 Propulsé par le moteur de rendu Sentinel Core™
                             </span>
                             <button

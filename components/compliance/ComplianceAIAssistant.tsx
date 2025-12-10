@@ -70,7 +70,7 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
             )}
 
             {loading && (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-500 dark:text-slate-400">
+                <div className="flex flex-col items-center justify-center py-8 text-slate-600 dark:text-slate-400">
                     <Loader2 className="w-8 h-8 animate-spin mb-3 text-indigo-500" />
                     <p className="text-xs font-medium animate-pulse">L'IA réfléchit...</p>
                 </div>

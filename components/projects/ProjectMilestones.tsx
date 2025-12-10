@@ -178,21 +178,21 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                                         {milestone.status === 'achieved' ? 'Atteint' : milestone.status === 'missed' ? 'Manqué' : 'En attente'}
                                     </Badge>
                                 </div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">{milestone.description}</p>
-                                <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
+                                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-1">{milestone.description}</p>
+                                <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
                                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(milestone.targetDate).toLocaleDateString()}</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
                                     onClick={() => { setCurrentMilestone(milestone); setIsEditing(true); }}
-                                    className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
+                                    className="p-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
                                 >
                                     <Edit className="h-4 w-4" />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(milestone.id)}
-                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                    className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                 >
                                     <Trash2 className="h-4 w-4" />
                                 </button>

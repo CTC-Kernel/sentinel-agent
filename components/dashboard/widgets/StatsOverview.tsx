@@ -96,7 +96,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                         {getHealthMessage(healthScore)}
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Score de Santé</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[180px] leading-relaxed">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[180px] leading-relaxed">
                         Indicateur global basé sur vos incidents, risques et conformité.
                     </p>
                 </div>
@@ -111,14 +111,14 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                 >
                     <div className="flex justify-between items-start mb-2">
                         <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm group-hover/item:text-red-500 transition-colors">
-                            <Siren className="h-5 w-5 text-slate-400 dark:text-slate-400 group-hover/item:text-red-500" />
+                            <Siren className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover/item:text-red-500" />
                         </div>
                         {stats.activeIncidents > 0 && (
                             <span className="text-[10px] font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Alert</span>
                         )}
                     </div>
                     <div className="text-2xl font-bold text-slate-900 dark:text-white mb-0.5">{stats.activeIncidents}</div>
-                    <div className="text-xs font-semibold text-slate-500 group-hover/item:text-red-600/70 transition-colors">{t('dashboard.activeIncidents')}</div>
+                    <div className="text-xs font-semibold text-slate-600 group-hover/item:text-red-600/70 transition-colors">{t('dashboard.activeIncidents')}</div>
                 </div>
 
                 {/* Critical Risks */}
@@ -128,14 +128,14 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                 >
                     <div className="flex justify-between items-start mb-2">
                         <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm group-hover/item:text-orange-500 transition-colors">
-                            <ShieldAlert className="h-5 w-5 text-slate-400 dark:text-slate-400 group-hover/item:text-orange-500" />
+                            <ShieldAlert className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover/item:text-orange-500" />
                         </div>
                         {stats.highRisks > 0 && (
                             <span className="text-[10px] font-bold bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">Critique</span>
                         )}
                     </div>
                     <div className="text-2xl font-bold text-slate-900 dark:text-white mb-0.5">{stats.highRisks}</div>
-                    <div className="text-xs font-semibold text-slate-500 group-hover/item:text-orange-600/70 transition-colors">{t('dashboard.criticalRisks')}</div>
+                    <div className="text-xs font-semibold text-slate-600 group-hover/item:text-orange-600/70 transition-colors">{t('dashboard.criticalRisks')}</div>
                 </div>
 
                 {/* Financial Exposure */}
@@ -145,13 +145,13 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                 >
                     <div className="flex justify-between items-start mb-2">
                         <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm group-hover/item:text-blue-500 transition-colors">
-                            <TrendingUp className="h-5 w-5 text-slate-400 dark:text-slate-400 group-hover/item:text-blue-500" />
+                            <TrendingUp className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover/item:text-blue-500" />
                         </div>
                     </div>
                     <div className="text-2xl font-bold text-slate-900 dark:text-white mb-0.5 text-nowrap">
                         {new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}
                     </div>
-                    <div className="text-xs font-semibold text-slate-500">{t('dashboard.financialExposure')}</div>
+                    <div className="text-xs font-semibold text-slate-600">{t('dashboard.financialExposure')}</div>
                 </div>
 
                 {/* Asset Value */}
@@ -161,13 +161,13 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                 >
                     <div className="flex justify-between items-start mb-2">
                         <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm group-hover/item:text-indigo-500 transition-colors">
-                            <Euro className="h-5 w-5 text-slate-400 dark:text-slate-400 group-hover/item:text-indigo-500" />
+                            <Euro className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover/item:text-indigo-500" />
                         </div>
                     </div>
                     <div className="text-2xl font-bold text-slate-900 dark:text-white mb-0.5 text-nowrap">
                         {new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.assetValue)}
                     </div>
-                    <div className="text-xs font-semibold text-slate-500">{t('dashboard.assetValue')}</div>
+                    <div className="text-xs font-semibold text-slate-600">{t('dashboard.assetValue')}</div>
                 </div>
             </div>
         </div>

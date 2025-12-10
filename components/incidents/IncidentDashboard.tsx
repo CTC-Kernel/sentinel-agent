@@ -33,7 +33,7 @@ const getStatusColor = (s: string) => {
         case 'Analyse': return 'text-blue-600 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20';
         case 'Contenu': return 'text-amber-600 bg-amber-50 dark:bg-amber-900/20';
         case 'Résolu': return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20';
-        case 'Fermé': return 'text-slate-500 bg-slate-100 dark:bg-slate-800 line-through decoration-slate-400';
+        case 'Fermé': return 'text-slate-600 bg-slate-100 dark:bg-slate-800 line-through decoration-slate-400';
         default: return 'text-slate-600 bg-gray-50';
     }
 };
@@ -83,7 +83,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             cell: ({ row }) => (
                 <div>
                     <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.title}</div>
-                    <div className="text-xs text-slate-500 font-medium line-clamp-1">{row.original.description}</div>
+                    <div className="text-xs text-slate-600 font-medium line-clamp-1">{row.original.description}</div>
                 </div>
             )
         },
@@ -142,7 +142,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 e.stopPropagation();
                                 onDelete(row.original.id);
                             }}
-                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                            className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
                             title="Supprimer"
                         >
                             <Trash2 className="h-4 w-4" />
@@ -195,7 +195,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Taux de Résolution</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
                             Pourcentage d'incidents résolus ou fermés.
                         </p>
                     </div>
@@ -204,17 +204,17 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 {/* Key Metrics Breakdown */}
                 <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
                     <div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Incidents</div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Incidents</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">{totalIncidents}</div>
                     </div>
                     <div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">En Cours</div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Cours</div>
                         <div className={`text-2xl font-bold ${openIncidents > 0 ? 'text-orange-500' : 'text-slate-900 dark:text-white'}`}>
                             {openIncidents}
                         </div>
                     </div>
                     <div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Critiques</div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Critiques</div>
                         <div className={`text-2xl font-bold ${criticalIncidents > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
                             {criticalIncidents}
                         </div>
@@ -246,7 +246,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
 
             {/* Search Bar */}
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
-                <Search className="h-5 w-5 text-slate-400" />
+                <Search className="h-5 w-5 text-slate-500" />
                 <input
                     type="text"
                     placeholder="Rechercher un incident..."
@@ -256,14 +256,14 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 />
                 <button
                     onClick={handleExportCSV}
-                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
                     title="Exporter CSV"
                 >
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
                 <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm ml-2">
-                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
-                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
                 </div>
             </div>
 
@@ -324,7 +324,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                                 e.stopPropagation();
                                                 onDelete(inc.id);
                                             }}
-                                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                            className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </button>
@@ -333,11 +333,11 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand-600 transition-colors leading-tight">
                                     {inc.title}
                                 </h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 leading-relaxed">
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 leading-relaxed">
                                     {inc.description}
                                 </p>
                                 <div className="flex items-center justify-between pt-5 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
-                                    <div className="flex items-center text-xs font-medium text-slate-400">
+                                    <div className="flex items-center text-xs font-medium text-slate-500">
                                         <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                                         {new Date(inc.dateReported).toLocaleDateString()} • {inc.reporter}
                                     </div>

@@ -1119,7 +1119,7 @@ export const VoxelView: React.FC = () => {
                 onClick={() => handleScenarioPreset(preset)}
                 className="text-left px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition"
               >
-                <p className="text-xs uppercase tracking-wide text-slate-400">{preset.label}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500">{preset.label}</p>
                 <p className="text-sm text-slate-600 dark:text-slate-200">{preset.description}</p>
               </button>
             ))}
@@ -1136,14 +1136,14 @@ export const VoxelView: React.FC = () => {
                     {silhouetteMap[layer.id]}
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-400">{layer.label}</p>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">{layer.label}</p>
                     <p className="text-sm font-semibold text-slate-700 dark:text-slate-100">{layer.hint}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex flex-wrap gap-3 text-xs text-slate-600 dark:text-slate-400">
             <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800">Cliquez sur un nœud pour ouvrir ses détails</span>
             <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800">Scroll: zoomer / drag: orbiter</span>
             <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800">Ctrl + drag: panoramique</span>
@@ -1160,7 +1160,7 @@ export const VoxelView: React.FC = () => {
                 onClick={() => navigate(card.route)}
                 className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition text-left"
               >
-                <p className="text-xs uppercase tracking-wide text-slate-400">{card.title}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500">{card.title}</p>
                 <p className="text-lg font-semibold text-slate-900 dark:text-white">{card.value}</p>
               </button>
             ))}
@@ -1171,7 +1171,7 @@ export const VoxelView: React.FC = () => {
         <div className="bg-slate-900 text-white rounded-2xl p-5 shadow-2xl space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Insights</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Insights</p>
               <h3 className="text-lg font-semibold">Vue contextuelle</h3>
             </div>
             <button
@@ -1252,11 +1252,11 @@ export const VoxelView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3 text-xs text-slate-300">
                 <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                  <p className="uppercase tracking-wide text-[10px] text-slate-400">Référent</p>
+                  <p className="uppercase tracking-wide text-[10px] text-slate-500">Référent</p>
                   <p className="mt-1 text-sm font-semibold">{selectedNodeDetails?.owner || 'Non renseigné'}</p>
                 </div>
                 <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                  <p className="uppercase tracking-wide text-[10px] text-slate-400">Dernière mise à jour</p>
+                  <p className="uppercase tracking-wide text-[10px] text-slate-500">Dernière mise à jour</p>
                   <p className="mt-1 text-sm font-semibold">
                     {formatSafeDate((selectedNode.data as { updatedAt?: string }).updatedAt || (selectedNode.data as { createdAt?: string }).createdAt)}
                   </p>
@@ -1297,7 +1297,7 @@ export const VoxelView: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="text-sm text-slate-400 space-y-4">
+            <div className="text-sm text-slate-500 space-y-4">
               <p>Sélectionnez un nœud pour afficher ses insights, alertes liées et raccourcis de navigation.</p>
               <div className="flex items-center gap-3 text-xs">
                 <ShieldAlert className="h-4 w-4 text-rose-400" />

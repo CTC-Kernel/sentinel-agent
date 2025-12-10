@@ -91,7 +91,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         <nav className="flex items-center gap-2 mb-4" aria-label="Breadcrumb">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors group"
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors group"
             aria-label="Retour à l'accueil"
           >
             <Home className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
@@ -103,7 +103,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
               {crumb.path ? (
                 <button
                   onClick={() => navigate(crumb.path!)}
-                  className="text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors capitalize"
+                  className="text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors capitalize"
                 >
                   {crumb.label}
                 </button>

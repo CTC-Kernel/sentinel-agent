@@ -34,7 +34,7 @@ export const ValidatedInput: React.FC<ValidatedInputProps> = ({
 
     return (
         <div className={className}>
-            <label htmlFor={field} className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+            <label htmlFor={field} className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">
                 {label} {required && <span className="text-red-500">*</span>}
             </label>
             <input

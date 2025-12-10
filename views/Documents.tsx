@@ -718,7 +718,7 @@ export const Documents: React.FC = () => {
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Documents Validés</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
                             Pourcentage de documents publiés ou approuvés.
                         </p>
                     </div>
@@ -728,22 +728,22 @@ export const Documents: React.FC = () => {
                 <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <FileText className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</div>
+                            <FileText className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{totalDocs}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <CheckCircle2 className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Publiés</div>
+                            <CheckCircle2 className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Publiés</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{publishedDocs}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <Edit className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Brouillons</div>
+                            <Edit className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Brouillons</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{draftDocs}</div>
                     </div>
@@ -786,10 +786,10 @@ export const Documents: React.FC = () => {
                     <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
                         {/* Search & Filters */}
                         <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200 dark:border-white/5">
-                            <Search className="h-5 w-5 text-slate-400" />
+                            <Search className="h-5 w-5 text-slate-500" />
                             <input type="text" placeholder="Rechercher un document..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                                 value={filter} onChange={e => setFilter(e.target.value)} />
-                            <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
+                            <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
                                 <FileSpreadsheet className="h-4 w-4" />
                             </button>
                         </div>
@@ -798,7 +798,7 @@ export const Documents: React.FC = () => {
                         <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
                             <button
                                 onClick={() => setIsDigitalSafeMode(!isDigitalSafeMode)}
-                                className={`flex items-center px-3 py-2 rounded-xl text-sm font-bold transition-all ${isDigitalSafeMode ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                className={`flex items-center px-3 py-2 rounded-xl text-sm font-bold transition-all ${isDigitalSafeMode ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5'}`}
                             >
                                 <ShieldCheck className={`h-4 w-4 mr-2 ${isDigitalSafeMode ? 'text-emerald-600' : ''}`} />
                                 Coffre-fort
@@ -807,13 +807,13 @@ export const Documents: React.FC = () => {
                             <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
                                 <button
                                     onClick={() => setViewMode('grid')}
-                                    className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}
                                 >
                                     <LayoutGrid className="h-4 w-4" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('list')}
-                                    className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}
                                 >
                                     <List className="h-4 w-4" />
                                 </button>
@@ -829,7 +829,7 @@ export const Documents: React.FC = () => {
                                 onClick={() => setCategoryFilter(cat)}
                                 className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${categoryFilter === cat
                                     ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg'
-                                    : 'bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/5'
+                                    : 'bg-white dark:bg-slate-800 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/5'
                                     }`}
                             >
                                 {cat === 'all' ? 'Tous' : cat}
@@ -870,12 +870,12 @@ export const Documents: React.FC = () => {
                                             </div>
                                         </div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight line-clamp-2">{docItem.title}</h3>
-                                        <div className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-6">
+                                        <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-400 mb-6">
                                             <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md mr-2">v{docItem.version}</span>
                                             <span>{docItem.type}</span>
                                         </div>
                                         <div className="mt-auto pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center">
-                                            <div className="flex items-center text-xs text-slate-400 font-medium" title="Propriétaire">
+                                            <div className="flex items-center text-xs text-slate-500 font-medium" title="Propriétaire">
                                                 <Users className="h-3.5 w-3.5 mr-1.5" /> {docItem.owner}
                                             </div>
                                             {docItem.url && (
@@ -904,12 +904,12 @@ export const Documents: React.FC = () => {
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Titre</th>
-                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Type</th>
-                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Version</th>
-                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Statut</th>
-                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Propriétaire</th>
-                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-600">Titre</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-600">Type</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-600">Version</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-600">Statut</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-600">Propriétaire</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-600 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -958,7 +958,7 @@ export const Documents: React.FC = () => {
                                                     </td>
                                                     <td className="p-4 text-sm text-slate-600 dark:text-slate-400">
                                                         <div className="flex items-center">
-                                                            <Users className="h-3 w-3 mr-1.5 text-slate-400" />
+                                                            <Users className="h-3 w-3 mr-1.5 text-slate-500" />
                                                             {docItem.owner}
                                                         </div>
                                                     </td>
@@ -973,7 +973,7 @@ export const Documents: React.FC = () => {
                                                                         window.open(docItem.url, '_blank');
                                                                     }
                                                                 }}
-                                                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                                                             >
                                                                 {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
                                                             </button>
@@ -1001,7 +1001,7 @@ export const Documents: React.FC = () => {
                                     <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
                                         <div>
                                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedDocument.title}</h2>
-                                            <p className="text-sm font-medium text-slate-500 mt-1">v{selectedDocument.version} • {selectedDocument.type}</p>
+                                            <p className="text-sm font-medium text-slate-600 mt-1">v{selectedDocument.version} • {selectedDocument.type}</p>
                                         </div>
                                         <div className="flex gap-2">
                                             {selectedDocument.isSecure && (
@@ -1012,22 +1012,22 @@ export const Documents: React.FC = () => {
                                             {selectedDocument.url && (
                                                 <button
                                                     onClick={() => selectedDocument.isSecure ? handleSecureView(selectedDocument) : window.open(selectedDocument.url, '_blank')}
-                                                    className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"
+                                                    className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"
                                                     title={selectedDocument.isSecure ? "Consultation Sécurisée" : "Ouvrir"}
                                                 >
                                                     {selectedDocument.isSecure ? <ShieldCheck className="h-5 w-5 text-emerald-600" /> : <Eye className="h-5 w-5" />}
                                                 </button>
                                             )}
                                             {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !isEditing && (
-                                                <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                                <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                             )}
                                             {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && isEditing && (
-                                                <button onClick={() => setIsEditing(false)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><X className="h-5 w-5" /></button>
+                                                <button onClick={() => setIsEditing(false)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><X className="h-5 w-5" /></button>
                                             )}
                                             {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
-                                                <button onClick={() => initiateDelete(selectedDocument.id, selectedDocument.title)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                                                <button onClick={() => initiateDelete(selectedDocument.id, selectedDocument.title)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
                                             )}
-                                            <button onClick={() => setSelectedDocument(null)} className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
+                                            <button onClick={() => setSelectedDocument(null)} className="p-2.5 text-slate-500 hover:text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
                                         </div>
                                     </div>
 
@@ -1065,11 +1065,11 @@ export const Documents: React.FC = () => {
                                                     <>
                                                         <div className="grid grid-cols-2 gap-6">
                                                             <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
-                                                                <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Propriétaire</span>
+                                                                <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">Propriétaire</span>
                                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{selectedDocument.owner}</span>
                                                             </div>
                                                             <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
-                                                                <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1 tracking-wide">Dernière MAJ</span>
+                                                                <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">Dernière MAJ</span>
                                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{new Date(selectedDocument.updatedAt).toLocaleDateString()}</span>
                                                             </div>
                                                         </div>
@@ -1091,7 +1091,7 @@ export const Documents: React.FC = () => {
 
                                                         {/* Workflow Actions */}
                                                         <div className="p-6 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Workflow de Validation</h4>
+                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Workflow de Validation</h4>
 
                                                             {/* Status Steps */}
                                                             <div className="flex items-center justify-between mb-6 relative">
@@ -1104,7 +1104,7 @@ export const Documents: React.FC = () => {
                                                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${isCompleted ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-slate-300'}`}>
                                                                                 {isCompleted ? <CheckCircle2 className="h-4 w-4" /> : <span className="text-xs font-bold">{idx + 1}</span>}
                                                                             </div>
-                                                                            <span className={`text-[10px] font-bold mt-2 uppercase tracking-wide ${isCurrent ? 'text-blue-600' : 'text-slate-400'}`}>{step}</span>
+                                                                            <span className={`text-[10px] font-bold mt-2 uppercase tracking-wide ${isCurrent ? 'text-blue-600' : 'text-slate-500'}`}>{step}</span>
                                                                         </div>
                                                                     );
                                                                 })}
@@ -1135,7 +1135,7 @@ export const Documents: React.FC = () => {
 
                                                             {selectedDocument.signatures && selectedDocument.signatures.length > 0 && (
                                                                 <div className="mt-6 pt-4 border-t border-gray-200 dark:border-white/10">
-                                                                    <h5 className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wide">Signatures</h5>
+                                                                    <h5 className="text-xs font-bold text-slate-600 mb-3 uppercase tracking-wide">Signatures</h5>
                                                                     <div className="space-y-2">
                                                                         {selectedDocument.signatures.map((sig, i) => (
                                                                             <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-white/5">
@@ -1145,17 +1145,17 @@ export const Documents: React.FC = () => {
                                                                                     </div>
                                                                                     <div>
                                                                                         <p className="text-xs font-bold text-slate-900 dark:text-white">Signé par {usersList.find(u => u.uid === sig.userId)?.displayName || 'Utilisateur inconnu'}</p>
-                                                                                        <p className="text-[10px] text-slate-500">{new Date(sig.date).toLocaleString()}</p>
+                                                                                        <p className="text-[10px] text-slate-600">{new Date(sig.date).toLocaleString()}</p>
                                                                                     </div>
                                                                                 </div>
-                                                                                <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-slate-500">{sig.role}</span>
+                                                                                <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-slate-600">{sig.role}</span>
                                                                             </div>
                                                                         ))}
                                                                     </div>
                                                                 </div>
                                                             )}
                                                             <div className="flex justify-between items-center mb-4">
-                                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">Révision</h4>
+                                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">Révision</h4>
                                                                 {selectedDocument.nextReviewDate && (
                                                                     <span className={`text-xs font-bold ${new Date(selectedDocument.nextReviewDate) < new Date() ? 'text-red-500' : 'text-emerald-500'}`}>
                                                                         {new Date(selectedDocument.nextReviewDate).toLocaleDateString()}
@@ -1189,38 +1189,38 @@ export const Documents: React.FC = () => {
                                                                 <a href={selectedDocument.url} target="_blank" rel="noreferrer" className="text-xs font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm hover:text-blue-600 transition-colors">
                                                                     Télécharger
                                                                 </a>
-                                                            ) : <span className="text-xs text-slate-400 italic">Aucun fichier</span>}
+                                                            ) : <span className="text-xs text-slate-500 italic">Aucun fichier</span>}
                                                         </div>
 
                                                         <div className="grid grid-cols-3 gap-6">
                                                             <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Contrôles Liés</h4>
+                                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Contrôles Liés</h4>
                                                                 <div className="space-y-1">
                                                                     {selectedDocument.relatedControlIds?.map(cid => {
                                                                         const c = controls.find(x => x.id === cid);
                                                                         return c ? <div key={cid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{c.code}</div> : null;
                                                                     })}
-                                                                    {(!selectedDocument.relatedControlIds || selectedDocument.relatedControlIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
+                                                                    {(!selectedDocument.relatedControlIds || selectedDocument.relatedControlIds.length === 0) && <span className="text-xs text-slate-500 italic">Aucun</span>}
                                                                 </div>
                                                             </div>
                                                             <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Actifs Liés</h4>
+                                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Actifs Liés</h4>
                                                                 <div className="space-y-1">
                                                                     {selectedDocument.relatedAssetIds?.map(aid => {
                                                                         const a = assets.find(x => x.id === aid);
                                                                         return a ? <div key={aid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{a.name}</div> : null;
                                                                     })}
-                                                                    {(!selectedDocument.relatedAssetIds || selectedDocument.relatedAssetIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
+                                                                    {(!selectedDocument.relatedAssetIds || selectedDocument.relatedAssetIds.length === 0) && <span className="text-xs text-slate-500 italic">Aucun</span>}
                                                                 </div>
                                                             </div>
                                                             <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Audits Liés</h4>
+                                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Audits Liés</h4>
                                                                 <div className="space-y-1">
                                                                     {selectedDocument.relatedAuditIds?.map(aid => {
                                                                         const a = audits.find(x => x.id === aid);
                                                                         return a ? <div key={aid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{a.name}</div> : null;
                                                                     })}
-                                                                    {(!selectedDocument.relatedAuditIds || selectedDocument.relatedAuditIds.length === 0) && <span className="text-xs text-slate-400 italic">Aucun</span>}
+                                                                    {(!selectedDocument.relatedAuditIds || selectedDocument.relatedAuditIds.length === 0) && <span className="text-xs text-slate-500 italic">Aucun</span>}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1249,14 +1249,14 @@ export const Documents: React.FC = () => {
                                                                     </div>
                                                                     <div>
                                                                         <p className="text-sm font-bold text-slate-900 dark:text-white">Version {version.version}</p>
-                                                                        <p className="text-xs text-slate-500">
+                                                                        <p className="text-xs text-slate-600">
                                                                             Par {usersList.find(u => u.uid === version.uploadedBy)?.displayName || 'Utilisateur inconnu'} • {new Date(version.uploadedAt).toLocaleDateString()}
                                                                         </p>
                                                                     </div>
                                                                 </div>
                                                                 <button
                                                                     onClick={() => window.open(version.url, '_blank')}
-                                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                                    className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                                                                     title="Télécharger"
                                                                 >
                                                                     <ExternalLink className="h-4 w-4" />
@@ -1270,17 +1270,17 @@ export const Documents: React.FC = () => {
 
                                         {inspectorTab === 'history' && (
                                             <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                                {docHistory.length === 0 ? <p className="text-sm text-slate-500 pl-6">Aucun historique.</p> :
+                                                {docHistory.length === 0 ? <p className="text-sm text-slate-600 pl-6">Aucun historique.</p> :
                                                     docHistory.map((log, i) => (
                                                         <div key={i} className="relative">
                                                             <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900">
                                                                 <div className="h-2 w-2 rounded-full bg-blue-600"></div>
                                                             </span>
                                                             <div>
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                                 <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                                <p className="text-[10px] text-slate-400 mt-1">Par: {log.userEmail}</p>
+                                                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
+                                                                <p className="text-[10px] text-slate-500 mt-1">Par: {log.userEmail}</p>
                                                             </div>
                                                         </div>
                                                     ))}
@@ -1352,7 +1352,7 @@ export const Documents: React.FC = () => {
                     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
                         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-white/10">
                             <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white">Signature Requise</h3>
-                            <p className="text-sm text-slate-500 mb-4">Veuillez apposer votre signature pour valider ce document.</p>
+                            <p className="text-sm text-slate-600 mb-4">Veuillez apposer votre signature pour valider ce document.</p>
                             <div className="border border-slate-200 dark:border-slate-700 rounded-xl mb-6 bg-white overflow-hidden">
                                 <SignatureCanvas
                                     ref={signaturePadRef}
@@ -1361,8 +1361,8 @@ export const Documents: React.FC = () => {
                                 />
                             </div>
                             <div className="flex justify-end gap-3">
-                                <button onClick={() => signaturePadRef.current?.clear()} className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">Effacer</button>
-                                <button onClick={() => setShowSignatureModal(false)} className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">Annuler</button>
+                                <button onClick={() => signaturePadRef.current?.clear()} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">Effacer</button>
+                                <button onClick={() => setShowSignatureModal(false)} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">Annuler</button>
                                 <button onClick={handleSignatureSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">Signer & Valider</button>
                             </div>
                         </div>

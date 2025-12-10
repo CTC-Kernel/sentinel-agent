@@ -261,7 +261,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 />
 
                 <div className="space-y-4">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">Périmètre</label>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">Périmètre</label>
                     <Controller
                         name="relatedAssetIds"
                         control={control}
@@ -323,7 +323,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     onClick={onCancel}
                     variant="ghost"
                     disabled={isLoading}
-                    className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                    className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
                 >
                     Annuler
                 </Button>

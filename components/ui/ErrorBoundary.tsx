@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
               Erreur critique
             </h2>
 
-            <p className="text-base text-slate-500 dark:text-slate-400 mb-8 leading-relaxed font-medium">
+            <p className="text-base text-slate-600 dark:text-slate-400 mb-8 leading-relaxed font-medium">
               L'application a rencontré un problème inattendu et a dû être arrêtée pour protéger vos données.
             </p>
 

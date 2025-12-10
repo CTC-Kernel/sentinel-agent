@@ -172,7 +172,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     <Upload className="h-10 w-10 text-brand-600 dark:text-brand-400" />
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Importer depuis un fichier CSV</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Uploadez votre fichier CSV pour importer en masse</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">Uploadez votre fichier CSV pour importer en masse</p>
                             </div>
 
                             <div className="border-2 border-dashed border-slate-300 dark:border-white/10 rounded-2xl p-8 text-center hover:border-brand-500 dark:hover:border-brand-500 transition-colors">
@@ -184,9 +184,9 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     id="csv-upload"
                                 />
                                 <label htmlFor="csv-upload" className="cursor-pointer">
-                                    <Upload className="h-12 w-12 text-slate-400 mx-auto mb-3" />
+                                    <Upload className="h-12 w-12 text-slate-500 mx-auto mb-3" />
                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Cliquez pour sélectionner un fichier CSV</p>
-                                    <p className="text-xs text-slate-500 mt-1">ou glissez-déposez ici</p>
+                                    <p className="text-xs text-slate-600 mt-1">ou glissez-déposez ici</p>
                                     {file && (
                                         <p className="text-xs text-brand-600 dark:text-brand-400 mt-2 font-medium">
                                             Fichier sélectionné : {file.name}
@@ -275,7 +275,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                 </table>
                             </div>
                             {parsedData.length > 5 && (
-                                <p className="text-xs text-slate-500 text-center">...et {parsedData.length - 5} ligne{parsedData.length - 5 > 1 ? 's' : ''} supplémentaire{parsedData.length - 5 > 1 ? 's' : ''}</p>
+                                <p className="text-xs text-slate-600 text-center">...et {parsedData.length - 5} ligne{parsedData.length - 5 > 1 ? 's' : ''} supplémentaire{parsedData.length - 5 > 1 ? 's' : ''}</p>
                             )}
                         </div>
                     )}
@@ -286,7 +286,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                                 {importing ? 'Importation en cours...' : 'Préparation...'}
                             </h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Veuillez patienter</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Veuillez patienter</p>
                         </div>
                     )}
 
@@ -296,7 +296,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                 <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Importation réussie !</h3>
-                            <p className="text-sm text-slate-500 dark:test-slate-400">{importedCount} élément{importedCount > 1 ? 's' : ''} importé{importedCount > 1 ? 's' : ''} avec succès</p>
+                            <p className="text-sm text-slate-600 dark:test-slate-400">{importedCount} élément{importedCount > 1 ? 's' : ''} importé{importedCount > 1 ? 's' : ''} avec succès</p>
                             <button onClick={onClose} className="mt-6 px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors">
                                 Terminer
                             </button>

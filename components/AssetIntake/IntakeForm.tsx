@@ -111,33 +111,33 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-1">
+                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
                                 <User className="h-4 w-4" />
                                 <span className="text-xs font-bold uppercase">Processeur / GPU</span>
                             </div>
                             <div className="font-medium text-slate-900 dark:text-white truncate" title={hardwareInfo.gpu}>
                                 {hardwareInfo.gpu}
                             </div>
-                            <div className="text-xs text-slate-500 mt-1">
+                            <div className="text-xs text-slate-600 mt-1">
                                 {hardwareInfo.cpuCores} Cœurs logiques
                             </div>
                         </div>
 
                         <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-1">
+                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
                                 <Database className="h-4 w-4" />
                                 <span className="text-xs font-bold uppercase">Mémoire & OS</span>
                             </div>
                             <div className="font-medium text-slate-900 dark:text-white">
                                 {hardwareInfo.os} ({hardwareInfo.ram})
                             </div>
-                            <div className="text-xs text-slate-500 mt-1">
+                            <div className="text-xs text-slate-600 mt-1">
                                 Navigateur: {hardwareInfo.browser}
                             </div>
                         </div>
 
                         <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 col-span-1 md:col-span-2">
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-1">
+                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
                                 <Laptop className="h-4 w-4" />
                                 <span className="text-xs font-bold uppercase">Affichage</span>
                             </div>

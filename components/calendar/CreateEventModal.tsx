@@ -178,7 +178,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                         <Calendar className="h-5 w-5 mr-2 text-brand-500" />
                                         Nouvel Événement
                                     </Dialog.Title>
-                                    <button onClick={onClose} className="text-slate-400 hover:text-slate-500 transition-colors">
+                                    <button onClick={onClose} className="text-slate-500 hover:text-slate-600 transition-colors">
                                         <X className="h-5 w-5" />
                                     </button>
                                 </div>
@@ -190,7 +190,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                             onClick={() => setEventType(type)}
                                             className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all capitalize ${eventType === type
                                                 ? 'bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm'
-                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                                 }`}
                                         >
                                             {type === 'drill' ? 'Exercice BCP' : type}
@@ -287,7 +287,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                         <div className="space-y-4">
                                             {/* Asset Linking */}
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Actifs concernés</label>
+                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wider">Actifs concernés</label>
                                                 <Controller
                                                     control={control}
                                                     name="linkedAssetIds"
@@ -301,7 +301,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                                             : `${field.value.length} actif(s) sélectionné(s)`}
                                                                     </span>
                                                                     <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                        <ChevronDown className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                                                                        <ChevronDown className="h-4 w-4 text-slate-500" aria-hidden="true" />
                                                                     </span>
                                                                 </Listbox.Button>
                                                                 <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
@@ -338,7 +338,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
 
                                             {/* Risk Linking */}
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">Risques associés</label>
+                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wider">Risques associés</label>
                                                 <Controller
                                                     control={control}
                                                     name="linkedRiskIds"
@@ -352,7 +352,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                                             : `${field.value.length} risque(s) sélectionné(s)`}
                                                                     </span>
                                                                     <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                        <ChevronDown className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                                                                        <ChevronDown className="h-4 w-4 text-slate-500" aria-hidden="true" />
                                                                     </span>
                                                                 </Listbox.Button>
                                                                 <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">

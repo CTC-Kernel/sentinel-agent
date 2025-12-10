@@ -92,7 +92,7 @@ export const Integrations: React.FC = () => {
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white font-display tracking-tight">
                         Intégrations
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
+                    <p className="text-slate-600 dark:text-slate-400 mt-2 text-lg">
                         Connectez vos outils pour automatiser la collecte de preuves.
                     </p>
                 </div>
@@ -101,7 +101,7 @@ export const Integrations: React.FC = () => {
             {/* Filters & Search */}
             <div className="flex flex-col md:flex-row gap-4 p-1 bg-slate-100 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-white/5">
                 <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                     <input
                         type="text"
                         placeholder="Rechercher une intégration..."

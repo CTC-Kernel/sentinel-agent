@@ -118,7 +118,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             </div>
             <div className="flex flex-col justify-center">
               <h1 className="text-[17px] font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">Sentinel</h1>
-              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-[0.4em] mt-1 uppercase">GRC</span>
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-500 tracking-[0.4em] mt-1 uppercase">GRC</span>
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             return (
               <div key={groupIndex}>
                 <div className="px-1 mb-2">
-                  <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em]">{group.title}</p>
+                  <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-[0.4em]">{group.title}</p>
                 </div>
                 <div className="space-y-1">
                   {visibleItems.map((item) => (
@@ -164,7 +164,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
           })}
 
           <div className="px-1 mb-2 mt-6">
-            <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em]">{t('common.support')}</p>
+            <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-[0.4em]">{t('common.support')}</p>
           </div>
           <NavLink
             to="/help"
@@ -178,7 +178,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
           >
             {({ isActive }) => (
               <>
-                <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? 'bg-slate-200 text-slate-900 dark:bg-white/20 dark:text-white' : 'bg-slate-100/70 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? 'bg-slate-200 text-slate-900 dark:bg-white/20 dark:text-white' : 'bg-slate-100/70 text-slate-600 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
                   <HelpCircle className="h-4 w-4" strokeWidth={2} />
                 </span>
                 <span className="flex-1 truncate">{t('common.helpCenter')}</span>
@@ -198,18 +198,18 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
           >
             {({ isActive }) => (
               <>
-                <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${isActive ? 'bg-slate-900/90 text-white dark:bg-white/20 dark:text-white' : 'bg-slate-100/80 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
+                <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${isActive ? 'bg-slate-900/90 text-white dark:bg-white/20 dark:text-white' : 'bg-slate-100/80 text-slate-600 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
                   <Settings className="h-4.5 w-4.5" strokeWidth={2} />
                 </span>
                 <span className="flex-1">{t('sidebar.settings')}</span>
-                <ChevronRight className={`h-3.5 w-3.5 transition-opacity duration-200 ${isActive ? 'opacity-80 text-slate-900 dark:text-white' : 'opacity-0 text-slate-400 dark:text-slate-500 group-hover:opacity-70'}`} />
+                <ChevronRight className={`h-3.5 w-3.5 transition-opacity duration-200 ${isActive ? 'opacity-80 text-slate-900 dark:text-white' : 'opacity-0 text-slate-500 dark:text-slate-500 group-hover:opacity-70'}`} />
               </>
             )}
           </NavLink>
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full flex items-center gap-3 px-4 py-3 text-[14px] font-semibold rounded-2xl transition-all duration-200 text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 disabled:opacity-50"
+            className="w-full flex items-center gap-3 px-4 py-3 text-[14px] font-semibold rounded-2xl transition-all duration-200 text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 disabled:opacity-50"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-300 group-hover:bg-red-100 group-hover:text-red-600">
               {isLoggingOut ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : <LogOut className="h-4.5 w-4.5" strokeWidth={2} />}
@@ -219,7 +219,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
 
           <button
             onClick={() => setShowLegalModal(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 mt-2 text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 mt-2 text-[10px] font-medium text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
           >
             <Scale className="h-3 w-3" />
             <span>{t('settings.mentionsLegales')}</span>

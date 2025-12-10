@@ -12,7 +12,7 @@ interface EmptyStateProps {
 
 export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, actionLabel, onAction, color = 'slate' }) => {
     const colorStyles = {
-        slate: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
+        slate: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
         blue: 'bg-blue-50 dark:bg-slate-900 text-blue-600 dark:bg-slate-900/20 dark:text-blue-400',
         indigo: 'bg-indigo-50 dark:bg-slate-900 text-indigo-600 dark:bg-slate-900/20 dark:text-indigo-400',
         rose: 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400',
@@ -26,7 +26,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
                 <Icon className="w-10 h-10" />
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">{title}</h3>
-            <p className="text-slate-500 dark:text-slate-400 max-w-md mb-8 leading-relaxed font-medium">{description}</p>
+            <p className="text-slate-600 dark:text-slate-400 max-w-md mb-8 leading-relaxed font-medium">{description}</p>
             {actionLabel && onAction && (
                 <button
                     onClick={onAction}

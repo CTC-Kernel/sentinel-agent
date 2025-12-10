@@ -74,7 +74,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Score Moyen</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
                             Niveau de sécurité moyen de l'ensemble des fournisseurs.
                         </p>
                     </div>
@@ -84,19 +84,19 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 <div className="flex-1 grid grid-cols-2 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <Building className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</div>
+                            <Building className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{totalSuppliers}</div>
-                        <div className="text-xs text-slate-500 mt-1">Fournisseurs actifs</div>
+                        <div className="text-xs text-slate-600 mt-1">Fournisseurs actifs</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <ShieldAlert className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Critiques</div>
+                            <ShieldAlert className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Critiques</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{criticalSuppliers}</div>
-                        <div className="text-xs text-slate-500 mt-1">Nécessitent attention</div>
+                        <div className="text-xs text-slate-600 mt-1">Nécessitent attention</div>
                     </div>
                 </div>
 

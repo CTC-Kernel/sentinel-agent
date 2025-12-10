@@ -48,7 +48,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
                     <div>
                         <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">{title}</h3>
                         {subtitle && (
-                            <p className="text-xs text-slate-500 font-medium mt-1 uppercase tracking-wider">{subtitle}</p>
+                            <p className="text-xs text-slate-600 font-medium mt-1 uppercase tracking-wider">{subtitle}</p>
                         )}
                     </div>
                 </div>
@@ -62,7 +62,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
                                 e.stopPropagation();
                                 onToggleExpand();
                             }}
-                            className="p-2 hover:bg-white dark:hover:bg-white/10 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                            className="p-2 hover:bg-white dark:hover:bg-white/10 rounded-lg text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
                         >
                             {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                         </button>

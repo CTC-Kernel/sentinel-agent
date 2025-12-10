@@ -71,7 +71,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                             {value}
                         </h3>
                     )}
-                    <p className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 mt-1 tracking-wide">
+                    <p className="text-[13px] font-semibold text-slate-600 dark:text-slate-400 mt-1 tracking-wide">
                         {title}
                     </p>
                 </div>

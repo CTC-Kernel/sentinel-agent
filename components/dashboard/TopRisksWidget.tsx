@@ -16,7 +16,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Risques Critiques</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Priorité d'action</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Priorité d'action</p>
                 </div>
                 <button className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl hover:bg-red-100 transition-colors">
                     <ShieldAlert className="h-5 w-5" />
@@ -25,7 +25,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
 
             <div className="space-y-3">
                 {topRisks.length === 0 ? (
-                    <div className="text-center py-8 text-slate-400 text-sm flex flex-col items-center">
+                    <div className="text-center py-8 text-slate-500 text-sm flex flex-col items-center">
                         <CheckCircle2 className="h-12 w-12 mb-2 text-green-500 opacity-50" />
                         <p>Aucun risque critique identifié.</p>
                         <p className="text-xs mt-1">Excellente posture de sécurité !</p>
@@ -40,7 +40,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                                 </span>
                             </div>
                             <div className="flex justify-between items-center mt-3">
-                                <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                                <span className="text-xs font-medium text-slate-600 flex items-center gap-1">
                                     {risk.status === 'Fermé' && <CheckCircle2 className="h-3 w-3 text-green-500" />}
                                     {risk.strategy}
                                 </span>

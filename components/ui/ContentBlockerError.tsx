@@ -44,14 +44,14 @@ export const ContentBlockerError: React.FC = () => {
 
                         <button
                             onClick={dismissBlockerError}
-                            className="w-full py-3 px-4 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 text-sm"
+                            className="w-full py-3 px-4 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 text-sm"
                         >
                             <AlertTriangle className="w-4 h-4" />
                             Ignorer et continuer (Risqué)
                         </button>
                     </div>
 
-                    <p className="mt-4 text-xs text-slate-400 dark:text-slate-500">
+                    <p className="mt-4 text-xs text-slate-500 dark:text-slate-500">
                         Code erreur: AUTH_BLOCKED_BY_CLIENT
                     </p>
                 </div>

@@ -67,7 +67,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
             maxWidth="max-w-3xl"
         >
             <div className="p-1">
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 px-1">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 px-1">
                     {step === 'source'
                         ? 'Connectez-vous à vos outils de sécurité (SIEM/EDR) pour importer des alertes.'
                         : 'Sélectionnez les alertes à transformer en incidents.'}
@@ -84,7 +84,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                                 <span className="text-white font-bold text-xs">&gt;_</span>
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">Splunk</span>
-                            <span className="text-xs text-slate-500 mt-1">SIEM</span>
+                            <span className="text-xs text-slate-600 mt-1">SIEM</span>
                         </button>
 
                         <button
@@ -96,7 +96,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                                 <Disc className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">Microsoft</span>
-                            <span className="text-xs text-slate-500 mt-1">Sentinel / Defender</span>
+                            <span className="text-xs text-slate-600 mt-1">Sentinel / Defender</span>
                         </button>
 
                         <button
@@ -108,7 +108,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                                 <Activity className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">CrowdStrike</span>
-                            <span className="text-xs text-slate-500 mt-1">EDR</span>
+                            <span className="text-xs text-slate-600 mt-1">EDR</span>
                         </button>
 
                         <button
@@ -120,7 +120,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                                 <Shield className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">SentinelOne</span>
-                            <span className="text-xs text-slate-500 mt-1">EDR</span>
+                            <span className="text-xs text-slate-600 mt-1">EDR</span>
                         </button>
                     </div>
                 )}
@@ -128,7 +128,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                 {step === 'select' && (
                     <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pb-4">
                         {events.length === 0 ? (
-                            <p className="text-center text-slate-500 py-8">Aucune nouvelle alerte détectée.</p>
+                            <p className="text-center text-slate-600 py-8">Aucune nouvelle alerte détectée.</p>
                         ) : (
                             events.map(event => (
                                 <div
@@ -153,7 +153,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                                         </Badge>
                                     </div>
                                     <p className="text-sm text-slate-600 dark:text-slate-300 ml-7">{event.description}</p>
-                                    <div className="flex items-center gap-4 mt-2 ml-7 text-xs text-slate-400">
+                                    <div className="flex items-center gap-4 mt-2 ml-7 text-xs text-slate-500">
                                         <span>{new Date(event.timestamp).toLocaleString()}</span>
                                         <span>•</span>
                                         <span className="font-mono">{event.id}</span>

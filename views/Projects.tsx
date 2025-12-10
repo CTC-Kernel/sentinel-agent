@@ -682,7 +682,7 @@ export const Projects: React.FC = () => {
             cell: ({ row }) => (
                 <div>
                     <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</div>
-                    <div className="text-xs text-slate-500 font-medium line-clamp-1">{row.original.description}</div>
+                    <div className="text-xs text-slate-600 font-medium line-clamp-1">{row.original.description}</div>
                 </div>
             )
         },
@@ -743,10 +743,10 @@ export const Projects: React.FC = () => {
                 <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
                     {canEdit && (
                         <>
-                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(row.original); }} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
+                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(row.original); }} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
                                 <Edit className="h-4 w-4" />
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); initiateDelete(row.original.id, row.original.name); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
+                            <button onClick={(e) => { e.stopPropagation(); initiateDelete(row.original.id, row.original.name); }} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
                                 <Trash2 className="h-4 w-4" />
                             </button>
                         </>
@@ -907,7 +907,7 @@ export const Projects: React.FC = () => {
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Avancement Global</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
                             Moyenne d'avancement de tous les projets en cours.
                         </p>
                     </div>
@@ -916,17 +916,17 @@ export const Projects: React.FC = () => {
                 {/* Key Metrics Breakdown */}
                 <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
                     <div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Projets</div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Projets</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">{projects.length}</div>
                     </div>
                     <div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">En Cours</div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Cours</div>
                         <div className="text-2xl font-bold text-brand-600 dark:text-brand-400">
                             {projects.filter(p => p.status === 'En cours').length}
                         </div>
                     </div>
                     <div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">En Retard</div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Retard</div>
                         <div className={`text-2xl font-bold ${projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
                             {projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length}
                         </div>
@@ -948,7 +948,7 @@ export const Projects: React.FC = () => {
                         </div>
                     )}
                     {projects.length === 0 && (
-                        <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/20 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800/30">
+                        <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/20 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800/30">
                             <CheckSquare className="h-4 w-4 shrink-0" />
                             <span className="font-medium">Aucun projet</span>
                         </div>
@@ -957,22 +957,22 @@ export const Projects: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm">
-                <Search className="h-5 w-5 text-slate-400" />
+                <Search className="h-5 w-5 text-slate-500" />
                 <input
                     type="text"
                     placeholder="Rechercher un projet..."
                     className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white"
                     value={filter} onChange={e => setFilter(e.target.value)}
                 />
-                <button onClick={handleExportCSV} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-500 hover:text-slate-900 dark:hover:text-white" title="Exporter CSV">
+                <button onClick={handleExportCSV} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-600 hover:text-slate-900 dark:hover:text-white" title="Exporter CSV">
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
-                <button onClick={exportPDF} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-500 hover:text-slate-900 dark:hover:text-white ml-2" title="Exporter PDF">
+                <button onClick={exportPDF} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-600 hover:text-slate-900 dark:hover:text-white ml-2" title="Exporter PDF">
                     <Download className="h-4 w-4" />
                 </button>
                 <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm ml-2">
-                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
-                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
+                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
                 </div>
             </div>
 
@@ -1015,10 +1015,10 @@ export const Projects: React.FC = () => {
                                     <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         {canEdit && (
                                             <>
-                                                <button onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-400 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                <button onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
                                                     <Edit className="h-4 w-4" />
                                                 </button>
-                                                <button onClick={(e) => { e.stopPropagation(); initiateDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-400 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                <button onClick={(e) => { e.stopPropagation(); initiateDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </>
@@ -1027,7 +1027,7 @@ export const Projects: React.FC = () => {
                                 </div>
 
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{project.name}</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>
 
                                 <div className="mb-6">
                                     <div className="flex justify-between text-xs mb-1.5 font-medium">
@@ -1039,13 +1039,13 @@ export const Projects: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center text-xs text-slate-500 mb-4 space-x-4 border-t border-gray-100 dark:border-white/10 pt-4 mt-auto">
+                                <div className="flex items-center text-xs text-slate-600 mb-4 space-x-4 border-t border-gray-100 dark:border-white/10 pt-4 mt-auto">
                                     <div className="flex items-center font-medium">
-                                        <CalendarDays className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
+                                        <CalendarDays className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
                                         {new Date(project.dueDate).toLocaleDateString()}
                                     </div>
                                     <div className="flex items-center font-medium">
-                                        <CheckSquare className="h-3.5 w-3.5 mr-1.5 text-slate-400" />
+                                        <CheckSquare className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
                                         {project.tasks?.length || 0} tâches
                                     </div>
                                 </div>
@@ -1067,17 +1067,17 @@ export const Projects: React.FC = () => {
                 actions={
                     selectedProject && (
                         <>
-                            <button onClick={generateReport} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Télécharger Rapport"><Download className="h-5 w-5" /></button>
+                            <button onClick={generateReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Télécharger Rapport"><Download className="h-5 w-5" /></button>
                             {canEdit && (
-                                <button onClick={handleDuplicate} disabled={isSubmitting} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50" title="Dupliquer">
+                                <button onClick={handleDuplicate} disabled={isSubmitting} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50" title="Dupliquer">
                                     {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Copy className="h-5 w-5" />}
                                 </button>
                             )}
                             {canEdit && (
-                                <button onClick={() => openEditDrawer(selectedProject)} className="p-2.5 text-slate-500 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                <button onClick={() => openEditDrawer(selectedProject)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                             )}
                             {canDeleteResource(user, 'Project') && (
-                                <button onClick={() => initiateDelete(selectedProject.id, selectedProject.name)} className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                                <button onClick={() => initiateDelete(selectedProject.id, selectedProject.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
                             )}
                         </>
                     )
@@ -1093,7 +1093,7 @@ export const Projects: React.FC = () => {
                             >
                                 {selectedProject.status}
                             </Badge>
-                            <span className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-600 flex items-center gap-2">
                                 <CalendarDays className="h-4 w-4" />
                                 Échéance: {new Date(selectedProject.dueDate).toLocaleDateString()}
                             </span>
@@ -1123,22 +1123,22 @@ export const Projects: React.FC = () => {
                                 <div className="space-y-8">
                                     <div className="space-y-8">
                                         <div>
-                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Objectif</h3>
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Objectif</h3>
                                             <div className="p-6 bg-white dark:bg-slate-800/50 rounded-3xl text-sm text-slate-700 dark:text-slate-300 leading-relaxed border border-gray-100 dark:border-white/5 shadow-sm">
                                                 {selectedProject.description}
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-3 gap-6">
                                             <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1">Actifs Concernés</p>
+                                                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Actifs Concernés</p>
                                                 <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedAssetIds?.length || 0}</p>
                                             </div>
                                             <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1">Risques Traités</p>
+                                                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Risques Traités</p>
                                                 <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedRiskIds?.length || 0}</p>
                                             </div>
                                             <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1">Contrôles Implémentés</p>
+                                                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Contrôles Implémentés</p>
                                                 <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedControlIds?.length || 0}</p>
                                             </div>
                                         </div>
@@ -1147,10 +1147,10 @@ export const Projects: React.FC = () => {
                                             <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div>
-                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Actifs critiques</p>
+                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Actifs critiques</p>
                                                         <h4 className="text-lg font-bold text-slate-900 dark:text-white">Chaîne de valeur concernée</h4>
                                                     </div>
-                                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedAssetIds?.length} actifs</span>
+                                                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{selectedProject.relatedAssetIds?.length} actifs</span>
                                                 </div>
                                                 <div className="space-y-3">
                                                     {selectedProject.relatedAssetIds?.map(assetId => {
@@ -1160,7 +1160,7 @@ export const Projects: React.FC = () => {
                                                             <div key={assetId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
                                                                 <div>
                                                                     <p className="text-sm font-semibold text-slate-900 dark:text-white">{asset.name}</p>
-                                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{asset.type} • {asset.owner || 'Responsable inconnu'}</p>
+                                                                    <p className="text-xs text-slate-600 dark:text-slate-400">{asset.type} • {asset.owner || 'Responsable inconnu'}</p>
                                                                 </div>
                                                                 <div className="flex gap-1">
                                                                     {[asset.confidentiality, asset.integrity, asset.availability].map((level, idx) => (
@@ -1178,10 +1178,10 @@ export const Projects: React.FC = () => {
                                             <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div>
-                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Risques suivis</p>
+                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Risques suivis</p>
                                                         <h4 className="text-lg font-bold text-slate-900 dark:text-white">Suivi ISO 27005</h4>
                                                     </div>
-                                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedRiskIds?.length} risques</span>
+                                                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{selectedProject.relatedRiskIds?.length} risques</span>
                                                 </div>
                                                 <div className="space-y-3">
                                                     {selectedProject.relatedRiskIds?.map(riskId => {
@@ -1192,7 +1192,7 @@ export const Projects: React.FC = () => {
                                                             <div key={riskId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
                                                                 <div>
                                                                     <p className="text-sm font-semibold text-slate-900 dark:text-white">{risk.threat}</p>
-                                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{risk.vulnerability}</p>
+                                                                    <p className="text-xs text-slate-600 dark:text-slate-400">{risk.vulnerability}</p>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
                                                                     <Badge
@@ -1202,7 +1202,7 @@ export const Projects: React.FC = () => {
                                                                     >
                                                                         {level}
                                                                     </Badge>
-                                                                    <span className="text-xs text-slate-400 dark:text-slate-500">Score {risk.score}</span>
+                                                                    <span className="text-xs text-slate-500 dark:text-slate-500">Score {risk.score}</span>
                                                                 </div>
                                                             </div>
                                                         );
@@ -1215,10 +1215,10 @@ export const Projects: React.FC = () => {
                                             <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div>
-                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Contrôles ISO 27001</p>
+                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Contrôles ISO 27001</p>
                                                         <h4 className="text-lg font-bold text-slate-900 dark:text-white">Mesures associées</h4>
                                                     </div>
-                                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{selectedProject.relatedControlIds?.length} contrôles</span>
+                                                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{selectedProject.relatedControlIds?.length} contrôles</span>
                                                 </div>
                                                 <div className="space-y-3">
                                                     {selectedProject.relatedControlIds?.map(controlId => {
@@ -1228,7 +1228,7 @@ export const Projects: React.FC = () => {
                                                             <div key={controlId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
                                                                 <div>
                                                                     <p className="text-sm font-semibold text-slate-900 dark:text-white">{control.code} — {control.name}</p>
-                                                                    {control.description && <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{control.description}</p>}
+                                                                    {control.description && <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">{control.description}</p>}
                                                                 </div>
                                                                 <Badge status="neutral" variant="outline" size="sm">{control.status}</Badge>
                                                             </div>
@@ -1244,17 +1244,17 @@ export const Projects: React.FC = () => {
                                         <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6 mt-6">
                                             <div className="flex items-center justify-between mb-4">
                                                 <div>
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Audits de conformité</p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Audits de conformité</p>
                                                     <h4 className="text-lg font-bold text-slate-900 dark:text-white">Audits liés</h4>
                                                 </div>
-                                                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{linkedAudits.length} audits</span>
+                                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{linkedAudits.length} audits</span>
                                             </div>
                                             <div className="space-y-3">
                                                 {linkedAudits.map(audit => (
                                                     <div key={audit.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
                                                         <div>
                                                             <p className="text-sm font-semibold text-slate-900 dark:text-white">{audit.name}</p>
-                                                            <p className="text-xs text-slate-500 dark:text-slate-400">{audit.type} • {new Date(audit.dateScheduled).toLocaleDateString()}</p>
+                                                            <p className="text-xs text-slate-600 dark:text-slate-400">{audit.type} • {new Date(audit.dateScheduled).toLocaleDateString()}</p>
                                                         </div>
                                                         <Badge
                                                             status={audit.status === 'Terminé' ? 'success' : 'info'}
@@ -1274,17 +1274,17 @@ export const Projects: React.FC = () => {
                                         <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6 mt-6">
                                             <div className="flex items-center justify-between mb-4">
                                                 <div>
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Chaîne d'approvisionnement</p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Chaîne d'approvisionnement</p>
                                                     <h4 className="text-lg font-bold text-slate-900 dark:text-white">Fournisseurs impliqués</h4>
                                                 </div>
-                                                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{linkedSuppliers.length} fournisseurs</span>
+                                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{linkedSuppliers.length} fournisseurs</span>
                                             </div>
                                             <div className="space-y-3">
                                                 {linkedSuppliers.map(supplier => (
                                                     <div key={supplier.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
                                                         <div>
                                                             <p className="text-sm font-semibold text-slate-900 dark:text-white">{supplier.name}</p>
-                                                            <p className="text-xs text-slate-500 dark:text-slate-400">{supplier.category}</p>
+                                                            <p className="text-xs text-slate-600 dark:text-slate-400">{supplier.category}</p>
                                                         </div>
                                                         <Badge
                                                             status={supplier.criticality === 'Critique' ? 'error' : 'neutral'}
@@ -1324,8 +1324,8 @@ export const Projects: React.FC = () => {
                                 <div className="space-y-6 h-full flex flex-col">
                                     <div className="flex justify-between items-center">
                                         <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700">
-                                            <button onClick={() => setTaskViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500'}`}>Liste</button>
-                                            <button onClick={() => setTaskViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500'}`}>Tableau</button>
+                                            <button onClick={() => setTaskViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Liste</button>
+                                            <button onClick={() => setTaskViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Tableau</button>
                                         </div>
                                         {canEdit && (
                                             <button
@@ -1342,15 +1342,15 @@ export const Projects: React.FC = () => {
 
                                     {taskViewMode === 'list' ? (
                                         <div className="space-y-2">
-                                            {selectedProject.tasks?.length === 0 && <p className="text-center text-slate-400 text-xs py-8 italic">Aucune tâche définie.</p>}
+                                            {selectedProject.tasks?.length === 0 && <p className="text-center text-slate-500 text-xs py-8 italic">Aucune tâche définie.</p>}
                                             {selectedProject.tasks?.map(task => (
                                                 <div key={task.id} className="flex items-center p-3 bg-white dark:bg-slate-800/50 rounded-xl border border-gray-100 dark:border-white/5 group hover:shadow-sm transition-all">
                                                     <button onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'}`}>
                                                         {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
                                                     </button>
-                                                    <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                    <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
                                                         {task.title}
-                                                        {task.dueDate && <span className="ml-2 text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{new Date(task.dueDate).toLocaleDateString()}</span>}
+                                                        {task.dueDate && <span className="ml-2 text-[10px] text-slate-500 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{new Date(task.dueDate).toLocaleDateString()}</span>}
                                                     </span>
                                                     {canEdit && (
                                                         <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1362,8 +1362,8 @@ export const Projects: React.FC = () => {
                                                                     location: 'Sentinel GRC'
                                                                 }]);
                                                                 downloadICS(`tache_${task.id}.ics`, icsContent);
-                                                            }} className="p-1.5 text-slate-400 hover:text-blue-500 transition-all" title="Ajouter au calendrier"><CalendarDays className="h-3.5 w-3.5" /></button>
-                                                            <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-400 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
+                                                            }} className="p-1.5 text-slate-500 hover:text-blue-500 transition-all" title="Ajouter au calendrier"><CalendarDays className="h-3.5 w-3.5" /></button>
+                                                            <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
                                                         </div>
                                                     )}
                                                 </div>
@@ -1417,10 +1417,10 @@ export const Projects: React.FC = () => {
                                                 <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                             </span>
                                             <div>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                                 <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{log.details}</p>
-                                                <p className="text-[10px] text-slate-400 mt-1">Par: {log.userEmail}</p>
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
+                                                <p className="text-[10px] text-slate-500 mt-1">Par: {log.userEmail}</p>
                                             </div>
                                         </div>
                                     ))}

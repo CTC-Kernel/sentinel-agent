@@ -77,7 +77,7 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Taux de Complétion</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
                             Pourcentage d'audits terminés sur le total planifié.
                         </p>
                     </div>
@@ -86,17 +86,17 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
                 {/* Key Metrics Breakdown */}
                 <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
                     <div onClick={() => onFilterChange?.(null)} className="cursor-pointer group/item">
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1 group-hover/item:text-brand-500 transition-colors">Total Audits</div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1 group-hover/item:text-brand-500 transition-colors">Total Audits</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">{totalAudits}</div>
                     </div>
                     <div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Constats Ouverts</div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Constats Ouverts</div>
                         <div className={`text-2xl font-bold ${openFindings > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
                             {openFindings}
                         </div>
                     </div>
                     <div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">À Venir (30j)</div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">À Venir (30j)</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">{upcomingAudits}</div>
                     </div>
                 </div>

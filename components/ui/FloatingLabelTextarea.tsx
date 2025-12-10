@@ -70,7 +70,7 @@ export const FloatingLabelTextarea = React.forwardRef<HTMLTextAreaElement, Float
                             ? 'text-red-500'
                             : isFocused
                                 ? 'text-brand-600'
-                                : 'text-slate-500'
+                                : 'text-slate-600'
                         }
                     `}
                 >

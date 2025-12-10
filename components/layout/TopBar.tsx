@@ -53,7 +53,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                 <div className="flex items-center flex-1 gap-4">
                     <button
                         onClick={() => setMobileOpen(true)}
-                        className="p-2 -ml-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                        className="p-2 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
                     >
                         <Menu className="h-5 w-5" />
                     </button>
@@ -61,11 +61,11 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                     {/* Modern Search Bar Trigger */}
                     <button
                         onClick={openCommandPalette}
-                        className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl text-sm text-slate-500 dark:text-slate-400 transition-all duration-200 group w-full max-w-md shadow-sm hover:shadow-md"
+                        className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl text-sm text-slate-600 dark:text-slate-400 transition-all duration-200 group w-full max-w-md shadow-sm hover:shadow-md"
                     >
-                        <Search className="h-4 w-4 text-slate-400 group-hover:text-brand-500 transition-colors" />
+                        <Search className="h-4 w-4 text-slate-500 group-hover:text-brand-500 transition-colors" />
                         <span className="flex-1 text-left font-medium">Rechercher...</span>
-                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white dark:bg-white/10 border border-slate-200 dark:border-white/5 text-[10px] font-bold text-slate-400 shadow-sm">
+                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white dark:bg-white/10 border border-slate-200 dark:border-white/5 text-[10px] font-bold text-slate-500 shadow-sm">
                             <Command className="h-3 w-3" />
                             <span>K</span>
                         </div>
@@ -74,7 +74,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                     {/* Mobile Search Icon */}
                     <button
                         onClick={openCommandPalette}
-                        className="md:hidden p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+                        className="md:hidden p-2 text-slate-500 hover:text-slate-600 dark:hover:text-white transition-colors"
                     >
                         <Search className="h-5 w-5" />
                     </button>
@@ -98,7 +98,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                 }
                             }
                         }}
-                        className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                        className="p-2 rounded-full text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/50"
                         aria-label="Toggle Theme"
                     >
                         {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
@@ -111,7 +111,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                         >
                             <div className="hidden sm:flex flex-col items-end mr-1">
                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none">{user?.displayName}</span>
-                                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
+                                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
                             </div>
                             {user?.photoURL ? (
                                 <img
@@ -131,7 +131,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                             <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-scale-in origin-top-right">
                                 <div className="p-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-slate-700">
                                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.displayName}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>
                                 </div>
                                 <div className="p-2 space-y-1">
                                     <Link
@@ -139,7 +139,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                         onClick={() => setShowUserMenu(false)}
                                         className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
-                                        <User className="h-4 w-4 mr-3 text-slate-400" />
+                                        <User className="h-4 w-4 mr-3 text-slate-500" />
                                         Mon Profil
                                     </Link>
                                     <Link
@@ -147,7 +147,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                         onClick={() => setShowUserMenu(false)}
                                         className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
-                                        <SettingsIcon className="h-4 w-4 mr-3 text-slate-400" />
+                                        <SettingsIcon className="h-4 w-4 mr-3 text-slate-500" />
                                         Paramètres
                                     </Link>
                                     <Link

@@ -224,7 +224,7 @@ export const Login: React.FC = () => {
                             <Lock className="h-8 w-8" strokeWidth={2.5} />
                         </div>
                         <h1 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white">Sentinel GRC</h1>
-                        <p className="text-base font-medium text-slate-500 dark:text-slate-400 mt-2">Accédez à votre espace sécurisé</p>
+                        <p className="text-base font-medium text-slate-600 dark:text-slate-400 mt-2">Accédez à votre espace sécurisé</p>
                     </div>
 
                     {errorMsg && (
@@ -324,17 +324,17 @@ export const Login: React.FC = () => {
 
                         <div className="relative py-2">
                             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-white/10"></div></div>
-                            <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-400">Ou via email</span></div>
+                            <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-500">Ou via email</span></div>
                         </div>
 
                         <form onSubmit={handleSubmit(handleEmailAuth)} className="space-y-5">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-500 ml-1 uppercase tracking-widest">Email</label>
+                                <label className="text-xs font-bold text-slate-600 ml-1 uppercase tracking-widest">Email</label>
                                 <div className="relative group">
-                                    <Mail className="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                                    <Mail className="absolute left-4 top-4 h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
                                     <input
                                         type="email"
-                                        className={`w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-sm ${errors.email ? 'border-red-500' : 'border-slate-200/60 dark:border-white/10'}`}
+                                        className={`w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-500 text-[15px] font-medium shadow-sm ${errors.email ? 'border-red-500' : 'border-slate-200/60 dark:border-white/10'}`}
                                         placeholder="nom@entreprise.com"
                                         {...register('email')}
                                     />
@@ -344,7 +344,7 @@ export const Login: React.FC = () => {
 
                             <div className="space-y-1.5">
                                 <div className="flex justify-between items-center ml-1">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Mot de passe</label>
+                                    <label className="text-xs font-bold text-slate-600 uppercase tracking-widest">Mot de passe</label>
                                     {isLogin && (
                                         <button type="button" onClick={() => setShowResetModal(true)} className="text-[11px] font-bold text-brand-600 hover:text-brand-500 transition-colors">
                                             Oublié ?
@@ -352,10 +352,10 @@ export const Login: React.FC = () => {
                                     )}
                                 </div>
                                 <div className="relative group">
-                                    <Lock className="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                                    <Lock className="absolute left-4 top-4 h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
                                     <input
                                         type="password"
-                                        className={`w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-400 text-[15px] font-medium shadow-sm ${errors.password ? 'border-red-500' : 'border-slate-200/60 dark:border-white/10'}`}
+                                        className={`w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-500 text-[15px] font-medium shadow-sm ${errors.password ? 'border-red-500' : 'border-slate-200/60 dark:border-white/10'}`}
                                         placeholder="••••••••"
                                         {...register('password')}
                                     />
@@ -377,7 +377,7 @@ export const Login: React.FC = () => {
                     <div className="mt-8 text-center">
                         <button
                             onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); }}
-                            className="text-[13px] font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                            className="text-[13px] font-bold text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
                         >
                             {isLogin ? "Créer un nouveau compte" : "J'ai déjà un compte"}
                         </button>
@@ -386,8 +386,8 @@ export const Login: React.FC = () => {
             </div>
 
             <div className="py-6 text-center relative z-10 space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Développé par Cyber Threat Consulting</p>
-                <p className="text-sm text-slate-400">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Développé par Cyber Threat Consulting</p>
+                <p className="text-sm text-slate-500">
                     Ce site est protégé par reCAPTCHA.
                     <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-slate-600 ml-1">
                         Politique de confidentialité
@@ -409,7 +409,7 @@ export const Login: React.FC = () => {
                 showResetModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
-                            <button onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <button onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
                                 <X className="h-5 w-5" />
                             </button>
 
@@ -418,13 +418,13 @@ export const Login: React.FC = () => {
                                     <Mail className="h-7 w-7" />
                                 </div>
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Réinitialisation</h3>
-                                <p className="text-sm text-slate-500 mt-2">Entrez votre email pour recevoir un lien de réinitialisation.</p>
+                                <p className="text-sm text-slate-600 mt-2">Entrez votre email pour recevoir un lien de réinitialisation.</p>
                             </div>
 
                             {!resetSent ? (
                                 <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-6">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Email</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Email</label>
                                         <input
                                             type="email"
                                             className={`w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white ${resetForm.formState.errors.email ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
@@ -442,7 +442,7 @@ export const Login: React.FC = () => {
                                     <div className="inline-flex items-center px-4 py-2 rounded-xl bg-green-50 text-green-700 text-sm font-bold mb-4 border border-green-100">
                                         <CheckCircle2 className="h-4 w-4 mr-2" /> Email envoyé !
                                     </div>
-                                    <p className="text-sm text-slate-500 mb-6">Vérifiez votre boîte de réception (et vos spams).</p>
+                                    <p className="text-sm text-slate-600 mb-6">Vérifiez votre boîte de réception (et vos spams).</p>
                                     <button onClick={() => setShowResetModal(false)} className="text-sm font-bold text-brand-600 hover:underline">Retour à la connexion</button>
                                 </div>
                             )}
@@ -455,7 +455,7 @@ export const Login: React.FC = () => {
                 showMfaModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
-                            <button onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <button onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
                                 <X className="h-5 w-5" />
                             </button>
 
@@ -464,12 +464,12 @@ export const Login: React.FC = () => {
                                     <Lock className="h-7 w-7" />
                                 </div>
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Authentification MFA</h3>
-                                <p className="text-sm text-slate-500 mt-2">Entrez le code de votre application d'authentification.</p>
+                                <p className="text-sm text-slate-600 mt-2">Entrez le code de votre application d'authentification.</p>
                             </div>
 
                             <form onSubmit={handleMfaVerification} className="space-y-6">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Code de vérification</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Code de vérification</label>
                                     <input
                                         type="text"
                                         value={mfaCode}
