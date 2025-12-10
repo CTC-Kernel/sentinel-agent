@@ -883,46 +883,48 @@ export const Compliance: React.FC = () => {
                     icon={<ShieldCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
                     trustType="general"
                     actions={
-                        <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center w-full md:w-auto">
+                        <div className="flex items-center gap-3">
                             {/* View Switcher */}
-                            <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center justify-between md:justify-start border border-slate-200 dark:border-white/10 w-full md:w-auto">
+                            <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10">
                                 <button
                                     onClick={() => setViewMode('compliance')}
-                                    className={`flex-1 md:flex-none px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'compliance' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'compliance' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
                                 >
                                     Conformité
                                 </button>
                                 <button
                                     onClick={() => setViewMode('watch')}
-                                    className={`flex-1 md:flex-none px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'watch' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'watch' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
                                 >
-                                    Veille Réglementaire
+                                    Veille
                                 </button>
                             </div>
 
                             {viewMode === 'compliance' && (
-                                <>
-                                    {/* Framework Switcher - ScrollableTabs */}
-                                    <div className="w-full md:w-auto overflow-x-auto pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 no-scrollbar">
-                                        <ScrollableTabs
-                                            tabs={complianceFrameworks.map(f => ({ id: f.value, label: f.label }))}
-                                            activeTab={currentFramework}
-                                            onTabChange={(id) => setCurrentFramework(id as Framework)}
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={generateSoAReport}
-                                        className="hidden md:flex p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
-                                        title="Générer SoA"
-                                    >
-                                        <Download className="h-5 w-5" />
-                                    </button>
-                                </>
+                                <button
+                                    onClick={generateSoAReport}
+                                    className="hidden md:flex p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+                                    title="Générer SoA"
+                                >
+                                    <Download className="h-5 w-5" />
+                                </button>
                             )}
                         </div>
                     }
                 />
             </SlideUp>
+
+            {viewMode === 'compliance' && (
+                <SlideUp delay={0.1}>
+                    <div className="border-b border-slate-200 dark:border-white/10 -mt-2">
+                        <ScrollableTabs
+                            tabs={complianceFrameworks.map(f => ({ id: f.value, label: f.label }))}
+                            activeTab={currentFramework}
+                            onTabChange={(id) => setCurrentFramework(id as Framework)}
+                        />
+                    </div>
+                </SlideUp>
+            )}
 
             {
                 viewMode === 'compliance' && (
@@ -1667,7 +1669,7 @@ export const Compliance: React.FC = () => {
                 ))}
 
             </Drawer >
-        </div>
+        </div >
     );
 };
 
