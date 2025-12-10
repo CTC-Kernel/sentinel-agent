@@ -844,7 +844,7 @@ export const Compliance: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 overflow-x-hidden">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 overflow-x-hidden w-full max-w-full">
             <SEO
                 title={selectedControl ? `${selectedControl.code} - Conformité` : 'Conformité & Standards'}
                 description="Suivez votre conformité aux normes ISO 27001, NIS 2, DORA et gérez vos audits."
@@ -1082,7 +1082,7 @@ export const Compliance: React.FC = () => {
             {
                 viewMode === 'watch' && (
                     <div className="space-y-6 animate-fade-in">
-                        <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-200 dark:border-white/5 text-center">
+                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/5 text-center">
                             <div className="w-16 h-16 bg-blue-100 dark:bg-slate-900/20 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                                 <Globe className="w-8 h-8" />
                             </div>
@@ -1092,7 +1092,7 @@ export const Compliance: React.FC = () => {
                             </p>
 
 
-                            <div className="max-w-2xl mx-auto flex gap-3">
+                            <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
                                 <div className="relative flex-1 text-left">
                                     <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
                                     <input
