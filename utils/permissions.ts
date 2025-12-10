@@ -65,7 +65,8 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         BusinessProcess: ['read'],
         ProcessingActivity: ['read'],
         SupplierAssessment: ['read'],
-        SupplierIncident: ['read']
+        SupplierIncident: ['read'],
+        Audit: ['read']
     },
     direction: {
         Project: ['read'],
