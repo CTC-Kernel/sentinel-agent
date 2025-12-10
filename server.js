@@ -10,7 +10,9 @@ const PORT = process.env.PORT || 8080;
 
 // Serve static files from the dist directory
 const distPath = path.resolve(__dirname, 'dist');
-console.log(`Serving static files from: ${distPath}`);
+if (process.env.NODE_ENV !== 'production') {
+    console.log(`Serving static files from: ${distPath}`);
+}
 
 // Add security headers to allow Firebase Auth popups
 app.use((req, res, next) => {
@@ -21,11 +23,13 @@ app.use((req, res, next) => {
 
 app.use(express.static(distPath));
 
-// Handle SPA routing: return index.html for all non-API routes
+// Handle client-side routing by returning index.html for all non-API routes
 app.get('*', (req, res) => {
     res.sendFile(path.join(distPath, 'index.html'));
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`Server is running on port ${PORT}`);
+    }
 });
