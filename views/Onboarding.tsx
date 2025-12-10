@@ -362,7 +362,7 @@ export const Onboarding: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-[#000000] relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
+        <div className="min-h-screen py-10 flex items-center justify-center bg-[#F2F2F7] dark:bg-[#000000] relative font-sans selection:bg-brand-500 selection:text-white">
             <div className="absolute inset-0 w-full h-full pointer-events-none">
                 <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-400/20 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-float"></div>
                 <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-400/20 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-float" style={{ animationDelay: '3s' }}></div>

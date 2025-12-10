@@ -69,7 +69,7 @@ export const VerifyEmail: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#E5E7EB] dark:bg-[#000000] relative overflow-hidden font-sans">
+        <div className="min-h-screen py-10 flex flex-col items-center justify-center bg-[#E5E7EB] dark:bg-[#000000] relative font-sans">
             {/* Ambient Background */}
             <div className="absolute inset-0 w-full h-full">
                 <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float"></div>
