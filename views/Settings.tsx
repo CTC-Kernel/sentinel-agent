@@ -1492,7 +1492,7 @@ export const Settings: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div className={`relative border-l border-slate-200 dark:border-white/10 ml-4 space-y-8 pl-8 ${logsExpanded ? 'max-h-[640px]' : 'max-h-[320px]'} overflow-y-auto custom-scrollbar`} data-lenis-prevent>
+                            <div className={`relative border-l border-slate-200 dark:border-white/10 ml-4 space-y-8 pl-8 ${logsExpanded ? 'max-h-[640px]' : 'max-h-[320px]'} overflow-y-auto custom-scrollbar`}>
                                 {logs.map(log => (
                                     <div key={log.id} className="relative group">
                                         <span className="absolute -left-[37px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-black group-hover:bg-brand-500 group-hover:scale-110 transition-all"></span>
