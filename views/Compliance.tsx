@@ -883,7 +883,7 @@ export const Compliance: React.FC = () => {
                     icon={<ShieldCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
                     trustType="general"
                     actions={
-                        <div className="flex flex-col md:flex-row gap-3 items-start md:items-center w-full md:w-auto">
+                        <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center w-full md:w-auto">
                             {/* View Switcher */}
                             <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center justify-between md:justify-start border border-slate-200 dark:border-white/10 w-full md:w-auto">
                                 <button
@@ -1010,7 +1010,7 @@ export const Compliance: React.FC = () => {
                                                 <div key={domain.id} className="glass-panel rounded-[2.5rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
                                                     <div
                                                         onClick={() => toggleDomain(domain.id)}
-                                                        className={`p-6 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                                        className={`p-6 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer transition-colors gap-4 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                                                     >
                                                         <div className="flex items-center gap-5">
                                                             <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-white/10">
@@ -1044,8 +1044,8 @@ export const Compliance: React.FC = () => {
                                                                 const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
                                                                 return (
                                                                     <CustomTooltip key={control.id} content={`Cliquez pour voir les détails de ${control.code}`} position="top" className="w-full">
-                                                                        <div onClick={() => openInspector(control)} className="p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex items-center justify-between pl-8 active:scale-[0.99] duration-200">
-                                                                            <div className="flex items-center space-x-5 flex-1 min-w-0">
+                                                                        <div onClick={() => openInspector(control)} className="p-4 sm:p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-4 pl-4 sm:pl-8 active:scale-[0.99] duration-200">
+                                                                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 flex-1 min-w-0">
                                                                                 <div className="min-w-[50px]"><span className="text-xs font-black text-slate-400 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
                                                                                 <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
                                                                                     <div className="flex items-center mt-1 gap-3 text-xs">
@@ -1055,9 +1055,9 @@ export const Compliance: React.FC = () => {
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            <div className="flex items-center gap-4">
-                                                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800' : 'text-slate-500 bg-slate-100 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}`}>{control.status}</span>
-                                                                                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                                                                            <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto mt-2 sm:mt-0">
+                                                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800' : 'text-slate-500 bg-slate-100 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}`}>{control.status}</span>
+                                                                                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors hidden sm:block" />
                                                                             </div>
                                                                         </div>
                                                                     </CustomTooltip>

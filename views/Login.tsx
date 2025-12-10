@@ -106,6 +106,7 @@ export const Login: React.FC = () => {
                 addToast("Compte créé avec succès", "success");
             }
         } catch (error: unknown) {
+            console.error('Auth Error Details:', error);
             const err = error as { code?: string; message?: string };
             if (err.code === 'auth/multi-factor-auth-required') {
                 const resolver = getMultiFactorResolver(auth, error as MultiFactorError);
