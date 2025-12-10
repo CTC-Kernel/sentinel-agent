@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SubscriptionService } from '../../services/subscriptionService';
+import { SubscriptionService } from '@/services/subscriptionService';
 import { getDoc } from 'firebase/firestore';
 
 // Explicitly mock firestore in this test file to ensure we can control it

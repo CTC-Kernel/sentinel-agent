@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { generateICS, downloadICS } from '../../utils/calendar';
-import { CalendarEvent } from '../../utils/calendar';
+import { generateICS, downloadICS } from '@/utils/calendar';
+import { CalendarEvent } from '@/utils/calendar';
 
 // Mock DOM methods
 Object.defineProperty(window, 'URL', {

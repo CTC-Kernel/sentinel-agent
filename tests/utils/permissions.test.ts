@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { canEditResource, hasPermission } from '../../utils/permissions';
-import { UserProfile } from '../../types';
+import { canEditResource, hasPermission } from '@/utils/permissions';
+import { UserProfile } from '@/types';
 
 describe('Permissions Utils', () => {
     const adminUser: UserProfile = {
