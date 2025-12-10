@@ -948,7 +948,7 @@ export const Compliance: React.FC = () => {
                                     />
                                 </div>
 
-                                <div className="flex gap-2 p-2 pt-0 md:p-0 overflow-x-auto no-scrollbar md:overflow-visible">
+                                <div className="flex gap-2 p-2 pt-0 md:p-0 overflow-x-auto no-scrollbar">
                                     {/* Status Filter Badge */}
                                     {statusFilter && (
                                         <button onClick={() => setStatusFilter(null)} className="flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-brand-50 text-brand-700 border border-brand-200 dark:bg-brand-900/20 dark:text-brand-300 dark:border-brand-800 animate-fade-in hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors whitespace-nowrap shrink-0">
