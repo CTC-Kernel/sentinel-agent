@@ -170,7 +170,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     description="Initiez votre audit rapidement avec un modèle ou l'aide de l'IA."
                 />
             )}
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                 <FloatingLabelInput
                     label="Nom de l'audit"
                     {...register('name')}
