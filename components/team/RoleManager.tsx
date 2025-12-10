@@ -110,7 +110,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
             <div className="flex justify-between items-center">
                 <div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Rôles Personnalisés</h3>
-                    <p className="text-sm text-slate-500">Gérez les permissions fines pour votre organisation.</p>
+                    <p className="text-sm text-slate-600">Gérez les permissions fines pour votre organisation.</p>
                 </div>
                 <button
                     onClick={() => handleOpenDrawer()}
@@ -124,10 +124,10 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 {roles.map(role => (
                     <div key={role.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
                         <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => handleOpenDrawer(role)} className="p-2 text-slate-400 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
+                            <button onClick={() => handleOpenDrawer(role)} className="p-2 text-slate-500 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
                                 <Edit className="h-4 w-4" />
                             </button>
-                            <button onClick={() => setConfirmDelete({ isOpen: true, roleId: role.id })} className="p-2 text-slate-400 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
+                            <button onClick={() => setConfirmDelete({ isOpen: true, roleId: role.id })} className="p-2 text-slate-500 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
                                 <Trash2 className="h-4 w-4" />
                             </button>
                         </div>
@@ -137,7 +137,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                             </div>
                             <div>
                                 <h4 className="font-bold text-slate-900 dark:text-white">{role.name}</h4>
-                                <p className="text-xs text-slate-500">{Object.keys(role.permissions).length} ressources configurées</p>
+                                <p className="text-xs text-slate-600">{Object.keys(role.permissions).length} ressources configurées</p>
                             </div>
                         </div>
                         <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{role.description || "Aucune description"}</p>
@@ -155,7 +155,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nom du rôle</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom du rôle</label>
                             <input
                                 type="text"
                                 required
@@ -166,7 +166,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Description</label>
                             <input
                                 type="text"
                                 value={formData.description}
@@ -181,7 +181,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                         <h4 className="font-bold text-slate-900 dark:text-white mb-4">Matrice des Permissions</h4>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-800/50">
+                                <thead className="text-xs text-slate-600 uppercase bg-slate-50 dark:bg-slate-800/50">
                                     <tr>
                                         <th className="px-4 py-3 rounded-tl-lg">Ressource</th>
                                         {ACTIONS.map(action => (
@@ -218,7 +218,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                     </div>
 
                     <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
-                        <button type="button" onClick={() => setIsDrawerOpen(false)} className="px-6 py-2.5 text-slate-500 font-bold hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                        <button type="button" onClick={() => setIsDrawerOpen(false)} className="px-6 py-2.5 text-slate-600 font-bold hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
                         <button type="submit" className="px-6 py-2.5 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20">Enregistrer</button>
                     </div>
                 </form>

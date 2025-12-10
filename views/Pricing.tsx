@@ -82,7 +82,7 @@ const Pricing = () => {
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white font-display tracking-tight leading-tight">
             Abonnement
           </h1>
-          <p className="text-lg text-slate-500 dark:text-slate-400 mt-2 font-medium max-w-xl leading-relaxed">
+          <p className="text-lg text-slate-600 dark:text-slate-400 mt-2 font-medium max-w-xl leading-relaxed">
             Des outils puissants pour votre conformité, adaptés à chaque étape de votre croissance.
           </p>
         </div>
@@ -94,13 +94,13 @@ const Pricing = () => {
           />
           <button
             onClick={() => setIsAnnual(false)}
-            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 ${!isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 ${!isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
             Mensuel
           </button>
           <button
             onClick={() => setIsAnnual(true)}
-            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 flex items-center gap-2 ${isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 flex items-center gap-2 ${isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
             Annuel
             <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full shadow-sm shadow-emerald-500/20 tracking-wide">
@@ -142,7 +142,7 @@ const Pricing = () => {
 
                 <div className="mb-2">
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{name}</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">{plan.description}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">{plan.description}</p>
                 </div>
 
                 <div className="my-8">
@@ -150,7 +150,7 @@ const Pricing = () => {
                     <span className="text-5xl font-bold text-slate-900 dark:text-white font-display tracking-tighter">
                       {price === 0 ? 'Gratuit' : `${price}€`}
                     </span>
-                    {price > 0 && <span className="text-slate-500 font-medium text-lg">HT/mois</span>}
+                    {price > 0 && <span className="text-slate-600 font-medium text-lg">HT/mois</span>}
                   </div>
                   {isAnnual && price > 0 && (
                     <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-2">
@@ -172,7 +172,7 @@ const Pricing = () => {
 
                 {Capacitor.isNativePlatform() ? (
                   <div className="w-full py-4 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-center">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                       La gestion des abonnements est disponible uniquement sur la version web de Sentinel GRC.
                     </p>
                   </div>
@@ -205,14 +205,14 @@ const Pricing = () => {
       <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm">
         <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
           <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Comparatif détaillé</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Analysez les fonctionnalités en détail.</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">Analysez les fonctionnalités en détail.</p>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-100 dark:border-white/5">
-                <th className="text-left py-6 px-10 font-bold text-xs text-slate-400 uppercase tracking-widest w-1/3">Fonctionnalités</th>
+                <th className="text-left py-6 px-10 font-bold text-xs text-slate-500 uppercase tracking-widest w-1/3">Fonctionnalités</th>
                 <th className="py-6 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">Discovery</th>
                 <th className="py-6 px-6 text-center font-bold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-widest w-1/5 bg-blue-50/30 dark:bg-blue-500/5 border-x border-blue-100/50 dark:border-blue-500/10">Professional</th>
                 <th className="py-6 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">Enterprise</th>
@@ -225,7 +225,7 @@ const Pricing = () => {
                     {feature.name}
                     {feature.tooltip && (
                       <Tooltip content={feature.tooltip}>
-                        <Info className="w-4 h-4 text-slate-400 hover:text-blue-500 transition-colors cursor-help" />
+                        <Info className="w-4 h-4 text-slate-500 hover:text-blue-500 transition-colors cursor-help" />
                       </Tooltip>
                     )}
                   </td>
@@ -274,10 +274,10 @@ const Pricing = () => {
         <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
           <div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Questions fréquentes</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Réponses aux interrogations courantes.</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">Réponses aux interrogations courantes.</p>
           </div>
           <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
-            <HelpCircle className="w-6 h-6 text-slate-400" />
+            <HelpCircle className="w-6 h-6 text-slate-500" />
           </div>
         </div>
 
@@ -290,7 +290,7 @@ const Pricing = () => {
               >
                 <span className="font-bold text-slate-800 dark:text-slate-200 text-base group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{faq.q}</span>
                 <ChevronDown
-                  className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-blue-500' : 'group-hover:text-blue-500'}`}
+                  className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-blue-500' : 'group-hover:text-blue-500'}`}
                 />
               </button>
               <div
@@ -311,7 +311,7 @@ const Pricing = () => {
       </div>
 
       <div className="text-center pt-8 pb-4">
-        <p className="text-sm text-slate-400 font-medium">
+        <p className="text-sm text-slate-500 font-medium">
           Besoin d'un devis personnalisé ?
           <button
             onClick={() => setIsContactOpen(true)}

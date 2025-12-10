@@ -105,7 +105,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Santé du Parc</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px]">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
                             Basé sur l'amortissement et la maintenance.
                         </p>
                     </div>
@@ -115,22 +115,22 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
                     <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.(null)}>
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <Server className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</div>
+                            <Server className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{totalAssets}</div>
                     </div>
                     <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.({ type: 'criticality', value: 'Critique' })}>
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <ShieldAlert className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Critiques</div>
+                            <ShieldAlert className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Critiques</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{criticalAssets}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <Euro className="h-4 w-4 text-slate-400" />
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Valeur</div>
+                            <Euro className="h-4 w-4 text-slate-500" />
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Valeur</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{(currentValue / 1000).toFixed(0)}k€</div>
                     </div>

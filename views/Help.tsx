@@ -195,20 +195,20 @@ const HELP_CONTENT: HelpCategory[] = [
                                             <td className="px-6 py-4 text-emerald-500">Total</td>
                                             <td className="px-6 py-4 text-emerald-500">Total</td>
                                             <td className="px-6 py-4 text-blue-500">Lecture/Modif</td>
-                                            <td className="px-6 py-4 text-slate-400">Lecture</td>
+                                            <td className="px-6 py-4 text-slate-500">Lecture</td>
                                         </tr>
                                         <tr className="bg-slate-50 dark:bg-slate-800/50">
                                             <td className="px-6 py-4 font-medium">Audits</td>
                                             <td className="px-6 py-4 text-emerald-500">Total</td>
                                             <td className="px-6 py-4 text-emerald-500">Total</td>
                                             <td className="px-6 py-4 text-blue-500">Lecture/Création</td>
-                                            <td className="px-6 py-4 text-slate-400">Lecture</td>
+                                            <td className="px-6 py-4 text-slate-500">Lecture</td>
                                         </tr>
                                         <tr className="bg-white dark:bg-slate-900">
                                             <td className="px-6 py-4 font-medium">Incidents</td>
                                             <td className="px-6 py-4 text-emerald-500">Total</td>
                                             <td className="px-6 py-4 text-emerald-500">Total</td>
-                                            <td className="px-6 py-4 text-slate-400">Lecture</td>
+                                            <td className="px-6 py-4 text-slate-500">Lecture</td>
                                             <td className="px-6 py-4 text-blue-500">Création (Déclaration)</td>
                                         </tr>
                                         <tr className="bg-slate-50 dark:bg-slate-800/50">
@@ -327,7 +327,7 @@ export const Help: React.FC = () => {
                     </div>
 
                     <div className="relative mb-6">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                         <input
                             type="text"
                             placeholder="Rechercher..."
@@ -398,7 +398,7 @@ export const Help: React.FC = () => {
                                 </div>
                                 <div>
                                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{activeCategory.title}</h1>
-                                    <p className="text-slate-500 dark:text-slate-400 mt-1">
+                                    <p className="text-slate-600 dark:text-slate-400 mt-1">
                                         {activeCategory.articles.length} articles disponibles
                                     </p>
                                 </div>
@@ -420,7 +420,7 @@ export const Help: React.FC = () => {
                                         >
                                             <div className={`p-2 rounded-xl shrink-0 transition-colors ${selectedArticle === article.id
                                                 ? 'bg-blue-100 dark:bg-slate-900/40 text-blue-600 dark:text-blue-400'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-blue-50 dark:bg-slate-900 dark:group-hover:bg-blue-900/20 group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-blue-50 dark:bg-slate-900 dark:group-hover:bg-blue-900/20 group-hover:text-blue-600 dark:group-hover:text-blue-400'
                                                 }`}>
                                                 {article.icon ? <article.icon className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                                             </div>
@@ -430,9 +430,9 @@ export const Help: React.FC = () => {
                                                         }`}>
                                                         {article.title}
                                                     </h3>
-                                                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${selectedArticle === article.id ? 'rotate-180 text-blue-500' : ''}`} />
+                                                    <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${selectedArticle === article.id ? 'rotate-180 text-blue-500' : ''}`} />
                                                 </div>
-                                                <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm leading-relaxed">
+                                                <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm leading-relaxed">
                                                     {article.description}
                                                 </p>
                                             </div>
@@ -464,7 +464,7 @@ export const Help: React.FC = () => {
                             </div>
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-center text-slate-400">
+                        <div className="flex flex-col items-center justify-center h-full text-center text-slate-500">
                             <Search className="w-16 h-16 mb-4 opacity-20" />
                             <p className="text-lg font-medium">Sélectionnez une catégorie ou effectuez une recherche</p>
                         </div>

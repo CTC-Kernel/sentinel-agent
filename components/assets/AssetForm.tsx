@@ -182,7 +182,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 />
             )}
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Informations Principales</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Informations Principales</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="col-span-1 md:col-span-2">
                         <div className="relative">
@@ -200,7 +200,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             <button
                                 type="button"
                                 onClick={() => handleSuggestField('name')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-500 transition-colors"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-brand-500 transition-colors"
                                 title="Suggérer un nom"
                             >
                                 <Sparkles className={`h-4 w-4 ${suggestingField === 'name' ? 'animate-spin' : ''}`} />
@@ -225,7 +225,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                         <button
                             type="button"
                             onClick={() => handleSuggestField('type')}
-                            className="absolute right-8 top-1/2 -translate-y-1/2 mt-0 text-slate-400 hover:text-brand-500 transition-colors z-10"
+                            className="absolute right-8 top-1/2 -translate-y-1/2 mt-0 text-slate-500 hover:text-brand-500 transition-colors z-10"
                             title="Suggérer le type"
                         >
                             <Sparkles className={`h-4 w-4 ${suggestingField === 'type' ? 'animate-spin' : ''}`} />
@@ -283,7 +283,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             {/* Specialized Fields based on Type */}
             {watch('type') === 'Matériel' && (
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Détails Matériel</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Matériel</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Controller
                             name="ipAddress"
@@ -298,7 +298,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
             {watch('type') === 'Logiciel' && (
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Détails Logiciel</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Logiciel</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Controller
                             name="version"
@@ -326,7 +326,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
             {watch('type') === 'Humain' && (
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Détails Collaborateur</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Collaborateur</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Controller
                             name="email"
@@ -385,7 +385,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             </div>
 
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 flex items-center">
                     <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
                 </h3>
                 <div className="flex flex-wrap gap-3">
@@ -418,7 +418,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             </div>
 
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">Cycle de Vie</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Cycle de Vie</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <Controller

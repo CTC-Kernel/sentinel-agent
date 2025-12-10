@@ -22,7 +22,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 }) => {
     return (
         <div className={className}>
-            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 flex items-center gap-2">
                 <Calendar className="h-3.5 w-3.5" /> {label}
             </label>
             <div className={`
@@ -38,7 +38,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                     onChange={(e) => onStartDateChange(e.target.value)}
                     className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm font-medium text-slate-900 dark:text-white rounded-xl focus:bg-white dark:focus:bg-white/5 transition-colors"
                 />
-                <span className="text-slate-400 font-medium">→</span>
+                <span className="text-slate-500 font-medium">→</span>
                 <input
                     type="date"
                     value={endDate}

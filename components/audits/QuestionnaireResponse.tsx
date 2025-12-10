@@ -186,7 +186,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 disabled={readOnly || status === 'Submitted'}
                                 className={`w-10 h-10 rounded-full font-bold transition-all ${value === rating
                                     ? 'bg-brand-600 text-white scale-110 shadow-lg'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200'
                                     }`}
                             >
                                 {rating}
@@ -207,7 +207,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">{questionnaire.title}</h2>
                         {questionnaire.description && (
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{questionnaire.description}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{questionnaire.description}</p>
                         )}
                     </div>
                     {status === 'Submitted' && (
@@ -224,7 +224,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                         <div key={q.id} className="space-y-3">
                             <div className="flex items-start justify-between">
                                 <label className="text-base font-bold text-slate-800 dark:text-slate-200">
-                                    <span className="text-slate-400 mr-2">{index + 1}.</span>
+                                    <span className="text-slate-500 mr-2">{index + 1}.</span>
                                     {q.text}
                                     {q.required && <span className="text-red-500 ml-1">*</span>}
                                 </label>

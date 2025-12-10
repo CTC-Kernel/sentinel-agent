@@ -142,7 +142,7 @@ export const ThreatRegistry: React.FC = () => {
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300">
                         Bibliothèque de Menaces
                     </h1>
-                    <p className="text-slate-500 mt-2">Référentiel des menaces et vulnérabilités (ISO 27005)</p>
+                    <p className="text-slate-600 mt-2">Référentiel des menaces et vulnérabilités (ISO 27005)</p>
                 </div>
                 <div className="flex gap-3">
                     {threats.length === 0 && (
@@ -166,11 +166,11 @@ export const ThreatRegistry: React.FC = () => {
 
             <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 p-6 backdrop-blur-xl">
                 <div className="flex items-center space-x-4 mb-6 relative">
-                    <Search className="h-5 w-5 text-slate-400 absolute left-4" />
+                    <Search className="h-5 w-5 text-slate-500 absolute left-4" />
                     <input
                         type="text"
                         placeholder="Rechercher une menace, un scénario..."
-                        className="w-full bg-slate-50 dark:bg-slate-900/50 pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400"
+                        className="w-full bg-slate-50 dark:bg-slate-900/50 pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-500"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -184,7 +184,7 @@ export const ThreatRegistry: React.FC = () => {
                     <div className="text-center py-20">
                         <ShieldAlert className="h-16 w-16 text-slate-300 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-slate-900 dark:text-white">Aucune menace trouvée</h3>
-                        <p className="text-slate-500 mt-2">Commencez par importer la bibliothèque standard ou créez votre première menace.</p>
+                        <p className="text-slate-600 mt-2">Commencez par importer la bibliothèque standard ou créez votre première menace.</p>
                         {threats.length === 0 && (
                             <button onClick={handleSeed} className="mt-6 text-brand-500 hover:underline">
                                 Importer les modèles standards
@@ -213,13 +213,13 @@ export const ThreatRegistry: React.FC = () => {
                                             <div className={`p-3 rounded-xl ${threat.source === 'Standard' ? 'bg-blue-50 text-blue-500 dark:bg-blue-500/10' : 'bg-purple-50 text-purple-500 dark:bg-purple-500/10'}`}>
                                                 <Shield className="h-6 w-6" />
                                             </div>
-                                            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 border border-slate-200 dark:border-white/10 px-2 py-1 rounded-full">
+                                            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 border border-slate-200 dark:border-white/10 px-2 py-1 rounded-full">
                                                 {threat.framework}
                                             </span>
                                         </div>
 
                                         <h3 className="font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{threat.name}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 h-10">{threat.description}</p>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4 h-10">{threat.description}</p>
 
                                         <div className="space-y-3">
                                             <div className="flex items-center text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-black/20 p-2 rounded-lg">
@@ -232,7 +232,7 @@ export const ThreatRegistry: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/5 flex justify-between items-center text-xs text-slate-400">
+                                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/5 flex justify-between items-center text-xs text-slate-500">
                                             <span>{threat.field}</span>
                                             <span className="flex items-center">
                                                 Score Ref: <span className="font-bold text-brand-500 ml-1">{threat.probability * threat.impact}</span>

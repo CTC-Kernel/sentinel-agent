@@ -21,7 +21,7 @@ export const SeveritySelector: React.FC<SeveritySelectorProps> = ({
 
     return (
         <div className="space-y-3">
-            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500">
+            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">
                 {label}
             </label>
             <div className="grid grid-cols-4 gap-3">
@@ -44,11 +44,11 @@ export const SeveritySelector: React.FC<SeveritySelectorProps> = ({
                         >
                             <div className={`
                                 w-8 h-8 rounded-full flex items-center justify-center mb-2 transition-colors
-                                ${isSelected ? opt.color + ' text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}
+                                ${isSelected ? opt.color + ' text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600'}
                             `}>
                                 <Icon className="h-4 w-4" />
                             </div>
-                            <span className={`text-[10px] font-bold uppercase tracking-wide ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>
+                            <span className={`text-[10px] font-bold uppercase tracking-wide ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
                                 {opt.label}
                             </span>
                         </button>

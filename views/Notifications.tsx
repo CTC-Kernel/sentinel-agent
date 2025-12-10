@@ -96,7 +96,7 @@ export const Notifications: React.FC = () => {
                             <div className="flex-1">
                                 <div className="flex justify-between items-start">
                                     <h3 className="text-base font-bold text-slate-900 dark:text-white">{notif.title}</h3>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{new Date(notif.createdAt).toLocaleDateString()}</span>
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">{new Date(notif.createdAt).toLocaleDateString()}</span>
                                 </div>
                                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{notif.message}</p>
                                 {notif.link && (
@@ -106,7 +106,7 @@ export const Notifications: React.FC = () => {
                                 )}
                             </div>
                             {!notif.read && (
-                                <button onClick={() => markAsRead(notif.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all self-center">
+                                <button onClick={() => markAsRead(notif.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all self-center">
                                     <X className="h-4 w-4" />
                                 </button>
                             )}

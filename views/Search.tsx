@@ -170,7 +170,7 @@ export const Search: React.FC = () => {
             case 'risk': return <AlertTriangle className="h-5 w-5 text-orange-500" />;
             case 'document': return <FileText className="h-5 w-5 text-purple-500" />;
             case 'project': return <FolderKanban className="h-5 w-5 text-emerald-500" />;
-            default: return <SearchIcon className="h-5 w-5 text-slate-500" />;
+            default: return <SearchIcon className="h-5 w-5 text-slate-600" />;
         }
     };
 
@@ -217,7 +217,7 @@ export const Search: React.FC = () => {
 
             <div className="glass-panel p-2 rounded-2xl flex items-center space-x-4 shadow-lg ring-1 ring-black/5 dark:ring-white/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sticky top-4 z-30">
                 <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl">
-                    <SearchIcon className="h-6 w-6 text-slate-400" />
+                    <SearchIcon className="h-6 w-6 text-slate-500" />
                 </div>
                 <input
                     type="text"
@@ -239,7 +239,7 @@ export const Search: React.FC = () => {
 
             {hasActiveFilters && (
                 <div className="flex flex-wrap gap-2 items-center">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Filtres actifs:</span>
+                    <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Filtres actifs:</span>
                     {advancedFilters.status && (
                         <span className="px-3 py-1 bg-blue-100 dark:bg-slate-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold">
                             Statut: {advancedFilters.status}
@@ -311,7 +311,7 @@ export const Search: React.FC = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-slate-900 dark:text-white text-lg">{result.title}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{result.subtitle}</p>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{result.subtitle}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">

@@ -52,13 +52,13 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             onClick={onClose}
                             className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors"
                         >
-                            <X className="h-5 w-5 text-slate-500" />
+                            <X className="h-5 w-5 text-slate-600" />
                         </button>
                     </div>
 
                     {/* Main Search Input */}
                     <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                         <input
                             type="text"
                             value={filters.query}

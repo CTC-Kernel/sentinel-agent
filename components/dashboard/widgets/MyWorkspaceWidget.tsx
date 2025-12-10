@@ -37,7 +37,7 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
         >
             <div className={`h-full overflow-y-auto custom-scrollbar ${isExpanded ? 'p-0' : 'p-0'}`}>
                 {loading ? <Skeleton className="h-full w-full m-4" /> : myActionItems.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full p-8 text-center"><CheckCircle2 className="h-12 w-12 text-emerald-500/30 mb-4" /><p className="text-sm font-bold text-slate-500">{t('dashboard.nothingToReport')}</p></div>
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center"><CheckCircle2 className="h-12 w-12 text-emerald-500/30 mb-4" /><p className="text-sm font-bold text-slate-600">{t('dashboard.nothingToReport')}</p></div>
                 ) : (
                     <div className="divide-y divide-slate-100 dark:divide-white/5">
                         {displayItems.map(item => (
@@ -63,12 +63,12 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
                                                             item.type === 'risk' ? 'Risque' :
                                                                 t('dashboard.typeProject')}
                                         </span>
-                                        <span className="text-xs text-slate-400 font-medium tabular-nums">{new Date(item.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                        <span className="text-xs text-slate-500 font-medium tabular-nums">{new Date(item.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
                                     </div>
                                     <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 transition-colors truncate">{item.title}</h4>
-                                    <p className="text-xs text-slate-500 mt-0.5 truncate">{item.status}</p>
+                                    <p className="text-xs text-slate-600 mt-0.5 truncate">{item.status}</p>
                                 </div>
-                                <ArrowRight className="w-4 h-4 text-slate-300 group-hover/item:text-slate-500 -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100 transition-all" />
+                                <ArrowRight className="w-4 h-4 text-slate-300 group-hover/item:text-slate-600 -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100 transition-all" />
                             </div>
                         ))}
                     </div>
@@ -76,7 +76,7 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
             </div>
             {!isExpanded && myActionItems.length > 5 && (
                 <div className="p-3 bg-slate-50/50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 text-center">
-                    <span className="text-xs font-semibold text-slate-500">{myActionItems.length - 5} {t('common.more').toLowerCase()}...</span>
+                    <span className="text-xs font-semibold text-slate-600">{myActionItems.length - 5} {t('common.more').toLowerCase()}...</span>
                 </div>
             )}
         </DashboardCard>

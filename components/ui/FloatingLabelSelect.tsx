@@ -52,7 +52,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                 }
             `}>
                 {Icon && (
-                    <div className={`pl-4 ${error ? 'text-red-500' : isFocused ? 'text-brand-500' : 'text-slate-400'}`}>
+                    <div className={`pl-4 ${error ? 'text-red-500' : isFocused ? 'text-brand-500' : 'text-slate-500'}`}>
                         <Icon className="h-5 w-5" />
                     </div>
                 )}
@@ -78,7 +78,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                     ))}
                 </select>
 
-                <div className="absolute right-4 pointer-events-none text-slate-400">
+                <div className="absolute right-4 pointer-events-none text-slate-500">
                     <ChevronDown className="h-5 w-5" />
                 </div>
 
@@ -93,7 +93,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                             ? 'text-red-500'
                             : isFocused
                                 ? 'text-brand-600'
-                                : 'text-slate-500'
+                                : 'text-slate-600'
                         }
                         ${Icon && !(isFocused || hasValue) ? 'ml-7' : ''}
                     `}

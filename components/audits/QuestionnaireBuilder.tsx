@@ -96,12 +96,12 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                             {initialData ? 'Modifier le Questionnaire' : 'Nouveau Questionnaire'}
                         </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                             Configurez les questions pour vos audités
                         </p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors">
-                        <X className="w-6 h-6 text-slate-500" />
+                        <X className="w-6 h-6 text-slate-600" />
                     </button>
                 </div>
 
@@ -176,7 +176,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                         <div className="md:col-span-1 flex items-center justify-end">
                                             <button
                                                 onClick={() => removeQuestion(q.id)}
-                                                className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                                                className="p-2 text-slate-500 hover:text-red-500 transition-colors"
                                                 title="Supprimer"
                                             >
                                                 <Trash2 className="w-5 h-5" />
@@ -186,7 +186,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                         {/* Options for Choice types */}
                                         {(q.type === 'choice' || q.type === 'multiple_choice') && (
                                             <div className="md:col-span-12 pl-4 border-l-2 border-brand-500/20">
-                                                <label className="text-xs font-bold uppercase text-slate-500 mb-2 block">Options de réponse</label>
+                                                <label className="text-xs font-bold uppercase text-slate-600 mb-2 block">Options de réponse</label>
                                                 <div className="space-y-2">
                                                     {q.options?.map((opt, optIndex) => (
                                                         <div key={optIndex} className="flex gap-2">
@@ -206,7 +206,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                                                     const newOptions = q.options?.filter((_, i) => i !== optIndex);
                                                                     updateQuestion(q.id, { options: newOptions });
                                                                 }}
-                                                                className="p-2 text-slate-400 hover:text-red-500"
+                                                                className="p-2 text-slate-500 hover:text-red-500"
                                                             >
                                                                 <X className="w-4 h-4" />
                                                             </button>

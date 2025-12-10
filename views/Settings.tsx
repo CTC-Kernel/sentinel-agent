@@ -828,9 +828,9 @@ export const Settings: React.FC = () => {
 
             <div className="mb-10 text-center">
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">{t('settings.title')}</h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{t('settings.subtitle')}</p>
+                <p className="text-slate-600 dark:text-slate-400 mt-2 font-medium">{t('settings.subtitle')}</p>
                 {user?.organizationId && (
-                    <div className="mt-4 inline-flex items-center px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full text-[10px] font-mono text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10">
+                    <div className="mt-4 inline-flex items-center px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full text-[10px] font-mono text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10">
                         ID: {user.organizationId}
                     </div>
                 )}
@@ -850,7 +850,7 @@ export const Settings: React.FC = () => {
                                     {currentOrg?.subscription?.status === 'active' ? t('settings.active') : t('settings.free')}
                                 </span>
                                 {currentOrg?.subscription?.currentPeriodEnd && (
-                                    <span className="text-xs text-slate-500">{t('settings.renewalDate').replace('{date}', new Date((currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds ? (currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds * 1000 : (currentOrg.subscription.currentPeriodEnd as string | number)).toLocaleDateString())}</span>
+                                    <span className="text-xs text-slate-600">{t('settings.renewalDate').replace('{date}', new Date((currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds ? (currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds * 1000 : (currentOrg.subscription.currentPeriodEnd as string | number)).toLocaleDateString())}</span>
                                 )}
                             </div>
                         </div>
@@ -879,7 +879,7 @@ export const Settings: React.FC = () => {
                                 ) : user?.photoURL ? (
                                     <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
-                                    <span className="text-4xl font-bold text-slate-500 dark:text-slate-300">{user?.displayName?.charAt(0).toUpperCase() || 'U'}</span>
+                                    <span className="text-4xl font-bold text-slate-600 dark:text-slate-300">{user?.displayName?.charAt(0).toUpperCase() || 'U'}</span>
                                 )}
                             </div>
                             <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -892,7 +892,7 @@ export const Settings: React.FC = () => {
                             {user?.role}
                         </span>
                         <div className="flex items-center gap-2 mt-2">
-                            <p className="text-sm text-slate-500 dark:text-slate-400">{user?.email}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">{user?.email}</p>
                             <button
                                 onClick={handleCheckBreach}
                                 disabled={breachCheckLoading}
@@ -906,19 +906,19 @@ export const Settings: React.FC = () => {
 
                     <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="space-y-5 max-w-sm mx-auto">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.displayName')}</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.displayName')}</label>
                             <input type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
                                 {...profileForm.register('displayName')} />
                             {profileForm.formState.errors.displayName && <p className="text-red-500 text-xs mt-1">{profileForm.formState.errors.displayName.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.department')}</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.department')}</label>
                             <input type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
                                 {...profileForm.register('department')} />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.role')}</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.role')}</label>
                             <div className="relative">
                                 <Controller
                                     control={profileForm.control}
@@ -942,7 +942,7 @@ export const Settings: React.FC = () => {
                                 />
                             </div>
                             {!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) && (
-                                <p className="text-[10px] text-slate-400 mt-1.5 ml-1">{t('settings.contactAdmin')}</p>
+                                <p className="text-[10px] text-slate-500 mt-1.5 ml-1">{t('settings.contactAdmin')}</p>
                             )}
                         </div>
 
@@ -999,7 +999,7 @@ export const Settings: React.FC = () => {
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><ShieldAlert className="h-5 w-5 mr-3 text-emerald-500" />Authentification à deux facteurs (MFA)</h3>
                         </div>
                         <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                 Sécurisez votre compte en ajoutant une seconde étape de validation.
                             </p>
 
@@ -1021,7 +1021,7 @@ export const Settings: React.FC = () => {
                                                 Let's assume I'll add 'qrcode' package if missing.
                                                 For now, I'll put a placeholder text.
                                             */}
-                                            <p className="text-xs text-slate-500 mb-2 text-center">Scannez ce code avec votre application d'authentification (Google Authenticator, Authy...)</p>
+                                            <p className="text-xs text-slate-600 mb-2 text-center">Scannez ce code avec votre application d'authentification (Google Authenticator, Authy...)</p>
                                             <div className="bg-slate-100 p-2 rounded">
                                                 <img src={qrCodeUrl} alt="QR Code" className="w-32 h-32" />
                                             </div>
@@ -1029,7 +1029,7 @@ export const Settings: React.FC = () => {
                                     )}
 
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">Code de vérification</label>
+                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Code de vérification</label>
                                         <input
                                             type="text"
                                             value={mfaCode}
@@ -1074,11 +1074,11 @@ export const Settings: React.FC = () => {
                         </div>
                         <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                             <div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                                     {t('settings.aiDescription')}
                                 </p>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.geminiApiKey')}</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.geminiApiKey')}</label>
                                     <div className="relative">
                                         <input
                                             type="password"
@@ -1087,10 +1087,10 @@ export const Settings: React.FC = () => {
                                             {...profileForm.register('geminiApiKey')}
                                         />
                                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                            <Key className="h-4 w-4 text-slate-400" />
+                                            <Key className="h-4 w-4 text-slate-500" />
                                         </div>
                                     </div>
-                                    <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+                                    <p className="text-[10px] text-slate-500 mt-1.5 ml-1">
                                         {t('settings.geminiPlaceholder')}
                                     </p>
                                 </div>
@@ -1121,7 +1121,7 @@ export const Settings: React.FC = () => {
                             <div>
                                 <div className="flex justify-between items-end mb-2">
                                     <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{t('settings.storageUsage')}</span>
-                                    <span className="text-xs font-medium text-slate-500">
+                                    <span className="text-xs font-medium text-slate-600">
                                         {formatFileSize(currentOrg?.storageUsed || 0)} / {formatFileSize(1024 * 1024 * 1024)}
                                     </span>
                                 </div>
@@ -1133,21 +1133,21 @@ export const Settings: React.FC = () => {
                                         style={{ width: `${Math.min(100, ((currentOrg?.storageUsed || 0) / (1024 * 1024 * 1024)) * 100)}%` }}
                                     ></div>
                                 </div>
-                                <p className="text-xs text-slate-400 mt-2">
+                                <p className="text-xs text-slate-500 mt-2">
                                     {t('settings.quotaInfo')}
                                 </p>
                             </div>
 
                             <div className="pt-6 border-t border-slate-100 dark:border-white/5">
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                                     {t('settings.secNumCloudInfo')}
                                 </p>
                                 <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                                     <div className="flex items-center gap-3">
-                                        <Database className="h-5 w-5 text-slate-400" />
+                                        <Database className="h-5 w-5 text-slate-500" />
                                         <div>
                                             <span className="block text-sm font-bold text-slate-900 dark:text-white">{t('settings.secNumCloudStorage')}</span>
-                                            <span className="text-xs text-slate-500">{t('settings.ovhHosting')}</span>
+                                            <span className="text-xs text-slate-600">{t('settings.ovhHosting')}</span>
                                         </div>
                                     </div>
                                     <button
@@ -1180,7 +1180,7 @@ export const Settings: React.FC = () => {
                             </div>
                             {currentOrg?.subscription?.planId === 'discovery' && (
                                 <div className="text-center">
-                                    <p className="text-xs text-slate-400 mb-2">{t('settings.proFeature')}</p>
+                                    <p className="text-xs text-slate-500 mb-2">{t('settings.proFeature')}</p>
                                     <button onClick={() => window.location.href = '#/pricing'} className="text-xs font-bold text-brand-600 hover:text-brand-700 dark:text-brand-400">
                                         {t('settings.upgradeSub')}
                                     </button>
@@ -1210,7 +1210,7 @@ export const Settings: React.FC = () => {
                             <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/10">
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm font-bold text-slate-700 dark:text-slate-300">English</span>
-                                    <span className="text-xs text-slate-400">EN</span>
+                                    <span className="text-xs text-slate-500">EN</span>
                                 </div>
                                 <button onClick={() => setLanguage(language === 'fr' ? 'en' : 'fr')} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${language === 'en' ? 'bg-brand-600' : 'bg-gray-200'}`}>
                                     <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${language === 'en' ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -1226,7 +1226,7 @@ export const Settings: React.FC = () => {
                             <div className="pt-4 border-t border-slate-200 dark:border-white/10">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('settings.demoMode')}</span>
-                                    <Activity className="h-4 w-4 text-slate-400" />
+                                    <Activity className="h-4 w-4 text-slate-500" />
                                 </div>
                                 <button
                                     onClick={toggleDemoMode}
@@ -1255,7 +1255,7 @@ export const Settings: React.FC = () => {
                             </h3>
                         </div>
                         <div className="p-6 flex-1 flex flex-col justify-center space-y-6">
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                 {t('settings.googleCalendarDescription')}
                             </p>
 
@@ -1301,7 +1301,7 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.admin')}</h3>
-                                    <p className="text-xs text-slate-500 font-medium">{t('settings.orgAdmin')} {orgForm.watch('orgName')}</p>
+                                    <p className="text-xs text-slate-600 font-medium">{t('settings.orgAdmin')} {orgForm.watch('orgName')}</p>
                                 </div>
                             </div>
 
@@ -1309,13 +1309,13 @@ export const Settings: React.FC = () => {
                                 <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.orgName')}</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.orgName')}</label>
                                             <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
                                                 {...orgForm.register('orgName')} />
                                             {orgForm.formState.errors.orgName && <p className="text-red-500 text-xs mt-1">{orgForm.formState.errors.orgName.message}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.contactEmail')}</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.contactEmail')}</label>
                                             <input type="email" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
                                                 {...orgForm.register('contactEmail')} />
                                             {orgForm.formState.errors.contactEmail && <p className="text-red-500 text-xs mt-1">{orgForm.formState.errors.contactEmail.message}</p>}
@@ -1323,12 +1323,12 @@ export const Settings: React.FC = () => {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('common.address')}</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('common.address')}</label>
                                             <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
                                                 {...orgForm.register('address')} />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 ml-1">{t('settings.vatNumber')}</label>
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.vatNumber')}</label>
                                             <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
                                                 {...orgForm.register('vatNumber')} />
                                         </div>
@@ -1347,23 +1347,23 @@ export const Settings: React.FC = () => {
                                     {maintenanceLoading && <div className="animate-spin h-4 w-4 border-2 border-orange-500 border-t-transparent rounded-full"></div>}
                                 </div>
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.purgeLogs')}</h4>
-                                <p className="text-xs text-slate-500 mt-1">{t('settings.purgeLogsDesc')}</p>
+                                <p className="text-xs text-slate-600 mt-1">{t('settings.purgeLogsDesc')}</p>
                             </div>
 
                             <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-slate-50/30 dark:bg-black/20">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">{t('settings.systemStatus')}</h4>
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">{t('settings.systemStatus')}</h4>
                                     <div className="flex items-center gap-2">
                                         <Database className="h-4 w-4 text-green-500" />
                                         <CheckCircle2 className="h-4 w-4 text-green-500" />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-5 gap-4 text-center">
-                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.assets}</span><span className="text-[9px] font-bold text-slate-400 uppercase flex justify-center items-center"><FileText className="h-2.5 w-2.5 mr-1" />Docs</span></div>
-                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.docs}</span><span className="text-[9px] font-bold text-slate-400 uppercase flex justify-center items-center"><FileText className="h-2.5 w-2.5 mr-1" />Docs</span></div>
-                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.risks}</span><span className="text-[9px] font-bold text-slate-400 uppercase flex justify-center items-center"><ShieldAlert className="h-2.5 w-2.5 mr-1" />Risques</span></div>
-                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.logs}</span><span className="text-[9px] font-bold text-slate-400 uppercase">Logs</span></div>
-                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/10" onClick={checkLatency}><span className={`block text-lg font-black ${networkLatency !== 'Erreur' && parseInt(networkLatency) < 200 ? 'text-emerald-500' : 'text-orange-500'}`}>{networkLatency}</span><span className="text-[9px] font-bold text-slate-400 uppercase flex justify-center items-center"><Activity className="h-2.5 w-2.5 mr-1" /> Ping</span></div>
+                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.assets}</span><span className="text-[9px] font-bold text-slate-500 uppercase flex justify-center items-center"><FileText className="h-2.5 w-2.5 mr-1" />Docs</span></div>
+                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.docs}</span><span className="text-[9px] font-bold text-slate-500 uppercase flex justify-center items-center"><FileText className="h-2.5 w-2.5 mr-1" />Docs</span></div>
+                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.risks}</span><span className="text-[9px] font-bold text-slate-500 uppercase flex justify-center items-center"><ShieldAlert className="h-2.5 w-2.5 mr-1" />Risques</span></div>
+                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"><span className="block text-lg font-black text-slate-900 dark:text-white">{sysStats.logs}</span><span className="text-[9px] font-bold text-slate-500 uppercase">Logs</span></div>
+                                    <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/10" onClick={checkLatency}><span className={`block text-lg font-black ${networkLatency !== 'Erreur' && parseInt(networkLatency) < 200 ? 'text-emerald-500' : 'text-orange-500'}`}>{networkLatency}</span><span className="text-[9px] font-bold text-slate-500 uppercase flex justify-center items-center"><Activity className="h-2.5 w-2.5 mr-1" /> Ping</span></div>
                                 </div>
                                 <div className="mt-4 flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
                                     <div className="flex items-center gap-2">
@@ -1387,14 +1387,14 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.users')}</h3>
-                                    <p className="text-xs text-slate-500 font-medium">{t('settings.accessManagement')} ({usersList.length} membres)</p>
+                                    <p className="text-xs text-slate-600 font-medium">{t('settings.accessManagement')} ({usersList.length} membres)</p>
                                 </div>
                             </div>
                             <div className="space-y-4">
                                 {usersList.map(u => (
                                     <div key={u.uid} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 card-hover transition-all">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold">
+                                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 font-bold">
                                                 {u.photoURL ? <img src={u.photoURL} className="w-full h-full rounded-full object-cover" /> : u.displayName?.charAt(0)}
                                             </div>
                                             <div>
@@ -1409,10 +1409,10 @@ export const Settings: React.FC = () => {
                                                         </span>
                                                     )}
                                                     {u.uid === user?.uid && (
-                                                        <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.you')}</span>
+                                                        <span className="text-xs text-slate-600 dark:text-slate-400">{t('settings.you')}</span>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-slate-500">{u.email}</p>
+                                                <p className="text-xs text-slate-600">{u.email}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
@@ -1437,7 +1437,7 @@ export const Settings: React.FC = () => {
                                                             setTransferTargetId(u.uid);
                                                             setShowTransferModal(true);
                                                         }}
-                                                        className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+                                                        className="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
                                                         title={t('settings.transferOwnership')}
                                                     >
                                                         <ArrowRightLeft size={18} />
@@ -1449,7 +1449,7 @@ export const Settings: React.FC = () => {
                                                     <button
                                                         onClick={() => initiateRemoveUser(u.uid)}
                                                         disabled={updatingUserIds.has(u.uid)}
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                                        className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
                                                         title={t('settings.removeMember')}
                                                     >
                                                         {updatingUserIds.has(u.uid) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 size={18} />}
@@ -1470,12 +1470,12 @@ export const Settings: React.FC = () => {
                         <div className="glass-panel rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 shadow-sm">
                             <div className="flex items-center justify-between mb-8">
                                 <div className="flex items-center">
-                                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 flex items-center justify-center mr-4">
+                                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center mr-4">
                                         <History className="h-5 w-5" />
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.auditLog')}</h3>
-                                        <p className="text-xs text-slate-500 font-medium">{t('settings.traceability')} ({logs.length} entrées)</p>
+                                        <p className="text-xs text-slate-600 font-medium">{t('settings.traceability')} ({logs.length} entrées)</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -1498,13 +1498,13 @@ export const Settings: React.FC = () => {
                                         <span className="absolute -left-[37px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-black group-hover:bg-brand-500 group-hover:scale-110 transition-all"></span>
                                         <div className="flex justify-between items-start">
                                             <div>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">
                                                     {new Date(log.timestamp).toLocaleString()}
                                                 </span>
                                                 <p className="text-sm font-bold text-slate-800 dark:text-white">
-                                                    {log.action} <span className="text-slate-400 font-normal">• {log.resource}</span>
+                                                    {log.action} <span className="text-slate-500 font-normal">• {log.resource}</span>
                                                 </p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{log.details}</p>
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">{log.details}</p>
                                             </div>
                                             <div className="text-right">
                                                 <span className="text-[10px] bg-slate-100 dark:bg-white/10 px-2 py-1 rounded-md font-bold text-slate-600 dark:text-slate-300">
@@ -1515,11 +1515,11 @@ export const Settings: React.FC = () => {
                                     </div>
                                 ))}
                                 {logs.length === 0 && !loadingLogs && (
-                                    <p className="text-sm text-slate-400 italic">{t('settings.noLogsToPurge')}</p>
+                                    <p className="text-sm text-slate-500 italic">{t('settings.noLogsToPurge')}</p>
                                 )}
                             </div>
                             {hasMoreLogs && (
-                                <button onClick={() => fetchLogs(false)} disabled={loadingLogs} className="w-full mt-8 py-3 text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors border border-dashed border-slate-200 dark:border-white/10">
+                                <button onClick={() => fetchLogs(false)} disabled={loadingLogs} className="w-full mt-8 py-3 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors border border-dashed border-slate-200 dark:border-white/10">
                                     {loadingLogs ? t('common.loading') : t('settings.loadMore')}
                                 </button>
                             )}
@@ -1531,7 +1531,7 @@ export const Settings: React.FC = () => {
                 <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm">
                     <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
-                            <Scale className="h-5 w-5 mr-3 text-slate-500" />
+                            <Scale className="h-5 w-5 mr-3 text-slate-600" />
                             {t('settings.legalInfo')}
                         </h3>
                     </div>
@@ -1541,21 +1541,21 @@ export const Settings: React.FC = () => {
                             className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left border border-slate-100 dark:border-white/5"
                         >
                             <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">{t('settings.mentionsLegales')}</span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.editorHosting')}</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-400">{t('settings.editorHosting')}</span>
                         </button>
                         <button
                             onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }}
                             className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left border border-slate-100 dark:border-white/5"
                         >
                             <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">{t('settings.privacyData')}</span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.dataProtection')}</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-400">{t('settings.dataProtection')}</span>
                         </button>
                         <button
                             onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }}
                             className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left border border-slate-100 dark:border-white/5"
                         >
                             <span className="block text-sm font-bold text-slate-900 dark:text-white mb-1">{t('settings.cgu')}</span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.termsOfUse')}</span>
+                            <span className="text-xs text-slate-600 dark:text-slate-400">{t('settings.termsOfUse')}</span>
                         </button>
                     </div>
                 </div>
@@ -1569,7 +1569,7 @@ export const Settings: React.FC = () => {
                         <div className="flex items-center justify-between p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/20">
                             <div>
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">Peupler avec des données de démo</h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Génère un environnement complet (Actifs, Risques, Projets...)</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Génère un environnement complet (Actifs, Risques, Projets...)</p>
                             </div>
                             <Button
                                 onClick={initiateDemoMode}
@@ -1591,7 +1591,7 @@ export const Settings: React.FC = () => {
                             <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
                                 <div>
                                     <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.leaveOrg')}</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('settings.leaveOrgDesc')}</p>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{t('settings.leaveOrgDesc')}</p>
                                 </div>
                                 <Button onClick={initiateLeaveOrg} variant="outline" className="px-4 py-2 bg-white dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl text-xs hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30 shadow-sm">
                                     {t('common.leave')}
@@ -1602,7 +1602,7 @@ export const Settings: React.FC = () => {
                         <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
                             <div>
                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.deleteAccount')}</h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('settings.deleteAccountDesc')}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{t('settings.deleteAccountDesc')}</p>
                             </div>
                             <Button onClick={handleDeleteAccount} variant="destructive" className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
                                 {t('common.delete')}
@@ -1613,7 +1613,7 @@ export const Settings: React.FC = () => {
                             <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
                                 <div>
                                     <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.deleteOrg')}</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('settings.deleteOrgDesc')}</p>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{t('settings.deleteOrgDesc')}</p>
                                 </div>
                                 <Button onClick={handleDeleteOrganization} variant="destructive" className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
                                     {t('settings.destroy')}
@@ -1646,7 +1646,7 @@ export const Settings: React.FC = () => {
                     <LogOut className="h-4 w-4 mr-2" /> {t('common.logout')}
                 </button>
                 <div className="text-center">
-                    <p className="text-[10px] text-slate-400 font-mono opacity-60">
+                    <p className="text-[10px] text-slate-500 font-mono opacity-60">
                         Sentinel GRC v2.0.0 • Build {__BUILD_DATE__}
                     </p>
                 </div>

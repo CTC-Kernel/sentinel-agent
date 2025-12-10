@@ -258,7 +258,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 </div>
 
                 <div className="pt-4 border-t border-gray-100 dark:border-white/5">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Stockage du Document</label>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-4">Stockage du Document</label>
                     <div className="mb-6">
                         <CustomSelect
                             label="Fournisseur de stockage"
@@ -318,7 +318,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                     Parcourir
                                 </Button>
                             </div>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-slate-500">
                                 {storageProvider === 'google_drive' ? 'Le document restera hébergé sur Google Drive.' : 'Le document restera hébergé sur Microsoft 365.'}
                             </p>
                         </div>

@@ -176,7 +176,7 @@ export const RoleManagement: React.FC = () => {
                                                     {u.displayName}
                                                 </div>
                                                 {u.department && (
-                                                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                                                    <div className="text-xs text-slate-600 dark:text-slate-400">
                                                         {u.department}
                                                     </div>
                                                 )}

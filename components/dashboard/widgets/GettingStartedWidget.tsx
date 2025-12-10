@@ -89,7 +89,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
         <div className="mb-8 glass-panel p-6 rounded-2xl border border-brand-500/20 bg-gradient-to-r from-brand-50/50 to-white/50 dark:from-brand-900/10 dark:to-slate-900/50 relative overflow-hidden">
             <button
                 onClick={onClose}
-                className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                className="absolute top-4 right-4 p-1 text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
             >
                 <X className="h-5 w-5" />
             </button>
@@ -118,7 +118,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                                 ) : (
                                     <Circle className="h-5 w-5 text-slate-300 dark:text-slate-600 flex-shrink-0" />
                                 )}
-                                <span className={`font-medium ${step.isCompleted ? 'text-slate-500 line-through' : 'text-slate-900 dark:text-white'}`}>
+                                <span className={`font-medium ${step.isCompleted ? 'text-slate-600 line-through' : 'text-slate-900 dark:text-white'}`}>
                                     {step.label}
                                 </span>
                                 {!step.isCompleted && (
@@ -159,7 +159,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                                 <span className="text-xl font-bold text-slate-900 dark:text-white">{Math.round(progress)}%</span>
                             </div>
                         </div>
-                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
                             Configuration
                         </p>
                     </div>

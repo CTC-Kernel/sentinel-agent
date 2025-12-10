@@ -244,7 +244,7 @@ export const BackupRestore: React.FC = () => {
             <div className="p-2 bg-indigo-500/10 rounded-xl"><Database className="h-8 w-8 text-indigo-500" /></div>
             Sauvegardes & Restauration
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-2 ml-14">Gérez vos points de restauration et la sécurité de vos données.</p>
+          <p className="text-slate-600 dark:text-slate-400 mt-2 ml-14">Gérez vos points de restauration et la sécurité de vos données.</p>
         </div>
         <div className="flex items-center gap-4">
           <button
@@ -257,13 +257,13 @@ export const BackupRestore: React.FC = () => {
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
             <button
               onClick={() => setActiveTab('backup')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'backup' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'backup' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
               Sauvegarder
             </button>
             <button
               onClick={() => setActiveTab('restore')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'restore' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'restore' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
               Restaurer
             </button>
@@ -280,7 +280,7 @@ export const BackupRestore: React.FC = () => {
               <Database className="h-8 w-8" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total des backups</p>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total des backups</p>
               <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{stats.totalBackups}</p>
             </div>
           </div>
@@ -293,7 +293,7 @@ export const BackupRestore: React.FC = () => {
               <FileText className="h-8 w-8" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Espace utilisé</p>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Espace utilisé</p>
               <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{formatSize(stats.totalSize)}</p>
             </div>
           </div>
@@ -306,7 +306,7 @@ export const BackupRestore: React.FC = () => {
               <CalendarDays className="h-8 w-8" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Dernier backup</p>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Dernier backup</p>
               <p className="text-lg font-bold text-slate-900 dark:text-white mt-1">
                 {stats.lastBackup ? new Date(stats.lastBackup).toLocaleDateString('fr-FR') : 'Jamais'}
               </p>
@@ -344,7 +344,7 @@ export const BackupRestore: React.FC = () => {
                         {...backupForm.register(item.id as keyof BackupConfigFormData)}
                       />
                       <div className="ml-3 flex items-center gap-2">
-                        <item.icon className="h-4 w-4 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                        <item.icon className="h-4 w-4 text-slate-500 group-hover:text-indigo-500 transition-colors" />
                         <span className="font-medium text-slate-700 dark:text-slate-300">{item.label}</span>
                       </div>
                     </label>
@@ -352,7 +352,7 @@ export const BackupRestore: React.FC = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Planifier :</span>
+                    <span className="text-sm font-bold text-slate-600 uppercase tracking-wider">Planifier :</span>
                     <button type="button" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors">Quotidien</button>
                     <button type="button" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors">Hebdo</button>
                     <button type="button" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors">Mensuel</button>
@@ -376,14 +376,14 @@ export const BackupRestore: React.FC = () => {
               {!selectedBackup ? (
                 <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
                   <Database className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-500 font-medium">Sélectionnez une sauvegarde dans la liste pour commencer</p>
+                  <p className="text-slate-600 font-medium">Sélectionnez une sauvegarde dans la liste pour commencer</p>
                 </div>
               ) : (
                 <form onSubmit={restoreForm.handleSubmit(handleRestore)} className="space-y-6">
                   <div className="p-4 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Sauvegarde sélectionnée</span>
-                      <span className="text-xs font-mono bg-white dark:bg-black/20 px-2 py-1 rounded text-slate-500">{selectedBackup.id}</span>
+                      <span className="text-xs font-mono bg-white dark:bg-black/20 px-2 py-1 rounded text-slate-600">{selectedBackup.id}</span>
                     </div>
                     <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold">
                       <Clock className="h-4 w-4" />
@@ -414,14 +414,14 @@ export const BackupRestore: React.FC = () => {
                       <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-indigo-600" {...restoreForm.register('overwriteExisting')} />
                       <div>
                         <span className="block font-medium text-slate-900 dark:text-white">Écraser les données existantes</span>
-                        <span className="text-xs text-slate-500">Si coché, les données actuelles seront remplacées par celles de la sauvegarde.</span>
+                        <span className="text-xs text-slate-600">Si coché, les données actuelles seront remplacées par celles de la sauvegarde.</span>
                       </div>
                     </label>
                     <label className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
                       <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-indigo-600" {...restoreForm.register('dryRun')} />
                       <div>
                         <span className="block font-medium text-slate-900 dark:text-white">Simulation (Dry Run)</span>
-                        <span className="text-xs text-slate-500">Vérifie l'intégrité sans modifier les données.</span>
+                        <span className="text-xs text-slate-600">Vérifie l'intégrité sans modifier les données.</span>
                       </div>
                     </label>
                   </div>
@@ -450,7 +450,7 @@ export const BackupRestore: React.FC = () => {
             </h2>
             <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
               {backups.length === 0 ? (
-                <p className="text-center text-slate-500 py-8">Aucune sauvegarde disponible.</p>
+                <p className="text-center text-slate-600 py-8">Aucune sauvegarde disponible.</p>
               ) : (
                 backups.map((backup) => (
                   <div
@@ -460,7 +460,7 @@ export const BackupRestore: React.FC = () => {
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-slate-400">#{backup.id.slice(0, 8)}</span>
+                        <span className="text-xs font-mono text-slate-500">#{backup.id.slice(0, 8)}</span>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${getStatusColor(backup.status)}`}>
                           {getStatusIcon(backup.status)}
                           <span className="ml-1.5">{backup.status}</span>
@@ -501,17 +501,17 @@ export const BackupRestore: React.FC = () => {
                         <p className="text-sm font-bold text-slate-900 dark:text-white">
                           {format(new Date(backup.createdAt), "d MMM yyyy", { locale: fr })}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-600">
                           {format(new Date(backup.createdAt), "HH:mm", { locale: fr })} • {backup.collections.length} collections
                         </p>
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {backup.collections.slice(0, 3).map(c => (
-                        <span key={c} className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 capitalize">{c}</span>
+                        <span key={c} className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-600 capitalize">{c}</span>
                       ))}
                       {backup.collections.length > 3 && (
-                        <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500">+{backup.collections.length - 3}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-600">+{backup.collections.length - 3}</span>
                       )}
                     </div>
                   </div>

@@ -66,7 +66,7 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = ({ healthIssu
                 )}
                 {!isExpanded && healthIssues.length > 3 && (
                     <div className="mt-3 text-center">
-                        <span className="text-xs font-semibold text-slate-400 hover:text-slate-600 cursor-pointer" onClick={() => setIsExpanded(true)}>
+                        <span className="text-xs font-semibold text-slate-500 hover:text-slate-600 cursor-pointer" onClick={() => setIsExpanded(true)}>
                             +{healthIssues.length - 3} {t('common.more').toLowerCase()}
                         </span>
                     </div>

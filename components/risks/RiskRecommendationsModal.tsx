@@ -25,11 +25,11 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Analyse IA Hybride</h2>
-                            <p className="text-slate-500 dark:text-slate-400">Recommandations générées par le moteur d'IA souverain (OVH)</p>
+                            <p className="text-slate-600 dark:text-slate-400">Recommandations générées par le moteur d'IA souverain (OVH)</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors">
-                        <X className="w-6 h-6 text-slate-500" />
+                        <X className="w-6 h-6 text-slate-600" />
                     </button>
                 </div>
 
@@ -45,7 +45,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                             </div>
                             <div className="text-center">
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Analyse en cours...</h3>
-                                <p className="text-slate-500">Nos algorithmes analysent vos risques sur le cloud sécurisé.</p>
+                                <p className="text-slate-600">Nos algorithmes analysent vos risques sur le cloud sécurisé.</p>
                             </div>
                         </div>
                     ) : recommendations.length > 0 ? (
@@ -60,7 +60,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                                 }`}>
                                                 {rec.priority}
                                             </span>
-                                            <span className="flex items-center text-xs font-medium text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg">
+                                            <span className="flex items-center text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg">
                                                 <ShieldCheck className="w-3 h-3 mr-1" />
                                                 Confiance: {(rec.confidence_score * 100).toFixed(0)}%
                                             </span>
@@ -75,7 +75,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                     </p>
 
                                     <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-5">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Actions Suggérées</h4>
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Actions Suggérées</h4>
                                         <ul className="space-y-3">
                                             {rec.suggested_actions.map((action, i) => (
                                                 <li key={i} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-200">
@@ -93,10 +93,10 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                     ) : (
                         <div className="text-center py-20">
                             <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <CheckCircle2 className="w-10 h-10 text-slate-400" />
+                                <CheckCircle2 className="w-10 h-10 text-slate-500" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Tout semble correct</h3>
-                            <p className="text-slate-500">L'IA n'a détecté aucune recommandation critique pour le moment.</p>
+                            <p className="text-slate-600">L'IA n'a détecté aucune recommandation critique pour le moment.</p>
                         </div>
                     )}
                 </div>

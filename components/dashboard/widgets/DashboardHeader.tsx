@@ -42,7 +42,7 @@ const InsightCard: React.FC<{ insight: any, navigate: (path: string) => void }> 
                     onClick={(e) => { e.stopPropagation(); setIsVisible(false); }}
                     className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                 >
-                    <X className="h-4 w-4 text-slate-400" />
+                    <X className="h-4 w-4 text-slate-500" />
                 </button>
             </div>
         </div>
@@ -131,7 +131,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <card.icon className={`h-7 w-7 text-${card.color}-600 dark:text-${card.color}-400`} />
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 tracking-tight group-hover/card:text-brand-600 dark:group-hover/card:text-brand-400 transition-colors">{card.title}</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed relative z-10">{card.desc}</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed relative z-10">{card.desc}</p>
                             </button>
                         ))}
                     </div>
@@ -163,12 +163,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 <h1 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight font-display drop-shadow-sm leading-tight">
                                     {organizationName || user?.organizationName || t('dashboard.operationalSystem')}
                                 </h1>
-                                <div className="flex items-center gap-3 text-sm font-medium text-slate-500 dark:text-slate-400">
+                                <div className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-400">
                                     <span className="relative flex h-2.5 w-2.5">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                                     </span>
-                                    <span className="text-slate-500 dark:text-slate-500 font-mono text-xs uppercase tracking-wide">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                                    <span className="text-slate-600 dark:text-slate-500 font-mono text-xs uppercase tracking-wide">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
                                 </div>
                             </div>
 
@@ -188,7 +188,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <div className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover/metric:bg-brand-50 group-hover/metric:text-brand-600 transition-colors">
                                         <Activity className="h-4 w-4" />
                                     </div>
-                                    <div className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest">Score</div>
+                                    <div className="text-slate-500 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest">Score</div>
                                 </div>
                                 <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{scoreGrade || '-'}</div>
                             </div>
@@ -198,7 +198,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <div className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover/metric:bg-blue-50 group-hover/metric:text-blue-600 transition-colors">
                                         <Users className="h-4 w-4" />
                                     </div>
-                                    <div className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest">Équipe</div>
+                                    <div className="text-slate-500 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest">Équipe</div>
                                 </div>
                                 <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{teamSize || 0}</div>
                             </div>
@@ -247,7 +247,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     onClick={generateICal}
                                     className="flex items-center px-6 py-3.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-2xl font-bold text-sm hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all hover:-translate-y-0.5"
                                 >
-                                    <CalendarDays className="h-4 w-4 mr-2.5 text-slate-400 group-hover:text-slate-600" />
+                                    <CalendarDays className="h-4 w-4 mr-2.5 text-slate-500 group-hover:text-slate-600" />
                                     {t('dashboard.exportIcal')}
                                 </button>
                                 {role === 'admin' && (
@@ -273,7 +273,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 <div className="relative z-10">
                                     <div className="flex items-center justify-between mb-8">
                                         <div>
-                                            <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Gouvernance Score</span>
+                                            <span className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Gouvernance Score</span>
                                             <h3 className="text-xl font-bold text-white">Indice de Maturité</h3>
                                         </div>
                                         <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center">
@@ -284,7 +284,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <div className="flex items-end justify-between">
                                         <div className="flex items-baseline gap-2">
                                             <span className="text-8xl font-black tracking-tighter leading-none font-display bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400/80 filter drop-shadow-sm">{scoreGrade || '-'}</span>
-                                            <span className="text-xl font-medium text-slate-500 mb-2">/ A</span>
+                                            <span className="text-xl font-medium text-slate-600 mb-2">/ A</span>
                                         </div>
                                         <div className={`mb-3 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md text-sm font-bold border border-white/10 shadow-lg ${scoreGrade === 'A' ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20' : scoreGrade === 'B' ? 'text-blue-300 bg-blue-500/10 border-blue-500/20' : 'text-orange-300 bg-orange-500/10 border-orange-500/20'}`}>
                                             {scoreGrade === 'A' ? 'Excellent' : scoreGrade === 'B' ? 'Bon' : scoreGrade === 'C' ? 'Moyen' : 'Critique'}
@@ -295,7 +295,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                             {/* Radar Embedded - Glass Container */}
                             <div className="flex-1 bg-white/40 dark:bg-white/5 rounded-[2.5rem] border border-white/60 dark:border-white/5 backdrop-blur-xl p-8 flex flex-col shadow-xl shadow-slate-200/50 dark:shadow-none">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 text-center">Couverture par Domaine</h4>
+                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6 text-center">Couverture par Domaine</h4>
                                 <div className="flex-1 flex items-center justify-center -ml-2 min-h-[220px]">
                                     <MaturityRadarWidget
                                         radarData={radarData}

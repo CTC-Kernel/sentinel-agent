@@ -107,7 +107,7 @@ export const NotificationCenter: React.FC = () => {
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                                     Notifications
                                 </h3>
-                                <p className="text-xs text-slate-500 mt-0.5">
+                                <p className="text-xs text-slate-600 mt-0.5">
                                     {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
                                 </p>
                             </div>
@@ -127,10 +127,10 @@ export const NotificationCenter: React.FC = () => {
                             {notifications.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
                                     <Bell className="h-12 w-12 text-slate-300 dark:text-slate-600 mb-3 opacity-50" />
-                                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
                                         Aucune notification
                                     </p>
-                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
                                         Vous êtes à jour !
                                     </p>
                                 </div>
@@ -163,7 +163,7 @@ export const NotificationCenter: React.FC = () => {
                                                         {notification.message}
                                                     </p>
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+                                                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
                                                             {new Date(notification.createdAt).toLocaleDateString('fr-FR', {
                                                                 day: 'numeric',
                                                                 month: 'short',

@@ -50,7 +50,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <Icon className="h-8 w-8" />
           </div>
           <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{title}</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{message}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium leading-relaxed">{message}</p>
           {details && (
             <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/5">
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">{details}</p>
@@ -62,7 +62,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             onClick={onClose}
             disabled={loading}
             variant="ghost"
-            className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+            className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
           >
             {cancelText}
           </Button>

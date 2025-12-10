@@ -407,15 +407,15 @@ export const AnalyticsDashboard: React.FC = () => {
                     <div className="mt-6 grid grid-cols-3 gap-4 text-center">
                         <div>
                             <p className="text-2xl font-bold text-green-600">{controls.filter(c => c.status === 'Implémenté').length}</p>
-                            <p className="text-xs text-slate-500">Implémentés</p>
+                            <p className="text-xs text-slate-600">Implémentés</p>
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-orange-600">{controls.filter(c => c.status === 'Partiel').length}</p>
-                            <p className="text-xs text-slate-500">Partiels</p>
+                            <p className="text-xs text-slate-600">Partiels</p>
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-slate-600">{controls.filter(c => c.status === 'Non commencé').length}</p>
-                            <p className="text-xs text-slate-500">Non commencés</p>
+                            <p className="text-xs text-slate-600">Non commencés</p>
                         </div>
                     </div>
                 </div>

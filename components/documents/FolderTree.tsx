@@ -121,13 +121,13 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
     return (
         <div className="h-full flex flex-col">
             <div className="p-4 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">Dossiers</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-600">Dossiers</h3>
                 <button
                     onClick={() => {
                         setCreateParentId(undefined);
                         setShowCreateModal(true);
                     }}
-                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg text-slate-500 hover:text-blue-600 transition-colors"
+                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg text-slate-600 hover:text-blue-600 transition-colors"
                     title="Nouveau dossier racine"
                 >
                     <Plus className="h-4 w-4" />
@@ -140,7 +140,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                     onClick={() => onSelectFolder(null)}
                 >
                     <div className="w-5 mr-1" /> {/* Spacer for alignment */}
-                    <Folder className="h-4 w-4 mr-2 text-slate-400" />
+                    <Folder className="h-4 w-4 mr-2 text-slate-500" />
                     <span className="text-sm font-medium">Tous les documents</span>
                 </div>
                 {rootFolders.map(f => renderFolder(f))}
@@ -161,7 +161,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                 autoFocus
                             />
                             <div className="flex justify-end gap-2">
-                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-3 py-1.5 text-sm font-medium text-slate-500" disabled={isCreatingFolder}>Annuler</button>
+                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-3 py-1.5 text-sm font-medium text-slate-600" disabled={isCreatingFolder}>Annuler</button>
                                 <button type="submit" className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center" disabled={isCreatingFolder}>
                                     {isCreatingFolder && <span className="animate-spin mr-2">⏳</span>} Créer
                                 </button>

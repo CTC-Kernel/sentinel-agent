@@ -52,7 +52,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                 }
             `}>
                 {Icon && (
-                    <div className={`pl-4 ${error ? 'text-red-500' : isFocused ? 'text-brand-500' : 'text-slate-400'} ${textarea ? 'self-start mt-3.5' : ''}`}>
+                    <div className={`pl-4 ${error ? 'text-red-500' : isFocused ? 'text-brand-500' : 'text-slate-500'} ${textarea ? 'self-start mt-3.5' : ''}`}>
                         <Icon className="h-5 w-5" />
                     </div>
                 )}
@@ -101,7 +101,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                             ? 'text-red-500'
                             : isFocused
                                 ? 'text-brand-600'
-                                : 'text-slate-500'
+                                : 'text-slate-600'
                         }
                         ${Icon && !(isFocused || hasValue) ? 'ml-7' : ''}
                     `}

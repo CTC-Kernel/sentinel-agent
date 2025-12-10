@@ -92,13 +92,13 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                             {existingTask ? 'Modifier la tâche' : 'Nouvelle tâche'}
                         </h2>
-                        <p className="text-sm text-slate-500 mt-1">
+                        <p className="text-sm text-slate-600 mt-1">
                             Définissez les détails de la tâche du projet
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors"
+                        className="p-2 text-slate-500 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors"
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -108,7 +108,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 <form onSubmit={handleSubmit(onFormSubmit)} className="p-8 space-y-6">
                     {/* Title */}
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">
                             Titre de la tâche *
                         </label>
                         <input
@@ -122,7 +122,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
                     {/* Description */}
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">
                             Description
                         </label>
                         <textarea
@@ -136,7 +136,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                     {/* Row 1: Status & Priority */}
                     <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">
                                 Statut
                             </label>
                             <select
@@ -151,7 +151,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">
                                 Priorité
                             </label>
                             <select
@@ -168,7 +168,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                     {/* Row 2: Assignee & Dates */}
                     <div className="grid grid-cols-3 gap-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 flex items-center gap-2">
                                 <User className="h-3.5 w-3.5" />
                                 Assigné à
                             </label>
@@ -198,7 +198,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 flex items-center gap-2">
                                 <Calendar className="h-3.5 w-3.5" />
                                 Date de début
                             </label>
@@ -211,7 +211,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
                         <div>
                             <div className="flex items-center justify-between mb-2">
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 flex items-center gap-2">
                                     <Calendar className="h-3.5 w-3.5" />
                                     Date d'échéance
                                 </label>
@@ -239,7 +239,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                     {/* Row 3: Estimated & Actual Hours */}
                     <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 flex items-center gap-2">
                                 <Clock className="h-3.5 w-3.5" />
                                 Heures estimées
                             </label>
@@ -255,7 +255,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 flex items-center gap-2">
                                 <Clock className="h-3.5 w-3.5" />
                                 Heures réelles
                             </label>
@@ -273,7 +273,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
                     {/* Progress */}
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 flex items-center gap-2">
                             <Target className="h-3.5 w-3.5" />
                             Progression ({progress}%)
                         </label>
@@ -290,7 +290,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                     {/* Dependencies */}
                     {availableTasks.length > 0 && (
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 flex items-center gap-2">
                                 <AlertCircle className="h-3.5 w-3.5" />
                                 Dépendances
                             </label>
@@ -322,7 +322,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                            className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
                         >
                             Annuler
                         </button>

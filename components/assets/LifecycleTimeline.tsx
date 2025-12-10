@@ -63,11 +63,11 @@ export const LifecycleTimeline: React.FC<LifecycleTimelineProps> = ({
                                 <Icon className="h-4 w-4" />
                             </div>
                             <div className="mt-3 text-center">
-                                <p className={`text-xs font-bold uppercase tracking-wider ${isCompleted ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>
+                                <p className={`text-xs font-bold uppercase tracking-wider ${isCompleted ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
                                     {step.label}
                                 </p>
                                 {step.date && (
-                                    <p className="text-[10px] font-medium text-slate-500 mt-0.5">
+                                    <p className="text-[10px] font-medium text-slate-600 mt-0.5">
                                         {step.date.includes('Prochaine') ? step.date : new Date(step.date).toLocaleDateString()}
                                     </p>
                                 )}
