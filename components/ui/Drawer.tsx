@@ -70,7 +70,7 @@ export const Drawer: React.FC<DrawerProps> = ({
             />
 
             {/* Drawer Panel */}
-            <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
+            <div className="absolute inset-y-0 right-0 left-0 sm:left-auto sm:pl-10 max-w-full flex pointer-events-none">
                 <div className={`w-full ${width} pointer-events-auto transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                     <div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5">
 
