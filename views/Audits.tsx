@@ -185,7 +185,7 @@ export const Audits: React.FC = () => {
             const relatedControlId = findingForm.getValues('relatedControlId');
 
             // Auto-create Document
-            const docRef = await addDoc(collection(db, 'documents'), {
+            const docRef = await addDoc(collection(db, 'documents'), sanitizeData({
                 title: `Preuve - ${fileName} `,
                 type: 'Preuve',
                 version: '1.0',
@@ -198,7 +198,7 @@ export const Audits: React.FC = () => {
                 updatedAt: new Date().toISOString(),
                 relatedAuditIds: [selectedAudit.id],
                 relatedControlIds: relatedControlId ? [relatedControlId] : []
-            });
+            }));
 
             // Link to new finding
             const currentIds = findingForm.getValues('evidenceIds') || [];
@@ -492,18 +492,18 @@ export const Audits: React.FC = () => {
                 }
             });
 
-            const newChecklist = {
+            const newChecklist = sanitizeData({
                 auditId: selectedAudit.id,
                 organizationId: user.organizationId,
                 questions,
                 completedBy: user.email,
                 completedAt: new Date().toISOString()
-            };
+            });
 
             // If updating existing, delete old one first or update doc
             // For simplicity, we'll treat it as a new/update
             if (checklist) {
-                await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions });
+                await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: sanitizeData(questions) });
                 setChecklist({ ...checklist, questions });
             } else {
                 const ref = await addDoc(collection(db, 'audit_checklists'), newChecklist);
@@ -522,7 +522,7 @@ export const Audits: React.FC = () => {
         setChecklist({ ...checklist, questions: updatedQuestions });
         // Debounced save could be better, but direct update for now
         try {
-            await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: updatedQuestions });
+            await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: sanitizeData(updatedQuestions) });
         } catch (e) { ErrorLogger.error(e, 'Audits.handleChecklistAnswer'); }
     };
 
@@ -531,7 +531,7 @@ export const Audits: React.FC = () => {
         const updatedQuestions = checklist.questions.map(q => ({ ...q, response: 'Conforme' as const }));
         setChecklist({ ...checklist, questions: updatedQuestions });
         try {
-            await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: updatedQuestions });
+            await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: sanitizeData(updatedQuestions) });
             addToast("Tout marqué comme conforme", "success");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Audits.markAllConform', 'UPDATE_FAILED'); }
     };
@@ -1003,7 +1003,7 @@ export const Audits: React.FC = () => {
     ], [canEdit, openEditDrawer, initiateDeleteAudit]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative overflow-x-hidden px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 sm:pt-8 w-full max-w-full">
+        <div className="space-y-8 animate-fade-in pb-10 relative w-full max-w-full overflow-x-hidden">
             <Helmet>
                 <title>Gestion des Audits - Sentinel GRC</title>
                 <meta name="description" content="Planifiez et réalisez vos audits internes et externes ISO 27001." />
