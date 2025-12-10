@@ -877,7 +877,7 @@ export const Risks: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 sm:pt-8">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 sm:pt-8 w-full max-w-full overflow-x-hidden">
             <SEO
                 title="Gestion des Risques - Sentinel GRC"
                 description="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005."
@@ -1125,7 +1125,7 @@ export const Risks: React.FC = () => {
                         </div>
                     </div>
                 ) : viewMode === 'list' ? (
-                    <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                    <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
                         <DataTable
                             columns={[
                                 {

@@ -757,7 +757,7 @@ export const Projects: React.FC = () => {
     ], [canEdit, openEditDrawer, initiateDelete]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative">
+        <div className="space-y-8 animate-fade-in pb-10 relative w-full max-w-full overflow-x-hidden">
             <Helmet>
                 <title>Gestion de Projets - Sentinel GRC</title>
                 <meta name="description" content="Suivez vos projets de mise en conformité et d'amélioration continue." />
@@ -977,7 +977,7 @@ export const Projects: React.FC = () => {
             </div>
 
             {viewMode === 'list' ? (
-                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
                     <DataTable
                         columns={columns}
                         data={filteredProjects}
