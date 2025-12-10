@@ -52,6 +52,10 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         defaultValues: initialData || {
             name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
             owner: '', ownerId: '', vatNumber: '',
+            description: '',
+            contactName: '', contactEmail: '',
+            contractDocumentId: '',
+            contractEnd: '',
             assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false },
             isICTProvider: false, supportsCriticalFunction: false, doraCriticality: 'None', serviceType: 'SaaS',
             relatedAssetIds: [], relatedRiskIds: [], relatedProjectIds: [], supportedProcessIds: []

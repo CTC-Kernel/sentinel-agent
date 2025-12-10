@@ -3228,20 +3228,34 @@ exports.fetchExternalSecurityEvents = onCall(async (request) => {
 exports.searchCompany = onCall(async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Auth required');
     const { query } = request.data;
+    const searchTerm = query || '';
 
-    // In a real prod environment, you would check for a stored API key for Pappers/Societe.com
-    // For now, we return empty or error if no key is configured.
+    if (searchTerm.length < 3) {
+        return [];
+    }
 
-    // Check for API Key in constants or Firestore secrets
-    // const apiKey = process.env.PAPPERS_API_KEY; 
+    try {
+        const response = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${encodeURIComponent(searchTerm)}&per_page=10`);
 
-    // Since we don't have the key, we simulate the "Not Configured" state for Production
-    // unless the user provided one in secrets.
+        if (!response.ok) {
+            logger.error(`Company API Error: ${response.statusText}`);
+            return [];
+        }
 
-    // If you want this to work "out of the box" without keys, you'd need to use a really open API.
-    // The previous implementation was a purely frontend mock. This function is the PLACEHOLDER for the real backend logic.
+        const data = await response.json();
+        const results = data.results || [];
 
-    throw new HttpsError('unimplemented', 'Company Search API Key not configured in backend.');
+        return results.map(company => ({
+            name: company.nom_complet,
+            siren: company.siren,
+            address: company.siege.adresse_complete || company.siege.geo_adresse,
+            activity: `${company.activite_principale} - ${company.libelle_activite_principale}`
+        }));
+
+    } catch (error) {
+        logger.error("Error calling api.gouv.fr", error);
+        return [];
+    }
 });
 
 /**
