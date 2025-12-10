@@ -491,7 +491,7 @@ export const Assets: React.FC = () => {
     const handleCreateRiskFromVuln = async (vuln: Vulnerability) => {
         if (!selectedAsset || !user?.organizationId) return;
         try {
-            await addDoc(collection(db, 'risks'), {
+            await addDoc(collection(db, 'risks'), sanitizeData({
                 organizationId: user.organizationId,
                 assetId: selectedAsset.id,
                 threat: `Vulnérabilité ${vuln.cveId}`,
@@ -504,7 +504,7 @@ export const Assets: React.FC = () => {
                 owner: user.displayName || 'Système',
                 createdAt: new Date().toISOString(),
                 history: []
-            });
+            }));
             await logAction(user, 'CREATE', 'Risk', `Création auto risque pour CVE ${vuln.cveId} sur ${selectedAsset.name}`);
             addToast(`Risque créé pour ${vuln.cveId}`, "success");
             // Refresh risks

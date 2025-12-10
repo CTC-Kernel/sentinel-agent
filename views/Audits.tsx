@@ -44,6 +44,7 @@ import { useFirestoreCollection } from '../hooks/useFirestore';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuditFormData, findingSchema, FindingFormData, auditSchema } from '../schemas/auditSchema';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { z } from 'zod';
 import { aiService } from '../services/aiService';
 import { analyticsService } from '../services/analyticsService';
@@ -267,7 +268,8 @@ export const Audits: React.FC = () => {
             // Update existing audit
             try {
                 const validatedData = auditSchema.parse(data);
-                await updateDoc(doc(db, 'audits', editingAudit.id), { ...validatedData });
+                const cleanData = sanitizeData(validatedData);
+                await updateDoc(doc(db, 'audits', editingAudit.id), { ...cleanData });
                 await logAction(user, 'UPDATE', 'Audit', `Mise à jour audit: ${validatedData.name}`);
                 addToast("Audit mis à jour", "success");
                 setEditingAudit(null);
@@ -285,8 +287,9 @@ export const Audits: React.FC = () => {
             // Create new audit
             try {
                 const validatedData = auditSchema.parse(data);
+                const cleanData = sanitizeData(validatedData);
                 await addDoc(collection(db, 'audits'), {
-                    ...validatedData,
+                    ...cleanData,
                     organizationId: user.organizationId,
                     findingsCount: 0,
                     createdBy: user.uid // Track creator for Segregation of Duties
@@ -335,8 +338,9 @@ export const Audits: React.FC = () => {
     const handleAddFinding: SubmitHandler<FindingFormData> = async (data) => {
         if (!canEdit || !selectedAudit || !user?.organizationId) return;
         try {
+            const cleanData = sanitizeData(data);
             await addDoc(collection(db, 'findings'), {
-                ...data,
+                ...cleanData,
                 organizationId: user.organizationId,
                 auditId: selectedAudit.id,
                 createdAt: new Date().toISOString()
