@@ -903,7 +903,7 @@ export const Compliance: React.FC = () => {
                             {viewMode === 'compliance' && (
                                 <>
                                     {/* Framework Switcher - ScrollableTabs */}
-                                    <div className="w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+                                    <div className="w-full md:w-auto overflow-x-auto pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 no-scrollbar">
                                         <ScrollableTabs
                                             tabs={complianceFrameworks.map(f => ({ id: f.value, label: f.label }))}
                                             activeTab={currentFramework}
@@ -934,7 +934,7 @@ export const Compliance: React.FC = () => {
 
                         {/* Filter Bar - Clean Style */}
                         <SlideUp>
-                            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-col sm:flex-row gap-4 shadow-sm">
+                            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-col md:flex-row gap-4 shadow-sm">
                                 <div className="flex-1 relative group flex items-center">
                                     <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                                     <input
@@ -946,20 +946,20 @@ export const Compliance: React.FC = () => {
                                     />
                                 </div>
 
-                                <div className="flex gap-3">
+                                <div className="flex gap-2 p-2 pt-0 md:p-0 overflow-x-auto no-scrollbar md:overflow-visible">
                                     {/* Status Filter Badge */}
                                     {statusFilter && (
-                                        <button onClick={() => setStatusFilter(null)} className="flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-brand-50 text-brand-700 border border-brand-200 dark:bg-brand-900/20 dark:text-brand-300 dark:border-brand-800 animate-fade-in hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors">
-                                            <span className="mr-2 opacity-70">Filtre:</span> {statusFilter} <X className="h-4 w-4 ml-2" />
+                                        <button onClick={() => setStatusFilter(null)} className="flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-brand-50 text-brand-700 border border-brand-200 dark:bg-brand-900/20 dark:text-brand-300 dark:border-brand-800 animate-fade-in hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors whitespace-nowrap shrink-0">
+                                            <span className="mr-2 opacity-70 hidden sm:inline">Filtre:</span> {statusFilter} <X className="h-4 w-4 ml-2" />
                                         </button>
                                     )}
 
                                     <button
                                         onClick={() => setShowMissingEvidence(!showMissingEvidence)}
-                                        className={`flex items-center px-5 py-3 rounded-xl text-sm font-bold border transition-all shadow-sm ${showMissingEvidence ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                        className={`flex items-center px-5 py-3 rounded-xl text-sm font-bold border transition-all shadow-sm whitespace-nowrap shrink-0 ${showMissingEvidence ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'}`}
                                     >
                                         <Filter className={`h-4 w-4 mr-2 ${showMissingEvidence ? 'fill-current' : ''}`} />
-                                        Preuves manquantes
+                                        Preuves <span className="hidden sm:inline ml-1">manquantes</span>
                                     </button>
                                 </div>
                             </div>
@@ -1010,19 +1010,19 @@ export const Compliance: React.FC = () => {
                                                 <div key={domain.id} className="glass-panel rounded-[2.5rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
                                                     <div
                                                         onClick={() => toggleDomain(domain.id)}
-                                                        className={`p-6 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer transition-colors gap-4 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                                        className={`p-6 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                                                     >
                                                         <div className="flex items-center gap-5">
-                                                            <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-white/10">
+                                                            <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-white/10 shrink-0">
                                                                 {domain.id.split('.')[1]}
                                                             </div>
                                                             <div>
-                                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{domain.title}</h3>
-                                                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">{domain.description} • <span className="text-slate-700 dark:text-slate-300">{stats.total} contrôles</span></p>
+                                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">{domain.title}</h3>
+                                                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">{domain.description} • <span className="text-slate-700 dark:text-slate-300">{stats.total} contrôles</span></p>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-8">
-                                                            <div className="hidden md:block w-40">
+                                                        <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 w-full md:w-auto pl-[4.25rem] md:pl-0">
+                                                            <div className="w-full md:w-40">
                                                                 <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
                                                                     <span>Progression</span>
                                                                     <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
@@ -1031,7 +1031,7 @@ export const Compliance: React.FC = () => {
                                                                     <div className={`h-full rounded-full transition-all duration-500 ${stats.progress === 100 ? 'bg-emerald-500' : 'bg-brand-500'}`} style={{ width: `${stats.progress}%` }}></div>
                                                                 </div>
                                                             </div>
-                                                            <div className={`p-2 rounded-full transition-all duration-300 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-sm rotate-180 text-slate-900 dark:text-white' : 'text-slate-400'}`}>
+                                                            <div className={`p-2 rounded-full transition-all duration-300 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-sm rotate-180 text-slate-900 dark:text-white' : 'text-slate-400'}`}>
                                                                 <ChevronDown className="h-5 w-5" />
                                                             </div>
                                                         </div>
@@ -1048,10 +1048,10 @@ export const Compliance: React.FC = () => {
                                                                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 flex-1 min-w-0">
                                                                                 <div className="min-w-[50px]"><span className="text-xs font-black text-slate-400 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
                                                                                 <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
-                                                                                    <div className="flex items-center mt-1 gap-3 text-xs">
-                                                                                        {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded"><Paperclip className="h-3 w-3 mr-1" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium"><AlertTriangle className="h-3 w-3 mr-1" /> Preuve manquante</span>) : null}
-                                                                                        {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 px-2 py-0.5 rounded"><ShieldAlert className="h-3 w-3 mr-1" /> {riskCount} risques</span>)}
-                                                                                        {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded"><AlertOctagon className="h-3 w-3 mr-1" /> {findingsCount} écarts</span>)}
+                                                                                    <div className="flex flex-wrap items-center mt-2 gap-2 text-xs">
+                                                                                        {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-md text-[11px]"><Paperclip className="h-3 w-3 mr-1.5" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium bg-orange-50 dark:bg-orange-900/10 px-2.5 py-1 rounded-md text-[11px]"><AlertTriangle className="h-3 w-3 mr-1.5" /> Preuve manquante</span>) : null}
+                                                                                        {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 rounded-md text-[11px]"><ShieldAlert className="h-3 w-3 mr-1.5" /> {riskCount} risques</span>)}
+                                                                                        {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2.5 py-1 rounded-md text-[11px]"><AlertOctagon className="h-3 w-3 mr-1.5" /> {findingsCount} écarts</span>)}
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -1129,12 +1129,22 @@ export const Compliance: React.FC = () => {
                                         Ouvrir dans un nouvel onglet <ExternalLink className="w-3 h-3 ml-1" />
                                     </a>
                                 </div>
-                                <div className="aspect-[16/9] w-full bg-slate-100 dark:bg-slate-900">
-                                    <iframe
-                                        src={eurLexResult}
-                                        className="w-full h-full border-none"
-                                        title="EUR-Lex Search Results"
-                                    />
+                                <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/50 flex flex-col items-center justify-center min-h-[300px]">
+                                    <div className="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-full mb-4">
+                                        <Globe className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Résultats disponibles sur EUR-Lex</h4>
+                                    <p className="text-slate-500 dark:text-slate-400 max-w-md mb-6">
+                                        Pour des raisons de sécurité, le portail EUR-Lex ne permet pas l'affichage direct dans cette fenêtre.
+                                    </p>
+                                    <a
+                                        href={eurLexResult}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+                                    >
+                                        Consulter les résultats <ExternalLink className="w-4 h-4 ml-2" />
+                                    </a>
                                 </div>
                             </div>
                         )}
