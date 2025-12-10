@@ -126,7 +126,7 @@ export function DataTable<TData extends { id: string }, TValue>({
     const selectedIds = Object.keys(rowSelection).filter(id => rowSelection[id]);
 
     return (
-        <div className={cn("space-y-4", className)}>
+        <div className={cn("space-y-4 min-w-0", className)}>
             {/* Toolbar */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 {searchable && (
