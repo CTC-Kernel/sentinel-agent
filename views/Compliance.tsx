@@ -883,7 +883,7 @@ export const Compliance: React.FC = () => {
                     icon={<ShieldCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
                     trustType="general"
                     actions={
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             {/* View Switcher */}
                             <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10">
                                 <button
