@@ -161,15 +161,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <div className="px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-300 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm">Workspace</div>
                                 </div>
                                 <h1 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight font-display drop-shadow-sm leading-tight">
-                                    Sentinel GRC
+                                    {organizationName || user?.organizationName || t('dashboard.operationalSystem')}
                                 </h1>
                                 <div className="flex items-center gap-3 text-sm font-medium text-slate-500 dark:text-slate-400">
                                     <span className="relative flex h-2.5 w-2.5">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                                     </span>
-                                    {organizationName || user?.organizationName || t('dashboard.operationalSystem')}
-                                    <span className="text-slate-300 dark:text-slate-600">•</span>
                                     <span className="text-slate-500 dark:text-slate-500 font-mono text-xs uppercase tracking-wide">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
                                 </div>
                             </div>
@@ -269,8 +267,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         <div className="hidden lg:flex flex-col gap-8 w-[420px] shrink-0">
                             {/* Grade Card - Premium Glass */}
                             <div className="group relative overflow-hidden rounded-[2.5rem] bg-slate-900 text-white p-10 shadow-2xl transition-all duration-500 hover:shadow-brand-500/20">
-                                <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${getGradeColor(scoreGrade)} blur-[80px] opacity-30 -mr-20 -mt-20 transition-all duration-700 group-hover:opacity-50`} />
-                                <div className={`absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr ${getGradeColor(scoreGrade)} blur-[60px] opacity-10 -ml-16 -mb-16`} />
+                                <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${getGradeColor(scoreGrade)} rounded-full blur-[80px] opacity-30 -mr-20 -mt-20 transition-all duration-700 group-hover:opacity-50 transform-gpu`} />
+                                <div className={`absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr ${getGradeColor(scoreGrade)} rounded-full blur-[60px] opacity-10 -ml-16 -mb-16 transform-gpu`} />
 
                                 <div className="relative z-10">
                                     <div className="flex items-center justify-between mb-8">
