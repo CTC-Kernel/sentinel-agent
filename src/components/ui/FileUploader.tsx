@@ -14,6 +14,7 @@ interface FileUploaderProps {
     disabledMessage?: string;
     compact?: boolean;
     label?: string;
+    initialFile?: File; // New prop
 }
 
 export const FileUploader: React.FC<FileUploaderProps> = ({
@@ -25,7 +26,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     disabled = false,
     disabledMessage = "Upload désactivé",
     compact = false,
-    label
+    label,
+    initialFile
 }) => {
     const { user } = useStore();
     const [uploading, setUploading] = useState(false);
@@ -34,6 +36,18 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isSecure, setIsSecure] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Handle initial file
+    React.useEffect(() => {
+        if (initialFile) {
+            const validation = validateFile(initialFile, maxSizeMB, allowedTypes);
+            if (validation.valid) {
+                setSelectedFile(initialFile);
+            } else {
+                setError(validation.error || 'Invalid file');
+            }
+        }
+    }, [initialFile, maxSizeMB, allowedTypes]); // Check dependencies
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -121,41 +135,43 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     return (
         <div className="space-y-4">
             {/* File Input */}
-            <div className="relative">
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    onChange={handleFileSelect}
-                    multiple={multiple}
-                    accept={allowedTypes.join(',')}
-                    className="hidden"
-                    id="file-upload"
-                    disabled={disabled}
-                />
-                <label
-                    htmlFor={disabled ? undefined : "file-upload"}
-                    className={`flex flex-col items-center justify-center w-full ${compact ? 'h-20' : 'h-32'} border-2 border-dashed rounded-2xl transition-colors ${disabled ? 'border-slate-200 bg-slate-100 cursor-not-allowed' : 'border-slate-300 dark:border-slate-600 cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 bg-slate-50 dark:bg-slate-800/50'}`}
-                >
-                    {disabled ? (
-                        <div className="text-center">
-                            <AlertTriangle className={`text-slate-500 mx-auto ${compact ? 'h-5 w-5' : 'h-8 w-8 mb-2'}`} />
-                            <p className="text-sm font-medium text-slate-600">{disabledMessage}</p>
-                        </div>
-                    ) : (
-                        <>
-                            <Upload className={`text-slate-500 ${compact ? 'h-5 w-5 mb-1' : 'h-8 w-8 mb-2'}`} />
-                            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                                {label || "Cliquez pour sélectionner un fichier"}
-                            </p>
-                            {!compact && (
-                                <p className="text-xs text-slate-600 dark:text-slate-500 mt-1">
-                                    Max {maxSizeMB}MB • PDF, Images, Excel
+            {!selectedFile && (
+                <div className="relative">
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        onChange={handleFileSelect}
+                        multiple={multiple}
+                        accept={allowedTypes.join(',')}
+                        className="hidden"
+                        id="file-upload"
+                        disabled={disabled}
+                    />
+                    <label
+                        htmlFor={disabled ? undefined : "file-upload"}
+                        className={`flex flex-col items-center justify-center w-full ${compact ? 'h-20' : 'h-32'} border-2 border-dashed rounded-2xl transition-colors ${disabled ? 'border-slate-200 bg-slate-100 cursor-not-allowed' : 'border-slate-300 dark:border-slate-600 cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 bg-slate-50 dark:bg-slate-800/50'}`}
+                    >
+                        {disabled ? (
+                            <div className="text-center">
+                                <AlertTriangle className={`text-slate-500 mx-auto ${compact ? 'h-5 w-5' : 'h-8 w-8 mb-2'}`} />
+                                <p className="text-sm font-medium text-slate-600">{disabledMessage}</p>
+                            </div>
+                        ) : (
+                            <>
+                                <Upload className={`text-slate-500 ${compact ? 'h-5 w-5 mb-1' : 'h-8 w-8 mb-2'}`} />
+                                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                                    {label || "Cliquez pour sélectionner un fichier"}
                                 </p>
-                            )}
-                        </>
-                    )}
-                </label>
-            </div>
+                                {!compact && (
+                                    <p className="text-xs text-slate-600 dark:text-slate-500 mt-1">
+                                        Max {maxSizeMB}MB • PDF, Images, Excel
+                                    </p>
+                                )}
+                            </>
+                        )}
+                    </label>
+                </div>
+            )}
 
             {/* Selected File */}
             {selectedFile && (

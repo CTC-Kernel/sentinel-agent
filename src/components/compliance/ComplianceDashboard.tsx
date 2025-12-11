@@ -120,7 +120,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group">
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 relative group">
                 <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>
@@ -167,7 +167,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 </div>
 
                 {/* Framework Breakdown */}
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 border-t border-b sm:border-t-0 sm:border-b-0 sm:border-l sm:border-r border-slate-200 dark:border-white/10 py-6 sm:py-0 sm:px-6 sm:mx-2 my-2 sm:my-0">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 border-t border-b xl:border-t-0 xl:border-b-0 xl:border-l xl:border-r border-slate-200 dark:border-white/10 py-6 xl:py-0 xl:px-6 xl:mx-2 my-2 xl:my-0">
                     <div className="text-center flex items-center justify-between sm:block">
                         <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-0 sm:mb-1">ISO 27001</div>
                         <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{Math.round(isoScore)}%</div>

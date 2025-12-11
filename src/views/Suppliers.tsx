@@ -591,7 +591,7 @@ export const Suppliers: React.FC = () => {
     ], [canEdit, initiateDelete]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full">
             <Helmet>
                 <title>Gestion des Fournisseurs - Sentinel GRC</title>
                 <meta name="description" content="Gérez vos fournisseurs, évaluez leur conformité DORA et suivez les contrats." />

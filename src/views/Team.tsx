@@ -353,7 +353,7 @@ export const Team: React.FC = () => {
     }, [fetchRoles]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full">
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -637,7 +637,7 @@ export const Team: React.FC = () => {
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Email professionnel</label>
                         <input type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                             {...inviteForm.register('email')} placeholder="jean@entreprise.com" />
-                        {inviteForm.formState.errors.email && <p className="text-red-500 text-xs mt-1">{inviteForm.formState.errors.email.message}</p>}
+                        {inviteForm.formState.errors.email && <p className="text-red-500 text-xs mt-1">{inviteForm.formState.errors.email?.message}</p>}
                     </div>
                     <div className="grid grid-cols-2 gap-6">
                         <div>

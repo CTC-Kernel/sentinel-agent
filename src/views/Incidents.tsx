@@ -333,7 +333,7 @@ export const Incidents: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative w-full max-w-full overflow-x-hidden">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full">
             <SEO
                 title="Gestion des Incidents"
                 description="Détection, analyse et réponse aux incidents de sécurité (SOC/CSIRT)."

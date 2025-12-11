@@ -854,7 +854,7 @@ export const Settings: React.FC = () => {
     };
 
     return (
-        <div className="max-w-3xl mx-auto pb-12 animate-fade-in pt-6 relative">
+        <div className="max-w-3xl mx-auto pb-12 animate-fade-in pt-6 relative px-4 sm:px-6 lg:px-8 w-full">
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}

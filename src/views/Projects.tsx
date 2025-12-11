@@ -802,7 +802,7 @@ export const Projects: React.FC = () => {
     ], [canEdit, openEditDrawer, initiateDelete]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative w-full max-w-full overflow-x-hidden">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full">
             <Helmet>
                 <title>Gestion de Projets - Sentinel GRC</title>
                 <meta name="description" content="Suivez vos projets de mise en conformité et d'amélioration continue." />

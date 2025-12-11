@@ -899,7 +899,7 @@ export const Risks: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 sm:pt-8 w-full max-w-full overflow-x-hidden">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 w-full">
             <SEO
                 title="Gestion des Risques - Sentinel GRC"
                 description="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005."
