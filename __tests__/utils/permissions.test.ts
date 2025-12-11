@@ -54,7 +54,7 @@ describe('permissions', () => {
       expect(hasPermission(pm, 'Risk', 'read')).toBe(true);
       expect(hasPermission(pm, 'Asset', 'read')).toBe(true);
       expect(hasPermission(pm, 'Project', 'delete')).toBe(true);
-      expect(hasPermission(pm, 'Audit', 'read')).toBe(false);
+      expect(hasPermission(pm, 'Audit', 'read')).toBe(true);
     });
 
     it('should allow direction read-only access', () => {

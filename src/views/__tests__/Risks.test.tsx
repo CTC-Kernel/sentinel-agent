@@ -47,6 +47,9 @@ vi.mock('@/components/ui/Icons', () => ({
     BrainCircuit: () => <span data-testid="icon-brain" />,
     LayoutGrid: () => <span data-testid="icon-layout-grid" />,
     List: () => <span data-testid="icon-list" />,
+    Activity: () => <span data-testid="icon-activity" />,
+    AlertTriangle: () => <span data-testid="icon-alert" />,
+    Layers: () => <span data-testid="icon-layers" />,
 }));
 // Mock other components to simplify test
 vi.mock('../../components/ui/PageHeader', () => ({

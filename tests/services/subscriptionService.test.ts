@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SubscriptionService } from '@/services/subscriptionService';
-import { getDoc } from 'firebase/firestore';
+import { getDoc, DocumentSnapshot } from 'firebase/firestore';
 
 // Explicitly mock firestore in this test file to ensure we can control it
 vi.mock('firebase/firestore', () => ({
@@ -16,7 +16,9 @@ vi.mock('firebase/firestore', () => ({
 
 // Mock getPlanLimits to avoid dependency on config file if possible, or let it run if it's pure JS
 // We'll mock the firestore response
-vi.mock('../../config/plans', () => ({
+// Mock getPlanLimits to avoid dependency on config file if possible, or let it run if it's pure JS
+// We'll mock the firestore response
+vi.mock('@/config/plans', () => ({
     getPlanLimits: (planId: string) => {
         const limits = {
             discovery: { maxUsers: 3, maxProjects: 1, maxAssets: 10, maxStorageGB: 1, features: { aiAssistant: false } },
@@ -35,7 +37,7 @@ describe('SubscriptionService', () => {
         it('should return discovery limits if organization does not exist', async () => {
             vi.mocked(getDoc).mockResolvedValue({
                 exists: () => false,
-            } as any); // using as any for DocumentSnapshot partial mock is common practice in tests unless we mock the whole interface
+            } as unknown as DocumentSnapshot); // using as any for DocumentSnapshot partial mock is common practice in tests unless we mock the whole interface
 
             const limits = await SubscriptionService.getLimits('non-existent-org');
             expect(limits.maxUsers).toBe(3);
@@ -45,7 +47,7 @@ describe('SubscriptionService', () => {
             vi.mocked(getDoc).mockResolvedValue({
                 exists: () => true,
                 data: () => ({ subscription: { planId: 'professional' } }),
-            } as any);
+            } as unknown as DocumentSnapshot);
 
             const limits = await SubscriptionService.getLimits('org-123');
             expect(limits.maxUsers).toBe(10);
@@ -58,7 +60,7 @@ describe('SubscriptionService', () => {
             vi.mocked(getDoc).mockResolvedValue({
                 exists: () => true,
                 data: () => ({ subscription: { planId: 'discovery' } }),
-            } as any);
+            } as unknown as DocumentSnapshot);
 
             const allowed = await SubscriptionService.checkLimit('org-123', 'users', 2);
             expect(allowed).toBe(true);
@@ -68,7 +70,7 @@ describe('SubscriptionService', () => {
             vi.mocked(getDoc).mockResolvedValue({
                 exists: () => true,
                 data: () => ({ subscription: { planId: 'discovery' } }),
-            } as any);
+            } as unknown as DocumentSnapshot);
 
             const allowed = await SubscriptionService.checkLimit('org-123', 'users', 5);
             expect(allowed).toBe(false);
@@ -80,7 +82,7 @@ describe('SubscriptionService', () => {
             vi.mocked(getDoc).mockResolvedValue({
                 exists: () => true,
                 data: () => ({ subscription: { planId: 'professional' } }),
-            } as any);
+            } as unknown as DocumentSnapshot);
 
             const hasAI = await SubscriptionService.hasFeature('org-123', 'aiAssistant');
             expect(hasAI).toBe(true);
@@ -90,7 +92,7 @@ describe('SubscriptionService', () => {
             vi.mocked(getDoc).mockResolvedValue({
                 exists: () => true,
                 data: () => ({ subscription: { planId: 'discovery' } }),
-            } as any);
+            } as unknown as DocumentSnapshot);
 
             const hasAI = await SubscriptionService.hasFeature('org-123', 'aiAssistant');
             expect(hasAI).toBe(false);

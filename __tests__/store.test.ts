@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useStore } from '@store';
+import { useStore } from '@/store';
 
 // Mock localStorage
 const localStorageMock = {
@@ -51,7 +51,7 @@ describe('store', () => {
   describe('functions exist', () => {
     it('should have all required functions', () => {
       const store = useStore.getState();
-      
+
       expect(typeof store.setUser).toBe('function');
       expect(typeof store.toggleTheme).toBe('function');
       expect(typeof store.setLoading).toBe('function');
@@ -63,7 +63,7 @@ describe('store', () => {
   describe('loading states', () => {
     it('should set loading state', () => {
       const store = useStore.getState();
-      
+
       store.setLoading(true);
 
       expect(store.isLoading).toBe(true);
