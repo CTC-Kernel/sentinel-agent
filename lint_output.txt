@@ -3,24 +3,38 @@
 > eslint .
 
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx
-    15:43   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
-    19:28   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
-   497:24   error    Error: Cannot call impure function during render
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/mobile/app/dashboard.tsx
+   5:16  warning  'db' is defined but never used                  @typescript-eslint/no-unused-vars
+   6:10  warning  'collection' is defined but never used          @typescript-eslint/no-unused-vars
+   6:22  warning  'query' is defined but never used               @typescript-eslint/no-unused-vars
+   6:29  warning  'where' is defined but never used               @typescript-eslint/no-unused-vars
+   6:36  warning  'getCountFromServer' is defined but never used  @typescript-eslint/no-unused-vars
+  11:12  warning  'loading' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  54:18  warning  'error' is defined but never used               @typescript-eslint/no-unused-vars
+  59:63  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
 
-`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/mobile/app/index.tsx
+   2:89  warning  'Image' is defined but never used         @typescript-eslint/no-unused-vars
+  23:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:497:24
-  495 |       posArray[i * 3 + 1] = point.y;
-  496 |       posArray[i * 3 + 2] = point.z;
-> 497 |       offsetArray[i] = Math.random(); // Random start phase
-      |                        ^^^^^^^^^^^^^ Cannot call impure function
-  498 |     }
-  499 |     return { positions: posArray, initialOffsets: offsetArray };
-  500 |   }, [curve]);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/purity
-   558:149  warning  'opacity' is defined but never used. Allowed unused args must match /^_/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
-   723:8    warning  React Hook useMemo has an unnecessary dependency: 'opacity'. Either exclude it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/exhaustive-deps
-  1068:7    error    Error: Calling setState synchronously within an effect can trigger cascading renders
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/mobile/app/scanner.tsx
+  27:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/mobile/firebaseConfig.ts
+  2:1  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/mobile/services/offlineStorage.ts
+  10:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/IncidentPlaybookView.tsx
+  53:6  warning  React Hook useCallback has an unnecessary dependency: 'addToast'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/VoxelStudio.tsx
+    15:43   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+    19:28   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+   563:149  warning  'opacity' is defined but never used. Allowed unused args must match /^_/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   728:8    warning  React Hook useMemo has an unnecessary dependency: 'opacity'. Either exclude it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                react-hooks/exhaustive-deps
+  1073:7    error    Error: Calling setState synchronously within an effect can trigger cascading renders
 
 Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
 * Update external systems with the latest state from React.
@@ -28,158 +42,37 @@ Effects are intended to synchronize state between React and external systems suc
 
 Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:1068:7
-  1066 |   useEffect(() => {
-  1067 |     if (!presentationMode) {
-> 1068 |       setPresentationIndex(0);
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/VoxelStudio.tsx:1073:7
+  1071 |   useEffect(() => {
+  1072 |     if (!presentationMode) {
+> 1073 |       setPresentationIndex(0);
        |       ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  1069 |     }
-  1070 |   }, [presentationMode]);
-  1071 |                                                                                                                                                                                                                                                   react-hooks/set-state-in-effect
-  1159:30   error    Compilation Skipped: Existing memoization could not be preserved
+  1074 |     }
+  1075 |   }, [presentationMode, setPresentationIndex]);
+  1076 |  react-hooks/set-state-in-effect
+  1313:6    warning  React Hook useMemo has an unnecessary dependency: 'applySceneOffset'. Either exclude it or remove the dependency array. Outer scope values like 'applySceneOffset' aren't valid dependencies because mutating them doesn't re-render the component                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
 
-React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `safeAssets`, but the source dependencies were [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]. Inferred different dependency than source.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:1159:30
-  1157 |
-  1158 |   // Convert data to voxel nodes
-> 1159 |   const voxelNodes = useMemo(() => {
-       |                              ^^^^^^^
-> 1160 |     const nodes: VoxelNode[] = [];
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1161 |     const GRID_SIZE = 10;
-       …
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1307 |     return nodes;
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1308 |   }, [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]);
-       | ^^^^ Could not preserve existing manual memoization
-  1309 |
-  1310 |   useEffect(() => {
-  1311 |     const handleKey = (event: KeyboardEvent) => {     react-hooks/preserve-manual-memoization
-  1159:30   error    Compilation Skipped: Existing memoization could not be preserved
-
-React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `safeRisks`, but the source dependencies were [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]. Inferred different dependency than source.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:1159:30
-  1157 |
-  1158 |   // Convert data to voxel nodes
-> 1159 |   const voxelNodes = useMemo(() => {
-       |                              ^^^^^^^
-> 1160 |     const nodes: VoxelNode[] = [];
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1161 |     const GRID_SIZE = 10;
-       …
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1307 |     return nodes;
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1308 |   }, [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]);
-       | ^^^^ Could not preserve existing manual memoization
-  1309 |
-  1310 |   useEffect(() => {
-  1311 |     const handleKey = (event: KeyboardEvent) => {      react-hooks/preserve-manual-memoization
-  1159:30   error    Compilation Skipped: Existing memoization could not be preserved
-
-React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `safeProjects`, but the source dependencies were [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]. Inferred different dependency than source.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:1159:30
-  1157 |
-  1158 |   // Convert data to voxel nodes
-> 1159 |   const voxelNodes = useMemo(() => {
-       |                              ^^^^^^^
-> 1160 |     const nodes: VoxelNode[] = [];
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1161 |     const GRID_SIZE = 10;
-       …
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1307 |     return nodes;
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1308 |   }, [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]);
-       | ^^^^ Could not preserve existing manual memoization
-  1309 |
-  1310 |   useEffect(() => {
-  1311 |     const handleKey = (event: KeyboardEvent) => {   react-hooks/preserve-manual-memoization
-  1159:30   error    Compilation Skipped: Existing memoization could not be preserved
-
-React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `safeAudits`, but the source dependencies were [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]. Inferred different dependency than source.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:1159:30
-  1157 |
-  1158 |   // Convert data to voxel nodes
-> 1159 |   const voxelNodes = useMemo(() => {
-       |                              ^^^^^^^
-> 1160 |     const nodes: VoxelNode[] = [];
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1161 |     const GRID_SIZE = 10;
-       …
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1307 |     return nodes;
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1308 |   }, [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]);
-       | ^^^^ Could not preserve existing manual memoization
-  1309 |
-  1310 |   useEffect(() => {
-  1311 |     const handleKey = (event: KeyboardEvent) => {     react-hooks/preserve-manual-memoization
-  1159:30   error    Compilation Skipped: Existing memoization could not be preserved
-
-React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `safeIncidents`, but the source dependencies were [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]. Inferred different dependency than source.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:1159:30
-  1157 |
-  1158 |   // Convert data to voxel nodes
-> 1159 |   const voxelNodes = useMemo(() => {
-       |                              ^^^^^^^
-> 1160 |     const nodes: VoxelNode[] = [];
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1161 |     const GRID_SIZE = 10;
-       …
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1307 |     return nodes;
-       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 1308 |   }, [assets, risks, projects, audits, incidents, suppliers, controls, visibleTypes]);
-       | ^^^^ Could not preserve existing manual memoization
-  1309 |
-  1310 |   useEffect(() => {
-  1311 |     const handleKey = (event: KeyboardEvent) => {  react-hooks/preserve-manual-memoization
-  1308:6    warning  React Hook useMemo has missing dependencies: 'safeAssets', 'safeAudits', 'safeIncidents', 'safeProjects', and 'safeRisks'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/exhaustive-deps
-  1518:7    error    Error: Calling setState synchronously within an effect can trigger cascading renders
-
-Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
-* Update external systems with the latest state from React.
-* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
-
-Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/VoxelStudio.tsx:1518:7
-  1516 |     if (impactMode && selectedNode) {
-  1517 |       const impacted = calculateBlastRadius(selectedNode.id);
-> 1518 |       setImpactedNodeIds(impacted);
-       |       ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  1519 |     } else {
-  1520 |       setImpactedNodeIds(new Set());
-  1521 |     }                                                                                                                                                                     react-hooks/set-state-in-effect
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ai/GeminiAssistant.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ai/GeminiAssistant.tsx
    69:66   warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
   147:25   warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
   268:56   warning  'node' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
   268:103  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/assets/AssetAIAssistant.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/assets/AssetAIAssistant.tsx
    29:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   165:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/assets/AssetForm.tsx
-  101:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/assets/AssetForm.tsx
+  113:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/audits/AuditForm.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/audits/AuditForm.tsx
   122:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/calendar/CalendarDashboard.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/calendar/CalendarDashboard.tsx
   133:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
   145:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/dashboard/views/AdminDashboardView.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/views/AdminDashboardView.tsx
   12:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   17:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   18:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
@@ -187,463 +80,129 @@ Calling setState synchronously within an effect body causes cascading renders th
   20:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   21:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/dashboard/views/AuditorDashboardView.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/views/AuditorDashboardView.tsx
   12:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   13:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   14:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   15:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/dashboard/views/DirectionDashboardView.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/views/DirectionDashboardView.tsx
    9:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   14:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   15:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   16:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/dashboard/views/OperationalDashboardView.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/views/OperationalDashboardView.tsx
   10:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   11:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/dashboard/views/ProjectManagerDashboardView.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/views/ProjectManagerDashboardView.tsx
   10:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   11:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/dashboard/widgets/ComplianceEvolutionWidget.tsx
-  8:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/widgets/ComplianceEvolutionWidget.tsx
+  9:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/dashboard/widgets/DashboardHeader.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/widgets/DashboardHeader.tsx
    7:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   53:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   56:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   57:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   63:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/dashboard/widgets/MaturityRadarWidget.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/widgets/MaturityRadarWidget.tsx
   6:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/dashboard/widgets/RecentActivityWidget.tsx
-  36:70  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/widgets/RecentActivityWidget.tsx
+  41:66  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/documents/DocumentForm.tsx
-  132:32  warning  Compilation Skipped: Use of incompatible library
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/documents/DocumentForm.tsx
+  136:32  warning  Compilation Skipped: Use of incompatible library
 
 This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/documents/DocumentForm.tsx:132:32
-  130 |                         label="Dossier"
-  131 |                         options={[{ value: '', label: 'Racine' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
-> 132 |                         value={watch('folderId') || ''}
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/documents/DocumentForm.tsx:136:32
+  134 |                         label="Dossier"
+  135 |                         options={[{ value: '', label: 'Racine' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
+> 136 |                         value={watch('folderId') || ''}
       |                                ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
-  133 |                         onChange={(val) => setValue('folderId', val as string)}
-  134 |                         error={errors.folderId?.message}
-  135 |                     />  react-hooks/incompatible-library
+  137 |                         onChange={(val) => setValue('folderId', val as string)}
+  138 |                         error={errors.folderId?.message}
+  139 |                     />  react-hooks/incompatible-library
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/incidents/IncidentImportModal.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/incidents/IncidentImportModal.tsx
   33:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
   48:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/incidents/IncidentPlaybook.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/incidents/IncidentPlaybook.tsx
   26:8  warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/layout/CommandPalette.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/layout/CommandPalette.tsx
   15:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/projects/ProjectForm.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/projects/ProjectForm.tsx
   75:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/risks/RiskAIAssistant.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/risks/RiskAIAssistant.tsx
    18:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   153:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/risks/RiskForm.tsx
-  115:93  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  116:78  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  119:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  125:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  150:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  151:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  152:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  153:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/risks/RiskForm.tsx
+  124:93  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:78  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  126:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  131:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  140:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  143:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/suppliers/SupplierForm.tsx
-  121:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  122:73  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/suppliers/SupplierForm.tsx
+  125:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  126:73  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/AIAssistantHeader.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/AIAssistantHeader.tsx
   7:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/Animations.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/Animations.tsx
    6:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
   15:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
   25:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/Badge.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/Badge.tsx
   9:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/Calendar.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/Calendar.tsx
   8:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/DataTable.tsx
-   51:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/DataTable.tsx
   102:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/FloatingLabelInput.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/FloatingLabelInput.tsx
   6:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/FloatingLabelSelect.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/FloatingLabelSelect.tsx
   7:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx
-   18:40  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-explicit-any
-   40:14  error    Error: Cannot create components during render
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/RichTextEditor.tsx
+  33:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-Components created during render will reset their state each time they are created. Declare components outside of render.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:40:14
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">
-> 40 |             <Button
-     |              ^^^^^^ This component is created during render
-  41 |                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-  42 |                 isActive={editor.isActive('heading', { level: 1 })}
-  43 |                 title="Heading 1"
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:23:20
-  21 |     }
-  22 |
-> 23 |     const Button = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
-     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 24 |         <button
-     | ^^^^^^^^^^^^^^^
-> 25 |             type="button"
-     …
-     | ^^^^^^^^^^^^^^^
-> 35 |         </button>
-     | ^^^^^^^^^^^^^^^
-> 36 |     );
-     | ^^^^^^ The component is created during render here
-  37 |
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">  react-hooks/static-components
-   47:14  error    Error: Cannot create components during render
-
-Components created during render will reset their state each time they are created. Declare components outside of render.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:47:14
-  45 |                 <Heading1 className="h-4 w-4" />
-  46 |             </Button>
-> 47 |             <Button
-     |              ^^^^^^ This component is created during render
-  48 |                 onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-  49 |                 isActive={editor.isActive('heading', { level: 2 })}
-  50 |                 title="Heading 2"
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:23:20
-  21 |     }
-  22 |
-> 23 |     const Button = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
-     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 24 |         <button
-     | ^^^^^^^^^^^^^^^
-> 25 |             type="button"
-     …
-     | ^^^^^^^^^^^^^^^
-> 35 |         </button>
-     | ^^^^^^^^^^^^^^^
-> 36 |     );
-     | ^^^^^^ The component is created during render here
-  37 |
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">                                                                                    react-hooks/static-components
-   57:14  error    Error: Cannot create components during render
-
-Components created during render will reset their state each time they are created. Declare components outside of render.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:57:14
-  55 |             <div className="w-px h-5 bg-gray-300 dark:bg-white/10 mx-1 self-center" />
-  56 |
-> 57 |             <Button
-     |              ^^^^^^ This component is created during render
-  58 |                 onClick={() => editor.chain().focus().toggleBold().run()}
-  59 |                 isActive={editor.isActive('bold')}
-  60 |                 disabled={!editor.can().chain().focus().toggleBold().run()}
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:23:20
-  21 |     }
-  22 |
-> 23 |     const Button = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
-     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 24 |         <button
-     | ^^^^^^^^^^^^^^^
-> 25 |             type="button"
-     …
-     | ^^^^^^^^^^^^^^^
-> 35 |         </button>
-     | ^^^^^^^^^^^^^^^
-> 36 |     );
-     | ^^^^^^ The component is created during render here
-  37 |
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">                                                          react-hooks/static-components
-   65:14  error    Error: Cannot create components during render
-
-Components created during render will reset their state each time they are created. Declare components outside of render.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:65:14
-  63 |                 <Bold className="h-4 w-4" />
-  64 |             </Button>
-> 65 |             <Button
-     |              ^^^^^^ This component is created during render
-  66 |                 onClick={() => editor.chain().focus().toggleItalic().run()}
-  67 |                 isActive={editor.isActive('italic')}
-  68 |                 disabled={!editor.can().chain().focus().toggleItalic().run()}
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:23:20
-  21 |     }
-  22 |
-> 23 |     const Button = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
-     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 24 |         <button
-     | ^^^^^^^^^^^^^^^
-> 25 |             type="button"
-     …
-     | ^^^^^^^^^^^^^^^
-> 35 |         </button>
-     | ^^^^^^^^^^^^^^^
-> 36 |     );
-     | ^^^^^^ The component is created during render here
-  37 |
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">                                                                        react-hooks/static-components
-   73:14  error    Error: Cannot create components during render
-
-Components created during render will reset their state each time they are created. Declare components outside of render.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:73:14
-  71 |                 <Italic className="h-4 w-4" />
-  72 |             </Button>
-> 73 |             <Button
-     |              ^^^^^^ This component is created during render
-  74 |                 onClick={() => editor.chain().focus().toggleUnderline().run()}
-  75 |                 isActive={editor.isActive('underline')}
-  76 |                 disabled={!editor.can().chain().focus().toggleUnderline().run()}
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:23:20
-  21 |     }
-  22 |
-> 23 |     const Button = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
-     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 24 |         <button
-     | ^^^^^^^^^^^^^^^
-> 25 |             type="button"
-     …
-     | ^^^^^^^^^^^^^^^
-> 35 |         </button>
-     | ^^^^^^^^^^^^^^^
-> 36 |     );
-     | ^^^^^^ The component is created during render here
-  37 |
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">                                                             react-hooks/static-components
-   84:14  error    Error: Cannot create components during render
-
-Components created during render will reset their state each time they are created. Declare components outside of render.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:84:14
-  82 |             <div className="w-px h-5 bg-gray-300 dark:bg-white/10 mx-1 self-center" />
-  83 |
-> 84 |             <Button
-     |              ^^^^^^ This component is created during render
-  85 |                 onClick={() => editor.chain().focus().setTextAlign('left').run()}
-  86 |                 isActive={editor.isActive({ textAlign: 'left' })}
-  87 |                 title="Align Left"
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:23:20
-  21 |     }
-  22 |
-> 23 |     const Button = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
-     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 24 |         <button
-     | ^^^^^^^^^^^^^^^
-> 25 |             type="button"
-     …
-     | ^^^^^^^^^^^^^^^
-> 35 |         </button>
-     | ^^^^^^^^^^^^^^^
-> 36 |     );
-     | ^^^^^^ The component is created during render here
-  37 |
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">                                                                            react-hooks/static-components
-   91:14  error    Error: Cannot create components during render
-
-Components created during render will reset their state each time they are created. Declare components outside of render.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:91:14
-  89 |                 <AlignLeft className="h-4 w-4" />
-  90 |             </Button>
-> 91 |             <Button
-     |              ^^^^^^ This component is created during render
-  92 |                 onClick={() => editor.chain().focus().setTextAlign('center').run()}
-  93 |                 isActive={editor.isActive({ textAlign: 'center' })}
-  94 |                 title="Align Center"
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:23:20
-  21 |     }
-  22 |
-> 23 |     const Button = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
-     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 24 |         <button
-     | ^^^^^^^^^^^^^^^
-> 25 |             type="button"
-     …
-     | ^^^^^^^^^^^^^^^
-> 35 |         </button>
-     | ^^^^^^^^^^^^^^^
-> 36 |     );
-     | ^^^^^^ The component is created during render here
-  37 |
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">                                                                                     react-hooks/static-components
-   98:14  error    Error: Cannot create components during render
-
-Components created during render will reset their state each time they are created. Declare components outside of render.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:98:14
-   96 |                 <AlignCenter className="h-4 w-4" />
-   97 |             </Button>
->  98 |             <Button
-      |              ^^^^^^ This component is created during render
-   99 |                 onClick={() => editor.chain().focus().setTextAlign('right').run()}
-  100 |                 isActive={editor.isActive({ textAlign: 'right' })}
-  101 |                 title="Align Right"
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:23:20
-  21 |     }
-  22 |
-> 23 |     const Button = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
-     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 24 |         <button
-     | ^^^^^^^^^^^^^^^
-> 25 |             type="button"
-     …
-     | ^^^^^^^^^^^^^^^
-> 35 |         </button>
-     | ^^^^^^^^^^^^^^^
-> 36 |     );
-     | ^^^^^^ The component is created during render here
-  37 |
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">                                                                               react-hooks/static-components
-  108:14  error    Error: Cannot create components during render
-
-Components created during render will reset their state each time they are created. Declare components outside of render.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:108:14
-  106 |             <div className="w-px h-5 bg-gray-300 dark:bg-white/10 mx-1 self-center" />
-  107 |
-> 108 |             <Button
-      |              ^^^^^^ This component is created during render
-  109 |                 onClick={() => editor.chain().focus().toggleBulletList().run()}
-  110 |                 isActive={editor.isActive('bulletList')}
-  111 |                 title="Bullet List"
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:23:20
-  21 |     }
-  22 |
-> 23 |     const Button = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
-     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 24 |         <button
-     | ^^^^^^^^^^^^^^^
-> 25 |             type="button"
-     …
-     | ^^^^^^^^^^^^^^^
-> 35 |         </button>
-     | ^^^^^^^^^^^^^^^
-> 36 |     );
-     | ^^^^^^ The component is created during render here
-  37 |
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">                                                                              react-hooks/static-components
-  115:14  error    Error: Cannot create components during render
-
-Components created during render will reset their state each time they are created. Declare components outside of render.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:115:14
-  113 |                 <List className="h-4 w-4" />
-  114 |             </Button>
-> 115 |             <Button
-      |              ^^^^^^ This component is created during render
-  116 |                 onClick={() => editor.chain().focus().toggleOrderedList().run()}
-  117 |                 isActive={editor.isActive('orderedList')}
-  118 |                 title="Ordered List"
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:23:20
-  21 |     }
-  22 |
-> 23 |     const Button = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
-     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 24 |         <button
-     | ^^^^^^^^^^^^^^^
-> 25 |             type="button"
-     …
-     | ^^^^^^^^^^^^^^^
-> 35 |         </button>
-     | ^^^^^^^^^^^^^^^
-> 36 |     );
-     | ^^^^^^ The component is created during render here
-  37 |
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">                                                                                               react-hooks/static-components
-  122:14  error    Error: Cannot create components during render
-
-Components created during render will reset their state each time they are created. Declare components outside of render.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:122:14
-  120 |                 <ListOrdered className="h-4 w-4" />
-  121 |             </Button>
-> 122 |             <Button
-      |              ^^^^^^ This component is created during render
-  123 |                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
-  124 |                 isActive={editor.isActive('blockquote')}
-  125 |                 title="Quote"
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/RichTextEditor.tsx:23:20
-  21 |     }
-  22 |
-> 23 |     const Button = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
-     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 24 |         <button
-     | ^^^^^^^^^^^^^^^
-> 25 |             type="button"
-     …
-     | ^^^^^^^^^^^^^^^
-> 35 |         </button>
-     | ^^^^^^^^^^^^^^^
-> 36 |     );
-     | ^^^^^^ The component is created during render here
-  37 |
-  38 |     return (
-  39 |         <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 rounded-t-xl">                                                                                                 react-hooks/static-components
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/ScrollableTabs.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/ScrollableTabs.tsx
   7:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/SecurityBadge.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/SecurityBadge.tsx
   12:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   50:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/SmoothScroll.tsx
-  44:8  warning  React Hook useEffect has a missing dependency: 'enabled'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/StatCard.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/StatCard.tsx
   7:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/aceternity/Sparkles.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/aceternity/Sparkles.tsx
   45:9  warning  Compilation Skipped: Inline `class` declarations are not supported
 
 Move class declarations outside of components/hooks.
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/aceternity/Sparkles.tsx:45:9
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/aceternity/Sparkles.tsx:45:9
   43 |         const particleCount = particleDensity;
   44 |
 > 45 |         class Particle {
@@ -663,24 +222,15 @@ Move class declarations outside of components/hooks.
 
   react-hooks/unsupported-syntax
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/components/ui/button.tsx
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/button.tsx
   36:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/coverage/block-navigation.js
-  1:1  warning  Unused eslint-disable directive (no problems were reported)
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/coverage/prettify.js
-  1:1  warning  Unused eslint-disable directive (no problems were reported)
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/coverage/sorter.js
-  1:1  warning  Unused eslint-disable directive (no problems were reported)
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/firebase.ts
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/firebase.ts
   71:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   72:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/hooks/useFirestore.ts
-   81:17  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useFirestore.ts
+   86:31  error    Error: Calling setState synchronously within an effect can trigger cascading renders
 
 Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
 * Update external systems with the latest state from React.
@@ -688,16 +238,16 @@ Effects are intended to synchronize state between React and external systems suc
 
 Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/hooks/useFirestore.ts:81:17
-  79 |         if (!isEnabled || !realtime) {
-  80 |             if (!realtime) {
-> 81 |                 setRealtimeLoading(p => p ? false : p);
-     |                 ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  82 |             }
-  83 |             return;
-  84 |         }         react-hooks/set-state-in-effect
-  104:8   warning  React Hook useEffect has a missing dependency: 'constraints'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
-  212:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useFirestore.ts:86:31
+  84 |         }
+  85 |
+> 86 |         if (!realtimeLoading) setRealtimeLoading(true);
+     |                               ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  87 |         const q = query(collection(db, collectionName), ...constraints);
+  88 |         const unsubscribe = onSnapshot(q,
+  89 |             (snapshot) => {                               react-hooks/set-state-in-effect
+  104:8   warning  React Hook useEffect has missing dependencies: 'constraints' and 'realtimeLoading'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  225:35  error    Error: Calling setState synchronously within an effect can trigger cascading renders
 
 Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
 * Update external systems with the latest state from React.
@@ -705,36 +255,89 @@ Effects are intended to synchronize state between React and external systems suc
 
 Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/hooks/useFirestore.ts:212:13
-  210 |     useEffect(() => {
-  211 |         if (!docId) {
-> 212 |             setRealtimeData(p => p ? null : p);
-      |             ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  213 |             setRealtimeLoading(p => p ? false : p);
-  214 |             return;
-  215 |         }  react-hooks/set-state-in-effect
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useFirestore.ts:225:35
+  223 |
+  224 |         if (realtime) {
+> 225 |             if (!realtimeLoading) setRealtimeLoading(true);
+      |                                   ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  226 |             const docRef = doc(db, collectionName, docId);
+  227 |             const unsubscribe = onSnapshot(docRef,
+  228 |                 (snapshot) => {  react-hooks/set-state-in-effect
+  247:8   warning  React Hook useEffect has a missing dependency: 'realtimeLoading'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/services/PdfService.ts
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/PdfService.ts
    83:22  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
   265:22  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/services/aiService.ts
-  152:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  416:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/aiService.ts
+  279:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/services/calendarService.ts
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/calendarService.ts
   245:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/services/demoDataService.ts
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/demoDataService.ts
   302:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/services/incidentPlaybookService.ts
-  429:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/incidentPlaybookService.ts
+  431:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/services/integrationService.ts
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/integrationService.ts
    23:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
    99:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   465:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/types.ts
+  22:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Compliance.tsx
+   117:8   warning  React Hook useEffect has a missing dependency: 'addToast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  1275:76  warning  Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Continuity.tsx
+  186:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Dashboard.tsx
+  377:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Help.tsx
+  19:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Pricing.tsx
+  71:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Projects.tsx
+  1165:76  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Risks.tsx
+  370:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  371:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  489:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  490:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Suppliers.tsx
+  261:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/ThreatRegistry.tsx
+  105:41   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:18   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  110:29   warning  '_id' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  332:105  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/__tests__/Assets.test.tsx
+   68:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   73:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/__tests__/Risks.test.tsx
+  59:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  63:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  80:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  95:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/tests/e2e/compliance.spec.ts
+  1:16  warning  'expect' is defined but never used  @typescript-eslint/no-unused-vars
 
 /Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/tests/services/subscriptionService.test.ts
   36:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
@@ -747,61 +350,5 @@ Calling setState synchronously within an effect body causes cascading renders th
 /Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/tests/setup.ts
   7:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/types.ts
-  22:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/AdminDashboard.tsx
-  35:75  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Assets.tsx
-  283:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Audits.tsx
-  257:11  warning  The 'openEditDrawer' function makes the dependencies of useMemo Hook (at line 999) change on every render. To fix this, wrap the definition of 'openEditDrawer' in its own useCallback() Hook            react-hooks/exhaustive-deps
-  386:11  warning  The 'initiateDeleteAudit' function makes the dependencies of useMemo Hook (at line 999) change on every render. To fix this, wrap the definition of 'initiateDeleteAudit' in its own useCallback() Hook  react-hooks/exhaustive-deps
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Compliance.tsx
-  1190:76  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Continuity.tsx
-  185:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Dashboard.tsx
-  362:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Help.tsx
-  19:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  27:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Pricing.tsx
-  71:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Projects.tsx
-  235:11  warning  The 'openEditDrawer' function makes the dependencies of useMemo Hook (at line 697) change on every render. To fix this, wrap the definition of 'openEditDrawer' in its own useCallback() Hook  react-hooks/exhaustive-deps
-  390:11  warning  The 'initiateDelete' function makes the dependencies of useMemo Hook (at line 697) change on every render. To fix this, wrap the definition of 'initiateDelete' in its own useCallback() Hook  react-hooks/exhaustive-deps
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/Suppliers.tsx
-  300:11  warning  The 'initiateDelete' function makes the dependencies of useMemo Hook (at line 584) change on every render. To fix this, wrap the definition of 'initiateDelete' in its own useCallback() Hook  react-hooks/exhaustive-deps
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/ThreatRegistry.tsx
-   82:18   warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
-  103:41   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  104:18   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  108:25   warning  'id' is assigned a value but never used   @typescript-eslint/no-unused-vars
-  330:105  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/__tests__/Assets.test.tsx
-   68:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   73:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   86:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  111:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/views/__tests__/Risks.test.tsx
-  59:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  63:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  80:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  95:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-✖ 148 problems (21 errors, 127 warnings)
-  0 errors and 3 warnings potentially fixable with the `--fix` option.
+✖ 139 problems (4 errors, 135 warnings)
 
