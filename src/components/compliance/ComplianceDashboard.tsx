@@ -86,6 +86,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
     // Group by Domain (A.5 or NIS2.1)
     const domainData = controls.reduce((acc, control) => {
+        if (!control.code) return acc;
         const parts = control.code.split('.');
         const domain = parts.length >= 2 ? `${parts[0]}.${parts[1]}` : parts[0];
 
@@ -114,6 +115,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
     // Critical controls (high priority)
     const criticalControls = controls.filter(c =>
         c.status !== 'Implémenté' &&
+        c.code &&
         (c.code.includes('A.5.') || c.code.includes('A.8.') || c.code.includes('A.12.'))
     );
 

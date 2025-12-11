@@ -843,7 +843,11 @@ export const Compliance: React.FC = () => {
     };
 
     const filteredControls = controls.filter(c => {
-        const matchesSearch = c.code.toLowerCase().includes(filter.toLowerCase()) || c.name.toLowerCase().includes(filter.toLowerCase());
+        const code = c.code?.toLowerCase() || '';
+        const name = c.name?.toLowerCase() || '';
+        const searchLower = filter.toLowerCase();
+
+        const matchesSearch = code.includes(searchLower) || name.includes(searchLower);
         const matchesMissing = showMissingEvidence ? (c.status === 'Implémenté' && (!c.evidenceIds || c.evidenceIds.length === 0)) : true;
         const matchesStatus = statusFilter ? c.status === statusFilter : true;
         return matchesSearch && matchesMissing && matchesStatus;

@@ -7,7 +7,7 @@ import { db } from '../firebase';
 import { Document, UserProfile, SystemLog, Control, Asset, Audit, DocumentFolder, DocumentVersion, Risk } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
-import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, LayoutGrid, List, UploadCloud } from '../components/ui/Icons';
+import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, LayoutGrid, List } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { sendEmail } from '../services/emailService';
@@ -34,9 +34,6 @@ import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
 import CryptoJS from 'crypto-js';
 import SignatureCanvas from 'react-signature-canvas';
 
-import { DocumentUploadWizard } from '../components/documents/DocumentUploadWizard';
-import { useDropzone } from 'react-dropzone';
-import { AnimatePresence } from 'framer-motion';
 
 export const Documents: React.FC = () => {
     const { user, organization, addToast } = useStore();
