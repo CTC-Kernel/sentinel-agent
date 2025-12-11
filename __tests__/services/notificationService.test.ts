@@ -6,7 +6,7 @@ import { db } from '@/firebase';
 import { UserProfile } from '@/types';
 
 // Mock Firebase
-vi.mock('../../firebase', () => ({
+vi.mock('@/firebase', () => ({
   db: {}
 }));
 
@@ -20,7 +20,10 @@ vi.mock('firebase/firestore', () => ({
   limit: vi.fn(),
   updateDoc: vi.fn(),
   addDoc: vi.fn(),
-  Timestamp: vi.fn()
+  Timestamp: vi.fn(),
+  initializeFirestore: vi.fn(),
+  persistentLocalCache: vi.fn(),
+  persistentMultipleTabManager: vi.fn()
 }));
 
 describe('NotificationService', () => {
