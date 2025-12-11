@@ -233,6 +233,7 @@ export interface Document {
   relatedControlIds?: string[];
   relatedAssetIds?: string[];
   relatedAuditIds?: string[];
+  relatedRiskIds?: string[]; // Added for bi-directional linking with Risks
   // Security & Integrity
   isSecure?: boolean;
   hash?: string; // SHA-256
@@ -361,6 +362,7 @@ export interface AuditQuestion {
   question: string;
   response: 'Conforme' | 'Non-conforme' | 'Observation' | 'Non-applicable';
   comment?: string;
+  evidenceIds?: string[];
 }
 
 export interface AuditChecklist {
@@ -406,6 +408,9 @@ export interface QuestionnaireResponse {
   respondentId: string; // User ID
   respondentEmail?: string; // For external
   answers: Record<string, string | string[] | number>; // questionId -> answer
+  evidence?: Record<string, string[]>; // questionId -> documentIds[]
+  aiAnalysis?: string; // AI generated analysis
+  score?: number;
   status: 'In Progress' | 'Submitted';
   submittedAt?: string;
   startedAt: string;
@@ -465,6 +470,7 @@ export interface Project {
   relatedRiskIds?: string[];
   relatedControlIds?: string[];
   relatedAssetIds?: string[];
+  relatedAuditIds?: string[];
   milestones?: ProjectMilestone[];
   createdAt: string;
   updatedAt?: string;

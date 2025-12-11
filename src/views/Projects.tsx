@@ -8,7 +8,7 @@ import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, Pro
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target, ShieldAlert, Loader2, Server } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target, ShieldAlert, Loader2, Server, ClipboardCheck } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -65,6 +65,12 @@ export const Projects: React.FC = () => {
         { logError: true, realtime: true }
     );
 
+    const { data: rawAudits, loading: loadingAudits } = useFirestoreCollection<Audit>(
+        'audits',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true }
+    );
+
     const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>(
         'controls',
         [where('organizationId', '==', user?.organizationId)],
@@ -86,10 +92,11 @@ export const Projects: React.FC = () => {
     // Derived State
     const projects = React.useMemo(() => [...rawProjects].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()), [rawProjects]);
     const risks = React.useMemo(() => [...rawRisks].sort((a, b) => b.score - a.score), [rawRisks]);
+    const audits = React.useMemo(() => [...rawAudits].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime()), [rawAudits]);
     const controls = React.useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
     const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
 
-    const loading = loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers;
+    const loading = loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers || loadingAudits;
 
     const role = user?.role || 'user';
     const canEdit = canEditResource(user, 'Project');
@@ -116,8 +123,7 @@ export const Projects: React.FC = () => {
 
     const [creationMode, setCreationMode] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
-
-
+    const [preSelectedContext, setPreSelectedContext] = useState<{ type: 'risk' | 'control' | 'asset' | 'audit', id: string } | null>(null);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
@@ -127,7 +133,7 @@ export const Projects: React.FC = () => {
 
     // Inspector State
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence' | 'milestones' | 'risks' | 'controls' | 'assets'>('overview');
+    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence' | 'milestones' | 'risks' | 'controls' | 'assets' | 'audits'>('overview');
     const [taskViewMode, setTaskViewMode] = useState<'list' | 'board'>('list');
     const [projectHistory, setProjectHistory] = useState<SystemLog[]>([]);
     const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
@@ -140,6 +146,10 @@ export const Projects: React.FC = () => {
     const linkedRisks = React.useMemo(() => risks.filter(r => selectedProject?.relatedRiskIds?.includes(r.id)), [risks, selectedProject]);
     const linkedControls = React.useMemo(() => controls.filter(c => selectedProject?.relatedControlIds?.includes(c.id)), [controls, selectedProject]);
     const linkedAssets = React.useMemo(() => assets.filter(a => selectedProject?.relatedAssetIds?.includes(a.id)), [assets, selectedProject]);
+    const linkedAuditsList = React.useMemo(() => {
+        if (!selectedProject) return [];
+        return audits.filter(a => (a.relatedProjectIds || []).includes(selectedProject.id));
+    }, [audits, selectedProject]);
 
     // const [isEditing, setIsEditing] = useState(false); // Removed unused
 
@@ -213,7 +223,22 @@ export const Projects: React.FC = () => {
     }, [user?.organizationId, fetchMilestones]);
 
     useEffect(() => {
-        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string, createForRisk?: string, createForControl?: string, createForAsset?: string, createForAudit?: string };
+
+        if (state.createForRisk) {
+            setCreationMode(true);
+            setPreSelectedContext({ type: 'risk', id: state.createForRisk });
+        } else if (state.createForControl) {
+            setCreationMode(true);
+            setPreSelectedContext({ type: 'control', id: state.createForControl });
+        } else if (state.createForAsset) {
+            setCreationMode(true);
+            setPreSelectedContext({ type: 'asset', id: state.createForAsset });
+        } else if (state.createForAudit) {
+            setCreationMode(true);
+            setPreSelectedContext({ type: 'audit', id: state.createForAudit });
+        }
+
         if (!state.fromVoxel || !state.voxelSelectedId) return;
         if (loading || projects.length === 0) return;
         const project = projects.find(p => p.id === state.voxelSelectedId);
@@ -332,8 +357,20 @@ export const Projects: React.FC = () => {
                 }
             } else {
                 // Create new project
+                // Inject Pre-selected Context
+                const finalData = { ...cleanData };
+                if (preSelectedContext) {
+                    if (preSelectedContext.type === 'risk') finalData.relatedRiskIds = arrayUnion(preSelectedContext.id) as unknown as string[]; // Firestore will need array, but here for local logic we need array. 
+                    // Actually arrayUnion specific to updateDoc. For addDoc we need simple array.
+                    else if (preSelectedContext.type === 'control') finalData.relatedControlIds = [...(finalData.relatedControlIds || []), preSelectedContext.id];
+                    else if (preSelectedContext.type === 'asset') finalData.relatedAssetIds = [...(finalData.relatedAssetIds || []), preSelectedContext.id];
+                    else if (preSelectedContext.type === 'audit') finalData.relatedAuditIds = [...(finalData.relatedAuditIds || []), preSelectedContext.id];
+
+                    if (preSelectedContext.type === 'risk') finalData.relatedRiskIds = [...(finalData.relatedRiskIds || []), preSelectedContext.id]; // Correcting the previous line
+                }
+
                 const newProjectRef = await addDoc(collection(db, 'projects'), {
-                    ...cleanData,
+                    ...finalData,
                     organizationId: user.organizationId,
                     progress: 0,
                     tasks: [],
@@ -342,20 +379,25 @@ export const Projects: React.FC = () => {
 
                 // Sync Bidirectional Links for New Project
                 const pId = newProjectRef.id;
-                if (validatedData.relatedRiskIds?.length) {
-                    for (const id of validatedData.relatedRiskIds) {
-                        await updateDoc(doc(db, 'risks', id), { relatedProjectIds: arrayUnion(pId) });
-                    }
+
+                const risksToSync = finalData.relatedRiskIds || [];
+                for (const id of risksToSync) {
+                    await updateDoc(doc(db, 'risks', id), { relatedProjectIds: arrayUnion(pId) });
                 }
-                if (validatedData.relatedControlIds?.length) {
-                    for (const id of validatedData.relatedControlIds) {
-                        await updateDoc(doc(db, 'controls', id), { relatedProjectIds: arrayUnion(pId) });
-                    }
+
+                const controlsToSync = finalData.relatedControlIds || [];
+                for (const id of controlsToSync) {
+                    await updateDoc(doc(db, 'controls', id), { relatedProjectIds: arrayUnion(pId) });
                 }
-                if (validatedData.relatedAssetIds?.length) {
-                    for (const id of validatedData.relatedAssetIds) {
-                        await updateDoc(doc(db, 'assets', id), { relatedProjectIds: arrayUnion(pId) });
-                    }
+
+                const assetsToSync = finalData.relatedAssetIds || [];
+                for (const id of assetsToSync) {
+                    await updateDoc(doc(db, 'assets', id), { relatedProjectIds: arrayUnion(pId) });
+                }
+
+                const auditsToSync = finalData.relatedAuditIds || [];
+                for (const id of auditsToSync) {
+                    await updateDoc(doc(db, 'audits', id), { relatedProjectIds: arrayUnion(pId) });
                 }
 
                 await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${validatedData.name}`);
@@ -1114,6 +1156,7 @@ export const Projects: React.FC = () => {
                                     { id: 'risks', label: 'Risques', icon: ShieldAlert, count: linkedRisks.length },
                                     { id: 'controls', label: 'Contrôles', icon: CheckSquare, count: linkedControls.length },
                                     { id: 'assets', label: 'Actifs', icon: Server, count: linkedAssets.length },
+                                    { id: 'audits', label: 'Audits', icon: ClipboardCheck, count: linkedAuditsList.length },
                                     { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
                                     { id: 'history', label: 'Historique', icon: History },
                                     { id: 'comments', label: 'Commentaires', icon: MessageSquare }
@@ -1421,6 +1464,38 @@ export const Projects: React.FC = () => {
                                                     <h4 className="font-bold text-slate-900 dark:text-white text-sm">{asset.name}</h4>
                                                     <p className="text-xs text-slate-500">{asset.type} • {asset.confidentiality}</p>
                                                 </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {inspectorTab === 'audits' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><ClipboardCheck className="h-4 w-4 mr-2" /> Audits liés ({linkedAuditsList.length})</h3>
+                                        {canEdit && (
+                                            <button
+                                                onClick={() => {
+                                                    navigate('/audits', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
+                                                }}
+                                                className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                            >
+                                                <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Audit
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="space-y-3">
+                                        {linkedAuditsList.length === 0 && <p className="text-sm text-slate-500 italic text-center py-8">Aucun audit associé.</p>}
+                                        {linkedAuditsList.map(audit => (
+                                            <div key={audit.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{audit.name}</p>
+                                                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                                                        {new Date(audit.dateScheduled).toLocaleDateString()} • {audit.type} • {audit.auditor}
+                                                    </p>
+                                                </div>
+                                                <Badge status={audit.status === 'Terminé' ? 'success' : audit.status === 'En cours' ? 'info' : 'neutral'} variant="outline" size="sm">{audit.status}</Badge>
                                             </div>
                                         ))}
                                     </div>

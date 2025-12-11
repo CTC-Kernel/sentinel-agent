@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, limit, increment, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Document, UserProfile, SystemLog, Control, Asset, Audit, DocumentFolder, DocumentVersion } from '../types';
+import { Document, UserProfile, SystemLog, Control, Asset, Audit, DocumentFolder, DocumentVersion, Risk } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, LayoutGrid, List } from '../components/ui/Icons';
 import { useStore } from '../store';
@@ -69,6 +69,12 @@ export const Documents: React.FC = () => {
         { logError: true, realtime: true }
     );
 
+    const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>(
+        'risks',
+        [where('organizationId', '==', user?.organizationId)],
+        { logError: true, realtime: true }
+    );
+
     const { data: rawFolders, loading: loadingFolders } = useFirestoreCollection<DocumentFolder>(
         'document_folders',
         [where('organizationId', '==', user?.organizationId)],
@@ -88,9 +94,10 @@ export const Documents: React.FC = () => {
     const controls = React.useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
     const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
     const audits = React.useMemo(() => [...rawAudits].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime()), [rawAudits]);
+    const risks = React.useMemo(() => [...rawRisks].sort((a, b) => b.score - a.score), [rawRisks]);
     const folders = React.useMemo(() => [...rawFolders].sort((a, b) => a.name.localeCompare(b.name)), [rawFolders]);
 
-    const loading = loadingDocuments || loadingUsers || loadingControls || loadingAssets || loadingAudits || loadingFolders;
+    const loading = loadingDocuments || loadingUsers || loadingControls || loadingAssets || loadingAudits || loadingFolders || loadingRisks;
 
     const limits = user?.organizationId ? getPlanLimits(organization?.subscription?.planId || 'discovery') : null;
     const storageLimitBytes = (limits?.maxStorageGB || 1) * 1024 * 1024 * 1024;
@@ -1056,6 +1063,7 @@ export const Documents: React.FC = () => {
                                                         controls={controls}
                                                         assets={assets}
                                                         audits={audits}
+                                                        risks={risks}
                                                         folders={rawFolders}
                                                         isLoading={isSubmitting}
                                                         isStorageFull={isStorageFull}
@@ -1223,6 +1231,16 @@ export const Documents: React.FC = () => {
                                                                     {(!selectedDocument.relatedAuditIds || selectedDocument.relatedAuditIds.length === 0) && <span className="text-xs text-slate-500 italic">Aucun</span>}
                                                                 </div>
                                                             </div>
+                                                            <div className="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Risques Liés</h4>
+                                                                <div className="space-y-1">
+                                                                    {selectedDocument.relatedRiskIds?.map(rid => {
+                                                                        const r = risks.find(x => x.id === rid);
+                                                                        return r ? <div key={rid} className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded">{r.threat}</div> : null;
+                                                                    })}
+                                                                    {(!selectedDocument.relatedRiskIds || selectedDocument.relatedRiskIds.length === 0) && <span className="text-xs text-slate-500 italic">Aucun</span>}
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </>
                                                 )}
@@ -1317,6 +1335,7 @@ export const Documents: React.FC = () => {
                                     controls={controls}
                                     assets={assets}
                                     audits={audits}
+                                    risks={risks}
                                     folders={folders}
                                     isLoading={isSubmitting}
                                     isStorageFull={isStorageFull}

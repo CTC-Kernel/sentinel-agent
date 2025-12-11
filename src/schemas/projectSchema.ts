@@ -28,6 +28,7 @@ export const projectSchema = z.object({
     relatedRiskIds: z.array(z.string()).optional().default([]),
     relatedControlIds: z.array(z.string()).optional().default([]),
     relatedAssetIds: z.array(z.string()).optional().default([]),
+    relatedAuditIds: z.array(z.string()).optional().default([]),
 });
 
 export type ProjectFormData = z.infer<typeof projectSchema>;

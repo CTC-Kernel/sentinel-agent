@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm, useWatch, Controller, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { documentSchema, DocumentFormData } from '../../schemas/documentSchema';
-import { UserProfile, Control, Asset, Audit, Document, DocumentFolder } from '../../types';
+import { UserProfile, Control, Asset, Audit, Document, DocumentFolder, Risk } from '../../types';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -21,6 +21,7 @@ interface DocumentFormProps {
     controls: Control[];
     assets: Asset[];
     audits: Audit[];
+    risks: Risk[];
     folders: DocumentFolder[];
     isLoading?: boolean;
     isStorageFull?: boolean;
@@ -35,6 +36,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     controls,
     assets,
     audits,
+    risks,
     // folders, // Removed unused variable to fix lint error if not needed yet, or use it if intended.
     // Actually it is used in the JSX options. Wait, the lint error said 'folders' is declared but never read.
     // Ah, I see in my previous edit I added it to props but maybe didn't use it correctly or the linter is being strict about the destructuring if it's not used in the function body before return?
@@ -67,7 +69,9 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             approvers: initialData?.approvers || [],
             relatedControlIds: initialData?.relatedControlIds || [],
             relatedAssetIds: initialData?.relatedAssetIds || [],
+
             relatedAuditIds: initialData?.relatedAuditIds || [],
+            relatedRiskIds: initialData?.relatedRiskIds || [],
             storageProvider: initialData?.storageProvider || 'firebase',
             externalUrl: initialData?.externalUrl || '',
             folderId: initialData?.folderId || ''
@@ -249,6 +253,19 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                             <CustomSelect
                                 label="Audits"
                                 options={audits.map(a => ({ value: a.id, label: a.name }))}
+                                value={field.value || []}
+                                onChange={field.onChange}
+                                multiple
+                            />
+                        )}
+                    />
+                    <Controller
+                        control={control}
+                        name="relatedRiskIds"
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Risques"
+                                options={risks.map(r => ({ value: r.id, label: r.threat }))}
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 multiple

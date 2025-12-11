@@ -1,10 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import { Questionnaire, QuestionnaireResponse } from '../../types';
 import { addDoc, collection, updateDoc, doc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Save, CheckCircle2 } from '../ui/Icons';
+import { Save, CheckCircle2, Link, Bot, FileText, Loader2 } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
+import { FileUploader } from '../ui/FileUploader';
+import { aiService } from '../../services/aiService';
+import { sanitizeData } from '../../utils/dataSanitizer';
 
 interface QuestionnaireResponseProps {
     questionnaire: Questionnaire;
@@ -18,6 +22,10 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
     const [responseId, setResponseId] = useState<string | null>(null);
     const [status, setStatus] = useState<'In Progress' | 'Submitted'>('In Progress');
     const [saving, setSaving] = useState(false);
+    const [evidence, setEvidence] = useState<Record<string, string[]>>({});
+    const [openEvidenceQuestionId, setOpenEvidenceQuestionId] = useState<string | null>(null);
+    const [analyzing, setAnalyzing] = useState(false);
+    const [analysis, setAnalysis] = useState<string | null>(null);
 
     // Load existing response if any
     useEffect(() => {
@@ -33,6 +41,8 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 if (!snapshot.empty) {
                     const data = snapshot.docs[0].data() as QuestionnaireResponse;
                     setAnswers(data.answers);
+                    setEvidence(data.evidence || {});
+                    setAnalysis(data.aiAnalysis || null);
                     setResponseId(snapshot.docs[0].id);
                     setStatus(data.status);
                 }
@@ -55,7 +65,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
         if (submit) {
             const missingRequired = questionnaire.questions.filter(q => q.required && !answers[q.id]);
             if (missingRequired.length > 0) {
-                addToast(`Veuillez répondre à toutes les questions obligatoires (${missingRequired.length} restantes)`, "info");
+                addToast(`Veuillez répondre à toutes les questions obligatoires(${missingRequired.length} restantes)`, "info");
                 return;
             }
         }
@@ -65,6 +75,10 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
             const responseData: Partial<QuestionnaireResponse> = {
                 answers,
                 status: submit ? 'Submitted' : 'In Progress',
+
+                // answers already included in 75
+                evidence,
+                aiAnalysis: analysis || undefined,
                 updatedAt: new Date().toISOString(),
                 submittedAt: submit ? new Date().toISOString() : undefined
             };
@@ -98,6 +112,103 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
         }
     };
 
+    const handleEvidenceUpload = async (questionId: string, url: string, fileName: string) => {
+        if (!user) return;
+        try {
+            // Create Document
+            const docRef = await addDoc(collection(db, 'documents'), sanitizeData({
+                title: `Preuve Questionnaire - ${fileName} `,
+                type: 'Preuve',
+                version: '1.0',
+                status: 'Publié',
+                url: url,
+                organizationId: questionnaire.organizationId,
+                owner: user.displayName || user.email,
+                ownerId: user.uid,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                relatedAuditIds: [questionnaire.auditId]
+            }));
+
+            setEvidence(prev => ({
+                ...prev,
+                [questionId]: [...(prev[questionId] || []), docRef.id]
+            }));
+
+            addToast("Preuve ajoutée", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'QuestionnaireResponse.evidenceUpload');
+        }
+    };
+
+    const runAIAnalysis = async () => {
+        if (!user) return;
+        setAnalyzing(true);
+        try {
+            // Construct prompt context
+            const context = {
+                title: questionnaire.title,
+                description: questionnaire.description,
+                questions: questionnaire.questions.map(q => ({
+                    text: q.text,
+                    answer: answers[q.id],
+                    hasEvidence: (evidence[q.id]?.length || 0) > 0
+                }))
+            };
+
+            const evaluation = await aiService.evaluateQuestionnaire(context);
+            setAnalysis(evaluation);
+
+            addToast("Analyse IA terminée", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'QuestionnaireResponse.aiAnalysis');
+        } finally {
+            setAnalyzing(false);
+        }
+    };
+
+    const renderEvidenceSection = (questionId: string) => {
+        const fileIds = evidence[questionId] || [];
+        const isOpen = openEvidenceQuestionId === questionId;
+
+        return (
+            <div className="mt-3">
+                <button
+                    onClick={() => setOpenEvidenceQuestionId(isOpen ? null : questionId)}
+                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center hover:underline"
+                >
+                    <Link className="h-3 w-3 mr-1" />
+                    {isOpen ? 'Masquer les preuves' : `Gérer les preuves(${fileIds.length})`}
+                </button>
+
+                {isOpen && (
+                    <div className="mt-2 p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
+                        <div className="mb-3 space-y-1">
+                            {fileIds.length > 0 ? (
+                                fileIds.map((fid, idx) => (
+                                    <div key={idx} className="flex items-center text-xs text-slate-600 dark:text-slate-400">
+                                        <FileText className="h-3 w-3 mr-2" />
+                                        Preuve #{idx + 1} (ID: {fid.substring(0, 8)}...)
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-xs text-slate-400 italic">Aucune preuve jointe.</p>
+                            )}
+                        </div>
+                        {(!readOnly && status !== 'Submitted') && (
+                            <FileUploader
+                                onUploadComplete={(url, name) => handleEvidenceUpload(questionId, url, name)}
+                                category="evidence"
+                                compact={true}
+                                label="Ajouter une preuve"
+                            />
+                        )}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     const renderInput = (question: Questionnaire['questions'][0]) => {
         const value = answers[question.id];
 
@@ -116,7 +227,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 return (
                     <div className="flex gap-4">
                         {['Oui', 'Non'].map((opt) => (
-                            <label key={opt} className={`flex-1 cursor-pointer p-4 rounded-xl border transition-all ${value === opt ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-white/10 hover:border-brand-300'}`}>
+                            <label key={opt} className={`flex - 1 cursor - pointer p - 4 rounded - xl border transition - all ${value === opt ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-white/10 hover:border-brand-300'} `}>
                                 <input
                                     type="radio"
                                     name={question.id}
@@ -184,10 +295,10 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 key={rating}
                                 onClick={() => handleAnswerChange(question.id, rating)}
                                 disabled={readOnly || status === 'Submitted'}
-                                className={`w-10 h-10 rounded-full font-bold transition-all ${value === rating
-                                    ? 'bg-brand-600 text-white scale-110 shadow-lg'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200'
-                                    }`}
+                                className={`w - 10 h - 10 rounded - full font - bold transition - all ${value === rating
+                                        ? 'bg-brand-600 text-white scale-110 shadow-lg'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200'
+                                    } `}
                             >
                                 {rating}
                             </button>
@@ -231,9 +342,22 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                             </div>
                             <div className="pl-6">
                                 {renderInput(q)}
+                                {renderEvidenceSection(q.id)}
                             </div>
                         </div>
                     ))}
+
+                    {analysis && (
+                        <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-500/30">
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-3 flex items-center">
+                                <Bot className="h-5 w-5 mr-2" />
+                                Analyse IA & Recommandations
+                            </h3>
+                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                <div dangerouslySetInnerHTML={{ __html: analysis.replace(/\n/g, '<br/>') }} />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer */}
@@ -252,6 +376,15 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 className="px-4 py-2 text-brand-600 font-bold hover:bg-brand-50 dark:hover:bg-white/5 rounded-xl transition-colors"
                             >
                                 Enregistrer brouillon
+                            </button>
+                            <button
+                                onClick={runAIAnalysis} // This should probably be enabled even if readOnly? Or mainly for Auditor?
+                                // Let's simplify: View AI button if answers exist.
+                                disabled={analyzing}
+                                className="px-4 py-2 text-indigo-600 font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors flex items-center"
+                            >
+                                {analyzing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Bot className="w-4 h-4 mr-2" />}
+                                {analysis ? 'Relancer IA' : 'Analyser'}
                             </button>
                             <button
                                 onClick={() => handleSave(true)}

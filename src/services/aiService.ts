@@ -278,6 +278,33 @@ export const aiService = {
     },
 
     /**
+     * Evaluates a questionnaire response and provides analysis.
+     */
+    async evaluateQuestionnaire(context: any): Promise<string> {
+        try {
+            const prompt = `
+                You are an expert Auditor evaluating a response to a security questionnaire.
+                Context: ${JSON.stringify(context)}
+                
+                Please analyze the responses provided.
+                1. Identify gaps or non-conformities based on the answers (or lack thereof).
+                2. Check if evidence is provided where necessary (booleans provided in context).
+                3. Provide a summary of compliance.
+                4. Estimate a compliance score (0-100%).
+                
+                Format the output as HTML (using <h4>, <p>, <ul>, <li>, <strong>).
+                Keep the tone professional and constructive.
+                Language: French.
+            `;
+
+            return await generateContentSafe(prompt, SMART_MODEL);
+        } catch (error) {
+            ErrorLogger.error(error, 'aiService.evaluateQuestionnaire');
+            return "<p>L'analyse IA n'a pas pu être générée.</p>";
+        }
+    },
+
+    /**
      * Generates an executive summary for the Risk Treatment Plan (RTP).
      */
     async generateRTPSummary(risks: { threat: string; score: number; strategy: string; status: string }[]): Promise<string> {

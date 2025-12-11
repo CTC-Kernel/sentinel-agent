@@ -6,10 +6,10 @@ import { Helmet } from 'react-helmet-async';
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot, writeBatch, arrayUnion } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db } from '../firebase';
-import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, BusinessProcess, Supplier, Audit, Vulnerability, AssetHistory } from '../types';
+import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, BusinessProcess, Supplier, Audit, Vulnerability, AssetHistory, Document as GRCDocument } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, LayoutGrid, List, BrainCircuit } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, LayoutGrid, List, BrainCircuit, FileText, ExternalLink } from '../components/ui/Icons';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -130,12 +130,13 @@ export const Assets: React.FC = () => {
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const [creationMode, setCreationMode] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'projects' | 'audits' | 'history' | 'comments' | 'graph' | 'intelligence'>('details');
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'projects' | 'audits' | 'history' | 'comments' | 'graph' | 'intelligence' | 'documents'>('details');
     const [assetHistory, setAssetHistory] = useState<SystemLog[]>([]);
     const [linkedRisks, setLinkedRisks] = useState<Risk[]>([]);
     const [linkedIncidents, setLinkedIncidents] = useState<Incident[]>([]);
     const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
     const [linkedAudits, setLinkedAudits] = useState<Audit[]>([]);
+    const [linkedDocuments, setLinkedDocuments] = useState<GRCDocument[]>([]);
 
     // Security Scan State
     const [shodanResult, setShodanResult] = useState<ShodanResult | null>(null);
@@ -146,8 +147,6 @@ export const Assets: React.FC = () => {
     const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
     const [newMaintenance, setNewMaintenance] = useState<Partial<MaintenanceRecord>>({ date: new Date().toISOString().split('T')[0], type: 'Préventive', description: '', technician: user?.displayName || '' });
 
-
-
     const [showInspector, setShowInspector] = useState(false);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -156,10 +155,7 @@ export const Assets: React.FC = () => {
     const [isAddingMaintenance, setIsAddingMaintenance] = useState(false);
     const [preSelectedProjectId, setPreSelectedProjectId] = useState<string | null>(null);
 
-
-
     // AI Helper State
-
 
     const calculateTCO = () => {
         const purchase = selectedAsset?.purchasePrice || 0;
@@ -179,8 +175,6 @@ export const Assets: React.FC = () => {
         }
         return data;
     };
-
-
 
     const openInspector = async (asset?: Asset) => {
         if (!asset) {
@@ -230,6 +224,9 @@ export const Assets: React.FC = () => {
 
             const auditQ = query(collection(db, 'audits'), where('organizationId', '==', user?.organizationId), where('relatedAssetIds', 'array-contains', asset.id));
             getDocs(auditQ).then(snap => { setLinkedAudits(snap.docs.map(d => ({ id: d.id, ...d.data() } as Audit))); });
+
+            const docQ = query(collection(db, 'documents'), where('organizationId', '==', user?.organizationId), where('relatedAssetIds', 'array-contains', asset.id));
+            getDocs(docQ).then(snap => { setLinkedDocuments(snap.docs.map(d => ({ id: d.id, ...d.data() } as GRCDocument))); });
 
             return () => unsubMaint();
         }
@@ -973,6 +970,7 @@ export const Assets: React.FC = () => {
                                     { id: 'security', label: 'Sécurité & Risques', icon: ShieldAlert },
                                     { id: 'projects', label: 'Projets', icon: FolderKanban },
                                     { id: 'audits', label: 'Audits', icon: CheckSquare },
+                                    { id: 'documents', label: 'Documents', icon: FileText },
                                     { id: 'history', label: 'Audit Trail', icon: History },
                                     { id: 'comments', label: 'Discussion', icon: MessageSquare },
                                     { id: 'graph', label: 'Graphe', icon: Network }
@@ -1363,6 +1361,31 @@ export const Assets: React.FC = () => {
                                                             <AlertTriangle className="h-3 w-3" />
                                                             {audit.findingsCount} constats
                                                         </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {inspectorTab === 'documents' && (
+                                <div className="space-y-8">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><FileText className="h-4 w-4 mr-2" /> Documents Liés ({linkedDocuments.length})</h3>
+                                    {linkedDocuments.length === 0 ? (
+                                        <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun document associé.</p>
+                                    ) : (
+                                        <div className="grid gap-4">
+                                            {linkedDocuments.map(doc => (
+                                                <div key={doc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <span className="text-sm font-bold text-slate-900 dark:text-white truncate pr-4">{doc.title}</span>
+                                                        <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${doc.status === 'Publié' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{doc.status}</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between mt-3">
+                                                        <span className="text-xs text-slate-500">{doc.type} • v{doc.version}</span>
+                                                        <a href={doc.url} target="_blank" rel="noreferrer" className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center">
+                                                            Voir <ExternalLink className="h-3 w-3 ml-1" />
+                                                        </a>
                                                     </div>
                                                 </div>
                                             ))}

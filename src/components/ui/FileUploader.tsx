@@ -12,6 +12,8 @@ interface FileUploaderProps {
     multiple?: boolean;
     disabled?: boolean;
     disabledMessage?: string;
+    compact?: boolean;
+    label?: string;
 }
 
 export const FileUploader: React.FC<FileUploaderProps> = ({
@@ -21,7 +23,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     allowedTypes = ['image/*', 'application/pdf', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
     multiple = false,
     disabled = false,
-    disabledMessage = "Upload désactivé"
+    disabledMessage = "Upload désactivé",
+    compact = false,
+    label
 }) => {
     const { user } = useStore();
     const [uploading, setUploading] = useState(false);
@@ -130,22 +134,24 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 />
                 <label
                     htmlFor={disabled ? undefined : "file-upload"}
-                    className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl transition-colors ${disabled ? 'border-slate-200 bg-slate-100 cursor-not-allowed' : 'border-slate-300 dark:border-slate-600 cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 bg-slate-50 dark:bg-slate-800/50'}`}
+                    className={`flex flex-col items-center justify-center w-full ${compact ? 'h-20' : 'h-32'} border-2 border-dashed rounded-2xl transition-colors ${disabled ? 'border-slate-200 bg-slate-100 cursor-not-allowed' : 'border-slate-300 dark:border-slate-600 cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 bg-slate-50 dark:bg-slate-800/50'}`}
                 >
                     {disabled ? (
                         <div className="text-center">
-                            <AlertTriangle className="h-8 w-8 text-slate-500 mb-2 mx-auto" />
+                            <AlertTriangle className={`text-slate-500 mx-auto ${compact ? 'h-5 w-5' : 'h-8 w-8 mb-2'}`} />
                             <p className="text-sm font-medium text-slate-600">{disabledMessage}</p>
                         </div>
                     ) : (
                         <>
-                            <Upload className="h-8 w-8 text-slate-500 mb-2" />
+                            <Upload className={`text-slate-500 ${compact ? 'h-5 w-5 mb-1' : 'h-8 w-8 mb-2'}`} />
                             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                                Cliquez pour sélectionner un fichier
+                                {label || "Cliquez pour sélectionner un fichier"}
                             </p>
-                            <p className="text-xs text-slate-600 dark:text-slate-500 mt-1">
-                                Max {maxSizeMB}MB • PDF, Images, Excel
-                            </p>
+                            {!compact && (
+                                <p className="text-xs text-slate-600 dark:text-slate-500 mt-1">
+                                    Max {maxSizeMB}MB • PDF, Images, Excel
+                                </p>
+                            )}
                         </>
                     )}
                 </label>

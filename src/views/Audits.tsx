@@ -150,6 +150,8 @@ export const Audits: React.FC = () => {
 
 
     const [creationMode, setCreationMode] = useState(false);
+
+    const [preSelectedProjectId, setPreSelectedProjectId] = useState<string | null>(null);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [filter, setFilter] = useState('');
 
@@ -159,6 +161,7 @@ export const Audits: React.FC = () => {
     const [checklist, setChecklist] = useState<AuditChecklist | null>(null);
     const [inspectorTab, setInspectorTab] = useState<'findings' | 'checklist' | 'scope' | 'collaboration' | 'evidence' | 'team' | 'intelligence' | 'questionnaires'>('findings');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [openEvidenceQuestionId, setOpenEvidenceQuestionId] = useState<string | null>(null);
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -241,7 +244,14 @@ export const Audits: React.FC = () => {
     }, [user?.organizationId, findingForm]);
 
     useEffect(() => {
-        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string; createForProject?: string; projectName?: string };
+
+        if (state.createForProject) {
+            setCreationMode(true);
+            setPreSelectedProjectId(state.createForProject);
+            // Optionally set default name like "Audit - [ProjectName]" if we could pass initialData to AuditForm
+        }
+
         if (!state.fromVoxel || !state.voxelSelectedId) return;
         if (loading || audits.length === 0) return;
         const audit = audits.find(a => a.id === state.voxelSelectedId);
@@ -288,12 +298,26 @@ export const Audits: React.FC = () => {
             try {
                 const validatedData = auditSchema.parse(data);
                 const cleanData = sanitizeData(validatedData);
-                await addDoc(collection(db, 'audits'), {
+                const newDocData = {
                     ...cleanData,
                     organizationId: user.organizationId,
                     findingsCount: 0,
-                    createdBy: user.uid // Track creator for Segregation of Duties
-                });
+                    createdBy: user.uid,
+                    relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : (cleanData.relatedProjectIds || [])
+                };
+
+                const docRef = await addDoc(collection(db, 'audits'), newDocData);
+
+                // Bi-directional linking for Project
+                if (preSelectedProjectId) {
+                    const projectRef = doc(db, 'projects', preSelectedProjectId);
+                    // Check if 'relatedAuditIds' field exists in Project type, assume yes or adding it dynamically
+                    await updateDoc(projectRef, {
+                        relatedAuditIds: arrayUnion(docRef.id)
+                    });
+                    setPreSelectedProjectId(null);
+                }
+
                 await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${validatedData.name}`);
                 analyticsService.logEvent('create_audit', {
                     audit_type: validatedData.type,
@@ -516,6 +540,51 @@ export const Audits: React.FC = () => {
         }
     };
 
+    const handleChecklistEvidenceUpload = async (questionId: string, url: string, fileName: string) => {
+        if (!user?.organizationId || !selectedAudit || !checklist) return;
+        try {
+            const question = checklist.questions.find(q => q.id === questionId);
+            const questionControlCode = question?.controlCode;
+            const relatedControl = controls.find(c => c.code === questionControlCode);
+
+            const docRef = await addDoc(collection(db, 'documents'), sanitizeData({
+                title: `Preuve - ${fileName}`,
+                type: 'Preuve',
+                version: '1.0',
+                status: 'Publié',
+                url: url,
+                organizationId: user.organizationId,
+                owner: user.displayName || user.email,
+                ownerId: user.uid,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                relatedAuditIds: [selectedAudit.id],
+                relatedControlIds: relatedControl ? [relatedControl.id] : []
+            }));
+
+            const updatedQuestions = checklist.questions.map(q => {
+                if (q.id === questionId) {
+                    return { ...q, evidenceIds: [...(q.evidenceIds || []), docRef.id] };
+                }
+                return q;
+            });
+
+            setChecklist({ ...checklist, questions: updatedQuestions });
+            await updateDoc(doc(db, 'audit_checklists', checklist.id), { questions: sanitizeData(updatedQuestions) });
+
+            if (relatedControl) {
+                await updateDoc(doc(db, 'controls', relatedControl.id), {
+                    evidenceIds: arrayUnion(docRef.id)
+                });
+            }
+
+            addToast("Preuve ajoutée à la checklist", "success");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Audits.handleChecklistEvidenceUpload', 'FILE_UPLOAD_FAILED');
+            addToast("Erreur ajout preuve", "error");
+        }
+    };
+
     const handleChecklistAnswer = async (questionId: string, response: AuditQuestion['response'], comment?: string) => {
         if (!checklist || !canEdit) return;
         const updatedQuestions = checklist.questions.map(q => q.id === questionId ? { ...q, response, comment: comment !== undefined ? comment : q.comment } : q);
@@ -571,7 +640,10 @@ export const Audits: React.FC = () => {
         const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
         const canWhiteLabel = limits.features.whiteLabelReports;
 
-        const data = checklist.questions.map(q => [q.controlCode, q.response, q.comment || '']);
+        const data = checklist.questions.map(q => {
+            const evidenceNames = q.evidenceIds?.map(eid => documents.find(d => d.id === eid)?.title).join(', ') || '';
+            return [q.controlCode, q.response, q.comment || '', evidenceNames];
+        });
 
         PdfService.generateTableReport(
             {
@@ -582,7 +654,7 @@ export const Audits: React.FC = () => {
                 organizationName: canWhiteLabel ? organization?.name : undefined,
                 organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
             },
-            ['Contrôle', 'Statut', 'Justification'],
+            ['Contrôle', 'Statut', 'Justification', 'Preuves'],
             data,
             { 0: { fontStyle: 'bold', cellWidth: 30 } }
         );
@@ -1400,11 +1472,46 @@ export const Audits: React.FC = () => {
                                                     <input
                                                         type="text"
                                                         placeholder="Commentaire ou observation..."
-                                                        className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-black/20 rounded-xl border-none focus:ring-1 focus:ring-indigo-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="w-full text-xs px-3 py-2 bg-slate-50 dark:bg-black/20 rounded-xl border-none focus:ring-1 focus:ring-indigo-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed mb-2"
                                                         value={q.comment || ''}
                                                         onChange={(e) => handleChecklistAnswer(q.id, q.response, e.target.value)}
                                                         disabled={!canEdit}
                                                     />
+
+                                                    {/* Evidence Section */}
+                                                    <div className="mt-2">
+                                                        <button
+                                                            onClick={() => setOpenEvidenceQuestionId(openEvidenceQuestionId === q.id ? null : q.id)}
+                                                            className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:underline flex items-center"
+                                                        >
+                                                            <Link className="h-3 w-3 mr-1" />
+                                                            {openEvidenceQuestionId === q.id ? 'Masquer les preuves' : `Gérer les preuves (${q.evidenceIds?.length || 0})`}
+                                                        </button>
+
+                                                        {openEvidenceQuestionId === q.id && (
+                                                            <div className="mt-3 p-3 bg-slate-50 dark:bg-black/20 rounded-xl animate-fade-in">
+                                                                <div className="flex flex-wrap gap-2 mb-3">
+                                                                    {q.evidenceIds?.map(eid => {
+                                                                        const doc = documents.find(d => d.id === eid);
+                                                                        return doc ? (
+                                                                            <a key={eid} href={doc.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                                                                <FileText className="h-3 w-3" /> {doc.title}
+                                                                            </a>
+                                                                        ) : null;
+                                                                    })}
+                                                                    {(!q.evidenceIds || q.evidenceIds.length === 0) && <span className="text-[10px] text-slate-400 italic">Aucune preuve liée.</span>}
+                                                                </div>
+                                                                {canEdit && (
+                                                                    <FileUploader
+                                                                        onUploadComplete={(url, name) => handleChecklistEvidenceUpload(q.id, url, name)}
+                                                                        category="evidence"
+                                                                        maxSizeMB={5}
+                                                                        allowedTypes={['application/pdf', 'image/*']}
+                                                                    />
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>

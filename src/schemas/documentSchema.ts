@@ -17,6 +17,7 @@ export const documentSchema = z.object({
     relatedControlIds: z.array(z.string()).optional(),
     relatedAssetIds: z.array(z.string()).optional(),
     relatedAuditIds: z.array(z.string()).optional(),
+    relatedRiskIds: z.array(z.string()).optional(),
     url: z.string().optional(),
     storageProvider: z.enum(['firebase', 'google_drive', 'onedrive', 'sharepoint']).default('firebase'),
     externalUrl: z.string().url("L'URL doit être valide").optional().or(z.literal('')),
