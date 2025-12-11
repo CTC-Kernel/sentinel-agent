@@ -34,6 +34,7 @@ import { RiskForm } from '../components/risks/RiskForm';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AuditForm } from '../components/audits/AuditForm';
 import { ProjectForm } from '../components/projects/ProjectForm';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 
 import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS, DORA_DOMAINS, DORA_SEED_CONTROLS, GDPR_DOMAINS, GDPR_SEED_CONTROLS, SOC2_DOMAINS, SOC2_SEED_CONTROLS, HDS_DOMAINS, HDS_SEED_CONTROLS, PCI_DSS_DOMAINS, PCI_DSS_SEED_CONTROLS, NIST_CSF_DOMAINS, NIST_CSF_SEED_CONTROLS, ISO22301_DOMAINS, ISO22301_SEED_CONTROLS } from '../data/complianceData';
@@ -318,7 +319,7 @@ export const Compliance: React.FC = () => {
         if (!selectedControl || !user?.organizationId || !canEdit) return;
         setUpdating(true);
         try {
-            await updateDoc(doc(db, 'controls', selectedControl.id), { assigneeId });
+            await updateDoc(doc(db, 'controls', selectedControl.id), sanitizeData({ assigneeId }));
 
             // Notify assignee
             if (assigneeId) {
@@ -349,11 +350,11 @@ export const Compliance: React.FC = () => {
             const applicability: 'Applicable' | 'Non applicable' =
                 (newStatus === 'Non applicable' || newStatus === 'Exclu') ? 'Non applicable' : 'Applicable';
 
-            await updateDoc(doc(db, 'controls', control.id), {
+            await updateDoc(doc(db, 'controls', control.id), sanitizeData({
                 status: newStatus,
                 applicability,
                 lastUpdated: new Date().toISOString()
-            });
+            }));
             await logAction(user, 'UPDATE', 'Control', `Statut ${control.code} changé à ${newStatus}`);
 
             const updatedControl = { ...control, status: newStatus, applicability, lastUpdated: new Date().toISOString() };
@@ -372,10 +373,10 @@ export const Compliance: React.FC = () => {
         if (!selectedControl || !user?.organizationId || !canEdit) return;
         setUpdating(true);
         try {
-            await updateDoc(doc(db, 'controls', selectedControl.id), {
+            await updateDoc(doc(db, 'controls', selectedControl.id), sanitizeData({
                 justification: editJustification,
                 lastUpdated: new Date().toISOString()
-            });
+            }));
             await logAction(user, 'UPDATE', 'Control', `Justification mise à jour pour ${selectedControl.code}`);
 
             const updatedControl = { ...selectedControl, justification: editJustification, lastUpdated: new Date().toISOString() };
@@ -568,7 +569,7 @@ export const Compliance: React.FC = () => {
 
             const nowIso = new Date().toISOString();
 
-            await addDoc(collection(db, 'risks'), {
+            await addDoc(collection(db, 'risks'), sanitizeData({
                 ...validatedData,
                 organizationId: user.organizationId,
                 mitigationControlIds: [selectedControl.id],
@@ -578,7 +579,7 @@ export const Compliance: React.FC = () => {
                 score,
                 residualScore,
                 lastReviewDate: nowIso
-            });
+            }));
             setCreationMode(null);
             addToast("Nouveau risque créé et lié", "success");
         } catch (error) {
@@ -624,14 +625,14 @@ export const Compliance: React.FC = () => {
         if (!selectedControl || !user?.organizationId || !hasPermission(user, 'Project', 'create')) return;
         setUpdating(true);
         try {
-            const docRef = await addDoc(collection(db, 'projects'), {
+            const docRef = await addDoc(collection(db, 'projects'), sanitizeData({
                 ...data,
                 organizationId: user.organizationId,
                 relatedControlIds: [selectedControl.id],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 status: 'En cours'
-            });
+            }));
 
             // Bi-directional update
             await updateDoc(doc(db, 'controls', selectedControl.id), {
@@ -670,14 +671,14 @@ export const Compliance: React.FC = () => {
         if (!selectedControl || !user?.organizationId || !hasPermission(user, 'Audit', 'create')) return;
         setUpdating(true);
         try {
-            await addDoc(collection(db, 'audits'), {
+            await addDoc(collection(db, 'audits'), sanitizeData({
                 ...data,
                 organizationId: user.organizationId,
                 relatedControlIds: [selectedControl.id],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 status: 'Planifié'
-            });
+            }));
             setCreationMode(null);
             addToast("Nouvel audit créé et lié", "success");
         } catch (error) {
@@ -739,9 +740,9 @@ export const Compliance: React.FC = () => {
             // Correct approach for object array removal in Firestore is usually reading and writing back the filtered array
             // But since we have selectedControl, we can just filter and set.
             const updatedEvidence = (selectedControl.automatedEvidence || []).filter(e => e.id !== evidenceId);
-            await updateDoc(doc(db, 'controls', selectedControl.id), {
+            await updateDoc(doc(db, 'controls', selectedControl.id), sanitizeData({
                 automatedEvidence: updatedEvidence
-            });
+            }));
 
             setSelectedControl({ ...selectedControl, automatedEvidence: updatedEvidence });
             refreshControls();
@@ -771,9 +772,9 @@ export const Compliance: React.FC = () => {
                 e.id === evidence.id ? updatedEvidenceItem : e
             );
 
-            await updateDoc(doc(db, 'controls', selectedControl.id), {
+            await updateDoc(doc(db, 'controls', selectedControl.id), sanitizeData({
                 automatedEvidence: updatedEvidenceList
-            });
+            }));
 
             setSelectedControl({ ...selectedControl, automatedEvidence: updatedEvidenceList });
             refreshControls();

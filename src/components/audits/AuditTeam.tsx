@@ -9,6 +9,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { ErrorLogger } from '../../services/errorLogger';
 import { sendEmail } from '../../services/emailService';
 import { getAuditInvitationTemplate } from '../../services/emailTemplates';
+import { sanitizeData } from '../../utils/dataSanitizer';
 
 interface AuditTeamProps {
     audit: Audit;
@@ -32,9 +33,9 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                 return;
             }
 
-            await updateDoc(doc(db, 'audits', audit.id), {
+            await updateDoc(doc(db, 'audits', audit.id), sanitizeData({
                 collaborators: [...currentCollaborators, selectedUserId]
-            });
+            }));
             addToast("Collaborateur ajouté", "success");
             setIsAddingInternal(false);
             setSelectedUserId('');
@@ -52,9 +53,9 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                 return;
             }
 
-            await updateDoc(doc(db, 'audits', audit.id), {
+            await updateDoc(doc(db, 'audits', audit.id), sanitizeData({
                 externalAuditors: [...currentExternal, externalEmail]
-            });
+            }));
 
             // Send invitation email
             await sendEmail(user, {
@@ -80,9 +81,9 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
     const handleRemoveInternal = async (userId: string) => {
         try {
             const currentCollaborators = audit.collaborators || [];
-            await updateDoc(doc(db, 'audits', audit.id), {
+            await updateDoc(doc(db, 'audits', audit.id), sanitizeData({
                 collaborators: currentCollaborators.filter(id => id !== userId)
-            });
+            }));
             addToast("Collaborateur retiré", "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'AuditTeam.handleRemoveInternal', 'UPDATE_FAILED');
@@ -92,9 +93,9 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
     const handleRemoveExternal = async (email: string) => {
         try {
             const currentExternal = audit.externalAuditors || [];
-            await updateDoc(doc(db, 'audits', audit.id), {
+            await updateDoc(doc(db, 'audits', audit.id), sanitizeData({
                 externalAuditors: currentExternal.filter(e => e !== email)
-            });
+            }));
             addToast("Auditeur externe retiré", "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'AuditTeam.handleRemoveExternal', 'UPDATE_FAILED');

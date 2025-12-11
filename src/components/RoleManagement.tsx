@@ -18,6 +18,7 @@ import {
     Info
 } from './ui/Icons';
 import { ErrorLogger } from '../services/errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export const RoleManagement: React.FC = () => {
     const { user } = useStore();
@@ -54,9 +55,9 @@ export const RoleManagement: React.FC = () => {
 
     const handleUpdateRole = async (userId: string, newRole: Role) => {
         try {
-            await updateDoc(doc(db, 'users', userId), {
+            await updateDoc(doc(db, 'users', userId), sanitizeData({
                 role: newRole,
-            });
+            }));
 
             setUsers((prev) =>
                 prev.map((u) => (u.uid === userId ? { ...u, role: newRole } : u))

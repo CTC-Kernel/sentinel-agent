@@ -1,7 +1,7 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { canEditResource } from '../utils/permissions';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -258,16 +258,13 @@ export const Suppliers: React.FC = () => {
         setSelectedSupplier(null);
     };
 
-    const cleanData = (data: any) => {
-        // Simple trick to remove undefined values which Firestore hates
-        return JSON.parse(JSON.stringify(data));
-    };
+
 
     const handleCreate: SubmitHandler<SupplierFormData> = async (data) => {
         if (!canEdit || !user?.organizationId) return;
         setIsSubmitting(true);
         try {
-            const sanitizedData = cleanData(data);
+            const sanitizedData = sanitizeData(data);
             await addDoc(collection(db, 'suppliers'), {
                 ...sanitizedData,
                 organizationId: user.organizationId,
@@ -290,7 +287,7 @@ export const Suppliers: React.FC = () => {
         if (!canEdit || !selectedSupplier) return;
         setIsSubmitting(true);
         try {
-            const sanitizedData = cleanData(data);
+            const sanitizedData = sanitizeData(data);
             await updateDoc(doc(db, 'suppliers', selectedSupplier.id), {
                 ...sanitizedData,
                 updatedAt: new Date().toISOString()

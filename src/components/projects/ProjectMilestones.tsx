@@ -4,6 +4,7 @@ import { useStore } from '../../store';
 import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
+import { sanitizeData } from '../../utils/dataSanitizer';
 import { Plus, Edit, Trash2, Calendar } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -50,17 +51,17 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
         try {
             if (currentMilestone.id) {
                 // Update
-                await updateDoc(doc(db, 'project_milestones', currentMilestone.id), {
+                await updateDoc(doc(db, 'project_milestones', currentMilestone.id), sanitizeData({
                     title: currentMilestone.title,
                     description: currentMilestone.description,
                     targetDate: currentMilestone.targetDate,
                     status: currentMilestone.status,
                     linkedTaskIds: currentMilestone.linkedTaskIds || []
-                });
+                }));
                 addToast('Jalon mis à jour', 'success');
             } else {
                 // Create
-                await addDoc(collection(db, 'project_milestones'), {
+                await addDoc(collection(db, 'project_milestones'), sanitizeData({
                     projectId: project.id,
                     organizationId: user.organizationId,
                     title: currentMilestone.title,
@@ -69,7 +70,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                     status: 'pending',
                     linkedTaskIds: currentMilestone.linkedTaskIds || [],
                     createdAt: new Date().toISOString()
-                });
+                }));
                 addToast('Jalon créé', 'success');
             }
             setIsEditing(false);

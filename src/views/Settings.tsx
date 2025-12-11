@@ -17,6 +17,7 @@ import { AccountService } from '../services/accountService';
 import { hybridService } from '../services/hybridService';
 import { Organization } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { DemoDataService } from '../services/demoDataService';
 import { LegalModal } from '../components/ui/LegalModal';
 import { Scale, Crown, ArrowRightLeft } from 'lucide-react';
@@ -400,11 +401,11 @@ export const Settings: React.FC = () => {
 
             if (!querySnapshot.empty) {
                 const docId = querySnapshot.docs[0].id;
-                await updateDoc(doc(db, 'users', docId), {
+                await updateDoc(doc(db, 'users', docId), sanitizeData({
                     displayName: data.displayName,
                     department: data.department || '',
                     role: updatedRole
-                });
+                }));
             }
 
             const functions = getFunctions();
@@ -443,12 +444,12 @@ export const Settings: React.FC = () => {
         try {
             // Update organization document
             const orgRef = doc(db, 'organizations', user.organizationId);
-            await updateDoc(orgRef, {
+            await updateDoc(orgRef, sanitizeData({
                 name: data.orgName,
                 address: data.address,
                 vatNumber: data.vatNumber,
                 contactEmail: data.contactEmail
-            });
+            }));
 
             // Update all users in organization with new name if it changed
             if (currentOrg?.name !== data.orgName) {

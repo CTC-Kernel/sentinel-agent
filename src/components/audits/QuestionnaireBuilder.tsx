@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import { Questionnaire, QuestionnaireQuestion, QuestionType } from '../../types';
 import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { sanitizeData } from '../../utils/dataSanitizer';
 import { Plus, Trash2, Save, X, Move } from '../ui/Icons';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
@@ -65,17 +66,17 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
             };
 
             if (initialData) {
-                await updateDoc(doc(db, 'questionnaires', initialData.id), questionnaireData);
+                await updateDoc(doc(db, 'questionnaires', initialData.id), sanitizeData(questionnaireData));
                 addToast("Questionnaire mis à jour", "success");
             } else {
-                await addDoc(collection(db, 'questionnaires'), {
+                await addDoc(collection(db, 'questionnaires'), sanitizeData({
                     ...questionnaireData,
                     auditId,
                     organizationId,
                     status: 'Draft',
                     createdBy: user?.uid || 'system',
                     createdAt: new Date().toISOString()
-                });
+                }));
                 addToast("Questionnaire créé", "success");
             }
             onSave();

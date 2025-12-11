@@ -24,7 +24,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
 }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [hasContent, setHasContent] = useState(false);
-    const hasValue = (value !== undefined && value !== '') || (defaultValue !== undefined && defaultValue !== '') || hasContent;
+    const hasValue = (value !== undefined && value !== '') || (defaultValue !== undefined && defaultValue !== '') || hasContent || props.type === 'date' || props.type === 'time' || props.type === 'datetime-local';
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setIsFocused(true);

@@ -5,6 +5,7 @@ import { Incident } from '../types';
 import { IncidentPlaybookService, IncidentPlaybook, IncidentResponse } from '../services/incidentPlaybookService';
 import { ErrorLogger } from '../services/errorLogger';
 import { useStore } from '../store';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import {
   AlertTriangle,
@@ -145,11 +146,11 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
     setConfirmAction(async () => {
       try {
         await IncidentPlaybookService.completeResponse(response.id, notes);
-        await updateDoc(doc(db, 'incidents', incident.id), {
+        await updateDoc(doc(db, 'incidents', incident.id), sanitizeData({
           status: 'Résolu',
           dateResolved: new Date().toISOString(),
           lessonsLearned: notes
-        });
+        }));
         addToast('Response terminée', 'success');
         onClose();
       } catch (error) {

@@ -22,6 +22,7 @@ import { CustomSelect } from '../components/ui/CustomSelect';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userSchema, UserFormData } from '../schemas/userSchema';
 import { RoleManager } from '../components/team/RoleManager';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 import { hasPermission } from '../utils/permissions';
 
@@ -138,13 +139,13 @@ export const Team: React.FC = () => {
 
         try {
             // Create an invitation in 'invitations' collection
-            await addDoc(collection(db, 'invitations'), {
+            await addDoc(collection(db, 'invitations'), sanitizeData({
                 ...data,
                 organizationId: user.organizationId,
                 organizationName: user.organizationName,
                 invitedBy: user.uid,
                 createdAt: new Date().toISOString()
-            });
+            }));
 
             const inviteLink = `${window.location.origin}/#/login`;
             const htmlContent = getInvitationTemplate(user?.displayName || 'Un administrateur', data.role, inviteLink);
@@ -183,11 +184,11 @@ export const Team: React.FC = () => {
         if (selectedUser.isPending) return; // Cannot edit invites this way yet
 
         try {
-            await updateDoc(doc(db, 'users', selectedUser.uid), {
+            await updateDoc(doc(db, 'users', selectedUser.uid), sanitizeData({
                 role: data.role,
                 department: data.department,
                 displayName: data.displayName
-            });
+            }));
             await logAction(user, 'UPDATE', 'User', `Modification utilisateur: ${selectedUser.email}`);
             setUsers(prev => prev.map(u => u.uid === selectedUser.uid ? { ...u, ...data } : u));
             setShowEditModal(false);

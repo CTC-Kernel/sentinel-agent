@@ -7,6 +7,7 @@ import { Drawer } from '../ui/Drawer';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { Plus, Edit, Trash2, Shield, Check } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
+import { sanitizeData } from '../../utils/dataSanitizer';
 
 interface RoleManagerProps {
     roles: CustomRole[];
@@ -77,13 +78,13 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
             };
 
             if (editingRole) {
-                await updateDoc(doc(db, 'custom_roles', editingRole.id), roleData);
+                await updateDoc(doc(db, 'custom_roles', editingRole.id), sanitizeData(roleData));
                 addToast("Rôle mis à jour", "success");
             } else {
-                await addDoc(collection(db, 'custom_roles'), {
+                await addDoc(collection(db, 'custom_roles'), sanitizeData({
                     ...roleData,
                     createdAt: new Date().toISOString()
-                });
+                }));
                 addToast("Rôle créé", "success");
             }
             setIsDrawerOpen(false);

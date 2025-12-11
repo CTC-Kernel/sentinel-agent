@@ -301,7 +301,7 @@ export const Assets: React.FC = () => {
             const prev = selectedAsset;
             const dataToUpdate: Partial<Asset> = {
                 ...cleanData,
-                aiAnalysis: cleanData.aiAnalysis || undefined
+                aiAnalysis: cleanData.aiAnalysis as any
             };
 
             if (prev.confidentiality !== cleanData.confidentiality || prev.integrity !== cleanData.integrity || prev.availability !== cleanData.availability) {

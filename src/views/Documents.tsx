@@ -6,6 +6,7 @@ import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, l
 import { db } from '../firebase';
 import { Document, UserProfile, SystemLog, Control, Asset, Audit, DocumentFolder, DocumentVersion, Risk } from '../types';
 import { canEditResource } from '../utils/permissions';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, LayoutGrid, List } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -394,7 +395,7 @@ export const Documents: React.FC = () => {
                 updatedAt: new Date().toISOString()
             };
 
-            const docRef = await addDoc(collection(db, 'documents'), docData);
+            const docRef = await addDoc(collection(db, 'documents'), sanitizeData(docData));
 
             // Create initial version
             if (docData.url) {
@@ -439,7 +440,7 @@ export const Documents: React.FC = () => {
                 updatedAt: new Date().toISOString()
             };
 
-            await updateDoc(doc(db, 'documents', selectedDocument.id), updates);
+            await updateDoc(doc(db, 'documents', selectedDocument.id), sanitizeData(updates));
 
             // Create new version if version number or file changed
             if (data.version !== selectedDocument.version || newUrl !== selectedDocument.url) {

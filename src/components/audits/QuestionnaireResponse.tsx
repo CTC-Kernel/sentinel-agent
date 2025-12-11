@@ -84,9 +84,9 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
             };
 
             if (responseId) {
-                await updateDoc(doc(db, 'questionnaire_responses', responseId), responseData);
+                await updateDoc(doc(db, 'questionnaire_responses', responseId), sanitizeData(responseData));
             } else {
-                const docRef = await addDoc(collection(db, 'questionnaire_responses'), {
+                const docRef = await addDoc(collection(db, 'questionnaire_responses'), sanitizeData({
                     ...responseData,
                     questionnaireId: questionnaire.id,
                     organizationId: questionnaire.organizationId,
@@ -94,7 +94,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                     respondentId: user.uid,
                     respondentEmail: user.email,
                     startedAt: new Date().toISOString()
-                } as QuestionnaireResponse);
+                }) as QuestionnaireResponse);
                 setResponseId(docRef.id);
             }
 
@@ -296,8 +296,8 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 onClick={() => handleAnswerChange(question.id, rating)}
                                 disabled={readOnly || status === 'Submitted'}
                                 className={`w - 10 h - 10 rounded - full font - bold transition - all ${value === rating
-                                        ? 'bg-brand-600 text-white scale-110 shadow-lg'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200'
+                                    ? 'bg-brand-600 text-white scale-110 shadow-lg'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200'
                                     } `}
                             >
                                 {rating}

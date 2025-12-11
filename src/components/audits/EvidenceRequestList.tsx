@@ -13,6 +13,7 @@ import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { FileUploader } from '../ui/FileUploader';
 import { EmptyState } from '../ui/EmptyState';
 import { ErrorLogger } from '../../services/errorLogger';
+import { sanitizeData } from '../../utils/dataSanitizer';
 
 interface EvidenceRequestListProps {
     auditId: string;
@@ -52,7 +53,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
         if (!user) return;
 
         try {
-            await addDoc(collection(db, 'evidence_requests'), {
+            await addDoc(collection(db, 'evidence_requests'), sanitizeData({
                 auditId,
                 organizationId,
                 title: formData.title,
@@ -65,7 +66,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 documentIds: [],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
-            });
+            }));
             addToast("Demande de preuve créée", "success");
             setIsCreating(false);
             setFormData({ title: '', description: '', assignedTo: '', dueDate: '', relatedControlId: '' });
@@ -77,10 +78,10 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
 
     const handleStatusChange = async (req: EvidenceRequest, status: EvidenceRequest['status']) => {
         try {
-            await updateDoc(doc(db, 'evidence_requests', req.id), {
+            await updateDoc(doc(db, 'evidence_requests', req.id), sanitizeData({
                 status,
                 updatedAt: new Date().toISOString()
-            });
+            }));
             refresh();
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleStatusChange', 'UPDATE_FAILED');
@@ -102,7 +103,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
         if (!user) return;
         try {
             // Create Document
-            const docRef = await addDoc(collection(db, 'documents'), {
+            const docRef = await addDoc(collection(db, 'documents'), sanitizeData({
                 title: `Preuve - ${fileName}`,
                 type: 'Preuve',
                 version: '1.0',
@@ -115,15 +116,16 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 updatedAt: new Date().toISOString(),
                 relatedAuditIds: [auditId],
                 relatedControlIds: req.relatedControlId ? [req.relatedControlId] : []
-            });
+            }));
 
             // Link to Request
             const currentDocs = req.documentIds || [];
-            await updateDoc(doc(db, 'evidence_requests', req.id), {
+
+            await updateDoc(doc(db, 'evidence_requests', req.id), sanitizeData({
                 documentIds: [...currentDocs, docRef.id],
                 status: 'Provided', // Auto-update status
                 updatedAt: new Date().toISOString()
-            });
+            }));
 
             // Link to Control (if applicable)
             if (req.relatedControlId) {
