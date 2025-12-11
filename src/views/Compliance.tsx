@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 // import { Helmet } from 'react-helmet-async'; // Replaced by SEO component
 import { SlideUp } from '../components/ui/Animations'; // Added Layout Animations
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -134,65 +134,71 @@ export const Compliance: React.FC = () => {
         }
     }, [isDrawerOpen]);
 
+    // Safe Constraints
+    const orgId = user?.organizationId;
+    const orgConstraints = useMemo(() => {
+        return orgId ? [where('organizationId', '==', orgId)] : [];
+    }, [orgId]);
+
     // Data Fetching with Hooks
     const { data: rawControls, loading: controlsLoading, refresh: refreshControls } = useFirestoreCollection<Control>(
         'controls',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        orgConstraints,
+        { logError: true, enabled: !!orgId, realtime: true }
     );
 
     const { data: documents, loading: docsLoading } = useFirestoreCollection<Document>(
         'documents',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        orgConstraints,
+        { logError: true, enabled: !!orgId, realtime: true }
     );
 
     const { data: risks, loading: risksLoading } = useFirestoreCollection<Risk>(
         'risks',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        orgConstraints,
+        { logError: true, enabled: !!orgId, realtime: true }
     );
 
     const { data: findings, loading: findingsLoading } = useFirestoreCollection<Finding>(
         'findings',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        orgConstraints,
+        { logError: true, enabled: !!orgId, realtime: true }
     );
 
     const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
         'users',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        orgConstraints,
+        { logError: true, enabled: !!orgId, realtime: true }
     );
 
     const { data: assets, loading: assetsLoading } = useFirestoreCollection<Asset>(
         'assets',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        orgConstraints,
+        { logError: true, enabled: !!orgId, realtime: true }
     );
 
     const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        orgConstraints,
+        { logError: true, enabled: !!orgId, realtime: true }
     );
 
     const { data: projects, loading: projectsLoading } = useFirestoreCollection<Project>(
         'projects',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        orgConstraints,
+        { logError: true, enabled: !!orgId, realtime: true }
     );
 
     const { data: audits, loading: auditsLoading } = useFirestoreCollection<Audit>(
         'audits',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        orgConstraints,
+        { logError: true, enabled: !!orgId, realtime: true }
     );
 
     const { data: processes, loading: processesLoading } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        orgConstraints,
+        { logError: true, enabled: !!orgId, realtime: true }
     );
 
     const loading = controlsLoading || docsLoading || risksLoading || findingsLoading || usersLoading || assetsLoading || suppliersLoading || projectsLoading || auditsLoading || processesLoading;
