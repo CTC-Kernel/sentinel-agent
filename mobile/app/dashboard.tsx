@@ -1,14 +1,15 @@
+
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
-import { auth, db } from '../firebaseConfig';
-import { collection, query, where, getCountFromServer } from 'firebase/firestore';
+import { auth } from '../firebaseConfig'; // db is not used in the current active code
+// collection, query, where, getCountFromServer are not used in the current active code
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true); // Uncommented setLoading as it's used
     const [stats, setStats] = useState({
         risks: 0,
         compliance: 0,
@@ -93,7 +94,7 @@ export default function DashboardScreen() {
                     />
                     <KpiCard
                         title="Conformité"
-                        value={`${stats.compliance}%`}
+                        value={`${stats.compliance}% `}
                         icon="shield-check"
                         color="#22c55e"
                     />

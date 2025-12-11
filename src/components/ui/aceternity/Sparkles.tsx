@@ -6,6 +6,39 @@ import { cn } from "../../../lib/utils";
 // a pure Canvas implementation of Sparkles to ensure it works out of the box
 // without breaking the build with missing dependencies.
 
+const Particle = class {
+    x: number;
+    y: number;
+    size: number;
+    speedX: number;
+    speedY: number;
+
+    constructor(width: number, height: number, minSize: number, maxSize: number, speed: number) {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * (maxSize - minSize) + minSize;
+        this.speedX = (Math.random() - 0.5) * speed;
+        this.speedY = (Math.random() - 0.5) * speed;
+    }
+
+    update(width: number, height: number) {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (this.x > width) this.x = 0;
+        if (this.x < 0) this.x = width;
+        if (this.y > height) this.y = 0;
+        if (this.y < 0) this.y = height;
+    }
+
+    draw(ctx: CanvasRenderingContext2D, color: string) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
 export const SparklesCore = (props: {
     id?: string;
     className?: string;
@@ -39,46 +72,13 @@ export const SparklesCore = (props: {
         let width = (canvas.width = canvas.offsetWidth);
         let height = (canvas.height = canvas.offsetHeight);
 
-        const particles: Particle[] = [];
+        const particles: InstanceType<typeof Particle>[] = [];
         const particleCount = particleDensity;
 
-        class Particle {
-            x: number;
-            y: number;
-            size: number;
-            speedX: number;
-            speedY: number;
-
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.size = Math.random() * (maxSize - minSize) + minSize;
-                this.speedX = (Math.random() - 0.5) * speed;
-                this.speedY = (Math.random() - 0.5) * speed;
-            }
-
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-
-                if (this.x > width) this.x = 0;
-                if (this.x < 0) this.x = width;
-                if (this.y > height) this.y = 0;
-                if (this.y < 0) this.y = height;
-            }
-
-            draw() {
-                if (!ctx) return;
-                ctx.fillStyle = particleColor;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
 
         const init = () => {
             for (let i = 0; i < particleCount; i++) {
-                particles.push(new Particle());
+                particles.push(new Particle(width, height, minSize, maxSize, speed));
             }
         };
 
@@ -86,8 +86,8 @@ export const SparklesCore = (props: {
             if (!ctx) return;
             ctx.clearRect(0, 0, width, height);
             particles.forEach((particle) => {
-                particle.update();
-                particle.draw();
+                particle.update(width, height);
+                particle.draw(ctx, particleColor);
             });
             requestAnimationFrame(animate);
         };

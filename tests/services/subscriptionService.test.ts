@@ -33,19 +33,19 @@ describe('SubscriptionService', () => {
 
     describe('getLimits', () => {
         it('should return discovery limits if organization does not exist', async () => {
-            (getDoc as any).mockResolvedValue({
+            vi.mocked(getDoc).mockResolvedValue({
                 exists: () => false,
-            });
+            } as any); // using as any for DocumentSnapshot partial mock is common practice in tests unless we mock the whole interface
 
             const limits = await SubscriptionService.getLimits('non-existent-org');
             expect(limits.maxUsers).toBe(3);
         });
 
         it('should return plan limits based on organization subscription', async () => {
-            (getDoc as any).mockResolvedValue({
+            vi.mocked(getDoc).mockResolvedValue({
                 exists: () => true,
                 data: () => ({ subscription: { planId: 'professional' } }),
-            });
+            } as any);
 
             const limits = await SubscriptionService.getLimits('org-123');
             expect(limits.maxUsers).toBe(10);
@@ -55,20 +55,20 @@ describe('SubscriptionService', () => {
     describe('checkLimit', () => {
         it('should return true if count is within limit', async () => {
             // Mock getLimits indirectly by mocking getDoc
-            (getDoc as any).mockResolvedValue({
+            vi.mocked(getDoc).mockResolvedValue({
                 exists: () => true,
                 data: () => ({ subscription: { planId: 'discovery' } }),
-            });
+            } as any);
 
             const allowed = await SubscriptionService.checkLimit('org-123', 'users', 2);
             expect(allowed).toBe(true);
         });
 
         it('should return false if count exceeds limit', async () => {
-            (getDoc as any).mockResolvedValue({
+            vi.mocked(getDoc).mockResolvedValue({
                 exists: () => true,
                 data: () => ({ subscription: { planId: 'discovery' } }),
-            });
+            } as any);
 
             const allowed = await SubscriptionService.checkLimit('org-123', 'users', 5);
             expect(allowed).toBe(false);
@@ -77,20 +77,20 @@ describe('SubscriptionService', () => {
 
     describe('hasFeature', () => {
         it('should return true if feature is enabled in plan', async () => {
-            (getDoc as any).mockResolvedValue({
+            vi.mocked(getDoc).mockResolvedValue({
                 exists: () => true,
                 data: () => ({ subscription: { planId: 'professional' } }),
-            });
+            } as any);
 
             const hasAI = await SubscriptionService.hasFeature('org-123', 'aiAssistant');
             expect(hasAI).toBe(true);
         });
 
         it('should return false if feature is disabled in plan', async () => {
-            (getDoc as any).mockResolvedValue({
+            vi.mocked(getDoc).mockResolvedValue({
                 exists: () => true,
                 data: () => ({ subscription: { planId: 'discovery' } }),
-            });
+            } as any);
 
             const hasAI = await SubscriptionService.hasFeature('org-123', 'aiAssistant');
             expect(hasAI).toBe(false);

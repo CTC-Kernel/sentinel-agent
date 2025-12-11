@@ -31,7 +31,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
     ];
 
     // Risk distribution by category
-    const categoryData = risks.reduce((acc, risk) => {
+    const categoryData = risks.reduce((acc: Record<string, number>, risk) => {
         const cat = risk.category || 'Autre';
         acc[cat] = (acc[cat] || 0) + 1;
         return acc;
@@ -82,7 +82,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
         const timelines = risks.map(r => {
             const points: { date: number, score: number }[] = [];
             // Start with creation
-            let currentScore = r.history && r.history.length > 0 ? r.history[0].previousScore || r.score : r.score;
+            const currentScore = r.history && r.history.length > 0 ? r.history[0].previousScore || r.score : r.score;
 
             if (r.createdAt) {
                 points.push({ date: new Date(r.createdAt).getTime(), score: currentScore });

@@ -48,7 +48,7 @@ export function DataTable<TData extends { id: string }, TValue>({
     const tableColumns = useMemo(() => {
         if (!selectable) return columns;
 
-        const selectionColumn: ColumnDef<TData, any> = {
+        const selectionColumn: ColumnDef<TData, unknown> = {
             id: 'select',
             header: ({ table }) => (
                 <div className="px-1" onClick={(e) => e.stopPropagation()}>

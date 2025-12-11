@@ -147,11 +147,7 @@ export const aiService = {
      */
     async chatWithAI(message: string, context?: Record<string, unknown>): Promise<string> {
         // [DEBUG] Log caller to identify source of unexpected calls
-        try {
-            throw new Error('Stack Trace');
-        } catch (e: any) {
-            console.warn('[aiService] chatWithAI called. Stack:', e.stack);
-        }
+
 
         // Prevent loops: Rate limit client-side (1 second debounce)
         const now = Date.now();
@@ -438,11 +434,7 @@ export const aiService = {
 // --- Helpers ---
 async function generateContentSafe(prompt: string, modelName: string = FAST_MODEL): Promise<string> {
     // [DEBUG] Log caller for generateContentSafe
-    try {
-        throw new Error('Stack Trace');
-    } catch (e: any) {
-        console.warn('[aiService] generateContentSafe called. Stack:', e.stack);
-    }
+
 
     // Prevent loops: Rate limit client-side (1 second debounce)
     const now = Date.now();

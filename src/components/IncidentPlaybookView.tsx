@@ -42,19 +42,21 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   const { user, addToast } = useStore();
 
   const loadPlaybooks = useCallback(async () => {
+    if (!user?.organizationId) return;
     try {
-      const availablePlaybooks = await IncidentPlaybookService.getPlaybooks(incident.category || 'Other');
+      const availablePlaybooks = await IncidentPlaybookService.getPlaybooks(user.organizationId, incident.category || 'Autre');
       setPlaybooks(availablePlaybooks);
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybookView.loadPlaybooks', 'FETCH_FAILED');
     } finally {
       setLoading(false);
     }
-  }, [incident.category]);
+  }, [incident.category, user?.organizationId]);
 
   const loadResponse = useCallback(async () => {
+    if (!user?.organizationId) return;
     try {
-      const existingResponse = await IncidentPlaybookService.getResponse(incident.id);
+      const existingResponse = await IncidentPlaybookService.getResponse(incident.id, user.organizationId);
       setResponse(existingResponse);
       if (existingResponse) {
         const playbook = await IncidentPlaybookService.getPlaybook(existingResponse.playbookId);
@@ -64,12 +66,14 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
     } catch (error) {
       ErrorLogger.error(error, 'IncidentPlaybookView.loadResponse');
     }
-  }, [incident.id]);
+  }, [incident.id, user?.organizationId]);
 
   useEffect(() => {
-    loadPlaybooks();
-    loadResponse();
-  }, [loadPlaybooks, loadResponse]);
+    if (user?.organizationId) {
+      loadPlaybooks();
+      loadResponse();
+    }
+  }, [loadPlaybooks, loadResponse, user?.organizationId]);
 
   const handleInitiateResponse = async () => {
     if (!selectedPlaybook || !user || !user.organizationId) return;

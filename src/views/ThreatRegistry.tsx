@@ -101,13 +101,13 @@ export const ThreatRegistry: React.FC = () => {
                 ...formData,
                 organizationId: user!.organizationId,
                 source: formData.source || 'Custom',
-                // cast to any to allow extra fields like createdAt if not in interface
-                createdAt: (formData as any).createdAt || new Date().toISOString()
-            } as any);
+                createdAt: formData.createdAt || new Date().toISOString()
+            });
 
             if (isEditing && selectedThreat?.id) {
                 // remove id from update payload
-                const { id: _id, ...updateData } = dataToSave;
+                const updateData = { ...dataToSave };
+                delete updateData.id;
                 await updateDoc(doc(db, 'threat_library', selectedThreat.id), updateData);
                 addToast("Menace modifiée", "success");
                 await logAction(user!, 'UPDATE', 'ThreatLibrary', `Modification menace ${selectedThreat.name}`);
@@ -329,7 +329,7 @@ export const ThreatRegistry: React.FC = () => {
                             <FloatingLabelSelect
                                 label="Stratégie par défaut"
                                 value={formData.strategy || ''}
-                                onChange={(e) => setFormData({ ...formData, strategy: e.target.value as any })}
+                                onChange={(e) => setFormData({ ...formData, strategy: e.target.value as ThreatTemplate['strategy'] })}
                                 options={['Accepter', 'Atténuer', 'Transférer', 'Éviter'].map(v => ({ value: v, label: v }))}
                                 required
                             />

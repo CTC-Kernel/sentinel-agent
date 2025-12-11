@@ -119,7 +119,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             // I will add them as per the instruction.
             // setValue('description', t.description); // This field is not in AuditFormData based on defaultValues
             setValue('framework', t.standard); // This field is not in AuditFormData based on defaultValues
-            setValue('type', t.type as any); // Assuming type is compatible or string
+            setValue('type', t.type as AuditFormData['type']); // Assuming type is compatible or string
             setValue('scope', t.scope);
         }
     };

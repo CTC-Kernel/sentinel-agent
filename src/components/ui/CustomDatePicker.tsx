@@ -133,14 +133,16 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
             >
                 <div className="w-full px-4 py-3.5 flex items-center justify-between">
                     <span className={`font-medium ${value ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
-                        {value ? new Date(value).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sélectionner une date...'}
+                        {value
+                            ? new Date(value).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+                            : (isOpen ? 'Sélectionner une date...' : '')}
                     </span>
                     <CalendarIcon className={`h-4 w-4 text-slate-500 transition-colors ${isOpen ? 'text-brand-500' : ''}`} />
                 </div>
 
                 <label
                     className={`
-                        absolute left-4 transition-all duration-200 pointer-events-none
+                        absolute left-4 transition-all duration-200 pointer-events-none z-10
                         ${(isOpen || value)
                             ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded text-brand-600'
                             : 'top-3.5 text-sm font-medium text-slate-600'
@@ -152,48 +154,52 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                 </label>
             </div>
 
-            {isOpen && (
-                <div className="absolute z-50 mt-2 p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 w-[300px] animate-fade-in">
-                    <div className="flex items-center justify-between mb-4">
-                        <button onClick={(e) => { e.preventDefault(); prevMonth(); }} className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors">
-                            <ChevronLeft className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-                        </button>
-                        <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">
-                            {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-                        </span>
-                        <button onClick={(e) => { e.preventDefault(); nextMonth(); }} className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors">
-                            <ChevronRight className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-                        </button>
+            {
+                isOpen && (
+                    <div className="absolute z-50 mt-2 p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 w-[300px] animate-fade-in">
+                        <div className="flex items-center justify-between mb-4">
+                            <button onClick={(e) => { e.preventDefault(); prevMonth(); }} className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors">
+                                <ChevronLeft className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                            </button>
+                            <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">
+                                {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+                            </span>
+                            <button onClick={(e) => { e.preventDefault(); nextMonth(); }} className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors">
+                                <ChevronRight className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-7 gap-1 mb-2">
+                            {days.map(d => (
+                                <div key={d} className="h-8 w-8 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                    {d}
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="grid grid-cols-7 gap-1">
+                            {renderCalendar()}
+                        </div>
+
+                        {value && (
+                            <button
+                                onClick={(e) => { e.preventDefault(); onChange(''); setIsOpen(false); }}
+                                className="mt-3 w-full py-2 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                            >
+                                Effacer la date
+                            </button>
+                        )}
                     </div>
+                )
+            }
 
-                    <div className="grid grid-cols-7 gap-1 mb-2">
-                        {days.map(d => (
-                            <div key={d} className="h-8 w-8 flex items-center justify-center text-[10px] font-bold text-slate-500">
-                                {d}
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1">
-                        {renderCalendar()}
-                    </div>
-
-                    {value && (
-                        <button
-                            onClick={(e) => { e.preventDefault(); onChange(''); setIsOpen(false); }}
-                            className="mt-3 w-full py-2 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                        >
-                            Effacer la date
-                        </button>
-                    )}
-                </div>
-            )}
-
-            {error && (
-                <p className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
-                    {error}
-                </p>
-            )}
-        </div>
+            {
+                error && (
+                    <p className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
+                        {error}
+                    </p>
+                )
+            }
+        </div >
     );
 };

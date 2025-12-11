@@ -80,7 +80,7 @@ export class PdfService {
             try {
                 // Assuming base64 or valid URL that jsPDF can handle
                 doc.addImage(options.organizationLogo, 'PNG', 14, 10, 10, 10);
-            } catch (e) {
+            } catch {
                 // Fallback if image fails
                 doc.setFillColor(this.BRAND_PRIMARY);
                 doc.roundedRect(14, 10, 10, 10, 2, 2, 'F');
@@ -262,7 +262,7 @@ export class PdfService {
         if (options.organizationLogo) {
             try {
                 doc.addImage(options.organizationLogo, 'PNG', 20, 40, 30, 30);
-            } catch (e) {
+            } catch {
                 // Fallback
                 doc.setTextColor('#FFFFFF');
                 doc.setFontSize(60);

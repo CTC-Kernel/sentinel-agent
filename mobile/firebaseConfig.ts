@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-// @ts-ignore: getReactNativePersistence is not correctly typed in some versions but works at runtime
+// @ts-expect-error - ignore verification: getReactNativePersistence is not correctly typed in some versions but works at runtime
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';

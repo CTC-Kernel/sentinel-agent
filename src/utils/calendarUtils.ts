@@ -11,7 +11,7 @@ interface CalendarEvent {
 
 export const generateICS = (events: CalendarEvent[]): string => {
     // Basic ICS Header
-    let icsContent = [
+    const icsContent = [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
         'PRODID:-//Sentinel GRC//Calendar//FR',

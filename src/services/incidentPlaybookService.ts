@@ -428,7 +428,7 @@ export class IncidentPlaybookService {
       const existing = await this.getPlaybooks(organizationId, playbook.category);
       if (existing.length === 0) {
         // Safe cast as we are creating a new one based on the template
-        await this.createPlaybook(playbook as any, organizationId);
+        await this.createPlaybook(playbook, organizationId);
       }
     }
   }

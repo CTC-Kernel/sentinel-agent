@@ -121,14 +121,14 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             setValue('threat', t.threat || t.name, { shouldDirty: true });
             setValue('scenario', t.scenario || '', { shouldDirty: true });
             setValue('vulnerability', t.vulnerability || t.description, { shouldDirty: true });
-            if (typeof t.probability === 'number') setValue('probability', t.probability as any, { shouldDirty: true });
-            if (typeof t.impact === 'number') setValue('impact', t.impact as any, { shouldDirty: true });
-            if (t.strategy) setValue('strategy', t.strategy as any, { shouldDirty: true });
+            if (typeof t.probability === 'number') setValue('probability', t.probability as RiskFormData['probability'], { shouldDirty: true });
+            if (typeof t.impact === 'number') setValue('impact', t.impact as RiskFormData['impact'], { shouldDirty: true });
+            if (t.strategy) setValue('strategy', t.strategy as RiskFormData['strategy'], { shouldDirty: true });
             if (t.treatment) {
                 setValue('treatment', {
                     ...t.treatment,
                     dueDate: t.treatment.dueDate || undefined
-                } as any, { shouldDirty: true });
+                } as RiskFormData['treatment'], { shouldDirty: true });
             }
         }
     };
@@ -137,10 +137,10 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         setValue('threat', t.name, { shouldDirty: true });
         setValue('scenario', t.scenario || '', { shouldDirty: true });
         setValue('vulnerability', t.vulnerability || '', { shouldDirty: true });
-        if (t.framework) setValue('framework', t.framework as any, { shouldDirty: true });
-        if (t.probability) setValue('probability', t.probability as any, { shouldDirty: true });
-        if (t.impact) setValue('impact', t.impact as any, { shouldDirty: true });
-        if (t.strategy) setValue('strategy', t.strategy as any, { shouldDirty: true });
+        if (t.framework) setValue('framework', t.framework as RiskFormData['framework'], { shouldDirty: true });
+        if (t.probability) setValue('probability', t.probability as RiskFormData['probability'], { shouldDirty: true });
+        if (t.impact) setValue('impact', t.impact as RiskFormData['impact'], { shouldDirty: true });
+        if (t.strategy) setValue('strategy', t.strategy as RiskFormData['strategy'], { shouldDirty: true });
         if (t.field) setValue('scenario', `${t.scenario}\n\nDomaine: ${t.field}`, { shouldDirty: true });
         setShowLibraryModal(false);
     };

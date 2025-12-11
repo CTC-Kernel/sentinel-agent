@@ -560,7 +560,7 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
   );
 };
 
-const GlassMaterial: React.FC<React.ComponentProps<'meshPhysicalMaterial'> & { isDimmed?: boolean; isHighlighted?: boolean }> = ({ color, emissive, opacity, isDimmed, isHighlighted, ...props }) => (
+const GlassMaterial: React.FC<React.ComponentProps<'meshPhysicalMaterial'> & { isDimmed?: boolean; isHighlighted?: boolean }> = ({ color, emissive, isDimmed, isHighlighted, ...props }) => (
   <meshPhysicalMaterial
     color={isDimmed ? '#1e293b' : isHighlighted ? '#ffffff' : color}
     emissive={isDimmed ? '#000000' : isHighlighted ? color : emissive}
@@ -1069,8 +1069,8 @@ const PresentationManager: React.FC<{
 
   // Reset index when mode disabled
   useEffect(() => {
-    if (!presentationMode) {
-      setPresentationIndex(0);
+    if (!presentationMode && presentationIndex !== 0) {
+      setTimeout(() => setPresentationIndex(0), 0);
     }
   }, [presentationMode, setPresentationIndex]);
 

@@ -83,7 +83,10 @@ export const useFirestoreCollection = <T = DocumentData>(
             return;
         }
 
-        setRealtimeLoading(true);
+        if (!realtimeLoading) {
+            // Avoid synchronous state update warning
+            setTimeout(() => setRealtimeLoading(true), 0);
+        }
         const q = query(collection(db, collectionName), ...constraints);
         const unsubscribe = onSnapshot(q,
             (snapshot) => {
@@ -222,7 +225,10 @@ export const useFirestoreDocument = <T extends { id: string }>(
         }
 
         if (realtime) {
-            setRealtimeLoading(true);
+            if (!realtimeLoading) {
+                // Avoid synchronous state update warning
+                setTimeout(() => setRealtimeLoading(true), 0);
+            }
             const docRef = doc(db, collectionName, docId);
             const unsubscribe = onSnapshot(docRef,
                 (snapshot) => {

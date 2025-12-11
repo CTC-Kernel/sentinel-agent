@@ -56,14 +56,19 @@ vi.mock('../../components/ui/PageHeader', () => ({
 describe('Risks View', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        (useStore as any).mockReturnValue({
+        vi.mocked(useStore).mockReturnValue({
             user: { organizationId: 'test-org', role: 'admin' },
             addToast: vi.fn(),
-        });
-        (useFirestoreCollection as any).mockReturnValue({
+            demoMode: false, // Add missing property if required by interface, or cast return as unknown
+        } as any);
+        vi.mocked(useFirestoreCollection).mockReturnValue({
             data: [],
             loading: false,
             refresh: vi.fn(),
+            error: null,
+            add: vi.fn(),
+            update: vi.fn(),
+            remove: vi.fn()
         });
     });
 
@@ -77,10 +82,14 @@ describe('Risks View', () => {
     });
 
     it('shows loading state', () => {
-        (useFirestoreCollection as any).mockReturnValue({
+        vi.mocked(useFirestoreCollection).mockReturnValue({
             data: [],
             loading: true,
             refresh: vi.fn(),
+            error: null,
+            add: vi.fn(),
+            update: vi.fn(),
+            remove: vi.fn()
         });
         render(
             <MemoryRouter>
@@ -92,10 +101,14 @@ describe('Risks View', () => {
     });
 
     it('displays empty state when no risks found', async () => {
-        (useFirestoreCollection as any).mockReturnValue({
+        vi.mocked(useFirestoreCollection).mockReturnValue({
             data: [],
             loading: false,
             refresh: vi.fn(),
+            error: null,
+            add: vi.fn(),
+            update: vi.fn(),
+            remove: vi.fn()
         });
 
         render(

@@ -110,7 +110,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         const t = ASSET_TEMPLATES.find(t => t.name === templateName);
         if (t) {
             setValue('name', t.name);
-            setValue('type', t.type as any); // Cast for strict enum match if needed
+            setValue('type', t.type as AssetFormData['type']); // Cast for strict enum match if needed
             setValue('confidentiality', t.confidentiality as Criticality);
             setValue('integrity', t.integrity as Criticality);
             setValue('availability', t.availability as Criticality);
@@ -136,7 +136,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             const resultText = await aiService.generateText(prompt);
             const jsonMatch = resultText.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                const data = JSON.parse(jsonMatch[0]);
+                const data = JSON.parse(jsonMatch[0]) as Partial<AssetFormData>;
                 if (data.type) setValue('type', data.type);
                 if (data.confidentiality) setValue('confidentiality', data.confidentiality);
                 if (data.integrity) setValue('integrity', data.integrity);

@@ -285,6 +285,9 @@ export interface ThreatTemplate {
     dueDate: string;
   };
   source?: 'Standard' | 'Custom';
+  organizationId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Audit {

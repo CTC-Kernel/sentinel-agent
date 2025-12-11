@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { IntegrationCard } from '../components/integrations/IntegrationCard';
-import { Search, ShieldCheck, Cloud, Code, LayoutGrid } from 'lucide-react';
+import { Modal } from '../components/ui/Modal';
+import { Search, ShieldCheck, Cloud, Code, LayoutGrid, Key } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useStore } from '../store';
@@ -13,6 +14,12 @@ export const Integrations: React.FC = () => {
     const [connectingId, setConnectingId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+    // Modal State
+    const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+    const [selectedProvider, setSelectedProvider] = useState<IntegrationProvider | null>(null);
+    const [apiKey, setApiKey] = useState('');
+    const [isSubmittingKey, setIsSubmittingKey] = useState(false);
 
     const loadProviders = React.useCallback(async () => {
         if (!user?.organizationId) return;
@@ -39,21 +46,50 @@ export const Integrations: React.FC = () => {
             toast.error("Impossible de connecter : ID d'organisation manquant.");
             return;
         }
-        setConnectingId(provider.id);
-        try {
-            // In a real app, this would open a modal for API Key input or OAuth flow
-            // For now, we simulate connecting with dummy credentials.
-            await integrationService.connectProvider(provider.id, { apiKey: 'mock-key' }, user.organizationId, demoMode);
 
-            // Optimistic update
+        if (demoMode) {
+            setConnectingId(provider.id);
+            try {
+                await integrationService.connectProvider(provider.id, { apiKey: 'mock-key' }, user.organizationId, true);
+                setProviders(prev => prev.map(p =>
+                    p.id === provider.id ? { ...p, status: 'connected' } : p
+                ));
+                toast.success(`Connecté à ${provider.name} (Démo)`);
+            } catch {
+                toast.error("Erreur de connexion simulée");
+            } finally {
+                setConnectingId(null);
+            }
+            return;
+        }
+
+        // Open Modal for Real Connection
+        setSelectedProvider(provider);
+        setApiKey('');
+        setApiKeyModalOpen(true);
+    };
+
+    const confirmConnect = async () => {
+        if (!selectedProvider || !user?.organizationId) return;
+        if (!apiKey.trim()) {
+            toast.error("Veuillez saisir une clé API valide.");
+            return;
+        }
+
+        setIsSubmittingKey(true);
+        try {
+            await integrationService.connectProvider(selectedProvider.id, { apiKey }, user.organizationId, false);
+
             setProviders(prev => prev.map(p =>
-                p.id === provider.id ? { ...p, status: 'connected' } : p
+                p.id === selectedProvider.id ? { ...p, status: 'connected' } : p
             ));
-            toast.success(`Connecté à ${provider.name} avec succès`);
-        } catch {
-            toast.error(`Échec de la connexion à ${provider.name}`);
+            toast.success(`Connecté à ${selectedProvider.name} avec succès`);
+            setApiKeyModalOpen(false);
+        } catch (error) {
+            console.error(error);
+            toast.error(`Échec de la connexion à ${selectedProvider.name}`);
         } finally {
-            setConnectingId(null);
+            setIsSubmittingKey(false);
         }
     };
 
@@ -150,6 +186,63 @@ export const Integrations: React.FC = () => {
                     ))}
                 </div>
             )}
-        </div>
+
+
+            {/* API Key Modal */}
+            <Modal
+                isOpen={apiKeyModalOpen}
+                onClose={() => setApiKeyModalOpen(false)}
+                title={`Connecter ${selectedProvider?.name}`}
+                maxWidth="max-w-md"
+            >
+                <div className="space-y-6 pt-2">
+                    <p className="text-slate-600 dark:text-slate-400">
+                        Veuillez saisir votre clé API (ou Token) pour permettre à Sentinel GRC d'accéder aux données de <strong>{selectedProvider?.name}</strong>.
+                    </p>
+
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                            Clé API / Token
+                        </label>
+                        <div className="relative">
+                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input
+                                type="password"
+                                value={apiKey}
+                                onChange={(e) => setApiKey(e.target.value)}
+                                placeholder="sk_live_..."
+                                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                            />
+                        </div>
+                        <p className="text-xs text-slate-500">
+                            Cette clé sera stockée de manière sécurisée et utilisée uniquement pour la synchronisation.
+                        </p>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4">
+                        <button
+                            onClick={() => setApiKeyModalOpen(false)}
+                            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            onClick={confirmConnect}
+                            disabled={isSubmittingKey || !apiKey.trim()}
+                            className="px-4 py-2 text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-lg shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                            {isSubmittingKey ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Connexion...
+                                </>
+                            ) : (
+                                'Connecter l\'intégration'
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+        </div >
     );
 };

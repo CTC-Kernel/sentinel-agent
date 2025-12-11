@@ -19,11 +19,12 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
     onChange,
     textarea,
     rows = 3,
+    defaultValue,
     ...props
 }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [hasContent, setHasContent] = useState(false);
-    const hasValue = (value !== undefined && value !== '') || hasContent;
+    const hasValue = (value !== undefined && value !== '') || (defaultValue !== undefined && defaultValue !== '') || hasContent;
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setIsFocused(true);

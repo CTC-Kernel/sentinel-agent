@@ -45,7 +45,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                     : ((!label || open) ? placeholder : '');
 
                 return (
-                    <div className={`relative ${className} ${open ? 'z-50' : 'z-0'}`}>
+                    <div className={`relative ${className} ${open ? 'z-50' : 'z-auto'}`}>
                         {label && (
                             <Listbox.Label className={`
                                 absolute left-4 transition-all duration-200 pointer-events-none z-10

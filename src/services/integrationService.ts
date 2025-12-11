@@ -126,9 +126,9 @@ class IntegrationService {
         }
 
         try {
-            // 1. Call Cloud Function for actual connection/validation (if needed)
-            // const connectIntegration = httpsCallable(functions, 'connectIntegration');
-            // await connectIntegration({ providerId, credentials: config, organizationId });
+            // 1. Call Cloud Function for actual connection/validation
+            const connectIntegration = httpsCallable(functions, 'connectIntegration');
+            await connectIntegration({ providerId, credentials: config, organizationId });
 
             // 2. Persist status to Firestore
             const integrationRef = doc(db, 'organizations', organizationId, 'integrations', providerId);

@@ -18,12 +18,13 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
     onBlur,
     onChange,
     options,
+    defaultValue,
     ...props
 }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [hasContent, setHasContent] = useState(false);
-    const isOptionSelected = options.some(opt => opt.value === value);
-    const hasValue = (value !== undefined && value !== '' && value !== null) || hasContent || isOptionSelected;
+    const isOptionSelected = options.some(opt => opt.value === value || opt.value === defaultValue);
+    const hasValue = (value !== undefined && value !== '' && value !== null) || (defaultValue !== undefined && defaultValue !== '' && defaultValue !== null) || hasContent || isOptionSelected;
 
     const handleFocus = (e: React.FocusEvent<HTMLSelectElement>) => {
         setIsFocused(true);

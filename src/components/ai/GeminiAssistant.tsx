@@ -265,7 +265,7 @@ export const GeminiAssistant: React.FC = () => {
                                         <ReactMarkdown
                                             remarkPlugins={[remarkGfm]}
                                             components={{
-                                                code({ node, inline, className, children, ...props }: any) {
+                                                code({ inline, className, children, ...props }: any) {
                                                     const match = /language-(\w+)/.exec(className || '')
                                                     return !inline && match ? (
                                                         <div className="rounded-lg overflow-hidden my-2 border border-slate-200 dark:border-slate-700">
