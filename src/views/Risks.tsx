@@ -4,7 +4,7 @@ import { SEO } from '../components/SEO';
 import { RiskFormData, riskSchema } from '../schemas/riskSchema';
 import { z } from 'zod';
 
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality, Incident, MitreTechnique } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
@@ -45,13 +45,14 @@ import { integrationService } from '../services/integrationService';
 import { analyticsService } from '../services/analyticsService';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 
 
 export const Risks: React.FC = () => {
     const { user, addToast, organization, demoMode } = useStore();
     const location = useLocation();
+    const navigate = useNavigate();
 
     const role = user?.role || 'user';
 
@@ -171,6 +172,7 @@ export const Risks: React.FC = () => {
     const [updating, setUpdating] = useState(false);
     const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || projectsLoading || auditsLoading || incidentsLoading || importing;
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+    const [preSelectedProjectId, setPreSelectedProjectId] = useState<string | null>(null);
 
     // AI Recommendations State
     const [showRecommendations, setShowRecommendations] = useState(false);
@@ -234,7 +236,14 @@ export const Risks: React.FC = () => {
     }, [user?.organizationId]);
 
     useEffect(() => {
-        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string; createForProject?: string; projectName?: string };
+
+        if (state.createForProject) {
+            setCreationMode(true);
+            setPreSelectedProjectId(state.createForProject);
+            // Optional: Show toast or indicator that we are creating for a project
+        }
+
         if (!state.fromVoxel || !state.voxelSelectedId) return;
         if (loading || risks.length === 0) return;
         const risk = risks.find(r => r.id === state.voxelSelectedId);
@@ -290,7 +299,11 @@ export const Risks: React.FC = () => {
             const ownerName = ownerUser?.displayName || '';
 
             // Sanitize data before sending to Firestore
-            const cleanNewRisk = { ...sanitizeData(validatedData), owner: ownerName };
+            const cleanNewRisk = {
+                ...sanitizeData(validatedData),
+                owner: ownerName,
+                relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : []
+            };
 
             const nowIso = new Date().toISOString();
 
@@ -304,6 +317,15 @@ export const Risks: React.FC = () => {
                 createdAt: nowIso,
                 lastReviewDate: nowIso
             });
+
+            // Bi-directional linking for Project
+            if (preSelectedProjectId) {
+                const projectRef = doc(db, 'projects', preSelectedProjectId);
+                await updateDoc(projectRef, {
+                    relatedRiskIds: arrayUnion(docRef.id)
+                });
+                setPreSelectedProjectId(null); // Reset after successful creation
+            }
 
             // Persist initial history entry in immutable collection
             await addDoc(collection(db, 'risk_history'), {
@@ -1721,7 +1743,21 @@ export const Risks: React.FC = () => {
 
                                     {inspectorTab === 'projects' && (
                                         <div className="space-y-8">
-                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
+                                                {canEdit && (
+                                                    <button
+                                                        onClick={() => {
+                                                            if (selectedRisk) {
+                                                                navigate('/projects', { state: { createForRisk: selectedRisk.id, riskName: selectedRisk.threat } });
+                                                            }
+                                                        }}
+                                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                                    >
+                                                        <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouveau Projet
+                                                    </button>
+                                                )}
+                                            </div>
                                             {linkedProjects.length === 0 ? (
                                                 <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé à ce risque.</p>
                                             ) : (
@@ -1748,7 +1784,21 @@ export const Risks: React.FC = () => {
 
                                     {inspectorTab === 'audits' && (
                                         <div className="space-y-8">
-                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
+                                                {canEdit && (
+                                                    <button
+                                                        onClick={() => {
+                                                            if (selectedRisk) {
+                                                                navigate('/audits', { state: { createForRisk: selectedRisk.id, riskName: selectedRisk.threat } });
+                                                            }
+                                                        }}
+                                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                                    >
+                                                        <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Audit
+                                                    </button>
+                                                )}
+                                            </div>
                                             {linkedAudits.length === 0 ? (
                                                 <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé à ce risque.</p>
                                             ) : (

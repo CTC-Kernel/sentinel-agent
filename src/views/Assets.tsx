@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Helmet } from 'react-helmet-async';
 
-import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot, writeBatch, arrayUnion } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, BusinessProcess, Supplier, Audit, Vulnerability, AssetHistory } from '../types';
@@ -154,6 +154,7 @@ export const Assets: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isGeneratingLabels, setIsGeneratingLabels] = useState(false);
     const [isAddingMaintenance, setIsAddingMaintenance] = useState(false);
+    const [preSelectedProjectId, setPreSelectedProjectId] = useState<string | null>(null);
 
 
 
@@ -235,7 +236,14 @@ export const Assets: React.FC = () => {
     };
 
     useEffect(() => {
-        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
+        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string; createForProject?: string };
+
+        if (state.createForProject) {
+            setCreationMode(true);
+            setPreSelectedProjectId(state.createForProject);
+            setShowInspector(true);
+        }
+
         if (!state.fromVoxel || !state.voxelSelectedId) return;
         if (loading || assets.length === 0) return;
         const asset = assets.find(a => a.id === state.voxelSelectedId);
@@ -251,8 +259,22 @@ export const Assets: React.FC = () => {
         try {
             const validatedData = assetSchema.parse(data);
             const cleanData = sanitizeData(validatedData);
-            const newDoc = { ...cleanData, organizationId: user.organizationId, createdAt: new Date().toISOString() };
-            await addDoc(collection(db, 'assets'), newDoc);
+            const newDoc = {
+                ...cleanData,
+                organizationId: user.organizationId,
+                createdAt: new Date().toISOString(),
+                relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : []
+            };
+            const docRef = await addDoc(collection(db, 'assets'), newDoc);
+
+            // Bi-directional linking for Project
+            if (preSelectedProjectId) {
+                const projectRef = doc(db, 'projects', preSelectedProjectId);
+                await updateDoc(projectRef, {
+                    relatedAssetIds: arrayUnion(docRef.id)
+                });
+                setPreSelectedProjectId(null);
+            }
 
 
             await logAction(user, 'CREATE', 'Asset', `Création Actif: ${cleanData.name}`);
@@ -1233,7 +1255,65 @@ export const Assets: React.FC = () => {
                                         </div>
                                     )}
 
-                                    <div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})</h3>{linkedRisks.length === 0 ? (<p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>) : (<div className="grid gap-4">{linkedRisks.map(risk => (<div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span><span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span></div><p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{risk.vulnerability}</p>{risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}</div>))}</div>)}</div><div><h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})</h3>{linkedIncidents.length === 0 ? (<p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>) : (<div className="grid gap-4">{linkedIncidents.map(inc => (<div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all"><div className="flex justify-between items-start mb-2"><span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span><span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span></div><p className="text-xs text-slate-600 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p></div>))}</div>)}</div></div>
+                                    <div>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center">
+                                                <ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})
+                                            </h3>
+                                            <button
+                                                onClick={() => selectedAsset && navigate('/risks', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } })}
+                                                className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center"
+                                            >
+                                                <Plus className="h-3 w-3 mr-1" /> Nouveau Risque
+                                            </button>
+                                        </div>
+                                        {linkedRisks.length === 0 ? (
+                                            <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun risque associé.</p>
+                                        ) : (
+                                            <div className="grid gap-4">
+                                                {linkedRisks.map(risk => (
+                                                    <div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span>
+                                                            <span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span>
+                                                        </div>
+                                                        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{risk.vulnerability}</p>
+                                                        {risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="mt-8">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center">
+                                                <Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})
+                                            </h3>
+                                            <button
+                                                onClick={() => selectedAsset && navigate('/incidents', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } })}
+                                                className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center"
+                                            >
+                                                <Plus className="h-3 w-3 mr-1" /> Signaler Incident
+                                            </button>
+                                        </div>
+                                        {linkedIncidents.length === 0 ? (
+                                            <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun incident signalé.</p>
+                                        ) : (
+                                            <div className="grid gap-4">
+                                                {linkedIncidents.map(inc => (
+                                                    <div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span>
+                                                            <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span>
+                                                        </div>
+                                                        <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             )}
                             {inspectorTab === 'projects' && (
                                 <div className="space-y-8">
@@ -1376,6 +1456,6 @@ export const Assets: React.FC = () => {
                     </>
                 )}
             </Drawer >
-        </div>
+        </div >
     );
 };

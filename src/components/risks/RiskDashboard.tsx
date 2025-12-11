@@ -2,7 +2,7 @@ import React from 'react';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { Risk } from '../../types';
 import { ShieldAlert, AlertTriangle, Target, Clock } from '../ui/Icons';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, ZAxis } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, ZAxis, AreaChart, Area } from 'recharts';
 
 interface RiskDashboardProps {
     risks: Risk[];
@@ -55,6 +55,90 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
         { name: 'Éviter', value: risks.filter(r => r.strategy === 'Éviter').length },
         { name: 'Accepter', value: risks.filter(r => r.strategy === 'Accepter').length }
     ];
+
+    // Risk Evolution Data (Historical Trend)
+    const evolutionData = React.useMemo(() => {
+        if (!risks.length) return [];
+
+
+        // No, we must use real data. 
+
+        // Let's simplified approach:
+        // Get all unique dates from all histories + createdAt
+        // Sort them.
+        // Sample at specific intervals (e.g. monthly)
+
+        const allDates = new Set<string>();
+        risks.forEach(r => {
+            if (r.createdAt) allDates.add(r.createdAt.split('T')[0]);
+            r.history?.forEach(h => allDates.add(h.date.split('T')[0]));
+        });
+
+        const sortedDates = Array.from(allDates).sort();
+        if (sortedDates.length === 0) return [];
+
+        // Pick last 12 months or all if shorter
+
+        const timelines = risks.map(r => {
+            const points: { date: number, score: number }[] = [];
+            // Start with creation
+            let currentScore = r.history && r.history.length > 0 ? r.history[0].previousScore || r.score : r.score;
+
+            if (r.createdAt) {
+                points.push({ date: new Date(r.createdAt).getTime(), score: currentScore });
+            }
+
+            if (r.history) {
+                const sortedHistory = [...r.history].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                sortedHistory.forEach(h => {
+                    points.push({ date: new Date(h.date).getTime(), score: h.newScore });
+                });
+            }
+
+            // Add "now"
+            points.push({ date: new Date().getTime(), score: r.score });
+
+            return { id: r.id, points };
+        });
+
+        // Sample every month for the last 12 months
+        const chartData = [];
+        const now = new Date();
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const timestamp = d.getTime();
+
+            // Calculate avg score at this timestamp
+            let totalScore = 0;
+            let count = 0;
+            let criticalCount = 0;
+
+            timelines.forEach(t => {
+                // Find status at timestamp
+                // If timestamp < first point, risk didn't exist (unless we assume it existed? No, creation date matters)
+                if (t.points.length > 0 && timestamp >= t.points[0].date) {
+                    // Find the last point <= timestamp
+                    const validPoints = t.points.filter(p => p.date <= timestamp);
+                    if (validPoints.length > 0) {
+                        const lastPoint = validPoints[validPoints.length - 1];
+                        totalScore += lastPoint.score;
+                        count++;
+                        if (lastPoint.score >= 15) criticalCount++;
+                    }
+                }
+            });
+
+            if (count > 0) {
+                chartData.push({
+                    date: d.toLocaleDateString('fr-FR', { month: 'short' }),
+                    avgScore: parseFloat((totalScore / count).toFixed(1)),
+                    criticalRaw: criticalCount // Optional
+                });
+            }
+        }
+        return chartData;
+    }, [risks]);
+
 
     return (
         <div className="space-y-6">
@@ -146,8 +230,33 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 </div>
             </div>
 
-            {/* Charts */}
+            {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {/* Evolution Chart (NEW) */}
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 lg:col-span-2">
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                        <Target className="h-4 w-4 text-brand-500" />
+                        Évolution du Score Moyen (12 derniers mois)
+                    </h4>
+                    <ResponsiveContainer width="100%" height={250}>
+                        <AreaChart data={evolutionData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="colorAvg" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                            <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3' }} />
+                            <Area type="monotone" dataKey="avgScore" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorAvg)" strokeWidth={3} name="Score Moyen" />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+
+
                 {/* Risk Distribution */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Distribution par Niveau</h4>

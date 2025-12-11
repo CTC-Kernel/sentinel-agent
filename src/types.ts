@@ -70,6 +70,20 @@ export interface Asset {
   notes?: string;
   history?: AssetHistory[];
   aiAnalysis?: AIAnalysisResult;
+  // Specialized details
+  dataDetails?: {
+    format: 'Numérique' | 'Physique' | 'Hybride';
+    retentionPeriod?: string;
+    hasWorm?: boolean;
+    isEncrypted?: boolean;
+    dataCategory?: 'Client' | 'Employé' | 'Financier' | 'Propriété Intellectuelle' | 'Autre';
+  };
+  serviceDetails?: {
+    providerUrl?: string;
+    sla?: string;
+    supportContact?: string;
+    hostingLocation?: string;
+  };
 }
 
 export interface MaintenanceRecord {

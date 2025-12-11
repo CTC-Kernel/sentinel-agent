@@ -23,6 +23,7 @@ export const riskSchema = z.object({
     mitigationControlIds: z.array(z.string()).optional(),
     affectedProcessIds: z.array(z.string()).optional(),
     relatedSupplierIds: z.array(z.string()).optional(),
+    relatedProjectIds: z.array(z.string()).optional(),
     treatment: z.object({
         strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter']).optional(),
         description: z.string().optional(),

@@ -34,6 +34,20 @@ export const assetSchema = z.object({
         response: z.record(z.string(), z.any()),
         timestamp: z.string()
     }).optional().nullable(),
+    // Specialized details
+    dataDetails: z.object({
+        format: z.enum(['Numérique', 'Physique', 'Hybride']),
+        retentionPeriod: z.string().optional(),
+        hasWorm: z.boolean().optional(),
+        isEncrypted: z.boolean().optional(),
+        dataCategory: z.enum(['Client', 'Employé', 'Financier', 'Propriété Intellectuelle', 'Autre']).optional(),
+    }).optional(),
+    serviceDetails: z.object({
+        providerUrl: z.string().url("L'URL est invalide").optional().or(z.literal('')),
+        sla: z.string().optional(),
+        supportContact: z.string().optional(),
+        hostingLocation: z.string().optional(),
+    }).optional(),
 });
 
 export type AssetFormData = z.infer<typeof assetSchema>;

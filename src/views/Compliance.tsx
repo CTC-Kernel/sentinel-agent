@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 // import { Helmet } from 'react-helmet-async'; // Replaced by SEO component
 import { SlideUp } from '../components/ui/Animations'; // Added Layout Animations
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, limit, addDoc } from 'firebase/firestore';
 import { RiskFormData, riskSchema } from '../schemas/riskSchema';
 import { ProjectFormData } from '../schemas/projectSchema';
@@ -92,6 +92,11 @@ export const Compliance: React.FC = () => {
     const [syncingEvidenceId, setSyncingEvidenceId] = useState<string | null>(null);
     const [updating, setUpdating] = useState(false);
 
+    // Linking State
+    const [linkingToProjectId, setLinkingToProjectId] = useState<string | null>(null);
+    const [linkingToProjectName, setLinkingToProjectName] = useState<string | null>(null);
+    const location = useLocation();
+
     // Filter FRAMEWORKS for Compliance only
     const complianceFrameworks = FRAMEWORKS.filter(f => f.type === 'Compliance').map(f => ({ value: f.id, label: f.label }));
 
@@ -101,6 +106,15 @@ export const Compliance: React.FC = () => {
     // Actually, I can just replace the import and then the render. 
     // First tool call: Import
 
+
+    useEffect(() => {
+        const state = (location.state || {}) as { createForProject?: string; projectName?: string };
+        if (state.createForProject) {
+            setLinkingToProjectId(state.createForProject);
+            setLinkingToProjectName(state.projectName || 'Projet');
+            addToast(`Mode liaison actif: Sélectionnez un contrôle pour le lier au projet ${state.projectName || ''}`, 'info');
+        }
+    }, [location.state]);
 
     useEffect(() => {
         const loadProviders = async () => {
@@ -581,7 +595,24 @@ export const Compliance: React.FC = () => {
             await updateDoc(doc(db, 'projects', projectId), {
                 relatedControlIds: arrayUnion(selectedControl.id)
             });
+            // Bi-directional update
+            await updateDoc(doc(db, 'controls', selectedControl.id), {
+                relatedProjectIds: arrayUnion(projectId)
+            });
+
+            // Update local state
+            const newProjects = [...(selectedControl.relatedProjectIds || []), projectId];
+            setSelectedControl({ ...selectedControl, relatedProjectIds: newProjects });
+            refreshControls();
+
             addToast("Projet lié avec succès", "success");
+
+            if (projectId === linkingToProjectId) {
+                setLinkingToProjectId(null);
+                setLinkingToProjectName(null);
+                addToast("Liaison terminée, retour au projet...", "success");
+                setTimeout(() => navigate('/projects'), 1500);
+            }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Compliance.handleLinkProject', 'UPDATE_FAILED');
         } finally {
@@ -593,7 +624,7 @@ export const Compliance: React.FC = () => {
         if (!selectedControl || !user?.organizationId || !hasPermission(user, 'Project', 'create')) return;
         setUpdating(true);
         try {
-            await addDoc(collection(db, 'projects'), {
+            const docRef = await addDoc(collection(db, 'projects'), {
                 ...data,
                 organizationId: user.organizationId,
                 relatedControlIds: [selectedControl.id],
@@ -601,6 +632,16 @@ export const Compliance: React.FC = () => {
                 updatedAt: new Date().toISOString(),
                 status: 'En cours'
             });
+
+            // Bi-directional update
+            await updateDoc(doc(db, 'controls', selectedControl.id), {
+                relatedProjectIds: arrayUnion(docRef.id)
+            });
+            // Update local state
+            const newProjects = [...(selectedControl.relatedProjectIds || []), docRef.id];
+            setSelectedControl({ ...selectedControl, relatedProjectIds: newProjects });
+            refreshControls();
+
             setCreationMode(null);
             addToast("Nouveau projet créé et lié", "success");
         } catch (error) {
@@ -1204,7 +1245,24 @@ export const Compliance: React.FC = () => {
                 ) : (selectedControl && (
                     <div className="h-full flex flex-col">
                         {/* Tabs */}
-                        <div className="px-6 bg-white/50 dark:bg-white/5 backdrop-blur-sm sticky top-0 z-10 border-b border-gray-100 dark:border-white/5">
+                        <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm sticky top-0 z-10 border-b border-gray-100 dark:border-white/5">
+                            {linkingToProjectId && (
+                                <div className="bg-brand-50/50 dark:bg-brand-900/10 px-6 py-3 border-b border-brand-100 dark:border-brand-900/30 flex items-center justify-between animate-fade-in">
+                                    <div className="flex items-center text-sm text-brand-700 dark:text-brand-300">
+                                        <Link className="h-4 w-4 mr-2" />
+                                        <span className="font-medium">Lier ce contrôle au projet <strong>{linkingToProjectName}</strong> ?</span>
+                                    </div>
+                                    <button
+                                        onClick={() => handleLinkProject(linkingToProjectId)}
+                                        disabled={updating || (selectedControl?.relatedProjectIds || []).includes(linkingToProjectId)}
+                                        className="text-xs bg-brand-600 hover:bg-brand-700 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center shadow-sm"
+                                    >
+                                        {updating ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Link className="h-3 w-3 mr-1.5" />}
+                                        {(selectedControl?.relatedProjectIds || []).includes(linkingToProjectId) ? 'Déjà lié' : 'Lier maintenant'}
+                                    </button>
+                                </div>
+                            )}
+
                             <ScrollableTabs
                                 tabs={[
                                     { id: 'details', label: 'Détails', icon: FileText },

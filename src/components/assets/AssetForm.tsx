@@ -60,7 +60,17 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             licenseExpiry: '',
             email: '',
             role: '',
-            department: ''
+            department: '',
+            // Service details
+            serviceDetails: { providerUrl: '', sla: '', supportContact: '', hostingLocation: '' },
+            // Data details
+            dataDetails: {
+                format: 'Numérique',
+                retentionPeriod: '',
+                hasWorm: false,
+                isEncrypted: false,
+                dataCategory: 'Financier'
+            }
         }
     });
 
@@ -87,7 +97,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 licenseExpiry: initialData.licenseExpiry || '',
                 email: initialData.email || '',
                 role: initialData.role || '',
-                department: initialData.department || ''
+                department: initialData.department || '',
+                serviceDetails: initialData.serviceDetails || { providerUrl: '', sla: '', supportContact: '', hostingLocation: '' },
+                dataDetails: initialData.dataDetails || { format: 'Numérique', retentionPeriod: '', hasWorm: false, isEncrypted: false, dataCategory: 'Financier' }
             });
         }
     }, [initialData, reset]);
@@ -349,6 +361,99 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 <FloatingLabelInput label="Département" {...field} />
                             )}
                         />
+                    </div>
+                </div>
+            )}
+
+            {watch('type') === 'Service' && (
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Service / SaaS</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Controller
+                            name="serviceDetails.providerUrl"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="URL du Fournisseur" {...field} error={errors.serviceDetails?.providerUrl?.message} />
+                            )}
+                        />
+                        <Controller
+                            name="serviceDetails.sla"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="Niveau SLA (ex: 99.9%)" {...field} />
+                            )}
+                        />
+                        <Controller
+                            name="serviceDetails.supportContact"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="Contact Support" {...field} />
+                            )}
+                        />
+                        <Controller
+                            name="serviceDetails.hostingLocation"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="Lieu d'hébergement" {...field} />
+                            )}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {watch('type') === 'Données' && (
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Données</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Controller
+                            name="dataDetails.format"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Format"
+                                    options={['Numérique', 'Physique', 'Hybride'].map(f => ({ value: f, label: f }))}
+                                    value={field.value || 'Numérique'}
+                                    onChange={field.onChange}
+                                />
+                            )}
+                        />
+                        <Controller
+                            name="dataDetails.dataCategory"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Catégorie de Données"
+                                    options={['Client', 'Employé', 'Financier', 'Propriété Intellectuelle', 'Autre'].map(c => ({ value: c, label: c }))}
+                                    value={field.value || 'Autre'}
+                                    onChange={field.onChange}
+                                />
+                            )}
+                        />
+                        <Controller
+                            name="dataDetails.retentionPeriod"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="Durée de rétention (ex: 5 ans)" {...field} />
+                            )}
+                        />
+                        <div className="flex flex-col gap-4 justify-center md:col-span-2">
+                            <label className="flex items-center space-x-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500"
+                                    {...control.register('dataDetails.isEncrypted')}
+                                />
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Données Chiffrées (At rest / Transit)</span>
+                            </label>
+                            <label className="flex items-center space-x-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500"
+                                    {...control.register('dataDetails.hasWorm')}
+                                />
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Stockage Immuable (WORM)</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             )}

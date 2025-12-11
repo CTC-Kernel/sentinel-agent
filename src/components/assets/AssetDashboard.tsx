@@ -4,6 +4,7 @@ import { Asset, Criticality } from '../../types';
 import { Server, Wrench, Euro, ShieldAlert } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+
 interface AssetDashboardProps {
     assets: Asset[];
     onFilterChange?: (filter: { type: 'criticality' | 'status' | 'type', value: string } | null) => void;
@@ -64,6 +65,33 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
         { name: 'Moyen', value: criticalityCounts['Moyen'], color: '#eab308' },
         { name: 'Faible', value: criticalityCounts['Faible'], color: '#22c55e' }
     ];
+
+    // Distribution by Location
+    const locationData = assets.reduce((acc, asset) => {
+        const loc = asset.location || 'Non défini';
+        acc[loc] = (acc[loc] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const locationChartData = Object.entries(locationData)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 8); // Top 8 locations
+
+    // Distribution by Scope
+    const scopeData = assets.reduce((acc, asset) => {
+        if (asset.scope && asset.scope.length > 0) {
+            asset.scope.forEach(s => {
+                acc[s] = (acc[s] || 0) + 1;
+            });
+        } else {
+            acc['Aucun'] = (acc['Aucun'] || 0) + 1;
+        }
+        return acc;
+    }, {} as Record<string, number>);
+
+    const scopeChartData = Object.entries(scopeData).map(([name, value]) => ({ name, value }));
+    const SCOPE_COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#10b981', '#6366f1', '#94a3b8'];
 
     return (
         <div className="space-y-6">
@@ -212,6 +240,59 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                             />
                             <Tooltip content={<ChartTooltip />} cursor={{ fill: '#f1f5f9', opacity: 0.4 }} />
                             <Bar dataKey="value" fill="#3b82f6" name="Nombre d'actifs" radius={[4, 4, 0, 0]} barSize={30} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Scope Distribution */}
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Distribution par Périmètre (Scope)</h4>
+                    <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                            <Pie
+                                data={scopeChartData}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={80}
+                                paddingAngle={5}
+                                dataKey="value"
+                                stroke="none"
+                            >
+                                {scopeChartData.map((_, index) => (
+                                    <Cell key={`cell-${index}`} fill={SCOPE_COLORS[index % SCOPE_COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip content={<ChartTooltip />} cursor={false} />
+                            <Legend
+                                verticalAlign="bottom"
+                                height={36}
+                                iconType="circle"
+                                formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                            />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Location Distribution */}
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Actifs par Localisation</h4>
+                    <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={locationChartData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} opacity={0.5} />
+                            <XAxis type="number" hide />
+                            <YAxis
+                                dataKey="name"
+                                type="category"
+                                stroke="#94a3b8"
+                                fontSize={11}
+                                tickLine={false}
+                                axisLine={false}
+                                width={100}
+                                tickFormatter={(value) => value.length > 12 ? `${value.substring(0, 12)}...` : value}
+                            />
+                            <Tooltip content={<ChartTooltip />} cursor={{ fill: '#f1f5f9', opacity: 0.4 }} />
+                            <Bar dataKey="value" fill="#10b981" name="Nombre d'actifs" radius={[0, 4, 4, 0]} barSize={20} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>

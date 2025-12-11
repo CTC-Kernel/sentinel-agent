@@ -8,7 +8,7 @@ import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, Pro
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target, ShieldAlert, Loader2 } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target, ShieldAlert, Loader2, Server } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -127,7 +127,7 @@ export const Projects: React.FC = () => {
 
     // Inspector State
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence' | 'milestones'>('overview');
+    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence' | 'milestones' | 'risks' | 'controls' | 'assets'>('overview');
     const [taskViewMode, setTaskViewMode] = useState<'list' | 'board'>('list');
     const [projectHistory, setProjectHistory] = useState<SystemLog[]>([]);
     const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
@@ -135,6 +135,11 @@ export const Projects: React.FC = () => {
     const [linkedSuppliers, setLinkedSuppliers] = useState<Supplier[]>([]);
     const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
     const [ganttViewMode, setGanttViewMode] = useState<'Day' | 'Week' | 'Month'>('Week');
+
+    // Derived states for linked items
+    const linkedRisks = React.useMemo(() => risks.filter(r => selectedProject?.relatedRiskIds?.includes(r.id)), [risks, selectedProject]);
+    const linkedControls = React.useMemo(() => controls.filter(c => selectedProject?.relatedControlIds?.includes(c.id)), [controls, selectedProject]);
+    const linkedAssets = React.useMemo(() => assets.filter(a => selectedProject?.relatedAssetIds?.includes(a.id)), [assets, selectedProject]);
 
     // const [isEditing, setIsEditing] = useState(false); // Removed unused
 
@@ -625,9 +630,7 @@ export const Projects: React.FC = () => {
 
 
 
-    const getAssetById = (id: string) => assets.find(a => a.id === id);
-    const getRiskById = (id: string) => risks.find(r => r.id === id);
-    const getControlById = (id: string) => controls.find(c => c.id === id);
+
 
 
 
@@ -1104,16 +1107,19 @@ export const Projects: React.FC = () => {
                             <ScrollableTabs
                                 tabs={[
                                     { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
-                                    { id: 'tasks', label: 'Tâches', icon: CheckSquare },
-                                    { id: 'milestones', label: 'Jalons', icon: Target },
+                                    { id: 'tasks', label: 'Tâches', icon: CheckSquare, count: selectedProject.tasks?.length },
                                     { id: 'gantt', label: 'Gantt', icon: CalendarDays },
-                                    { id: 'dashboard', label: 'Dashboard', icon: FolderKanban },
+                                    { id: 'milestones', label: 'Jalons', icon: Target, count: projectMilestones.length },
+                                    { id: 'dashboard', label: 'Tableau de bord', icon: FileSpreadsheet },
+                                    { id: 'risks', label: 'Risques', icon: ShieldAlert, count: linkedRisks.length },
+                                    { id: 'controls', label: 'Contrôles', icon: CheckSquare, count: linkedControls.length },
+                                    { id: 'assets', label: 'Actifs', icon: Server, count: linkedAssets.length },
                                     { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
                                     { id: 'history', label: 'Historique', icon: History },
                                     { id: 'comments', label: 'Commentaires', icon: MessageSquare }
                                 ]}
                                 activeTab={inspectorTab}
-                                onTabChange={(id) => setInspectorTab(id as 'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence' | 'milestones')}
+                                onTabChange={(id) => setInspectorTab(id as any)}
                             />
                         </div>
 
@@ -1143,162 +1149,281 @@ export const Projects: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        {(selectedProject.relatedAssetIds?.length || 0) > 0 && (
-                                            <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
+                                        {/* Linked Audits */}
+                                        {linkedAudits.length > 0 && (
+                                            <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6 mt-6">
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div>
-                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Actifs critiques</p>
-                                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white">Chaîne de valeur concernée</h4>
+                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Audits de conformité</p>
+                                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white">Audits liés</h4>
                                                     </div>
-                                                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{selectedProject.relatedAssetIds?.length} actifs</span>
+                                                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{linkedAudits.length} audits</span>
                                                 </div>
                                                 <div className="space-y-3">
-                                                    {selectedProject.relatedAssetIds?.map(assetId => {
-                                                        const asset = getAssetById(assetId);
-                                                        if (!asset) return null;
-                                                        return (
-                                                            <div key={assetId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
-                                                                <div>
-                                                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{asset.name}</p>
-                                                                    <p className="text-xs text-slate-600 dark:text-slate-400">{asset.type} • {asset.owner || 'Responsable inconnu'}</p>
-                                                                </div>
-                                                                <div className="flex gap-1">
-                                                                    {[asset.confidentiality, asset.integrity, asset.availability].map((level, idx) => (
-                                                                        <span key={idx} className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{level}</span>
-                                                                    ))}
-                                                                </div>
+                                                    {linkedAudits.map(audit => (
+                                                        <div key={audit.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{audit.name}</p>
+                                                                <p className="text-xs text-slate-600 dark:text-slate-400">{audit.type} • {new Date(audit.dateScheduled).toLocaleDateString()}</p>
                                                             </div>
-                                                        );
-                                                    })}
+                                                            <Badge
+                                                                status={audit.status === 'Terminé' ? 'success' : 'info'}
+                                                                variant="soft"
+                                                                size="sm"
+                                                            >
+                                                                {audit.status}
+                                                            </Badge>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
                                         )}
 
-                                        {(selectedProject.relatedRiskIds?.length || 0) > 0 && (
-                                            <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
+                                        {/* Linked Suppliers */}
+                                        {linkedSuppliers.length > 0 && (
+                                            <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6 mt-6">
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div>
-                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Risques suivis</p>
-                                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white">Suivi ISO 27005</h4>
+                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Chaîne d'approvisionnement</p>
+                                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white">Fournisseurs impliqués</h4>
                                                     </div>
-                                                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{selectedProject.relatedRiskIds?.length} risques</span>
+                                                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{linkedSuppliers.length} fournisseurs</span>
                                                 </div>
                                                 <div className="space-y-3">
-                                                    {selectedProject.relatedRiskIds?.map(riskId => {
-                                                        const risk = getRiskById(riskId);
-                                                        if (!risk) return null;
-                                                        const level = risk.score >= 15 ? 'Critique' : risk.score >= 10 ? 'Élevé' : risk.score >= 5 ? 'Moyen' : 'Faible';
-                                                        return (
-                                                            <div key={riskId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
-                                                                <div>
-                                                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{risk.threat}</p>
-                                                                    <p className="text-xs text-slate-600 dark:text-slate-400">{risk.vulnerability}</p>
-                                                                </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <Badge
-                                                                        status={risk.score >= 15 ? 'error' : risk.score >= 10 ? 'warning' : risk.score >= 5 ? 'info' : 'success'}
-                                                                        variant="soft"
-                                                                        size="sm"
-                                                                    >
-                                                                        {level}
-                                                                    </Badge>
-                                                                    <span className="text-xs text-slate-500 dark:text-slate-500">Score {risk.score}</span>
-                                                                </div>
+                                                    {linkedSuppliers.map(supplier => (
+                                                        <div key={supplier.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{supplier.name}</p>
+                                                                <p className="text-xs text-slate-600 dark:text-slate-400">{supplier.category}</p>
                                                             </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {(selectedProject.relatedControlIds?.length || 0) > 0 && (
-                                            <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6">
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <div>
-                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Contrôles ISO 27001</p>
-                                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white">Mesures associées</h4>
-                                                    </div>
-                                                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{selectedProject.relatedControlIds?.length} contrôles</span>
-                                                </div>
-                                                <div className="space-y-3">
-                                                    {selectedProject.relatedControlIds?.map(controlId => {
-                                                        const control = getControlById(controlId);
-                                                        if (!control) return null;
-                                                        return (
-                                                            <div key={controlId} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
-                                                                <div>
-                                                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{control.code} — {control.name}</p>
-                                                                    {control.description && <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">{control.description}</p>}
-                                                                </div>
-                                                                <Badge status="neutral" variant="outline" size="sm">{control.status}</Badge>
-                                                            </div>
-                                                        );
-                                                    })}
+                                                            <Badge
+                                                                status={supplier.criticality === 'Critique' ? 'error' : 'neutral'}
+                                                                variant="soft"
+                                                                size="sm"
+                                                            >
+                                                                {supplier.criticality}
+                                                            </Badge>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
                                         )}
                                     </div>
+                                </div>
+                            )}
 
-                                    {/* Linked Audits */}
-                                    {linkedAudits.length > 0 && (
-                                        <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6 mt-6">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div>
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Audits de conformité</p>
-                                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Audits liés</h4>
-                                                </div>
-                                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{linkedAudits.length} audits</span>
-                                            </div>
-                                            <div className="space-y-3">
-                                                {linkedAudits.map(audit => (
-                                                    <div key={audit.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
-                                                        <div>
-                                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{audit.name}</p>
-                                                            <p className="text-xs text-slate-600 dark:text-slate-400">{audit.type} • {new Date(audit.dateScheduled).toLocaleDateString()}</p>
+                            {inspectorTab === 'milestones' && (
+                                <ProjectMilestones
+                                    project={selectedProject}
+                                    milestones={projectMilestones}
+                                    onUpdate={() => fetchMilestones(selectedProject.id)}
+                                />
+                            )}
+
+                            {inspectorTab === 'dashboard' && (
+                                <div className="space-y-6 h-full flex flex-col">
+                                    <ProjectDashboard
+                                        project={selectedProject}
+                                        milestones={projectMilestones}
+                                        relatedRisks={risks.filter(r => selectedProject.relatedRiskIds?.includes(r.id))}
+                                    />
+                                </div>
+                            )}
+
+                            {inspectorTab === 'tasks' && (
+                                <div className="space-y-6 h-full flex flex-col">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700">
+                                            <button onClick={() => setTaskViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Liste</button>
+                                            <button onClick={() => setTaskViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Tableau</button>
+                                        </div>
+                                        {canEdit && (
+                                            <button
+                                                onClick={() => {
+                                                    setEditingTask(undefined);
+                                                    setShowTaskModal(true);
+                                                }}
+                                                className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 hover:scale-105 transition-all shadow-lg shadow-brand-500/30"
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                Nouvelle tâche
+                                            </button>
+                                        )}</div>
+
+                                    {taskViewMode === 'list' ? (
+                                        <div className="space-y-2">
+                                            {selectedProject.tasks?.length === 0 && <p className="text-center text-slate-500 text-xs py-8 italic">Aucune tâche définie.</p>}
+                                            {selectedProject.tasks?.map(task => (
+                                                <div key={task.id} className="flex items-center p-3 bg-white dark:bg-slate-800/50 rounded-xl border border-gray-100 dark:border-white/5 group hover:shadow-sm transition-all">
+                                                    <button onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'}`}>
+                                                        {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
+                                                    </button>
+                                                    <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                        {task.title}
+                                                        {task.dueDate && <span className="ml-2 text-[10px] text-slate-500 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{new Date(task.dueDate).toLocaleDateString()}</span>}
+                                                    </span>
+                                                    {canEdit && (
+                                                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button onClick={() => {
+                                                                const icsContent = generateICS([{
+                                                                    title: `Tâche : ${task.title}`,
+                                                                    description: `Tâche du projet ${selectedProject.name}`,
+                                                                    startDate: task.dueDate ? new Date(task.dueDate) : new Date(selectedProject.dueDate),
+                                                                    location: 'Sentinel GRC'
+                                                                }]);
+                                                                downloadICS(`tache_${task.id}.ics`, icsContent);
+                                                            }} className="p-1.5 text-slate-500 hover:text-blue-500 transition-all" title="Ajouter au calendrier"><CalendarDays className="h-3.5 w-3.5" /></button>
+                                                            <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
                                                         </div>
-                                                        <Badge
-                                                            status={audit.status === 'Terminé' ? 'success' : 'info'}
-                                                            variant="soft"
-                                                            size="sm"
-                                                        >
-                                                            {audit.status}
-                                                        </Badge>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="flex gap-4 overflow-x-auto pb-4 h-full">
+                                            <KanbanColumn
+                                                status="A faire"
+                                                tasks={selectedProject.tasks?.filter(t => t.status === 'A faire') || []}
+                                                canEdit={canEdit}
+                                                draggedTaskId={draggedTaskId}
+                                                onDragOver={handleDragOver}
+                                                onDrop={handleDrop}
+                                                onDragStart={handleDragStart}
+                                                onEditTask={(task) => { setEditingTask(task); setShowTaskModal(true); }}
+                                                onDeleteTask={deleteTask}
+                                            />
+                                            <KanbanColumn
+                                                status="En cours"
+                                                tasks={selectedProject.tasks?.filter(t => t.status === 'En cours') || []}
+                                                canEdit={canEdit}
+                                                draggedTaskId={draggedTaskId}
+                                                onDragOver={handleDragOver}
+                                                onDrop={handleDrop}
+                                                onDragStart={handleDragStart}
+                                                onEditTask={(task) => { setEditingTask(task); setShowTaskModal(true); }}
+                                                onDeleteTask={deleteTask}
+                                            />
+                                            <KanbanColumn
+                                                status="Terminé"
+                                                tasks={selectedProject.tasks?.filter(t => t.status === 'Terminé') || []}
+                                                canEdit={canEdit}
+                                                draggedTaskId={draggedTaskId}
+                                                onDragOver={handleDragOver}
+                                                onDrop={handleDrop}
+                                                onDragStart={handleDragStart}
+                                                onEditTask={(task) => { setEditingTask(task); setShowTaskModal(true); }}
+                                                onDeleteTask={deleteTask}
+                                            />
                                         </div>
                                     )}
+                                </div>
+                            )}
 
-                                    {/* Linked Suppliers */}
-                                    {linkedSuppliers.length > 0 && (
-                                        <div className="bg-white/80 dark:bg-slate-800/40 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm p-6 mt-6">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div>
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Chaîne d'approvisionnement</p>
-                                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Fournisseurs impliqués</h4>
-                                                </div>
-                                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{linkedSuppliers.length} fournisseurs</span>
-                                            </div>
-                                            <div className="space-y-3">
-                                                {linkedSuppliers.map(supplier => (
-                                                    <div key={supplier.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                            {/* --- REMOVED OLD LINKED ITEMS DISPLAY IN OVERVIEW --- */}
+
+                            {inspectorTab === 'risks' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques liés ({linkedRisks.length})</h3>
+                                        {canEdit && (
+                                            <button
+                                                onClick={() => {
+                                                    navigate('/risks', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
+                                                }}
+                                                className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                            >
+                                                <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouveau Risque
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {linkedRisks.length === 0 && <p className="text-sm text-slate-500 italic col-span-2 text-center py-8">Aucun risque associé.</p>}
+                                        {linkedRisks.map(risk => {
+                                            const riskLevel = risk.score >= 15 ? 'Critique' : risk.score >= 10 ? 'Élevé' : risk.score >= 5 ? 'Moyen' : 'Faible';
+                                            return (
+                                                <div key={risk.id} className="p-4 bg-white dark:bg-slate-800/40 rounded-2xl border border-gray-100 dark:border-white/5 flex flex-col gap-2 relative overflow-hidden group hover:shadow-md transition-all">
+                                                    <div className="flex justify-between items-start">
                                                         <div>
-                                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{supplier.name}</p>
-                                                            <p className="text-xs text-slate-600 dark:text-slate-400">{supplier.category}</p>
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">#{risk.id.substring(0, 4)}</span>
+                                                            <h4 className="font-bold text-slate-900 dark:text-white line-clamp-1" title={risk.threat}>{risk.threat}</h4>
                                                         </div>
-                                                        <Badge
-                                                            status={supplier.criticality === 'Critique' ? 'error' : 'neutral'}
-                                                            variant="soft"
-                                                            size="sm"
-                                                        >
-                                                            {supplier.criticality}
-                                                        </Badge>
+                                                        <Badge status={riskLevel === 'Critique' || riskLevel === 'Élevé' ? 'error' : riskLevel === 'Moyen' ? 'warning' : 'success'} size="sm" variant="soft">{riskLevel}</Badge>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
+                                                    <div className="flex items-center gap-2 mt-2">
+                                                        <span className="text-xs text-slate-500">Score: {risk.score}</span>
+                                                        <span className="text-xs text-slate-400">•</span>
+                                                        <span className="text-xs text-slate-500">Impact: {risk.impact}</span>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )}
 
+                            {inspectorTab === 'controls' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><CheckSquare className="h-4 w-4 mr-2" /> Contrôles liés ({linkedControls.length})</h3>
+                                        {canEdit && (
+                                            <button
+                                                onClick={() => {
+                                                    // This assumes we have a way to create controls linked to a project, or just nav to compliance
+                                                    // Since controls are usually standard, maybe we just navigate to compliance?
+                                                    // Or create a request? For now, navigate to Compliance with state.
+                                                    navigate('/compliance', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
+                                                }}
+                                                className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                            >
+                                                <Plus className="h-3.5 w-3.5 mr-1.5" /> Ajouter Contrôle
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="space-y-3">
+                                        {linkedControls.length === 0 && <p className="text-sm text-slate-500 italic text-center py-8">Aucun contrôle associé.</p>}
+                                        {linkedControls.map(control => (
+                                            <div key={control.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{control.code} — {control.name}</p>
+                                                    {control.description && <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1">{control.description}</p>}
+                                                </div>
+                                                <Badge status="neutral" variant="outline" size="sm">{control.status}</Badge>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+
+                            {inspectorTab === 'assets' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><Server className="h-4 w-4 mr-2" /> Actifs liés ({linkedAssets.length})</h3>
+                                        {canEdit && (
+                                            <button
+                                                onClick={() => {
+                                                    navigate('/assets', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
+                                                }}
+                                                className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                            >
+                                                <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Actif
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {linkedAssets.length === 0 && <p className="text-sm text-slate-500 italic col-span-2 text-center py-8">Aucun actif associé.</p>}
+                                        {linkedAssets.map(asset => (
+                                            <div key={asset.id} className="p-4 bg-white dark:bg-slate-800/40 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
+                                                    <Server className="h-5 w-5" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-900 dark:text-white text-sm">{asset.name}</h4>
+                                                    <p className="text-xs text-slate-500">{asset.type} • {asset.confidentiality}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 

@@ -5,6 +5,7 @@ interface Tab {
     id: string;
     label: string;
     icon?: any;
+    count?: number;
 }
 
 interface ScrollableTabsProps {
@@ -75,6 +76,14 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                             />
                         )}
                         {tab.label}
+                        {tab.count !== undefined && (
+                            <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${activeTab === tab.id
+                                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                                }`}>
+                                {tab.count}
+                            </span>
+                        )}
                     </button>
                 ))}
             </div>
