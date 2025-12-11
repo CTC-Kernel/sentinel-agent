@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test.describe('Compliance Flow', () => {
     test('should update control status', async ({ page }) => {
