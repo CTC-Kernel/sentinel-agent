@@ -4,7 +4,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar, Loader2 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
-import { Scale } from 'lucide-react';
+import { Scale, Shield } from 'lucide-react';
 import { hasPermission } from '../../utils/permissions';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
@@ -13,6 +13,17 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
   const { user, t } = useStore();
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  React.useEffect(() => {
+    const checkSuperAdmin = async () => {
+      if (auth.currentUser) {
+        const token = await auth.currentUser.getIdTokenResult();
+        setIsSuperAdmin(!!token.claims.superAdmin);
+      }
+    };
+    checkSuperAdmin();
+  }, [user]);
 
   const navGroups = [
     {
@@ -48,6 +59,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       items: [
         { key: 'team', name: t('sidebar.team'), to: '/team', icon: Users },
         { key: 'backup', name: t('common.backup'), to: '/backup', icon: Database },
+        ...(isSuperAdmin ? [{ key: 'super_admin', name: 'Super Admin', to: '/admin_management', icon: Shield }] : [])
       ]
     }
   ];

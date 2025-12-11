@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
-import { Menu, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command } from '../ui/Icons';
+import { Menu, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield } from '../ui/Icons';
 import { NotificationCenter } from '../ui/NotificationCenter';
 import { signOut } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -27,6 +27,17 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+    useEffect(() => {
+        const checkSuperAdmin = async () => {
+            if (auth.currentUser) {
+                const token = await auth.currentUser.getIdTokenResult();
+                setIsSuperAdmin(!!token.claims.superAdmin);
+            }
+        };
+        checkSuperAdmin();
+    }, [user]);
 
     // Trigger Command Palette (Cmd+K) programmatically
     const openCommandPalette = () => {
@@ -82,6 +93,15 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                 {/* Right: Actions & Profile */}
                 <div className="flex items-center gap-2 sm:gap-4">
+                    {isSuperAdmin && (
+                        <Link
+                            to="/admin_management"
+                            className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors"
+                        >
+                            <Shield className="h-4 w-4" />
+                            Admin
+                        </Link>
+                    )}
                     <NotificationCenter />
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block"></div>
