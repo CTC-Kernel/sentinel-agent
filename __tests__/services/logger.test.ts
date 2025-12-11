@@ -10,13 +10,15 @@ vi.mock('../../firebase', () => ({
 }));
 
 vi.mock('firebase/functions', () => ({
-  httpsCallable: vi.fn()
+  httpsCallable: vi.fn(),
+  getFunctions: vi.fn()
 }));
 
 // Mock ErrorLogger
-vi.mock('../../services/errorLogger', () => ({
+vi.mock('@/services/errorLogger', () => ({
   ErrorLogger: {
-    error: vi.fn()
+    error: vi.fn(),
+    warn: vi.fn()
   }
 }));
 
@@ -89,7 +91,7 @@ describe('logger', () => {
       vi.mocked(httpsCallable).mockReturnValue(mockLogEvent as any);
 
       // We need to import ErrorLogger to check if it was called
-      const { ErrorLogger } = await import('../../services/errorLogger');
+      const { ErrorLogger } = await import("@/services/errorLogger");
 
       await logAction(mockUser, 'CREATE', 'Asset', 'Test error');
 
