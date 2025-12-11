@@ -264,7 +264,7 @@ a:focus-visible {
   height: 100vh !important;
   height: 100dvh !important;
   /* Dynamic viewport height for mobile */
-  width: 100vw !important;
+  width: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
 }
