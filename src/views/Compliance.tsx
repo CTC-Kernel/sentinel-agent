@@ -130,8 +130,7 @@ export const Compliance: React.FC = () => {
         type: 'document' | 'risk' | 'project' | null;
     }>({ isOpen: false, type: null });
 
-    const stubSyncEvidence = async (evidence: any) => { // Using any to bypass type check for stub
-        console.log("Sync evidence:", evidence);
+    const stubSyncEvidence = async (_evidence: any) => { // Using any to bypass type check for stub
         return Promise.resolve();
     };
 

@@ -5,7 +5,7 @@ interface Item {
     id: string;
     label: string;
     subLabel?: string;
-    icon?: any;
+    icon?: React.ElementType<{ className?: string }>;
 }
 
 interface ItemSelectorModalProps {

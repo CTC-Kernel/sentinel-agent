@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Control } from '../../types';
-import { Clock, AlertTriangle, TrendingUp, ShieldAlert } from '../ui/Icons';
+import { Clock, TrendingUp, ShieldAlert } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { StatsService } from '../../services/statsService';
 import { useStore } from '../../store';
@@ -112,12 +112,7 @@ export const ComplianceStats: React.FC<ComplianceStatsProps> = ({ controls, onFi
         score: (data.implemented / data.total * 100)
     }));
 
-    const criticalControls = controls.filter(c =>
-        c.status !== 'Implémenté' &&
-        c.code &&
-        (c.code.includes('A.5.') || c.code.includes('A.8.') || c.code.includes('A.12.'))
-    );
-    void criticalControls; void AlertTriangle;
+
 
     return (
         <div className="space-y-6">
