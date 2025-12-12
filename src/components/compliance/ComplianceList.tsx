@@ -43,7 +43,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                 if (domainControls.length === 0) return null; // Hide domains with no controls
 
                 return (
-                    <div key={domain.id} className="glass-panel rounded-[2.5rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md max-w-full">
+                    <div key={domain.id} className="glass-panel rounded-[2.5rem] shadow-sm overflow-hidden overflow-x-auto transition-all duration-300 hover:shadow-md max-w-full">
                         <div
                             onClick={() => toggleDomain(domain.id)}
                             className={`p-6 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
