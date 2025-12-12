@@ -1005,7 +1005,7 @@ export const Documents: React.FC = () => {
                     <div className="fixed inset-0 z-[9999] overflow-hidden">
                         <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedDocument(null)} />
                         <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
-                            <div className="w-screen max-w-6xl pointer-events-auto">
+                            <div className="fixed inset-x-0 max-w-6xl mx-auto pointer-events-auto">
                                 <div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
                                     <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
                                         <div>

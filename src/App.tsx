@@ -119,7 +119,7 @@ const AppLayout: React.FC = () => {
                 <div className="absolute bottom-[-20%] left-[20%] w-[55rem] h-[55rem] bg-indigo-200/30 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{ animationDelay: '4s' }}></div>
             </div>
 
-            <div>
+            <div className="relative z-30 flex-shrink-0">
                 <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
             </div>
 
