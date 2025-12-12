@@ -14,13 +14,16 @@ import { ComplianceHeader } from '../components/compliance/ComplianceHeader';
 import { ComplianceStats } from '../components/compliance/ComplianceStats';
 import { ComplianceList } from '../components/compliance/ComplianceList';
 import { ControlInspector } from '../components/compliance/ControlInspector';
+import { ComplianceWatch } from '../components/compliance/ComplianceWatch';
 
 // Hook
 import { useComplianceData } from '../hooks/useComplianceData';
-import { updateDoc, doc, arrayUnion } from 'firebase/firestore';
+import { updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../firebase';
 import { logAction } from '../services/logger';
 import { toast } from 'sonner';
+import { ItemSelectorModal } from '../components/ui/ItemSelectorModal';
+import { FileText, AlertTriangle, Briefcase } from 'lucide-react';
 
 export const Compliance: React.FC = () => {
     const { user, addToast } = useStore();
@@ -121,15 +124,100 @@ export const Compliance: React.FC = () => {
         }
     };
 
-    const stubHandler = async () => {
-        return Promise.resolve();
-    };
+    // Selector State
+    const [selectorState, setSelectorState] = useState<{
+        isOpen: boolean;
+        type: 'document' | 'risk' | 'project' | null;
+    }>({ isOpen: false, type: null });
 
     const stubSyncEvidence = async (evidence: any) => { // Using any to bypass type check for stub
         console.log("Sync evidence:", evidence);
         return Promise.resolve();
     };
 
+    // --- Real Mutation Handlers ---
+
+    const handleLinkPrompt = (type: 'document' | 'risk' | 'project') => {
+        setSelectorState({ isOpen: true, type });
+    };
+
+    const handleLinkItem = async (id: string) => {
+        if (!selectedControl || !user?.organizationId || !selectorState.type) return;
+        setUpdating(true);
+        try {
+            const controlRef = doc(db, 'controls', selectedControl.id);
+            const updates: any = {};
+            let logMsg = '';
+
+            if (selectorState.type === 'document') {
+                updates.evidenceIds = arrayUnion(id);
+                logMsg = `Document lié: ${id}`;
+                // Optional: Update Document side if needed
+            } else if (selectorState.type === 'risk') {
+                updates.relatedRiskIds = arrayUnion(id);
+                // Bidirectional: Update Risk
+                const riskRef = doc(db, 'risks', id);
+                await updateDoc(riskRef, { mitigationControlIds: arrayUnion(selectedControl.id) });
+                logMsg = `Risque lié: ${id}`;
+            } else if (selectorState.type === 'project') {
+                updates.relatedProjectIds = arrayUnion(id);
+                logMsg = `Projet lié: ${id}`;
+                // Optional: Update Project side
+            }
+
+            await updateDoc(controlRef, updates);
+            await logAction(user, 'UPDATE', 'Control', `Lien ajouté (${selectorState.type}) sur ${selectedControl.code}. ${logMsg}`);
+
+            // Optimistic update (or refetch)
+            const updatedControl = { ...selectedControl };
+            if (selectorState.type === 'document') updatedControl.evidenceIds = [...(updatedControl.evidenceIds || []), id];
+            if (selectorState.type === 'risk') updatedControl.relatedRiskIds = [...(updatedControl.relatedRiskIds || []), id];
+            if (selectorState.type === 'project') updatedControl.relatedProjectIds = [...(updatedControl.relatedProjectIds || []), id];
+
+            setSelectedControl(updatedControl);
+            refreshControls();
+            toast.success("Lien ajouté avec succès");
+        } catch (e) {
+            console.error(e);
+            toast.error("Erreur lors de la liaison");
+        } finally {
+            setUpdating(false);
+            setSelectorState({ isOpen: false, type: null });
+        }
+    };
+
+    const handleUnlinkDocument = async (id: string) => {
+        if (!selectedControl) return;
+        try {
+            await updateDoc(doc(db, 'controls', selectedControl.id), { evidenceIds: arrayRemove(id) });
+            setSelectedControl({ ...selectedControl, evidenceIds: (selectedControl.evidenceIds || []).filter(eid => eid !== id) });
+            refreshControls();
+            toast.success("Document délié");
+        } catch (e) { console.error(e); toast.error("Erreur"); }
+    };
+
+    const handleUnlinkRisk = async (id: string) => {
+        if (!selectedControl) return;
+        try {
+            await updateDoc(doc(db, 'controls', selectedControl.id), { relatedRiskIds: arrayRemove(id) });
+            // Bidirectional
+            await updateDoc(doc(db, 'risks', id), { mitigationControlIds: arrayRemove(selectedControl.id) });
+
+            setSelectedControl({ ...selectedControl, relatedRiskIds: (selectedControl.relatedRiskIds || []).filter(rid => rid !== id) });
+            refreshControls();
+            toast.success("Risque délié");
+        } catch (e) { console.error(e); toast.error("Erreur"); }
+    };
+
+    const handleUnlinkProject = async (id: string) => {
+        if (!selectedControl) return;
+        try {
+            await updateDoc(doc(db, 'controls', selectedControl.id), { relatedProjectIds: arrayRemove(id) });
+            setSelectedControl({ ...selectedControl, relatedProjectIds: (selectedControl.relatedProjectIds || []).filter(pid => pid !== id) });
+            refreshControls();
+            toast.success("Projet délié");
+        } catch (e) { console.error(e); toast.error("Erreur"); }
+    };
 
     // Determine Domains based on Framework
     let domains: { id: string; title: string; description: string }[] = [];
@@ -187,9 +275,9 @@ export const Compliance: React.FC = () => {
             )}
 
             {viewMode === 'watch' && (
-                <div className="glass-panel p-10 text-center text-slate-500">
-                    <p>Module de Veille Réglementaire (EUR-Lex) en cours de construction...</p>
-                </div>
+                <SlideUp delay={0.1}>
+                    <ComplianceWatch />
+                </SlideUp>
             )}
 
             <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} title="">
@@ -210,18 +298,42 @@ export const Compliance: React.FC = () => {
                         onUpdateAssignee={handleUpdateAssignee}
                         onUpdateStatus={handleUpdateStatus}
                         onSaveJustification={handleSaveJustification}
-                        onLinkDocument={stubHandler}
-                        onUnlinkDocument={stubHandler}
-                        onLinkRisk={stubHandler}
-                        onUnlinkRisk={stubHandler}
-                        onLinkProject={stubHandler}
-                        onLinkAudit={stubHandler}
-                        onLinkAutomatedEvidence={stubHandler}
-                        onUnlinkAutomatedEvidence={stubHandler}
+                        onLinkDocument={() => Promise.resolve(handleLinkPrompt('document'))}
+                        onUnlinkDocument={handleUnlinkDocument}
+                        onLinkRisk={() => Promise.resolve(handleLinkPrompt('risk'))}
+                        onUnlinkRisk={handleUnlinkRisk}
+                        onLinkProject={() => Promise.resolve(handleLinkPrompt('project'))}
+                        onUnlinkProject={handleUnlinkProject}
+                        onLinkAudit={async () => Promise.resolve()} // Audit linking usually done from Audit side
+                        onLinkAutomatedEvidence={async () => Promise.resolve()}
+                        onUnlinkAutomatedEvidence={async () => Promise.resolve()}
                         onSyncEvidence={stubSyncEvidence}
                     />
                 )}
             </Drawer>
+
+            <ItemSelectorModal
+                isOpen={selectorState.isOpen}
+                onClose={() => setSelectorState({ isOpen: false, type: null })}
+                title={
+                    selectorState.type === 'document' ? 'Lier une preuve' :
+                        selectorState.type === 'risk' ? 'Lier un risque' :
+                            selectorState.type === 'project' ? 'Lier un projet' : ''
+                }
+                onSelect={handleLinkItem}
+                items={
+                    selectorState.type === 'document' ? documents.map(d => ({ id: d.id, label: d.title, subLabel: d.type, icon: FileText })) :
+                        selectorState.type === 'risk' ? risks.map(r => ({ id: r.id, label: r.threat, subLabel: `Impact: ${r.impact}`, icon: AlertTriangle })) :
+                            selectorState.type === 'project' ? projects.map(p => ({ id: p.id, label: p.name, subLabel: p.status, icon: Briefcase })) :
+                                []
+                }
+                selectedIds={
+                    !selectedControl ? [] :
+                        selectorState.type === 'document' ? (selectedControl.evidenceIds || []) :
+                            selectorState.type === 'risk' ? (selectedControl.relatedRiskIds || []) :
+                                selectorState.type === 'project' ? (selectedControl.relatedProjectIds || []) : []
+                }
+            />
         </div>
     );
 };

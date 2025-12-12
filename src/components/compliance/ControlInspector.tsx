@@ -8,6 +8,7 @@ import { FileText, Paperclip, MessageSquare, History, Link as LinkIcon, Plus, Tr
 import { CustomSelect } from '../ui/CustomSelect';
 import { useStore } from '../../store';
 import { Comments } from '../ui/Comments';
+import { ComplianceAIAssistant } from './ComplianceAIAssistant';
 
 interface ControlInspectorProps {
     control: Control;
@@ -30,6 +31,7 @@ interface ControlInspectorProps {
     onLinkRisk: (id: string) => Promise<void>;
     onUnlinkRisk: (id: string) => Promise<void>;
     onLinkProject: (id: string) => Promise<void>;
+    onUnlinkProject: (id: string) => Promise<void>;
     onLinkAudit: (id: string) => Promise<void>;
     onLinkAutomatedEvidence: (providerId: string, resourceId: string) => Promise<void>;
     onUnlinkAutomatedEvidence: (id: string) => Promise<void>;
@@ -59,6 +61,7 @@ export const ControlInspector: React.FC<ControlInspectorProps> = ({
     onLinkRisk,
     onUnlinkRisk,
     onLinkProject,
+    onUnlinkProject,
     onLinkAudit,
     onLinkAutomatedEvidence,
     onUnlinkAutomatedEvidence,
@@ -136,6 +139,11 @@ export const ControlInspector: React.FC<ControlInspectorProps> = ({
                                 {control.description || "Aucune description disponible."}
                             </p>
                         </div>
+
+                        <ComplianceAIAssistant
+                            control={control}
+                            onApplyPolicy={(text) => setEditJustification(prev => prev ? prev + '\n\n' + text : text)}
+                        />
 
                         <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-white/10">
                             <div className="flex items-center justify-between mb-4">
@@ -233,8 +241,17 @@ export const ControlInspector: React.FC<ControlInspectorProps> = ({
                             {linkedProjects.length > 0 ? (
                                 <div className="space-y-2">
                                     {linkedProjects.map(proj => (
-                                        <div key={proj.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                        <div key={proj.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 flex justify-between items-center group">
                                             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{proj.name}</span>
+                                            {canEdit && (
+                                                <button
+                                                    onClick={() => onUnlinkProject(proj.id)}
+                                                    className="opacity-0 group-hover:opacity-100 text-red-500 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-all"
+                                                    title="Délier le projet"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
