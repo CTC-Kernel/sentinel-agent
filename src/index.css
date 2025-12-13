@@ -179,17 +179,9 @@ h6 {
   /* slate-900 */
 }
 
-/* Global Scrollbar Hiding */
-::-webkit-scrollbar {
-  display: none;
-}
-
-* {
-  -ms-overflow-style: none;
-  /* IE and Edge */
-  scrollbar-width: none;
-  /* Firefox */
-}
+/* Global Scrollbar Hiding REMOVED to fix layout issues */
+/* ::-webkit-scrollbar { display: none; } */
+/* * { -ms-overflow-style: none; scrollbar-width: none; } */
 
 /* Ceramic/Glass Panel - Enhanced contrast */
 /* Ceramic/Glass Panel - Enhanced contrast */
