@@ -119,7 +119,7 @@ const AppLayout: React.FC = () => {
                 <div className="absolute bottom-[-20%] left-[20%] w-[55rem] h-[55rem] bg-indigo-200/30 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{ animationDelay: '4s' }}></div>
             </div>
 
-            <div className="relative z-30 flex-shrink-0">
+            <div>
                 <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
             </div>
 
@@ -144,7 +144,7 @@ const AppLayout: React.FC = () => {
                 <SmoothScroll
                     id="main-content"
                     enabled={location.pathname !== '/ctc-engine'}
-                    className={`flex-1 min-w-0 overflow-y-auto overflow-x-hidden scroll-smooth no-scrollbar bg-[#fafafa] dark:bg-slate-950 ${location.pathname === '/ctc-engine' ? 'p-0 overflow-hidden' : 'p-4 md:p-8'}`}
+                    className={`flex-1 overflow-y-auto overflow-x-auto scroll-smooth no-scrollbar bg-[#fafafa] dark:bg-slate-950 ${location.pathname === '/ctc-engine' ? 'p-0 overflow-hidden' : 'p-4 md:p-8'}`}
                 >
                     <div className={`${location.pathname === '/ctc-engine' ? 'w-full flex-1 animate-fade-in flex flex-col' : 'max-w-[1600px] mx-auto animate-fade-in min-h-full pb-10'}`}>
                         <Suspense fallback={<LoadingScreen />}>

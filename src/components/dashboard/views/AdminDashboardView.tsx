@@ -8,17 +8,15 @@ import { RecentActivityWidget } from '../widgets/RecentActivityWidget';
 import { CyberNewsWidget } from '../CyberNewsWidget';
 import { StaggerContainer, SlideUp } from '../../ui/Animations';
 
-import { HealthIssue } from '../widgets/HealthCheckWidget';
-
 interface AdminDashboardViewProps {
-    stats: any; // Keep any for stats if structure is complex, or fix if known
+    stats: any;
     loading: boolean;
     navigate: (path: string) => void;
     t: (key: string) => string;
     theme: string;
     myActionItems: any[];
     historyData: any[];
-    healthIssues: HealthIssue[];
+    healthIssues: any[];
     topRisks: any[];
     recentActivity: any[];
 }

@@ -180,7 +180,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             className={cn(
                                                 "px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 whitespace-nowrap",
                                                 header.column.getCanSort() && "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800",
-                                                header.id === 'select' ? "w-[50px] px-4" : "min-w-[150px]"
+                                                header.id === 'select' && "w-[50px] px-4"
                                             )}
                                             style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
                                         >
@@ -224,7 +224,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                     )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <td key={cell.id} className="px-6 py-4 text-sm text-slate-900 dark:text-white whitespace-nowrap">
+                                        <td key={cell.id} className="px-6 py-4 text-sm text-slate-900 dark:text-white">
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
                                     ))}

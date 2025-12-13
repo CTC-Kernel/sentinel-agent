@@ -4,7 +4,7 @@ import { Skeleton } from '../../ui/Skeleton';
 import { Tooltip as CustomTooltip } from '../../ui/Tooltip';
 import { DashboardCard } from '../DashboardCard';
 
-export interface HealthIssue {
+interface HealthIssue {
     id: string;
     type: 'warning' | 'danger';
     message: string;
