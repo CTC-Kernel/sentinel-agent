@@ -43,7 +43,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                 if (domainControls.length === 0) return null; // Hide domains with no controls
 
                 return (
-                    <div key={domain.id} className="glass-panel rounded-[2.5rem] shadow-sm overflow-hidden overflow-x-auto transition-all duration-300 hover:shadow-md max-w-full">
+                    <div key={domain.id} className="glass-panel rounded-[2.5rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md max-w-full">
                         <div
                             onClick={() => toggleDomain(domain.id)}
                             className={`p-6 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
@@ -59,7 +59,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 w-full md:w-auto pl-[4.25rem] md:pl-0 shrink-0">
+                            <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 w-full md:w-auto pl-0 sm:pl-[4.25rem] md:pl-0 shrink-0">
                                 <div className="w-full md:w-40">
                                     <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
                                         <span>Progression</span>
