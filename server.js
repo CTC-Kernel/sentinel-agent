@@ -29,8 +29,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use((req, res, next) => {
     // NOTE: Some browsers (notably Safari) still log/block Firebase Auth popup window.close/closed
     // when COOP is set. Keep COOP disabled for compatibility with OAuth popups.
-    res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+
 
     // Baseline security headers
     res.setHeader('X-Content-Type-Options', 'nosniff');
