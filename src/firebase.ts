@@ -133,8 +133,7 @@ export const auth = getAuth(app);
 // We disable offline persistence to prevent IndexedDB locking issues and '400 channel' errors
 // in restrictive network environments.
 export const db = initializeFirestore(app, {
-  localCache: memoryLocalCache(),
-  experimentalForceLongPolling: true
+  localCache: memoryLocalCache()
 });
 
 export const storage = getStorage(app);

@@ -3,6 +3,16 @@ import { createPortal } from 'react-dom';
 import { Lock } from 'lucide-react';
 
 export const LoadingScreen: React.FC = () => {
+    const [showTimeout, setShowTimeout] = React.useState(false);
+
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowTimeout(true);
+        }, 10000); // 10 seconds timeout
+
+        return () => clearTimeout(timer);
+    }, []);
+
     if (typeof document === 'undefined') return null;
 
     return createPortal(
@@ -14,11 +24,25 @@ export const LoadingScreen: React.FC = () => {
                 <div className="w-20 h-20 rounded-3xl glass-panel flex items-center justify-center shadow-2xl animate-pulse mb-8 border border-white/40 dark:border-white/10">
                     <Lock className="h-10 w-10 text-slate-900 dark:text-white" strokeWidth={2.5} />
                 </div>
-                <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                </div>
+                {!showTimeout ? (
+                    <div className="flex space-x-2">
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center animate-fade-in">
+                        <p className="text-sm text-slate-500 mb-4 text-center px-4">
+                            Le chargement prend plus de temps que prévu...
+                        </p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors shadow-lg hover:shadow-brand-500/20"
+                        >
+                            Recharger la page
+                        </button>
+                    </div>
+                )}
             </div>
         </div>,
         document.body
