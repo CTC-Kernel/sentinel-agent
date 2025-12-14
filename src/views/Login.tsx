@@ -64,7 +64,7 @@ export const Login: React.FC = () => {
 
                 if (result?.user) {
                     addToast('Connexion réussie', 'success');
-                    window.location.href = '/';
+                    window.location.hash = '#/';
                 }
             } catch (error: unknown) {
                 if (!isMounted) return;
@@ -177,7 +177,7 @@ export const Login: React.FC = () => {
 
                     await signInWithCredential(auth, credential);
                     addToast('Connexion réussie', 'success');
-                    window.location.href = '/';
+                    window.location.hash = '#/';
                 } else {
                     throw new Error('No ID Token from Apple');
                 }
@@ -216,7 +216,7 @@ export const Login: React.FC = () => {
 
                     await signInWithCredential(auth, credential);
                     addToast("Connexion réussie", "success");
-                    window.location.href = '/';
+                    window.location.hash = '#/';
                 } else {
                     throw new Error("No ID Token from Google");
                 }
