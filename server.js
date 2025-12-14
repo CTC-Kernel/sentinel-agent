@@ -96,8 +96,25 @@ app.use('/api', async (req, res) => {
             req.on('end', () => resolve(data));
         });
 
-        const forwardHeaders = { ...req.headers };
-        delete forwardHeaders.host;
+        // Forward only a strict allowlist of headers to upstream.
+        // Never forward Host/Connection/Forwarded headers blindly.
+        const headerAllowlist = new Set([
+            'accept',
+            'accept-language',
+            'authorization',
+            'content-type',
+            'user-agent',
+            'x-request-id',
+            'x-correlation-id'
+        ]);
+        const forwardHeaders = {};
+        for (const [key, value] of Object.entries(req.headers)) {
+            if (!key) continue;
+            const lower = key.toLowerCase();
+            if (!headerAllowlist.has(lower)) continue;
+            if (typeof value === 'undefined') continue;
+            forwardHeaders[lower] = value;
+        }
 
         const response = await fetch(targetUrl.toString(), {
             method: req.method,
