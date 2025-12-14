@@ -35,6 +35,7 @@ app.use((req, res, next) => {
 
     // CSP as the single source of truth in App Hosting (Express)
     res.setHeader('Content-Security-Policy', CSP);
+    res.setHeader('Content-Security-Policy-Report-Only', CSP);
     next();
 });
 
