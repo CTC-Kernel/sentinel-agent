@@ -155,7 +155,8 @@ export const db = (() => {
     return initializeFirestore(app, {
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager()
-      })
+      }),
+      experimentalForceLongPolling: true
     });
   } catch (error) {
     ErrorLogger.warn('Firestore persistent cache init failed; falling back to memory cache', 'firebase.firestore', {
