@@ -8,7 +8,7 @@ import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken, type AppCheck } from "firebase/app-check";
 
 
 import { ErrorLogger } from './services/errorLogger';
@@ -36,6 +36,11 @@ if (typeof window !== 'undefined') {
     window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1';
   const isDebugMode = !import.meta.env.PROD && localStorage.getItem('debug_app_check') === 'true';
+  const isVerboseDebug = localStorage.getItem('debug_app_check') === 'true';
+
+  // Expose App Check instance for diagnostics and downstream usage.
+  // Not exported directly to avoid changing public API shape at module level.
+  let appCheckInstance: AppCheck | null = null;
 
   if (appCheckDebugToken) {
     // Enforce debug token if available in env, regardless of localhost
@@ -47,10 +52,29 @@ if (typeof window !== 'undefined') {
 
   try {
     if (appCheckKey) {
-      initializeAppCheck(app, {
+      appCheckInstance = initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider(appCheckKey),
         isTokenAutoRefreshEnabled: true
       });
+
+      // Optional diagnostics: verify we can mint an App Check token.
+      // Enabled only when localStorage.debug_app_check === 'true'.
+      if (isVerboseDebug && appCheckInstance) {
+        (async () => {
+          try {
+            const tokenResult = await getToken(appCheckInstance, false);
+            ErrorLogger.warn('App Check token acquired', 'firebase.appCheck', {
+              metadata: {
+                tokenSnippet: tokenResult.token ? `${tokenResult.token.slice(0, 12)}...` : null,
+                // AppCheckTokenResult typing does not expose expiry; snippet is enough for diagnostics.
+                hasToken: Boolean(tokenResult.token)
+              }
+            });
+          } catch (error) {
+            ErrorLogger.error(error, 'firebase.appCheck.getToken');
+          }
+        })();
+      }
     } else {
       if (import.meta.env.PROD) {
         throw new Error('Missing required environment variable: VITE_RECAPTCHA_ENTERPRISE_KEY');
