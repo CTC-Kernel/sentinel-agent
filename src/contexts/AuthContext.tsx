@@ -72,9 +72,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [setUser]);
 
     useEffect(() => {
-        if (isAppCheckFailed) {
-            setIsBlocked(true);
-        }
+        // Initial check
+        if (isAppCheckFailed) setIsBlocked(true);
+
+        // Poll for App Check failure (as it happens asynchronously)
+        const interval = setInterval(() => {
+            if (isAppCheckFailed) {
+                setIsBlocked(true);
+                clearInterval(interval);
+            }
+        }, 500);
+
+        return () => clearInterval(interval);
     }, []);
 
     // Session Timeout Logic
