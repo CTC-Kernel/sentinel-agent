@@ -140,6 +140,7 @@ export const auth = getAuth(app);
 // in restrictive network environments.
 export const db = initializeFirestore(app, {
   localCache: memoryLocalCache(),
+  experimentalForceLongPolling: true,
 });
 
 export const storage = getStorage(app);
