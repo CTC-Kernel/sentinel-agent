@@ -959,7 +959,7 @@ export const Assets: React.FC = () => {
                     </div>
                 ) : (
                     <>
-                        <div className="px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
+                        <div className="px-4 sm:px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
                             <ScrollableTabs
                                 tabs={[
                                     { id: 'details', label: 'Général', icon: Tag },
@@ -978,12 +978,12 @@ export const Assets: React.FC = () => {
                             />
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-black/20 custom-scrollbar">
+                        <div className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-8 bg-slate-50 dark:bg-black/20 custom-scrollbar">
                             {inspectorTab === 'details' && selectedAsset && (
                                 <div className="space-y-8">
                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Informations Principales</h3>
-                                        <div className="grid grid-cols-2 gap-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                             <div className="col-span-2">
                                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Nom de l'actif</label>
                                                 <div className="text-lg font-medium text-slate-900 dark:text-white">{selectedAsset.name}</div>
@@ -1021,7 +1021,7 @@ export const Assets: React.FC = () => {
                                             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">
                                                 Détails {selectedAsset.type}
                                             </h3>
-                                            <div className="grid grid-cols-2 gap-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 {selectedAsset.type === 'Matériel' && selectedAsset.ipAddress && (
                                                     <div>
                                                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Adresse IP</label>
@@ -1074,7 +1074,7 @@ export const Assets: React.FC = () => {
                                         <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center">
                                             <AlertTriangle className="h-4 w-4 mr-2" /> Classification DIC
                                         </h3>
-                                        <div className="grid grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             {['confidentiality', 'integrity', 'availability'].map((field) => (
                                                 <div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5">
                                                     <label className="block text-[10px] font-bold uppercase text-slate-500 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
@@ -1140,7 +1140,7 @@ export const Assets: React.FC = () => {
                                             <div className="px-3 py-1 rounded-full bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 text-blue-600 text-xs font-bold">{selectedAsset?.lifecycleStatus || 'Neuf'}</div>
                                         </div>
                                         <div className="space-y-4">
-                                            <div className="grid grid-cols-2 gap-6 pt-2">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                                                 <div><label className="block text-xs font-bold uppercase text-slate-500 mb-2">Date d'achat</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchaseDate ? new Date(selectedAsset.purchaseDate).toLocaleDateString() : '-'}</div></div>
                                                 <div><label className="block text-xs font-bold uppercase text-slate-500 mb-2">Fin de garantie</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.warrantyEnd ? new Date(selectedAsset.warrantyEnd).toLocaleDateString() : '-'}</div></div>
                                                 <div><label className="block text-xs font-bold uppercase text-slate-500 mb-2">Prix d'achat (€)</label><div className="text-sm font-medium text-slate-900 dark:text-white">{selectedAsset?.purchasePrice ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(selectedAsset.purchasePrice) : '-'}</div></div>
@@ -1150,7 +1150,7 @@ export const Assets: React.FC = () => {
                                             {/* Financial Charts */}
                                             {selectedAsset?.purchasePrice && (
                                                 <div className="mt-6 pt-6 border-t border-dashed border-slate-200 dark:border-white/10">
-                                                    <div className="grid grid-cols-2 gap-4 mb-6">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                                                         <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
                                                             <p className="text-[10px] font-bold uppercase text-emerald-600 mb-1">Valeur Actuelle (Net)</p>
                                                             <p className="text-xl font-black text-emerald-700 dark:text-emerald-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateDepreciation(selectedAsset.purchasePrice, selectedAsset.purchaseDate || ''))}</p>

@@ -121,10 +121,10 @@ export const Integrations: React.FC = () => {
     });
 
     return (
-        <div className="space-y-8 animate-fade-in px-4 sm:px-6 lg:px-8 w-full pb-10 relative">
+        <div className="space-y-8 animate-fade-in px-4 sm:px-6 lg:px-8 w-full pb-10 relative min-w-0">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
+                <div className="min-w-0">
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white font-display tracking-tight">
                         Intégrations
                     </h1>
@@ -135,8 +135,8 @@ export const Integrations: React.FC = () => {
             </div>
 
             {/* Filters & Search */}
-            <div className="flex flex-col md:flex-row gap-4 p-1 bg-slate-100 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-white/5">
-                <div className="relative flex-1">
+            <div className="flex flex-col md:flex-row gap-4 p-1 bg-slate-100 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-white/5 min-w-0">
+                <div className="relative flex-1 min-w-0">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                     <input
                         type="text"

@@ -1054,14 +1054,14 @@ export const Risks: React.FC = () => {
 
             <SlideUp>
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div className="flex items-center space-x-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 border border-slate-200 dark:border-white/5">
+                    <div className="flex flex-wrap items-center gap-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 min-w-0 border border-slate-200 dark:border-white/5">
                         <Search className="h-5 w-5 text-slate-500" />
                         <input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} />
-                        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+                        <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
                         <select
                             value={frameworkFilter}
                             onChange={(e) => setFrameworkFilter(e.target.value)}
-                            className="bg-transparent border-none text-sm font-bold text-slate-600 dark:text-slate-300 focus:ring-0 cursor-pointer min-w-[150px]"
+                            className="bg-transparent border-none text-sm font-bold text-slate-600 dark:text-slate-300 focus:ring-0 cursor-pointer w-full sm:w-auto min-w-0"
                         >
                             <option value="">Tous référentiels</option>
                             {FRAMEWORK_OPTIONS.map(opt => (
@@ -1101,7 +1101,7 @@ export const Risks: React.FC = () => {
 
             {
                 viewMode === 'matrix' ? (
-                    <div className="glass-panel p-8 rounded-[2.5rem] shadow-xl overflow-x-auto animate-fade-in border border-white/50 dark:border-white/5">
+                    <div className="glass-panel p-4 sm:p-8 rounded-[2.5rem] shadow-xl overflow-x-auto animate-fade-in border border-white/50 dark:border-white/5">
                         <div className="min-w-[700px]">
                             <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Matrice de Criticité</h3>

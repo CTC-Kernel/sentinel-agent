@@ -28,6 +28,11 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
     const isOptionSelected = options.some(opt => opt.value === value || opt.value === defaultValue);
     const hasValue = (value !== undefined && value !== '' && value !== null) || (defaultValue !== undefined && defaultValue !== '' && defaultValue !== null) || hasContent || isOptionSelected;
 
+    const autoId = React.useId();
+    const fieldId = props.id || `floating-select-${autoId}`;
+    const errorId = `${fieldId}-error`;
+    const describedBy = [props['aria-describedby'], error ? errorId : null].filter(Boolean).join(' ') || undefined;
+
     const handleFocus = (e: React.FocusEvent<HTMLSelectElement>) => {
         setIsFocused(true);
         onFocus?.(e);
@@ -63,10 +68,13 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                 <select
                     ref={ref}
                     {...props}
+                    id={fieldId}
                     value={value}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                     onChange={handleChange}
+                    aria-invalid={!!error}
+                    aria-describedby={describedBy}
                     className={`
                         w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
                         placeholder-transparent rounded-2xl appearance-none
@@ -86,6 +94,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                 </div>
 
                 <label
+                    htmlFor={fieldId}
                     className={`
                         absolute left-4 transition-all duration-200 pointer-events-none
                         ${(isFocused || hasValue)
@@ -106,7 +115,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
             </div>
 
             {error && (
-                <p className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
+                <p id={errorId} className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
                     {error}
                 </p>
             )}

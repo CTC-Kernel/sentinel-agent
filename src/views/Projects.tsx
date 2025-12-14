@@ -247,6 +247,7 @@ export const Projects: React.FC = () => {
         }
     }, [location.state, loading, projects, openInspector]);
 
+
     const openCreationDrawer = async () => {
         // Check limits only for creation
         if (user?.organizationId) {
@@ -1144,7 +1145,7 @@ export const Projects: React.FC = () => {
                 {selectedProject && (
                     <div className="flex flex-col h-full">
                         {/* Status Header */}
-                        <div className="px-8 py-4 bg-slate-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5 flex items-center gap-4">
+                        <div className="px-4 sm:px-8 py-4 bg-slate-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5 flex flex-wrap items-center gap-4">
                             <Badge
                                 status={selectedProject.status === 'En cours' ? 'info' : selectedProject.status === 'Terminé' ? 'success' : selectedProject.status === 'Suspendu' ? 'error' : 'neutral'}
                                 variant="soft"
@@ -1158,7 +1159,7 @@ export const Projects: React.FC = () => {
                         </div>
 
                         {/* Tabs */}
-                        <div className="px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                        <div className="px-4 sm:px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
                             <ScrollableTabs
                                 tabs={[
                                     { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
@@ -1180,7 +1181,7 @@ export const Projects: React.FC = () => {
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
+                        <div className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
                             {inspectorTab === 'overview' && (
                                 <div className="space-y-8">
                                     <div className="space-y-8">
@@ -1190,7 +1191,7 @@ export const Projects: React.FC = () => {
                                                 {selectedProject.description}
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-3 gap-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                             <div className="p-5 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                                 <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Actifs Concernés</p>
                                                 <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedAssetIds?.length || 0}</p>

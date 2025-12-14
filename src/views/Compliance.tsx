@@ -1294,9 +1294,9 @@ export const Compliance: React.FC = () => {
                             />
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                        <div className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
                             {inspectorTab === 'details' && (
-                                <div className="space-y-8 max-w-3xl mx-auto">
+                                <div className="space-y-8 w-full max-w-3xl mx-auto">
                                     {/* AI Assistant */}
                                     <ComplianceAIAssistant control={selectedControl} onApplyPolicy={(policy) => setEditJustification(prev => prev ? prev + '\n\n' + policy : policy)} />
 

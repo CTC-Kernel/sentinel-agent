@@ -28,6 +28,11 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
     const [hasContent, setHasContent] = useState(false);
     const hasValue = (value !== undefined && value !== '') || (defaultValue !== undefined && defaultValue !== '') || hasContent || props.type === 'date' || props.type === 'time' || props.type === 'datetime-local';
 
+    const autoId = React.useId();
+    const fieldId = props.id || `floating-input-${autoId}`;
+    const errorId = `${fieldId}-error`;
+    const describedBy = [props['aria-describedby'], error ? errorId : null].filter(Boolean).join(' ') || undefined;
+
     const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setIsFocused(true);
         onFocus?.(e as React.FocusEvent<HTMLInputElement>);
@@ -64,10 +69,13 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                     <textarea
                         ref={ref as React.Ref<HTMLTextAreaElement>}
                         {...props as React.TextareaHTMLAttributes<HTMLTextAreaElement>}
+                        id={fieldId}
                         value={value}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
                         onChange={handleChange}
+                        aria-invalid={!!error}
+                        aria-describedby={describedBy}
                         rows={rows}
                         className={`
                             w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
@@ -80,10 +88,13 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                     <input
                         ref={ref as React.Ref<HTMLInputElement>}
                         {...props}
+                        id={fieldId}
                         value={value}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
                         onChange={handleChange}
+                        aria-invalid={!!error}
+                        aria-describedby={describedBy}
                         className={`
                             w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
                             placeholder-transparent rounded-2xl
@@ -94,6 +105,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                 )}
 
                 <label
+                    htmlFor={fieldId}
                     className={`
                         absolute left-4 transition-all duration-200 pointer-events-none
                         ${(isFocused || hasValue)
@@ -114,7 +126,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
             </div>
 
             {error && (
-                <p className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
+                <p id={errorId} className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
                     {error}
                 </p>
             )}

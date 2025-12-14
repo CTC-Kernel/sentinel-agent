@@ -447,7 +447,7 @@ export const Continuity: React.FC = () => {
                 </div>
 
                 {/* Key Metrics Breakdown */}
-                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:border-l sm:border-r border-slate-200 dark:border-white/10 sm:px-6 sm:mx-2">
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <HeartPulse className="h-4 w-4 text-slate-500" />
@@ -601,7 +601,7 @@ export const Continuity: React.FC = () => {
                                         const proc = processes.find(p => p.id === drill.processId);
                                         return (
                                             <tr key={drill.id} className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors group">
-                                                <td className="px-8 py-5 text-slate-900 dark:text-white font-bold flex items-center">
+                                                <td className="px-4 sm:px-8 py-5 text-slate-900 dark:text-white font-bold flex items-center">
                                                     <div className="p-2 bg-white dark:bg-slate-800 rounded-xl mr-3 shadow-sm border border-gray-100 dark:border-white/5 group-hover:scale-110 transition-transform">
                                                         <CalendarDays className="h-4 w-4 text-slate-600" />
                                                     </div>

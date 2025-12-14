@@ -481,11 +481,11 @@ export const Privacy: React.FC = () => {
             >
                 {selectedActivity && (
                     <div className="flex flex-col h-full">
-                        <div className="px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                        <div className="px-4 sm:px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
                             <ScrollableTabs
                                 tabs={[
                                     { id: 'details', label: 'Fiche Registre', icon: LayoutDashboard },
-                                    { id: 'data', label: 'Données & Sécurité', icon: GlobeLock },
+                                    { id: 'data', label: 'Données', icon: FileSpreadsheet },
                                     { id: 'history', label: 'Historique', icon: History },
                                     { id: 'comments', label: 'Discussion', icon: MessageSquare },
                                 ]}
@@ -494,31 +494,53 @@ export const Privacy: React.FC = () => {
                             />
                         </div>
 
-                        <div className="p-8">
+                        <div className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
                             {inspectorTab === 'details' && (
                                 <div className="space-y-8">
                                     {isEditing ? (
                                         <>
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('name')} /></div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom</label>
+                                                    <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('name')} />
+                                                </div>
                                                 <div>
                                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable</label>
-                                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
-                                                        {...editActivityForm.register('managerId')}
-                                                        onChange={e => {
+                                                    <select
+                                                        className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
+                                                        value={editActivityForm.watch('managerId') || ''}
+                                                        onChange={(e) => {
                                                             const selectedUser = usersList.find(u => u.uid === e.target.value);
                                                             editActivityForm.setValue('managerId', e.target.value);
                                                             editActivityForm.setValue('manager', selectedUser?.displayName || '');
-                                                        }}>
+                                                        }}
+                                                    >
                                                         <option value="">Sélectionner...</option>
                                                         {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Finalité</label><textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none" rows={3} {...editActivityForm.register('purpose')} /></div>
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Base Légale</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('legalBasis')}>{['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Statut</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('status')}> <option value="Actif">Actif</option><option value="En projet">En projet</option><option value="Archivé">Archivé</option></select></div>
+
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Finalité</label>
+                                                <textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none" rows={3} {...editActivityForm.register('purpose')} />
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Base Légale</label>
+                                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('legalBasis')}>
+                                                        {['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'].map(c => <option key={c} value={c}>{c}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Statut</label>
+                                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('status')}>
+                                                        <option value="Actif">Actif</option>
+                                                        <option value="En projet">En projet</option>
+                                                        <option value="Archivé">Archivé</option>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </>
                                     ) : (
@@ -527,7 +549,7 @@ export const Privacy: React.FC = () => {
                                                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Finalité</h4>
                                                 <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{selectedActivity.purpose}</p>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm text-center">
                                                     <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">Base Légale</span>
                                                     <span className="text-lg font-bold text-slate-900 dark:text-white">{selectedActivity.legalBasis}</span>
@@ -548,7 +570,7 @@ export const Privacy: React.FC = () => {
                                         <>
                                             <div>
                                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">Catégories de données</label>
-                                                <div className="grid grid-cols-2 gap-3">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                     {['État civil', 'Vie personnelle', 'Bancaire / Financier', 'Connexion / Trace', 'Santé (Sensible)', 'Biométrique', 'Judiciaire'].map(cat => (
                                                         <label key={cat} className={`flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition-all ${editActivityForm.watch('dataCategories')?.includes(cat) ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' : 'border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'}`}>
                                                             <input type="checkbox" className="rounded-md text-purple-600 focus:ring-purple-500 border-gray-300" checked={editActivityForm.watch('dataCategories')?.includes(cat)} onChange={() => handleMultiSelectChange('dataCategories', cat)} />
@@ -557,8 +579,11 @@ export const Privacy: React.FC = () => {
                                                     ))}
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Durée Conservation</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('retentionPeriod')} /></div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Durée Conservation</label>
+                                                    <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('retentionPeriod')} />
+                                                </div>
                                                 <div className="flex items-end pb-4">
                                                     <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 w-full transition-colors">
                                                         <input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-gray-300" checked={editActivityForm.watch('hasDPIA')} onChange={e => editActivityForm.setValue('hasDPIA', e.target.checked)} />
@@ -629,7 +654,7 @@ export const Privacy: React.FC = () => {
                 subtitle="Ajoutez une nouvelle activité de traitement au registre."
                 width="max-w-4xl"
             >
-                <form onSubmit={createActivityForm.handleSubmit(handleCreate)} className="p-8 space-y-6">
+                <form onSubmit={createActivityForm.handleSubmit(handleCreate)} className="p-4 sm:p-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom du traitement</label>

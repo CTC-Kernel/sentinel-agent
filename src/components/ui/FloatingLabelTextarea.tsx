@@ -34,6 +34,11 @@ export const FloatingLabelTextarea = React.forwardRef<HTMLTextAreaElement, Float
         onChange?.(e);
     };
 
+    const autoId = React.useId();
+    const fieldId = props.id || `floating-textarea-${autoId}`;
+    const errorId = `${fieldId}-error`;
+    const describedBy = [props['aria-describedby'], error ? errorId : null].filter(Boolean).join(' ') || undefined;
+
     return (
         <div className={`relative ${className}`}>
             <div className={`
@@ -48,10 +53,13 @@ export const FloatingLabelTextarea = React.forwardRef<HTMLTextAreaElement, Float
                 <textarea
                     ref={ref}
                     {...props}
+                    id={fieldId}
                     value={value}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                     onChange={handleChange}
+                    aria-invalid={!!error}
+                    aria-describedby={describedBy}
                     className={`
                         w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
                         placeholder-transparent rounded-2xl resize-none
@@ -60,6 +68,7 @@ export const FloatingLabelTextarea = React.forwardRef<HTMLTextAreaElement, Float
                 />
 
                 <label
+                    htmlFor={fieldId}
                     className={`
                         absolute left-4 transition-all duration-200 pointer-events-none
                         ${(isFocused || hasValue)
@@ -79,7 +88,7 @@ export const FloatingLabelTextarea = React.forwardRef<HTMLTextAreaElement, Float
             </div>
 
             {error && (
-                <p className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
+                <p id={errorId} className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
                     {error}
                 </p>
             )}

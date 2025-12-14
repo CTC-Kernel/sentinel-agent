@@ -236,17 +236,17 @@ export const BackupRestore: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-24">
+    <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-24 px-4 sm:px-6 lg:px-8 w-full min-w-0">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 min-w-0">
+        <div className="min-w-0">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
             <div className="p-2 bg-indigo-500/10 rounded-xl"><Database className="h-8 w-8 text-indigo-500" /></div>
             Sauvegardes & Restauration
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2 ml-14">Gérez vos points de restauration et la sécurité de vos données.</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4 max-w-full">
           <button
             onClick={() => OnboardingService.startBackupTour()}
             className="flex items-center px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl hover:bg-slate-200 dark:hover:bg-white/20 transition-colors text-sm font-medium"
@@ -254,7 +254,7 @@ export const BackupRestore: React.FC = () => {
             <HelpCircle className="h-4 w-4 mr-2" />
             Aide
           </button>
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl max-w-full overflow-x-auto">
             <button
               onClick={() => setActiveTab('backup')}
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'backup' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'}`}
@@ -315,9 +315,9 @@ export const BackupRestore: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-w-0">
         {/* Left Panel: Actions */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6 min-w-0">
           {activeTab === 'backup' ? (
             <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
@@ -443,7 +443,7 @@ export const BackupRestore: React.FC = () => {
         </div>
 
         {/* Right Panel: History */}
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50 h-full max-h-[800px] flex flex-col">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
               <Clock className="h-5 w-5 text-indigo-500" /> Historique

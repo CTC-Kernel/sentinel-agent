@@ -70,12 +70,12 @@ export const Drawer: React.FC<DrawerProps> = ({
             />
 
             {/* Drawer Panel */}
-            <div className="absolute inset-y-0 right-0 left-0 sm:left-auto sm:pl-10 max-w-full flex pointer-events-none">
+            <div className="absolute inset-y-0 right-0 left-0 sm:left-auto sm:pl-10 max-w-full flex pointer-events-none min-w-0">
                 <div className={`w-full ${width} pointer-events-auto transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                     <div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5">
 
                         {/* Header */}
-                        <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex flex-wrap items-start justify-between gap-y-4 bg-white/50 dark:bg-white/5 shrink-0">
+                        <div className="px-4 sm:px-8 py-6 border-b border-gray-100 dark:border-white/5 flex flex-wrap items-start justify-between gap-y-4 bg-white/50 dark:bg-white/5 shrink-0">
                             <div className="flex-1 min-w-0 mr-4">
                                 {breadcrumbs && breadcrumbs.length > 0 && (
                                     <nav className="flex items-center text-xs font-medium text-slate-600 mb-2" aria-label="Breadcrumb">
@@ -111,7 +111,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-transparent custom-scrollbar relative">
+                        <div className="flex-1 min-w-0 overflow-y-auto bg-slate-50/50 dark:bg-transparent custom-scrollbar relative">
                             {children}
                         </div>
                     </div>

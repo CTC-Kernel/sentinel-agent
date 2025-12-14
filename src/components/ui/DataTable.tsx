@@ -56,6 +56,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         type="checkbox"
                         checked={table.getIsAllPageRowsSelected()}
                         onChange={table.getToggleAllPageRowsSelectedHandler()}
+                        aria-label="Sélectionner toutes les lignes"
                         className="rounded border-gray-300 text-brand-600 focus:ring-brand-500 w-4 h-4 cursor-pointer"
                     />
                 </div>
@@ -67,6 +68,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         checked={row.getIsSelected()}
                         disabled={!row.getCanSelect()}
                         onChange={row.getToggleSelectedHandler()}
+                        aria-label={`Sélectionner la ligne ${row.index + 1}`}
                         className="rounded border-gray-300 text-brand-600 focus:ring-brand-500 w-4 h-4 cursor-pointer"
                     />
                 </div>

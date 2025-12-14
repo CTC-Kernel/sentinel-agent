@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import { Questionnaire, QuestionnaireResponse } from '../../types';
@@ -9,6 +8,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { FileUploader } from '../ui/FileUploader';
 import { aiService } from '../../services/aiService';
 import { sanitizeData } from '../../utils/dataSanitizer';
+import { SafeHTML } from '../ui/SafeHTML';
 
 interface QuestionnaireResponseProps {
     questionnaire: Questionnaire;
@@ -353,9 +353,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 <Bot className="h-5 w-5 mr-2" />
                                 Analyse IA & Recommandations
                             </h3>
-                            <div className="prose prose-sm dark:prose-invert max-w-none">
-                                <div dangerouslySetInnerHTML={{ __html: analysis.replace(/\n/g, '<br/>') }} />
-                            </div>
+                            <SafeHTML content={analysis.replace(/\n/g, '<br/>')} className="prose-sm" />
                         </div>
                     )}
                 </div>

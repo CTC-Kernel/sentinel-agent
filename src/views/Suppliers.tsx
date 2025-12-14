@@ -591,7 +591,7 @@ export const Suppliers: React.FC = () => {
     ], [canEdit, initiateDelete]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full">
+        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full min-w-0">
             <Helmet>
                 <title>Gestion des Fournisseurs - Sentinel GRC</title>
                 <meta name="description" content="Gérez vos fournisseurs, évaluez leur conformité DORA et suivez les contrats." />
@@ -644,17 +644,17 @@ export const Suppliers: React.FC = () => {
                 }}
             />
 
-            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5">
+            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-wrap items-center gap-3 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5 min-w-0">
                 <Search className="h-5 w-5 text-slate-500" />
-                <input type="text" placeholder="Rechercher un fournisseur..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
+                <input type="text" placeholder="Rechercher un fournisseur..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                     value={filter} onChange={e => setFilter(e.target.value)} />
                 <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
                     <FileSpreadsheet className="h-4 w-4" />
                 </button>
-                <button onClick={handleExportDORARegister} className="p-2.5 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors ml-2" title="Exporter Registre DORA">
+                <button onClick={handleExportDORARegister} className="p-2.5 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors" title="Exporter Registre DORA">
                     <ShieldAlert className="h-4 w-4" />
                 </button>
-                <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm ml-2">
+                <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm max-w-full overflow-x-auto">
                     <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
                     <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
                 </div>
@@ -801,7 +801,7 @@ export const Suppliers: React.FC = () => {
                                         />
                                     ) : (
                                         <>
-                                            <div className="grid grid-cols-2 gap-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
                                                     <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">Criticité</span>
                                                     <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase border ${getCriticalityColor(selectedSupplier.criticality || Criticality.MEDIUM)}`}>{selectedSupplier.criticality}</span>

@@ -215,7 +215,7 @@ export const Login: React.FC = () => {
                 />
             </div>
 
-            <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center mx-auto">
+            <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center mx-auto px-4 sm:px-6 min-w-0">
                 <div className="glass-panel rounded-[2.5rem] p-10 flex flex-col items-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-black/60 backdrop-blur-xl">
 
                     {/* Logo */}
@@ -385,9 +385,9 @@ export const Login: React.FC = () => {
                 </div>
             </div>
 
-            <div className="py-6 text-center relative z-10 space-y-2">
+            <div className="py-6 text-center relative z-10 space-y-2 px-4 sm:px-6 max-w-full">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Développé par Cyber Threat Consulting</p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 break-words">
                     Ce site est protégé par reCAPTCHA.
                     <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-slate-600 ml-1">
                         Politique de confidentialité

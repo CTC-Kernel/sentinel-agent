@@ -690,7 +690,7 @@ export const Documents: React.FC = () => {
             />
 
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group">
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
                 <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>
@@ -734,7 +734,7 @@ export const Documents: React.FC = () => {
                 </div>
 
                 {/* Key Metrics Breakdown */}
-                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:border-l sm:border-r border-slate-200 dark:border-white/10 sm:px-6 sm:mx-2">
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <FileText className="h-4 w-4 text-slate-500" />
@@ -759,7 +759,7 @@ export const Documents: React.FC = () => {
                 </div>
 
                 {/* Alerts/Status */}
-                <div className="flex flex-col gap-3 min-w-[180px]">
+                <div className="flex flex-col gap-3 w-full md:min-w-[180px]">
                     <div className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
                         <div className="flex items-center gap-2">
                             <Bell className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -777,9 +777,9 @@ export const Documents: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-200px)]">
+            <div className="flex flex-col lg:flex-row gap-6 lg:min-h-[calc(100vh-200px)] min-h-0">
                 {/* Sidebar - Folder Tree */}
-                <div className="w-full lg:w-64 flex-shrink-0 glass-panel rounded-2xl border border-white/50 dark:border-white/5 shadow-sm overflow-hidden flex flex-col">
+                <div className="w-full lg:w-64 flex-shrink-0 glass-panel rounded-2xl border border-white/50 dark:border-white/5 shadow-sm overflow-hidden flex flex-col min-w-0">
                     <FolderTree
                         folders={folders}
                         selectedFolderId={selectedFolderId}
@@ -791,7 +791,7 @@ export const Documents: React.FC = () => {
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 flex flex-col gap-6 overflow-hidden">
+                <div className="flex-1 min-w-0 flex flex-col gap-6 overflow-hidden">
                     <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
                         {/* Search & Filters */}
                         <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200 dark:border-white/5">
@@ -1004,10 +1004,10 @@ export const Documents: React.FC = () => {
                 selectedDocument && createPortal(
                     <div className="fixed inset-0 z-[9999] overflow-hidden">
                         <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setSelectedDocument(null)} />
-                        <div className="absolute inset-y-0 right-0 sm:pl-10 max-w-full flex pointer-events-none">
-                            <div className="w-screen max-w-6xl pointer-events-auto">
-                                <div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up">
-                                    <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
+                        <div className="absolute inset-y-0 right-0 left-0 sm:left-auto sm:pl-10 max-w-full flex pointer-events-none min-w-0">
+                            <div className="w-full max-w-6xl pointer-events-auto min-w-0">
+                                <div className="h-full flex flex-col bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-white/20 dark:border-white/5 animate-slide-up min-w-0">
+                                    <div className="px-4 sm:px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-start justify-between bg-white/50 dark:bg-white/5">
                                         <div>
                                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight">{selectedDocument.title}</h2>
                                             <p className="text-sm font-medium text-slate-600 mt-1">v{selectedDocument.version} • {selectedDocument.type}</p>
@@ -1040,7 +1040,7 @@ export const Documents: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                                    <div className="px-4 sm:px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
                                         <ScrollableTabs
                                             tabs={[
                                                 { id: 'details', label: 'Détails', icon: File },
@@ -1053,7 +1053,7 @@ export const Documents: React.FC = () => {
                                         />
                                     </div>
 
-                                    <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
+                                    <div className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
                                         {inspectorTab === 'details' && (
                                             <div className="space-y-8">
                                                 {isEditing ? (

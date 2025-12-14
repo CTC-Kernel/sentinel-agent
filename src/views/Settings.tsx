@@ -854,7 +854,7 @@ export const Settings: React.FC = () => {
     };
 
     return (
-        <div className="max-w-3xl mx-auto pb-12 animate-fade-in pt-6 relative px-4 sm:px-6 lg:px-8 w-full">
+        <div className="w-full max-w-3xl mx-auto pb-12 animate-fade-in pt-6 relative px-4 sm:px-6 lg:px-8">
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -877,8 +877,8 @@ export const Settings: React.FC = () => {
 
             {/* Subscription Status - Visible to all org members */}
             {user?.organizationId && (
-                <div className="mb-8 glass-panel rounded-[2rem] p-6 bg-indigo-50/30 dark:bg-slate-900/10 shadow-sm flex items-center justify-between animate-fade-in-up">
-                    <div className="flex items-center gap-4">
+                <div className="mb-8 glass-panel rounded-[2rem] p-6 bg-indigo-50/30 dark:bg-slate-900/10 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up">
+                    <div className="flex items-center gap-4 min-w-0">
                         <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
                             <FileSpreadsheet className="h-6 w-6" />
                         </div>
@@ -909,7 +909,7 @@ export const Settings: React.FC = () => {
 
             <div className="space-y-8">
                 {/* Profile */}
-                <div className="glass-panel rounded-[2.5rem] p-8 relative overflow-hidden shadow-sm">
+                <div className="glass-panel rounded-[2.5rem] p-4 sm:p-8 relative overflow-hidden shadow-sm">
                     <div className="flex flex-col items-center mb-8">
                         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                             <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center transition-transform group-hover:scale-105">

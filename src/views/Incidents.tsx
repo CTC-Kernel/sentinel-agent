@@ -387,22 +387,19 @@ export const Incidents: React.FC = () => {
                         </p>
                         <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">incidents actifs</span>
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">
-                        sur <span className="font-semibold text-slate-700 dark:text-slate-200">{incidentStats.total}</span> incidents enregistrés au registre
-                    </p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full md:w-auto">
-                    <div className="min-w-[120px] rounded-2xl bg-red-50/80 dark:bg-red-900/15 border border-red-100 dark:border-red-900/40 px-4 py-3 flex flex-col justify-between">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto">
+                    <div className="rounded-2xl bg-red-50/80 dark:bg-red-900/15 border border-red-100 dark:border-red-900/40 px-4 py-3 flex flex-col justify-between">
                         <div className="flex items-center justify-between mb-1">
                             <span className="text-[10px] font-bold uppercase tracking-widest text-red-500">Actifs</span>
                             <ShieldAlert className="h-4 w-4 text-red-500" />
                         </div>
-                        <p className="text-xl font-black text-slate-900 dark:text-white leading-none">{incidentStats.open}</p>
+                        <p className="text-xl font-black text-red-600 dark:text-red-300">{incidentStats.open}</p>
                         <p className="text-[11px] text-red-600/80 dark:text-red-300 mt-1">à traiter</p>
                     </div>
 
-                    <div className="min-w-[120px] rounded-2xl bg-emerald-50/80 dark:bg-emerald-900/15 border border-emerald-100 dark:border-emerald-900/40 px-4 py-3 flex flex-col justify-between">
+                    <div className="rounded-2xl bg-emerald-50/80 dark:bg-emerald-900/15 border border-emerald-100 dark:border-emerald-900/40 px-4 py-3 flex flex-col justify-between">
                         <div className="flex items-center justify-between mb-1">
                             <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">MTTR</span>
                             <Clock className="h-4 w-4 text-emerald-500" />
@@ -413,7 +410,7 @@ export const Incidents: React.FC = () => {
                         <p className="text-[11px] text-emerald-600/80 dark:text-emerald-300 mt-1">délai moyen de résolution</p>
                     </div>
 
-                    <div className="min-w-[120px] rounded-2xl bg-orange-50/80 dark:bg-orange-900/15 border border-orange-100 dark:border-orange-900/40 px-4 py-3 flex flex-col justify-between col-span-2 sm:col-span-1">
+                    <div className="rounded-2xl bg-orange-50/80 dark:bg-orange-900/15 border border-orange-100 dark:border-orange-900/40 px-4 py-3 flex flex-col justify-between">
                         <div className="flex items-center justify-between mb-1">
                             <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">Critiques</span>
                             <AlertTriangle className="h-4 w-4 text-orange-500" />
@@ -476,7 +473,7 @@ export const Incidents: React.FC = () => {
 
                                 <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50 dark:bg-transparent">
                                     {inspectorTab === 'details' && (
-                                        <div className="p-8 space-y-8">
+                                        <div className="p-4 sm:p-8 space-y-8">
                                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                                 <div className="lg:col-span-2 space-y-8">
                                                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
@@ -494,7 +491,7 @@ export const Incidents: React.FC = () => {
                                                     </div>
 
                                                     {/* Badges & Status */}
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
                                                             <span className="text-xs text-slate-500 block mb-1">Sévérité</span>
                                                             <Badge

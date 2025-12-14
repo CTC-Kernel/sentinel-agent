@@ -75,10 +75,10 @@ const Pricing = () => {
   ];
 
   return (
-    <div className="space-y-10 animate-fade-in pb-12">
+    <div className="space-y-10 animate-fade-in pb-12 px-4 sm:px-6 lg:px-8 w-full min-w-0">
       {/* Header with Premium Typography */}
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6">
-        <div>
+      <div className="flex flex-col md:flex-row justify-between items-end gap-6 min-w-0">
+        <div className="min-w-0">
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white font-display tracking-tight leading-tight">
             Abonnement
           </h1>
@@ -88,7 +88,7 @@ const Pricing = () => {
         </div>
 
         {/* Apple-style Segmented Control */}
-        <div className="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl flex items-center relative shadow-inner border border-slate-200/50 dark:border-white/5">
+        <div className="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl flex items-center relative shadow-inner border border-slate-200/50 dark:border-white/5 shrink-0 max-w-full overflow-x-auto">
           <div
             className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-slate-700 rounded-lg shadow-sm transition-all duration-300 ease-out ${isAnnual ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'}`}
           />
@@ -202,13 +202,13 @@ const Pricing = () => {
       </div>
 
       {/* Comparison Table - Minimalist */}
-      <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm">
+      <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm min-w-0">
         <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
           <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Comparatif détaillé</h3>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">Analysez les fonctionnalités en détail.</p>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-w-full">
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-100 dark:border-white/5">

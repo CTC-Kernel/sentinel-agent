@@ -85,10 +85,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   })();
 
   return (
-    <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 ${className}`}>
-      <div className="flex-1">
+    <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 min-w-0 ${className}`}>
+      <div className="flex-1 min-w-0">
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 mb-4" aria-label="Breadcrumb">
+        <nav className="flex items-center gap-2 mb-4 min-w-0" aria-label="Breadcrumb">
           <button
             onClick={() => navigate('/')}
             className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors group"
@@ -117,15 +117,15 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         </nav>
 
         {/* Title Section with Icon */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 min-w-0">
           {icon && (
             <div className="flex shrink-0 items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/25 ring-1 ring-black/5 dark:ring-white/10">
               {icon}
             </div>
           )}
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 dark:text-white tracking-tight animate-blur-in">
+              <h1 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 dark:text-white tracking-tight animate-blur-in break-words">
                 {title}
               </h1>
               {trustType && <SecurityBadge feature={trustType} />}

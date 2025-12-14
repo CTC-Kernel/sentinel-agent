@@ -433,7 +433,7 @@ export const Team: React.FC = () => {
                 </div>
 
                 {/* Key Metrics Breakdown */}
-                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:border-l sm:border-r border-slate-200 dark:border-white/10 sm:px-6 sm:mx-2">
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <Users className="h-4 w-4 text-slate-500" />
@@ -458,7 +458,7 @@ export const Team: React.FC = () => {
                 </div>
 
                 {/* Alerts/Status */}
-                <div className="flex flex-col gap-3 min-w-[180px]">
+                <div className="flex flex-col gap-3 w-full md:min-w-[180px]">
                     <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
                         <div className="flex items-center gap-2">
                             <UserPlus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -622,7 +622,7 @@ export const Team: React.FC = () => {
                 subtitle={`Ils rejoindront ${user?.organizationName}.`}
                 width="max-w-4xl"
             >
-                <form onSubmit={inviteForm.handleSubmit(handleAddUser)} className="p-8 space-y-6">
+                <form onSubmit={inviteForm.handleSubmit(handleAddUser)} className="p-4 sm:p-8 space-y-6">
                     <div className="flex justify-center mb-6">
                         <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white shadow-inner">
                             <User className="h-10 w-10" />
@@ -639,7 +639,7 @@ export const Team: React.FC = () => {
                             {...inviteForm.register('email')} placeholder="jean@entreprise.com" />
                         {inviteForm.formState.errors.email && <p className="text-red-500 text-xs mt-1">{inviteForm.formState.errors.email?.message}</p>}
                     </div>
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Rôle</label>
                             <Controller
@@ -685,7 +685,7 @@ export const Team: React.FC = () => {
                 width="max-w-4xl"
             >
                 {selectedUser && (
-                    <form onSubmit={editForm.handleSubmit(handleUpdateUser)} className="p-8 space-y-6">
+                    <form onSubmit={editForm.handleSubmit(handleUpdateUser)} className="p-4 sm:p-8 space-y-6">
                         <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl mb-4">
                             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Compte</p>
                             <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedUser.email}</p>
@@ -697,7 +697,7 @@ export const Team: React.FC = () => {
                                 {...editForm.register('displayName')} />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Rôle</label>
                                 <Controller
