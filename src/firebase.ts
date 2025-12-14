@@ -27,6 +27,10 @@ const app = initializeApp(firebaseConfig);
 
 let appCheck: AppCheck | null = null;
 
+// Flag to indicate if App Check failed (e.g. due to ad blocker)
+// This can be used by UI components to show a warning
+export let isAppCheckFailed = false;
+
 // Initialize App Check with ReCAPTCHA Enterprise
 if (typeof window !== 'undefined') {
   const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY as string | undefined;
@@ -43,6 +47,7 @@ if (typeof window !== 'undefined') {
   // Expose App Check instance for diagnostics and downstream usage.
   // Not exported directly to avoid changing public API shape at module level.
   let appCheckInstance: AppCheck | null = null;
+
 
   if (appCheckDebugToken && (isLocal || !import.meta.env.PROD)) {
     // SECURITY: debug tokens must never be used from production origins.
@@ -89,7 +94,8 @@ if (typeof window !== 'undefined') {
       }
     }
   } catch (error) {
-    ErrorLogger.warn('App Check initialization failed', 'firebase.ts', { metadata: { error } });
+    isAppCheckFailed = true;
+    ErrorLogger.warn('App Check initialization failed - potential Ad Blocker interference', 'firebase.ts', { metadata: { error } });
   }
 }
 
@@ -133,7 +139,8 @@ export const auth = getAuth(app);
 // We disable offline persistence to prevent IndexedDB locking issues and '400 channel' errors
 // in restrictive network environments.
 export const db = initializeFirestore(app, {
-  localCache: memoryLocalCache()
+  localCache: memoryLocalCache(),
+  experimentalForceLongPolling: true,
 });
 
 export const storage = getStorage(app);
