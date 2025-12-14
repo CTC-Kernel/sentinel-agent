@@ -42,12 +42,14 @@ export const useFirestoreCollection = <T = DocumentData>(
     const [realtimeData, setRealtimeData] = useState<(T & { id: string })[]>([]);
     const [realtimeLoading, setRealtimeLoading] = useState(options.enabled !== false);
     const [realtimeError, setRealtimeError] = useState<Error | null>(null);
+    const [realtimeFailed, setRealtimeFailed] = useState(false);
 
     const queryClient = useQueryClient();
     const constraintsKey = useMemo(() => JSON.stringify(constraints), [constraints]);
     const stableConstraints = constraints;
     const { realtime, logError, enabled } = options;
     const isEnabled = enabled !== false;
+    const shouldUseRealtime = realtime && !realtimeFailed;
 
     // React Query implementation for non-realtime
     const {
@@ -70,15 +72,15 @@ export const useFirestoreCollection = <T = DocumentData>(
                 throw errorObj;
             }
         },
-        enabled: isEnabled && !realtime,
+        enabled: isEnabled && !shouldUseRealtime,
         // Don't refetch on window focus for firestore usually to save reads, but can be configured
         staleTime: 1000 * 60 * 5 // 5 minutes default
     });
 
     // Realtime implementation
     useEffect(() => {
-        if (!isEnabled || !realtime) {
-            if (!realtime) {
+        if (!isEnabled || !shouldUseRealtime) {
+            if (!shouldUseRealtime) {
                 setTimeout(() => setRealtimeLoading(false), 0);
             }
             return;
@@ -87,12 +89,19 @@ export const useFirestoreCollection = <T = DocumentData>(
         // Avoid synchronous state update warning
         setTimeout(() => setRealtimeLoading(true), 0);
 
+        let timeoutId: number | null = null;
+        timeoutId = window.setTimeout(() => {
+            setRealtimeFailed(true);
+            setRealtimeLoading(false);
+        }, 12000);
+
         const q = query(collection(db, collectionName), ...stableConstraints);
         const unsubscribe = onSnapshot(q,
             (snapshot) => {
                 const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
                 setRealtimeData(docs);
                 setRealtimeLoading(false);
+                if (timeoutId !== null) window.clearTimeout(timeoutId);
             },
             (err: unknown) => {
                 const errorObj = err instanceof Error ? err : new Error(String(err));
@@ -100,11 +109,16 @@ export const useFirestoreCollection = <T = DocumentData>(
                 if (logError) {
                     ErrorLogger.error(errorObj, `useFirestoreCollection.onSnapshot.${collectionName}`);
                 }
+                setRealtimeFailed(true);
                 setRealtimeLoading(false);
+                if (timeoutId !== null) window.clearTimeout(timeoutId);
             }
         );
-        return () => unsubscribe();
-    }, [collectionName, stableConstraints, realtime, isEnabled, logError]);
+        return () => {
+            if (timeoutId !== null) window.clearTimeout(timeoutId);
+            unsubscribe();
+        };
+    }, [collectionName, stableConstraints, shouldUseRealtime, isEnabled, logError]);
 
     const add = useCallback(async (newData: WithFieldValue<DocumentData>) => {
         try {
@@ -155,7 +169,7 @@ export const useFirestoreCollection = <T = DocumentData>(
     }, [realtime, refetch]);
 
     // Return logic: if realtime, use local state; otherwise use query state
-    if (realtime) {
+    if (shouldUseRealtime) {
         return {
             data: realtimeData,
             loading: realtimeLoading,
