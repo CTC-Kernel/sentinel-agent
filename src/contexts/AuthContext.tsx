@@ -266,9 +266,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         setIsBlocked(true);
                         setLoading(false);
                     } else if (err.code === 'unavailable' || err.code === 'failed-precondition') {
-                        // Offline or App Check failure
-                        ErrorLogger.warn('Firestore unavailable. Likely content blocker.', 'AuthContext.onSnapshot');
-                        setIsBlocked(true);
+                        // Offline or App Check failure - BUT don't block UI immediately, let Firestore retry
+                        ErrorLogger.warn('Firestore unavailable (transient).', 'AuthContext.onSnapshot');
+                        // setIsBlocked(true); // <--- DISABLE THIS. Long Polling causes transient errors.
                         setLoading(false);
                     } else {
                         setError(err as Error);
