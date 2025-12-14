@@ -153,9 +153,9 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-3 min-w-0">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Demandes de Preuves</h3>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 max-w-full">
                     <button
                         onClick={async () => {
                             try {

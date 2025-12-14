@@ -8,9 +8,6 @@ import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute';
 import { useStore } from './store';
 import { Sidebar } from './components/layout/Sidebar';
 import { Toaster } from 'sonner';
-import { Login } from './views/Login';
-import { Onboarding } from './views/Onboarding';
-import { VerifyEmail } from './views/VerifyEmail';
 import { WifiOff } from './components/ui/Icons';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CommandPalette } from './components/layout/CommandPalette';
@@ -32,6 +29,10 @@ import { CustomRole } from './types';
 import { VersionCheck } from './components/VersionCheck';
 import { ContentBlockerError } from './components/ui/ContentBlockerError';
 import { useAuth } from './hooks/useAuth';
+
+const Login = React.lazy(() => import('./views/Login').then(module => ({ default: module.Login })));
+const Onboarding = React.lazy(() => import('./views/Onboarding').then(module => ({ default: module.Onboarding })));
+const VerifyEmail = React.lazy(() => import('./views/VerifyEmail').then(module => ({ default: module.VerifyEmail })));
 
 // Wrapper to activate global shortcuts inside Router context
 const GlobalShortcutsWrapper: React.FC = () => {
@@ -187,28 +188,30 @@ const AppInner: React.FC = () => {
             <VersionCheck />
             <GlobalShortcutsWrapper />
             <ErrorBoundary>
-                <Routes>
-                    <Route path="/login" element={
-                        <PublicOnlyRoute>
-                            <Login />
-                        </PublicOnlyRoute>
-                    } />
-                    <Route path="/onboarding" element={
-                        <AuthGuard requireOnboarding={false}>
-                            <Onboarding />
-                        </AuthGuard>
-                    } />
-                    <Route path="/verify-email" element={
-                        <AuthGuard requireOnboarding={false}>
-                            <VerifyEmail />
-                        </AuthGuard>
-                    } />
-                    <Route path="/*" element={
-                        <AuthGuard>
-                            <AppLayout />
-                        </AuthGuard>
-                    } />
-                </Routes>
+                <Suspense fallback={<LoadingScreen />}>
+                    <Routes>
+                        <Route path="/login" element={
+                            <PublicOnlyRoute>
+                                <Login />
+                            </PublicOnlyRoute>
+                        } />
+                        <Route path="/onboarding" element={
+                            <AuthGuard requireOnboarding={false}>
+                                <Onboarding />
+                            </AuthGuard>
+                        } />
+                        <Route path="/verify-email" element={
+                            <AuthGuard requireOnboarding={false}>
+                                <VerifyEmail />
+                            </AuthGuard>
+                        } />
+                        <Route path="/*" element={
+                            <AuthGuard>
+                                <AppLayout />
+                            </AuthGuard>
+                        } />
+                    </Routes>
+                </Suspense>
             </ErrorBoundary>
         </>
     );

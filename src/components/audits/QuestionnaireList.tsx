@@ -72,7 +72,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-3 min-w-0">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Questionnaires d'Audit</h3>
                 {canEdit && (
                     <button
