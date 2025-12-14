@@ -90,7 +90,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
     }, {} as Record<string, number>);
 
     const scopeChartData = Object.entries(scopeData).map(([name, value]) => ({ name, value }));
-    const SCOPE_COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#10b981', '#6366f1', '#94a3b8'];
+    const SCOPE_COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#10b981', '#6366f1', 'hsl(var(--muted-foreground) / 0.55)'];
 
     return (
         <div className="space-y-6">
