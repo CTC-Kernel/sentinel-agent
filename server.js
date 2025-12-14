@@ -27,7 +27,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Add security headers to allow Firebase Auth popups
 app.use((req, res, next) => {
-    res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(self), payment=(), usb=(), interest-cohort=()');
 
     if (isProd) {
@@ -138,7 +138,7 @@ app.use(express.static(distPath, {
             res.setHeader('Pragma', 'no-cache');
             res.setHeader('Expires', '0');
             // Force COOP for index.html to allow Auth Popups
-            res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+            res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
             return;
         }
 
