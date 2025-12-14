@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from './Icons';
 
@@ -24,6 +24,8 @@ export const Drawer: React.FC<DrawerProps> = ({
     breadcrumbs
 }) => {
     const [isVisible, setIsVisible] = useState(false);
+    const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+    const previousFocusRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
@@ -35,8 +37,17 @@ export const Drawer: React.FC<DrawerProps> = ({
         if (isOpen) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             if (!isVisible) setIsVisible(true);
+            previousFocusRef.current = document.activeElement as HTMLElement | null;
             document.body.style.overflow = 'hidden';
             window.addEventListener('keydown', handleEscape);
+
+            const t = window.setTimeout(() => {
+                closeButtonRef.current?.focus();
+            }, 0);
+
+            return () => {
+                window.clearTimeout(t);
+            };
         }
 
         let timer: ReturnType<typeof setTimeout>;
@@ -50,6 +61,7 @@ export const Drawer: React.FC<DrawerProps> = ({
             window.removeEventListener('keydown', handleEscape);
             // Ensure we reset overflow if unmounting while open
             if (isOpen) document.body.style.overflow = 'unset';
+            if (!isOpen) previousFocusRef.current?.focus();
         };
     }, [isOpen, onClose, isVisible]);
 
@@ -101,6 +113,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                             <div className="flex items-center gap-2 shrink-0">
                                 {actions}
                                 <button
+                                    ref={closeButtonRef}
                                     onClick={onClose}
                                     className="p-2.5 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors"
                                     aria-label="Fermer"

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useDeferredValue, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { Controller } from 'react-hook-form';
@@ -15,7 +15,7 @@ import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
 import { QuestionnaireList } from '../components/audits/QuestionnaireList';
 import { AuditTeam } from '../components/audits/AuditTeam';
 import { Comments } from '../components/ui/Comments';
-import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, LayoutGrid, List, BrainCircuit, Loader2 } from '../components/ui/Icons';
+import { Plus, Activity, Search, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, LayoutGrid, List, BrainCircuit, Loader2, X } from '../components/ui/Icons';
 
 import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
@@ -160,6 +160,11 @@ export const Audits: React.FC = () => {
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [filter, setFilter] = useState('');
 
+    const deferredFilter = useDeferredValue(filter);
+
+    const [isExportingCSV, setIsExportingCSV] = useState(false);
+    const [isExportingCalendar, setIsExportingCalendar] = useState(false);
+
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
     const [findings, setFindings] = useState<Finding[]>([]);
     const [showFindingsDrawer, setShowFindingsDrawer] = useState(false);
@@ -222,7 +227,6 @@ export const Audits: React.FC = () => {
             addToast("Preuve téléversée et liée", "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Audits.handleEvidenceUpload', 'FILE_UPLOAD_FAILED');
-            addToast("Erreur création document preuve", "error");
         }
     };
 
@@ -398,7 +402,6 @@ export const Audits: React.FC = () => {
             addToast("Constat ajouté", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Audits.handleAddFinding', 'CREATE_FAILED');
-            addToast("Erreur ajout constat", "error");
         }
     };
 
@@ -423,7 +426,6 @@ export const Audits: React.FC = () => {
             addToast("Constat supprimé", "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Audits.handleDeleteFinding', 'DELETE_FAILED');
-            addToast("Erreur suppression", "error");
         }
     };
 
@@ -458,7 +460,6 @@ export const Audits: React.FC = () => {
             addToast("Audit et constats supprimés", "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Audits.handleDeleteAudit', 'DELETE_FAILED');
-            addToast("Erreur suppression", "error");
         }
     }, [user, performDelete, refreshAudits, selectedAudit, addToast]);
 
@@ -611,7 +612,6 @@ export const Audits: React.FC = () => {
             addToast("Preuve ajoutée à la checklist", "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Audits.handleChecklistEvidenceUpload', 'FILE_UPLOAD_FAILED');
-            addToast("Erreur ajout preuve", "error");
         }
     };
 
@@ -635,33 +635,44 @@ export const Audits: React.FC = () => {
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Audits.markAllConform', 'UPDATE_FAILED'); }
     };
 
-    const handleExportCSV = () => {
-        const headers = ["Audit", "Type", "Auditeur", "Date", "Statut", "Écarts"];
-        const rows = filteredAudits.map(a => [
-            a.name,
-            a.type,
-            a.auditor,
-            a.dateScheduled ? new Date(a.dateScheduled).toLocaleDateString() : 'TBD',
-            a.status,
-            String(a.findingsCount || 0)
-        ]);
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
-        link.download = `audits_export_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
+    const handleExportCSV = async () => {
+        if (isExportingCSV) return;
+        setIsExportingCSV(true);
+        try {
+            const headers = ["Audit", "Type", "Auditeur", "Date", "Statut", "Écarts"];
+            const rows = filteredAudits.map(a => [
+                a.name,
+                a.type,
+                a.auditor,
+                a.dateScheduled ? new Date(a.dateScheduled).toLocaleDateString() : 'TBD',
+                a.status,
+                String(a.findingsCount || 0)
+            ]);
+            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(','))].join('\n');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `audits_export_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        } finally {
+            setTimeout(() => setIsExportingCSV(false), 0);
+        }
     };
 
-    const handleExportCalendar = () => {
-        const events = filteredAudits.map(audit => ({
-            title: `Audit: ${audit.name} `,
-            description: `Type: ${audit.type} | Auditeur: ${audit.auditor} | Statut: ${audit.status} `,
-            startDate: new Date(audit.dateScheduled),
-            location: 'Sentinel GRC'
-        }));
-        const icsContent = generateICS(events);
-        downloadICS(`audits_calendar_${new Date().toISOString().split('T')[0]}.ics`, icsContent);
-        addToast("Calendrier exporté", "success");
+    const handleExportCalendar = async () => {
+        if (isExportingCalendar) return;
+        setIsExportingCalendar(true);
+        try {
+            const events = filteredAudits.map(audit => ({
+                title: `Audit: ${audit.name} `,
+                description: `Type: ${audit.type} | Auditeur: ${audit.auditor} | Statut: ${audit.status} `,
+                startDate: new Date(audit.dateScheduled),
+                location: 'Sentinel GRC'
+            }));
+            const icsContent = generateICS(events);
+            downloadICS(`audits_calendar_${new Date().toISOString().split('T')[0]}.ics`, icsContent);
+        } finally {
+            setTimeout(() => setIsExportingCalendar(false), 0);
+        }
     };
 
     const generateSoA = () => {
@@ -813,7 +824,6 @@ export const Audits: React.FC = () => {
             addToast("Rapport généré avec succès", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Audits.generateAuditReport', 'REPORT_GENERATION_FAILED');
-            addToast("Erreur lors de la génération du rapport", "error");
         } finally {
             setIsGeneratingReport(false);
         }
@@ -1021,7 +1031,11 @@ export const Audits: React.FC = () => {
         }
     };
 
-    const filteredAudits = audits.filter(a => (a.name || '').toLowerCase().includes(filter.toLowerCase()));
+    const filteredAudits = React.useMemo(() => {
+        const needle = (deferredFilter || '').toLowerCase().trim();
+        if (!needle) return audits;
+        return audits.filter(a => (a.name || '').toLowerCase().includes(needle));
+    }, [audits, deferredFilter]);
 
     const getBreadcrumbs = () => {
         const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Audits', onClick: () => { setSelectedAudit(null); setCreationMode(false); setShowFindingsDrawer(false); setEditingAudit(null); } }];
@@ -1169,11 +1183,34 @@ export const Audits: React.FC = () => {
                 <Search className="h-5 w-5 text-slate-500" />
                 <input type="text" placeholder="Rechercher un audit..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                     value={filter} onChange={e => setFilter(e.target.value)} />
-                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
-                    <FileSpreadsheet className="h-4 w-4" />
+                {filter && (
+                    <button
+                        type="button"
+                        onClick={() => setFilter('')}
+                        className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
+                        title="Effacer la recherche"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                )}
+                <div className="px-3 py-2 bg-gray-50 dark:bg-white/5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">
+                    {filteredAudits.length}
+                </div>
+                <button
+                    onClick={handleExportCSV}
+                    disabled={isExportingCSV}
+                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Exporter CSV"
+                >
+                    {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
                 </button>
-                <button onClick={handleExportCalendar} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter Calendrier">
-                    <CalendarDays className="h-4 w-4" />
+                <button
+                    onClick={handleExportCalendar}
+                    disabled={isExportingCalendar}
+                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Exporter Calendrier"
+                >
+                    {isExportingCalendar ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarDays className="h-4 w-4" />}
                 </button>
                 <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm max-w-full overflow-x-auto">
                     <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
@@ -7,7 +7,7 @@ import { db } from '../firebase';
 import { Document, UserProfile, SystemLog, Control, Asset, Audit, DocumentFolder, DocumentVersion, Risk } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
-import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, LayoutGrid, List } from '../components/ui/Icons';
+import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, LayoutGrid, List, Loader2 } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { sendEmail } from '../services/emailService';
@@ -111,6 +111,7 @@ export const Documents: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const [isDigitalSafeMode, setIsDigitalSafeMode] = useState(false);
+    const [isExportingCSV, setIsExportingCSV] = useState(false);
 
     const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
     const [docHistory, setDocHistory] = useState<SystemLog[]>([]);
@@ -266,8 +267,7 @@ export const Documents: React.FC = () => {
             setSelectedDocument({ ...selectedDocument, ...updates });
             addToast(logMsg, "success");
         } catch (error) {
-            ErrorLogger.error(error, 'Documents.handleWorkflowAction');
-            addToast("Erreur workflow", "error");
+            ErrorLogger.handleErrorWithToast(error, 'Documents.handleWorkflowAction', 'UPDATE_FAILED');
         }
     };
 
@@ -416,7 +416,6 @@ export const Documents: React.FC = () => {
             setShowCreateModal(false);
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
-            addToast("Erreur lors de la création", "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -461,8 +460,7 @@ export const Documents: React.FC = () => {
             setIsEditing(false);
             addToast("Document mis à jour", "success");
         } catch (error) {
-            ErrorLogger.error(error, 'Documents.handleUpdate');
-            addToast("Erreur lors de la modification", "error");
+            ErrorLogger.handleErrorWithToast(error, 'Documents.handleUpdate', 'UPDATE_FAILED');
         } finally {
             setIsSubmitting(false);
         }
@@ -516,7 +514,6 @@ export const Documents: React.FC = () => {
             });
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Documents.initiateDelete');
-            addToast("Erreur lors de la vérification des dépendances", "error");
         }
     };
 
@@ -530,8 +527,7 @@ export const Documents: React.FC = () => {
             addToast("Document supprimé", "info");
             setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
-            ErrorLogger.error(error, 'Documents.handleDelete');
-            addToast("Erreur lors de la suppression", "error");
+            ErrorLogger.handleErrorWithToast(error, 'Documents.handleDelete', 'DELETE_FAILED');
         } finally {
             setConfirmData(prev => ({ ...prev, loading: false }));
         }
@@ -551,27 +547,32 @@ export const Documents: React.FC = () => {
             });
             addToast("Rappel envoyé au propriétaire", "success");
         } catch (error) {
-            ErrorLogger.error(error, 'Documents.sendReminder');
-            addToast("Erreur envoi rappel", "error");
+            ErrorLogger.handleErrorWithToast(error, 'Documents.sendReviewReminder', 'EMAIL_SEND_FAILED');
         }
     };
 
-    const handleExportCSV = () => {
-        const headers = ["Titre", "Type", "Version", "Statut", "Propriétaire", "Prochaine Révision", "Fichier Joint"];
-        const rows = filteredDocuments.map(d => [
-            d.title,
-            d.type,
-            d.version,
-            d.status,
-            d.owner,
-            d.nextReviewDate ? new Date(d.nextReviewDate).toLocaleDateString() : '',
-            d.url ? 'Oui' : 'Non'
-        ]);
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
-        link.download = `documents_export_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
+    const handleExportCSV = async () => {
+        if (isExportingCSV) return;
+        setIsExportingCSV(true);
+        try {
+            const headers = ["Titre", "Type", "Version", "Statut", "Propriétaire", "Prochaine Révision", "Fichier Joint"];
+            const rows = filteredDocuments.map(d => [
+                d.title,
+                d.type,
+                d.version,
+                d.status,
+                d.owner,
+                d.nextReviewDate ? new Date(d.nextReviewDate).toLocaleDateString() : '',
+                d.url ? 'Oui' : 'Non'
+            ]);
+            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(','))].join('\n');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `documents_export_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        } finally {
+            setTimeout(() => setIsExportingCSV(false), 0);
+        }
     };
 
     const handleCreateFolder = async (name: string, parentId?: string) => {
@@ -586,8 +587,7 @@ export const Documents: React.FC = () => {
             });
             addToast('Dossier créé', 'success');
         } catch (error) {
-            ErrorLogger.error(error as Error, 'Documents.handleCreateFolder');
-            addToast('Erreur lors de la création du dossier', 'error');
+            ErrorLogger.handleErrorWithToast(error, 'Documents.handleCreateFolder', 'CREATE_FAILED');
         }
     };
 
@@ -599,8 +599,7 @@ export const Documents: React.FC = () => {
             });
             addToast('Dossier renommé', 'success');
         } catch (error) {
-            ErrorLogger.error(error as Error, 'Documents.handleUpdateFolder');
-            addToast('Erreur lors du renommage', 'error');
+            ErrorLogger.handleErrorWithToast(error, 'Documents.handleUpdateFolder', 'UPDATE_FAILED');
         }
     };
 
@@ -624,20 +623,23 @@ export const Documents: React.FC = () => {
             if (selectedFolderId === id) setSelectedFolderId(null);
             addToast('Dossier supprimé', 'success');
         } catch (error) {
-            ErrorLogger.error(error as Error, 'Documents.handleDeleteFolder');
-            addToast('Erreur lors de la suppression', 'error');
+            ErrorLogger.handleErrorWithToast(error, 'Documents.handleDeleteFolder', 'DELETE_FAILED');
         }
     };
 
-    const filteredDocuments = documents.filter(doc => {
-        const matchesSearch = doc.title.toLowerCase().includes(filter.toLowerCase()) ||
-            doc.type.toLowerCase().includes(filter.toLowerCase()) ||
-            doc.owner.toLowerCase().includes(filter.toLowerCase());
+    const deferredFilter = useDeferredValue(filter);
+    const filteredDocuments = useMemo(() => documents.filter(doc => {
+        const needle = (deferredFilter || '').toLowerCase().trim();
+        const matchesSearch = !needle || doc.title.toLowerCase().includes(needle) ||
+            doc.type.toLowerCase().includes(needle) ||
+            doc.owner.toLowerCase().includes(needle);
+        const matchesFolder = selectedFolderId === null || doc.folderId === selectedFolderId;
         const matchesCategory = categoryFilter === 'all' || doc.type === categoryFilter;
-        const matchesFolder = selectedFolderId ? doc.folderId === selectedFolderId : !doc.folderId; // Show root docs if no folder selected
+        const matchesDigitalSafe = !isDigitalSafeMode || !!doc.isSecure;
 
-        return matchesSearch && matchesCategory && matchesFolder;
-    });
+        return matchesSearch && matchesFolder && matchesCategory && matchesDigitalSafe;
+    }), [documents, deferredFilter, selectedFolderId, categoryFilter, isDigitalSafeMode]);
+
     const getStatusColor = (s: string) => {
         switch (s) {
             case 'Publié': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900/50';
@@ -794,12 +796,30 @@ export const Documents: React.FC = () => {
                 <div className="flex-1 min-w-0 flex flex-col gap-6 overflow-hidden">
                     <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
                         {/* Search & Filters */}
-                        <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200 dark:border-white/5">
+                        <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex flex-wrap items-center gap-3 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200 dark:border-white/5 min-w-0">
                             <Search className="h-5 w-5 text-slate-500" />
-                            <input type="text" placeholder="Rechercher un document..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
+                            <input type="text" placeholder="Rechercher un document..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                                 value={filter} onChange={e => setFilter(e.target.value)} />
-                            <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
-                                <FileSpreadsheet className="h-4 w-4" />
+                            {filter && (
+                                <button
+                                    type="button"
+                                    onClick={() => setFilter('')}
+                                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
+                                    title="Effacer la recherche"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            )}
+                            <div className="px-3 py-2 bg-gray-50 dark:bg-white/5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">
+                                {filteredDocuments.length}
+                            </div>
+                            <button
+                                onClick={handleExportCSV}
+                                disabled={isExportingCSV}
+                                className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Exporter CSV"
+                            >
+                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
                             </button>
                         </div>
 

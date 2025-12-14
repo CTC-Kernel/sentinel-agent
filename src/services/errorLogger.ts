@@ -239,6 +239,7 @@ export const ERROR_MESSAGES = {
   CREATE_FAILED: "Erreur lors de la création",
   UPDATE_FAILED: "Erreur lors de la mise à jour",
   DELETE_FAILED: "Erreur lors de la suppression",
+  EMAIL_SEND_FAILED: "Échec de l'envoi de l'email",
 
   // Validation
   VALIDATION_FAILED: "Données invalides",

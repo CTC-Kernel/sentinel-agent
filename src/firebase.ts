@@ -3,7 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
 // Capacitor import removed from static scope to prevent web issues
 // import { Capacitor } from '@capacitor/core';
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
@@ -30,16 +30,17 @@ if (typeof window !== 'undefined') {
   const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY as string | undefined;
   const appCheckDebugToken = import.meta.env.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN as string | undefined;
 
-  // Enable debug token for localhost OR if explicitly enabled via localStorage OR for the specific app domain
-  const isDebugMode = localStorage.getItem('debug_app_check') === 'true';
-  const isLocal = window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1' ||
-    isDebugMode;
+  // SECURITY: Never allow enabling App Check debug mode in production via localStorage.
+  // Debug tokens must only be used on localhost/127.0.0.1.
+  const isLocal =
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1';
+  const isDebugMode = !import.meta.env.PROD && localStorage.getItem('debug_app_check') === 'true';
 
   if (appCheckDebugToken) {
     // Enforce debug token if available in env, regardless of localhost
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string }).FIREBASE_APPCHECK_DEBUG_TOKEN = appCheckDebugToken;
-  } else if (isLocal) {
+  } else if (isLocal || isDebugMode) {
     // Generate a new debug token for localhost if one isn't provided
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: boolean }).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
   }
@@ -91,11 +92,23 @@ export const auth = getAuth(app);
 })();
 
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  })
-});
+// Fallback to in-memory cache if IndexedDB is blocked/unavailable (private mode, hardened browsers, etc.).
+export const db = (() => {
+  try {
+    return initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+      })
+    });
+  } catch (error) {
+    ErrorLogger.warn('Firestore persistent cache init failed; falling back to memory cache', 'firebase.firestore', {
+      metadata: { error }
+    });
+    return initializeFirestore(app, {
+      localCache: memoryLocalCache()
+    });
+  }
+})();
 
 export const storage = getStorage(app);
 export const functions = getFunctions(app);

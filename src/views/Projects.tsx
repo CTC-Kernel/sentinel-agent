@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import 'jspdf-autotable';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, limit, where, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -8,7 +8,7 @@ import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, Pro
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target, ShieldAlert, Loader2, Server, ClipboardCheck } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target, ShieldAlert, Loader2, Server, ClipboardCheck, X } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -127,6 +127,8 @@ export const Projects: React.FC = () => {
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
     const [filter, setFilter] = useState('');
+    const [isExportingCSV, setIsExportingCSV] = useState(false);
+    const [isExportingPDF, setIsExportingPDF] = useState(false);
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('projects_view_mode', 'grid');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -643,8 +645,10 @@ export const Projects: React.FC = () => {
         });
     };
 
-    const exportPDF = () => {
-        void (async () => {
+    const exportPDF = async () => {
+        if (isExportingPDF) return;
+        setIsExportingPDF(true);
+        try {
             const { PdfService } = await import('../services/PdfService');
             const data = projects.map(p => [p.name, p.status, p.manager, p.progress + '%', p.dueDate || '-']);
 
@@ -662,13 +666,18 @@ export const Projects: React.FC = () => {
                 ['Nom du Projet', 'Statut', 'Responsable', 'Progression', 'Échéance'],
                 data
             );
-        })().catch((error) => {
+        } catch (error) {
             ErrorLogger.error(error, 'Projects.exportPDF');
             addToast("Erreur lors de l'export PDF", 'error');
-        });
+        } finally {
+            setTimeout(() => setIsExportingPDF(false), 0);
+        }
     };
 
-    const handleExportCSV = () => {
+    const handleExportCSV = async () => {
+        if (isExportingCSV) return;
+        setIsExportingCSV(true);
+        try {
         const headers = ["Projet", "Manager", "Statut", "Avancement", "Échéance"];
         const rows = filteredProjects.map(p => [
             p.name,
@@ -682,6 +691,9 @@ export const Projects: React.FC = () => {
         link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
         link.download = `projects_export_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
+        } finally {
+            setTimeout(() => setIsExportingCSV(false), 0);
+        }
     };
 
 
@@ -690,7 +702,12 @@ export const Projects: React.FC = () => {
 
 
 
-    const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
+    const deferredFilter = useDeferredValue(filter);
+    const filteredProjects = useMemo(() => {
+        const needle = (deferredFilter || '').toLowerCase().trim();
+        if (!needle) return projects;
+        return projects.filter(p => p.name.toLowerCase().includes(needle));
+    }, [projects, deferredFilter]);
 
     const handleDragStart = (e: React.DragEvent, taskId: string) => {
         setDraggedTaskId(taskId);
@@ -1015,19 +1032,42 @@ export const Projects: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex items-center space-x-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center flex-wrap gap-3 bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm min-w-0">
                 <Search className="h-5 w-5 text-slate-500" />
                 <input
                     type="text"
                     placeholder="Rechercher un projet..."
-                    className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white"
+                    className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white"
                     value={filter} onChange={e => setFilter(e.target.value)}
                 />
-                <button onClick={handleExportCSV} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-600 hover:text-slate-900 dark:hover:text-white" title="Exporter CSV">
-                    <FileSpreadsheet className="h-4 w-4" />
+                {filter && (
+                    <button
+                        type="button"
+                        onClick={() => setFilter('')}
+                        className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-600 hover:text-slate-900 dark:hover:text-white"
+                        title="Effacer la recherche"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                )}
+                <div className="px-3 py-2 bg-gray-100 dark:bg-slate-800 rounded text-xs font-bold text-slate-600 dark:text-slate-300">
+                    {filteredProjects.length}
+                </div>
+                <button
+                    onClick={handleExportCSV}
+                    disabled={isExportingCSV}
+                    className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-600 hover:text-slate-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Exporter CSV"
+                >
+                    {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
                 </button>
-                <button onClick={exportPDF} className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-600 hover:text-slate-900 dark:hover:text-white ml-2" title="Exporter PDF">
-                    <Download className="h-4 w-4" />
+                <button
+                    onClick={exportPDF}
+                    disabled={isExportingPDF}
+                    className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-600 hover:text-slate-900 dark:hover:text-white ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Exporter PDF"
+                >
+                    {isExportingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                 </button>
                 <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm ml-2">
                     <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>

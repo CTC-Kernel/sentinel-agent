@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import { Helmet } from 'react-helmet-async';
 
@@ -9,7 +9,7 @@ import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, BusinessProcess, Supplier, Audit, Vulnerability, AssetHistory, Document as GRCDocument } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, LayoutGrid, List, BrainCircuit, FileText, ExternalLink } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, LayoutGrid, List, BrainCircuit, FileText, ExternalLink, X, Loader2 } from '../components/ui/Icons';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -150,6 +150,7 @@ export const Assets: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isGeneratingLabels, setIsGeneratingLabels] = useState(false);
+    const [isExportingCSV, setIsExportingCSV] = useState(false);
     const [isAddingMaintenance, setIsAddingMaintenance] = useState(false);
     const [preSelectedProjectId, setPreSelectedProjectId] = useState<string | null>(null);
 
@@ -358,18 +359,23 @@ export const Assets: React.FC = () => {
         }
     };
 
-    const filteredAssets = assets.filter(a => {
-        const matchesQuery = (a.name.toLowerCase().includes(activeFilters.query.toLowerCase()) ||
-            a.type.toLowerCase().includes(activeFilters.query.toLowerCase()) ||
-            a.owner.toLowerCase().includes(activeFilters.query.toLowerCase()));
+    const deferredQuery = useDeferredValue(activeFilters.query);
+    const filteredAssets = useMemo(() => assets.filter(a => {
+        const needle = (deferredQuery || '').toLowerCase().trim();
+        const matchesQuery = !needle || (a.name.toLowerCase().includes(needle) ||
+            a.type.toLowerCase().includes(needle) ||
+            a.owner.toLowerCase().includes(needle));
 
-        const matchesType = activeFilters.type === 'all' || activeFilters.type === 'asset';
-        const matchesStatus = !activeFilters.status || a.lifecycleStatus?.toLowerCase().includes(activeFilters.status?.toLowerCase() || '');
-        const matchesOwner = !activeFilters.owner || a.owner.toLowerCase().includes(activeFilters.owner.toLowerCase());
-        const matchesCriticality = !activeFilters.criticality || a.confidentiality === activeFilters.criticality || a.integrity === activeFilters.criticality || a.availability === activeFilters.criticality;
+        const matchesStatus = !activeFilters.status || a.lifecycleStatus === activeFilters.status;
+        const matchesOwner = !activeFilters.owner || a.owner === activeFilters.owner;
+        const matchesCriticality = !activeFilters.criticality || (
+            a.confidentiality === (activeFilters.criticality as unknown as Criticality) ||
+            a.integrity === (activeFilters.criticality as unknown as Criticality) ||
+            a.availability === (activeFilters.criticality as unknown as Criticality)
+        );
 
-        return matchesQuery && matchesType && matchesStatus && matchesOwner && matchesCriticality;
-    });
+        return matchesQuery && matchesStatus && matchesOwner && matchesCriticality;
+    }), [assets, deferredQuery, activeFilters.status, activeFilters.owner, activeFilters.criticality]);
     const { currentPage, paginatedItems, setCurrentPage, setItemsPerPage, totalItems, itemsPerPage } = usePagination(filteredAssets, 20);
 
     const handleAddMaintenance = async () => {
@@ -530,11 +536,17 @@ export const Assets: React.FC = () => {
         }
     };
 
-    const handleExportCSV = () => {
+    const handleExportCSV = async () => {
+        if (isExportingCSV) return;
+        setIsExportingCSV(true);
+        try {
         const headers = ["Nom", "Type", "Propriétaire", "Confidentialité", "Intégrité", "Disponibilité", "Localisation", "Statut", "Valeur Actuelle"];
         const rows = filteredAssets.map(a => [a.name, a.type, a.owner, a.confidentiality, a.integrity, a.availability, a.location, a.lifecycleStatus || 'Neuf', a.currentValue || 0]);
         const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
         const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `assets_export.csv`; link.click();
+        } finally {
+            setTimeout(() => setIsExportingCSV(false), 0);
+        }
     };
 
     const generateLabels = async (targetAsset?: Asset) => {
@@ -712,13 +724,33 @@ export const Assets: React.FC = () => {
                             value={activeFilters.query}
                             onChange={e => setActiveFilters({ ...activeFilters, query: e.target.value })}
                         />
+                        {activeFilters.query && (
+                            <button
+                                type="button"
+                                onClick={() => setActiveFilters({ ...activeFilters, query: '' })}
+                                className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
+                                title="Effacer la recherche"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                        <div className="px-3 py-2 bg-gray-50 dark:bg-white/5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">
+                            {filteredAssets.length}
+                        </div>
                         <button
                             onClick={() => setShowAdvancedSearch(true)}
                             className="px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
                         >
                             Filtres Avancés
                         </button>
-                        <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"><FileSpreadsheet className="h-4 w-4" /></button>
+                        <button
+                            onClick={handleExportCSV}
+                            disabled={isExportingCSV}
+                            className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Exporter CSV"
+                        >
+                            {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                        </button>
                         <button disabled={isGeneratingLabels} onClick={() => generateLabels()} className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50" title="Imprimer Étiquette">
                             {isGeneratingLabels ? <span className="animate-spin">⏳</span> : <QrCode className="h-4 w-4" />}
                         </button>

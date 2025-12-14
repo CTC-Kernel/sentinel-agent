@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useState, useRef } from 'react';
 import { FRAMEWORK_OPTIONS } from '../data/frameworks';
 import { SEO } from '../components/SEO';
 import { RiskFormData, riskSchema } from '../schemas/riskSchema';
@@ -8,7 +8,7 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality, Incident, MitreTechnique } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit, LayoutGrid, List, Loader2 } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, History, MessageSquare, ShieldAlert, FileSpreadsheet, Clock, Copy, FolderKanban, Network, CheckCircle2, CalendarDays, Download, TrendingUp, TrendingDown, ArrowRight, Upload, LayoutDashboard, Filter, RefreshCw, Edit, FileText, BrainCircuit, LayoutGrid, List, Loader2, X } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { Badge } from '../components/ui/Badge';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -167,6 +167,7 @@ export const Risks: React.FC = () => {
     const [stats, setStats] = useState({ total: 0, critical: 0, mitigated: 0, reviewDue: 0 });
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [importing, setImporting] = useState(false);
+    const [isExportingCSV, setIsExportingCSV] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [updating, setUpdating] = useState(false);
     const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || projectsLoading || auditsLoading || incidentsLoading || importing;
@@ -642,11 +643,17 @@ export const Risks: React.FC = () => {
 
 
 
-    const handleExportCSV = () => {
+    const handleExportCSV = async () => {
+        if (isExportingCSV) return;
+        setIsExportingCSV(true);
+        try {
         const headers = ["Menace", "Vulnérabilité", "Actif", "Score Brut", "Score Résiduel", "Stratégie", "Statut", "Propriétaire"];
         const rows = filteredRisks.map(r => [r.threat, r.vulnerability, getAssetName(r.assetId), r.score.toString(), (r.residualScore || r.score).toString(), r.strategy, r.status, r.owner || '']);
         const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
         const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `risks.csv`; link.click();
+        } finally {
+            setTimeout(() => setIsExportingCSV(false), 0);
+        }
     };
 
     const handleExportPDF = () => {
@@ -676,8 +683,7 @@ export const Risks: React.FC = () => {
             );
             addToast("Rapport téléchargé avec succès", "success");
         })().catch((error) => {
-            ErrorLogger.error(error, 'Risks.handleExportPDF');
-            addToast("Erreur lors de l'export PDF", 'error');
+            ErrorLogger.handleErrorWithToast(error, 'Risks.handleExportPDF', 'REPORT_GENERATION_FAILED');
         });
     };
 
@@ -812,13 +818,15 @@ export const Risks: React.FC = () => {
 
     const getAssetName = (id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu';
 
-    const filteredRisks = risks.filter(r => {
-        const matchesSearch = r.threat.toLowerCase().includes(filter.toLowerCase()) || r.vulnerability.toLowerCase().includes(filter.toLowerCase()) || (r.scenario || '').toLowerCase().includes(filter.toLowerCase());
+    const deferredFilter = useDeferredValue(filter);
+    const filteredRisks = useMemo(() => risks.filter(r => {
+        const needle = (deferredFilter || '').toLowerCase().trim();
+        const matchesSearch = !needle || r.threat.toLowerCase().includes(needle) || r.vulnerability.toLowerCase().includes(needle) || (r.scenario || '').toLowerCase().includes(needle);
         const matchesFramework = frameworkFilter ? r.framework === frameworkFilter : true;
         // Matrix filtering logic: Only show if no filter set OR if matches specific probability AND impact
         const matchesMatrix = matrixFilter ? (r.probability === matrixFilter.p && r.impact === matrixFilter.i) : true;
         return matchesSearch && matchesMatrix && matchesFramework;
-    });
+    }), [risks, deferredFilter, frameworkFilter, matrixFilter]);
 
     const getRisksForCell = (prob: number, impact: number) => risks.filter(r => r.probability === prob && r.impact === impact && (!frameworkFilter || r.framework === frameworkFilter));
 
@@ -1056,7 +1064,20 @@ export const Risks: React.FC = () => {
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 min-w-0 border border-slate-200 dark:border-white/5">
                         <Search className="h-5 w-5 text-slate-500" />
-                        <input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} />
+                        <input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} />
+                        {filter && (
+                            <button
+                                type="button"
+                                onClick={() => setFilter('')}
+                                className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"
+                                title="Effacer la recherche"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                        <div className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 shadow-sm">
+                            {filteredRisks.length}
+                        </div>
                         <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
                         <select
                             value={frameworkFilter}
@@ -1071,8 +1092,24 @@ export const Risks: React.FC = () => {
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                        {canEdit && <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm" title="Importer CSV"><Upload className="h-4 w-4" /></button>}
-                        <button onClick={handleExportCSV} className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"><FileSpreadsheet className="h-4 w-4" /></button>
+                        {canEdit && (
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={importing}
+                                className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Importer CSV"
+                            >
+                                {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                            </button>
+                        )}
+                        <button
+                            onClick={handleExportCSV}
+                            disabled={isExportingCSV}
+                            className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Exporter CSV"
+                        >
+                            {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                        </button>
                         <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm ml-2">
                             <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
                             <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { canEditResource } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -6,7 +6,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
-import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, LayoutGrid, List, BrainCircuit, Loader2 } from '../components/ui/Icons';
+import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, LayoutGrid, List, BrainCircuit, Loader2, X } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
@@ -56,6 +56,8 @@ export const Suppliers: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
+    const [isExportingCSV, setIsExportingCSV] = useState(false);
+    const [isExportingDORA, setIsExportingDORA] = useState(false);
 
 
 
@@ -323,12 +325,12 @@ export const Suppliers: React.FC = () => {
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await performDelete(id);
+            await logAction(user, 'DELETE', 'Supplier', `Suppression Fournisseur: ${selectedSupplier?.name || id}`);
             addToast('Fournisseur et données associées supprimés', 'success');
             if (selectedSupplier?.id === id) setSelectedSupplier(null);
             setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleDelete');
-            addToast('Erreur lors de la suppression', 'error');
         } finally {
             setConfirmData(prev => ({ ...prev, loading: false }));
         }
@@ -355,7 +357,6 @@ export const Suppliers: React.FC = () => {
             setSelectedSupplier(null);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleBulkDelete');
-            addToast('Erreur lors de la suppression en masse', 'error');
         }
     };
 
@@ -376,7 +377,10 @@ export const Suppliers: React.FC = () => {
         setIsEditing(true); // Flag as edited so we can save
     };
 
-    const handleExportCSV = () => {
+    const handleExportCSV = async () => {
+        if (isExportingCSV) return;
+        setIsExportingCSV(true);
+        try {
         const headers = ["Nom", "Catégorie", "Criticité", "Score Sécurité", "Contact", "Fin Contrat", "Statut"];
         const rows = filteredSuppliers.map(s => [
             s.name,
@@ -392,9 +396,15 @@ export const Suppliers: React.FC = () => {
         link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
         link.download = `suppliers_export_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
+        } finally {
+            setTimeout(() => setIsExportingCSV(false), 0);
+        }
     };
 
-    const handleExportDORARegister = () => {
+    const handleExportDORARegister = async () => {
+        if (isExportingDORA) return;
+        setIsExportingDORA(true);
+        try {
         const headers = ["Nom Fournisseur", "Type Service", "Prestataire TIC", "Fonction Critique", "Criticité DORA", "Localisation Données", "Date Contrat"];
         const rows = filteredSuppliers.filter(s => s.isICTProvider).map(s => [
             s.name,
@@ -410,6 +420,9 @@ export const Suppliers: React.FC = () => {
         link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
         link.download = `dora_register_of_information_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
+        } finally {
+            setTimeout(() => setIsExportingDORA(false), 0);
+        }
     };
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -471,7 +484,12 @@ export const Suppliers: React.FC = () => {
 
 
 
-    const filteredSuppliers = suppliers.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()));
+    const deferredFilter = useDeferredValue(filter);
+    const filteredSuppliers = useMemo(() => {
+        const needle = (deferredFilter || '').toLowerCase().trim();
+        if (!needle) return suppliers;
+        return suppliers.filter(s => s.name.toLowerCase().includes(needle));
+    }, [suppliers, deferredFilter]);
 
     const getBreadcrumbs = () => {
         const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Fournisseurs', onClick: () => { setSelectedSupplier(null); setCreationMode(false); setIsEditing(false); } }];
@@ -648,11 +666,34 @@ export const Suppliers: React.FC = () => {
                 <Search className="h-5 w-5 text-slate-500" />
                 <input type="text" placeholder="Rechercher un fournisseur..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                     value={filter} onChange={e => setFilter(e.target.value)} />
-                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter CSV">
-                    <FileSpreadsheet className="h-4 w-4" />
+                {filter && (
+                    <button
+                        type="button"
+                        onClick={() => setFilter('')}
+                        className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
+                        title="Effacer la recherche"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                )}
+                <div className="px-3 py-2 bg-gray-50 dark:bg-white/5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">
+                    {filteredSuppliers.length}
+                </div>
+                <button
+                    onClick={handleExportCSV}
+                    disabled={isExportingCSV}
+                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Exporter CSV"
+                >
+                    {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
                 </button>
-                <button onClick={handleExportDORARegister} className="p-2.5 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors" title="Exporter Registre DORA">
-                    <ShieldAlert className="h-4 w-4" />
+                <button
+                    onClick={handleExportDORARegister}
+                    disabled={isExportingDORA}
+                    className="p-2.5 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Exporter Registre DORA"
+                >
+                    {isExportingDORA ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
                 </button>
                 <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm max-w-full overflow-x-auto">
                     <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
