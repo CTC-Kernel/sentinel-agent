@@ -44,8 +44,9 @@ if (typeof window !== 'undefined') {
   // Not exported directly to avoid changing public API shape at module level.
   let appCheckInstance: AppCheck | null = null;
 
-  if (appCheckDebugToken) {
-    // Enforce debug token if available in env, regardless of localhost
+  if (appCheckDebugToken && (isLocal || !import.meta.env.PROD)) {
+    // SECURITY: debug tokens must never be used from production origins.
+    // Allow explicit debug token only on localhost or in non-PROD builds.
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string }).FIREBASE_APPCHECK_DEBUG_TOKEN = appCheckDebugToken;
   } else if (isLocal || isDebugMode) {
     // Generate a new debug token for localhost if one isn't provided

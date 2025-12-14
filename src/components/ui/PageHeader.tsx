@@ -37,7 +37,13 @@ const ROUTE_LABELS: Record<string, string> = {
   'help': 'Aide',
   'notifications': 'Notifications',
   'backup': 'Sauvegarde',
-  'voxel': 'CTC Engine'
+  'ctc-engine': 'CTC Engine',
+  'admin_management': 'Administration',
+  'integrations': 'Intégrations',
+  'threat-library': 'Bibliothèque des menaces',
+  'calendar': 'Calendrier',
+  'intake': 'Collecte',
+  'pricing': 'Plans & Facturation'
 };
 
 export const PageHeader: React.FC<PageHeaderProps> = ({

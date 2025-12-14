@@ -6,7 +6,7 @@ export const ContentBlockerError: React.FC = () => {
     const { dismissBlockerError } = useAuth();
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#fafafa] dark:bg-slate-900 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
             <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in">
                 <div className="p-8 text-center">
                     <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">

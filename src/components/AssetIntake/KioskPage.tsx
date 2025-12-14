@@ -25,7 +25,7 @@ export const KioskPage: React.FC = () => {
 
     if (submitted) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafafa] dark:bg-slate-900 p-6 relative overflow-hidden">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 relative overflow-hidden">
                 <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-emerald-500/10 dark:bg-emerald-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float"></div>
                 </div>
@@ -52,11 +52,11 @@ export const KioskPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#fafafa] dark:bg-slate-900 relative overflow-hidden flex flex-col">
+        <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
             {/* Background Elements */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-brand-200/30 dark:bg-slate-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
-                <div className="absolute bottom-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-purple-200/30 dark:bg-purple-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float" style={{ animationDelay: '2s' }}></div>
+                <div className="absolute bottom-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-indigo-200/30 dark:bg-slate-900/20 rounded-full mix-blend-multiply filter blur-[120px] animate-float" style={{ animationDelay: '2s' }}></div>
             </div>
 
             {/* Header */}

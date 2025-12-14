@@ -113,7 +113,7 @@ const AppLayout: React.FC = () => {
     }, [user, user?.organizationId]);
 
     return (
-        <div className="flex h-[100dvh] overflow-hidden bg-[#fafafa] dark:bg-slate-950 text-[#1d1d1f] dark:text-[#f5f5f7] font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300 pb-safe">
+        <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300 pb-safe">
             <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
                 <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-200/30 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float"></div>
                 <div className="absolute top-[20%] right-[-10%] w-[50rem] h-[50rem] bg-purple-200/30 dark:bg-purple-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{ animationDelay: '2s' }}></div>
@@ -145,7 +145,7 @@ const AppLayout: React.FC = () => {
                 <SmoothScroll
                     id="main-content"
                     enabled={location.pathname !== '/ctc-engine'}
-                    className={`flex-1 min-w-0 overflow-y-auto overflow-x-auto scroll-smooth bg-[#fafafa] dark:bg-slate-950 ${location.pathname === '/ctc-engine' ? 'p-0 overflow-hidden' : 'p-4 md:p-8'}`}
+                    className={`flex-1 min-w-0 overflow-y-auto overflow-x-auto scroll-smooth bg-background ${location.pathname === '/ctc-engine' ? 'p-0 overflow-hidden' : 'p-4 md:p-8'}`}
                 >
                     <div className={`${location.pathname === '/ctc-engine' ? 'w-full flex-1 animate-fade-in flex flex-col' : 'w-full animate-fade-in min-h-full pb-10'}`}>
                         <Suspense fallback={<LoadingScreen />}>
