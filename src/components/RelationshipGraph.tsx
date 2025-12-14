@@ -120,11 +120,11 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full"></div></div>;
 
     return (
-        <div className="w-full h-full overflow-hidden bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm rounded-3xl border border-white/60 dark:border-white/10 relative shadow-inner">
+        <div className="w-full h-full overflow-hidden bg-card/40 backdrop-blur-sm rounded-3xl border border-border/60 relative shadow-inner">
             <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="cursor-grab active:cursor-grabbing">
                 <defs>
                     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
-                        <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8" />
+                        <polygon points="0 0, 10 3.5, 0 7" fill="hsl(var(--muted-foreground) / 0.55)" />
                     </marker>
                 </defs>
 
@@ -140,10 +140,9 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
                             y1={source.y}
                             x2={target.x}
                             y2={target.y}
-                            stroke="#cbd5e1"
+                            stroke="hsl(var(--border))"
                             strokeWidth="2"
                             markerEnd="url(#arrowhead)"
-                            className="dark:stroke-slate-700"
                         />
                     );
                 })}
@@ -160,7 +159,7 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
                             strokeWidth="2"
                         />
                         <foreignObject x="-12" y="-12" width="24" height="24">
-                            <div className="flex items-center justify-center h-full w-full text-slate-700 dark:text-white">
+                            <div className="flex items-center justify-center h-full w-full text-foreground">
                                 {node.type === 'Asset' && <Server className="h-5 w-5" />}
                                 {node.type === 'Risk' && <ShieldAlert className="h-5 w-5" />}
                                 {node.type === 'Control' && <CheckCircle2 className="h-5 w-5" />}
@@ -169,7 +168,7 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
                         <text
                             y={node.type === rootType ? 45 : 35}
                             textAnchor="middle"
-                            className="text-[10px] font-bold fill-slate-600 dark:fill-slate-300 pointer-events-none uppercase tracking-wider"
+                            className="text-[10px] font-bold fill-muted-foreground pointer-events-none uppercase tracking-wider"
                         >
                             {node.label.length > 15 ? node.label.substring(0, 15) + '...' : node.label}
                         </text>
@@ -177,7 +176,7 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
                 ))}
             </svg>
 
-            <div className="absolute bottom-4 right-4 flex gap-4 text-xs font-bold text-slate-600 dark:text-slate-300 bg-white/80 dark:bg-slate-900/80 p-3 rounded-2xl backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-lg">
+            <div className="absolute bottom-4 right-4 flex gap-4 text-xs font-bold text-muted-foreground bg-background/80 p-3 rounded-2xl backdrop-blur-xl border border-border/60 shadow-lg">
                 <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></div> Actif</div>
                 <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm"></div> Risque</div>
                 <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></div> Contrôle</div>

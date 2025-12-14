@@ -866,10 +866,10 @@ export const Settings: React.FC = () => {
             />
 
             <div className="mb-10 text-center">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">{t('settings.title')}</h1>
-                <p className="text-slate-600 dark:text-slate-400 mt-2 font-medium">{t('settings.subtitle')}</p>
+                <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">{t('settings.title')}</h1>
+                <p className="text-muted-foreground mt-2 font-medium">{t('settings.subtitle')}</p>
                 {user?.organizationId && (
-                    <div className="mt-4 inline-flex items-center px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full text-[10px] font-mono text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10">
+                    <div className="mt-4 inline-flex items-center px-3 py-1 bg-accent/50 rounded-full text-[10px] font-mono text-muted-foreground border border-border">
                         ID: {user.organizationId}
                     </div>
                 )}
@@ -877,19 +877,19 @@ export const Settings: React.FC = () => {
 
             {/* Subscription Status - Visible to all org members */}
             {user?.organizationId && (
-                <div className="mb-8 glass-panel rounded-[2rem] p-6 bg-indigo-50/30 dark:bg-slate-900/10 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up">
+                <div className="mb-8 glass-panel rounded-[2rem] p-6 bg-card/40 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up">
                     <div className="flex items-center gap-4 min-w-0">
                         <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
                             <FileSpreadsheet className="h-6 w-6" />
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t('settings.subscription')} {currentOrg?.subscription?.planId === 'professional' ? 'Professional' : currentOrg?.subscription?.planId === 'enterprise' ? 'Enterprise' : 'Discovery'}</h4>
+                            <h4 className="text-sm font-bold text-foreground">{t('settings.subscription')} {currentOrg?.subscription?.planId === 'professional' ? 'Professional' : currentOrg?.subscription?.planId === 'enterprise' ? 'Enterprise' : 'Discovery'}</h4>
                             <div className="flex items-center gap-2 mt-1">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-accent text-muted-foreground border-border'}`}>
                                     {currentOrg?.subscription?.status === 'active' ? t('settings.active') : t('settings.free')}
                                 </span>
                                 {currentOrg?.subscription?.currentPeriodEnd && (
-                                    <span className="text-xs text-slate-600">{t('settings.renewalDate').replace('{date}', new Date((currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds ? (currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds * 1000 : (currentOrg.subscription.currentPeriodEnd as string | number)).toLocaleDateString())}</span>
+                                    <span className="text-xs text-muted-foreground">{t('settings.renewalDate').replace('{date}', new Date((currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds ? (currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds * 1000 : (currentOrg.subscription.currentPeriodEnd as string | number)).toLocaleDateString())}</span>
                                 )}
                             </div>
                         </div>
@@ -898,7 +898,7 @@ export const Settings: React.FC = () => {
                         onClick={handleManageSubscription}
                         isLoading={subLoading}
                         variant="outline"
-                        className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700"
+                        className="bg-background text-foreground hover:bg-accent"
                     >
                         {currentOrg?.subscription?.planId === 'discovery' ? t('settings.upgradeSub') : t('settings.manage')}
                     </Button>
@@ -912,13 +912,13 @@ export const Settings: React.FC = () => {
                 <div className="glass-panel rounded-[2.5rem] p-4 sm:p-8 relative overflow-hidden shadow-sm">
                     <div className="flex flex-col items-center mb-8">
                         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center transition-transform group-hover:scale-105">
+                            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-border shadow-2xl bg-accent flex items-center justify-center transition-transform group-hover:scale-105">
                                 {uploadingPhoto ? (
                                     <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
                                 ) : user?.photoURL ? (
                                     <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
-                                    <span className="text-4xl font-bold text-slate-600 dark:text-slate-300">{user?.displayName?.charAt(0).toUpperCase() || 'U'}</span>
+                                    <span className="text-4xl font-bold text-muted-foreground">{user?.displayName?.charAt(0).toUpperCase() || 'U'}</span>
                                 )}
                             </div>
                             <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -926,12 +926,12 @@ export const Settings: React.FC = () => {
                             </div>
                             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mt-4">{user?.displayName}</h2>
-                        <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wide mt-2 border border-slate-200 dark:border-slate-700">
+                        <h2 className="text-2xl font-bold text-foreground mt-4">{user?.displayName}</h2>
+                        <span className="px-3 py-1 rounded-full bg-accent text-muted-foreground text-xs font-bold uppercase tracking-wide mt-2 border border-border">
                             {user?.role}
                         </span>
                         <div className="flex items-center gap-2 mt-2">
-                            <p className="text-sm text-slate-600 dark:text-slate-400">{user?.email}</p>
+                            <p className="text-sm text-muted-foreground">{user?.email}</p>
                             <button
                                 onClick={handleCheckBreach}
                                 disabled={breachCheckLoading}
@@ -945,19 +945,19 @@ export const Settings: React.FC = () => {
 
                     <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="space-y-5 max-w-sm mx-auto">
                         <div>
-                            <label htmlFor="settings-displayName" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.displayName')}</label>
-                            <input id="settings-displayName" autoComplete="name" type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
+                            <label htmlFor="settings-displayName" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 ml-1">{t('settings.displayName')}</label>
+                            <input id="settings-displayName" autoComplete="name" type="text" className="w-full px-4 py-3.5 bg-background/60 border border-border rounded-2xl focus:ring-2 focus:ring-brand-500 text-foreground transition-all outline-none font-medium"
                                 {...profileForm.register('displayName')} />
                             {profileForm.formState.errors.displayName && <p className="text-red-500 text-xs mt-1">{profileForm.formState.errors.displayName.message}</p>}
                         </div>
                         <div>
-                            <label htmlFor="settings-department" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.department')}</label>
-                            <input id="settings-department" autoComplete="organization" type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
+                            <label htmlFor="settings-department" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 ml-1">{t('settings.department')}</label>
+                            <input id="settings-department" autoComplete="organization" type="text" className="w-full px-4 py-3.5 bg-background/60 border border-border rounded-2xl focus:ring-2 focus:ring-brand-500 text-foreground transition-all outline-none font-medium"
                                 {...profileForm.register('department')} />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.role')}</label>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 ml-1">{t('settings.role')}</label>
                             <div className="relative">
                                 <Controller
                                     control={profileForm.control}
@@ -981,7 +981,7 @@ export const Settings: React.FC = () => {
                                 />
                             </div>
                             {!(user?.role === 'admin' || currentOrg?.ownerId === user?.uid) && (
-                                <p className="text-[10px] text-slate-500 mt-1.5 ml-1">{t('settings.contactAdmin')}</p>
+                                <p className="text-[10px] text-muted-foreground mt-1.5 ml-1">{t('settings.contactAdmin')}</p>
                             )}
                         </div>
 
@@ -993,9 +993,9 @@ export const Settings: React.FC = () => {
 
                 {/* Security & Preferences */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm flex flex-col h-full">
-                        <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><Key className="h-5 w-5 mr-3 text-indigo-500" />{t('settings.security')}</h3>
+                    <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-border/60 shadow-sm flex flex-col h-full">
+                        <div className="p-6 border-b border-border/60 bg-background/50">
+                            <h3 className="text-lg font-bold text-foreground flex items-center"><Key className="h-5 w-5 mr-3 text-indigo-500" />{t('settings.security')}</h3>
                         </div>
                         <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                             <div className="space-y-4">
@@ -1004,7 +1004,7 @@ export const Settings: React.FC = () => {
                                         id="settings-newPassword"
                                         type="password"
                                         autoComplete="new-password"
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm dark:text-white"
+                                        className="w-full px-4 py-3 bg-background/60 border border-border rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm text-foreground"
                                         placeholder={t('settings.newPassword')}
                                         {...passwordForm.register('newPassword')}
                                     />

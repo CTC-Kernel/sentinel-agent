@@ -65,7 +65,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                         backgroundColor = 'rgba(239, 68, 68, 0.1)';
                         break;
                     default: // A faire
-                        progressColor = '#64748b'; // Slate
+                        progressColor = 'hsl(var(--muted-foreground) / 0.75)'; // Tokenized neutral
                         backgroundColor = 'rgba(100, 116, 139, 0.1)';
                 }
 
@@ -301,7 +301,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
             </div>
 
             {/* Chart */}
-            <div className="w-full h-[600px] overflow-hidden bg-white/50 dark:bg-slate-900/30 backdrop-blur-sm rounded-3xl border border-slate-200 dark:border-slate-800 shadow-inner ring-1 ring-slate-900/5 relative" ref={ganttRef}>
+            <div className="w-full h-[600px] overflow-hidden bg-card/40 backdrop-blur-sm rounded-3xl border border-border shadow-inner ring-1 ring-border/60 relative" ref={ganttRef}>
                 <Gantt
                     tasks={ganttTasks}
                     viewMode={libraryViewMode}
@@ -322,7 +322,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                     TaskListTable={TaskListTable}
                     fontFamily="inherit"
                     fontSize="12px"
-                    arrowColor="#94a3b8"
+                    arrowColor={'hsl(var(--muted-foreground) / 0.55)'}
                     arrowIndent={20}
                     todayColor="rgba(59, 130, 246, 0.1)"
                 />

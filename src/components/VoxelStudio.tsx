@@ -6,6 +6,39 @@ import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, VoxelNode, AISuggestedLink } from '../types';
 import { VoxelDetailOverlay } from './VoxelDetailOverlay';
 
+const resolveHslCssVar = (cssVarName: string, fallbackHsl: string) => {
+  if (typeof window === 'undefined' || !window.document?.documentElement) return `hsl(${fallbackHsl})`;
+
+  const raw = getComputedStyle(window.document.documentElement)
+    .getPropertyValue(cssVarName)
+    .trim();
+
+  if (!raw) return `hsl(${fallbackHsl})`;
+  if (raw.startsWith('hsl(')) return raw;
+  return `hsl(${raw})`;
+};
+
+const useResolvedHslCssVar = (cssVarName: string, fallbackHsl: string) => {
+  const [value, setValue] = useState(() => resolveHslCssVar(cssVarName, fallbackHsl));
+
+  useEffect(() => {
+    const update = () => setValue(resolveHslCssVar(cssVarName, fallbackHsl));
+
+    update();
+
+    if (typeof window === 'undefined') return;
+    const target = window.document?.documentElement;
+    if (!target) return;
+
+    const observer = new MutationObserver(update);
+    observer.observe(target, { attributes: true, attributeFilter: ['class', 'style'] });
+
+    return () => observer.disconnect();
+  }, [cssVarName, fallbackHsl]);
+
+  return value;
+};
+
 class VoxelErrorBoundary extends Component<{ children: React.ReactNode, fallback?: React.ReactNode }, { hasError: boolean }> {
   constructor(props: { children: React.ReactNode, fallback?: React.ReactNode }) {
     super(props);
@@ -184,6 +217,7 @@ const MODEL_LIBRARY_CONFIG: Partial<Record<VoxelNode['type'], { key: keyof Model
 };
 
 const StarField: React.FC = () => {
+  const starsColor = useResolvedHslCssVar('--muted-foreground', '215 20% 65%');
   const starsRef = useRef<ThreePoints>(null);
   const positions = useMemo(() => {
     const starCount = 1200;
@@ -234,7 +268,7 @@ const StarField: React.FC = () => {
         transparent
         map={circleTexture}
         alphaTest={0.5}
-        color="#94a3b8"
+        color={starsColor}
         size={0.3}
         sizeAttenuation
         depthWrite={false}
@@ -1009,6 +1043,17 @@ const ImpactWave: React.FC<{ position: [number, number, number] }> = ({ position
 
 const EmptyState3D: React.FC = () => (
   <group>
+    <EmptyState3DContent />
+  </group>
+);
+
+const EmptyState3DContent: React.FC = () => {
+  const muted = useResolvedHslCssVar('--muted-foreground', '215 20% 65%');
+  const primary = useResolvedHslCssVar('--primary', '221 83% 53%');
+  const ring = useResolvedHslCssVar('--muted-foreground', '215 20% 65%');
+
+  return (
+    <>
     <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
       <Billboard
         position={[0, 1.2, 0]}
@@ -1029,7 +1074,7 @@ const EmptyState3D: React.FC = () => (
         </Text>
         <Text
           fontSize={0.5}
-          color="#94a3b8"
+          color={muted}
           anchorX="center"
           anchorY="top"
           position={[0, -0.9, 0]}
@@ -1042,14 +1087,15 @@ const EmptyState3D: React.FC = () => (
     </Float>
     <mesh position={[0, -2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <ringGeometry args={[3, 3.05, 64]} />
-      <meshBasicMaterial color="#3b82f6" transparent opacity={0.2} blending={AdditiveBlending} />
+      <meshBasicMaterial color={primary} transparent opacity={0.2} blending={AdditiveBlending} />
     </mesh>
     <mesh position={[0, -2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <ringGeometry args={[4.5, 4.52, 64]} />
-      <meshBasicMaterial color="#64748b" transparent opacity={0.1} blending={AdditiveBlending} />
+      <meshBasicMaterial color={ring} transparent opacity={0.1} blending={AdditiveBlending} />
     </mesh>
-  </group>
-);
+    </>
+  );
+};
 
 const PresentationManager: React.FC<{
   presentationMode: boolean | undefined;
@@ -1112,6 +1158,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   selectedNodeDetails, isDetailMinimized, setIsDetailMinimized, handleSelectionClear, relatedElements = [], applyFocus, handleOpenSelected,
   impactMode, setImpactMode
 }) => {
+  const defaultLinkColor = useResolvedHslCssVar('--muted-foreground', '215 20% 65%');
+
   const [selectedNode, setSelectedNode] = useState<VoxelNode | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
@@ -1596,7 +1644,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                     key={`conn-${i}`}
                     start={new Vector3(...pair.start)}
                     end={new Vector3(...pair.end)}
-                    color={pair.type === 'risk' ? '#f87171' : '#94a3b8'} // Red for risk, gray for default
+                    color={pair.type === 'risk' ? '#f87171' : defaultLinkColor} // Red for risk, themed neutral for default
                     opacity={isRelevant ? 1.0 : 0.05}
                     speed={isRelevant ? 0.8 : 0.15}
                     size={isRelevant ? 0.7 : 0.2}

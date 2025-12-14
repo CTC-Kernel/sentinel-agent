@@ -3,36 +3,36 @@
 /* General Text Styling */
 .gantt-container text {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif !important;
-    fill: #64748b !important;
+    fill: hsl(var(--muted-foreground)) !important;
     /* slate-500 */
     font-weight: 500 !important;
     letter-spacing: -0.01em !important;
 }
 
 .dark .gantt-container text {
-    fill: #94a3b8 !important;
+    fill: hsl(var(--muted-foreground)) !important;
     /* slate-400 */
 }
 
 /* Grid Lines - Subtle & Clean */
 .gantt-container line {
-    stroke: #f1f5f9 !important;
+    stroke: hsl(var(--border) / 0.6) !important;
     /* slate-100 */
 }
 
 .dark .gantt-container line {
-    stroke: #1e293b !important;
+    stroke: hsl(var(--border) / 0.35) !important;
     /* slate-800 */
 }
 
 /* Row Backgrounds & Hover */
 .gantt-container .grid-row {
-    fill: #ffffff !important;
+    fill: hsl(var(--background)) !important;
     transition: fill 0.2s ease !important;
 }
 
 .gantt-container .grid-row:nth-child(even) {
-    fill: #fafafa !important;
+    fill: hsl(var(--accent) / 0.35) !important;
     /* Very subtle alternating background */
 }
 
@@ -71,12 +71,12 @@
 
 /* Header Styling */
 .gantt-container rect:first-child {
-    fill: #f8fafc !important;
+    fill: hsl(var(--accent) / 0.55) !important;
     /* Header background */
 }
 
 .dark .gantt-container rect:first-child {
-    fill: #0f172a !important;
+    fill: hsl(var(--background)) !important;
 }
 
 /* Hide scrollbars but allow scrolling - Ultra Minimal */
@@ -90,14 +90,14 @@
 }
 
 .gantt-target::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.3);
+    background: hsl(var(--muted-foreground) / 0.3);
     border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: content-box;
 }
 
 .gantt-target::-webkit-scrollbar-thumb:hover {
-    background: rgba(148, 163, 184, 0.6);
+    background: hsl(var(--muted-foreground) / 0.6);
 }
 
 /* Tooltip Override - Ensure transparency for custom component */
