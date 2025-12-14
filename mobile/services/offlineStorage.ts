@@ -7,7 +7,7 @@ export const CACHE_KEYS = {
 };
 
 export const offlineStorage = {
-    async save(key: string, value: any) {
+    async save<T>(key: string, value: T) {
         try {
             const jsonValue = JSON.stringify(value);
             await AsyncStorage.setItem(key, jsonValue);

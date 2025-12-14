@@ -24,7 +24,9 @@ export default function App() {
         );
     }
 
-    const handleBarCodeScanned = ({ type, data }: any) => {
+    type BarcodeScanResult = Parameters<NonNullable<React.ComponentProps<typeof CameraView>['onBarcodeScanned']>>[0];
+
+    const handleBarCodeScanned = ({ type, data }: BarcodeScanResult) => {
         setScanned(true);
         Alert.alert(
             "Actif Scanné",
