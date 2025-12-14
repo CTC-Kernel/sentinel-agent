@@ -7,7 +7,7 @@ import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager
 import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
-import { getAnalytics } from 'firebase/analytics';
+import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 
 
@@ -51,7 +51,12 @@ if (typeof window !== 'undefined') {
         isTokenAutoRefreshEnabled: true
       });
     } else {
-      ErrorLogger.warn('App Check site key missing', 'firebase.ts');
+      if (import.meta.env.PROD) {
+        throw new Error('Missing required environment variable: VITE_RECAPTCHA_ENTERPRISE_KEY');
+      }
+      if (import.meta.env.MODE !== 'test') {
+        ErrorLogger.warn('App Check site key missing', 'firebase.ts');
+      }
     }
   } catch (error) {
     ErrorLogger.warn('App Check initialization failed', 'firebase.ts', { metadata: { error } });
@@ -67,9 +72,10 @@ export const auth = getAuth(app);
 // This avoids static Capacitor imports that break Web, but sets persistence for Native
 (async () => {
   try {
+    const w = window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } };
     const isNative = typeof window !== 'undefined' &&
-      (window as any).Capacitor &&
-      (window as any).Capacitor.isNativePlatform();
+      typeof w.Capacitor?.isNativePlatform === 'function' &&
+      w.Capacitor.isNativePlatform();
 
     if (isNative) {
       // On iOS/Android, we MUST use indexedDBLocalPersistence for correct session restoration
@@ -93,7 +99,18 @@ export const db = initializeFirestore(app, {
 
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
-export const analytics = getAnalytics(app);
+export let analytics: Analytics | null = null;
+
+(async () => {
+  try {
+    if (typeof window === 'undefined') return;
+    if (await isSupported()) {
+      analytics = getAnalytics(app);
+    }
+  } catch (error) {
+    ErrorLogger.warn('Analytics initialization skipped', 'firebase.analytics', { metadata: { error } });
+  }
+})();
 
 // Initialisation de la messagerie (Sécurisée avec détection de fonctionnalités)
 let messaging: Messaging | null = null;

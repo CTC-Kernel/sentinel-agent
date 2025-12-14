@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Incident } from '../../types';
 import { CheckCircle2, Circle, MonitorPlay, AlertTriangle, Clock, Shield, User } from '../ui/Icons';
 import { IncidentPlaybookService, IncidentResponse, IncidentPlaybook as IPlaybook, PlaybookStep } from '../../services/incidentPlaybookService';
@@ -21,11 +21,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     const [availablePlaybooks, setAvailablePlaybooks] = useState<IPlaybook[]>([]);
     const [selectedPlaybookId, setSelectedPlaybookId] = useState<string>('');
 
-    useEffect(() => {
-        loadData();
-    }, [incident.id]);
-
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         if (!user?.organizationId) return;
         setLoading(true);
         try {
@@ -53,7 +49,11 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
         } finally {
             setLoading(false);
         }
-    };
+    }, [incident.id, incident.category, user?.organizationId]);
+
+    useEffect(() => {
+        void loadData();
+    }, [loadData]);
 
     const handleStartResponse = async () => {
         if (!selectedPlaybookId || !user?.uid || !user?.organizationId) return;

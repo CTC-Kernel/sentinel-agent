@@ -91,10 +91,20 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage', 'firebase/functions', 'firebase/analytics'],
+          firebase: ['firebase/app'],
+          firebase_auth: ['firebase/auth'],
+          firebase_firestore: ['firebase/firestore'],
+          firebase_storage: ['firebase/storage'],
+          firebase_functions: ['firebase/functions'],
+          firebase_analytics: ['firebase/analytics'],
           ui: ['clsx', 'tailwind-merge'],
           charts: ['recharts'],
-          utils: ['date-fns', 'zod', 'jspdf', 'jspdf-autotable']
+          utils: ['date-fns', 'zod'],
+          pdf: ['jspdf', 'jspdf-autotable', 'pdf-lib', 'html2canvas'],
+          editor: ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-link', '@tiptap/extension-text-align', '@tiptap/extension-underline'],
+          timeline: ['vis-data', 'vis-timeline'],
+          three: ['three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
+          excel: ['exceljs']
         }
       }
     }

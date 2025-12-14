@@ -276,7 +276,7 @@ export const aiService = {
     /**
      * Evaluates a questionnaire response and provides analysis.
      */
-    async evaluateQuestionnaire(context: any): Promise<string> {
+    async evaluateQuestionnaire(context: unknown): Promise<string> {
         try {
             const prompt = `
                 You are an expert Auditor evaluating a response to a security questionnaire.
@@ -446,10 +446,12 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
 
     try {
         const functions = getFunctions();
-        const callGeminiGenerateContent = httpsCallable(functions, 'callGeminiGenerateContent');
-        const anyResult = await callGeminiGenerateContent({ prompt, modelName: modelName }) as unknown;
-        const result = anyResult as { data?: { text?: string } };
-        const text = result?.data?.text;
+        const callGeminiGenerateContent = httpsCallable<
+            { prompt: string; modelName: string },
+            { text?: string }
+        >(functions, 'callGeminiGenerateContent');
+        const result = await callGeminiGenerateContent({ prompt, modelName });
+        const text = result.data?.text;
         if (typeof text === 'string' && text.trim().length > 0) {
             return text;
         }
@@ -480,10 +482,12 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
 async function runChatSafe(systemPrompt: string, message: string, modelName: string = FAST_MODEL): Promise<string> {
     try {
         const functions = getFunctions();
-        const callGeminiChat = httpsCallable(functions, 'callGeminiChat');
-        const anyResult = await callGeminiChat({ systemPrompt, message, modelName: modelName }) as unknown;
-        const result = anyResult as { data?: { text?: string } };
-        const text = result?.data?.text;
+        const callGeminiChat = httpsCallable<
+            { systemPrompt: string; message: string; modelName: string },
+            { text?: string }
+        >(functions, 'callGeminiChat');
+        const result = await callGeminiChat({ systemPrompt, message, modelName });
+        const text = result.data?.text;
         if (typeof text === 'string' && text.trim().length > 0) {
             return text;
         }

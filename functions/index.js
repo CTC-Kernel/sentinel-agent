@@ -2910,11 +2910,20 @@ exports.connectIntegration = onCall({
         throw new HttpsError('invalid-argument', 'Missing required fields.');
     }
 
+    const allowedProviders = ['aws', 'azure', 'gcp', 'github', 'website_check', 'shodan', 'hibp'];
+    if (!allowedProviders.includes(providerId)) {
+        throw new HttpsError('invalid-argument', 'Unsupported providerId');
+    }
+
     // Verify permissions (Admin or Owner)
     try {
         const userRef = admin.firestore().collection("users").doc(request.auth.uid);
         const userSnap = await userRef.get();
         const userData = userSnap.data();
+
+        if (!userData) {
+            throw new HttpsError('failed-precondition', 'User profile is missing.');
+        }
 
         if (userData.organizationId !== organizationId || userData.role !== 'admin') {
             // Also check if owner of org
@@ -2952,6 +2961,10 @@ exports.fetchEvidence = onCall({
 
     const { providerId, resourceId, organizationId } = request.data;
 
+    if (request.data && request.data.isDemoMode) {
+        throw new HttpsError('failed-precondition', 'Demo mode is disabled in production.');
+    }
+
     if (!organizationId || !providerId || !resourceId) {
         throw new HttpsError('invalid-argument', 'Missing required fields.');
     }
@@ -2974,26 +2987,6 @@ exports.fetchEvidence = onCall({
             } catch (e) {
                 logger.warn('Failed to decrypt credentials', e);
             }
-        }
-
-        const { isDemoMode } = request.data;
-
-        if (isDemoMode) {
-            // MOCK API CALL based on providerId
-            let status = 'pass';
-            let details = 'Check passed successfully.';
-
-            // Simulate some randomness for demo
-            if (Math.random() > 0.8) {
-                status = 'fail';
-                details = 'Check failed: Resource configuration does not match policy.';
-            }
-
-            return {
-                status,
-                details,
-                lastSync: new Date().toISOString()
-            };
         }
 
         // --- REAL IMPLEMENTATION ---
@@ -3057,14 +3050,18 @@ exports.fetchEvidence = onCall({
             // No API key needed usually, just checking availability
             // resourceId should be a URL
             try {
-                const response = await fetch(resourceId, { method: 'HEAD', timeout: 5000 });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                const response = await fetch(resourceId, { method: 'HEAD', signal: controller.signal });
+                clearTimeout(timeoutId);
                 if (response.ok) {
                     return { status: 'pass', details: `Website is UP (Status: ${response.status})`, lastSync: new Date().toISOString() };
                 } else {
                     return { status: 'fail', details: `Website returned status ${response.status}`, lastSync: new Date().toISOString() };
                 }
             } catch (err) {
-                return { status: 'fail', details: `Website is DOWN or Unreachable: ${err.message}`, lastSync: new Date().toISOString() };
+                const message = err && err.name === 'AbortError' ? 'Timeout (5s) reached' : (err.message || 'Unknown error');
+                return { status: 'fail', details: `Website is DOWN or Unreachable: ${message}`, lastSync: new Date().toISOString() };
             }
         }
 
@@ -3088,8 +3085,64 @@ exports.fetchRssFeed = onCall(async (request) => {
         throw new HttpsError('invalid-argument', 'URL is required.');
     }
 
+    // SSRF protection: only allow known RSS providers over HTTPS
+    const allowedRssHosts = new Set([
+        'www.cert.ssi.gouv.fr',
+        'cert.ssi.gouv.fr',
+        'www.cnil.fr',
+        'cnil.fr'
+    ]);
+
+    const isPrivateOrLocalHost = (hostname) => {
+        const h = String(hostname || '').toLowerCase();
+        if (!h) return true;
+        if (h === 'localhost' || h.endsWith('.local')) return true;
+        if (h === '127.0.0.1' || h === '::1') return true;
+        // Block common private IPv4 ranges
+        const isIpv4 = /^\d{1,3}(?:\.\d{1,3}){3}$/.test(h);
+        if (isIpv4) {
+            const parts = h.split('.').map(n => Number(n));
+            if (parts.some(n => Number.isNaN(n) || n < 0 || n > 255)) return true;
+            if (parts[0] === 10) return true;
+            if (parts[0] === 127) return true;
+            if (parts[0] === 192 && parts[1] === 168) return true;
+            if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
+            if (parts[0] === 169 && parts[1] === 254) return true;
+        }
+        return false;
+    };
+
     try {
-        const response = await fetch(url);
+        let parsed;
+        try {
+            parsed = new URL(String(url));
+        } catch {
+            throw new HttpsError('invalid-argument', 'Invalid URL');
+        }
+
+        if (parsed.protocol !== 'https:') {
+            throw new HttpsError('invalid-argument', 'Only HTTPS URLs are allowed');
+        }
+
+        if (isPrivateOrLocalHost(parsed.hostname)) {
+            throw new HttpsError('permission-denied', 'URL host is not allowed');
+        }
+
+        if (!allowedRssHosts.has(parsed.hostname)) {
+            throw new HttpsError('permission-denied', 'RSS host not allowlisted');
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const response = await fetch(parsed.toString(), {
+            method: 'GET',
+            redirect: 'follow',
+            signal: controller.signal,
+            headers: {
+                'User-Agent': 'Sentinel-GRC/1.0'
+            }
+        });
+        clearTimeout(timeoutId);
         if (!response.ok) {
             throw new Error(`Failed to fetch RSS feed: ${response.statusText}`);
         }
@@ -3196,24 +3249,9 @@ exports.fetchExternalSecurityEvents = onCall(async (request) => {
          * }
          */
 
-        // Since we can't make the call, we return an empty list or throw to indicate it tried but failed.
-        // Or if 'mock_response' is enabled in settings (for testing prod flow without ext connectivity):
-        if (config.return_mock_on_success) {
-            return [
-                {
-                    id: `prod-${source}-${Date.now()}`,
-                    source: source,
-                    title: `[PROD] Real Alert from ${source}`,
-                    description: 'This is a production alert returned by the cloud function.',
-                    severity: 'High',
-                    timestamp: new Date().toISOString(),
-                    rawData: { production: true }
-                }
-            ];
-        }
-
-        // Default behavior for un-implemented real calls
-        return [];
+        // Production behavior: no simulated data.
+        // Implement per-connector API calls here (Splunk, Sentinel, CrowdStrike, etc.).
+        throw new HttpsError('unimplemented', `Connector implementation for ${source} is not available.`);
 
     } catch (error) {
         logger.error(`External API call to ${source} failed`, error);

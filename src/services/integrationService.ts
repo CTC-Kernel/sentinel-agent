@@ -20,7 +20,7 @@ export interface IntegrationConnection {
     id: string;
     providerId: string;
     organizationId: string;
-    config: Record<string, any>; // Store non-sensitive config here
+    config: Record<string, unknown>; // Store non-sensitive config here
     status: 'active' | 'inactive' | 'error';
     createdAt: Date;
     updatedAt: Date;
@@ -86,6 +86,14 @@ const INTEGRATION_CATALOG: IntegrationProvider[] = [
 ];
 
 class IntegrationService {
+    private isDemoAllowed(): boolean {
+        return import.meta.env.DEV;
+    }
+
+    private normalizeDemoMode(isDemoMode: boolean): boolean {
+        return isDemoMode && this.isDemoAllowed();
+    }
+
     async getProviders(organizationId?: string): Promise<IntegrationProvider[]> {
         if (!organizationId) {
             return [];
@@ -96,9 +104,9 @@ class IntegrationService {
             const integrationsRef = collection(db, 'organizations', organizationId, 'integrations');
             const snapshot = await getDocs(integrationsRef);
 
-            const connectedIntegrations = new Map<string, any>();
+            const connectedIntegrations = new Map<string, Record<string, unknown>>();
             snapshot.forEach(doc => {
-                connectedIntegrations.set(doc.id, doc.data());
+                connectedIntegrations.set(doc.id, doc.data() as Record<string, unknown>);
             });
 
             // Merge with static list
@@ -108,7 +116,7 @@ class IntegrationService {
                     return {
                         ...provider,
                         status: connection.status === 'active' ? 'connected' : 'error',
-                        lastSync: connection.lastSync ? new Date(connection.lastSync) : undefined
+                        lastSync: typeof connection.lastSync === 'string' ? new Date(connection.lastSync) : undefined
                     };
                 }
                 return provider;
@@ -120,7 +128,8 @@ class IntegrationService {
     }
 
     async connectProvider(providerId: string, config: Record<string, unknown>, organizationId: string, isDemoMode: boolean = false): Promise<boolean> {
-        if (isDemoMode) {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             return true;
         }
@@ -151,7 +160,8 @@ class IntegrationService {
     }
 
     async disconnectProvider(providerId: string, organizationId?: string, isDemoMode: boolean = false): Promise<void> {
-        if (isDemoMode) {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
             await new Promise(resolve => setTimeout(resolve, 500));
             return;
         }
@@ -177,7 +187,8 @@ class IntegrationService {
     }
 
     async syncProvider(_providerId: string, isDemoMode: boolean = false): Promise<void> {
-        if (isDemoMode) {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             return;
         }
@@ -186,16 +197,14 @@ class IntegrationService {
     }
 
     async searchEurLex(query: string, isDemoMode: boolean = false): Promise<string> {
-        if (isDemoMode) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            return `https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32016R0679&qid=${Date.now()}`;
-        }
+        void this.normalizeDemoMode(isDemoMode);
         // Return a direct search URL for the user to view results
         return `https://eur-lex.europa.eu/search.html?scope=EURLEX&text=${encodeURIComponent(query)}&lang=fr&type=quick&qid=${Date.now()}`;
     }
 
     async getCommonMitreTechniques(_query: string, isDemoMode: boolean = false): Promise<MitreTechnique[]> {
-        if (isDemoMode) {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
             await new Promise(resolve => setTimeout(resolve, 500));
             return [
                 { id: 'T1566', name: 'Phishing', description: 'Phishing' },
@@ -207,7 +216,8 @@ class IntegrationService {
     }
 
     async checkVulnerabilities(assetName: string, isDemoMode: boolean = false): Promise<Vulnerability[]> {
-        if (isDemoMode) {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
             await new Promise(resolve => setTimeout(resolve, 1500));
             // Mock vulnerabilities based on asset name hash or random
             if (assetName.toLowerCase().includes('server') || assetName.toLowerCase().includes('db')) {
@@ -236,7 +246,8 @@ class IntegrationService {
         return [];
     }
     async getCyberNews(isDemoMode: boolean = false): Promise<CyberNewsItem[]> {
-        if (isDemoMode) {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             return [
                 {
@@ -276,7 +287,8 @@ class IntegrationService {
     }
 
     async getCnilNews(isDemoMode: boolean = false): Promise<CyberNewsItem[]> {
-        if (isDemoMode) {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             return [
                 {
@@ -309,41 +321,36 @@ class IntegrationService {
         }
     }
 
-    // --- Added for SupplierForm compatibility ---
-
     async searchCompany(query: string, isDemoMode: boolean = false): Promise<CompanySearchResult[]> {
-        if (isDemoMode) {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
             if (query.length < 3) return [];
-            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate net lag
+            await new Promise(resolve => setTimeout(resolve, 500));
             return [
                 {
-                    name: `${query.toUpperCase()} SOLUTIONS`,
+                    name: `Entreprise Démo ${query}`,
                     siren: '123456789',
-                    address: '10 Avenue des Champs-Élysées, 75008 Paris',
-                    activity: 'Conseil en systèmes et logiciels informatiques'
-                },
-                {
-                    name: `${query.toUpperCase()} TECH`,
-                    siren: '987654321',
-                    address: 'Station F, 75013 Paris',
-                    activity: 'Édition de logiciels applicatifs'
+                    address: '1 Rue de la Démo, 75000 Paris',
+                    activity: '6201Z - Programmation informatique'
                 }
             ];
         }
+
+        if (query.length < 3) return [];
 
         try {
             const searchCompanyFn = httpsCallable<{ query: string }, CompanySearchResult[]>(functions, 'searchCompany');
             const result = await searchCompanyFn({ query });
             return result.data;
         } catch (error) {
-            console.error("Error searching company:", error);
-            // Fail gracefully or return empty
+            ErrorLogger.error(error, 'IntegrationService.searchCompany');
             return [];
         }
     }
 
     async fetchSecurityEvents(source: 'splunk' | 'crowdstrike' | 'sentinelone' | 'microsoft', isDemoMode: boolean = false): Promise<SecurityEvent[]> {
-        if (isDemoMode) {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
             await new Promise(resolve => setTimeout(resolve, 1500));
             const now = new Date();
             if (source === 'splunk') {
@@ -422,7 +429,7 @@ class IntegrationService {
                 const result = await fetchExternalSecurityEvents({ source });
                 return result.data;
             } catch (error) {
-                console.error("Error fetching external security events:", error);
+                ErrorLogger.error(error, 'IntegrationService.fetchSecurityEvents');
                 throw error;
             }
         }
@@ -435,11 +442,12 @@ class IntegrationService {
     }
 
     async validateVat(vatNumber: string, isDemoMode: boolean = false): Promise<{ valid: boolean, message: string }> {
-        if (isDemoMode) {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
             const vatRegex = /^[A-Z]{2}[0-9A-Z]+$/;
             if (!vatRegex.test(vatNumber)) return { valid: false, message: 'Format de TVA invalide' };
             await new Promise(resolve => setTimeout(resolve, 300));
-            return { valid: true, message: 'Numéro de TVA valide (Simulé)' };
+            return { valid: true, message: 'Numéro de TVA valide (Mode Démo)' };
         }
 
         try {
@@ -447,7 +455,7 @@ class IntegrationService {
             const result = await validateVatFn({ vatNumber });
             return result.data;
         } catch (error) {
-            console.error("Error validating VAT:", error);
+            ErrorLogger.error(error, 'IntegrationService.validateVat');
             return { valid: false, message: 'Impossible de vérifier la TVA (Service indisponible)' };
         }
     }
@@ -462,5 +470,5 @@ export interface SecurityEvent {
     description: string;
     severity: 'Low' | 'Medium' | 'High' | 'Critical';
     timestamp: string;
-    rawData?: any;
+    rawData?: unknown;
 }

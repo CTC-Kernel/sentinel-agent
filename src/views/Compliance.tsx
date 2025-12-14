@@ -13,7 +13,6 @@ import { Control, Document, Risk, Finding, UserProfile, SystemLog, Asset, Suppli
 import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet, RefreshCw, Loader2, CheckCircle2, XCircle, Plug, MessageSquare } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
-import { PdfService } from '../services/PdfService';
 import { Skeleton } from '../components/ui/Skeleton';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -115,7 +114,7 @@ export const Compliance: React.FC = () => {
             setLinkingToProjectName(state.projectName || 'Projet');
             addToast(`Mode liaison actif: Sélectionnez un contrôle pour le lier au projet ${state.projectName || ''}`, 'info');
         }
-    }, [location.state]);
+    }, [location.state, addToast]);
 
     useEffect(() => {
         const loadProviders = async () => {
@@ -817,35 +816,42 @@ export const Compliance: React.FC = () => {
     };
 
     const generateSoAReport = () => {
-        const data = controls.map(c => {
-            const applicability = c.applicability || ((c.status === 'Non applicable' || c.status === 'Exclu') ? 'Non applicable' : 'Applicable');
-            const justification = c.justification || ((c.status === 'Exclu' || applicability === 'Non applicable') ? 'Non justifié' : '-');
-            return [c.code, c.name, applicability, c.status, justification];
+        void (async () => {
+            const { PdfService } = await import('../services/PdfService');
+
+            const data = controls.map(c => {
+                const applicability = c.applicability || ((c.status === 'Non applicable' || c.status === 'Exclu') ? 'Non applicable' : 'Applicable');
+                const justification = c.justification || ((c.status === 'Exclu' || applicability === 'Non applicable') ? 'Non justifié' : '-');
+                return [c.code, c.name, applicability, c.status, justification];
+            });
+
+            const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+            const canWhiteLabel = limits.features.whiteLabelReports;
+
+            PdfService.generateTableReport(
+                {
+                    title: `Déclaration d'Applicabilité (SoA) - ${currentFramework}`,
+                    subtitle: `${currentFramework} | Généré le ${new Date().toLocaleDateString()} | ${user?.organizationName || 'Organisation'}`,
+                    filename: `SoA_${currentFramework}_${new Date().toISOString().split('T')[0]}.pdf`,
+                    headerText: `${currentFramework} Compliance Report`,
+                    footerText: 'Sentinel GRC by Cyber Threat Consulting - Document Confidentiel',
+                    organizationName: canWhiteLabel ? organization?.name : undefined,
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
+                },
+                ['Code', 'Contrôle', 'Applicabilité', 'Statut', 'Justification / Commentaire'],
+                data,
+                {
+                    0: { fontStyle: 'bold', cellWidth: 20 },
+                    1: { cellWidth: 50 },
+                    2: { cellWidth: 30 },
+                    3: { cellWidth: 30 },
+                    4: { cellWidth: 'auto' }
+                }
+            );
+        })().catch((error) => {
+            ErrorLogger.error(error, 'Compliance.generateSoAReport');
+            addToast("Erreur lors de l'export PDF", 'error');
         });
-
-        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-        const canWhiteLabel = limits.features.whiteLabelReports;
-
-        PdfService.generateTableReport(
-            {
-                title: `Déclaration d'Applicabilité (SoA) - ${currentFramework}`,
-                subtitle: `${currentFramework} | Généré le ${new Date().toLocaleDateString()} | ${user?.organizationName || 'Organisation'}`,
-                filename: `SoA_${currentFramework}_${new Date().toISOString().split('T')[0]}.pdf`,
-                headerText: `${currentFramework} Compliance Report`,
-                footerText: 'Sentinel GRC by Cyber Threat Consulting - Document Confidentiel',
-                organizationName: canWhiteLabel ? organization?.name : undefined,
-                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
-            },
-            ['Code', 'Contrôle', 'Applicabilité', 'Statut', 'Justification / Commentaire'],
-            data,
-            {
-                0: { fontStyle: 'bold', cellWidth: 20 },
-                1: { cellWidth: 50 },
-                2: { cellWidth: 30 },
-                3: { cellWidth: 30 },
-                4: { cellWidth: 'auto' }
-            }
-        );
     };
 
     const filteredControls = controls.filter(c => {

@@ -1,4 +1,4 @@
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 
 // Base URL for the OVH-hosted Secure Backend
@@ -45,9 +45,10 @@ class HybridService {
 
             if (options.requiresAuth !== false) {
                 const token = await this.getAuthToken();
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
+                if (!token) {
+                    return { success: false, error: 'Unauthorized' };
                 }
+                headers['Authorization'] = `Bearer ${token}`;
             }
 
             const response = await fetch(url, {
@@ -56,10 +57,17 @@ class HybridService {
             });
 
             if (!response.ok) {
-                throw new Error(`Request failed with status ${response.status}`);
+                const errorText = await response.text().catch(() => '');
+                const message = errorText || `Request failed with status ${response.status}`;
+                throw new Error(message);
             }
 
-            const data = await response.json();
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                return { success: true, data: (undefined as unknown as T) };
+            }
+
+            const data = (await response.json()) as T;
             return { success: true, data };
         } catch (error) {
             if (!options.silent) {
@@ -84,8 +92,7 @@ class HybridService {
             const docId = (id as string) || crypto.randomUUID();
 
             // Use Firestore directly
-            const { doc, setDoc, getFirestore } = await import('firebase/firestore');
-            const db = getFirestore();
+            const { doc, setDoc } = await import('firebase/firestore');
 
             // Get organizationId from auth
             const user = auth.currentUser;
@@ -94,6 +101,10 @@ class HybridService {
             if (!organizationId && user) {
                 const tokenResult = await user.getIdTokenResult();
                 organizationId = tokenResult.claims.organizationId as string;
+            }
+
+            if (!organizationId) {
+                return { success: false, error: 'Missing organizationId' };
             }
 
             await setDoc(doc(db, 'secure_storage', `${dataType}_${docId}`), {
@@ -117,8 +128,7 @@ class HybridService {
      */
     async getSecureData(dataType: string, id: string): Promise<HybridResponse> {
         try {
-            const { doc, getDoc, getFirestore } = await import('firebase/firestore');
-            const db = getFirestore();
+            const { doc, getDoc } = await import('firebase/firestore');
             const docRef = doc(db, 'secure_storage', `${dataType}_${id}`);
             const snapshot = await getDoc(docRef);
 
@@ -163,8 +173,7 @@ class HybridService {
      */
     async deleteSecureData(dataType: string, id: string): Promise<HybridResponse> {
         try {
-            const { doc, deleteDoc, getFirestore } = await import('firebase/firestore');
-            const db = getFirestore();
+            const { doc, deleteDoc } = await import('firebase/firestore');
             await deleteDoc(doc(db, 'secure_storage', `${dataType}_${id}`));
             return { success: true };
         } catch (error) {

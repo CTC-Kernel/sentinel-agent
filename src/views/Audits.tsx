@@ -23,16 +23,17 @@ import { AuditDashboard } from '../components/audits/AuditDashboard';
 import { AuditAIAssistant } from '../components/audits/AuditAIAssistant';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
-import { PdfService } from '../services/PdfService';
 
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
-import { DataTable } from '../components/ui/DataTable';
+import { useFirestoreCollection } from '../hooks/useFirestore';
 import { ColumnDef } from '@tanstack/react-table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
+import { DataTable } from '../components/ui/DataTable';
 import { sendEmail } from '../services/emailService';
 import { getAuditReminderTemplate } from '../services/emailTemplates';
+import { PdfService } from '../services/PdfService';
 import { generateICS, downloadICS } from '../utils/calendar';
 import JSZip from 'jszip';
 import { ErrorLogger } from '../services/errorLogger';
@@ -40,7 +41,6 @@ import { SafeHTML } from '../components/ui/SafeHTML';
 import { getPlanLimits } from '../config/plans';
 import { buildAppUrl } from '../config/appConfig';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { useFirestoreCollection } from '../hooks/useFirestore';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuditFormData, findingSchema, FindingFormData, auditSchema } from '../schemas/auditSchema';
@@ -49,6 +49,7 @@ import { z } from 'zod';
 import { aiService } from '../services/aiService';
 import { analyticsService } from '../services/analyticsService';
 import { usePersistedState } from '../hooks/usePersistedState';
+import type { jsPDF } from 'jspdf';
 
 export const Audits: React.FC = () => {
     const { user, addToast, organization } = useStore();
@@ -637,27 +638,34 @@ export const Audits: React.FC = () => {
     const generateSoA = () => {
         if (!selectedAudit || !checklist) return;
 
-        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-        const canWhiteLabel = limits.features.whiteLabelReports;
+        void (async () => {
+            const { PdfService } = await import('../services/PdfService');
 
-        const data = checklist.questions.map(q => {
-            const evidenceNames = q.evidenceIds?.map(eid => documents.find(d => d.id === eid)?.title).join(', ') || '';
-            return [q.controlCode, q.response, q.comment || '', evidenceNames];
+            const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+            const canWhiteLabel = limits.features.whiteLabelReports;
+
+            const data = checklist.questions.map(q => {
+                const evidenceNames = q.evidenceIds?.map(eid => documents.find(d => d.id === eid)?.title).join(', ') || '';
+                return [q.controlCode, q.response, q.comment || '', evidenceNames];
+            });
+
+            PdfService.generateTableReport(
+                {
+                    title: "Statement of Applicability (SoA)",
+                    subtitle: `Audit: ${selectedAudit.name} | Date: ${new Date().toLocaleDateString()}`,
+                    filename: 'SoA.pdf',
+                    footerText: 'Sentinel GRC - Document Confidentiel',
+                    organizationName: canWhiteLabel ? organization?.name : undefined,
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
+                },
+                ['Contrôle', 'Statut', 'Justification', 'Preuves'],
+                data,
+                { 0: { fontStyle: 'bold', cellWidth: 30 } }
+            );
+        })().catch((error) => {
+            ErrorLogger.error(error, 'Audits.generateSoA');
+            addToast("Erreur lors de l'export PDF", 'error');
         });
-
-        PdfService.generateTableReport(
-            {
-                title: "Statement of Applicability (SoA)",
-                subtitle: `Audit: ${selectedAudit.name} | Date: ${new Date().toLocaleDateString()}`,
-                filename: 'SoA.pdf',
-                footerText: 'Sentinel GRC - Document Confidentiel',
-                organizationName: canWhiteLabel ? organization?.name : undefined,
-                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
-            },
-            ['Contrôle', 'Statut', 'Justification', 'Preuves'],
-            data,
-            { 0: { fontStyle: 'bold', cellWidth: 30 } }
-        );
     };
 
 
@@ -700,6 +708,8 @@ export const Audits: React.FC = () => {
                 { label: 'Mineure', value: typeCounts['Mineure'], color: '#F59E0B' }, // Amber
                 { label: 'Opportunité', value: typeCounts['Opportunité'], color: '#10B981' } // Emerald
             ].filter(s => s.value > 0);
+
+            const { PdfService } = await import('../services/PdfService');
 
             PdfService.generateExecutiveReport(
                 {
@@ -783,7 +793,10 @@ export const Audits: React.FC = () => {
     const generateAuditPlan = () => {
         if (!selectedAudit) return;
 
-        PdfService.generateExecutiveReport(
+        void (async () => {
+            const { PdfService } = await import('../services/PdfService');
+
+            PdfService.generateExecutiveReport(
             {
                 title: 'Plan d\'Audit',
                 subtitle: selectedAudit.name,
@@ -858,7 +871,11 @@ export const Audits: React.FC = () => {
                     columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
                 });
             }
-        );
+            );
+        })().catch((error) => {
+            ErrorLogger.error(error, 'Audits.generateAuditPlan');
+            addToast("Erreur lors de l'export PDF", 'error');
+        });
     };
 
     const generateNonConformityReport = () => {
@@ -875,7 +892,7 @@ export const Audits: React.FC = () => {
                 author: selectedAudit.auditor,
                 summary: `Ce rapport liste les ${nc.length} non-conformités identifiées lors de l'audit "${selectedAudit.name}". Une attention immédiate est requise pour les non-conformités majeures.`
             },
-            (doc, startY) => {
+            (doc: jsPDF, startY: number) => {
                 let y = startY;
 
                 doc.setFontSize(14); doc.setTextColor(220, 38, 38); doc.setFont('helvetica', 'bold');

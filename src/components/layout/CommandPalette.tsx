@@ -8,11 +8,13 @@ import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 
+type IconComponent = React.ComponentType<{ className?: string }>;
+
 interface CommandItem {
     id: string;
     title: string;
     subtitle?: string;
-    icon: any;
+    icon: IconComponent;
     path?: string;
     action?: () => void;
     category: string;
@@ -65,15 +67,18 @@ export const CommandPalette: React.FC = () => {
                 setIsOpen(false);
             }
             if (isOpen) {
+                const count = filteredItems.length;
                 if (e.key === 'ArrowDown') {
                     e.preventDefault();
-                    setSelectedIndex(prev => (prev + 1) % filteredItems.length);
+                    if (count === 0) return;
+                    setSelectedIndex(prev => (prev + 1) % count);
                 }
                 if (e.key === 'ArrowUp') {
                     e.preventDefault();
-                    setSelectedIndex(prev => (prev - 1 + filteredItems.length) % filteredItems.length);
+                    if (count === 0) return;
+                    setSelectedIndex(prev => (prev - 1 + count) % count);
                 }
-                if (e.key === 'Enter' && filteredItems.length > 0) {
+                if (e.key === 'Enter' && count > 0) {
                     e.preventDefault();
                     const item = filteredItems[selectedIndex];
                     if (item.action) {

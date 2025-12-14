@@ -95,6 +95,20 @@ export const useStore = create<AppState>((set, get) => ({
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 
-  demoMode: false,
-  toggleDemoMode: () => set((state) => ({ demoMode: !state.demoMode })),
+  demoMode: import.meta.env.DEV && localStorage.getItem('demoMode') === 'true',
+  toggleDemoMode: () => set((state) => {
+    if (!import.meta.env.DEV) {
+      if (state.demoMode) {
+        localStorage.removeItem('demoMode');
+      }
+      return { demoMode: false };
+    }
+    const next = !state.demoMode;
+    if (next) {
+      localStorage.setItem('demoMode', 'true');
+    } else {
+      localStorage.removeItem('demoMode');
+    }
+    return { demoMode: next };
+  }),
 }));

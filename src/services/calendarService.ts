@@ -242,7 +242,7 @@ export const CalendarService = {
             if (!collectionName) return; // Maintenance and Google events not supported for direct update yet
 
             const docRef = doc(db, collectionName, event.id);
-            const updates: Record<string, any> = {};
+            const updates: Record<string, unknown> = {};
 
             if (event.type === 'audit') {
                 updates.dateScheduled = start.toISOString();

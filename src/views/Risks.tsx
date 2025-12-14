@@ -23,7 +23,6 @@ import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
 import { getPlanLimits } from '../config/plans';
 import { Comments } from '../components/ui/Comments';
-import { PdfService } from '../services/PdfService';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -651,29 +650,35 @@ export const Risks: React.FC = () => {
     };
 
     const handleExportPDF = () => {
-        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-        const canWhiteLabel = limits.features.whiteLabelReports;
+        void (async () => {
+            const { PdfService } = await import('../services/PdfService');
+            const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+            const canWhiteLabel = limits.features.whiteLabelReports;
 
-        const data = risks.map(r => [
-            r.threat,
-            r.score.toString(),
-            r.strategy,
-            r.status,
-            (r.residualScore || r.score).toString()
-        ]);
+            const data = risks.map(r => [
+                r.threat,
+                r.score.toString(),
+                r.strategy,
+                r.status,
+                (r.residualScore || r.score).toString()
+            ]);
 
-        PdfService.generateTableReport(
-            {
-                title: 'Registre des Risques',
-                subtitle: `Exporté le ${new Date().toLocaleDateString()}`,
-                filename: 'risques.pdf',
-                organizationName: canWhiteLabel ? organization?.name : undefined,
-                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
-            },
-            ['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel'],
-            data
-        );
-        addToast("Rapport téléchargé avec succès", "success");
+            PdfService.generateTableReport(
+                {
+                    title: 'Registre des Risques',
+                    subtitle: `Exporté le ${new Date().toLocaleDateString()}`,
+                    filename: 'risques.pdf',
+                    organizationName: canWhiteLabel ? organization?.name : undefined,
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
+                },
+                ['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel'],
+                data
+            );
+            addToast("Rapport téléchargé avec succès", "success");
+        })().catch((error) => {
+            ErrorLogger.error(error, 'Risks.handleExportPDF');
+            addToast("Erreur lors de l'export PDF", 'error');
+        });
     };
 
     const handleExportRTP = async () => {
@@ -709,6 +714,8 @@ export const Risks: React.FC = () => {
                 { label: 'Transférer', value: stratCounts['Transférer'], color: '#F59E0B' },
                 { label: 'Accepter', value: stratCounts['Accepter'], color: '#64748B' }
             ].filter(s => s.value > 0);
+
+            const { PdfService } = await import('../services/PdfService');
 
             PdfService.generateExecutiveReport(
                 {

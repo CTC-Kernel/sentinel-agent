@@ -19,7 +19,7 @@ export type Framework = 'ISO27001' | 'ISO22301' | 'ISO27005' | 'NIS2' | 'DORA' |
 
 export interface AIAnalysisResult {
   type: string;
-  response: Record<string, any>;
+  response: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -69,7 +69,7 @@ export interface Asset {
   hardware?: Record<string, unknown>;
   notes?: string;
   history?: AssetHistory[];
-  aiAnalysis?: AIAnalysisResult;
+  aiAnalysis?: AIAnalysisResult | null;
   // Specialized details
   dataDetails?: {
     format: 'Numérique' | 'Physique' | 'Hybride';
@@ -659,6 +659,8 @@ export interface BusinessProcess {
   lastTestDate?: string;
   relatedRiskIds?: string[]; // Scenarios
   supplierIds?: string[]; // Outsourcing
+  createdAt?: string;
+  updatedAt?: string;
   recoveryTasks?: {
     id: string;
     title: string;

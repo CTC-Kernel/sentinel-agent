@@ -1,6 +1,4 @@
 import { useStore } from '../store';
-import { analytics } from '../firebase';
-import { logEvent } from 'firebase/analytics';
 
 /**
  * Service centralisé de gestion des erreurs
@@ -183,7 +181,16 @@ class ErrorLoggerService {
     // Envoi vers Firebase Analytics
     if (typeof window !== 'undefined') {
       try {
-        logEvent(analytics, type, data);
+        void import('../firebase').then(async (firebaseModule) => {
+          const analyticsInstance = firebaseModule.analytics;
+          if (!analyticsInstance) return;
+          try {
+            const analyticsSdk = await import('firebase/analytics');
+            analyticsSdk.logEvent(analyticsInstance, type, data);
+          } catch (e) {
+            if (this.isDevelopment) console.warn('Analytics failed:', e);
+          }
+        });
       } catch (e) {
         // Fail silently if analytics fails (e.g. ad blocker)
         if (this.isDevelopment) console.warn('Analytics failed:', e);

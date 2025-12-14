@@ -1,4 +1,3 @@
-
 import { db } from '../firebase';
 import { doc, writeBatch } from 'firebase/firestore';
 import {
@@ -9,6 +8,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const DemoDataService = {
     async generateDemoData(organizationId: string, currentUser: UserProfile) {
+        if (!import.meta.env.DEV) {
+            throw new Error('Demo data generation is disabled in production');
+        }
         if (import.meta.env.DEV) console.log('Starting Demo Data Generation...');
         const batch = writeBatch(db);
         const now = new Date();
@@ -293,13 +295,13 @@ export const DemoDataService = {
                 priority: 'Critique',
                 supportingAssetIds: [assets[0].id, assets[2].id], // DB + CRM
                 createdAt: now.toISOString()
-            } as unknown as BusinessProcess
+            }
         ];
 
         // --- WRITE TO FIRESTORE ---
 
         // Helper to batch writes
-        const saveBatch = async (collectionName: string, items: any[]) => {
+        const saveBatch = <T extends { id: string }>(collectionName: string, items: T[]): void => {
             items.forEach(item => {
                 const ref = doc(db, collectionName, item.id);
                 batch.set(ref, item);

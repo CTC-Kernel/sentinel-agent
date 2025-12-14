@@ -9,7 +9,13 @@ export const APP_BASE_URL: string = (() => {
     return normalizeBaseUrl(envBaseUrl.trim());
   }
 
-  ErrorLogger.warn('VITE_APP_BASE_URL is not defined. APP_BASE_URL will be empty and email links may be relative only.', 'appConfig.ts');
+  if (import.meta.env.PROD) {
+    throw new Error('Missing required environment variable: VITE_APP_BASE_URL');
+  }
+
+  if (import.meta.env.MODE !== 'test') {
+    ErrorLogger.warn('VITE_APP_BASE_URL is not defined. APP_BASE_URL will be empty and email links may be relative only.', 'appConfig.ts');
+  }
   return '';
 })();
 

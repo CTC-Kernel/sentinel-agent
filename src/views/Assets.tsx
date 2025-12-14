@@ -15,8 +15,6 @@ import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { SlideUp } from '../components/ui/Animations';
 
-import { PdfService } from '../services/PdfService';
-
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -544,6 +542,7 @@ export const Assets: React.FC = () => {
         setIsGeneratingLabels(true);
 
         try {
+            const { PdfService } = await import('../services/PdfService');
             // Pre-generate QR codes
             const qrCodes: Record<string, string> = {};
             await Promise.all(assetsToPrint.map(async (asset) => {

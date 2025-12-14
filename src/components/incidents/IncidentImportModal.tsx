@@ -30,7 +30,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
             setEvents(fetchedEvents);
             setSelectedEvents(new Set(fetchedEvents.map(e => e.id)));
             setStep('select');
-        } catch (error) {
+        } catch {
             toast.error("Erreur de connexion au connecteur");
         } finally {
             setLoading(false);
@@ -45,7 +45,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
             onClose();
             setStep('source');
             setEvents([]);
-        } catch (error) {
+        } catch {
             // Error handling in parent
         } finally {
             setLoading(false);

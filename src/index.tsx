@@ -31,7 +31,11 @@ const initializeApp = async () => {
   }
 };
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_CLIENT_ID_HERE";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+
+if (!GOOGLE_CLIENT_ID) {
+  throw new Error('Missing required environment variable: VITE_GOOGLE_CLIENT_ID');
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {

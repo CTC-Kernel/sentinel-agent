@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     collection,
     query,
@@ -44,7 +44,8 @@ export const useFirestoreCollection = <T = DocumentData>(
     const [realtimeError, setRealtimeError] = useState<Error | null>(null);
 
     const queryClient = useQueryClient();
-    const constraintsKey = JSON.stringify(constraints); // Stable string for key
+    const constraintsKey = useMemo(() => JSON.stringify(constraints), [constraints]);
+    const stableConstraints = constraints;
     const { realtime, logError, enabled } = options;
     const isEnabled = enabled !== false;
 
@@ -58,7 +59,7 @@ export const useFirestoreCollection = <T = DocumentData>(
         queryKey: ['firestore', collectionName, constraintsKey],
         queryFn: async () => {
             try {
-                const q = query(collection(db, collectionName), ...constraints);
+                const q = query(collection(db, collectionName), ...stableConstraints);
                 const snapshot = await getDocs(q);
                 return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
             } catch (err) {
@@ -83,11 +84,10 @@ export const useFirestoreCollection = <T = DocumentData>(
             return;
         }
 
-        if (!realtimeLoading) {
-            // Avoid synchronous state update warning
-            setTimeout(() => setRealtimeLoading(true), 0);
-        }
-        const q = query(collection(db, collectionName), ...constraints);
+        // Avoid synchronous state update warning
+        setTimeout(() => setRealtimeLoading(true), 0);
+
+        const q = query(collection(db, collectionName), ...stableConstraints);
         const unsubscribe = onSnapshot(q,
             (snapshot) => {
                 const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
@@ -104,7 +104,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             }
         );
         return () => unsubscribe();
-    }, [collectionName, constraintsKey, realtime, isEnabled, logError]);
+    }, [collectionName, stableConstraints, realtime, isEnabled, logError]);
 
     const add = useCallback(async (newData: WithFieldValue<DocumentData>) => {
         try {
@@ -225,10 +225,8 @@ export const useFirestoreDocument = <T extends { id: string }>(
         }
 
         if (realtime) {
-            if (!realtimeLoading) {
-                // Avoid synchronous state update warning
-                setTimeout(() => setRealtimeLoading(true), 0);
-            }
+            // Avoid synchronous state update warning
+            setTimeout(() => setRealtimeLoading(true), 0);
             const docRef = doc(db, collectionName, docId);
             const unsubscribe = onSnapshot(docRef,
                 (snapshot) => {

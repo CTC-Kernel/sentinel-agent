@@ -20,7 +20,6 @@ import { NotificationService } from '../services/notificationService';
 import { getPlanLimits } from '../config/plans';
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { PdfService } from '../services/PdfService';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { DataTable } from '../components/ui/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
@@ -572,10 +571,13 @@ export const Projects: React.FC = () => {
     const generateReport = () => {
         if (!selectedProject) return;
 
-        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-        const canWhiteLabel = limits.features.whiteLabelReports;
+        void (async () => {
+            const { PdfService } = await import('../services/PdfService');
 
-        PdfService.generateCustomReport(
+            const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+            const canWhiteLabel = limits.features.whiteLabelReports;
+
+            PdfService.generateCustomReport(
             {
                 title: 'Rapport de Projet',
                 subtitle: `Projet: ${selectedProject.name} | ${new Date().toLocaleDateString()}`,
@@ -632,26 +634,36 @@ export const Projects: React.FC = () => {
                     headStyles: { fillColor: [79, 70, 229] }
                 });
             }
-        );
+            );
+        })().catch((error) => {
+            ErrorLogger.error(error, 'Projects.generateReport');
+            addToast("Erreur lors de l'export PDF", 'error');
+        });
     };
 
     const exportPDF = () => {
-        const data = projects.map(p => [p.name, p.status, p.manager, p.progress + '%', p.dueDate || '-']);
+        void (async () => {
+            const { PdfService } = await import('../services/PdfService');
+            const data = projects.map(p => [p.name, p.status, p.manager, p.progress + '%', p.dueDate || '-']);
 
-        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-        const canWhiteLabel = limits.features.whiteLabelReports;
+            const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+            const canWhiteLabel = limits.features.whiteLabelReports;
 
-        PdfService.generateTableReport(
-            {
-                title: 'Suivi des Projets SSI',
-                subtitle: `Exporté le ${new Date().toLocaleDateString()}`,
-                filename: 'projets_ssi.pdf',
-                organizationName: canWhiteLabel ? organization?.name : undefined,
-                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
-            },
-            ['Nom du Projet', 'Statut', 'Responsable', 'Progression', 'Échéance'],
-            data
-        );
+            PdfService.generateTableReport(
+                {
+                    title: 'Suivi des Projets SSI',
+                    subtitle: `Exporté le ${new Date().toLocaleDateString()}`,
+                    filename: 'projets_ssi.pdf',
+                    organizationName: canWhiteLabel ? organization?.name : undefined,
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
+                },
+                ['Nom du Projet', 'Statut', 'Responsable', 'Progression', 'Échéance'],
+                data
+            );
+        })().catch((error) => {
+            ErrorLogger.error(error, 'Projects.exportPDF');
+            addToast("Erreur lors de l'export PDF", 'error');
+        });
     };
 
     const handleExportCSV = () => {

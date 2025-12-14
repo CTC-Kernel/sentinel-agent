@@ -99,7 +99,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                 pageSize,
             },
         },
-        getRowId: (row: any) => row.id, // Important for selection to return IDs
+        getRowId: (row: TData) => row.id, // Important for selection to return IDs
     }), [data, tableColumns, sorting, globalFilter, rowSelection, pageSize]);
 
     // eslint-disable-next-line react-hooks/incompatible-library

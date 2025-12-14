@@ -23,10 +23,12 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
     }
 
     const [response, setResponse] = useState<AIAnalysisResponse | null>(
-        asset.aiAnalysis?.response ? asset.aiAnalysis.response as AIAnalysisResponse : null
+        asset.aiAnalysis?.response ? (asset.aiAnalysis.response as unknown as AIAnalysisResponse) : null
     );
     const [mode, setMode] = useState<'analyze' | 'maintenance' | 'optimize' | null>(
-        (asset.aiAnalysis?.type as any) || null
+        asset.aiAnalysis?.type === 'analyze' || asset.aiAnalysis?.type === 'maintenance' || asset.aiAnalysis?.type === 'optimize'
+            ? asset.aiAnalysis.type
+            : null
     );
     const [error, setError] = useState<string | null>(null);
 
@@ -96,7 +98,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                     onUpdate({
                         aiAnalysis: {
                             type: action,
-                            response: parsedResponse,
+                            response: parsedResponse as unknown as Record<string, unknown>,
                             timestamp: new Date().toISOString()
                         }
                     });
@@ -110,7 +112,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                     onUpdate({
                         aiAnalysis: {
                             type: action,
-                            response: fallbackResponse,
+                            response: fallbackResponse as unknown as Record<string, unknown>,
                             timestamp: new Date().toISOString()
                         }
                     });
@@ -162,7 +164,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
         if (onUpdate) {
             // Clear the persisted analysis
             onUpdate({
-                aiAnalysis: null as any // Force null to clear field
+                aiAnalysis: null
             });
         }
     }
