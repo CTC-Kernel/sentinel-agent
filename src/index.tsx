@@ -34,6 +34,41 @@ const initializeApp = async () => {
   }
 };
 
+const cleanupLegacyServiceWorkers = () => {
+  if (typeof window === 'undefined') return;
+  if (!('serviceWorker' in navigator)) return;
+
+  const guardKey = 'sentinel_sw_cleanup_done_v1';
+  if (sessionStorage.getItem(guardKey) === 'true') return;
+
+  window.addEventListener('load', async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      const legacyRegs = regs.filter((reg) => {
+        const scriptUrl = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || '';
+        const isRootScope = reg.scope === `${window.location.origin}/`;
+        const isLegacy = scriptUrl.includes('/firebase-messaging-sw.js') || scriptUrl.endsWith('/sw.js');
+        return isRootScope && isLegacy;
+      });
+
+      if (legacyRegs.length === 0) {
+        sessionStorage.setItem(guardKey, 'true');
+        return;
+      }
+
+      await Promise.all(legacyRegs.map((reg) => reg.unregister()));
+      sessionStorage.setItem(guardKey, 'true');
+
+      // Hard reload once so the page is no longer controlled by the legacy SW.
+      window.location.reload();
+    } catch (e) {
+      // If anything goes wrong, do not block the app.
+      sessionStorage.setItem(guardKey, 'true');
+      console.debug('Service worker cleanup skipped or failed:', e);
+    }
+  });
+};
+
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
 if (!GOOGLE_CLIENT_ID) {
@@ -165,6 +200,8 @@ root.render(
 );
 
 installDiagnostics();
+
+cleanupLegacyServiceWorkers();
 
 // Initialize app after render
 initializeApp();
