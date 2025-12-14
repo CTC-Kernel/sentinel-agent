@@ -6,8 +6,9 @@ import { SparklesCore } from '../components/ui/aceternity/Sparkles';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
-    signInWithPopup,
+    signInWithRedirect,
     signInWithCredential,
+    getRedirectResult,
     GoogleAuthProvider,
     OAuthProvider,
     getMultiFactorResolver,
@@ -41,6 +42,31 @@ export const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const { addToast } = useStore();
+
+    // Finalize Google redirect flow on page load
+    useEffect(() => {
+        let isMounted = true;
+
+        (async () => {
+            try {
+                const result = await getRedirectResult(auth);
+                if (!isMounted) return;
+
+                if (result?.user) {
+                    addToast('Connexion réussie', 'success');
+                    window.location.href = '/';
+                }
+            } catch (error: unknown) {
+                if (!isMounted) return;
+                ErrorLogger.error(error, 'Login.getRedirectResult');
+                setErrorMsg('Erreur Google Auth. Veuillez réessayer.');
+            }
+        })();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [addToast]);
 
     // Main Auth Form
     const { register, handleSubmit, formState: { errors }, clearErrors } = useForm<LoginFormData | RegisterFormData>({
@@ -123,6 +149,43 @@ export const Login: React.FC = () => {
         } finally { setLoading(false); }
     };
 
+    const handleAppleLogin = async () => {
+        setLoading(true);
+        setErrorMsg(null);
+        try {
+            const { Capacitor } = await import('@capacitor/core');
+            const isNative = Capacitor.isNativePlatform();
+
+            if (isNative) {
+                const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+                const result = await FirebaseAuthentication.signInWithApple();
+
+                if (result.credential?.idToken) {
+                    const provider = new OAuthProvider('apple.com');
+                    const credential = provider.credential({
+                        idToken: result.credential.idToken
+                    });
+
+                    await signInWithCredential(auth, credential);
+                    addToast('Connexion réussie', 'success');
+                    window.location.href = '/';
+                } else {
+                    throw new Error('No ID Token from Apple');
+                }
+            } else {
+                const provider = new OAuthProvider('apple.com');
+                provider.addScope('email');
+                provider.addScope('name');
+                await signInWithRedirect(auth, provider);
+            }
+        } catch (error: unknown) {
+            ErrorLogger.error(error, 'Login.handleAppleLogin');
+            setErrorMsg('Erreur Apple Auth. Veuillez réessayer.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleGoogleLogin = async () => {
         setLoading(true);
         setErrorMsg(null);
@@ -152,7 +215,7 @@ export const Login: React.FC = () => {
             } else {
                 // Web Google Sign In
                 const provider = new GoogleAuthProvider();
-                await signInWithPopup(auth, provider);
+                await signInWithRedirect(auth, provider);
             }
         } catch (error: unknown) {
             ErrorLogger.error(error, 'Login.handleGoogleLogin');
@@ -248,73 +311,14 @@ export const Login: React.FC = () => {
                         </Button>
 
                         <Button
-                            onClick={async () => {
-                                setLoading(true);
-                                setErrorMsg(null);
-                                try {
-                                    const { Capacitor } = await import('@capacitor/core');
-                                    const isNative = Capacitor.isNativePlatform();
-
-                                    if (isNative) {
-                                        const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
-
-                                        // Add timeout to detect hangs
-                                        const result = await Promise.race([
-                                            FirebaseAuthentication.signInWithApple({
-                                                scopes: ['email', 'name'],
-                                            }),
-                                            new Promise<never>((_, reject) =>
-                                                setTimeout(() => reject(new Error("Apple Sign In timed out.")), 15000)
-                                            )
-                                        ]) as { credential?: { idToken: string; rawNonce?: string } };
-
-                                        // Sync with Firebase JS SDK
-                                        if (result.credential?.idToken) {
-                                            const provider = new OAuthProvider('apple.com');
-                                            const credentialParams: Record<string, string> = {
-                                                idToken: result.credential.idToken,
-                                            };
-                                            // Only add rawNonce if it exists and is not empty
-                                            if (result.credential.rawNonce) {
-                                                credentialParams.rawNonce = result.credential.rawNonce;
-                                            }
-
-                                            try {
-                                                const credential = provider.credential(credentialParams);
-                                                await signInWithCredential(auth, credential);
-                                                addToast("Connexion réussie", "success");
-                                                window.location.href = '/';
-                                            } catch (innerError: unknown) {
-                                                ErrorLogger.error(innerError, 'Login.appleSignIn.jsSync');
-                                                throw innerError;
-                                            }
-                                        } else {
-                                            throw new Error("No ID Token from Apple");
-                                        }
-                                    } else {
-                                        const provider = new OAuthProvider('apple.com');
-                                        provider.addScope('email');
-                                        provider.addScope('name');
-                                        await signInWithPopup(auth, provider);
-                                    }
-                                } catch (error: unknown) {
-                                    ErrorLogger.error(error, 'Login.handleAppleLogin');
-                                    ErrorLogger.error(error, 'Login.appleSignIn');
-                                    const code = (error as { code?: string; message?: string })?.code || (error as { message?: string })?.message;
-                                    if (code === 'auth/operation-not-allowed') {
-                                        setErrorMsg("Apple Sign In non activé dans la console Firebase.");
-                                    } else {
-                                        setErrorMsg("Erreur Apple Sign In. Veuillez réessayer.");
-                                    }
-                                } finally { setLoading(false); }
-                            }}
+                            onClick={handleAppleLogin}
                             isLoading={loading}
                             className="w-full py-6 bg-black text-white rounded-2xl card-hover shadow-sm"
                         >
                             {!loading && (
                                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-.98-.4-2.05-.4-3.08.4-1.05.45-2.05.45-3.08-.4-1.05-.85-2.05-2.4-2.05-4.6 0-3.15 2.05-4.8 4.1-4.8 1.05 0 2.05.45 3.08.45 1.05 0 2.05-.45 3.08-.45 1.05 0 2.05.45 3.08.45.98 0 1.95-.45 2.55-1.15-2.05-1.15-2.05-3.6-2.05-3.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15zM12.03 7.25c-.05-.25-.05-.5-.05-.75 1.55-.65 2.55-1.9 2.55-3.15.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15z" />
-                                    <path d="M12.03 7.25c.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15-.05-.25-.05-.5-.05-.75 1.55-.65 2.55-1.9 2.55-3.15z" fill="none" />
+                                    <path d="M12.03 7.25c.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15-.05-.25-.05-.5-.05-.75 1.55-.65-2.55 1.9-2.55-3.15z" fill="none" />
                                     <path d="M13.03 2.1c-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75z" />
                                     <path d="M17.03 11.28c-.6-.7-1.55-1.15-2.55-1.15-1.03 0-2.03.45-3.08.45-1.03 0-2.03-.45-3.08-.45-2.05 0-4.1 1.65-4.1 4.8 0 2.2 1 3.75 2.05 4.6 1.03.85 2.03.85 3.08.4 1.03-.8 2.1-.8 3.08.4 1.03.48 2.1.55 3.08-.4 1.03-.85 2.03-2.4 2.05-4.6-.05-.15-2.05-1.15-2.05-3.75.05-.15 2.05-1.15 2.05-3.75z" />
                                 </svg>
