@@ -704,7 +704,6 @@ export const Audits: React.FC = () => {
             );
         })().catch((error) => {
             ErrorLogger.error(error, 'Audits.generateSoA');
-            addToast("Erreur lors de l'export PDF", 'error');
         });
     };
 
@@ -913,7 +912,6 @@ export const Audits: React.FC = () => {
             );
         })().catch((error) => {
             ErrorLogger.error(error, 'Audits.generateAuditPlan');
-            addToast("Erreur lors de l'export PDF", 'error');
         });
     };
 
@@ -1017,7 +1015,6 @@ export const Audits: React.FC = () => {
             addToast("Pack d'audit téléchargé", "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Audits.handleExportPack', 'FETCH_FAILED');
-            addToast("Erreur lors de l'export du pack", "error");
         }
     };
 

@@ -334,7 +334,7 @@ export const Suppliers: React.FC = () => {
         } finally {
             setConfirmData(prev => ({ ...prev, loading: false }));
         }
-    }, [performDelete, addToast, selectedSupplier]);
+    }, [performDelete, user, addToast, selectedSupplier]);
 
     const initiateDelete = React.useCallback((id: string, name: string) => {
         if (!canEdit) return;

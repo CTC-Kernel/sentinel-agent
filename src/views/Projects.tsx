@@ -346,7 +346,6 @@ export const Projects: React.FC = () => {
                                     setConfirmData({ isOpen: false, title: '', message: '', onConfirm: () => { } });
                                 } catch (err) {
                                     ErrorLogger.error(err, 'Projects.updateLinkedControls');
-                                    addToast("Erreur lors de la mise à jour des contrôles", "error");
                                 }
                             }
                         });
@@ -641,7 +640,6 @@ export const Projects: React.FC = () => {
             );
         })().catch((error) => {
             ErrorLogger.error(error, 'Projects.generateReport');
-            addToast("Erreur lors de l'export PDF", 'error');
         });
     };
 
@@ -668,7 +666,6 @@ export const Projects: React.FC = () => {
             );
         } catch (error) {
             ErrorLogger.error(error, 'Projects.exportPDF');
-            addToast("Erreur lors de l'export PDF", 'error');
         } finally {
             setTimeout(() => setIsExportingPDF(false), 0);
         }
