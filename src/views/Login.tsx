@@ -43,6 +43,16 @@ export const Login: React.FC = () => {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const { addToast } = useStore();
 
+    const getIsNativePlatform = async (): Promise<boolean> => {
+        try {
+            const { Capacitor } = await import('@capacitor/core');
+            return Capacitor.isNativePlatform();
+        } catch {
+            // If Capacitor isn't available (web build / bundler), default to web behavior.
+            return false;
+        }
+    };
+
     // Finalize Google redirect flow on page load
     useEffect(() => {
         let isMounted = true;
@@ -153,8 +163,7 @@ export const Login: React.FC = () => {
         setLoading(true);
         setErrorMsg(null);
         try {
-            const { Capacitor } = await import('@capacitor/core');
-            const isNative = Capacitor.isNativePlatform();
+            const isNative = await getIsNativePlatform();
 
             if (isNative) {
                 const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
@@ -190,8 +199,7 @@ export const Login: React.FC = () => {
         setLoading(true);
         setErrorMsg(null);
         try {
-            const { Capacitor } = await import('@capacitor/core');
-            const isNative = Capacitor.isNativePlatform();
+            const isNative = await getIsNativePlatform();
 
             if (isNative) {
                 const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
