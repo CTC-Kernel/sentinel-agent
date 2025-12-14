@@ -10,7 +10,10 @@ const PORT = process.env.PORT || 8080;
 
 const isProd = process.env.NODE_ENV === 'production';
 
-const CSP = "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://apis.google.com https://accounts.google.com https://accounts.gstatic.com https://ssl.gstatic.com https://*.gstatic.com https://www.google.com https://www.gstatic.com https://www.googleapis.com https://www.googletagmanager.com https://js.stripe.com; script-src-elem 'self' 'unsafe-inline' blob: https://apis.google.com https://accounts.google.com https://accounts.gstatic.com https://ssl.gstatic.com https://*.gstatic.com https://www.google.com https://www.gstatic.com https://www.googleapis.com https://www.googletagmanager.com https://js.stripe.com; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: wss: data: blob: https://app.cyber-threat-consulting.com https://accounts.google.com https://www.googleapis.com https://*.firebaseapp.com https://*.web.app https://*.hosted.app https://*.google-analytics.com https://*.analytics.google.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.shodan.io https://haveibeenpwned.com https://safebrowsing.googleapis.com; frame-src 'self' https://accounts.google.com https://accounts.gstatic.com https://*.firebaseapp.com https://*.web.app https://*.hosted.app https://www.google.com https://recaptcha.google.com https://js.stripe.com https://hooks.stripe.com; object-src 'none'; worker-src 'self' blob: https://www.google.com https://www.gstatic.com https://recaptcha.google.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests";
+const CSP_REPORT_URI = '/csp-report';
+const CSP_REPORT_TO_GROUP = 'csp-endpoint';
+
+const CSP = "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://apis.google.com https://accounts.google.com https://accounts.gstatic.com https://ssl.gstatic.com https://*.gstatic.com https://www.google.com https://www.gstatic.com https://www.googleapis.com https://www.googletagmanager.com https://js.stripe.com; script-src-elem 'self' 'unsafe-inline' blob: https://apis.google.com https://accounts.google.com https://accounts.gstatic.com https://ssl.gstatic.com https://*.gstatic.com https://www.google.com https://www.gstatic.com https://www.googleapis.com https://www.googletagmanager.com https://js.stripe.com; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: wss: data: blob: https://app.cyber-threat-consulting.com https://accounts.google.com https://www.googleapis.com https://*.firebaseapp.com https://*.web.app https://*.hosted.app https://*.google-analytics.com https://*.analytics.google.com https://region1.google-analytics.com https://www.googletagmanager.com https://api.shodan.io https://haveibeenpwned.com https://safebrowsing.googleapis.com; frame-src 'self' https://accounts.google.com https://accounts.gstatic.com https://*.firebaseapp.com https://*.web.app https://*.hosted.app https://www.google.com https://recaptcha.google.com https://js.stripe.com https://hooks.stripe.com; object-src 'none'; worker-src 'self' blob: https://www.google.com https://www.gstatic.com https://recaptcha.google.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests; report-uri " + CSP_REPORT_URI + "; report-to " + CSP_REPORT_TO_GROUP;
 
 // Serve static files from the dist directory
 const distPath = path.resolve(__dirname, 'dist');
@@ -33,10 +36,33 @@ app.use((req, res, next) => {
         res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     }
 
+    // Reporting API (for CSP report-only visibility without console spam)
+    const reportToValue = {
+        group: CSP_REPORT_TO_GROUP,
+        max_age: 10886400,
+        endpoints: [{ url: CSP_REPORT_URI }],
+        include_subdomains: true
+    };
+    res.setHeader('Report-To', JSON.stringify(reportToValue));
+    res.setHeader('Reporting-Endpoints', `${CSP_REPORT_TO_GROUP}="${CSP_REPORT_URI}"`);
+
     // CSP as the single source of truth in App Hosting (Express)
     res.setHeader('Content-Security-Policy', CSP);
     res.setHeader('Content-Security-Policy-Report-Only', CSP);
     next();
+});
+
+// CSP reporting endpoint
+app.post('/csp-report', express.json({ type: ['application/csp-report', 'application/json', 'application/reports+json'] }), (req, res) => {
+    try {
+        // Keep minimal log for debugging in production; no sensitive data should be included by browsers.
+        if (process.env.NODE_ENV !== 'production') {
+            console.warn('CSP Report:', JSON.stringify(req.body));
+        }
+    } catch {
+        // ignore
+    }
+    res.status(204).end();
 });
 
 // Reverse proxy for /api/* to Cloud Functions base (useful in App Hosting where firebase.json rewrites may not apply)
