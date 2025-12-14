@@ -91,6 +91,23 @@ export default defineConfig({
     rollupOptions: {
       external: ['capacitor.js'],
       output: {
+        banner: "(() => {\n" +
+          "  try {\n" +
+          "    const g = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : (typeof self !== 'undefined' ? self : undefined));\n" +
+          "    if (!g) return;\n" +
+          "    if (!g.setImmediate) {\n" +
+          "      g.setImmediate = (cb, ...args) => {\n" +
+          "        if (typeof cb !== 'function') throw new TypeError('setImmediate callback must be a function');\n" +
+          "        return setTimeout(cb, 0, ...args);\n" +
+          "      };\n" +
+          "    }\n" +
+          "    if (!g.clearImmediate) {\n" +
+          "      g.clearImmediate = (id) => clearTimeout(id);\n" +
+          "    }\n" +
+          "  } catch (_) {\n" +
+          "    // no-op\n" +
+          "  }\n" +
+          "})();",
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           firebase: ['firebase/app'],
