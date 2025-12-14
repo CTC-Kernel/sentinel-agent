@@ -130,6 +130,28 @@ export const auth = getAuth(app);
 // Fallback to in-memory cache if IndexedDB is blocked/unavailable (private mode, hardened browsers, etc.).
 export const db = (() => {
   try {
+    const isSafari = (() => {
+      try {
+        if (typeof navigator === 'undefined') return false;
+        const ua = navigator.userAgent || '';
+        const vendor = (navigator as unknown as { vendor?: string }).vendor || '';
+        const isAppleVendor = vendor.includes('Apple');
+        const isSafariUA = /Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR|CriOS|FxiOS/i.test(ua);
+        return isAppleVendor && isSafariUA;
+      } catch {
+        return false;
+      }
+    })();
+
+    // Safari is prone to IndexedDB quirks and long-polling issues that can trigger Firestore internal assertions.
+    // Mitigation: disable persistent cache + force long polling on Safari.
+    if (isSafari) {
+      return initializeFirestore(app, {
+        localCache: memoryLocalCache(),
+        experimentalForceLongPolling: true
+      });
+    }
+
     return initializeFirestore(app, {
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager()
@@ -140,7 +162,8 @@ export const db = (() => {
       metadata: { error }
     });
     return initializeFirestore(app, {
-      localCache: memoryLocalCache()
+      localCache: memoryLocalCache(),
+      experimentalForceLongPolling: true
     });
   }
 })();
