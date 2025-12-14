@@ -54,7 +54,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
     const taskDistribution = useMemo(() => {
         const tasks = project.tasks || [];
         return [
-            { name: 'À faire', value: tasks.filter(t => t.status === 'A faire').length, color: '#94a3b8' },
+            { name: 'À faire', value: tasks.filter(t => t.status === 'A faire').length, color: 'hsl(var(--muted-foreground) / 0.55)' },
             { name: 'En cours', value: tasks.filter(t => t.status === 'En cours').length, color: '#3b82f6' },
             { name: 'Terminé', value: tasks.filter(t => t.status === 'Terminé').length, color: '#10b981' }
         ];
