@@ -27,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
+    const [profileError, setProfileError] = useState<Error | null>(null);
     const { setUser, setOrganization, setTheme } = useStore();
 
     const [isBlocked, setIsBlocked] = useState(isAppCheckFailed);
@@ -127,9 +128,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const safetyTimeout = setTimeout(() => {
             if (loading) {
                 ErrorLogger.warn("Auth loading timeout - forcing stop", 'AuthContext.safetyTimeout');
+                setProfileError(new Error("Délai d'attente dépassé (Connexion lente)"));
                 setLoading(false);
             }
-        }, 8000);
+        }, 12000); // Increased to 12s for slow Long Polling connections
 
         const handleUser = async (u: User | null) => {
             setFirebaseUser(u);
@@ -164,6 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 unsubscribeProfile = onSnapshot(userRef, async (snapshot) => {
                     clearTimeout(safetyTimeout); // Clear timeout on success
                     setIsBlocked(false); // Reset blocked state on success
+                    setProfileError(null);
 
                     if (snapshot.exists()) {
                         const userData = snapshot.data() as UserProfile;
@@ -344,6 +347,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         firebaseUser,
         loading,
         error,
+        profileError,
         isBlocked,
         dismissBlockerError: () => setIsBlocked(false),
         isAdmin: useStore.getState().user?.role === 'admin',

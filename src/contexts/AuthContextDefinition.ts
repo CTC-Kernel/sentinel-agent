@@ -7,6 +7,7 @@ export interface AuthContextType {
     firebaseUser: User | null;
     loading: boolean;
     error: Error | null;
+    profileError?: Error | null;
     isBlocked?: boolean;
     dismissBlockerError: () => void;
     isAdmin: boolean;
