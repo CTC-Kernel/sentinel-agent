@@ -354,11 +354,13 @@ export const Login: React.FC = () => {
 
                         <form onSubmit={handleSubmit(handleEmailAuth)} className="space-y-5">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-600 ml-1 uppercase tracking-widest">Email</label>
+                                <label htmlFor="login-email" className="text-xs font-bold text-slate-600 ml-1 uppercase tracking-widest">Email</label>
                                 <div className="relative group">
                                     <Mail className="absolute left-4 top-4 h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
                                     <input
+                                        id="login-email"
                                         type="email"
+                                        autoComplete="email"
                                         className={`w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-500 text-[15px] font-medium shadow-sm ${errors.email ? 'border-red-500' : 'border-slate-200/60 dark:border-white/10'}`}
                                         placeholder="nom@entreprise.com"
                                         {...register('email')}
@@ -369,7 +371,7 @@ export const Login: React.FC = () => {
 
                             <div className="space-y-1.5">
                                 <div className="flex justify-between items-center ml-1">
-                                    <label className="text-xs font-bold text-slate-600 uppercase tracking-widest">Mot de passe</label>
+                                    <label htmlFor="login-password" className="text-xs font-bold text-slate-600 uppercase tracking-widest">Mot de passe</label>
                                     {isLogin && (
                                         <button type="button" onClick={() => setShowResetModal(true)} className="text-[11px] font-bold text-brand-600 hover:text-brand-500 transition-colors">
                                             Oublié ?
@@ -379,7 +381,9 @@ export const Login: React.FC = () => {
                                 <div className="relative group">
                                     <Lock className="absolute left-4 top-4 h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
                                     <input
+                                        id="login-password"
                                         type="password"
+                                        autoComplete={isLogin ? 'current-password' : 'new-password'}
                                         className={`w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:text-white transition-all outline-none placeholder:text-slate-500 text-[15px] font-medium shadow-sm ${errors.password ? 'border-red-500' : 'border-slate-200/60 dark:border-white/10'}`}
                                         placeholder="••••••••"
                                         {...register('password')}
