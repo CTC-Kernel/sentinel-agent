@@ -11,9 +11,16 @@ import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { DatePicker } from '../ui/DatePicker';
 import { ASSET_TYPES, ASSET_LIFECYCLE_STATUSES, COMPLIANCE_SCOPES } from '../../data/assetConstants';
-import { AIAssistantHeader, Template } from '../ui/AIAssistantHeader';
+import { AIAssistantHeader, BaseTemplate } from '../ui/AIAssistantHeader';
 
-const ASSET_TEMPLATES: Template[] = [
+type AssetTemplate = BaseTemplate & {
+    type: string;
+    confidentiality: string;
+    integrity: string;
+    availability: string;
+};
+
+const ASSET_TEMPLATES: AssetTemplate[] = [
     { name: 'Serveur de Base de Données', description: 'Serveur SQL critique stockant les données clients.', type: 'Matériel', confidentiality: 'Critique', integrity: 'Critique', availability: 'Élevée' },
     { name: 'Laptop Développeur', description: 'MacBook Pro pour le développement.', type: 'Matériel', confidentiality: 'Moyenne', integrity: 'Moyenne', availability: 'Moyenne' },
     { name: 'SaaS CRM Salesforce', description: 'Plateforme CRM cloud.', type: 'Service', confidentiality: 'Élevée', integrity: 'Élevée', availability: 'Élevée' },

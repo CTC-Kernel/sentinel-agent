@@ -12,7 +12,8 @@ interface RecentActivityWidgetProps {
 
 export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ recentActivity, loading, t }) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [filter, setFilter] = useState<'All' | 'Risk' | 'Incident' | 'Asset'>('All');
+    type ActivityFilter = 'All' | 'Risk' | 'Incident' | 'Asset';
+    const [filter, setFilter] = useState<ActivityFilter>('All');
 
     const getActivityIcon = (resource: string) => {
         switch (resource) {
@@ -38,7 +39,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
                 <select
                     value={filter}
                     onClick={(e) => e.stopPropagation()}
-                    onChange={(e) => setFilter(e.target.value as any)}
+                    onChange={(e) => setFilter(e.target.value as ActivityFilter)}
                     className="px-2 py-1.5 bg-white/80 dark:bg-white/10 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 hover:bg-white dark:hover:bg-white/20 transition-colors outline-none cursor-pointer"
                 >
                     <option value="All">{t('common.all')}</option>

@@ -37,12 +37,6 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     assets,
     audits,
     risks,
-    // folders, // Removed unused variable to fix lint error if not needed yet, or use it if intended.
-    // Actually it is used in the JSX options. Wait, the lint error said 'folders' is declared but never read.
-    // Ah, I see in my previous edit I added it to props but maybe didn't use it correctly or the linter is being strict about the destructuring if it's not used in the function body before return?
-    // No, it is used in the JSX: options={[{ value: '', label: 'Racine' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
-    // The lint error might have been from a transient state or I missed something.
-    // Let's just ensure it is used.
     folders,
     isLoading = false,
     isStorageFull = false,
@@ -53,7 +47,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     const [uploadedFileHash, setUploadedFileHash] = useState<string>(initialData?.hash || '');
     const [uploadedFileSecure, setUploadedFileSecure] = useState<boolean>(initialData?.isSecure || false);
 
-    const { register, handleSubmit, control, setValue, formState: { errors }, watch } = useForm<DocumentFormData>({
+    const { register, handleSubmit, control, setValue, formState: { errors } } = useForm<DocumentFormData>({
         resolver: zodResolver(documentSchema) as Resolver<DocumentFormData>,
         defaultValues: {
             title: initialData?.title || '',
@@ -77,6 +71,10 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             folderId: initialData?.folderId || ''
         }
     });
+
+    const folderId = useWatch({ control, name: 'folderId' });
+    const docType = useWatch({ control, name: 'type' });
+    const status = useWatch({ control, name: 'status' });
 
     const ownerId = useWatch({ control, name: 'ownerId' });
     const storageProvider = useWatch({ control, name: 'storageProvider' });
@@ -133,15 +131,15 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                     <CustomSelect
                         label="Dossier"
                         options={[{ value: '', label: 'Racine' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
-                        value={watch('folderId') || ''}
-                        onChange={(val) => setValue('folderId', val as string)}
+                        value={folderId || ''}
+                        onChange={(val) => setValue('folderId', typeof val === 'string' ? val : '')}
                         error={errors.folderId?.message}
                     />
                     <CustomSelect
                         label="Type"
                         options={['Politique', 'Procédure', 'Preuve', 'Rapport', 'Autre'].map(t => ({ value: t, label: t }))}
-                        value={watch('type') || 'Politique'}
-                        onChange={(val) => setValue('type', val as DocumentFormData['type'])}
+                        value={docType || 'Politique'}
+                        onChange={(val) => setValue('type', (typeof val === 'string' ? val : 'Politique') as DocumentFormData['type'])}
                         error={errors.type?.message}
                     />
                     <FloatingLabelInput
@@ -170,15 +168,15 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                     <CustomSelect
                         label="Statut"
                         options={['Brouillon', 'En revue', 'Approuvé', 'Rejeté', 'Publié', 'Obsolète'].map(s => ({ value: s, label: s }))}
-                        value={watch('status') || 'Brouillon'}
-                        onChange={(val) => setValue('status', val as DocumentFormData['status'])}
+                        value={status || 'Brouillon'}
+                        onChange={(val) => setValue('status', (typeof val === 'string' ? val : 'Brouillon') as DocumentFormData['status'])}
                         error={errors.status?.message}
                     />
                     <CustomSelect
                         label="Propriétaire"
                         options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                        value={watch('ownerId') || ''}
-                        onChange={(val) => setValue('ownerId', val as string)}
+                        value={ownerId || ''}
+                        onChange={(val) => setValue('ownerId', typeof val === 'string' ? val : '')}
                         error={errors.ownerId?.message}
                     />
                 </div>
@@ -285,8 +283,13 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                 { value: 'onedrive', label: 'OneDrive' },
                                 { value: 'sharepoint', label: 'SharePoint' }
                             ]}
-                            value={watch('storageProvider') || 'firebase'}
-                            onChange={(val) => setValue('storageProvider', val as DocumentFormData['storageProvider'])}
+                            value={storageProvider || 'firebase'}
+                            onChange={(val) => {
+                                if (typeof val !== 'string') return;
+                                if (val === 'firebase' || val === 'google_drive' || val === 'onedrive' || val === 'sharepoint') {
+                                    setValue('storageProvider', val);
+                                }
+                            }}
                         />
                     </div>
 

@@ -1,6 +1,8 @@
 import React from 'react';
 import { ShieldCheck, Lock, EyeOff, FileCheck } from './Icons';
 
+type SecurityBadgeIconComponent = React.ElementType<{ className?: string; strokeWidth?: number }>;
+
 export type SecurityFeature = 'general' | 'storage' | 'confidentiality' | 'integrity';
 
 interface SecurityBadgeProps {
@@ -9,7 +11,7 @@ interface SecurityBadgeProps {
 }
 
 const BADGE_CONFIG: Record<SecurityFeature, {
-    icon: React.ElementType<any>;
+    icon: SecurityBadgeIconComponent;
     label: string;
     detail: string;
     subDetail: string;
@@ -47,7 +49,7 @@ const BADGE_CONFIG: Record<SecurityFeature, {
 
 export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature, className = '' }) => {
     const config = BADGE_CONFIG[feature];
-    const Icon: any = config.icon;
+    const Icon = config.icon;
 
     const colorClasses = {
         emerald: "bg-emerald-50/50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-200/50 dark:ring-emerald-500/20 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20",

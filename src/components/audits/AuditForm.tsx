@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { AddToCalendar } from '../ui/AddToCalendar';
@@ -8,15 +7,18 @@ import { Audit, Control, Asset, Risk, UserProfile, Project } from '../../types';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { Button } from '../ui/button';
-import { AIAssistantHeader, Template } from '../ui/AIAssistantHeader';
+import { AIAssistantHeader, BaseTemplate } from '../ui/AIAssistantHeader';
 import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
+import type { Framework } from '../../types';
 import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
 import { FloatingLabelSelect } from '../ui/FloatingLabelSelect';
 
 
 
-const AUDIT_TEMPLATES: Template[] = [
+type AuditTemplate = BaseTemplate & { type: string; standard: string; scope: string };
+
+const AUDIT_TEMPLATES: AuditTemplate[] = [
     { name: 'Audit Interne ISO 27001', description: 'Vérification de conformité annuelle sur le périmètre complet.', type: 'Interne', standard: 'ISO 27001', scope: 'Organisation Globale' },
     { name: 'Audit Fournisseur Critique', description: 'Évaluation de sécurité d\'un hébergeur de données de santé.', type: 'Externe', standard: 'HDS / ISO 27001', scope: 'Fournisseurs' },
     { name: 'Review Accès Logiques', description: 'Revue trimestrielle des comptes à privilèges.', type: 'Interne', standard: 'Interne', scope: 'IT / IAM' },
@@ -118,9 +120,13 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             // If not, the instruction might be based on an incomplete understanding of the schema.
             // I will add them as per the instruction.
             // setValue('description', t.description); // This field is not in AuditFormData based on defaultValues
-            setValue('framework', t.standard); // This field is not in AuditFormData based on defaultValues
+            if (typeof t.standard === 'string') {
+                setValue('framework', t.standard as Framework);
+            } else {
+                setValue('framework', undefined);
+            }
             setValue('type', t.type as AuditFormData['type']); // Assuming type is compatible or string
-            setValue('scope', t.scope);
+            setValue('scope', typeof t.scope === 'string' ? t.scope : '');
         }
     };
 
@@ -146,8 +152,12 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 // If not, these lines will cause type errors or be ignored.
                 // I will add them as per the instruction.
                 // if (data.description) setValue('description', data.description); // Not in AuditFormData
-                if (data.standard) setValue('framework', data.standard); // Not in AuditFormData
-                if (data.scope) setValue('scope', data.scope);
+                if (typeof data.standard === 'string') {
+                    setValue('framework', data.standard as Framework);
+                }
+                if (typeof data.scope === 'string') {
+                    setValue('scope', data.scope);
+                }
             }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'AuditForm.handleAutoGenerate', 'AI_ERROR');

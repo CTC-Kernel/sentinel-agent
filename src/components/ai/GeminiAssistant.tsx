@@ -11,6 +11,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { cn } from '../../lib/utils';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import type { Components } from 'react-markdown';
 
 interface Message {
     id: string;
@@ -19,6 +20,62 @@ interface Message {
     timestamp: Date;
     isError?: boolean;
 }
+
+type FirestoreTimestampLike = { toDate?: () => Date };
+type FirestoreMessage = {
+    id?: unknown;
+    role?: unknown;
+    content?: unknown;
+    timestamp?: unknown;
+    isError?: unknown;
+};
+
+type MessageRole = Message['role'];
+
+const prismTheme = vscDarkPlus as unknown as { [key: string]: React.CSSProperties };
+
+const markdownComponents: Components = {
+    code: (props) => {
+        const { className, children, ...rest } = props;
+        const inline = 'inline' in rest && typeof (rest as { inline?: unknown }).inline === 'boolean'
+            ? (rest as { inline?: boolean }).inline
+            : false;
+
+        const match = /language-(\w+)/.exec(className || '');
+        return !inline && match ? (
+            <div className="rounded-lg overflow-hidden my-2 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between px-3 py-1 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 text-xs text-slate-600">
+                    <span>{match[1]}</span>
+                    <button
+                        onClick={() => {
+                            navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
+                        }}
+                        className="hover:text-indigo-500 transition-colors"
+                    >
+                        Copier
+                    </button>
+                </div>
+                <SyntaxHighlighter
+                    style={prismTheme}
+                    language={match[1]}
+                    PreTag="div"
+                    customStyle={{ margin: 0, borderRadius: 0 }}
+                >
+                    {String(children).replace(/\n$/, '')}
+                </SyntaxHighlighter>
+            </div>
+        ) : (
+            <code
+                className={cn(
+                    "px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/50 font-mono text-xs text-indigo-600 dark:text-indigo-400",
+                    className
+                )}
+            >
+                {children}
+            </code>
+        );
+    }
+};
 
 const QUICK_PROMPTS = [
     { label: "Analyser les risques", prompt: "Analyse les risques actuels et propose des mesures de mitigation prioritaires." },
@@ -66,10 +123,28 @@ export const GeminiAssistant: React.FC = () => {
                 const data = docSnap.data();
                 if (data.messages && Array.isArray(data.messages)) {
                     // Convert timestamps back to Date objects
-                    const loadedMessages = data.messages.map((m: any) => ({
-                        ...m,
-                        timestamp: m.timestamp?.toDate ? m.timestamp.toDate() : new Date(m.timestamp)
-                    }));
+                    const loadedMessages: Message[] = data.messages
+                        .map((m: unknown) => {
+                            const fm = m as FirestoreMessage;
+                            const id = typeof fm.id === 'string' ? fm.id : '';
+                            const role: MessageRole = fm.role === 'user' || fm.role === 'assistant' ? fm.role : 'assistant';
+                            const content = typeof fm.content === 'string' ? fm.content : '';
+
+                            const ts = fm.timestamp as FirestoreTimestampLike | string | number | Date | undefined;
+                            const timestamp =
+                                ts && typeof (ts as FirestoreTimestampLike).toDate === 'function'
+                                    ? (ts as FirestoreTimestampLike).toDate!()
+                                    : ts instanceof Date
+                                        ? ts
+                                        : typeof ts === 'string' || typeof ts === 'number'
+                                            ? new Date(ts)
+                                            : new Date();
+
+                            const isError = typeof fm.isError === 'boolean' ? fm.isError : undefined;
+
+                            return { id, role, content, timestamp, isError };
+                        })
+                        .filter((m) => m.id.length > 0 && m.content.length > 0);
                     setMessages(loadedMessages);
                 }
             } else {
@@ -144,9 +219,12 @@ export const GeminiAssistant: React.FC = () => {
                 updatedAt: serverTimestamp()
             });
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             ErrorLogger.error(error, 'GeminiAssistant.handleSend');
-            const isQuotaError = error.message?.includes('Daily AI limit reached') || error.code === 'resource-exhausted';
+            const err = error as { message?: unknown; code?: unknown };
+            const message = typeof err.message === 'string' ? err.message : '';
+            const code = typeof err.code === 'string' ? err.code : '';
+            const isQuotaError = message.includes('Daily AI limit reached') || code === 'resource-exhausted';
 
             const errorMsg: Message = {
                 id: (Date.now() + 1).toString(),
@@ -264,34 +342,7 @@ export const GeminiAssistant: React.FC = () => {
                                     <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:p-0 prose-pre:bg-transparent">
                                         <ReactMarkdown
                                             remarkPlugins={[remarkGfm]}
-                                            components={{
-                                                code({ inline, className, children, ...props }: any) {
-                                                    const match = /language-(\w+)/.exec(className || '')
-                                                    return !inline && match ? (
-                                                        <div className="rounded-lg overflow-hidden my-2 border border-slate-200 dark:border-slate-700">
-                                                            <div className="flex items-center justify-between px-3 py-1 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 text-xs text-slate-600">
-                                                                <span>{match[1]}</span>
-                                                                <button onClick={() => {
-                                                                    navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
-                                                                }} className="hover:text-indigo-500 transition-colors">Copier</button>
-                                                            </div>
-                                                            <SyntaxHighlighter
-                                                                style={vscDarkPlus}
-                                                                language={match[1]}
-                                                                PreTag="div"
-                                                                customStyle={{ margin: 0, borderRadius: 0 }}
-                                                                {...props}
-                                                            >
-                                                                {String(children).replace(/\n$/, '')}
-                                                            </SyntaxHighlighter>
-                                                        </div>
-                                                    ) : (
-                                                        <code className={cn("px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/50 font-mono text-xs text-indigo-600 dark:text-indigo-400", className)} {...props}>
-                                                            {children}
-                                                        </code>
-                                                    )
-                                                }
-                                            }}
+                                            components={markdownComponents}
                                         >
                                             {msg.content}
                                         </ReactMarkdown>

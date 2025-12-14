@@ -297,7 +297,7 @@ export const Assets: React.FC = () => {
             const cleanData = sanitizeData(validatedData);
             // Track History if Criticality Changes
             const prev = selectedAsset;
-            const dataToUpdate: any = {
+            const dataToUpdate: Record<string, unknown> = {
                 ...cleanData,
             };
 

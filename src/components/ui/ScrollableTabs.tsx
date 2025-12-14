@@ -1,10 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+type TabIconComponent = React.ElementType<{ className?: string }>;
+
 interface Tab {
     id: string;
     label: string;
-    icon?: any;
+    icon?: TabIconComponent;
     count?: number;
 }
 

@@ -3,12 +3,15 @@ import { MyWorkspaceWidget } from '../widgets/MyWorkspaceWidget';
 import { PriorityRisksWidget } from '../widgets/PriorityRisksWidget';
 import { CyberNewsWidget } from '../CyberNewsWidget';
 
+type ActionItemList = React.ComponentProps<typeof MyWorkspaceWidget>['myActionItems'];
+type RiskList = React.ComponentProps<typeof PriorityRisksWidget>['topRisks'];
+
 interface ProjectManagerDashboardViewProps {
     loading: boolean;
     navigate: (path: string) => void;
     t: (key: string) => string;
-    myActionItems: any[];
-    projectRisks: any[];
+    myActionItems: ActionItemList;
+    projectRisks: RiskList;
 }
 
 export const ProjectManagerDashboardView: React.FC<ProjectManagerDashboardViewProps> = ({

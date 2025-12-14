@@ -4,7 +4,24 @@ import { MaturityRadarWidget } from './MaturityRadarWidget';
 import { ShinyText } from '../../ui/ShinyText';
 
 
-const InsightCard: React.FC<{ insight: any, navigate: (path: string) => void }> = ({ insight, navigate }) => {
+type DashboardInsight = {
+    type?: 'danger' | 'warning' | 'success' | string;
+    text?: string;
+    details?: string;
+    link?: string;
+    action?: string;
+};
+
+type DashboardUserLike = {
+    role?: string;
+    displayName?: string;
+    organizationName?: string;
+};
+
+type RadarDatum = { subject: string; A: number; fullMark?: number };
+
+
+const InsightCard: React.FC<{ insight: DashboardInsight, navigate: (path: string) => void }> = ({ insight, navigate }) => {
     const [isVisible, setIsVisible] = React.useState(true);
 
     if (!isVisible) return null;
@@ -15,7 +32,7 @@ const InsightCard: React.FC<{ insight: any, navigate: (path: string) => void }> 
         success: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-500/20', icon: ShieldCheck }
     };
 
-    const type = insight.type as keyof typeof styles || 'success';
+    const type = (insight.type as keyof typeof styles) || 'success';
     const style = styles[type];
     const Icon = style.icon;
 
@@ -26,15 +43,15 @@ const InsightCard: React.FC<{ insight: any, navigate: (path: string) => void }> 
                     <Icon className="h-5 w-5" fill="currentColor" fillOpacity={0.2} strokeWidth={2} />
                 </div>
                 <div className="flex-1 min-w-0 pt-0.5">
-                    <p className="text-base font-bold text-slate-900 dark:text-white mb-1 pr-6 tracking-tight">{insight.text}</p>
+                    <p className="text-base font-bold text-slate-900 dark:text-white mb-1 pr-6 tracking-tight">{insight.text || ''}</p>
                     {insight.details && <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-[95%] opacity-90">{insight.details}</p>}
 
                     {insight.link && (
                         <button
-                            onClick={() => navigate(insight.link!)}
+                            onClick={() => navigate(insight.link ?? '')}
                             className={`mt-3 inline-flex items-center text-xs font-bold ${style.text} uppercase tracking-wider hover:opacity-80 transition-opacity`}
                         >
-                            {insight.action} <ArrowRight className="h-3 w-3 ml-1" />
+                            {insight.action || ''} <ArrowRight className="h-3 w-3 ml-1" />
                         </button>
                     )}
                 </div>
@@ -50,17 +67,17 @@ const InsightCard: React.FC<{ insight: any, navigate: (path: string) => void }> 
 };
 
 interface DashboardHeaderProps {
-    user: any;
+    user: DashboardUserLike | null;
     organizationName: string;
     scoreGrade?: string;
-    stats?: any;
-    radarData?: any[];
+    stats?: unknown;
+    radarData?: RadarDatum[];
     loading: boolean;
     isEmpty?: boolean;
     navigate?: (path: string) => void;
     t?: (key: string) => string;
     theme?: string;
-    insight?: any;
+    insight?: DashboardInsight;
     teamSize: number | null;
     activeIncidentsCount: number;
     openAuditsCount: number;
@@ -88,10 +105,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         return 'from-red-500 to-red-700';
     };
 
-    const role = user?.role || 'user';
-    const welcomeKey = `dashboard.welcomeTitle_${['admin', 'rssi', 'direction', 'auditor', 'project_manager'].includes(role) ? role : 'user'}`;
+    type Role = 'admin' | 'rssi' | 'direction' | 'auditor' | 'project_manager' | 'user';
+    const rawRole = user?.role;
+    const role: Role = (rawRole === 'admin' || rawRole === 'rssi' || rawRole === 'direction' || rawRole === 'auditor' || rawRole === 'project_manager') ? rawRole : 'user';
 
-    const subtitleKey1 = `dashboard.welcomeSubtitle1_${['admin', 'rssi', 'direction', 'auditor', 'project_manager'].includes(role) ? role : 'user'}`;
+    const welcomeKey = `dashboard.welcomeTitle_${role}`;
+
+    const subtitleKey1 = `dashboard.welcomeSubtitle1_${role}`;
 
     const cards = [
         { title: t('dashboard.createAsset'), desc: role === 'admin' ? t('dashboard.createAssetDesc_rssi') : t('dashboard.createAssetDesc'), icon: Server, color: 'blue', link: '/assets' },

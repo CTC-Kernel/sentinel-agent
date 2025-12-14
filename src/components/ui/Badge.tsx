@@ -1,12 +1,14 @@
 import React from 'react';
 
+type BadgeIconComponent = React.ElementType<{ className?: string }>;
+
 interface BadgeProps {
     children: React.ReactNode;
     variant?: 'default' | 'outline' | 'soft' | 'glass';
     status?: 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'brand';
     size?: 'sm' | 'md';
     className?: string;
-    icon?: any;
+    icon?: BadgeIconComponent;
 }
 
 export const Badge: React.FC<BadgeProps> = ({

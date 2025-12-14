@@ -6,7 +6,7 @@ import { ChartTooltip } from '../../ui/ChartTooltip';
 import { DashboardCard } from '../DashboardCard';
 
 interface ComplianceEvolutionWidgetProps {
-    historyData: any[];
+    historyData: { date: string; compliance: number }[];
     loading: boolean;
     t: (key: string) => string;
     theme: string;

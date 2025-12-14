@@ -15,8 +15,6 @@ import { WifiOff } from './components/ui/Icons';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { TopBar } from './components/layout/TopBar';
-import { NotificationService } from './services/notificationService';
-import { BackupService } from './services/backupService';
 import { ErrorLogger } from './services/errorLogger';
 import { NotificationPermissionBanner } from './components/ui/NotificationPermissionBanner';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
@@ -29,7 +27,6 @@ import { LoadingScreen } from './components/ui/LoadingScreen';
 import { SmoothScroll } from './components/ui/SmoothScroll';
 import { CookieConsent } from './components/ui/CookieConsent';
 import { ShortcutsHelp } from './components/ui/ShortcutsHelp';
-import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 import { CustomRole } from './types';
 import { VersionCheck } from './components/VersionCheck';
@@ -80,6 +77,7 @@ const AppLayout: React.FC = () => {
         if (!user?.organizationId) return;
         const fetchRoles = async () => {
             try {
+                const { collection, query, where, getDocs } = await import('firebase/firestore');
                 const q = query(collection(db, 'custom_roles'), where('organizationId', '==', user.organizationId));
                 const snapshot = await getDocs(q);
                 const roles = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as CustomRole));
@@ -97,8 +95,10 @@ const AppLayout: React.FC = () => {
 
         const runChecks = async () => {
             try {
+                const { NotificationService } = await import('./services/notificationService');
                 await NotificationService.runAutomatedChecks(user.organizationId!);
                 if (hasPermission(user, 'Settings', 'manage')) {
+                    const { BackupService } = await import('./services/backupService');
                     await BackupService.checkScheduledBackups(user);
                 }
             } catch (e) {

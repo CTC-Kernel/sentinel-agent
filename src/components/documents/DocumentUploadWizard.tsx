@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, useWatch, Controller, SubmitHandler } from 'react-hook-form'; // Added SubmitHandler
+import type { FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { documentSchema, DocumentFormData } from '../../schemas/documentSchema';
 import { UserProfile, Control, Asset, DocumentFolder, Risk } from '../../types'; // Removed Audit
@@ -56,8 +57,8 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
     const [uploadedFileSecure, setUploadedFileSecure] = useState<boolean>(false);
     const [fileName, setFileName] = useState<string>('');
 
-    const { register, handleSubmit, control, setValue, watch, trigger, formState: { errors } } = useForm<DocumentFormData>({
-        resolver: zodResolver(documentSchema) as any, // Cast to any to avoid strict Resolver incompatibility
+    const { register, handleSubmit, control, setValue, getValues, trigger, formState: { errors } } = useForm<DocumentFormData>({
+        resolver: zodResolver(documentSchema) as unknown as never,
         defaultValues: {
             title: '',
             type: 'Politique',
@@ -82,6 +83,9 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
 
     const storageProvider = useWatch({ control, name: 'storageProvider' });
     const ownerId = useWatch({ control, name: 'ownerId' });
+    const folderId = useWatch({ control, name: 'folderId' });
+    const docType = useWatch({ control, name: 'type' });
+    const status = useWatch({ control, name: 'status' });
 
     // Handle initial file drop
     useEffect(() => {
@@ -112,7 +116,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
         setFileName(fName);
         setUploadedFileHash(hash || '');
         setUploadedFileSecure(isSecure || false);
-        if (!watch('title')) {
+        if (!getValues('title')) {
             setValue('title', fName.split('.').slice(0, -1).join('.'));
         }
     };
@@ -136,13 +140,13 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
             }
         } else if (currentStep === 1) {
             // Validate info
-            const fields = ['title', 'type', 'version', 'status', 'folderId'] as any;
+            const fields: FieldPath<DocumentFormData>[] = ['title', 'type', 'version', 'status', 'folderId'];
             if (await trigger(fields)) valid = true;
         } else if (currentStep === 2) {
             valid = true; // Relations are optional
         } else if (currentStep === 3) {
             // Validate lifecycle
-            const fields = ['ownerId', 'nextReviewDate'] as any;
+            const fields: FieldPath<DocumentFormData>[] = ['ownerId', 'nextReviewDate'];
             if (await trigger(fields)) valid = true;
         }
 
@@ -277,10 +281,15 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                             options={[
                                                 { value: 'google_drive', label: 'Google Drive' },
                                                 { value: 'onedrive', label: 'OneDrive / SharePoint' },
-                                                { value: 'dropbox', label: 'Dropbox' }
+                                                { value: 'sharepoint', label: 'SharePoint' }
                                             ]}
                                             value={storageProvider}
-                                            onChange={(val) => setValue('storageProvider', val as any)}
+                                            onChange={(val) => {
+                                                if (typeof val !== 'string') return;
+                                                if (val === 'firebase' || val === 'google_drive' || val === 'onedrive' || val === 'sharepoint') {
+                                                    setValue('storageProvider', val);
+                                                }
+                                            }}
                                         />
                                         <FloatingLabelInput
                                             label="URL du document"
@@ -309,15 +318,15 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     <CustomSelect
                                         label="Dossier"
                                         options={[{ value: '', label: 'Racine' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
-                                        value={watch('folderId') || ''}
-                                        onChange={(val) => setValue('folderId', val as string)}
+                                        value={folderId || ''}
+                                        onChange={(val) => setValue('folderId', typeof val === 'string' ? val : '')}
                                         error={errors.folderId?.message}
                                     />
                                     <CustomSelect
                                         label="Type"
                                         options={['Politique', 'Procédure', 'Preuve', 'Rapport', 'Contrat', 'Autre'].map(t => ({ value: t, label: t }))}
-                                        value={watch('type') || 'Politique'}
-                                        onChange={(val) => setValue('type', val as DocumentFormData['type'])}
+                                        value={docType || 'Politique'}
+                                        onChange={(val) => setValue('type', (typeof val === 'string' ? val : 'Politique') as DocumentFormData['type'])}
                                     />
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -333,8 +342,8 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                                 <button
                                                     key={s}
                                                     type="button"
-                                                    onClick={() => setValue('status', s as any)}
-                                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${watch('status') === s ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-600' : 'text-slate-500 hover:text-slate-700'}`}
+                                                    onClick={() => setValue('status', s as DocumentFormData['status'])}
+                                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${status === s ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-600' : 'text-slate-500 hover:text-slate-700'}`}
                                                 >
                                                     {s}
                                                 </button>
@@ -422,8 +431,8 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     <CustomSelect
                                         label="Propriétaire"
                                         options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                                        value={watch('ownerId') || ''}
-                                        onChange={(val) => setValue('ownerId', val as string)}
+                                        value={ownerId || ''}
+                                        onChange={(val) => setValue('ownerId', typeof val === 'string' ? val : '')}
                                         error={errors.ownerId?.message}
                                     />
                                     <FloatingLabelInput
@@ -478,24 +487,24 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                 <div className="bg-slate-50 dark:bg-white/5 rounded-2xl p-6 border border-slate-100 dark:border-white/5 space-y-4">
                                     <div className="flex items-start justify-between">
                                         <div>
-                                            <p className="text-sm font-bold text-slate-900 dark:text-white">{watch('title')}</p>
-                                            <p className="text-xs text-slate-500">{watch('type')} - v{watch('version')}</p>
+                                            <p className="text-sm font-bold text-slate-900 dark:text-white">{getValues('title')}</p>
+                                            <p className="text-xs text-slate-500">{docType} - v{getValues('version')}</p>
                                         </div>
-                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${watch('status') === 'Publié' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                                            {watch('status')}
+                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${status === 'Publié' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                            {status}
                                         </span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 text-xs">
                                         <div>
                                             <span className="text-slate-500 block">Dossier</span>
                                             <span className="font-medium text-slate-700 dark:text-slate-300">
-                                                {folders.find(f => f.id === watch('folderId'))?.name || 'Racine'}
+                                                {folders.find(f => f.id === folderId)?.name || 'Racine'}
                                             </span>
                                         </div>
                                         <div>
                                             <span className="text-slate-500 block">Propriétaire</span>
                                             <span className="font-medium text-slate-700 dark:text-slate-300">
-                                                {users.find(u => u.uid === watch('ownerId'))?.displayName || watch('owner')}
+                                                {users.find(u => u.uid === ownerId)?.displayName || getValues('owner')}
                                             </span>
                                         </div>
                                         <div>

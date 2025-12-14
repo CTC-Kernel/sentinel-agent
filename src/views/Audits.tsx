@@ -35,7 +35,6 @@ import { sendEmail } from '../services/emailService';
 import { getAuditReminderTemplate } from '../services/emailTemplates';
 import { PdfService } from '../services/PdfService';
 import { generateICS, downloadICS } from '../utils/calendar';
-import JSZip from 'jszip';
 import { ErrorLogger } from '../services/errorLogger';
 import { SafeHTML } from '../components/ui/SafeHTML';
 import { getPlanLimits } from '../config/plans';
@@ -131,7 +130,12 @@ export const Audits: React.FC = () => {
 
     // Derived State
     const audits = React.useMemo(() => {
-        return [...rawAudits].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime());
+        const toTime = (value?: string) => {
+            if (!value) return 0;
+            const t = new Date(value).getTime();
+            return Number.isFinite(t) ? t : 0;
+        };
+        return [...rawAudits].sort((a, b) => toTime(b.dateScheduled) - toTime(a.dateScheduled));
     }, [rawAudits]);
 
     const controls = React.useMemo(() => {
@@ -225,15 +229,27 @@ export const Audits: React.FC = () => {
 
 
     const handleOpenAudit = React.useCallback(async (audit: Audit) => {
+        if (!user?.organizationId) {
+            addToast("Organisation non définie", "error");
+            return;
+        }
         setSelectedAudit(audit);
         setShowFindingsDrawer(true);
         findingForm.reset({ description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] });
         try {
-            const q = query(collection(db, 'findings'), where('organizationId', '==', user?.organizationId), where('auditId', '==', audit.id));
+            const q = query(
+                collection(db, 'findings'),
+                where('organizationId', '==', user.organizationId),
+                where('auditId', '==', audit.id)
+            );
             const snap = await getDocs(q);
             setFindings(snap.docs.map(d => ({ id: d.id, ...d.data() } as Finding)));
 
-            const cq = query(collection(db, 'audit_checklists'), where('auditId', '==', audit.id));
+            const cq = query(
+                collection(db, 'audit_checklists'),
+                where('organizationId', '==', user.organizationId),
+                where('auditId', '==', audit.id)
+            );
             const cSnap = await getDocs(cq);
             if (!cSnap.empty) setChecklist({ id: cSnap.docs[0].id, ...cSnap.docs[0].data() } as AuditChecklist);
             else setChecklist(null);
@@ -242,7 +258,7 @@ export const Audits: React.FC = () => {
             setFindings([]);
             setChecklist(null);
         }
-    }, [user?.organizationId, findingForm]);
+    }, [user?.organizationId, findingForm, addToast]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string; createForProject?: string; projectName?: string };
@@ -347,7 +363,6 @@ export const Audits: React.FC = () => {
                 addToast("Audit planifié et notifié", "success");
                 setCreationMode(false);
                 refreshAudits();
-                refreshAudits();
             } catch (error) {
                 if (error instanceof z.ZodError) {
                     addToast((error as unknown as { errors: { message: string }[] }).errors[0].message, "error");
@@ -412,9 +427,13 @@ export const Audits: React.FC = () => {
         }
     };
 
-    const performDelete = React.useCallback(async (id: string) => {
+    const performDelete = React.useCallback(async (id: string, organizationId: string) => {
         // Delete findings first (Cascade)
-        const findingsQ = query(collection(db, 'findings'), where('auditId', '==', id));
+        const findingsQ = query(
+            collection(db, 'findings'),
+            where('organizationId', '==', organizationId),
+            where('auditId', '==', id)
+        );
         const findingsSnap = await getDocs(findingsQ);
         const deletePromises = findingsSnap.docs.map(d => deleteDoc(doc(db, 'findings', d.id)));
         await Promise.all(deletePromises);
@@ -424,8 +443,12 @@ export const Audits: React.FC = () => {
 
     const handleDeleteAudit = React.useCallback(async (id: string, name: string) => {
         if (!canDeleteResource(user, 'Audit')) return;
+        if (!user?.organizationId) {
+            addToast("Organisation non définie", "error");
+            return;
+        }
         try {
-            await performDelete(id);
+            await performDelete(id, user.organizationId);
             refreshAudits();
             if (selectedAudit?.id === id) {
                 setSelectedAudit(null);
@@ -452,9 +475,15 @@ export const Audits: React.FC = () => {
     const handleBulkDelete = async (ids: string[]) => {
         if (!canDeleteResource(user, 'Audit')) return;
         if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ces ${ids.length} audits ?`)) return;
+        if (!user?.organizationId) {
+            addToast("Organisation non définie", "error");
+            return;
+        }
+
+        const organizationId = user.organizationId;
 
         try {
-            await Promise.all(ids.map(performDelete));
+            await Promise.all(ids.map((id) => performDelete(id, organizationId)));
             if (selectedAudit?.id && ids.includes(selectedAudit.id)) {
                 setSelectedAudit(null);
                 setShowFindingsDrawer(false);
@@ -612,9 +641,9 @@ export const Audits: React.FC = () => {
             a.name,
             a.type,
             a.auditor,
-            new Date(a.dateScheduled).toLocaleDateString(),
+            a.dateScheduled ? new Date(a.dateScheduled).toLocaleDateString() : 'TBD',
             a.status,
-            a.findingsCount.toString()
+            String(a.findingsCount || 0)
         ]);
         const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
         const link = document.createElement('a');
@@ -676,7 +705,7 @@ export const Audits: React.FC = () => {
         addToast("Génération du rapport d'audit avec l'IA...", "info");
 
         try {
-            const findings = selectedAudit.findings || [];
+            const findingsForReport = findings;
 
             // Get related risks for context
             const relatedRisks = rawRisks.filter(r => selectedAudit.relatedRiskIds?.includes(r.id));
@@ -684,16 +713,16 @@ export const Audits: React.FC = () => {
             // Generate AI Summary
             const summary = await aiService.generateAuditExecutiveSummary(
                 selectedAudit.name,
-                findings.map(f => ({ type: f.type, description: f.description, status: f.status })),
+                findingsForReport.map(f => ({ type: f.type, description: f.description, status: f.status })),
                 relatedRisks.map(r => ({ threat: r.threat, score: r.score }))
             );
 
             // Calculate Metrics
-            const openFindings = findings.filter(f => f.status === 'Ouvert').length;
-            const majorFindings = findings.filter(f => f.type === 'Majeure').length;
+            const openFindings = findingsForReport.filter(f => f.status === 'Ouvert').length;
+            const majorFindings = findingsForReport.filter(f => f.type === 'Majeure').length;
 
             const metrics = [
-                { label: 'Total Constats', value: findings.length.toString() },
+                { label: 'Total Constats', value: findingsForReport.length.toString() },
                 { label: 'Constats Ouverts', value: openFindings.toString(), subtext: 'Action Requise' },
                 { label: 'Majeurs', value: majorFindings.toString(), subtext: 'Priorité Haute' },
                 { label: 'Risques Liés', value: relatedRisks.length.toString() }
@@ -701,7 +730,7 @@ export const Audits: React.FC = () => {
 
             // Calculate Stats (Findings by Type)
             const typeCounts = { 'Majeure': 0, 'Mineure': 0, 'Opportunité': 0 };
-            findings.forEach(f => { if (typeCounts[f.type as keyof typeof typeCounts] !== undefined) typeCounts[f.type as keyof typeof typeCounts]++; });
+            findingsForReport.forEach(f => { if (typeCounts[f.type as keyof typeof typeCounts] !== undefined) typeCounts[f.type as keyof typeof typeCounts]++; });
 
             const stats = [
                 { label: 'Majeure', value: typeCounts['Majeure'], color: '#EF4444' }, // Red
@@ -922,6 +951,7 @@ export const Audits: React.FC = () => {
         if (!selectedAudit) return;
         addToast("Génération du pack en cours...", "info");
         try {
+            const { default: JSZip } = await import('jszip');
             const zip = new JSZip();
             const folder = zip.folder(`Audit_Pack_${selectedAudit.name.replace(/\s+/g, '_')}`);
             if (!folder) return;
@@ -991,7 +1021,7 @@ export const Audits: React.FC = () => {
         }
     };
 
-    const filteredAudits = audits.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
+    const filteredAudits = audits.filter(a => (a.name || '').toLowerCase().includes(filter.toLowerCase()));
 
     const getBreadcrumbs = () => {
         const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Audits', onClick: () => { setSelectedAudit(null); setCreationMode(false); setShowFindingsDrawer(false); setEditingAudit(null); } }];
@@ -1064,11 +1094,11 @@ export const Audits: React.FC = () => {
         },
         {
             accessorKey: 'dateScheduled',
-            header: 'Date Prévue',
+            header: 'Date',
             cell: ({ row }) => (
                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 font-medium">
                     <CalendarDays className="h-4 w-4" />
-                    {new Date(row.original.dateScheduled).toLocaleDateString()}
+                    {row.original.dateScheduled ? new Date(row.original.dateScheduled).toLocaleDateString() : 'TBD'}
                 </div>
             )
         },
@@ -1196,10 +1226,10 @@ export const Audits: React.FC = () => {
 
                                 <div className="flex justify-between items-center pt-4 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
                                     <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-400">
-                                        <CalendarDays className="h-3.5 w-3.5 mr-1.5" /> {new Date(audit.dateScheduled).toLocaleDateString() || 'Non planifié'}
+                                        <CalendarDays className="h-3.5 w-3.5 mr-1.5" /> {audit.dateScheduled ? new Date(audit.dateScheduled).toLocaleDateString() : 'Non planifié'}
                                     </div>
                                     <div className="flex items-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">
-                                        <AlertOctagon className="h-3.5 w-3.5 mr-1.5" /> {audit.findingsCount} écarts
+                                        <AlertOctagon className="h-3.5 w-3.5 mr-1.5" /> {audit.findingsCount || 0} écarts
                                     </div>
                                 </div>
 
@@ -1225,7 +1255,7 @@ export const Audits: React.FC = () => {
                 isOpen={showFindingsDrawer && !!selectedAudit}
                 onClose={() => setShowFindingsDrawer(false)}
                 title={selectedAudit?.name || 'Détails de l\'audit'}
-                subtitle={`${selectedAudit?.type} • ${selectedAudit ? new Date(selectedAudit.dateScheduled).toLocaleDateString() : ''}`}
+                subtitle={`${selectedAudit?.type || ''}${selectedAudit?.dateScheduled ? ` • ${new Date(selectedAudit.dateScheduled).toLocaleDateString()}` : ''}`}
                 width="max-w-6xl"
                 breadcrumbs={getBreadcrumbs()}
                 actions={

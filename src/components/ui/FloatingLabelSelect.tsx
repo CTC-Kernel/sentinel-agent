@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
+type FloatingLabelSelectIconComponent = React.ElementType<{ className?: string }>;
+
 interface FloatingLabelSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
     label: string;
     error?: string;
-    icon?: any;
+    icon?: FloatingLabelSelectIconComponent;
     options: { value: string; label: string }[];
 }
 

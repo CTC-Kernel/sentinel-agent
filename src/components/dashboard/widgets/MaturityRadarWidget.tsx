@@ -3,7 +3,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as Rechar
 import { ChartTooltip } from '../../ui/ChartTooltip';
 
 interface MaturityRadarWidgetProps {
-    radarData: any[]; // Replace 'any' with specific type if available, typically { subject: string, A: number, fullMark: number }[]
+    radarData: { subject: string; A: number; fullMark?: number }[];
     t: (key: string) => string;
     theme: string;
     navigate: (path: string) => void;

@@ -12,13 +12,15 @@ import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
 
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { Button } from '../ui/button';
-import { AIAssistantHeader, Template } from '../ui/AIAssistantHeader';
+import { AIAssistantHeader, BaseTemplate } from '../ui/AIAssistantHeader';
 import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 
 import { PROJECT_STATUSES } from '../../data/projectConstants';
 
-const PROJECT_TEMPLATES: Template[] = [
+type ProjectTemplate = BaseTemplate & { status: string; priority: string };
+
+const PROJECT_TEMPLATES: ProjectTemplate[] = [
     { name: 'Mise en conformité ISO 27001', description: 'Projet complet d\'implémentation du SMSI.', status: 'En cours', priority: 'Haute' },
     { name: 'Déploiement MFA Global', description: 'Activation du MFA pour tous les employés.', status: 'Planifié', priority: 'Critique' },
     { name: 'Migration Cloud Sécurisée', description: 'Migration des serveurs on-premise vers AWS.', status: 'En cours', priority: 'Moyenne' },
@@ -72,7 +74,14 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             setValue('name', t.name);
             setValue('description', t.description);
             // status and priority are enums in schema, assumed valid
-            if (t.status) setValue('status', t.status as any);
+            if (
+                t.status === 'Planifié' ||
+                t.status === 'En cours' ||
+                t.status === 'Terminé' ||
+                t.status === 'Suspendu'
+            ) {
+                setValue('status', t.status);
+            }
             // if (t.priority) setValue('priority', t.priority as any); // Priority not in defaultValues/schema apparent here?
         }
     };

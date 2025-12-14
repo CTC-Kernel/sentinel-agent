@@ -12,12 +12,14 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { integrationService, CompanySearchResult } from '../../services/integrationService';
 import { Search, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { AIAssistantHeader, Template } from '../ui/AIAssistantHeader';
+import { AIAssistantHeader, BaseTemplate } from '../ui/AIAssistantHeader';
 
-const SUPPLIER_TEMPLATES: Template[] = [
-    { name: 'Hébergeur Cloud Santé (HDS)', description: 'Fournisseur critique hébergeant des données de santé.', category: 'Hébergement', criticality: 'Critique' },
-    { name: 'Fournisseur SaaS RH', description: 'Solution de gestion des congés et paies.', category: 'SaaS', criticality: 'Moyenne' },
-    { name: 'Maintenance Informatique', description: 'Prestataire de maintenance sur site.', category: 'Services IT', criticality: 'Élevée' },
+type SupplierTemplate = BaseTemplate & { category: string; criticality: Criticality };
+
+const SUPPLIER_TEMPLATES: SupplierTemplate[] = [
+    { name: 'Hébergeur Cloud Santé (HDS)', description: 'Fournisseur critique hébergeant des données de santé.', category: 'Hébergement', criticality: Criticality.CRITICAL },
+    { name: 'Fournisseur SaaS RH', description: 'Solution de gestion des congés et paies.', category: 'SaaS', criticality: Criticality.MEDIUM },
+    { name: 'Maintenance Informatique', description: 'Prestataire de maintenance sur site.', category: 'Services IT', criticality: Criticality.HIGH },
 ];
 import { SUPPLIER_CATEGORIES, SUPPLIER_STATUSES, DORA_SERVICE_TYPES, DORA_CRITICALITIES } from '../../data/supplierConstants';
 
@@ -122,8 +124,10 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
             setValue('name', t.name);
             setValue('description', t.description);
             // category and criticality are enums in schema
-            if (t.category) setValue('category', t.category as any);
-            if (t.criticality) setValue('criticality', t.criticality as any);
+            if (t.category === 'SaaS' || t.category === 'Hébergement' || t.category === 'Matériel' || t.category === 'Consulting' || t.category === 'Autre') {
+                setValue('category', t.category);
+            }
+            setValue('criticality', t.criticality);
         }
     };
 

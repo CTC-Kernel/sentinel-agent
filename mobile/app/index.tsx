@@ -20,9 +20,10 @@ export default function LoginScreen() {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             router.replace('/dashboard');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            Alert.alert('Échec de la connexion', error.message || 'Une erreur est survenue.');
+            const message = error instanceof Error ? error.message : 'Une erreur est survenue.';
+            Alert.alert('Échec de la connexion', message);
         } finally {
             setLoading(false);
         }

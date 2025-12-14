@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 
+type FloatingLabelIconComponent = React.ElementType<{ className?: string }>;
+
 interface FloatingLabelInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
     error?: string;
-    icon?: any;
+    icon?: FloatingLabelIconComponent;
     textarea?: boolean;
     rows?: number;
 }

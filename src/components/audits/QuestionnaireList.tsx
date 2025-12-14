@@ -23,7 +23,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
 
     const { data: questionnaires, refresh } = useFirestoreCollection<Questionnaire>(
         'questionnaires',
-        [where('auditId', '==', auditId)],
+        [where('organizationId', '==', organizationId), where('auditId', '==', auditId)],
         { logError: true, realtime: true }
     );
 

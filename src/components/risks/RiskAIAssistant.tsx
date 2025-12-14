@@ -14,8 +14,9 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
     const [response, setResponse] = useState<Record<string, unknown> | null>(
         risk.aiAnalysis?.response || null
     );
+    const initialMode = risk.aiAnalysis?.type;
     const [mode, setMode] = useState<'analyze' | 'mitigate' | 'improve' | null>(
-        (risk.aiAnalysis?.type as any) || null
+        initialMode === 'analyze' || initialMode === 'mitigate' || initialMode === 'improve' ? initialMode : null
     );
     const [error, setError] = useState<string | null>(null);
 
@@ -150,7 +151,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
         setResponse(null);
         if (onUpdate) {
             onUpdate({
-                aiAnalysis: null as any
+                aiAnalysis: undefined
             });
         }
     }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useStore } from '../store';
-import { Check, ChevronRight, Shield, Zap, Building2, HelpCircle, Info, ChevronDown } from 'lucide-react';
+import { Check, ChevronRight, Shield, Zap, Building2, HelpCircle, Info, ChevronDown, type LucideIcon } from 'lucide-react';
 import { SubscriptionService } from '../services/subscriptionService';
 import { ErrorLogger } from '../services/errorLogger';
 import { PLANS } from '../config/plans';
@@ -68,7 +68,7 @@ const Pricing = () => {
     { name: 'Onboarding Assisté', discovery: false, professional: false, enterprise: true, tooltip: "Accompagnement personnalisé pour la configuration initiale." },
   ];
 
-  const plans: { id: PlanType; name: string; icon: any; popular?: boolean }[] = [
+  const plans: { id: PlanType; name: string; icon: LucideIcon; popular?: boolean }[] = [
     { id: 'discovery', name: 'Discovery', icon: Shield },
     { id: 'professional', name: 'Professional', icon: Zap, popular: true },
     { id: 'enterprise', name: 'Enterprise', icon: Building2 },

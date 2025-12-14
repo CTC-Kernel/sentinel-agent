@@ -59,7 +59,8 @@ export const Compliance: React.FC = () => {
     // UI State
     const [selectedControl, setSelectedControl] = useState<Control | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'evidence' | 'comments' | 'history' | 'linkedItems'>('details');
+    type InspectorTabId = 'details' | 'evidence' | 'comments' | 'history' | 'linkedItems';
+    const [inspectorTab, setInspectorTab] = useState<InspectorTabId>('details');
     const [controlHistory, setControlHistory] = useState<SystemLog[]>([]);
 
     const [editJustification, setEditJustification] = useState('');
@@ -1289,7 +1290,7 @@ export const Compliance: React.FC = () => {
                                     { id: 'history', label: 'Historique', icon: RefreshCw },
                                 ]}
                                 activeTab={inspectorTab}
-                                onTabChange={(id) => setInspectorTab(id as any)}
+                                onTabChange={(id) => setInspectorTab(id as InspectorTabId)}
                             />
                         </div>
 

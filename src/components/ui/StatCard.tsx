@@ -1,10 +1,12 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus } from './Icons';
 
+type StatCardIconComponent = React.ElementType<{ className?: string; strokeWidth?: number }>;
+
 interface StatCardProps {
     title: string;
     value: string | number;
-    icon: any;
+    icon: StatCardIconComponent;
     trend?: {
         value: number;
         label: string;

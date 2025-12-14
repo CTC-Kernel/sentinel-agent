@@ -183,7 +183,8 @@ export const Continuity: React.FC = () => {
                         margin: { left: 14, right: 14 }
                     });
 
-                    y = (doc as any).lastAutoTable.finalY + 15;
+                    const lastAutoTable = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable;
+                    y = (lastAutoTable?.finalY ?? y) + 15;
 
                     // Recent Drills
                     if (drills.length > 0) {

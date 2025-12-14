@@ -5,15 +5,20 @@ import { PriorityRisksWidget } from '../widgets/PriorityRisksWidget';
 import { HealthCheckWidget } from '../widgets/HealthCheckWidget';
 import { CyberNewsWidget } from '../CyberNewsWidget';
 
+type Stats = React.ComponentProps<typeof StatsOverview>['stats'];
+type HistoryData = React.ComponentProps<typeof ComplianceEvolutionWidget>['historyData'];
+type HealthIssueList = React.ComponentProps<typeof HealthCheckWidget>['healthIssues'];
+type RiskList = React.ComponentProps<typeof PriorityRisksWidget>['topRisks'];
+
 interface DirectionDashboardViewProps {
-    stats: any;
+    stats: Stats;
     loading: boolean;
     navigate: (path: string) => void;
     t: (key: string) => string;
     theme: string;
-    historyData: any[];
-    healthIssues: any[];
-    topRisks: any[];
+    historyData: HistoryData;
+    healthIssues: HealthIssueList;
+    topRisks: RiskList;
 }
 
 export const DirectionDashboardView: React.FC<DirectionDashboardViewProps> = ({

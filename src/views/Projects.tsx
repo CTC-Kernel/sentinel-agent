@@ -132,7 +132,8 @@ export const Projects: React.FC = () => {
 
     // Inspector State
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence' | 'milestones' | 'risks' | 'controls' | 'assets' | 'audits'>('overview');
+    type InspectorTabId = 'overview' | 'tasks' | 'dashboard' | 'history' | 'comments' | 'gantt' | 'intelligence' | 'milestones' | 'risks' | 'controls' | 'assets' | 'audits';
+    const [inspectorTab, setInspectorTab] = useState<InspectorTabId>('overview');
     const [taskViewMode, setTaskViewMode] = useState<'list' | 'board'>('list');
     const [projectHistory, setProjectHistory] = useState<SystemLog[]>([]);
     const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
@@ -1174,7 +1175,7 @@ export const Projects: React.FC = () => {
                                     { id: 'comments', label: 'Commentaires', icon: MessageSquare }
                                 ]}
                                 activeTab={inspectorTab}
-                                onTabChange={(id) => setInspectorTab(id as any)}
+                                onTabChange={(id) => setInspectorTab(id as InspectorTabId)}
                             />
                         </div>
 

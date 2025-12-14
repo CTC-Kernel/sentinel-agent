@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import type { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
@@ -30,7 +31,7 @@ const ToolbarButton = ({ onClick, isActive, disabled, children, title }: { onCli
     </button>
 );
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: Editor | null }) => {
     if (!editor) {
         return null;
     }

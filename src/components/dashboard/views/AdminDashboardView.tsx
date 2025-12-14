@@ -8,17 +8,24 @@ import { RecentActivityWidget } from '../widgets/RecentActivityWidget';
 import { CyberNewsWidget } from '../CyberNewsWidget';
 import { StaggerContainer, SlideUp } from '../../ui/Animations';
 
+type Stats = React.ComponentProps<typeof StatsOverview>['stats'];
+type ActionItemList = React.ComponentProps<typeof MyWorkspaceWidget>['myActionItems'];
+type HistoryData = React.ComponentProps<typeof ComplianceEvolutionWidget>['historyData'];
+type HealthIssueList = React.ComponentProps<typeof HealthCheckWidget>['healthIssues'];
+type RiskList = React.ComponentProps<typeof PriorityRisksWidget>['topRisks'];
+type ActivityList = React.ComponentProps<typeof RecentActivityWidget>['recentActivity'];
+
 interface AdminDashboardViewProps {
-    stats: any;
+    stats: Stats;
     loading: boolean;
     navigate: (path: string) => void;
     t: (key: string) => string;
     theme: string;
-    myActionItems: any[];
-    historyData: any[];
-    healthIssues: any[];
-    topRisks: any[];
-    recentActivity: any[];
+    myActionItems: ActionItemList;
+    historyData: HistoryData;
+    healthIssues: HealthIssueList;
+    topRisks: RiskList;
+    recentActivity: ActivityList;
 }
 
 export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({

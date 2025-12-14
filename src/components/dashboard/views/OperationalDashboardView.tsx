@@ -3,12 +3,15 @@ import { MyWorkspaceWidget } from '../widgets/MyWorkspaceWidget';
 import { PriorityRisksWidget } from '../widgets/PriorityRisksWidget';
 import { CyberNewsWidget } from '../CyberNewsWidget';
 
+type ActionItemList = React.ComponentProps<typeof MyWorkspaceWidget>['myActionItems'];
+type RiskList = React.ComponentProps<typeof PriorityRisksWidget>['topRisks'];
+
 interface OperationalDashboardViewProps {
     loading: boolean;
     navigate: (path: string) => void;
     t: (key: string) => string;
-    myActionItems: any[];
-    myRisksList: any[];
+    myActionItems: ActionItemList;
+    myRisksList: RiskList;
 }
 
 export const OperationalDashboardView: React.FC<OperationalDashboardViewProps> = ({

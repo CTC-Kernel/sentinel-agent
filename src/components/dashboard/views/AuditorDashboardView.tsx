@@ -4,15 +4,20 @@ import { ComplianceEvolutionWidget } from '../widgets/ComplianceEvolutionWidget'
 import { RecentActivityWidget } from '../widgets/RecentActivityWidget';
 import { HealthCheckWidget } from '../widgets/HealthCheckWidget';
 
+type ActionItemList = React.ComponentProps<typeof MyWorkspaceWidget>['myActionItems'];
+type HistoryData = React.ComponentProps<typeof ComplianceEvolutionWidget>['historyData'];
+type ActivityList = React.ComponentProps<typeof RecentActivityWidget>['recentActivity'];
+type HealthIssueList = React.ComponentProps<typeof HealthCheckWidget>['healthIssues'];
+
 interface AuditorDashboardViewProps {
     loading: boolean;
     navigate: (path: string) => void;
     t: (key: string) => string;
     theme: string;
-    myActionItems: any[];
-    historyData: any[];
-    recentActivity: any[];
-    healthIssues: any[];
+    myActionItems: ActionItemList;
+    historyData: HistoryData;
+    recentActivity: ActivityList;
+    healthIssues: HealthIssueList;
 }
 
 export const AuditorDashboardView: React.FC<AuditorDashboardViewProps> = ({

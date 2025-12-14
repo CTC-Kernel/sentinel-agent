@@ -1,14 +1,12 @@
-import React from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
 
-export interface Template {
+export interface BaseTemplate {
     name: string;
     description: string;
-    [key: string]: any;
 }
 
-interface AIAssistantHeaderProps {
-    templates: Template[];
+interface AIAssistantHeaderProps<TTemplate extends BaseTemplate> {
+    templates: TTemplate[];
     onSelectTemplate: (templateName: string) => void;
     onAutoGenerate: () => void;
     isGenerating: boolean;
@@ -16,14 +14,14 @@ interface AIAssistantHeaderProps {
     description?: string;
 }
 
-export const AIAssistantHeader: React.FC<AIAssistantHeaderProps> = ({
+export const AIAssistantHeader = <TTemplate extends BaseTemplate>({
     templates,
     onSelectTemplate,
     onAutoGenerate,
     isGenerating,
     title = "Assistant IA & Modèles",
     description = "Sélectionnez un modèle standard ou utilisez l'IA pour générer une proposition sur mesure."
-}) => {
+}: AIAssistantHeaderProps<TTemplate>) => {
     return (
         <div className="bg-brand-50/50 dark:bg-brand-900/10 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/20 mb-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">

@@ -12,11 +12,11 @@ class VoxelErrorBoundary extends Component<{ children: React.ReactNode, fallback
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(_error: any) {
+  static getDerivedStateFromError(_error: unknown) {
     return { hasError: true };
   }
 
-  componentDidCatch(error: any, errorInfo: ErrorInfo) {
+  componentDidCatch(error: unknown, errorInfo: ErrorInfo) {
     console.error("Voxel 3D Error:", error, errorInfo);
   }
 
@@ -725,7 +725,7 @@ const VoxelMesh: React.FC<{
         }
       });
       return clone;
-    }, [modelLibrary, node.type, node.size, baseColor, emissiveColor, emissiveIntensity, opacity, xRayMode, isDimmed]);
+    }, [modelLibrary, node.type, node.size, baseColor, emissiveColor, emissiveIntensity, xRayMode, isDimmed]);
 
     const renderCategoryModel = () => {
       if (libraryPrimitive) {
@@ -1072,7 +1072,7 @@ const PresentationManager: React.FC<{
     if (!presentationMode && presentationIndex !== 0) {
       setTimeout(() => setPresentationIndex(0), 0);
     }
-  }, [presentationMode, setPresentationIndex]);
+  }, [presentationMode, presentationIndex, setPresentationIndex]);
 
   useFrame((state) => {
     if (presentationMode && criticalNodes.length > 0) {
@@ -1310,7 +1310,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     }
 
     return nodes;
-  }, [safeAssets, safeRisks, safeProjects, safeAudits, safeIncidents, suppliers, controls, visibleTypes, applySceneOffset]);
+  }, [safeAssets, safeRisks, safeProjects, safeAudits, safeIncidents, suppliers, controls, visibleTypes]);
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {

@@ -130,7 +130,7 @@ export const CalendarDashboard: React.FC = () => {
             await CalendarService.updateEvent(calendarEvent, new Date(start), new Date(end));
             setEvents(prev => prev.map(e => e.id === calendarEvent.id ? { ...e, start: new Date(start), end: new Date(end) } : e));
             toast.success('Événement mis à jour');
-        } catch (error) {
+        } catch {
             toast.error("Impossible de mettre à jour l'événement");
         }
     };
@@ -142,7 +142,7 @@ export const CalendarDashboard: React.FC = () => {
             await CalendarService.updateEvent(calendarEvent, new Date(start), new Date(end));
             setEvents(prev => prev.map(e => e.id === calendarEvent.id ? { ...e, start: new Date(start), end: new Date(end) } : e));
             toast.success('Événement déplacé');
-        } catch (error) {
+        } catch {
             toast.error("Impossible de déplacer l'événement");
         }
     };

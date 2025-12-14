@@ -374,7 +374,8 @@ export const Dashboard: React.FC = () => {
                         margin: { left: 14, right: 14 }
                     });
 
-                    y = (doc as any).lastAutoTable.finalY + 15;
+                    const lastAutoTable = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable;
+                    y = (lastAutoTable?.finalY ?? y) + 15;
 
                     // Compliance Summary
                     doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');

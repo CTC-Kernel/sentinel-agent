@@ -63,7 +63,7 @@ describe('Risks View', () => {
             user: { organizationId: 'test-org', role: 'admin' },
             addToast: vi.fn(),
             demoMode: false, // Add missing property if required by interface, or cast return as unknown
-        } as any);
+        } as unknown as ReturnType<typeof useStore>);
         vi.mocked(useFirestoreCollection).mockReturnValue({
             data: [],
             loading: false,
