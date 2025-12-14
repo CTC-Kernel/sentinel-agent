@@ -23,7 +23,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-2xl bg-[#0f172a]/90 border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl"
+                        className="relative w-full max-w-2xl bg-slate-950/90 border border-white/10 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl"
                     >
                         {/* Header */}
                         <div className="relative p-8 pb-0 overflow-hidden">

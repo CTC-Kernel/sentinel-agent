@@ -179,17 +179,17 @@ export const AuditTrailViewer: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                    <h2 className="text-2xl font-bold text-foreground">
                         Audit Trail
                     </h2>
-                    <p className="text-slate-600 dark:text-slate-400 mt-1">
+                    <p className="text-muted-foreground mt-1">
                         Traçabilité complète de toutes les modifications
                     </p>
                 </div>
 
                 <button
                     onClick={handleExport}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:scale-105 transition-transform"
                 >
                     <Download className="h-4 w-4" />
                     Exporter CSV
@@ -197,7 +197,7 @@ export const AuditTrailViewer: React.FC = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+            <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Search */}
                     <div className="relative">
@@ -207,7 +207,7 @@ export const AuditTrailViewer: React.FC = () => {
                             placeholder="Rechercher..."
                             value={filters.searchQuery}
                             onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                         />
                     </div>
 
@@ -215,7 +215,7 @@ export const AuditTrailViewer: React.FC = () => {
                     <select
                         value={filters.action}
                         onChange={(e) => setFilters({ ...filters, action: e.target.value as 'all' | 'create' | 'update' | 'delete' })}
-                        className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                     >
                         <option value="all">Toutes les actions</option>
                         <option value="create">Création</option>
@@ -227,7 +227,7 @@ export const AuditTrailViewer: React.FC = () => {
                     <select
                         value={filters.entityType}
                         onChange={(e) => setFilters({ ...filters, entityType: e.target.value })}
-                        className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                     >
                         <option value="all">Tous les types</option>
                         {entityTypes.map(type => (
@@ -239,7 +239,7 @@ export const AuditTrailViewer: React.FC = () => {
                     <select
                         value={filters.userId}
                         onChange={(e) => setFilters({ ...filters, userId: e.target.value })}
-                        className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                     >
                         <option value="all">Tous les utilisateurs</option>
                         {users.map(u => (
@@ -256,7 +256,7 @@ export const AuditTrailViewer: React.FC = () => {
                             type="date"
                             value={dateRange.start.toISOString().split('T')[0]}
                             onChange={(e) => setDateRange({ ...dateRange, start: new Date(e.target.value) })}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                         />
                     </div>
                     <div className="relative">
@@ -265,7 +265,7 @@ export const AuditTrailViewer: React.FC = () => {
                             type="date"
                             value={dateRange.end.toISOString().split('T')[0]}
                             onChange={(e) => setDateRange({ ...dateRange, end: new Date(e.target.value) })}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                         />
                     </div>
                 </div>
@@ -281,7 +281,7 @@ export const AuditTrailViewer: React.FC = () => {
                 {/* Left: List */}
                 <div className="space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar">
                     {filteredLogs.length === 0 ? (
-                        <div className="text-center py-12 text-slate-600 dark:text-slate-400">
+                        <div className="text-center py-12 text-muted-foreground">
                             <AlertCircle className="h-12 w-12 mx-auto mb-3 opacity-30" />
                             <p>Aucun événement trouvé</p>
                         </div>
@@ -292,7 +292,7 @@ export const AuditTrailViewer: React.FC = () => {
                                 onClick={() => setSelectedLog(log)}
                                 className={`w-full text-left p-4 rounded-xl border transition-all ${selectedLog?.id === log.id
                                     ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
-                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 hover:border-brand-200 dark:hover:border-brand-800'
+                                    : 'bg-card border-border hover:border-brand-200 dark:hover:border-brand-800'
                                     }`}
                             >
                                 <div className="flex items-start justify-between mb-2">
@@ -328,10 +328,10 @@ export const AuditTrailViewer: React.FC = () => {
                 </div>
 
                 {/* Right: Diff Viewer */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 max-h-[600px] overflow-y-auto custom-scrollbar">
+                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border max-h-[600px] overflow-y-auto custom-scrollbar">
                     {selectedLog ? (
                         <div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                                 <Eye className="h-5 w-5" />
                                 Détails de la modification
                             </h3>
@@ -375,18 +375,18 @@ export const AuditTrailViewer: React.FC = () => {
                                             styles={{
                                                 variables: {
                                                     light: {
-                                                        diffViewerBackground: '#fafafa',
-                                                        addedBackground: '#e6ffed',
-                                                        addedColor: '#24292e',
-                                                        removedBackground: '#ffeef0',
-                                                        removedColor: '#24292e',
+                                                        diffViewerBackground: 'hsl(var(--background))',
+                                                        addedBackground: 'hsl(var(--success-bg))',
+                                                        addedColor: 'hsl(var(--foreground))',
+                                                        removedBackground: 'hsl(var(--error-bg))',
+                                                        removedColor: 'hsl(var(--foreground))',
                                                     },
                                                     dark: {
-                                                        diffViewerBackground: '#0f172a',
-                                                        addedBackground: '#0d3d1a',
-                                                        addedColor: '#e6e6e6',
-                                                        removedBackground: '#3d0d0d',
-                                                        removedColor: '#e6e6e6',
+                                                        diffViewerBackground: 'hsl(var(--background))',
+                                                        addedBackground: 'hsl(var(--success-bg))',
+                                                        addedColor: 'hsl(var(--foreground))',
+                                                        removedBackground: 'hsl(var(--error-bg))',
+                                                        removedColor: 'hsl(var(--foreground))',
                                                     }
                                                 }
                                             }}
@@ -410,7 +410,7 @@ export const AuditTrailViewer: React.FC = () => {
                             )}
                         </div>
                     ) : (
-                        <div className="text-center py-12 text-slate-600 dark:text-slate-400">
+                        <div className="text-center py-12 text-muted-foreground">
                             <History className="h-12 w-12 mx-auto mb-3 opacity-30" />
                             <p>Sélectionnez un événement pour voir les détails</p>
                         </div>

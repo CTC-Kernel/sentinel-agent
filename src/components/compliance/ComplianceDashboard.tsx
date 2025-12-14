@@ -132,7 +132,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     <div className="relative">
                         <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                             <circle
-                                className="text-slate-100 dark:text-slate-800"
+                                className="text-muted-foreground/20"
                                 strokeWidth="8"
                                 stroke="currentColor"
                                 fill="transparent"
@@ -154,12 +154,12 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                             />
                         </svg>
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                            <span className="text-xl font-black text-slate-900 dark:text-white">{globalScore.toFixed(0)}%</span>
+                            <span className="text-xl font-black text-foreground">{globalScore.toFixed(0)}%</span>
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Score de Conformité</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">Niveau global de conformité sur tous les référentiels actifs.</p>
+                        <h3 className="text-lg font-bold text-foreground mb-1">Score de Conformité</h3>
+                        <p className="text-sm text-muted-foreground max-w-[200px]">Niveau global de conformité sur tous les référentiels actifs.</p>
                         {trend !== undefined && (
                             <div className={`text-xs font-bold mt-2 px-2 py-0.5 rounded-full w-fit ${trend >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
                                 {trend > 0 ? '+' : ''}{trend}% vs 30j
@@ -169,25 +169,25 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 </div>
 
                 {/* Framework Breakdown */}
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 border-t border-b xl:border-t-0 xl:border-b-0 xl:border-l xl:border-r border-slate-200 dark:border-white/10 py-6 xl:py-0 xl:px-6 xl:mx-2 my-2 xl:my-0">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 border-t border-b xl:border-t-0 xl:border-b-0 xl:border-l xl:border-r border-border/60 py-6 xl:py-0 xl:px-6 xl:mx-2 my-2 xl:my-0">
                     <div className="text-center flex items-center justify-between sm:block">
-                        <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-0 sm:mb-1">ISO 27001</div>
-                        <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{Math.round(isoScore)}%</div>
-                        <div className="hidden sm:block h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                        <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0 sm:mb-1">ISO 27001</div>
+                        <div className="text-lg sm:text-xl font-black text-foreground">{Math.round(isoScore)}%</div>
+                        <div className="hidden sm:block h-1.5 w-full bg-accent rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${isoScore}%` }}></div>
                         </div>
                     </div>
                     <div className="text-center flex items-center justify-between sm:block">
-                        <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-0 sm:mb-1">RGPD</div>
-                        <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{Math.round(rgpdScore)}%</div>
-                        <div className="hidden sm:block h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                        <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0 sm:mb-1">RGPD</div>
+                        <div className="text-lg sm:text-xl font-black text-foreground">{Math.round(rgpdScore)}%</div>
+                        <div className="hidden sm:block h-1.5 w-full bg-accent rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-purple-500 rounded-full" style={{ width: `${rgpdScore}%` }}></div>
                         </div>
                     </div>
                     <div className="text-center flex items-center justify-between sm:block">
-                        <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-0 sm:mb-1">DORA</div>
-                        <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{Math.round(doraScore)}%</div>
-                        <div className="hidden sm:block h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                        <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0 sm:mb-1">DORA</div>
+                        <div className="text-lg sm:text-xl font-black text-foreground">{Math.round(doraScore)}%</div>
+                        <div className="hidden sm:block h-1.5 w-full bg-accent rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${doraScore}%` }}></div>
                         </div>
                     </div>
@@ -222,8 +222,8 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             {totalControls > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Status Distribution */}
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm min-w-0">
-                        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Distribution par Statut</h4>
+                    <div className="bg-card p-6 rounded-2xl border border-border shadow-sm min-w-0">
+                        <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Distribution par Statut</h4>
                         <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -246,7 +246,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         verticalAlign="bottom"
                                         height={36}
                                         iconType="circle"
-                                        formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                        formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -254,8 +254,8 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
 
                     {/* Domain Progress */}
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm min-w-0">
-                        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Conformité par Domaine (Annexe A)</h4>
+                    <div className="bg-card p-6 rounded-2xl border border-border shadow-sm min-w-0">
+                        <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Conformité par Domaine (Annexe A)</h4>
                         <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={domainChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
@@ -286,8 +286,8 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
 
                     {/* Radar Chart */}
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5 lg:col-span-2 shadow-sm min-w-0">
-                        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-6 uppercase tracking-wider">Vue Radar - Maturité par Domaine</h4>
+                    <div className="bg-card p-6 rounded-2xl border border-border lg:col-span-2 shadow-sm min-w-0">
+                        <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Vue Radar - Maturité par Domaine</h4>
                         <div className="h-[350px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
@@ -303,19 +303,19 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         fillOpacity={0.2}
                                     />
                                     <Tooltip content={<ChartTooltip />} />
-                                    <Legend formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>} />
+                                    <Legend formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>} />
                                 </RadarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/5 border-dashed">
-                    <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-full mb-4">
-                        <TrendingUp className="h-8 w-8 text-slate-500" />
+                <div className="flex flex-col items-center justify-center p-12 bg-card rounded-2xl border border-border border-dashed">
+                    <div className="p-4 bg-accent rounded-full mb-4">
+                        <TrendingUp className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">Aucune donnée de conformité</h3>
-                    <p className="text-slate-600 dark:text-slate-400 text-center max-w-md">
+                    <h3 className="text-lg font-medium text-foreground mb-1">Aucune donnée de conformité</h3>
+                    <p className="text-muted-foreground text-center max-w-md">
                         Commencez par importer ou créer des contrôles pour visualiser les graphiques de conformité.
                     </p>
                 </div>
@@ -323,8 +323,8 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
             {/* Critical Controls Not Implemented */}
             {criticalControls.length > 0 && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+                <div className="bg-card p-6 rounded-2xl border border-border">
+                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                         <AlertTriangle className="h-4 w-4 text-orange-500" />
                         Contrôles Critiques à Implémenter ({criticalControls.length})
                     </h4>
@@ -332,8 +332,8 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                         {criticalControls.slice(0, 5).map((control, index) => (
                             <div key={index} className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/10 rounded-xl border border-orange-200 dark:border-orange-800/50">
                                 <div className="flex-1">
-                                    <p className="font-bold text-sm text-slate-900 dark:text-slate-100">{control.code} - {control.name}</p>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-1">{control.description}</p>
+                                    <p className="font-bold text-sm text-foreground">{control.code} - {control.name}</p>
+                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{control.description}</p>
                                 </div>
                                 <div className={`px-3 py-1 rounded-lg text-xs font-bold ${control.status === 'Partiel' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400' :
                                     'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
@@ -347,18 +347,18 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             )}
 
             {/* Domain Details */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/5">
-                <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-4">Détail par Domaine ISO 27001</h4>
+            <div className="bg-card p-6 rounded-2xl border border-border">
+                <h4 className="text-sm font-bold text-foreground mb-4">Détail par Domaine ISO 27001</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {Object.entries(domainData).map(([domain, data]) => {
                         const rate = (data.implemented / data.total * 100);
                         return (
-                            <div key={domain} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/5">
+                            <div key={domain} className="p-4 bg-accent/40 rounded-xl border border-border">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="font-bold text-slate-900 dark:text-slate-100">{domain}</span>
-                                    <span className="text-xs font-bold text-slate-600">{data.implemented}/{data.total}</span>
+                                    <span className="font-bold text-foreground">{domain}</span>
+                                    <span className="text-xs font-bold text-muted-foreground">{data.implemented}/{data.total}</span>
                                 </div>
-                                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mb-2">
+                                <div className="w-full bg-border/60 rounded-full h-2 mb-2">
                                     <div
                                         className="h-2 rounded-full transition-all duration-500"
                                         style={{
@@ -367,7 +367,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         }}
                                     ></div>
                                 </div>
-                                <div className="text-xs text-slate-600 dark:text-slate-400">
+                                <div className="text-xs text-muted-foreground">
                                     {rate.toFixed(0)}% conformité
                                 </div>
                             </div>

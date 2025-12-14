@@ -48,10 +48,10 @@ export const Modal: React.FC<ModalProps> = ({
 
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in overflow-y-auto">
-            <div role="dialog" aria-modal="true" aria-labelledby={title ? titleId : undefined} className={`bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full ${maxWidth} border border-white/20 dark:border-white/10 overflow-hidden animate-scale-in mx-4 sm:mx-0 relative my-8`}>
+            <div role="dialog" aria-modal="true" aria-labelledby={title ? titleId : undefined} className={`bg-popover backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full ${maxWidth} border border-border overflow-hidden animate-scale-in mx-4 sm:mx-0 relative my-8`}>
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-white/5 bg-white/50 dark:bg-slate-800/50">
-                    <h3 id={titleId} className="text-xl font-bold text-slate-900 dark:text-white">{title}</h3>
+                <div className="flex items-center justify-between p-6 border-b border-border bg-background/50">
+                    <h3 id={titleId} className="text-xl font-bold text-foreground">{title}</h3>
                     <button
                         ref={closeButtonRef}
                         onClick={onClose}

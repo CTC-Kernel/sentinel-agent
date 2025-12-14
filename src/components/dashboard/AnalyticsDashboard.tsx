@@ -256,10 +256,10 @@ export const AnalyticsDashboard: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                    <h1 className="text-3xl font-bold text-foreground mb-2">
                         Analytics Dashboard
                     </h1>
-                    <p className="text-slate-600 dark:text-slate-400">
+                    <p className="text-muted-foreground">
                         Vue d'ensemble des métriques et tendances de sécurité
                     </p>
                 </div>
@@ -267,21 +267,21 @@ export const AnalyticsDashboard: React.FC = () => {
                 <div className="flex gap-3">
                     <button
                         onClick={() => OnboardingService.startAnalyticsTour()}
-                        className="px-4 py-2 bg-white dark:bg-slate-800 text-brand-600 border border-brand-200 dark:border-brand-900/30 rounded-xl text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-900/10 transition-colors flex items-center gap-2"
+                        className="px-4 py-2 bg-card text-brand-600 border border-border rounded-xl text-sm font-bold hover:bg-accent transition-colors flex items-center gap-2"
                     >
                         <HelpCircle className="h-4 w-4" />
                         Visite guidée
                     </button>
 
                     {/* Time range selector */}
-                    <div className="flex gap-2 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-white/10">
+                    <div className="flex gap-2 bg-card p-1 rounded-xl border border-border">
                         {(['7d', '30d', '90d', '1y'] as const).map((range) => (
                             <button
                                 key={range}
                                 onClick={() => setTimeRange(range)}
                                 className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${timeRange === range
                                     ? 'bg-brand-600 text-white'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                    : 'text-muted-foreground hover:bg-accent'
                                     }`}
                             >
                                 {range === '7d' ? '7 jours' : range === '30d' ? '30 jours' : range === '90d' ? '90 jours' : '1 an'}
@@ -337,8 +337,8 @@ export const AnalyticsDashboard: React.FC = () => {
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Trend Chart */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10" data-tour="analytics-trends">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">
+                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border" data-tour="analytics-trends">
+                    <h3 className="text-lg font-bold text-foreground mb-6">
                         Évolution des Risques et Incidents
                     </h3>
                     <ResponsiveContainer width="100%" height={300}>
@@ -391,8 +391,8 @@ export const AnalyticsDashboard: React.FC = () => {
                 </div>
 
                 {/* Compliance Progress */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">
+                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
+                    <h3 className="text-lg font-bold text-foreground mb-6">
                         Taux de Conformité ISO 27001
                     </h3>
                     <div className="flex items-center justify-center h-[300px]">
@@ -407,23 +407,23 @@ export const AnalyticsDashboard: React.FC = () => {
                     <div className="mt-6 grid grid-cols-3 gap-4 text-center">
                         <div>
                             <p className="text-2xl font-bold text-green-600">{controls.filter(c => c.status === 'Implémenté').length}</p>
-                            <p className="text-xs text-slate-600">Implémentés</p>
+                            <p className="text-xs text-muted-foreground">Implémentés</p>
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-orange-600">{controls.filter(c => c.status === 'Partiel').length}</p>
-                            <p className="text-xs text-slate-600">Partiels</p>
+                            <p className="text-xs text-muted-foreground">Partiels</p>
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-slate-600">{controls.filter(c => c.status === 'Non commencé').length}</p>
-                            <p className="text-xs text-slate-600">Non commencés</p>
+                            <p className="text-2xl font-bold text-foreground">{controls.filter(c => c.status === 'Non commencé').length}</p>
+                            <p className="text-xs text-muted-foreground">Non commencés</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Risk Distribution */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">
+            <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
+                <h3 className="text-lg font-bold text-foreground mb-6">
                     Distribution des Risques par Catégorie
                 </h3>
                 <ResponsiveContainer width="100%" height={300}>
@@ -448,9 +448,9 @@ export const AnalyticsDashboard: React.FC = () => {
             </div>
 
             {/* Top Risks Table */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+            <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                    <h3 className="text-lg font-bold text-foreground">
                         Top 10 Risques Critiques
                     </h3>
                     <button

@@ -89,7 +89,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     <div className="relative">
                         <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                             <circle
-                                className="text-slate-200 dark:text-slate-700"
+                                className="text-muted-foreground/20"
                                 strokeWidth="8"
                                 stroke="currentColor"
                                 fill="transparent"
@@ -111,37 +111,37 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                             />
                         </svg>
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                            <span className="text-xl font-black text-slate-900 dark:text-white">{projectHealth.score.toFixed(0)}%</span>
+                            <span className="text-xl font-black text-foreground">{projectHealth.score.toFixed(0)}%</span>
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Santé du Projet</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
+                        <h3 className="text-lg font-bold text-foreground mb-1">Santé du Projet</h3>
+                        <p className="text-sm text-muted-foreground max-w-[200px]">
                             {projectHealth.status === 'good' ? 'Le projet est sur la bonne voie.' : projectHealth.status === 'warning' ? 'Attention requise sur certains points.' : 'Situation critique, action immédiate requise.'}
                         </p>
                     </div>
                 </div>
 
                 {/* Key Metrics Breakdown */}
-                <div className="flex-1 grid grid-cols-2 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                <div className="flex-1 grid grid-cols-2 gap-4 border-l border-r border-border/60 px-6 mx-2">
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <TrendingUp className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Progression</div>
+                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Progression</div>
                         </div>
-                        <div className="text-xl font-black text-slate-900 dark:text-white">{Math.round(projectHealth.progressRate)}%</div>
-                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                        <div className="text-xl font-black text-foreground">{Math.round(projectHealth.progressRate)}%</div>
+                        <div className="h-1.5 w-full bg-accent rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${projectHealth.progressRate}%` }}></div>
                         </div>
-                        <div className="text-xs text-slate-600 mt-1">Attendue: {Math.round(projectHealth.expectedProgress)}%</div>
+                        <div className="text-xs text-muted-foreground mt-1">Attendue: {Math.round(projectHealth.expectedProgress)}%</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                            <Target className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Jalons</div>
+                            <Target className="h-4 w-4 text-muted-foreground" />
+                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Jalons</div>
                         </div>
-                        <div className="text-xl font-black text-slate-900 dark:text-white">{milestones.filter(m => m.status === 'achieved').length}/{milestones.length}</div>
-                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                        <div className="text-xl font-black text-foreground">{milestones.filter(m => m.status === 'achieved').length}/{milestones.length}</div>
+                        <div className="h-1.5 w-full bg-accent rounded-full mt-2 overflow-hidden">
                             <div className="h-full bg-purple-500 rounded-full" style={{ width: `${milestoneProgress}%` }}></div>
                         </div>
                     </div>
@@ -166,8 +166,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Task Distribution */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-6 uppercase tracking-wider">Distribution des Tâches</h4>
+                <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
+                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Distribution des Tâches</h4>
                     <div className="h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -191,7 +191,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                     height={36}
                                     iconType="circle"
                                     wrapperStyle={{ paddingTop: '20px' }}
-                                    formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                    formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
                                 />
                             </PieChart>
                         </ResponsiveContainer>
@@ -199,8 +199,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                 </div>
 
                 {/* Tasks by Priority Chart */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-6 uppercase tracking-wider">Tâches par Priorité</h4>
+                <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
+                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Tâches par Priorité</h4>
                     <div className="h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={tasksByPriority} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
@@ -225,7 +225,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                     verticalAlign="top"
                                     height={36}
                                     iconType="circle"
-                                    formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                    formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
                                 />
                                 <Bar dataKey="value" name="Nombre de tâches" radius={[4, 4, 0, 0]}>
                                     {tasksByPriority.map((entry, index) => (
@@ -240,8 +240,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
 
             {/* Milestones Timeline */}
             {milestones.length > 0 && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                <div className="bg-card p-6 rounded-2xl border border-border">
+                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
                         Jalons du Projet
                     </h4>
@@ -252,26 +252,26 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                                     ? 'bg-green-500 text-white'
                                     : milestone.status === 'missed'
                                         ? 'bg-red-500 text-white'
-                                        : 'bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                        : 'bg-accent text-foreground/70'
                                     }`}>
                                     {index + 1}
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex items-center justify-between">
-                                        <span className="font-bold text-sm text-slate-900 dark:text-white">{milestone.title}</span>
-                                        <span className="text-xs text-slate-600">
+                                        <span className="font-bold text-sm text-foreground">{milestone.title}</span>
+                                        <span className="text-xs text-muted-foreground">
                                             {new Date(milestone.targetDate).toLocaleDateString('fr-FR')}
                                         </span>
                                     </div>
                                     {milestone.description && (
-                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{milestone.description}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">{milestone.description}</p>
                                     )}
                                 </div>
                                 <div className={`px-2 py-1 rounded-lg text-xs font-bold ${milestone.status === 'achieved'
                                     ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
                                     : milestone.status === 'missed'
                                         ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                                        : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                                        : 'bg-accent text-muted-foreground'
                                     }`}>
                                     {milestone.status === 'achieved' ? 'Atteint' : milestone.status === 'missed' ? 'Manqué' : 'En attente'}
                                 </div>

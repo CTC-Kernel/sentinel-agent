@@ -269,7 +269,7 @@ export const Login: React.FC = () => {
     };
 
     return (
-        <AuroraBackground className="min-h-screen py-10 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/80 dark:bg-none dark:bg-[#000000] relative font-sans selection:bg-brand-500 selection:text-white">
+        <AuroraBackground className="min-h-screen py-10 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/80 dark:bg-none bg-background relative font-sans selection:bg-brand-500 selection:text-white">
             <SEO
                 title="Connexion"
                 description="Connectez-vous à votre espace sécurisé Sentinel GRC."

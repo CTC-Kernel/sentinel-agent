@@ -143,7 +143,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-xl border border-white/20 dark:border-white/5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden">
+            <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-xl border border-border bg-card/50 backdrop-blur-xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden">
                 <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
                 </div>
@@ -175,39 +175,39 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                             />
                         </svg>
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                            <span className="text-xl font-black text-slate-900 dark:text-white">{Math.round(riskReduction)}%</span>
+                            <span className="text-xl font-black text-foreground">{Math.round(riskReduction)}%</span>
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Réduction du Risque</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
+                        <h3 className="text-lg font-bold text-foreground mb-1">Réduction du Risque</h3>
+                        <p className="text-sm text-muted-foreground max-w-[200px]">
                             Efficacité globale des stratégies de traitement.
                         </p>
                     </div>
                 </div>
 
                 {/* Key Metrics Breakdown */}
-                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border px-6 mx-2">
                     <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.(null)}>
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <ShieldAlert className="h-4 w-4 text-slate-500" />
                             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</div>
                         </div>
-                        <div className="text-xl font-black text-slate-900 dark:text-white">{totalRisks}</div>
+                        <div className="text-xl font-black text-foreground">{totalRisks}</div>
                     </div>
                     <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.({ type: 'level', value: 'Critique' })}>
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <AlertTriangle className="h-4 w-4 text-slate-500" />
                             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Critiques</div>
                         </div>
-                        <div className="text-xl font-black text-slate-900 dark:text-white">{criticalRisks}</div>
+                        <div className="text-xl font-black text-foreground">{criticalRisks}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <Target className="h-4 w-4 text-slate-500" />
                             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Score Moy.</div>
                         </div>
-                        <div className="text-xl font-black text-slate-900 dark:text-white">{avgScore.toFixed(1)}</div>
+                        <div className="text-xl font-black text-foreground">{avgScore.toFixed(1)}</div>
                     </div>
                 </div>
 
@@ -234,8 +234,8 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 {/* Evolution Chart (NEW) */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 lg:col-span-2">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border lg:col-span-2">
+                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                         <Target className="h-4 w-4 text-brand-500" />
                         Évolution du Score Moyen (12 derniers mois)
                     </h4>
@@ -258,8 +258,8 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
 
 
                 {/* Risk Distribution */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Distribution par Niveau</h4>
+                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
+                    <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Niveau</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
                             <Pie
@@ -281,15 +281,15 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                 verticalAlign="bottom"
                                 height={36}
                                 iconType="circle"
-                                formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
                             />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
 
                 {/* Category Distribution */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Distribution par Catégorie</h4>
+                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
+                    <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Catégorie</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={categoryChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.5} />
@@ -316,8 +316,8 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 </div>
 
                 {/* Risk Matrix */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 lg:col-span-2">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Matrice des Risques (Probabilité × Impact)</h4>
+                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border lg:col-span-2">
+                    <h4 className="text-sm font-bold text-foreground mb-4">Matrice des Risques (Probabilité × Impact)</h4>
                     <ResponsiveContainer width="100%" height={300}>
                         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
@@ -359,8 +359,8 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 </div>
 
                 {/* Treatment Distribution */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 lg:col-span-2">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Stratégies de Traitement</h4>
+                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border lg:col-span-2">
+                    <h4 className="text-sm font-bold text-foreground mb-4">Stratégies de Traitement</h4>
                     <ResponsiveContainer width="100%" height={200}>
                         <BarChart data={treatmentData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} opacity={0.5} />
@@ -391,8 +391,8 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
 
             {/* Top Critical Risks */}
             {criticalRisks > 0 && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
+                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                         <AlertTriangle className="h-4 w-4 text-red-500" />
                         Top 5 Risques Critiques
                     </h4>
@@ -404,12 +404,12 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                             .map((risk, index) => (
                                 <div key={index} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-800">
                                     <div className="flex-1">
-                                        <p className="font-bold text-sm text-slate-900 dark:text-white">{risk.threat}</p>
-                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{risk.category || 'Non catégorisé'}</p>
+                                        <p className="font-bold text-sm text-foreground">{risk.threat}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">{risk.category || 'Non catégorisé'}</p>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <div className="text-right">
-                                            <div className="text-xs text-slate-600">Score</div>
+                                            <div className="text-xs text-muted-foreground">Score</div>
                                             <div className="text-lg font-bold text-red-600 dark:text-red-400">{risk.score}</div>
                                         </div>
                                         <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.strategy === 'Atténuer' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :

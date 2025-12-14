@@ -88,22 +88,22 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                         />
                     </svg>
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                        <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{healthScore}%</span>
+                        <span className="text-3xl font-black text-foreground tracking-tighter">{healthScore}%</span>
                     </div>
                 </div>
                 <div>
                     <div className={`text-xs font-bold uppercase tracking-wider mb-1 px-2.5 py-1 rounded-full w-fit ${getHealthColor(healthScore).replace('text-', 'bg-').replace('500', '50')} ${getHealthColor(healthScore)} bg-opacity-10`}>
                         {getHealthMessage(healthScore)}
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Score de Santé</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[180px] leading-relaxed">
+                    <h3 className="text-xl font-bold text-foreground mb-1">Score de Santé</h3>
+                    <p className="text-sm text-muted-foreground max-w-[180px] leading-relaxed">
                         Indicateur global basé sur vos incidents, risques et conformité.
                     </p>
                 </div>
             </div>
 
             {/* Metrics Grid */}
-            <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-6 px-4 md:border-l border-slate-200 dark:border-white/10 md:ml-4">
+            <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-6 px-4 md:border-l border-border md:ml-4">
                 {/* Active Incidents */}
                 <div
                     onClick={() => navigate('/incidents')}
@@ -117,8 +117,8 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                             <span className="text-[10px] font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Alert</span>
                         )}
                     </div>
-                    <div className="text-2xl font-bold text-slate-900 dark:text-white mb-0.5">{stats.activeIncidents}</div>
-                    <div className="text-xs font-semibold text-slate-600 group-hover/item:text-red-600/70 transition-colors">{t('dashboard.activeIncidents')}</div>
+                    <div className="text-2xl font-bold text-foreground mb-0.5">{stats.activeIncidents}</div>
+                    <div className="text-xs font-semibold text-muted-foreground group-hover/item:text-red-600/70 transition-colors">{t('dashboard.activeIncidents')}</div>
                 </div>
 
                 {/* Critical Risks */}
@@ -134,8 +134,8 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                             <span className="text-[10px] font-bold bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">Critique</span>
                         )}
                     </div>
-                    <div className="text-2xl font-bold text-slate-900 dark:text-white mb-0.5">{stats.highRisks}</div>
-                    <div className="text-xs font-semibold text-slate-600 group-hover/item:text-orange-600/70 transition-colors">{t('dashboard.criticalRisks')}</div>
+                    <div className="text-2xl font-bold text-foreground mb-0.5">{stats.highRisks}</div>
+                    <div className="text-xs font-semibold text-muted-foreground group-hover/item:text-orange-600/70 transition-colors">{t('dashboard.criticalRisks')}</div>
                 </div>
 
                 {/* Financial Exposure */}
@@ -148,10 +148,10 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                             <TrendingUp className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover/item:text-blue-500" />
                         </div>
                     </div>
-                    <div className="text-2xl font-bold text-slate-900 dark:text-white mb-0.5 text-nowrap">
+                    <div className="text-2xl font-bold text-foreground mb-0.5 text-nowrap">
                         {new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}
                     </div>
-                    <div className="text-xs font-semibold text-slate-600">{t('dashboard.financialExposure')}</div>
+                    <div className="text-xs font-semibold text-muted-foreground">{t('dashboard.financialExposure')}</div>
                 </div>
 
                 {/* Asset Value */}
@@ -164,10 +164,10 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                             <Euro className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover/item:text-indigo-500" />
                         </div>
                     </div>
-                    <div className="text-2xl font-bold text-slate-900 dark:text-white mb-0.5 text-nowrap">
+                    <div className="text-2xl font-bold text-foreground mb-0.5 text-nowrap">
                         {new Intl.NumberFormat('fr-FR', { notation: "compact", compactDisplay: "short", style: 'currency', currency: 'EUR' }).format(stats.assetValue)}
                     </div>
-                    <div className="text-xs font-semibold text-slate-600">{t('dashboard.assetValue')}</div>
+                    <div className="text-xs font-semibold text-muted-foreground">{t('dashboard.assetValue')}</div>
                 </div>
             </div>
         </div>

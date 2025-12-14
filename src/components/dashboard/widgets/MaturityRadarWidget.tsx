@@ -14,7 +14,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
         <div className="relative group/chart flex items-center justify-center">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-100 transition-opacity duration-700"></div>
             <div
-                className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-full border border-slate-200/50 dark:border-white/5 shadow-inner p-4 flex items-center justify-center"
+                className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-card/40 backdrop-blur-sm rounded-full border border-border shadow-inner p-4 flex items-center justify-center"
                 onClick={() => navigate('/compliance')}
             >
                 <ResponsiveContainer width="100%" height="100%">
@@ -55,7 +55,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                     </RadarChart>
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/70 dark:bg-black/30 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-[9px] sm:text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest shadow-sm whitespace-nowrap">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-background/70 backdrop-blur-md border border-border text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest shadow-sm whitespace-nowrap">
                         {t('dashboard.isoMaturity')}
                     </span>
                 </div>

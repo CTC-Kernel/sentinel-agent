@@ -12,7 +12,7 @@
 
 /* Ensure the popup (overlay) is glassmorphic and respects dark mode */
 .rbc-overlay {
-    @apply bg-white/80 dark:bg-[#0B1121]/80 backdrop-blur-2xl border border-slate-200/50 dark:border-white/10 shadow-apple-xl rounded-2xl p-4 !important;
+    @apply bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border border-slate-200/50 dark:border-white/10 shadow-apple-xl rounded-2xl p-4 !important;
     z-index: 50 !important;
     animation: scaleIn 0.2s ease-out forwards;
 }

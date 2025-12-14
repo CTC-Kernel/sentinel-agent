@@ -33,22 +33,22 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
         <div
             className={`
                 glass-panel p-0 rounded-[2rem] overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-all duration-300
-                ${isExpanded ? 'fixed inset-4 z-50 bg-white dark:bg-slate-900 !m-0 !rounded-[1rem] shadow-2xl animate-in fade-in zoom-in-95' : 'h-full bg-white/40 dark:bg-slate-900/40 backdrop-blur-md'}
+                ${isExpanded ? 'fixed inset-4 z-50 bg-background !m-0 !rounded-[1rem] shadow-2xl animate-in fade-in zoom-in-95' : 'h-full bg-card/40 backdrop-blur-md'}
                 ${className}
             `}
         >
             {/* Header */}
-            <div className={`px-6 py-5 border-b border-slate-200/60 dark:border-white/5 flex justify-between items-start backdrop-blur-sm ${isExpanded ? 'bg-slate-50 dark:bg-black/20' : 'bg-slate-50/50 dark:bg-white/5'}`}>
+            <div className={`px-6 py-5 border-b border-border/60 flex justify-between items-start backdrop-blur-sm ${isExpanded ? 'bg-background' : 'bg-background/50'}`}>
                 <div className="flex items-start gap-4">
                     {icon && (
-                        <div className="p-2.5 bg-white dark:bg-white/10 rounded-xl shadow-sm text-slate-600 dark:text-slate-300 ring-1 ring-slate-900/5 dark:ring-white/10">
+                        <div className="p-2.5 bg-background rounded-xl shadow-sm text-muted-foreground ring-1 ring-border/60">
                             {icon}
                         </div>
                     )}
                     <div>
-                        <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">{title}</h3>
+                        <h3 className="text-base font-bold text-foreground leading-tight">{title}</h3>
                         {subtitle && (
-                            <p className="text-xs text-slate-600 font-medium mt-1 uppercase tracking-wider">{subtitle}</p>
+                            <p className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-wider">{subtitle}</p>
                         )}
                     </div>
                 </div>
@@ -62,7 +62,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
                                 e.stopPropagation();
                                 onToggleExpand();
                             }}
-                            className="p-2 hover:bg-white dark:hover:bg-white/10 rounded-lg text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                            className="p-2 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground transition-colors"
                         >
                             {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                         </button>
@@ -75,7 +75,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
                 {/* Backdrop if not expanded is handled by parent container opacity/color usually, 
                     but here we want the content area to be specific.
                 */}
-                <div className={`h-full ${!isExpanded ? 'bg-white/40 dark:bg-transparent' : ''}`}>
+                <div className={`h-full ${!isExpanded ? 'bg-card/40' : ''}`}>
                     {loading ? <Skeleton className="h-full w-full" /> : children}
                 </div>
             </div>

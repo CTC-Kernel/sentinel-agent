@@ -28,7 +28,7 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-[#F5F5F7] dark:bg-black p-6 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-background p-6 relative overflow-hidden">
           {/* Ambient Background */}
           <div className="absolute inset-0 w-full h-full pointer-events-none">
             <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-red-500/10 dark:bg-red-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float"></div>

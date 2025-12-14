@@ -68,7 +68,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-      <div role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-md border border-white/20 dark:border-white/10 overflow-hidden animate-scale-in mx-4 sm:mx-0">
+      <div role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" className="bg-popover backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-md border border-border overflow-hidden animate-scale-in mx-4 sm:mx-0">
         <div className="p-6 text-center">
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg ${colorClass}`}>
             <Icon className="h-8 w-8" />
@@ -76,12 +76,12 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <h3 id="confirm-modal-title" className="text-xl font-bold text-slate-900 dark:text-white mb-2">{title}</h3>
           <p className="text-sm text-slate-600 dark:text-slate-400 font-medium leading-relaxed">{message}</p>
           {details && (
-            <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/5">
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">{details}</p>
+            <div className="mt-4 p-3 bg-background/50 rounded-xl border border-border">
+              <p className="text-xs text-muted-foreground font-medium">{details}</p>
             </div>
           )}
         </div>
-        <div className="flex border-t border-gray-100 dark:border-white/5">
+        <div className="flex border-t border-border">
           <Button
             onClick={onClose}
             disabled={loading}
@@ -91,7 +91,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           >
             {cancelText}
           </Button>
-          <div className="w-px bg-gray-100 dark:bg-white/5"></div>
+          <div className="w-px bg-border"></div>
           <Button
             onClick={() => { onConfirm(); if (closeOnConfirm) onClose(); }}
             isLoading={loading}

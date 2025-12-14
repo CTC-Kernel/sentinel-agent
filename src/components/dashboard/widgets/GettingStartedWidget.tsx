@@ -96,10 +96,10 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
 
             <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
                 <div className="flex-1">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                    <h3 className="text-xl font-bold text-foreground mb-2">
                         Bienvenue sur Sentinel GRC ! 🚀
                     </h3>
-                    <p className="text-slate-600 dark:text-slate-400 mb-6 max-w-lg">
+                    <p className="text-muted-foreground mb-6 max-w-lg">
                         Suivez ces étapes pour configurer votre espace et sécuriser votre entreprise.
                     </p>
 
@@ -130,7 +130,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                 </div>
 
                 <div className="w-full md:w-64 flex-shrink-0">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg text-center">
+                    <div className="bg-card text-card-foreground rounded-2xl p-6 shadow-lg text-center border border-border">
                         <div className="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
                             <svg className="w-full h-full transform -rotate-90 overflow-visible" viewBox="0 0 128 128">
                                 <circle
@@ -156,10 +156,10 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                                 />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                <span className="text-xl font-bold text-slate-900 dark:text-white">{Math.round(progress)}%</span>
+                                <span className="text-xl font-bold text-foreground">{Math.round(progress)}%</span>
                             </div>
                         </div>
-                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                        <p className="text-sm font-medium text-muted-foreground">
                             Configuration
                         </p>
                     </div>

@@ -80,7 +80,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                             disabled={loading}
                             className="flex flex-col items-center justify-center p-6 border-2 border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/10 transition-all group"
                         >
-                            <div className="w-12 h-12 bg-[#000000] rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                 <span className="text-white font-bold text-xs">&gt;_</span>
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">Splunk</span>
@@ -92,7 +92,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                             disabled={loading}
                             className="flex flex-col items-center justify-center p-6 border-2 border-slate-200 dark:border-slate-800 rounded-xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all group"
                         >
-                            <div className="w-12 h-12 bg-[#00A4EF] rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                 <Disc className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">Microsoft</span>
@@ -104,7 +104,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                             disabled={loading}
                             className="flex flex-col items-center justify-center p-6 border-2 border-slate-200 dark:border-slate-800 rounded-xl hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all group"
                         >
-                            <div className="w-12 h-12 bg-[#FC0000] rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                 <Activity className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">CrowdStrike</span>
@@ -116,7 +116,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                             disabled={loading}
                             className="flex flex-col items-center justify-center p-6 border-2 border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-all group"
                         >
-                            <div className="w-12 h-12 bg-[#6B1CB0] rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 bg-purple-700 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                 <Shield className="text-white h-6 w-6" />
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">SentinelOne</span>

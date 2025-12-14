@@ -187,8 +187,7 @@ class HybridService {
      */
     async wipeOrganizationSecureData(): Promise<HybridResponse> {
         try {
-            const { collection, query, where, getDocs, deleteDoc, getFirestore } = await import('firebase/firestore');
-            const db = getFirestore();
+            const { collection, query, where, getDocs, deleteDoc } = await import('firebase/firestore');
             const user = auth.currentUser;
             if (!user) throw new Error("No user logged in");
 
@@ -217,8 +216,7 @@ class HybridService {
      */
     async exportOrganizationSecureData(): Promise<HybridResponse> {
         try {
-            const { collection, query, where, getDocs, getFirestore } = await import('firebase/firestore');
-            const db = getFirestore();
+            const { collection, query, where, getDocs } = await import('firebase/firestore');
 
             const user = auth.currentUser;
             let organizationId: string | undefined;
