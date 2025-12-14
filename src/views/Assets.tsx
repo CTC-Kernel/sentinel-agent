@@ -382,7 +382,7 @@ export const Assets: React.FC = () => {
         if (!selectedAsset || !newMaintenance.description || !canEdit) return;
         setIsAddingMaintenance(true);
         try {
-            await addDoc(collection(db, 'assets', selectedAsset.id, 'maintenance'), newMaintenance);
+            await addDoc(collection(db, 'assets', selectedAsset.id, 'maintenance'), sanitizeData(newMaintenance));
             if (newMaintenance.type === 'Préventive') {
                 const nextDate = new Date(newMaintenance.date!);
                 nextDate.setFullYear(nextDate.getFullYear() + 1);
@@ -540,10 +540,10 @@ export const Assets: React.FC = () => {
         if (isExportingCSV) return;
         setIsExportingCSV(true);
         try {
-        const headers = ["Nom", "Type", "Propriétaire", "Confidentialité", "Intégrité", "Disponibilité", "Localisation", "Statut", "Valeur Actuelle"];
-        const rows = filteredAssets.map(a => [a.name, a.type, a.owner, a.confidentiality, a.integrity, a.availability, a.location, a.lifecycleStatus || 'Neuf', a.currentValue || 0]);
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-        const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `assets_export.csv`; link.click();
+            const headers = ["Nom", "Type", "Propriétaire", "Confidentialité", "Intégrité", "Disponibilité", "Localisation", "Statut", "Valeur Actuelle"];
+            const rows = filteredAssets.map(a => [a.name, a.type, a.owner, a.confidentiality, a.integrity, a.availability, a.location, a.lifecycleStatus || 'Neuf', a.currentValue || 0]);
+            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
+            const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `assets_export.csv`; link.click();
         } finally {
             setTimeout(() => setIsExportingCSV(false), 0);
         }
