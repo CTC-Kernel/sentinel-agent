@@ -7,7 +7,8 @@ import { UserProfile } from '@/types';
 
 // Mock Firebase
 vi.mock('@/firebase', () => ({
-  db: {}
+  db: {},
+  analytics: null
 }));
 
 vi.mock('firebase/firestore', () => ({

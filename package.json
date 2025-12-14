@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "node scripts/generate-version.js && node scripts/generate-sitemap.js && vite build",
     "lint": "eslint .",
-    "test": "vitest",
+    "test": "vitest run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
