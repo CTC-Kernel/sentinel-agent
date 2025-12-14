@@ -945,14 +945,14 @@ export const Settings: React.FC = () => {
 
                     <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="space-y-5 max-w-sm mx-auto">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.displayName')}</label>
-                            <input type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
+                            <label htmlFor="settings-displayName" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.displayName')}</label>
+                            <input id="settings-displayName" autoComplete="name" type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
                                 {...profileForm.register('displayName')} />
                             {profileForm.formState.errors.displayName && <p className="text-red-500 text-xs mt-1">{profileForm.formState.errors.displayName.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.department')}</label>
-                            <input type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
+                            <label htmlFor="settings-department" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.department')}</label>
+                            <input id="settings-department" autoComplete="organization" type="text" className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium"
                                 {...profileForm.register('department')} />
                         </div>
 
@@ -1001,7 +1001,9 @@ export const Settings: React.FC = () => {
                             <div className="space-y-4">
                                 <div>
                                     <input
+                                        id="settings-newPassword"
                                         type="password"
+                                        autoComplete="new-password"
                                         className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm dark:text-white"
                                         placeholder={t('settings.newPassword')}
                                         {...passwordForm.register('newPassword')}
@@ -1012,7 +1014,9 @@ export const Settings: React.FC = () => {
                                 </div>
                                 <div>
                                     <input
+                                        id="settings-confirmPassword"
                                         type="password"
+                                        autoComplete="new-password"
                                         className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm dark:text-white"
                                         placeholder={t('settings.confirmPassword')}
                                         {...passwordForm.register('confirmPassword')}

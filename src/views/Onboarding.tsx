@@ -504,39 +504,39 @@ export const Onboarding: React.FC = () => {
                                 <form onSubmit={form.handleSubmit(handleStep1)} className="space-y-6">
                                     {!user?.organizationId && (
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Nom de l'Organisation</label>
+                                            <label htmlFor="organizationName" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Nom de l'Organisation</label>
                                             <div className="relative">
                                                 <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                                <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Ex: Acme Corp"
+                                                <input id="organizationName" autoComplete="organization" type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Ex: Acme Corp"
                                                     {...form.register('organizationName')} />
                                                 {form.formState.errors.organizationName && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.organizationName.message}</p>}
                                             </div>
                                         </div>
                                     )}
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Nom complet</label>
+                                        <label htmlFor="displayName" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Nom complet</label>
                                         <div className="relative">
                                             <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                            <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Votre nom"
+                                            <input id="displayName" autoComplete="name" type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Votre nom"
                                                 {...form.register('displayName')} />
                                             {form.formState.errors.displayName && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.displayName.message}</p>}
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-5">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Département</label>
+                                            <label htmlFor="department" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Département</label>
                                             <div className="relative">
                                                 <Briefcase className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                                <input type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Ex: IT / Sécurité"
+                                                <input id="department" autoComplete="organization" type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Ex: IT / Sécurité"
                                                     {...form.register('department')} />
                                                 {form.formState.errors.department && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.department.message}</p>}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Rôle Principal</label>
+                                            <label htmlFor="role" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Rôle Principal</label>
                                             <div className="relative">
                                                 <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                                <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
+                                                <select id="role" autoComplete="off" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
                                                     {...form.register('role')}>
                                                     <option value="admin">Administrateur</option>
                                                     <option value="rssi">RSSI / CISO</option>
@@ -548,10 +548,10 @@ export const Onboarding: React.FC = () => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Secteur</label>
+                                        <label htmlFor="industry" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Secteur</label>
                                         <div className="relative">
                                             <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                            <select className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
+                                            <select id="industry" autoComplete="off" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
                                                 {...form.register('industry')}>
                                                 <option value="">Sélectionner...</option>
                                                 <option value="tech">Technologie / SaaS</option>

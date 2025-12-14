@@ -629,13 +629,13 @@ export const Team: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom complet (Optionnel)</label>
-                        <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                        <label htmlFor="team-invite-displayName" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom complet (Optionnel)</label>
+                        <input id="team-invite-displayName" autoComplete="name" type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                             {...inviteForm.register('displayName')} placeholder="Jean Dupont" />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Email professionnel</label>
-                        <input type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                        <label htmlFor="team-invite-email" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Email professionnel</label>
+                        <input id="team-invite-email" autoComplete="email" type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                             {...inviteForm.register('email')} placeholder="jean@entreprise.com" />
                         {inviteForm.formState.errors.email && <p className="text-red-500 text-xs mt-1">{inviteForm.formState.errors.email?.message}</p>}
                     </div>
@@ -664,8 +664,8 @@ export const Team: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Département</label>
-                            <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                            <label htmlFor="team-invite-department" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Département</label>
+                            <input id="team-invite-department" autoComplete="organization" type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                                 {...inviteForm.register('department')} placeholder="IT" />
                         </div>
                     </div>
@@ -692,8 +692,8 @@ export const Team: React.FC = () => {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom d'affichage</label>
-                            <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                            <label htmlFor="team-edit-displayName" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom d'affichage</label>
+                            <input id="team-edit-displayName" autoComplete="name" type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                                 {...editForm.register('displayName')} />
                         </div>
 
@@ -722,8 +722,8 @@ export const Team: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Département</label>
-                                <input type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
+                                <label htmlFor="team-edit-department" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Département</label>
+                                <input id="team-edit-department" autoComplete="organization" type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
                                     {...editForm.register('department')} />
                             </div>
                         </div>

@@ -657,14 +657,14 @@ export const Privacy: React.FC = () => {
                 <form onSubmit={createActivityForm.handleSubmit(handleCreate)} className="p-4 sm:p-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom du traitement</label>
-                            <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium"
+                            <label htmlFor="privacy-activity-name" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom du traitement</label>
+                            <input id="privacy-activity-name" autoComplete="off" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium"
                                 {...createActivityForm.register('name')} placeholder="ex: Gestion Paie" />
                             {createActivityForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{createActivityForm.formState.errors.name.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable</label>
-                            <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
+                            <label htmlFor="privacy-activity-managerId" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable</label>
+                            <select id="privacy-activity-managerId" autoComplete="off" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
                                 {...createActivityForm.register('managerId')}
                                 onChange={e => {
                                     const selectedUser = usersList.find(u => u.uid === e.target.value);
@@ -677,8 +677,8 @@ export const Privacy: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Finalité principale</label>
-                        <textarea rows={2} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none"
+                        <label htmlFor="privacy-activity-purpose" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Finalité principale</label>
+                        <textarea id="privacy-activity-purpose" autoComplete="off" rows={2} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none"
                             {...createActivityForm.register('purpose')} placeholder="ex: Payer les salaires et déclarations sociales" />
                     </div>
                     <div className="grid grid-cols-2 gap-6">
@@ -697,7 +697,7 @@ export const Privacy: React.FC = () => {
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-6">
-                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Durée Conservation</label><input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...createActivityForm.register('retentionPeriod')} placeholder="ex: 5 ans après départ" /></div>
+                        <div><label htmlFor="privacy-activity-retentionPeriod" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Durée Conservation</label><input id="privacy-activity-retentionPeriod" autoComplete="off" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...createActivityForm.register('retentionPeriod')} placeholder="ex: 5 ans après départ" /></div>
                         <div className="flex items-end pb-4"><label className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 w-full transition-colors"><input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-gray-300" checked={createActivityForm.watch('hasDPIA')} onChange={e => createActivityForm.setValue('hasDPIA', e.target.checked)} /><span className="text-sm font-bold text-slate-900 dark:text-white">DPIA Requis ?</span></label></div>
                     </div>
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
