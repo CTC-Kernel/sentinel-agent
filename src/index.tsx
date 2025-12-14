@@ -7,6 +7,9 @@ import { HelmetProvider } from 'react-helmet-async';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+import { onIdTokenChanged, getRedirectResult } from 'firebase/auth';
+import { auth, debugGetAppCheckTokenSnippet } from './firebase';
+
 // Initialize Capacitor plugins
 const initializeApp = async () => {
   try {
@@ -47,6 +50,105 @@ const queryClient = new QueryClient({
   },
 });
 
+const installDiagnostics = () => {
+  if (typeof window === 'undefined') return;
+
+  const enabled = localStorage.getItem('debug_sentinel') === 'true';
+  if (!enabled) return;
+
+  const tag = '[SentinelDiag]';
+  // eslint-disable-next-line no-console
+  console.warn(`${tag} enabled (localStorage.debug_sentinel=true)`);
+
+  // 1) Observe auth changes (this is authoritative for "why am I back to login")
+  try {
+    onIdTokenChanged(auth, async (user) => {
+      try {
+        if (!user) {
+          // eslint-disable-next-line no-console
+          console.warn(`${tag} onIdTokenChanged: user=null`);
+          return;
+        }
+        const tokenResult = await user.getIdTokenResult();
+        // eslint-disable-next-line no-console
+        console.warn(`${tag} onIdTokenChanged: user`, {
+          uid: user.uid,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          providerIds: user.providerData?.map(p => p.providerId),
+          hasOrgClaim: Boolean((tokenResult.claims as Record<string, unknown>)?.organizationId),
+          hasRoleClaim: Boolean((tokenResult.claims as Record<string, unknown>)?.role)
+        });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn(`${tag} onIdTokenChanged handler error`, e);
+      }
+    });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn(`${tag} failed to attach onIdTokenChanged`, e);
+  }
+
+  // 2) Finalize redirect result globally (gives precise auth/* errors)
+  (async () => {
+    try {
+      const result = await getRedirectResult(auth);
+      if (result?.user) {
+        // eslint-disable-next-line no-console
+        console.warn(`${tag} getRedirectResult: success`, {
+          uid: result.user.uid,
+          providerIds: result.user.providerData?.map(p => p.providerId)
+        });
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn(`${tag} getRedirectResult: empty`);
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(`${tag} getRedirectResult error`, e);
+    }
+  })();
+
+  // 3) Probe App Check token minting
+  (async () => {
+    try {
+      const snippet = await debugGetAppCheckTokenSnippet();
+      // eslint-disable-next-line no-console
+      console.warn(`${tag} appCheck token`, { hasToken: Boolean(snippet), snippet });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(`${tag} appCheck getToken error`, e);
+    }
+  })();
+
+  // 4) Wrap fetch to surface 401/403 (Firestore/AppCheck failures usually show up here)
+  try {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const res = await originalFetch(input, init);
+      if (res.status === 401 || res.status === 403) {
+        let url = '';
+        try {
+          url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : (input as Request).url;
+        } catch {
+          url = '';
+        }
+        // eslint-disable-next-line no-console
+        console.warn(`${tag} fetch ${res.status}`, {
+          url,
+          method: init?.method || (typeof input !== 'string' && !(input instanceof URL) ? (input as Request).method : 'GET'),
+          mode: init?.mode,
+          credentials: init?.credentials
+        });
+      }
+      return res;
+    };
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn(`${tag} failed to wrap fetch`, e);
+  }
+};
+
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 const root = createRoot(rootElement);
@@ -61,6 +163,8 @@ root.render(
     </QueryClientProvider>
   </React.StrictMode>
 );
+
+installDiagnostics();
 
 // Initialize app after render
 initializeApp();

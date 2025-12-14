@@ -25,6 +25,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
+let appCheck: AppCheck | null = null;
+
 // Initialize App Check with ReCAPTCHA Enterprise
 if (typeof window !== 'undefined') {
   const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY as string | undefined;
@@ -57,6 +59,8 @@ if (typeof window !== 'undefined') {
         isTokenAutoRefreshEnabled: true
       });
 
+      appCheck = appCheckInstance;
+
       // Optional diagnostics: verify we can mint an App Check token.
       // Enabled only when localStorage.debug_app_check === 'true'.
       if (isVerboseDebug && appCheckInstance) {
@@ -87,6 +91,13 @@ if (typeof window !== 'undefined') {
     ErrorLogger.warn('App Check initialization failed', 'firebase.ts', { metadata: { error } });
   }
 }
+
+export const debugGetAppCheckTokenSnippet = async (): Promise<string | null> => {
+  if (!appCheck) return null;
+  const tokenResult = await getToken(appCheck, false);
+  if (!tokenResult?.token) return null;
+  return `${tokenResult.token.slice(0, 12)}...`;
+};
 
 
 
