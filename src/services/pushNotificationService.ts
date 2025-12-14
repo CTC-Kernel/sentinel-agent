@@ -35,8 +35,13 @@ export class PushNotificationService {
                     return false;
                 }
 
+                const serviceWorkerRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+                    scope: '/firebase-cloud-messaging-push-scope'
+                });
+
                 const token = await getToken(messaging, {
-                    vapidKey: VAPID_KEY
+                    vapidKey: VAPID_KEY,
+                    serviceWorkerRegistration
                 });
 
                 if (token) {
