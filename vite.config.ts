@@ -86,6 +86,7 @@ export default defineConfig({
     outDir: 'dist',
     target: 'esnext',
     sourcemap: false,
+    chunkSizeWarningLimit: 2000,
     rollupOptions: {
       external: ['capacitor.js'],
       output: {
