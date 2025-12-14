@@ -16,7 +16,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     size = 120,
     strokeWidth = 8,
     color = '#3b82f6',
-    backgroundColor = '#e5e7eb',
+    backgroundColor = 'hsl(var(--border) / 0.6)',
     showLabel = true,
     label,
     className = ''
@@ -60,11 +60,11 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
             {/* Center label */}
             {showLabel && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xl font-bold text-slate-900 dark:text-white">
+                    <span className="text-xl font-bold text-foreground">
                         {Math.round(progress)}%
                     </span>
                     {label && (
-                        <span className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                        <span className="text-xs text-muted-foreground mt-1">
                             {label}
                         </span>
                     )}

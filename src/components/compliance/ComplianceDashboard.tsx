@@ -18,18 +18,18 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
     // Chart Theme Configuration
     const chartTheme = {
-        grid: theme === 'dark' ? '#334155' : '#e2e8f0',
-        text: theme === 'dark' ? '#94a3b8' : '#64748b',
+        grid: theme === 'dark' ? 'hsl(var(--border) / 0.35)' : 'hsl(var(--border) / 0.6)',
+        text: 'hsl(var(--muted-foreground))',
         tooltip: {
-            bg: theme === 'dark' ? '#0f172a' : '#ffffff',
-            border: theme === 'dark' ? '#1e293b' : '#e2e8f0',
-            text: theme === 'dark' ? '#f8fafc' : '#0f172a'
+            bg: 'hsl(var(--background))',
+            border: 'hsl(var(--border))',
+            text: 'hsl(var(--foreground))'
         },
         colors: {
             implemented: '#10b981', // Emerald 500 - Softer than green
             partial: '#f59e0b',     // Amber 500 - Warmer than yellow
             notStarted: '#f43f5e',  // Rose 500 - Less harsh than red
-            notApplicable: theme === 'dark' ? '#475569' : '#94a3b8',
+            notApplicable: 'hsl(var(--muted-foreground) / 0.55)',
             primary: '#6366f1'      // Indigo 500 - More premium than blue
         }
     };
@@ -274,7 +274,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         tickLine={false}
                                         axisLine={false}
                                     />
-                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(148, 163, 184, 0.1)' }} />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.12)' }} />
                                     <Bar dataKey="rate" name="Taux %" fill={chartTheme.colors.primary} radius={[4, 4, 0, 0]} barSize={30}>
                                         {domainChartData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={parseInt(entry.rate) >= 80 ? chartTheme.colors.implemented : parseInt(entry.rate) >= 50 ? chartTheme.colors.partial : chartTheme.colors.primary} />

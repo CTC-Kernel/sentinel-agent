@@ -3,7 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
 // Capacitor import removed from static scope to prevent web issues
 // import { Capacitor } from '@capacitor/core';
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache } from 'firebase/firestore';
+import { initializeFirestore, memoryLocalCache } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
@@ -129,46 +129,13 @@ export const auth = getAuth(app);
 
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
 // Fallback to in-memory cache if IndexedDB is blocked/unavailable (private mode, hardened browsers, etc.).
-export const db = (() => {
-  try {
-    const isSafari = (() => {
-      try {
-        if (typeof navigator === 'undefined') return false;
-        const ua = navigator.userAgent || '';
-        const vendor = (navigator as unknown as { vendor?: string }).vendor || '';
-        const isAppleVendor = vendor.includes('Apple');
-        const isSafariUA = /Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR|CriOS|FxiOS/i.test(ua);
-        return isAppleVendor && isSafariUA;
-      } catch {
-        return false;
-      }
-    })();
-
-    // Safari is prone to IndexedDB quirks and long-polling issues that can trigger Firestore internal assertions.
-    // Mitigation: disable persistent cache + force long polling on Safari.
-    if (isSafari) {
-      return initializeFirestore(app, {
-        localCache: memoryLocalCache(),
-        experimentalForceLongPolling: true
-      });
-    }
-
-    return initializeFirestore(app, {
-      localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager()
-      }),
-      experimentalForceLongPolling: true
-    });
-  } catch (error) {
-    ErrorLogger.warn('Firestore persistent cache init failed; falling back to memory cache', 'firebase.firestore', {
-      metadata: { error }
-    });
-    return initializeFirestore(app, {
-      localCache: memoryLocalCache(),
-      experimentalForceLongPolling: true
-    });
-  }
-})();
+// Initialize Firestore with memory cache and forced long-polling for maximum stability.
+// We disable offline persistence to prevent IndexedDB locking issues and '400 channel' errors
+// in restrictive network environments.
+export const db = initializeFirestore(app, {
+  localCache: memoryLocalCache(),
+  experimentalForceLongPolling: true
+});
 
 export const storage = getStorage(app);
 export const functions = getFunctions(app);

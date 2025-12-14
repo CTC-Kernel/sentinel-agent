@@ -53,6 +53,11 @@ export const AnalyticsDashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
+    const chartColors = {
+        grid: 'hsl(var(--border) / 0.6)',
+        text: 'hsl(var(--muted-foreground))'
+    };
+
     // Data states
     const [risks, setRisks] = useState<Risk[]>([]);
     const [assets, setAssets] = useState<Asset[]>([]);
@@ -240,10 +245,10 @@ export const AnalyticsDashboard: React.FC = () => {
         return (
             <div className="p-8">
                 <div className="animate-pulse space-y-6">
-                    <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/4"></div>
+                    <div className="h-8 bg-accent rounded w-1/4"></div>
                     <div className="grid grid-cols-4 gap-6">
                         {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="h-32 bg-slate-200 dark:bg-slate-700 rounded-2xl"></div>
+                            <div key={i} className="h-32 bg-accent rounded-2xl"></div>
                         ))}
                     </div>
                 </div>
@@ -353,9 +358,9 @@ export const AnalyticsDashboard: React.FC = () => {
                                     <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} />
-                            <XAxis dataKey="date" stroke="#94a3b8" style={{ fontSize: '12px' }} />
-                            <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
+                            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} opacity={0.3} />
+                            <XAxis dataKey="date" stroke={chartColors.text} style={{ fontSize: '12px' }} />
+                            <YAxis stroke={chartColors.text} style={{ fontSize: '12px' }} />
                             <Tooltip
                                 contentStyle={{
                                     backgroundColor: 'var(--glass-bg)',

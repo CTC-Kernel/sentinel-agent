@@ -35,11 +35,11 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
         <div className="glass-panel p-6 rounded-[2.5rem] h-full">
             <div className="flex justify-between items-start mb-6">
                 <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Scorecard Conformité</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">ISO 27001:2022</p>
+                    <h3 className="text-lg font-bold text-foreground">Scorecard Conformité</h3>
+                    <p className="text-sm text-muted-foreground">ISO 27001:2022</p>
                 </div>
                 <div className="flex flex-col items-end">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-lg shadow-lg">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-foreground text-background font-bold text-lg shadow-lg">
                         {totalScore}%
                     </div>
                     {trend !== undefined && (
@@ -54,10 +54,10 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
                 {stats.map(stat => (
                     <div key={stat.id}>
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{stat.name}</span>
-                            <span className="text-xs font-bold text-slate-600">{stat.score}% ({stat.implemented}/{stat.total})</span>
+                            <span className="text-sm font-bold text-foreground">{stat.name}</span>
+                            <span className="text-xs font-bold text-muted-foreground">{stat.score}% ({stat.implemented}/{stat.total})</span>
                         </div>
-                        <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-2.5 overflow-hidden">
+                        <div className="w-full bg-accent rounded-full h-2.5 overflow-hidden">
                             <div
                                 className={`h-full rounded-full ${stat.color} transition-all duration-1000 ease-out`}
                                 style={{ width: `${stat.score}%` }}
@@ -67,16 +67,16 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
                 ))}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-slate-100 dark:border-white/5 flex gap-4 overflow-x-auto no-scrollbar">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-600 whitespace-nowrap">
+            <div className="mt-6 pt-6 border-t border-border/60 flex gap-4 overflow-x-auto no-scrollbar">
+                <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     {controls.filter(c => c.status === 'Implémenté').length} Implémentés
                 </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-600 whitespace-nowrap">
+                <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
                     <AlertTriangle className="h-4 w-4 text-amber-500" />
                     {controls.filter(c => c.status === 'Partiel').length} Partiels
                 </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-600 whitespace-nowrap">
+                <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground whitespace-nowrap">
                     <ShieldAlert className="h-4 w-4 text-red-500" />
                     {controls.filter(c => c.status === 'Non commencé').length} À faire
                 </div>

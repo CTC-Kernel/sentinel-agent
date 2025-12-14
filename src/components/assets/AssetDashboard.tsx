@@ -4,7 +4,6 @@ import { Asset, Criticality } from '../../types';
 import { Server, Wrench, Euro, ShieldAlert } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-
 interface AssetDashboardProps {
     assets: Asset[];
     onFilterChange?: (filter: { type: 'criticality' | 'status' | 'type', value: string } | null) => void;
@@ -210,7 +209,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                 verticalAlign="bottom"
                                 height={36}
                                 iconType="circle"
-                                formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
                             />
                         </PieChart>
                     </ResponsiveContainer>
@@ -221,10 +220,10 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Top Types d'Actifs</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={typeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.5} />
+                            <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.6)'} vertical={false} opacity={0.5} />
                             <XAxis
                                 dataKey="name"
-                                stroke="#94a3b8"
+                                stroke={'hsl(var(--muted-foreground))'}
                                 fontSize={11}
                                 tickLine={false}
                                 axisLine={false}
@@ -232,13 +231,13 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                 tickFormatter={(value) => value.length > 10 ? `${value.substring(0, 10)}...` : value}
                             />
                             <YAxis
-                                stroke="#94a3b8"
+                                stroke={'hsl(var(--muted-foreground))'}
                                 fontSize={11}
                                 tickLine={false}
                                 axisLine={false}
                                 dx={-10}
                             />
-                            <Tooltip content={<ChartTooltip />} cursor={{ fill: '#f1f5f9', opacity: 0.4 }} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.12)', opacity: 1 }} />
                             <Bar dataKey="value" fill="#3b82f6" name="Nombre d'actifs" radius={[4, 4, 0, 0]} barSize={30} />
                         </BarChart>
                     </ResponsiveContainer>
@@ -268,7 +267,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                 verticalAlign="bottom"
                                 height={36}
                                 iconType="circle"
-                                formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
                             />
                         </PieChart>
                     </ResponsiveContainer>
@@ -279,19 +278,19 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Actifs par Localisation</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={locationChartData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} opacity={0.5} />
+                            <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.6)'} horizontal={false} opacity={0.5} />
                             <XAxis type="number" hide />
                             <YAxis
                                 dataKey="name"
                                 type="category"
-                                stroke="#94a3b8"
+                                stroke={'hsl(var(--muted-foreground))'}
                                 fontSize={11}
                                 tickLine={false}
                                 axisLine={false}
                                 width={100}
                                 tickFormatter={(value) => value.length > 12 ? `${value.substring(0, 12)}...` : value}
                             />
-                            <Tooltip content={<ChartTooltip />} cursor={{ fill: '#f1f5f9', opacity: 0.4 }} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.12)', opacity: 1 }} />
                             <Bar dataKey="value" fill="#10b981" name="Nombre d'actifs" radius={[0, 4, 4, 0]} barSize={20} />
                         </BarChart>
                     </ResponsiveContainer>

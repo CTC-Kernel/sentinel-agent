@@ -204,23 +204,23 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     <div className="h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={tasksByPriority} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.5} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.6)'} vertical={false} opacity={0.5} />
                                 <XAxis
                                     dataKey="name"
-                                    stroke="#94a3b8"
+                                    stroke={'hsl(var(--muted-foreground))'}
                                     fontSize={11}
                                     tickLine={false}
                                     axisLine={false}
                                     dy={10}
                                 />
                                 <YAxis
-                                    stroke="#94a3b8"
+                                    stroke={'hsl(var(--muted-foreground))'}
                                     fontSize={11}
                                     tickLine={false}
                                     axisLine={false}
                                     dx={-10}
                                 />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: '#f1f5f9', opacity: 0.4 }} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.12)', opacity: 1 }} />
                                 <Legend
                                     verticalAlign="top"
                                     height={36}

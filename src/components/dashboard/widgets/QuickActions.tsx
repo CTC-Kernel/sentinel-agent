@@ -24,7 +24,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }
 
             <button onClick={() => navigate('/incidents')} className="relative p-5 bg-card border border-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-red-300 dark:hover:border-red-500/50 active:scale-95">
                 {stats && stats.activeIncidents > 0 && (
-                    <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-900">
+                    <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
                         {stats.activeIncidents}
                     </span>
                 )}
@@ -36,7 +36,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }
 
             <button onClick={() => navigate('/risks')} className="relative p-5 bg-card border border-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50 active:scale-95">
                 {stats && stats.highRisks > 0 && (
-                    <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-900">
+                    <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
                         {stats.highRisks}
                     </span>
                 )}
@@ -48,11 +48,11 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }
 
             <button onClick={() => navigate('/assets')} className="relative p-5 bg-card border border-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-blue-300 dark:hover:border-blue-500/50 active:scale-95">
                 {stats && stats.assets > 0 && (
-                    <span className="absolute top-3 right-3 flex h-auto min-w-[20px] px-1 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-900">
+                    <span className="absolute top-3 right-3 flex h-auto min-w-[20px] px-1 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
                         {stats.assets}
                     </span>
                 )}
-                <div className="p-3 bg-blue-50 dark:bg-slate-900 dark:bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30">
+                <div className="p-3 bg-blue-50 dark:bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30">
                     <Server className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <span className="text-sm font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{t('dashboard.assets')}</span>

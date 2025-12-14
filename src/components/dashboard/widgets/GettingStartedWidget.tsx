@@ -86,10 +86,10 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
     if (completedCount === steps.length) return null;
 
     return (
-        <div className="mb-8 glass-panel p-6 rounded-2xl border border-brand-500/20 bg-gradient-to-r from-brand-50/50 to-white/50 dark:from-brand-900/10 dark:to-slate-900/50 relative overflow-hidden">
+        <div className="mb-8 glass-panel p-6 rounded-2xl border border-brand-500/20 bg-gradient-to-r from-brand-50/50 to-background/50 dark:from-brand-900/10 dark:to-background/50 relative overflow-hidden">
             <button
                 onClick={onClose}
-                className="absolute top-4 right-4 p-1 text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                className="absolute top-4 right-4 p-1 text-muted-foreground hover:text-foreground transition-colors"
             >
                 <X className="h-5 w-5" />
             </button>
@@ -110,15 +110,15 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                                 onClick={() => !step.isCompleted && navigate(step.path)}
                                 className={`flex items-center gap-3 p-3 rounded-xl transition-all ${step.isCompleted
                                     ? 'opacity-60'
-                                    : 'bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 cursor-pointer shadow-sm'
+                                    : 'bg-background/60 hover:bg-accent cursor-pointer shadow-sm'
                                     }`}
                             >
                                 {step.isCompleted ? (
                                     <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
                                 ) : (
-                                    <Circle className="h-5 w-5 text-slate-300 dark:text-slate-600 flex-shrink-0" />
+                                    <Circle className="h-5 w-5 text-muted-foreground/40 flex-shrink-0" />
                                 )}
-                                <span className={`font-medium ${step.isCompleted ? 'text-slate-600 line-through' : 'text-slate-900 dark:text-white'}`}>
+                                <span className={`font-medium ${step.isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
                                     {step.label}
                                 </span>
                                 {!step.isCompleted && (
@@ -140,7 +140,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                                     stroke="currentColor"
                                     strokeWidth="12"
                                     fill="transparent"
-                                    className="text-slate-100 dark:text-slate-700"
+                                    className="text-muted-foreground/20"
                                 />
                                 <circle
                                     cx="64"

@@ -71,7 +71,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                             stroke="currentColor"
                             strokeWidth="8"
                             fill="transparent"
-                            className="text-slate-100 dark:text-slate-800"
+                            className="text-muted-foreground/20"
                         />
                         {/* Progress Circle */}
                         <circle
@@ -107,11 +107,11 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                 {/* Active Incidents */}
                 <div
                     onClick={() => navigate('/incidents')}
-                    className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer group/item transition-all duration-300 border border-transparent hover:border-red-200 dark:hover:border-red-900/30"
+                    className="p-4 rounded-2xl bg-accent/40 hover:bg-red-50 dark:hover:bg-red-900/10 cursor-pointer group/item transition-all duration-300 border border-transparent hover:border-red-200 dark:hover:border-red-900/30"
                 >
                     <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm group-hover/item:text-red-500 transition-colors">
-                            <Siren className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover/item:text-red-500" />
+                        <div className="p-2 bg-background rounded-xl shadow-sm group-hover/item:text-red-500 transition-colors">
+                            <Siren className="h-5 w-5 text-muted-foreground group-hover/item:text-red-500" />
                         </div>
                         {stats.activeIncidents > 0 && (
                             <span className="text-[10px] font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Alert</span>
@@ -124,11 +124,11 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                 {/* Critical Risks */}
                 <div
                     onClick={() => navigate('/risks')}
-                    className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-orange-50 dark:hover:bg-orange-900/10 cursor-pointer group/item transition-all duration-300 border border-transparent hover:border-orange-200 dark:hover:border-orange-900/30"
+                    className="p-4 rounded-2xl bg-accent/40 hover:bg-orange-50 dark:hover:bg-orange-900/10 cursor-pointer group/item transition-all duration-300 border border-transparent hover:border-orange-200 dark:hover:border-orange-900/30"
                 >
                     <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm group-hover/item:text-orange-500 transition-colors">
-                            <ShieldAlert className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover/item:text-orange-500" />
+                        <div className="p-2 bg-background rounded-xl shadow-sm group-hover/item:text-orange-500 transition-colors">
+                            <ShieldAlert className="h-5 w-5 text-muted-foreground group-hover/item:text-orange-500" />
                         </div>
                         {stats.highRisks > 0 && (
                             <span className="text-[10px] font-bold bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">Critique</span>
@@ -141,11 +141,11 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                 {/* Financial Exposure */}
                 <div
                     onClick={() => navigate('/risks')}
-                    className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer group/item transition-all duration-300 border border-transparent hover:border-slate-200 dark:hover:border-white/20"
+                    className="p-4 rounded-2xl bg-accent/40 hover:bg-accent cursor-pointer group/item transition-all duration-300 border border-transparent hover:border-border"
                 >
                     <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm group-hover/item:text-blue-500 transition-colors">
-                            <TrendingUp className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover/item:text-blue-500" />
+                        <div className="p-2 bg-background rounded-xl shadow-sm group-hover/item:text-blue-500 transition-colors">
+                            <TrendingUp className="h-5 w-5 text-muted-foreground group-hover/item:text-blue-500" />
                         </div>
                     </div>
                     <div className="text-2xl font-bold text-foreground mb-0.5 text-nowrap">
@@ -157,11 +157,11 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
                 {/* Asset Value */}
                 <div
                     onClick={() => navigate('/assets')}
-                    className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer group/item transition-all duration-300 border border-transparent hover:border-slate-200 dark:hover:border-white/20"
+                    className="p-4 rounded-2xl bg-accent/40 hover:bg-accent cursor-pointer group/item transition-all duration-300 border border-transparent hover:border-border"
                 >
                     <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm group-hover/item:text-indigo-500 transition-colors">
-                            <Euro className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover/item:text-indigo-500" />
+                        <div className="p-2 bg-background rounded-xl shadow-sm group-hover/item:text-indigo-500 transition-colors">
+                            <Euro className="h-5 w-5 text-muted-foreground group-hover/item:text-indigo-500" />
                         </div>
                     </div>
                     <div className="text-2xl font-bold text-foreground mb-0.5 text-nowrap">

@@ -162,23 +162,23 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Top Catégories</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={categoryData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={'hsl(var(--border) / 0.6)'} />
                             <XAxis
                                 dataKey="name"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
                                 dy={10}
                             />
                             <YAxis
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
                             />
                             <Tooltip
-                                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px', color: '#fff' }}
-                                itemStyle={{ color: '#fff' }}
-                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
+                                itemStyle={{ color: 'hsl(var(--foreground))' }}
+                                cursor={{ fill: 'hsl(var(--muted-foreground) / 0.12)' }}
                             />
                             <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={30} />
                         </BarChart>

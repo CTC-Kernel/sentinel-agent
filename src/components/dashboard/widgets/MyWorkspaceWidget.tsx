@@ -50,7 +50,7 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
                                     }`}></div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between mb-1">
-                                        <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md border ${item.type === 'audit' ? 'bg-blue-50 dark:bg-slate-900 border-blue-100 text-blue-600 dark:bg-slate-900/20 dark:border-blue-900/30 dark:text-blue-400' :
+                                        <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md border ${item.type === 'audit' ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-100 text-blue-600 dark:border-blue-900/30 dark:text-blue-400' :
                                             item.type === 'policy' ? 'bg-red-50 border-red-100 text-red-600 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400' :
                                                 item.type === 'incident' ? 'bg-rose-50 border-rose-100 text-rose-600 dark:bg-rose-900/20 dark:border-rose-900/30 dark:text-rose-400' :
                                                     item.type === 'risk' ? 'bg-amber-50 border-amber-100 text-amber-600 dark:bg-amber-900/20 dark:border-amber-900/30 dark:text-amber-400' :
@@ -63,12 +63,12 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
                                                             item.type === 'risk' ? 'Risque' :
                                                                 t('dashboard.typeProject')}
                                         </span>
-                                        <span className="text-xs text-slate-500 font-medium tabular-nums">{new Date(item.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                        <span className="text-xs text-muted-foreground font-medium tabular-nums">{new Date(item.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
                                     </div>
                                     <h4 className="text-sm font-bold text-foreground group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 transition-colors truncate">{item.title}</h4>
                                     <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.status}</p>
                                 </div>
-                                <ArrowRight className="w-4 h-4 text-slate-300 group-hover/item:text-slate-600 -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100 transition-all" />
+                                <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover/item:text-foreground -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100 transition-all" />
                             </div>
                         ))}
                     </div>

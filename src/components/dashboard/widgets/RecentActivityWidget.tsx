@@ -20,7 +20,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
             case 'Risk': return <ShieldAlert className="h-3.5 w-3.5 text-orange-500" />;
             case 'Incident': return <Siren className="h-3.5 w-3.5 text-red-500" />;
             case 'Asset': return <Server className="h-3.5 w-3.5 text-blue-500" />;
-            default: return <CheckCircle2 className="h-3.5 w-3.5 text-slate-600" />;
+            default: return <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" />;
         }
     };
 
@@ -63,7 +63,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
                                     <p className="text-sm font-bold text-foreground">{log.action}</p>
                                     <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[500px] font-medium leading-relaxed">{log.details}</p>
                                 </div>
-                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide bg-slate-100 dark:bg-black/20 px-2 py-1 rounded-md ml-4 whitespace-nowrap">
+                                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wide bg-accent px-2 py-1 rounded-md ml-4 whitespace-nowrap">
                                     {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                             </div>
