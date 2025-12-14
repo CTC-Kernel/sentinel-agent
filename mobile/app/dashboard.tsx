@@ -9,7 +9,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
     const router = useRouter();
-    const [loading, setLoading] = useState(true); // Uncommented setLoading as it's used
+    const [, setLoading] = useState(true); // keep setter for async flow
     const [stats, setStats] = useState({
         risks: 0,
         compliance: 0,
@@ -52,12 +52,22 @@ export default function DashboardScreen() {
         try {
             await signOut(auth);
             router.replace('/');
-        } catch (error) {
+        } catch {
             Alert.alert('Erreur', 'Impossible de se déconnecter.');
         }
     };
 
-    const KpiCard = ({ title, value, icon, color, subtitle }: any) => (
+    type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+
+    type KpiCardProps = {
+        title: string;
+        value: string | number;
+        icon: IconName;
+        color: string;
+        subtitle?: string;
+    };
+
+    const KpiCard = ({ title, value, icon, color, subtitle }: KpiCardProps) => (
         <View style={styles.card}>
             <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
                 <MaterialCommunityIcons name={icon} size={24} color={color} />
