@@ -14,7 +14,7 @@ import {
     disableNetwork,
     updateDoc
 } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { auth, db, isAppCheckFailed } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { UserProfile, Organization } from '../types';
@@ -29,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [error, setError] = useState<Error | null>(null);
     const { setUser, setOrganization, setTheme } = useStore();
 
-    const [isBlocked, setIsBlocked] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(isAppCheckFailed);
 
     // Fonction pour rafraîchir le token et les claims
     const refreshSession = useCallback(async () => {
@@ -70,6 +70,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw err;
         }
     }, [setUser]);
+
+    useEffect(() => {
+        if (isAppCheckFailed) {
+            setIsBlocked(true);
+        }
+    }, []);
 
     // Session Timeout Logic
     useEffect(() => {
