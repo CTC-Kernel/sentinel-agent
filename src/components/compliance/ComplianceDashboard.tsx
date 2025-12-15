@@ -12,7 +12,7 @@ interface ComplianceDashboardProps {
     onFilterChange?: (status: string | null) => void;
 }
 
-export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls, onFilterChange }) => {
+export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls }) => {
     const { user, theme } = useStore();
     const [trend, setTrend] = useState<number | undefined>(undefined);
 
