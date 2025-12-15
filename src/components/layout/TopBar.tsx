@@ -58,7 +58,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
     };
 
     return (
-        <header className="h-16 pt-safe z-20 sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800/70 transition-all duration-300 px-4 md:px-8">
+        <header className="h-16 pt-safe z-20 sticky top-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl border-b border-white/20 dark:border-white/5 transition-all duration-300 px-4 md:px-8">
             <div className="h-full max-w-[1600px] mx-auto flex items-center justify-between">
                 {/* Left: Mobile Menu & Search Trigger */}
                 <div className="flex items-center flex-1 gap-4">
@@ -148,8 +148,8 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                         {/* Dropdown Menu */}
                         {showUserMenu && (
-                            <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-scale-in origin-top-right">
-                                <div className="p-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-slate-700">
+                            <div className="absolute right-0 mt-3 w-64 glass-panel rounded-2xl shadow-xl overflow-hidden z-50 animate-scale-in origin-top-right border border-white/20 dark:border-white/10">
+                                <div className="p-4 bg-slate-50/30 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
                                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.displayName}</p>
                                     <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>
                                 </div>

@@ -9,9 +9,11 @@ import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
 import { ErrorLogger } from '../services/errorLogger';
 import { useFirestoreCollection } from '../hooks/useFirestore';
+import { motion } from 'framer-motion';
 import { DashboardSkeleton } from '../components/skeletons/DashboardSkeleton';
 import { GettingStartedWidget } from '../components/dashboard/widgets/GettingStartedWidget';
-import { SlideUp } from '../components/ui/Animations';
+
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 
 // Widgets
 import { DashboardHeader } from '../components/dashboard/widgets/DashboardHeader';
@@ -412,46 +414,47 @@ export const Dashboard: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative">
+        <motion.div
+            variants={staggerContainerVariants}
+            className="space-y-8 animate-fade-in pb-10 relative"
+        >
             <SEO
                 title="Tableau de bord de Gouvernance"
                 description="Vue d'overview de votre posture de sécurité et conformité."
                 keywords="Pilotage SSI, Tableau de bord CISO, KPI Cyber, Conformité, Risques, Gouvernance"
             />
 
-            <SlideUp>
-                <DashboardHeader
-                    user={user}
-                    organizationName={organizationName}
-                    scoreGrade={scoreGrade}
-                    radarData={radarData}
-                    teamSize={teamSize}
-                    activeIncidentsCount={activeIncidentsCount}
-                    openAuditsCount={openAuditsCount}
-                    loading={loading}
-                    isEmpty={isEmpty}
-                    navigate={navigate}
-                    t={t}
-                    theme={theme}
-                    insight={insight}
-                    generateICal={generateICal}
-                    generateExecutiveReport={generateExecutiveReport}
-                    isGeneratingReport={isGeneratingReport}
-                />
-            </SlideUp>
+            <DashboardHeader
+                user={user}
+                organizationName={organizationName}
+                scoreGrade={scoreGrade}
+                radarData={radarData}
+                teamSize={teamSize}
+                activeIncidentsCount={activeIncidentsCount}
+                openAuditsCount={openAuditsCount}
+                loading={loading}
+                isEmpty={isEmpty}
+                navigate={navigate}
+                t={t}
+                theme={theme}
+                insight={insight}
+                generateICal={generateICal}
+                generateExecutiveReport={generateExecutiveReport}
+                isGeneratingReport={isGeneratingReport}
+            />
 
             {showGettingStarted && (
-                <SlideUp>
+                <motion.div variants={slideUpVariants}>
                     <GettingStartedWidget onClose={() => setShowGettingStarted(false)} />
-                </SlideUp>
+                </motion.div>
             )}
 
-            <SlideUp>
+            <motion.div variants={slideUpVariants}>
                 <QuickActions navigate={navigate} t={t} stats={stats} />
-            </SlideUp>
+            </motion.div>
 
             {/* Role-based Widget Visibility */}
-            <SlideUp>
+            <motion.div variants={slideUpVariants}>
                 {(() => {
                     const role = user?.role || 'user';
 
@@ -524,7 +527,7 @@ export const Dashboard: React.FC = () => {
                         />
                     );
                 })()}
-            </SlideUp>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };

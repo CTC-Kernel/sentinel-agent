@@ -115,9 +115,9 @@ const AppLayout: React.FC = () => {
     return (
         <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300 pb-safe">
             <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-                <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-200/30 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float"></div>
-                <div className="absolute top-[20%] right-[-10%] w-[50rem] h-[50rem] bg-purple-200/30 dark:bg-purple-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{ animationDelay: '2s' }}></div>
-                <div className="absolute bottom-[-20%] left-[20%] w-[55rem] h-[55rem] bg-indigo-200/30 dark:bg-indigo-900/20 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float" style={{ animationDelay: '4s' }}></div>
+                <div className="absolute top-[-10%] left-[-20%] w-[70rem] h-[70rem] bg-indigo-100/40 dark:bg-indigo-950/20 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-float"></div>
+                <div className="absolute top-[10%] right-[-20%] w-[60rem] h-[60rem] bg-blue-100/40 dark:bg-blue-950/20 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-float" style={{ animationDelay: '2s' }}></div>
+                <div className="absolute bottom-[-20%] left-[20%] w-[60rem] h-[60rem] bg-purple-100/40 dark:bg-purple-950/20 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-float" style={{ animationDelay: '4s' }}></div>
             </div>
 
             <div>

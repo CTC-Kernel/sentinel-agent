@@ -72,9 +72,9 @@
   --info-text: #2563eb;
   --info-border: #bfdbfe;
 
-  /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.5);
+  /* Glassmorphism - Premium */
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.4);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
 }
 
@@ -179,6 +179,15 @@ h6 {
   /* slate-900 */
 }
 
+/* Premium Text Utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
 /* Global Scrollbar Hiding REMOVED to fix layout issues */
 /* ::-webkit-scrollbar { display: none; } */
 /* * { -ms-overflow-style: none; scrollbar-width: none; } */
@@ -187,14 +196,16 @@ h6 {
 /* Ceramic/Glass Panel - Enhanced contrast */
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
 }
 
 .dark .glass-panel {
   background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
 }
@@ -232,42 +243,42 @@ textarea:focus {
   scrollbar-width: none;
 }
 
- .custom-scrollbar {
-   scrollbar-width: thin;
-   scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
- }
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
+}
 
- .custom-scrollbar::-webkit-scrollbar {
-   width: 10px;
-   height: 10px;
- }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
 
- .custom-scrollbar::-webkit-scrollbar-track {
-   background: transparent;
- }
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
 
- .custom-scrollbar::-webkit-scrollbar-thumb {
-   background-color: rgba(100, 116, 139, 0.35);
-   border-radius: 999px;
-   border: 3px solid transparent;
-   background-clip: content-box;
- }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.35);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
 
- .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-   background-color: rgba(100, 116, 139, 0.55);
- }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.55);
+}
 
- .dark .custom-scrollbar {
-   scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
- }
+.dark .custom-scrollbar {
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
 
- .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-   background-color: rgba(148, 163, 184, 0.25);
- }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.25);
+}
 
- .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-   background-color: rgba(148, 163, 184, 0.4);
- }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.4);
+}
 
 /* Better focus indicators for accessibility */
 button:focus-visible,

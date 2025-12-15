@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus } from './Icons';
 
 type StatCardIconComponent = React.ElementType<{ className?: string; strokeWidth?: number }>;
@@ -42,9 +43,13 @@ export const StatCard: React.FC<StatCardProps> = ({
     };
 
     return (
-        <div
+        <motion.div
+            variants={{
+                initial: { opacity: 0, y: 20, filter: 'blur(8px)' },
+                in: { opacity: 1, y: 0, filter: 'blur(0px)' }
+            }}
             onClick={onClick}
-            className={`relative group glass-panel p-6 rounded-[2rem] hover:shadow-apple transition-all duration-500 hover:-translate-y-1 overflow-hidden border border-white/60 dark:border-white/5 ${onClick ? 'cursor-pointer' : ''}`}
+            className={`relative group glass-panel p-6 rounded-[2rem] hover:shadow-2xl hover:shadow-slate-200/50 dark:hover:shadow-black/50 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden border border-white/60 dark:border-white/5 ${onClick ? 'cursor-pointer' : ''}`}
         >
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
@@ -95,6 +100,6 @@ export const StatCard: React.FC<StatCardProps> = ({
                     </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 };

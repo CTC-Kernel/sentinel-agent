@@ -51,12 +51,12 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
     return (
         <div className={`relative ${className}`}>
             <div className={`
-                relative flex items-center w-full rounded-2xl border transition-all duration-200
+                relative flex items-center w-full rounded-2xl border transition-all duration-300
                 ${error
                     ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
                     : isFocused
-                        ? 'border-brand-500 ring-2 ring-brand-500/20 bg-white dark:bg-black/20'
-                        : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 hover:border-gray-300 dark:hover:border-white/20'
+                        ? 'border-brand-500/50 ring-4 ring-brand-500/10 bg-white/80 dark:bg-slate-900/80 shadow-lg shadow-brand-500/5 backdrop-blur-xl'
+                        : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500/30 hover:bg-white/80 dark:hover:bg-white/10 backdrop-blur-md'
                 }
             `}>
                 {Icon && (
@@ -115,8 +115,8 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         ${error
                             ? 'text-red-500'
                             : isFocused
-                                ? 'text-brand-600'
-                                : 'text-slate-600'
+                                ? 'text-brand-600 font-semibold'
+                                : 'text-slate-500 dark:text-slate-400'
                         }
                         ${Icon && !(isFocused || hasValue) ? 'ml-7' : ''}
                     `}

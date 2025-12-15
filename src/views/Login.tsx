@@ -6,6 +6,7 @@ import { SparklesCore } from '../components/ui/aceternity/Sparkles';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    signInWithPopup,
     signInWithRedirect,
     signInWithCredential,
     getRedirectResult,
@@ -223,7 +224,23 @@ export const Login: React.FC = () => {
             } else {
                 // Web Google Sign In
                 const provider = new GoogleAuthProvider();
-                await signInWithRedirect(auth, provider);
+                try {
+                    await signInWithPopup(auth, provider);
+                    addToast('Connexion réussie', 'success');
+                    window.location.hash = '#/';
+                } catch (popupError: unknown) {
+                    const popupCode = (popupError as { code?: string })?.code;
+                    // Typical popup errors: blocked by browser policy, COOP, or user closes it.
+                    if (
+                        popupCode === 'auth/popup-blocked' ||
+                        popupCode === 'auth/popup-closed-by-user' ||
+                        popupCode === 'auth/cancelled-popup-request'
+                    ) {
+                        await signInWithRedirect(auth, provider);
+                    } else {
+                        throw popupError;
+                    }
+                }
             }
         } catch (error: unknown) {
             ErrorLogger.error(error, 'Login.handleGoogleLogin');

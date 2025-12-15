@@ -4,6 +4,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar, Loader2 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
+import { Button } from '../ui/button';
 import { Scale, Shield } from 'lucide-react';
 import { hasPermission } from '../../utils/permissions';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -153,19 +154,19 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) => `
-                         group relative flex items-center gap-3 rounded-2xl px-4 py-2.5 text-[14px] font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
+                         group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
                          ${isActive
-                          ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/15 dark:bg-white dark:text-slate-900'
-                          : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}
+                          ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20 dark:bg-white dark:text-slate-950 font-semibold'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
                        `}
                     >
                       {({ isActive }) => (
                         <>
-                          <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-all duration-200 ${isActive ? 'bg-white/10 text-white dark:bg-slate-900/10 dark:text-slate-900' : 'bg-slate-100/70 text-slate-600 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
-                            <item.icon className="h-4 w-4" strokeWidth={2.1} />
+                          <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-200 ${isActive ? 'text-white dark:text-slate-950' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
+                            <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                           </span>
                           <span className="flex-1 truncate">{item.name}</span>
-                          {isActive && <ChevronRight className="h-3.5 w-3.5 opacity-80 text-white dark:text-slate-900" />}
+                          {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-500 rounded-r-full opacity-0 lg:opacity-100" />}
                         </>
                       )}
                     </NavLink>
@@ -182,15 +183,15 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             to="/help"
             onClick={() => setMobileOpen(false)}
             className={({ isActive }) => `
-                group relative flex items-center gap-3 rounded-2xl px-4 py-2.5 text-[14px] font-semibold tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
+                group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
                 ${isActive
-                ? 'bg-slate-100 text-slate-900 shadow-inner shadow-white/60 dark:bg-white/10 dark:text-white'
-                : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
+                ? 'bg-slate-100 text-slate-900 dark:bg-white/10 dark:text-white font-semibold'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
               `}
           >
             {({ isActive }) => (
               <>
-                <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? 'bg-slate-200 text-slate-900 dark:bg-white/20 dark:text-white' : 'bg-slate-100/70 text-slate-600 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
                   <HelpCircle className="h-4 w-4" strokeWidth={2} />
                 </span>
                 <span className="flex-1 truncate">{t('common.helpCenter')}</span>
@@ -218,16 +219,17 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
               </>
             )}
           </NavLink>
-          <button
+          <Button
+            variant="ghost"
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full flex items-center gap-3 px-4 py-3 text-[14px] font-semibold rounded-2xl transition-all duration-200 text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 disabled:opacity-50"
+            className="w-full justify-start px-3 py-2 h-auto text-[14px] font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 rounded-xl"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-300 group-hover:bg-red-100 group-hover:text-red-600">
-              {isLoggingOut ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : <LogOut className="h-4.5 w-4.5" strokeWidth={2} />}
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg text-red-500 dark:text-red-400/80 mr-3">
+              {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" strokeWidth={2} />}
             </span>
             <span className="flex-1 text-left">{t('common.logout')}</span>
-          </button>
+          </Button>
 
           <button
             onClick={() => setShowLegalModal(true)}

@@ -62,12 +62,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                         <div className="relative mt-1">
                             <Listbox.Button className={`
                                 relative w-full cursor-pointer rounded-2xl py-3.5 pl-4 pr-10 text-left 
-                                border transition-all duration-200 outline-none min-h-[50px]
+                                border transition-all duration-300 outline-none min-h-[50px]
                                 ${error
                                     ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10 text-red-900 dark:text-red-100'
                                     : open
-                                        ? 'border-brand-500 ring-2 ring-brand-500/20 bg-white dark:bg-slate-800'
-                                        : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/5'
+                                        ? 'border-brand-500/50 ring-4 ring-brand-500/10 bg-white/80 dark:bg-slate-900/80 shadow-lg shadow-brand-500/5 backdrop-blur-xl'
+                                        : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500/30 hover:bg-white/80 dark:hover:bg-white/10 backdrop-blur-md'
                                 }
                             `}>
                                 <span className={`block truncate font-medium ${selectedOptions.length === 0 ? 'text-slate-500' : 'text-slate-900 dark:text-white'}`}>
@@ -85,9 +85,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 as={Fragment}
                                 leave="transition ease-in duration-100"
                                 leaveFrom="opacity-100"
-                                leaveTo="opacity-0"
                             >
-                                <Listbox.Options className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-2xl bg-white dark:bg-slate-900 py-1 text-base shadow-xl ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar border border-gray-100 dark:border-white/10">
+                                <Listbox.Options className="absolute z-[100] mt-2 max-h-60 w-full overflow-auto rounded-2xl bg-white/90 dark:bg-slate-900/90 py-2 text-base shadow-xl shadow-slate-900/10 ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar border border-white/20 dark:border-white/10 backdrop-blur-xl">
                                     {options.map((option, optionIdx) => (
                                         <Listbox.Option
                                             key={optionIdx}
