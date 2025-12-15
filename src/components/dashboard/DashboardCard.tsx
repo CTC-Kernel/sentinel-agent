@@ -115,11 +115,15 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
         <div
             className={`
                 glass-panel p-0 rounded-[2rem] overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-all duration-300
-                h-full bg-card/40 backdrop-blur-md
+                h-full border border-white/60 dark:border-white/10 relative
                 ${className}
             `}
         >
-            {CardContent}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+            <div className="relative z-10 flex flex-col h-full">
+                {CardContent}
+            </div>
         </div>
     );
 };
+

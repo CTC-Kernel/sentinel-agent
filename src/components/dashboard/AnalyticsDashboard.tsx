@@ -262,39 +262,39 @@ export const AnalyticsDashboard: React.FC = () => {
     }
 
     return (
-        <div className="p-8 max-w-[1800px] mx-auto space-y-8">
+        <div className="p-4 md:p-8 max-w-[1800px] mx-auto space-y-8 animate-fade-in">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground mb-2">
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 font-display tracking-tight">
                         Analytics Dashboard
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-slate-600 dark:text-slate-400 font-medium">
                         Vue d'ensemble des métriques et tendances de sécurité
                     </p>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                     <button
                         onClick={() => OnboardingService.startAnalyticsTour()}
-                        className="px-4 py-2 bg-card text-brand-600 border border-border rounded-xl text-sm font-bold hover:bg-accent transition-colors flex items-center gap-2"
+                        className="px-4 py-2 bg-white/50 dark:bg-slate-800/50 text-brand-600 dark:text-brand-400 border border-brand-100 dark:border-brand-900/30 rounded-xl text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all flex items-center gap-2 backdrop-blur-sm"
                     >
                         <HelpCircle className="h-4 w-4" />
                         Visite guidée
                     </button>
 
                     {/* Time range selector */}
-                    <div className="flex gap-2 bg-card p-1 rounded-xl border border-border">
+                    <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-xl border border-white/20 dark:border-white/5 backdrop-blur-md">
                         {(['7d', '30d', '90d', '1y'] as const).map((range) => (
                             <button
                                 key={range}
                                 onClick={() => setTimeRange(range)}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${timeRange === range
-                                    ? 'bg-brand-600 text-white'
-                                    : 'text-muted-foreground hover:bg-accent'
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${timeRange === range
+                                    ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                                     }`}
                             >
-                                {range === '7d' ? '7 jours' : range === '30d' ? '30 jours' : range === '90d' ? '90 jours' : '1 an'}
+                                {range === '7d' ? '7J' : range === '30d' ? '30J' : range === '90d' ? '90J' : '1A'}
                             </button>
                         ))}
                     </div>
@@ -347,140 +347,187 @@ export const AnalyticsDashboard: React.FC = () => {
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Trend Chart */}
-                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border" data-tour="analytics-trends">
-                    <h3 className="text-lg font-bold text-foreground mb-6">
-                        Évolution des Risques et Incidents
-                    </h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <AreaChart data={trendData}>
-                            <defs>
-                                <linearGradient id="colorRisks" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                                </linearGradient>
-                                <linearGradient id="colorIncidents" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} opacity={0.3} />
-                            <XAxis dataKey="date" stroke={chartColors.text} style={{ fontSize: '12px' }} />
-                            <YAxis stroke={chartColors.text} style={{ fontSize: '12px' }} />
-                            <Tooltip
-                                contentStyle={{
-                                    backgroundColor: 'var(--glass-bg)',
-                                    border: '1px solid var(--glass-border)',
-                                    borderRadius: '12px',
-                                    boxShadow: 'var(--glass-shadow)',
-                                    backdropFilter: 'blur(12px)',
-                                    padding: '12px',
-                                    color: 'var(--text-primary)'
-                                }}
-                                itemStyle={{ color: 'inherit' }}
-                                labelStyle={{ color: 'inherit', fontWeight: 600, marginBottom: '0.5rem' }}
-                            />
-                            <Legend />
-                            <Area
-                                type="monotone"
-                                dataKey="risks"
-                                stroke="#ef4444"
-                                fillOpacity={1}
-                                fill="url(#colorRisks)"
-                                name="Risques"
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="incidents"
-                                stroke="#f59e0b"
-                                fillOpacity={1}
-                                fill="url(#colorIncidents)"
-                                name="Incidents"
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group" data-tour="analytics-trends">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
+                    <div className="relative z-10">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
+                            Évolution des Risques et Incidents
+                        </h3>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <AreaChart data={trendData}>
+                                <defs>
+                                    <linearGradient id="colorRisks" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorIncidents" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} opacity={0.3} vertical={false} />
+                                <XAxis
+                                    dataKey="date"
+                                    stroke={chartColors.text}
+                                    style={{ fontSize: '11px', fontWeight: 500 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    stroke={chartColors.text}
+                                    style={{ fontSize: '11px', fontWeight: 500 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    dx={-10}
+                                />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                                        borderRadius: '16px',
+                                        boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
+                                        backdropFilter: 'blur(12px)',
+                                        padding: '12px 16px',
+                                        color: '#1e293b'
+                                    }}
+                                    itemStyle={{ fontSize: '12px', fontWeight: 600, padding: '2px 0' }}
+                                    labelStyle={{ color: '#64748b', fontSize: '11px', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                                    cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }}
+                                />
+                                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                                <Area
+                                    type="monotone"
+                                    dataKey="risks"
+                                    stroke="#ef4444"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorRisks)"
+                                    name="Risques"
+                                    animationDuration={1500}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="incidents"
+                                    stroke="#f59e0b"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorIncidents)"
+                                    name="Incidents"
+                                    animationDuration={1500}
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
                 {/* Compliance Progress */}
-                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
-                    <h3 className="text-lg font-bold text-foreground mb-6">
-                        Taux de Conformité ISO 27001
-                    </h3>
-                    <div className="flex items-center justify-center h-[300px]">
-                        <ProgressRing
-                            progress={metrics.complianceRate}
-                            size={200}
-                            strokeWidth={12}
-                            color="#10b981"
-                            label="Conformité"
-                        />
-                    </div>
-                    <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-                        <div>
-                            <p className="text-2xl font-bold text-green-600">{controls.filter(c => c.status === 'Implémenté').length}</p>
-                            <p className="text-xs text-muted-foreground">Implémentés</p>
+                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
+                    <div className="relative z-10">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
+                            Taux de Conformité ISO 27001
+                        </h3>
+                        <div className="flex items-center justify-center h-[300px]">
+                            <ProgressRing
+                                progress={metrics.complianceRate}
+                                size={220}
+                                strokeWidth={16}
+                                color="#10b981"
+                                label="Conformité"
+                            />
                         </div>
-                        <div>
-                            <p className="text-2xl font-bold text-orange-600">{controls.filter(c => c.status === 'Partiel').length}</p>
-                            <p className="text-xs text-muted-foreground">Partiels</p>
-                        </div>
-                        <div>
-                            <p className="text-2xl font-bold text-foreground">{controls.filter(c => c.status === 'Non commencé').length}</p>
-                            <p className="text-xs text-muted-foreground">Non commencés</p>
+                        <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+                            <div className="p-3 rounded-2xl bg-green-50/50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20">
+                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{controls.filter(c => c.status === 'Implémenté').length}</p>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-green-600/70 dark:text-green-400/70 mt-1">Implémentés</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-orange-50/50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20">
+                                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{controls.filter(c => c.status === 'Partiel').length}</p>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600/70 dark:text-orange-400/70 mt-1">Partiels</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/30">
+                                <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">{controls.filter(c => c.status === 'Non commencé').length}</p>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500/70 dark:text-slate-400/70 mt-1">Non commencés</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Risk Distribution */}
-            <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
-                <h3 className="text-lg font-bold text-foreground mb-6">
-                    Distribution des Risques par Catégorie
-                </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                        <Pie
-                            data={risksByCategory}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                            outerRadius={100}
-                            fill="#8884d8"
-                            dataKey="value"
-                        >
-                            {risksByCategory.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                        </Pie>
-                        <Tooltip />
-                    </PieChart>
-                </ResponsiveContainer>
+            <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
+                <div className="relative z-10">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
+                        Distribution des Risques par Catégorie
+                    </h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                            <Pie
+                                data={risksByCategory}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                outerRadius={110}
+                                innerRadius={80}
+                                paddingAngle={5}
+                                dataKey="value"
+                            >
+                                {risksByCategory.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
+                                ))}
+                            </Pie>
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                                    borderRadius: '16px',
+                                    boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
+                                    backdropFilter: 'blur(12px)',
+                                    padding: '12px 16px',
+                                    color: '#1e293b'
+                                }}
+                                itemStyle={{ fontSize: '12px', fontWeight: 600 }}
+                            />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
             </div>
 
             {/* Top Risks Table */}
-            <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-bold text-foreground">
-                        Top 10 Risques Critiques
-                    </h3>
-                    <button
-                        onClick={() => navigate('/risks')}
-                        className="text-sm font-bold text-brand-600 hover:text-brand-700 flex items-center gap-2"
-                    >
-                        Voir tous les risques
-                        <TrendingUp className="h-4 w-4" />
-                    </button>
-                </div>
+            <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
+                <div className="relative z-10">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white font-display">
+                                Top 10 Risques Critiques
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Risques nécessitant une attention immédiate</p>
+                        </div>
+                        <button
+                            onClick={() => navigate('/risks')}
+                            className="px-4 py-2 rounded-xl bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 font-bold text-sm hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors flex items-center gap-2"
+                        >
+                            Voir tous les risques
+                            <TrendingUp className="h-4 w-4" />
+                        </button>
+                    </div>
 
-                <DataTable
-                    data={topRisks}
-                    columns={topRisksColumns}
-                    onRowClick={(risk) => navigate(`/risks?id=${risk.id}`)}
-                    exportable
-                    exportFilename="top_risques"
-                    searchable
-                    pageSize={5}
-                />
+                    <div className="rounded-xl overflow-hidden border border-slate-200/60 dark:border-white/5">
+                        <DataTable
+                            data={topRisks}
+                            columns={topRisksColumns}
+                            onRowClick={(risk) => navigate(`/risks?id=${risk.id}`)}
+                            exportable
+                            exportFilename="top_risques"
+                            searchable
+                            pageSize={5}
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     );

@@ -1,19 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
-import { History, Trash2, Download, AlertTriangle } from '../ui/Icons';
+import { Activity, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/button';
-import { collection, query, where, getDocs, limit, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 import { hasPermission } from '../../utils/permissions';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { SystemLog } from '../../types';
+import { DataTable } from '../ui/DataTable';
+import { ColumnDef } from '@tanstack/react-table';
 
 export const SystemSettings: React.FC = () => {
     const { user, addToast, t } = useStore();
     const [auditLogs, setAuditLogs] = useState<SystemLog[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         if (!hasPermission(user, 'Settings', 'read')) return;
@@ -41,122 +45,115 @@ export const SystemSettings: React.FC = () => {
         fetchLogs();
     }, [user]);
 
-    const formatDate = (timestamp: string | Timestamp | undefined | null) => {
-        if (!timestamp) return '-';
-        let date: Date;
-        if (typeof timestamp === 'object' && 'seconds' in timestamp) {
-            date = new Date(timestamp.seconds * 1000);
-        } else if (typeof timestamp === 'string') {
-            date = new Date(timestamp);
-        } else {
-            return '-';
-        }
-        return format(date, 'dd/MM/yyyy HH:mm', { locale: fr });
-    };
-
-    const handleExportLogs = () => {
-        const csvContent = "data:text/csv;charset=utf-8,"
-            + "Date,Action,Details\n"
-            + auditLogs.map(log => {
-                const date = formatDate(log.timestamp as unknown as Timestamp);
-                return `${date},${log.action},"${typeof log.details === 'string' ? log.details : JSON.stringify(log.details).replace(/"/g, '""')}"`;
-            }).join("\n");
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `system_logs_${format(new Date(), 'yyyy-MM-dd')}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
     const handleDeleteAccount = () => {
-        addToast("Veuillez contacter votre administrateur pour supprimer votre compte.", "info");
+        setIsDeleting(true);
+        // Simulate delete for now or implement real logic
+        setTimeout(() => {
+            addToast("Veuillez contacter votre administrateur pour supprimer votre compte.", "info");
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+        }, 1000);
     };
+
+    const columns = useMemo<ColumnDef<SystemLog>[]>(() => [
+        {
+            accessorKey: 'timestamp',
+            header: t('common.date'),
+            cell: ({ row }) => {
+                const val = row.original.timestamp;
+                // Handle Firestore Timestamp or Date string
+                if (!val) return '-';
+                const date = (val as any).toDate ? (val as any).toDate() : new Date(val as any);
+                return format(date, 'Pp', { locale: fr });
+            }
+        },
+        {
+            accessorKey: 'userId',
+            header: t('common.user'),
+            cell: ({ getValue }) => <span className="font-mono text-xs">{getValue() as string}</span>
+        },
+        {
+            accessorKey: 'action',
+            header: t('common.action'),
+            cell: ({ getValue }) => (
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    {getValue() as string}
+                </span>
+            )
+        },
+        {
+            accessorKey: 'details', // Assuming key is 'details' or similar, implied from previous code
+            header: 'Détails',
+            cell: ({ row }) => {
+                const details = (row.original as any).details || (row.original as any).message; // Fallback if needed
+                const str = typeof details === 'string' ? details : JSON.stringify(details);
+                return (
+                    <span className="text-slate-500 dark:text-slate-400 text-xs truncate max-w-[200px] block" title={str}>
+                        {str}
+                    </span>
+                );
+            }
+        }
+    ], [t]);
 
     return (
         <div className="space-y-8 animate-fade-in-up">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">{t('settings.system')}</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 animate-slide-in-left">{t('settings.system')}</h2>
 
             {hasPermission(user, 'Settings', 'read') && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col">
-                    <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="glass-panel p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-md">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                    <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400">
-                                <History className="w-5 h-5" />
+                            <div className="p-2.5 bg-blue-500/10 dark:bg-blue-500/20 rounded-xl text-blue-600 dark:text-blue-400 backdrop-blur-md shadow-sm">
+                                <Activity className="w-5 h-5" />
                             </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Historique des activités</h3>
-                                <p className="text-xs text-slate-500">Activités récentes de l'organisation</p>
-                            </div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.activityHistory')}</h3>
                         </div>
-                        <Button variant="outline" size="sm" onClick={handleExportLogs} className="bg-white dark:bg-slate-900">
-                            <Download className="h-4 w-4 mr-2" />
-                            Export CSV
-                        </Button>
                     </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
-                            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
-                                <tr>
-                                    <th className="px-6 py-4">Date</th>
-                                    <th className="px-6 py-4">Action</th>
-                                    <th className="px-6 py-4">Détails</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                                {loadingLogs ? (
-                                    <tr>
-                                        <td colSpan={3} className="px-6 py-8 text-center text-slate-400">
-                                            Chargement...
-                                        </td>
-                                    </tr>
-                                ) : auditLogs.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={3} className="px-6 py-8 text-center text-slate-400">
-                                            Aucune activité récente.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    auditLogs.map(log => (
-                                        <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                                            <td className="px-6 py-4 text-slate-500 font-medium whitespace-nowrap">
-                                                {formatDate(log.timestamp as unknown as Timestamp)}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">{log.action}</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-500 truncate max-w-xs font-mono" title={JSON.stringify(log.details)}>
-                                                {typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                    <div className="relative z-10 p-2">
+                        <DataTable
+                            columns={columns}
+                            data={auditLogs}
+                            loading={loadingLogs}
+                            // emptyMessage is not part of props based on previous view, check if it's rendered inside?
+                            // Checked DataTable.tsx: it renders "Aucune donnée à afficher" if rows.length === 0.
+                            // The prop 'emptyMessage' does NOT exist in the interface in DataTable.tsx view!
+                            // So I will omit it to be safe, or check if it supports it.
+                            // ... wait, I saw line 238 "Aucune donnée à afficher" hardcoded?
+                            // DataTable.tsx line 238: Aucune donnée à afficher. It does NOT take a prop.
+                            // Check DataTableProps lines 16-28: no emptyMessage.
+                            className="bg-transparent border-none"
+                        />
                     </div>
                 </div>
             )}
 
             {/* Danger Zone */}
-            <div className="bg-red-50 dark:bg-red-900/10 rounded-3xl p-8 border border-red-100 dark:border-red-900/20">
-                <div className="flex items-start gap-4">
-                    <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl text-red-600 dark:text-red-400 shrink-0">
-                        <AlertTriangle className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-bold text-red-900 dark:text-red-400 mb-2">Zone Danger</h3>
-                        <p className="text-sm text-red-700/80 dark:text-red-300/70 mb-6 leading-relaxed">
-                            La suppression de votre compte est une action irréversible. Toutes vos données personnelles, ainsi que l'accès à l'organisation, seront définitivement effacés.
-                        </p>
-                        <Button
-                            onClick={handleDeleteAccount}
-                            className="bg-red-600 hover:bg-red-700 text-white border-none shadow-lg shadow-red-500/20"
-                        >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer mon compte
-                        </Button>
+            <div className="glass-panel p-8 rounded-[2.5rem] border border-red-500/30 dark:border-red-500/20 shadow-sm relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-50" />
+                <div className="relative z-10">
+                    <div className="flex items-start gap-4">
+                        <div className="p-3 bg-red-500/10 dark:bg-red-500/20 rounded-2xl text-red-600 dark:text-red-400 shrink-0 backdrop-blur-md">
+                            <AlertTriangle className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-red-900 dark:text-red-400 mb-2 flex items-center gap-2">
+                                {t('settings.dangerZone')}
+                            </h3>
+                            <p className="text-sm text-red-700/80 dark:text-red-300/70 mb-6 leading-relaxed max-w-2xl">
+                                {t('settings.deleteAccountDescription')}
+                            </p>
+                            <Button
+                                variant="destructive"
+                                isLoading={isDeleting}
+                                onClick={() => setIsDeleteModalOpen(true)}
+                                className="w-full sm:w-auto shadow-lg shadow-red-500/20 rounded-xl"
+                            >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {t('settings.deleteAccount')}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>

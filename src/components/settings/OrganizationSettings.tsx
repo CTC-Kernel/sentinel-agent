@@ -256,17 +256,18 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Admin Details */}
             {hasPermission(user, 'Settings', 'manage') && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                    <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 -mx-6 -mt-6 mb-6 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-brand-100 dark:bg-brand-900/30 rounded-lg text-brand-600 dark:text-brand-400">
+                            <div className="p-2.5 bg-brand-500/10 dark:bg-brand-500/20 rounded-xl text-brand-600 dark:text-brand-400">
                                 <Building className="w-5 h-5" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.admin')}</h3>
                         </div>
                     </div>
 
-                    <div className="p-6">
+                    <div className="relative z-10">
                         <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <FloatingLabelInput
@@ -290,7 +291,7 @@ export const OrganizationSettings: React.FC = () => {
                                 />
                             </div>
                             <div className="flex justify-end pt-2">
-                                <Button type="submit" isLoading={savingOrg} className="min-w-[140px]">
+                                <Button type="submit" isLoading={savingOrg} className="min-w-[140px] shadow-lg shadow-brand-500/20">
                                     {t('settings.saveChanges')}
                                 </Button>
                             </div>
@@ -301,24 +302,25 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* User Management */}
             {user && hasPermission(user, 'User', 'manage') && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
+                <div className="glass-panel p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                    <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex justify-between items-center">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
+                            <div className="p-2.5 bg-purple-500/10 dark:bg-purple-500/20 rounded-xl text-purple-600 dark:text-purple-400">
                                 <Users className="w-5 h-5" />
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.users')}</h3>
-                                <p className="text-xs text-slate-500">{usersList.length} members</p>
+                                <p className="text-xs text-slate-500 font-medium">{usersList.length} members</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                    <div className="relative z-10 divide-y divide-white/20 dark:divide-white/5">
                         {usersList.map(u => (
-                            <div key={u.uid} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
+                            <div key={u.uid} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/40 dark:hover:bg-white/5 transition-colors">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex-shrink-0 flex items-center justify-center text-slate-500 font-bold border border-slate-200 dark:border-slate-600">
+                                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700/50 flex-shrink-0 flex items-center justify-center text-slate-500 font-bold border border-white/40 dark:border-white/10 shadow-sm">
                                         {u.photoURL ? <img src={u.photoURL} className="w-full h-full rounded-full object-cover" /> : (u.displayName?.charAt(0) || 'U')}
                                     </div>
                                     <div className="min-w-0">
@@ -327,13 +329,13 @@ export const OrganizationSettings: React.FC = () => {
                                                 {u.displayName}
                                             </p>
                                             {currentOrg?.ownerId === u.uid && (
-                                                <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full flex items-center gap-1">
+                                                <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 rounded-full flex items-center gap-1 border border-amber-500/20">
                                                     <Star size={10} />
                                                     {t('settings.owner')}
                                                 </span>
                                             )}
                                             {u.uid === user?.uid && (
-                                                <span className="px-2 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 rounded-full">
+                                                <span className="px-2 py-0.5 text-[10px] font-medium bg-slate-100/50 text-slate-600 dark:bg-slate-700/50 dark:text-slate-300 rounded-full border border-slate-200/50 dark:border-slate-600/50">
                                                     {t('settings.you')}
                                                 </span>
                                             )}
@@ -347,7 +349,7 @@ export const OrganizationSettings: React.FC = () => {
                                         value={u.role}
                                         onChange={(e) => handleUpdateUserRole(u.uid, e.target.value as UserProfile['role'])}
                                         disabled={u.uid === user.uid || currentOrg?.ownerId === u.uid || updatingUserIds.has(u.uid)}
-                                        className={`text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500/20 cursor-pointer ${updatingUserIds.has(u.uid) ? 'opacity-50 cursor-wait' : ''}`}
+                                        className={`text-xs font-semibold bg-white/50 dark:bg-slate-900/50 border border-white/40 dark:border-white/10 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500/20 cursor-pointer backdrop-blur-sm ${updatingUserIds.has(u.uid) ? 'opacity-50 cursor-wait' : ''}`}
                                     >
                                         <option value="admin">Admin</option>
                                         <option value="rssi">RSSI</option>
@@ -357,7 +359,7 @@ export const OrganizationSettings: React.FC = () => {
                                         <option value="user">User</option>
                                     </select>
 
-                                    <div className="flex items-center border-l border-slate-200 dark:border-slate-700 pl-3 gap-1">
+                                    <div className="flex items-center border-l border-white/20 dark:border-white/10 pl-3 gap-1">
                                         {/* Transfer Ownership Button (Only for Owner) */}
                                         {currentOrg?.ownerId === user?.uid && u.uid !== user?.uid && (
                                             <button

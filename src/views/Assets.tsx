@@ -658,8 +658,12 @@ export const Assets: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full"
+            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full max-w-[1920px] mx-auto"
         >
+            <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-500/5 rounded-full blur-[120px] animate-blob" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] animate-blob animation-delay-2000" />
+            </div>
             <Helmet>
                 <title>{selectedAsset ? `${selectedAsset.name} - Actifs` : 'Inventaire des Actifs - Sentinel GRC'}</title>
             </Helmet>
@@ -723,7 +727,7 @@ export const Assets: React.FC = () => {
 
             <motion.div variants={slideUpVariants}>
                 <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-                    <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
+                    <div className="flex-1 w-full relative z-20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
                         <Search className="h-5 w-5 text-slate-500" />
                         <input
                             type="text"

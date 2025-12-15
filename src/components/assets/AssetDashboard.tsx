@@ -95,7 +95,8 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8">
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-lg border border-white/60 dark:border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>
@@ -139,7 +140,8 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 </div>
 
                 {/* Key Metrics Breakdown */}
-                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.(null)}>
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <Server className="h-4 w-4 text-slate-500" />
@@ -186,7 +188,8 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Criticality Distribution */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Distribution par Criticité</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
@@ -216,7 +219,8 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 </div>
 
                 {/* Type Distribution */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Top Types d'Actifs</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={typeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -244,7 +248,8 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 </div>
 
                 {/* Scope Distribution */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Distribution par Périmètre (Scope)</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
@@ -274,7 +279,8 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 </div>
 
                 {/* Location Distribution */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Actifs par Localisation</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={locationChartData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>

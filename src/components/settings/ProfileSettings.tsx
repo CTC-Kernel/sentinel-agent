@@ -140,8 +140,9 @@ export const ProfileSettings: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in-up">
-            <div className="glass-panel p-8 rounded-2xl border border-white/20 dark:border-white/10 shadow-xl bg-white/50 dark:bg-slate-900/50">
-                <div className="flex flex-col md:flex-row gap-8 items-start">
+            <div className="glass-panel p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
                     {/* Avatar Section */}
                     <div className="flex-shrink-0 w-full md:w-auto flex flex-col items-center space-y-4">
                         <div className="relative group mx-auto">

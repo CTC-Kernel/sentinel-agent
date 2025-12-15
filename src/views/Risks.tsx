@@ -921,8 +921,12 @@ export const Risks: React.FC = () => {
             initial="initial"
             animate="in"
             exit="out"
-            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 w-full"
+            className="max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8"
         >
+            <div className="fixed inset-0 pointer-events-none -z-10">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[100px] animate-pulse-slow" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
+            </div>
             <SEO
                 title="Gestion des Risques - Sentinel GRC"
                 description="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005."
@@ -1013,55 +1017,58 @@ export const Risks: React.FC = () => {
             {/* Stats */}
             {/* Insight Card (Summary) */}
             <motion.div variants={slideUpVariants}>
-                <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                    <div className="space-y-2">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                            <span className="inline-flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
-                            Vue globale des risques
-                        </p>
-                        <div className="flex items-baseline gap-3">
-                            <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</h2>
-                            <span className="text-sm font-bold text-slate-600">Risques identifiés</span>
+                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-lg relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative z-10">
+                        <div className="space-y-2">
+                            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                                <span className="inline-flex h-2 w-2 rounded-full bg-brand-500 animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                                Vue globale des risques
+                            </p>
+                            <div className="flex items-baseline gap-3">
+                                <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 tracking-tight">{stats.total}</h2>
+                                <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Risques identifiés</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="h-px w-full md:w-px md:h-16 bg-slate-200 dark:bg-white/10" />
+                        <div className="h-px w-full md:w-px md:h-20 bg-gradient-to-b from-transparent via-slate-200 dark:via-white/10 to-transparent" />
 
-                    <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Critiques</p>
-                            <div className="flex items-center gap-2">
-                                <span className="text-2xl font-black text-red-500">{stats.critical}</span>
-                                <Badge status="error" variant="soft" size="sm">Score 15+</Badge>
+                        <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-8">
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Critiques</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-2xl font-black text-red-500 drop-shadow-sm">{stats.critical}</span>
+                                    <Badge status="error" variant="soft" size="sm" className="shadow-none">Score 15+</Badge>
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Score Moyen</p>
-                            <div className="flex items-center gap-2">
-                                <span className="text-2xl font-black text-slate-900 dark:text-white">
-                                    {risks.length > 0 ? (risks.reduce((sum, r) => sum + r.score, 0) / risks.length).toFixed(1) : '0'}
-                                </span>
-                                <span className="text-xs font-medium text-slate-500">/ 25</span>
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Score Moyen</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-2xl font-black text-slate-900 dark:text-white">
+                                        {risks.length > 0 ? (risks.reduce((sum, r) => sum + r.score, 0) / risks.length).toFixed(1) : '0'}
+                                    </span>
+                                    <span className="text-xs font-medium text-slate-400">/ 25</span>
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Non Traités</p>
-                            <div className="flex items-center gap-2">
-                                <span className="text-2xl font-black text-amber-500">
-                                    {risks.filter(r => r.strategy === 'Accepter' && r.score >= 10).length}
-                                </span>
-                                <span className="text-xs font-medium text-slate-500">Critiques</span>
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Non Traités</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-2xl font-black text-amber-500 drop-shadow-sm">
+                                        {risks.filter(r => r.strategy === 'Accepter' && r.score >= 10).length}
+                                    </span>
+                                    <span className="text-xs font-medium text-slate-500">Critiques</span>
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Réduction</p>
-                            <div className="flex items-center gap-2">
-                                <span className="text-2xl font-black text-emerald-500">
-                                    {risks.length > 0 ?
-                                        Math.round(((risks.reduce((sum, r) => sum + r.score, 0) - risks.reduce((sum, r) => sum + (r.residualScore || r.score), 0)) / risks.reduce((sum, r) => sum + r.score, 0)) * 100)
-                                        : 0}%
-                                </span>
-                                <TrendingDown className="h-4 w-4 text-emerald-500" />
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Réduction</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-2xl font-black text-emerald-500 drop-shadow-sm">
+                                        {risks.length > 0 ?
+                                            Math.round(((risks.reduce((sum, r) => sum + r.score, 0) - risks.reduce((sum, r) => sum + (r.residualScore || r.score), 0)) / risks.reduce((sum, r) => sum + r.score, 0)) * 100)
+                                            : 0}%
+                                    </span>
+                                    <TrendingDown className="h-4 w-4 text-emerald-500" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1070,20 +1077,20 @@ export const Risks: React.FC = () => {
 
             <motion.div variants={slideUpVariants}>
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div className="flex flex-wrap items-center gap-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 min-w-0 border border-slate-200 dark:border-white/5">
+                    <div className="flex flex-wrap items-center gap-4 glass-panel p-2 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 min-w-0 border border-white/60 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
                         <Search className="h-5 w-5 text-slate-500" />
-                        <input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400" value={filter} onChange={e => setFilter(e.target.value)} />
+                        <input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2 font-medium placeholder-slate-400" value={filter} onChange={e => setFilter(e.target.value)} />
                         {filter && (
                             <button
                                 type="button"
                                 onClick={() => setFilter('')}
-                                className="p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"
+                                className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all"
                                 title="Effacer la recherche"
                             >
-                                <X className="h-4 w-4" />
+                                <X className="h-3 w-3" />
                             </button>
                         )}
-                        <div className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 shadow-sm">
+                        <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300">
                             {filteredRisks.length}
                         </div>
                         <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
@@ -1146,8 +1153,9 @@ export const Risks: React.FC = () => {
 
             {
                 viewMode === 'matrix' ? (
-                    <div className="glass-panel p-4 sm:p-8 rounded-[2.5rem] shadow-xl overflow-x-auto animate-fade-in border border-white/50 dark:border-white/5">
-                        <div className="min-w-[700px]">
+                    <div className="glass-panel p-4 sm:p-8 rounded-[2.5rem] shadow-lg overflow-x-auto animate-fade-in border border-white/60 dark:border-white/10 relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                        <div className="min-w-[700px] relative z-10">
                             <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Matrice de Criticité</h3>
                                 <div className="flex flex-wrap gap-2 text-xs font-medium">

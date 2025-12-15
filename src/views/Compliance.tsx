@@ -909,8 +909,12 @@ export const Compliance: React.FC = () => {
             initial="initial"
             animate="in"
             exit="out"
-            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full"
+            className="max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8"
         >
+            <div className="fixed inset-0 pointer-events-none -z-10">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[100px] animate-pulse-slow" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
+            </div>
             <SEO
                 title={selectedControl ? `${selectedControl.code} - Conformité` : 'Conformité & Standards'}
                 description="Suivez votre conformité aux normes ISO 27001, NIS 2, DORA et gérez vos audits."
@@ -1002,31 +1006,31 @@ export const Compliance: React.FC = () => {
 
                         {/* Filter Bar - Clean Style */}
                         <motion.div variants={slideUpVariants}>
-                            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-col md:flex-row gap-4 shadow-sm">
+                            <div className="glass-panel p-2 pl-4 rounded-2xl flex flex-col md:flex-row gap-4 shadow-sm border border-white/60 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
                                 <div className="flex-1 relative group flex items-center">
-                                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
+                                    <Search className="absolute left-4 top-3 h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
                                     <input
                                         type="text"
                                         placeholder="Rechercher un contrôle (ex: A.5.1, Accès)..."
-                                        className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus:ring-0 text-sm font-medium transition-all placeholder:text-slate-500 text-slate-700 dark:text-white"
+                                        className="w-full pl-12 pr-4 py-2 bg-transparent border-none focus:ring-0 text-sm font-medium transition-all placeholder:text-slate-400 text-slate-700 dark:text-white"
                                         value={filter}
                                         onChange={e => setFilter(e.target.value)}
                                     />
                                 </div>
 
-                                <div className="flex gap-2 p-2 pt-0 md:p-0 overflow-x-auto no-scrollbar">
+                                <div className="flex gap-2 p-1.5 md:p-0 overflow-x-auto no-scrollbar items-center">
                                     {/* Status Filter Badge */}
                                     {statusFilter && (
-                                        <button onClick={() => setStatusFilter(null)} className="flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-brand-50 text-brand-700 border border-brand-200 dark:bg-brand-900/20 dark:text-brand-300 dark:border-brand-800 animate-fade-in hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors whitespace-nowrap shrink-0">
-                                            <span className="mr-2 opacity-70 hidden sm:inline">Filtre:</span> {statusFilter} <X className="h-4 w-4 ml-2" />
+                                        <button onClick={() => setStatusFilter(null)} className="flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200 dark:bg-brand-900/20 dark:text-brand-300 dark:border-brand-800 animate-fade-in hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors whitespace-nowrap shrink-0">
+                                            <span className="mr-2 opacity-70 hidden sm:inline">Filtre:</span> {statusFilter} <X className="h-3.5 w-3.5 ml-2" />
                                         </button>
                                     )}
 
                                     <button
                                         onClick={() => setShowMissingEvidence(!showMissingEvidence)}
-                                        className={`flex items-center px-5 py-3 rounded-xl text-sm font-bold border transition-all shadow-sm whitespace-nowrap shrink-0 ${showMissingEvidence ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                        className={`flex items-center px-4 py-2 rounded-xl text-xs font-bold border transition-all shadow-sm whitespace-nowrap shrink-0 ${showMissingEvidence ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'}`}
                                     >
-                                        <Filter className={`h-4 w-4 mr-2 ${showMissingEvidence ? 'fill-current' : ''}`} />
+                                        <Filter className={`h-3.5 w-3.5 mr-2 ${showMissingEvidence ? 'fill-current' : ''}`} />
                                         Preuves <span className="hidden sm:inline ml-1">manquantes</span>
                                     </button>
                                 </div>
@@ -1075,7 +1079,7 @@ export const Compliance: React.FC = () => {
                                             const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
 
                                             return (
-                                                <div key={domain.id} className="glass-panel rounded-[2.5rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
+                                                <div key={domain.id} className="glass-panel rounded-[2.5rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg border border-white/60 dark:border-white/10 group">
                                                     <div
                                                         onClick={() => toggleDomain(domain.id)}
                                                         className={`p-6 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}

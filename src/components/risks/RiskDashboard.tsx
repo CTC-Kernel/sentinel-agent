@@ -149,7 +149,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-xl border border-border bg-card/50 backdrop-blur-xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden">
+            <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-lg">
                 <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
                 </div>
@@ -240,194 +240,212 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 {/* Evolution Chart (NEW) */}
-                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border lg:col-span-2">
-                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                        <Target className="h-4 w-4 text-brand-500" />
-                        Évolution du Score Moyen (12 derniers mois)
-                    </h4>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <AreaChart data={evolutionData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id="colorAvg" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                            <XAxis dataKey="date" stroke={chartColors.text} fontSize={11} tickLine={false} axisLine={false} />
-                            <YAxis stroke={chartColors.text} fontSize={11} tickLine={false} axisLine={false} />
-                            <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-                            <Area type="monotone" dataKey="avgScore" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorAvg)" strokeWidth={3} name="Score Moyen" />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 lg:col-span-2 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                    <div className="relative z-10">
+                        <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                            <Target className="h-4 w-4 text-brand-500" />
+                            Évolution du Score Moyen (12 derniers mois)
+                        </h4>
+                        <ResponsiveContainer width="100%" height={250}>
+                            <AreaChart data={evolutionData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorAvg" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                                <XAxis dataKey="date" stroke={chartColors.text} fontSize={11} tickLine={false} axisLine={false} />
+                                <YAxis stroke={chartColors.text} fontSize={11} tickLine={false} axisLine={false} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3' }} />
+                                <Area type="monotone" dataKey="avgScore" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorAvg)" strokeWidth={3} name="Score Moyen" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
 
                 {/* Risk Distribution */}
-                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
-                    <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Niveau</h4>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                            <Pie
-                                data={distributionData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
-                                paddingAngle={5}
-                                dataKey="value"
-                                stroke="none"
-                            >
-                                {distributionData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                            </Pie>
-                            <Tooltip content={<ChartTooltip />} cursor={false} />
-                            <Legend
-                                verticalAlign="bottom"
-                                height={36}
-                                iconType="circle"
-                                formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
-                            />
-                        </PieChart>
-                    </ResponsiveContainer>
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                    <div className="relative z-10">
+                        <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Niveau</h4>
+                        <ResponsiveContainer width="100%" height={250}>
+                            <PieChart>
+                                <Pie
+                                    data={distributionData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={80}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                    stroke="none"
+                                >
+                                    {distributionData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Pie>
+                                <Tooltip content={<ChartTooltip />} cursor={false} />
+                                <Legend
+                                    verticalAlign="bottom"
+                                    height={36}
+                                    iconType="circle"
+                                    formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
                 {/* Category Distribution */}
-                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
-                    <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Catégorie</h4>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={categoryChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} opacity={0.5} />
-                            <XAxis
-                                dataKey="name"
-                                stroke={chartColors.text}
-                                fontSize={11}
-                                tickLine={false}
-                                axisLine={false}
-                                dy={10}
-                                tickFormatter={(value) => value.length > 10 ? `${value.substring(0, 10)}...` : value}
-                            />
-                            <YAxis
-                                stroke={chartColors.text}
-                                fontSize={11}
-                                tickLine={false}
-                                axisLine={false}
-                                dx={-10}
-                            />
-                            <Tooltip content={<ChartTooltip />} cursor={{ fill: chartColors.cursor, opacity: 1 }} />
-                            <Bar dataKey="value" fill="#3b82f6" name="Nombre de risques" radius={[4, 4, 0, 0]} barSize={30} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                    <div className="relative z-10">
+                        <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Catégorie</h4>
+                        <ResponsiveContainer width="100%" height={250}>
+                            <BarChart data={categoryChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} opacity={0.5} />
+                                <XAxis
+                                    dataKey="name"
+                                    stroke={chartColors.text}
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dy={10}
+                                    tickFormatter={(value) => value.length > 10 ? `${value.substring(0, 10)}...` : value}
+                                />
+                                <YAxis
+                                    stroke={chartColors.text}
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dx={-10}
+                                />
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: chartColors.cursor, opacity: 1 }} />
+                                <Bar dataKey="value" fill="#3b82f6" name="Nombre de risques" radius={[4, 4, 0, 0]} barSize={30} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
                 {/* Risk Matrix */}
-                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border lg:col-span-2">
-                    <h4 className="text-sm font-bold text-foreground mb-4">Matrice des Risques (Probabilité × Impact)</h4>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} opacity={0.5} />
-                            <XAxis
-                                type="number"
-                                dataKey="likelihood"
-                                name="Probabilité"
-                                domain={[0, 5]}
-                                stroke={chartColors.text}
-                                fontSize={11}
-                                tickLine={false}
-                                axisLine={{ stroke: chartColors.grid }}
-                                dy={10}
-                            />
-                            <YAxis
-                                type="number"
-                                dataKey="impact"
-                                name="Impact"
-                                domain={[0, 5]}
-                                stroke={chartColors.text}
-                                fontSize={11}
-                                tickLine={false}
-                                axisLine={{ stroke: chartColors.grid }}
-                                dx={-10}
-                            />
-                            <ZAxis type="number" dataKey="score" range={[100, 600]} />
-                            <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-                            <Scatter name="Risques" data={matrixData} fill="#3b82f6" shape="circle">
-                                {matrixData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={
-                                        entry.score >= 15 ? '#ef4444' :
-                                            entry.score >= 10 ? '#f97316' :
-                                                entry.score >= 5 ? '#eab308' : '#22c55e'
-                                    } />
-                                ))}
-                            </Scatter>
-                        </ScatterChart>
-                    </ResponsiveContainer>
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 lg:col-span-2 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                    <div className="relative z-10">
+                        <h4 className="text-sm font-bold text-foreground mb-4">Matrice des Risques (Probabilité × Impact)</h4>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} opacity={0.5} />
+                                <XAxis
+                                    type="number"
+                                    dataKey="likelihood"
+                                    name="Probabilité"
+                                    domain={[0, 5]}
+                                    stroke={chartColors.text}
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={{ stroke: chartColors.grid }}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    type="number"
+                                    dataKey="impact"
+                                    name="Impact"
+                                    domain={[0, 5]}
+                                    stroke={chartColors.text}
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={{ stroke: chartColors.grid }}
+                                    dx={-10}
+                                />
+                                <ZAxis type="number" dataKey="score" range={[100, 600]} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3' }} />
+                                <Scatter name="Risques" data={matrixData} fill="#3b82f6" shape="circle">
+                                    {matrixData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={
+                                            entry.score >= 15 ? '#ef4444' :
+                                                entry.score >= 10 ? '#f97316' :
+                                                    entry.score >= 5 ? '#eab308' : '#22c55e'
+                                        } />
+                                    ))}
+                                </Scatter>
+                            </ScatterChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
                 {/* Treatment Distribution */}
-                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border lg:col-span-2">
-                    <h4 className="text-sm font-bold text-foreground mb-4">Stratégies de Traitement</h4>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <BarChart data={treatmentData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} horizontal={false} opacity={0.5} />
-                            <XAxis type="number" stroke={chartColors.text} fontSize={11} tickLine={false} axisLine={false} />
-                            <YAxis
-                                dataKey="name"
-                                type="category"
-                                stroke={chartColors.text}
-                                fontSize={11}
-                                tickLine={false}
-                                axisLine={false}
-                                width={80}
-                            />
-                            <Tooltip content={<ChartTooltip />} cursor={{ fill: chartColors.cursor, opacity: 1 }} />
-                            <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={20}>
-                                {treatmentData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={
-                                        entry.name === 'Atténuer' ? '#3b82f6' :
-                                            entry.name === 'Transférer' ? '#8b5cf6' :
-                                                entry.name === 'Éviter' ? '#22c55e' : '#f97316'
-                                    } />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 lg:col-span-2 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                    <div className="relative z-10">
+                        <h4 className="text-sm font-bold text-foreground mb-4">Stratégies de Traitement</h4>
+                        <ResponsiveContainer width="100%" height={200}>
+                            <BarChart data={treatmentData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} horizontal={false} opacity={0.5} />
+                                <XAxis type="number" stroke={chartColors.text} fontSize={11} tickLine={false} axisLine={false} />
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    stroke={chartColors.text}
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    width={80}
+                                />
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: chartColors.cursor, opacity: 1 }} />
+                                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={20}>
+                                    {treatmentData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={
+                                            entry.name === 'Atténuer' ? '#3b82f6' :
+                                                entry.name === 'Transférer' ? '#8b5cf6' :
+                                                    entry.name === 'Éviter' ? '#22c55e' : '#f97316'
+                                        } />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
 
             {/* Top Critical Risks */}
             {criticalRisks > 0 && (
-                <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
-                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-red-500" />
-                        Top 5 Risques Critiques
-                    </h4>
-                    <div className="space-y-3">
-                        {risks
-                            .filter(r => r.score >= 15)
-                            .sort((a, b) => b.score - a.score)
-                            .slice(0, 5)
-                            .map((risk, index) => (
-                                <div key={index} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-800">
-                                    <div className="flex-1">
-                                        <p className="font-bold text-sm text-foreground">{risk.threat}</p>
-                                        <p className="text-xs text-muted-foreground mt-1">{risk.category || 'Non catégorisé'}</p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-right">
-                                            <div className="text-xs text-muted-foreground">Score</div>
-                                            <div className="text-lg font-bold text-red-600 dark:text-red-400">{risk.score}</div>
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                    <div className="relative z-10">
+                        <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 text-red-500" />
+                            Top 5 Risques Critiques
+                        </h4>
+                        <div className="space-y-3">
+                            {risks
+                                .filter(r => r.score >= 15)
+                                .sort((a, b) => b.score - a.score)
+                                .slice(0, 5)
+                                .map((risk, index) => (
+                                    <div key={index} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-800">
+                                        <div className="flex-1">
+                                            <p className="font-bold text-sm text-foreground">{risk.threat}</p>
+                                            <p className="text-xs text-muted-foreground mt-1">{risk.category || 'Non catégorisé'}</p>
                                         </div>
-                                        <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.strategy === 'Atténuer' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                                            risk.strategy === 'Transférer' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
-                                                risk.strategy === 'Éviter' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
-                                                    'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
-                                            }`}>
-                                            {risk.strategy}
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-right">
+                                                <div className="text-xs text-muted-foreground">Score</div>
+                                                <div className="text-lg font-bold text-red-600 dark:text-red-400">{risk.score}</div>
+                                            </div>
+                                            <div className={`px-3 py-1 rounded-lg text-xs font-bold ${risk.strategy === 'Atténuer' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
+                                                risk.strategy === 'Transférer' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
+                                                    risk.strategy === 'Éviter' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
+                                                        'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                                                }`}>
+                                                {risk.strategy}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                        </div>
                     </div>
                 </div>
             )}

@@ -339,8 +339,12 @@ export const Incidents: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full"
+            className="max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8"
         >
+            <div className="fixed inset-0 pointer-events-none -z-10">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-500/10 rounded-full blur-[100px] animate-pulse-slow" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
+            </div>
             <SEO
                 title="Gestion des Incidents"
                 description="Détection, analyse et réponse aux incidents de sécurité (SOC/CSIRT)."
@@ -359,7 +363,7 @@ export const Incidents: React.FC = () => {
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setImportModalOpen(true)}
-                                    className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 px-4 py-2 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center shadow-sm"
+                                    className="bg-white/50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-200 border border-white/60 dark:border-white/10 px-4 py-2 rounded-xl font-medium hover:bg-white/80 dark:hover:bg-slate-700/80 transition-colors flex items-center shadow-sm backdrop-blur-md"
                                 >
                                     <BrainCircuit className="h-4 w-4 mr-2" />
                                     Importer SIEM/EDR
@@ -384,50 +388,51 @@ export const Incidents: React.FC = () => {
             />
 
             {/* Carte de synthèse Incidents */}
-            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div className="space-y-2">
+            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                <div className="space-y-2 relative z-10">
                     <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
                         <span className="inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
                         Vue globale des incidents
                     </p>
                     <div className="flex items-baseline gap-3">
-                        <p className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">
+                        <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
                             {incidentStats.open}
                         </p>
-                        <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">incidents actifs</span>
+                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">incidents actifs</span>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto">
-                    <div className="rounded-2xl bg-red-50/80 dark:bg-red-900/15 border border-red-100 dark:border-red-900/40 px-4 py-3 flex flex-col justify-between">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-500">Actifs</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
+                    <div className="rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100/50 dark:border-red-900/40 px-5 py-4 flex flex-col justify-between backdrop-blur-sm">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">Actifs</span>
                             <ShieldAlert className="h-4 w-4 text-red-500" />
                         </div>
-                        <p className="text-xl font-black text-red-600 dark:text-red-300">{incidentStats.open}</p>
-                        <p className="text-[11px] text-red-600/80 dark:text-red-300 mt-1">à traiter</p>
+                        <p className="text-2xl font-black text-red-600 dark:text-red-300">{incidentStats.open}</p>
+                        <p className="text-[10px] font-bold text-red-600/70 dark:text-red-300/70 mt-1 uppercase tracking-wider">à traiter</p>
                     </div>
 
-                    <div className="rounded-2xl bg-emerald-50/80 dark:bg-emerald-900/15 border border-emerald-100 dark:border-emerald-900/40 px-4 py-3 flex flex-col justify-between">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">MTTR</span>
+                    <div className="rounded-2xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100/50 dark:border-emerald-900/40 px-5 py-4 flex flex-col justify-between backdrop-blur-sm">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">MTTR</span>
                             <Clock className="h-4 w-4 text-emerald-500" />
                         </div>
-                        <p className="text-xl font-black text-slate-900 dark:text-white leading-none">
+                        <p className="text-2xl font-black text-slate-900 dark:text-white leading-none">
                             {incidentStats.avgMttrHours !== null ? `${incidentStats.avgMttrHours}h` : '-'}
                         </p>
-                        <p className="text-[11px] text-emerald-600/80 dark:text-emerald-300 mt-1">délai moyen de résolution</p>
+                        <p className="text-[10px] font-bold text-emerald-600/70 dark:text-emerald-300/70 mt-1 uppercase tracking-wider">délai moyen</p>
                     </div>
 
-                    <div className="rounded-2xl bg-orange-50/80 dark:bg-orange-900/15 border border-orange-100 dark:border-orange-900/40 px-4 py-3 flex flex-col justify-between">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">Critiques</span>
+                    <div className="rounded-2xl bg-orange-50/50 dark:bg-orange-900/10 border border-orange-100/50 dark:border-orange-900/40 px-5 py-4 flex flex-col justify-between backdrop-blur-sm">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Critiques</span>
                             <AlertTriangle className="h-4 w-4 text-orange-500" />
                         </div>
-                        <p className="text-xl font-black text-slate-900 dark:text-white leading-none">
+                        <p className="text-2xl font-black text-slate-900 dark:text-white leading-none">
                             {incidentStats.criticalRatio !== null ? `${incidentStats.criticalRatio}%` : '-'}
                         </p>
-                        <p className="text-[11px] text-orange-600/80 dark:text-orange-300 mt-1">du volume total d'incidents</p>
+                        <p className="text-[10px] font-bold text-orange-600/70 dark:text-orange-300/70 mt-1 uppercase tracking-wider">du volume total</p>
                     </div>
                 </div>
             </motion.div>

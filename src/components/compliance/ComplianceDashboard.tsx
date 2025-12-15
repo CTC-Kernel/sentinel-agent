@@ -123,8 +123,9 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
         <div className="space-y-6">
             {/* Summary Card */}
             {/* Compact Summary Card */}
-            <div className="glass-panel p-5 rounded-[1.5rem] shadow-sm flex flex-col xl:flex-row gap-6 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-lg flex flex-col xl:flex-row gap-8 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
 
                 {/* Left: Global Score */}
                 <div className="flex items-center gap-5 min-w-[240px] z-10">
@@ -214,9 +215,10 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             {totalControls > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Status Distribution */}
-                    <div className="bg-card p-6 rounded-2xl border border-border shadow-sm min-w-0">
-                        <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Distribution par Statut</h4>
-                        <div className="h-[250px] w-full">
+                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm min-w-0 relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-2xl" />
+                        <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-6 uppercase tracking-wider relative z-10">Distribution par Statut</h4>
+                        <div className="h-[250px] w-full relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
@@ -238,7 +240,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         verticalAlign="bottom"
                                         height={36}
                                         iconType="circle"
-                                        formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
+                                        formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -246,9 +248,10 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
 
                     {/* Domain Progress */}
-                    <div className="bg-card p-6 rounded-2xl border border-border shadow-sm min-w-0">
-                        <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Conformité par Domaine (Annexe A)</h4>
-                        <div className="h-[250px] w-full">
+                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm min-w-0 relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-2xl" />
+                        <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-6 uppercase tracking-wider relative z-10">Conformité par Domaine (Annexe A)</h4>
+                        <div className="h-[250px] w-full relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={domainChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} opacity={0.5} />
@@ -278,9 +281,10 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
 
                     {/* Radar Chart */}
-                    <div className="bg-card p-6 rounded-2xl border border-border lg:col-span-2 shadow-sm min-w-0">
-                        <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Vue Radar - Maturité par Domaine</h4>
-                        <div className="h-[350px] w-full">
+                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 lg:col-span-2 shadow-sm min-w-0 relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-2xl" />
+                        <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-6 uppercase tracking-wider relative z-10">Vue Radar - Maturité par Domaine</h4>
+                        <div className="h-[350px] w-full relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                                     <PolarGrid stroke={chartTheme.grid} strokeDasharray="3 3" />
@@ -295,19 +299,19 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         fillOpacity={0.2}
                                     />
                                     <Tooltip content={<ChartTooltip />} />
-                                    <Legend formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>} />
+                                    <Legend formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>} />
                                 </RadarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center p-12 bg-card rounded-2xl border border-border border-dashed">
-                    <div className="p-4 bg-accent rounded-full mb-4">
-                        <TrendingUp className="h-8 w-8 text-muted-foreground" />
+                <div className="flex flex-col items-center justify-center p-12 glass-panel rounded-2xl border border-white/60 dark:border-white/10 border-dashed">
+                    <div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full mb-4">
+                        <TrendingUp className="h-8 w-8 text-slate-400" />
                     </div>
-                    <h3 className="text-lg font-medium text-foreground mb-1">Aucune donnée de conformité</h3>
-                    <p className="text-muted-foreground text-center max-w-md">
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">Aucune donnée de conformité</h3>
+                    <p className="text-slate-500 text-center max-w-md">
                         Commencez par importer ou créer des contrôles pour visualiser les graphiques de conformité.
                     </p>
                 </div>
@@ -315,17 +319,18 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
             {/* Critical Controls Not Implemented */}
             {criticalControls.length > 0 && (
-                <div className="bg-card p-6 rounded-2xl border border-border">
-                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-2xl" />
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 relative z-10">
                         <AlertTriangle className="h-4 w-4 text-orange-500" />
                         Contrôles Critiques à Implémenter ({criticalControls.length})
                     </h4>
-                    <div className="space-y-3">
+                    <div className="space-y-3 relative z-10">
                         {criticalControls.slice(0, 5).map((control, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/10 rounded-xl border border-orange-200 dark:border-orange-800/50">
+                            <div key={index} className="flex items-center justify-between p-3 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
                                 <div className="flex-1">
-                                    <p className="font-bold text-sm text-foreground">{control.code} - {control.name}</p>
-                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{control.description}</p>
+                                    <p className="font-bold text-sm text-slate-800 dark:text-white">{control.code} - {control.name}</p>
+                                    <p className="text-xs text-slate-500 mt-1 line-clamp-1">{control.description}</p>
                                 </div>
                                 <div className={`px-3 py-1 rounded-lg text-xs font-bold ${control.status === 'Partiel' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400' :
                                     'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
@@ -339,18 +344,19 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             )}
 
             {/* Domain Details */}
-            <div className="bg-card p-6 rounded-2xl border border-border">
-                <h4 className="text-sm font-bold text-foreground mb-4">Détail par Domaine ISO 27001</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-2xl" />
+                <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 relative z-10">Détail par Domaine ISO 27001</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
                     {Object.entries(domainData).map(([domain, data]) => {
                         const rate = (data.implemented / data.total * 100);
                         return (
-                            <div key={domain} className="p-4 bg-accent/40 rounded-xl border border-border">
+                            <div key={domain} className="p-4 bg-white/40 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10 backdrop-blur-sm">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="font-bold text-foreground">{domain}</span>
-                                    <span className="text-xs font-bold text-muted-foreground">{data.implemented}/{data.total}</span>
+                                    <span className="font-bold text-slate-800 dark:text-white">{domain}</span>
+                                    <span className="text-xs font-bold text-slate-500">{data.implemented}/{data.total}</span>
                                 </div>
-                                <div className="w-full bg-border/60 rounded-full h-2 mb-2">
+                                <div className="w-full bg-slate-200 dark:bg-white/10 rounded-full h-2 mb-2">
                                     <div
                                         className="h-2 rounded-full transition-all duration-500"
                                         style={{
@@ -359,7 +365,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         }}
                                     ></div>
                                 </div>
-                                <div className="text-xs text-muted-foreground">
+                                <div className="text-xs text-slate-500">
                                     {rate.toFixed(0)}% conformité
                                 </div>
                             </div>

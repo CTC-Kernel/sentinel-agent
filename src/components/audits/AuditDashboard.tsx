@@ -42,7 +42,8 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8">
+            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-lg border border-white/60 dark:border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>
@@ -84,25 +85,25 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
                 </div>
 
                 {/* Key Metrics Breakdown */}
-                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
-                    <div onClick={() => onFilterChange?.(null)} className="cursor-pointer group/item">
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2 relative z-10">
+                    <div onClick={() => onFilterChange?.(null)} className="cursor-pointer group/item text-center">
                         <div className="text-sm text-slate-600 dark:text-slate-400 mb-1 group-hover/item:text-brand-500 transition-colors">Total Audits</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">{totalAudits}</div>
                     </div>
-                    <div>
+                    <div className="text-center">
                         <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Constats Ouverts</div>
                         <div className={`text-2xl font-bold ${openFindings > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
                             {openFindings}
                         </div>
                     </div>
-                    <div>
+                    <div className="text-center">
                         <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">À Venir (30j)</div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">{upcomingAudits}</div>
                     </div>
                 </div>
 
                 {/* Alerts/Status */}
-                <div className="flex flex-col gap-3 min-w-[180px]">
+                <div className="flex flex-col gap-3 min-w-[180px] relative z-10">
                     {openFindings > 0 && (
                         <div className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl border border-red-100 dark:border-red-800/30">
                             <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -127,7 +128,8 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Status Distribution */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Statut des Audits</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
@@ -157,7 +159,8 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
                 </div>
 
                 {/* Findings by Type */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">Constats par Type</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={findingsByType} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>

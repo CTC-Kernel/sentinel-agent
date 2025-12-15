@@ -64,7 +64,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
 
                     {/* Desktop: Vertical list */}
                     <div className="hidden lg:flex flex-col gap-2">
-                        <div className="glass-panel p-2 rounded-2xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-slate-900/50">
+                        <div className="glass-panel p-2 rounded-2xl border border-white/60 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 shadow-sm backdrop-blur-md">
                             {visibleTabs.map(tab => {
                                 const isActive = currentTab === tab.id;
                                 return (
@@ -74,8 +74,8 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         className={cn(
                                             "group flex items-center w-full px-4 py-3.5 rounded-xl font-medium text-sm transition-all text-left relative overflow-hidden",
                                             isActive
-                                                ? "bg-brand-50/50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 shadow-sm"
-                                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
+                                                ? "bg-brand-500/10 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300 shadow-sm border border-brand-500/10"
+                                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200"
                                         )}
                                     >
                                         <tab.icon className={cn(
