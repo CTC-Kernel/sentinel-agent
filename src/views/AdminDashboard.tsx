@@ -82,7 +82,7 @@ export const AdminDashboard: React.FC = () => {
         } else {
             setCheckingAuth(false);
         }
-    }, [user]);
+    }, [user?.uid]);
 
     const handleManage = async (orgId: string, orgName: string) => {
         setSwitchingOrg(orgId);

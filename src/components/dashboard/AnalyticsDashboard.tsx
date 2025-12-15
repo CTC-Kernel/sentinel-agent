@@ -100,7 +100,7 @@ export const AnalyticsDashboard: React.FC = () => {
         };
 
         fetchData();
-    }, [user]);
+    }, [user?.organizationId]);
 
     // Calculate metrics
     const metrics = useMemo(() => {
@@ -161,11 +161,16 @@ export const AnalyticsDashboard: React.FC = () => {
 
             // If no history yet, show current state as a single point or empty
             if (mappedData.length === 0) {
+                const criticalRisks = risks.filter(r => (r.score || 0) >= 15).length;
+                const openIncidents = incidents.filter(i => i.status !== 'Résolu').length;
+                const complianceRate = controls.length > 0
+                    ? (controls.filter(c => c.status === 'Implémenté').length / controls.length) * 100
+                    : 0;
                 setTrendData([{
                     date: new Date().toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }),
-                    risks: metrics.criticalRisks,
-                    incidents: metrics.openIncidents,
-                    compliance: metrics.complianceRate,
+                    risks: criticalRisks,
+                    incidents: openIncidents,
+                    compliance: complianceRate,
                     assets: assets.length
                 }]);
             } else {
@@ -174,7 +179,7 @@ export const AnalyticsDashboard: React.FC = () => {
         };
 
         fetchHistory();
-    }, [user, timeRange, metrics, assets.length]);
+    }, [user?.organizationId, timeRange, risks, incidents, controls, assets.length]);
 
     // Risk distribution by category
     const risksByCategory: CategoryData[] = useMemo(() => {

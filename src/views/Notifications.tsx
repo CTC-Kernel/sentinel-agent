@@ -25,7 +25,7 @@ export const Notifications: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user?.uid]);
 
     useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 

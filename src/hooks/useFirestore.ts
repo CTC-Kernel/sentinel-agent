@@ -45,16 +45,57 @@ export const useFirestoreCollection = <T = DocumentData>(
     const [realtimeFailed, setRealtimeFailed] = useState(false);
 
     const queryClient = useQueryClient();
+    const stableValueKey = (value: unknown): string => {
+        if (value === null) return 'null';
+        if (value === undefined) return 'undefined';
+        if (typeof value === 'string') return JSON.stringify(value);
+        if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') return String(value);
+        if (value instanceof Date) return `date:${value.toISOString()}`;
+
+        const maybeTimestamp = value as { seconds?: number; nanoseconds?: number };
+        if (
+            value &&
+            typeof value === 'object' &&
+            typeof maybeTimestamp.seconds === 'number' &&
+            typeof maybeTimestamp.nanoseconds === 'number'
+        ) {
+            return `ts:${maybeTimestamp.seconds}:${maybeTimestamp.nanoseconds}`;
+        }
+
+        try {
+            return `json:${JSON.stringify(value)}`;
+        } catch {
+            return `str:${String(value)}`;
+        }
+    };
+
+    const stableConstraintKey = (c: QueryConstraint): string => {
+        const anyC = c as unknown as {
+            type?: string;
+            fieldPath?: unknown;
+            opStr?: unknown;
+            value?: unknown;
+            directionStr?: unknown;
+            limit?: unknown;
+        };
+
+        const type = anyC.type ?? 'unknown';
+
+        const fieldPathObj = anyC.fieldPath as unknown as { canonicalString?: () => string } | undefined;
+        const fieldKey = fieldPathObj?.canonicalString ? fieldPathObj.canonicalString() : stableValueKey(anyC.fieldPath);
+        const opKey = stableValueKey(anyC.opStr);
+        const valueKey = stableValueKey(anyC.value);
+        const dirKey = stableValueKey(anyC.directionStr);
+        const limitKey = stableValueKey(anyC.limit);
+
+        // Keep all parts to make key stable across renders and constraint recreation
+        return [type, fieldKey, opKey, valueKey, dirKey, limitKey].join(':');
+    };
+
     const constraintsKey = useMemo(() => {
         // JSON.stringify is unreliable for Firestore QueryConstraint objects.
         // Use their string representation (and type if available) to build a stable key.
-        return constraints
-            .map((c) => {
-                const type = (c as unknown as { type?: string })?.type;
-                const repr = String(c);
-                return type ? `${type}:${repr}` : repr;
-            })
-            .join('|');
+        return constraints.map(stableConstraintKey).join('|');
     }, [constraints]);
 
     // Keep a stable constraints array reference as long as constraintsKey doesn't change.

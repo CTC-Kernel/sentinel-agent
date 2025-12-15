@@ -88,7 +88,7 @@ export const AuditTrailViewer: React.FC = () => {
         };
 
         fetchLogs();
-    }, [user]);
+    }, [user?.organizationId]);
 
     // Filter logs
     const filteredLogs = useMemo(() => {

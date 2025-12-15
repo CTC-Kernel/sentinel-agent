@@ -37,7 +37,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
             }
         };
         checkSuperAdmin();
-    }, [user]);
+    }, [user?.uid]);
 
     // Trigger Command Palette (Cmd+K) programmatically
     const openCommandPalette = () => {
