@@ -59,14 +59,18 @@ export const Login: React.FC = () => {
 
         (async () => {
             try {
+                console.log("Login: Checking for Redirect Result...");
                 const result = await getRedirectResult(auth);
+                console.log("Login: Redirect Result:", result ? "User found" : "No result");
                 if (!isMounted) return;
 
                 if (result?.user) {
+                    console.log("Login: Success via Redirect", result.user.uid);
                     addToast('Connexion réussie', 'success');
                     window.location.hash = '#/';
                 }
             } catch (error: unknown) {
+                console.error("Login: Redirect Error", error);
                 if (!isMounted) return;
                 ErrorLogger.error(error, 'Login.getRedirectResult');
                 setErrorMsg('Erreur Google Auth. Veuillez réessayer.');
