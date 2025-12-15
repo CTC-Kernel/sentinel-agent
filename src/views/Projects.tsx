@@ -362,13 +362,7 @@ export const Projects: React.FC = () => {
                 // Inject Pre-selected Context
                 const finalData = { ...cleanData };
                 if (preSelectedContext) {
-                    if (preSelectedContext.type === 'risk') finalData.relatedRiskIds = arrayUnion(preSelectedContext.id) as unknown as string[]; // Firestore will need array, but here for local logic we need array. 
-                    // Actually arrayUnion specific to updateDoc. For addDoc we need simple array.
-                    else if (preSelectedContext.type === 'control') finalData.relatedControlIds = [...(finalData.relatedControlIds || []), preSelectedContext.id];
-                    else if (preSelectedContext.type === 'asset') finalData.relatedAssetIds = [...(finalData.relatedAssetIds || []), preSelectedContext.id];
-                    else if (preSelectedContext.type === 'audit') finalData.relatedAuditIds = [...(finalData.relatedAuditIds || []), preSelectedContext.id];
-
-                    if (preSelectedContext.type === 'risk') finalData.relatedRiskIds = [...(finalData.relatedRiskIds || []), preSelectedContext.id]; // Correcting the previous line
+                    if (preSelectedContext.type === 'risk') finalData.relatedRiskIds = [...(finalData.relatedRiskIds || []), preSelectedContext.id];
                 }
 
                 const newProjectRef = await addDoc(collection(db, 'projects'), {

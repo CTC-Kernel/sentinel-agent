@@ -290,12 +290,13 @@ export const Suppliers: React.FC = () => {
         setIsSubmitting(true);
         try {
             const sanitizedData = sanitizeData(data);
+            const now = new Date().toISOString();
             await updateDoc(doc(db, 'suppliers', selectedSupplier.id), {
                 ...sanitizedData,
-                updatedAt: new Date().toISOString()
+                updatedAt: now
             });
             await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${data.name}`);
-            setSelectedSupplier({ ...selectedSupplier, ...data, criticality: data.criticality as Criticality });
+            setSelectedSupplier({ ...selectedSupplier, ...data, criticality: data.criticality as Criticality, updatedAt: now });
             setIsEditing(false);
             addToast("Fournisseur mis à jour", "success");
         } catch (error) {

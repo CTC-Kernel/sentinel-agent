@@ -298,13 +298,15 @@ export const Assets: React.FC = () => {
             const cleanData = sanitizeData(validatedData);
             // Track History if Criticality Changes
             const prev = selectedAsset;
+            const now = new Date().toISOString();
             const dataToUpdate: Record<string, unknown> = {
                 ...cleanData,
+                updatedAt: now
             };
 
             if (prev.confidentiality !== cleanData.confidentiality || prev.integrity !== cleanData.integrity || prev.availability !== cleanData.availability) {
                 const historyEntry: AssetHistory = {
-                    date: new Date().toISOString(),
+                    date: now,
                     userId: user.uid,
                     userName: user.displayName || user.email || 'Unknown',
                     previousConfidentiality: prev.confidentiality,

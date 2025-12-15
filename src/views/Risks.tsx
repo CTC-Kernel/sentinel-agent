@@ -789,7 +789,7 @@ export const Risks: React.FC = () => {
                         const newRef = doc(collection(db, 'risks'));
                         const prob = Math.min(Math.max(parseInt(cols[3]?.trim()) || 3, 1), 5) as Risk['probability'];
                         const imp = Math.min(Math.max(parseInt(cols[4]?.trim()) || 3, 1), 5) as Risk['impact'];
-                        batch.set(newRef, {
+                        batch.set(newRef, sanitizeData({
                             organizationId: user.organizationId,
                             threat: cols[0]?.trim() || 'Menace importée',
                             vulnerability: cols[1]?.trim() || '',
@@ -802,7 +802,7 @@ export const Risks: React.FC = () => {
                             status: 'Ouvert',
                             owner: '',
                             createdAt: new Date().toISOString()
-                        });
+                        }));
                         count++;
                     }
                 });

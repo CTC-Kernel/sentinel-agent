@@ -550,10 +550,7 @@ export const Settings: React.FC = () => {
         toggleTheme();
         if (user) {
             try {
-                const usersRef = collection(db, 'users');
-                getDocs(query(usersRef, where('email', '==', user.email))).then(snap => {
-                    if (!snap.empty) updateDoc(doc(db, 'users', snap.docs[0].id), { theme: theme === 'light' ? 'dark' : 'light' });
-                });
+                updateDoc(doc(db, 'users', user.uid), { theme: theme === 'light' ? 'dark' : 'light' });
             } catch {
                 // Ignore error
             }
