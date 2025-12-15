@@ -321,28 +321,28 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               {selectedPlaybook?.steps.map((step, index) => (
                 <div
                   key={step.id}
-                  className={`border rounded-lg p-4 mb-4 ${index === currentStep
-                    ? 'border-blue-500 bg-blue-50'
+                  className={`border rounded-xl p-3 mb-3 transition-colors ${index === currentStep
+                    ? 'border-blue-500/30 bg-blue-50/50'
                     : index < currentStep
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 bg-gray-50'
+                      ? 'border-green-500/30 bg-green-50/50'
+                      : 'border-slate-200 bg-slate-50/30'
                     }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-2 mb-1">
                         {getStepIcon(step.type)}
-                        <h4 className="font-semibold">{step.title}</h4>
+                        <h4 className="font-bold text-sm text-slate-800">{step.title}</h4>
                         {index < currentStep && (
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
                         )}
                         {index === currentStep && (
-                          <Activity className="h-4 w-4 text-blue-600 animate-pulse" />
+                          <Activity className="h-3.5 w-3.5 text-blue-600 animate-pulse" />
                         )}
                       </div>
-                      <p className="text-sm text-slate-600 mb-3">{step.description}</p>
+                      <p className="text-xs text-slate-600 mb-2 pl-6">{step.description}</p>
 
-                      <div className="flex items-center gap-4 text-sm text-slate-600">
+                      <div className="flex items-center gap-4 text-[10px] text-slate-500 pl-6 uppercase tracking-wide font-medium">
                         <span className="flex items-center">
                           <Timer className="h-3 w-3 mr-1" />
                           {step.estimatedTime}
@@ -354,15 +354,15 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                       </div>
 
                       {index === currentStep && (
-                        <div className="mt-4 space-y-4">
+                        <div className="mt-3 pl-6 space-y-3">
                           {/* Evidence Input */}
                           <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                              Evidence collectée
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                              Evidence
                             </label>
                             <textarea
-                              className="w-full p-2 border rounded-lg"
-                              rows={3}
+                              className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                              rows={2}
                               placeholder="Décrire l'evidence collectée..."
                               value={evidence[step.id] || ''}
                               onChange={(e) => setEvidence({
@@ -374,11 +374,11 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
 
                           {/* Notes */}
                           <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
                               Notes
                             </label>
                             <textarea
-                              className="w-full p-2 border rounded-lg"
+                              className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
                               rows={2}
                               placeholder="Notes sur cette étape..."
                               value={notes}
@@ -389,9 +389,9 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                           {/* Complete Step Button */}
                           <button
                             onClick={() => handleStepComplete(step.id)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
                           >
-                            Compléter cette étape
+                            Valider l'étape
                           </button>
                         </div>
                       )}
@@ -401,21 +401,19 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               ))}
 
               {/* Timeline */}
-              <div className="mt-6">
-                <h4 className="font-semibold mb-3">Timeline</h4>
-                <div className="space-y-2">
+              <div className="mt-8 pt-6 border-t border-gray-100">
+                <h4 className="font-bold text-sm uppercase tracking-wide text-slate-500 mb-4">Timeline de réponse</h4>
+                <div className="relative pl-4 border-l-2 border-slate-100 space-y-4">
                   {response.timeline.map((event) => (
-                    <div key={event.id} className="flex items-start gap-3 text-sm">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5"></div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{event.type}</span>
-                          <span className="text-slate-600">
-                            {new Date(event.timestamp).toLocaleString()}
-                          </span>
-                        </div>
-                        <p className="text-slate-600">{event.description}</p>
+                    <div key={event.id} className="relative pl-4">
+                      <div className="absolute -left-[21px] top-1.5 w-3 h-3 bg-white border-2 border-blue-500 rounded-full"></div>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                        <span className="text-xs font-bold text-slate-700">{event.type}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          {new Date(event.timestamp).toLocaleString()}
+                        </span>
                       </div>
+                      <p className="text-xs text-slate-600 mt-0.5">{event.description}</p>
                     </div>
                   ))}
                 </div>
@@ -423,6 +421,9 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
             </div>
           )}
         </div>
+
+        {/* Minimized Step Cards Logic - applied via CSS classes mainly */}
+
 
         {/* Confirm Modal */}
         {showConfirmModal && (

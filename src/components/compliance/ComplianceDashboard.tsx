@@ -122,96 +122,88 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 relative group">
-                <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
-                </div>
+            {/* Compact Summary Card */}
+            <div className="glass-panel p-5 rounded-[1.5rem] shadow-sm flex flex-col xl:flex-row gap-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
 
-                {/* Global Score */}
-                <div className="flex items-center gap-6 relative z-10">
-                    <div className="relative">
-                        <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
-                            <circle
-                                className="text-muted-foreground/20"
-                                strokeWidth="8"
-                                stroke="currentColor"
-                                fill="transparent"
-                                r="40"
-                                cx="48"
-                                cy="48"
-                            />
+                {/* Left: Global Score */}
+                <div className="flex items-center gap-5 min-w-[240px] z-10">
+                    <div className="relative flex-shrink-0">
+                        <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 96 96">
+                            <circle className="text-muted-foreground/10" strokeWidth="6" stroke="currentColor" fill="transparent" r="42" cx="48" cy="48" />
                             <circle
                                 className="text-brand-600 transition-all duration-1000 ease-out"
-                                strokeWidth="8"
-                                strokeDasharray={251.2}
-                                strokeDashoffset={251.2 - (251.2 * globalScore) / 100}
+                                strokeWidth="6"
+                                strokeDasharray={263.89}
+                                strokeDashoffset={263.89 - (263.89 * globalScore) / 100}
                                 strokeLinecap="round"
                                 stroke="currentColor"
                                 fill="transparent"
-                                r="40"
+                                r="42"
                                 cx="48"
                                 cy="48"
                             />
                         </svg>
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                            <span className="text-xl font-black text-foreground">{globalScore.toFixed(0)}%</span>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-lg font-black text-foreground">{globalScore.toFixed(0)}%</span>
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-foreground mb-1">Score de Conformité</h3>
-                        <p className="text-sm text-muted-foreground max-w-[200px]">Niveau global de conformité sur tous les référentiels actifs.</p>
+                        <h3 className="text-base font-bold text-foreground">Score Global</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">Conformité moyenne</p>
                         {trend !== undefined && (
-                            <div className={`text-xs font-bold mt-2 px-2 py-0.5 rounded-full w-fit ${trend >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
+                            <div className={`text-[10px] font-bold mt-1.5 px-2 py-0.5 rounded-md w-fit inline-flex items-center gap-1 ${trend >= 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                                <TrendingUp className="w-3 h-3" />
                                 {trend > 0 ? '+' : ''}{trend}% vs 30j
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* Framework Breakdown */}
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 border-t border-b xl:border-t-0 xl:border-b-0 xl:border-l xl:border-r border-border/60 py-6 xl:py-0 xl:px-6 xl:mx-2 my-2 xl:my-0">
-                    <div className="text-center flex items-center justify-between sm:block">
-                        <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0 sm:mb-1">ISO 27001</div>
-                        <div className="text-lg sm:text-xl font-black text-foreground">{Math.round(isoScore)}%</div>
-                        <div className="hidden sm:block h-1.5 w-full bg-accent rounded-full mt-2 overflow-hidden">
+                {/* Middle: Frameworks Mini-Cards */}
+                <div className="flex-1 grid grid-cols-3 gap-3">
+                    <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-3 border border-slate-100 dark:border-white/5 flex flex-col justify-between">
+                        <div className="flex justify-between items-start mb-2">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase">ISO 27001</span>
+                            <span className="text-xs font-black text-blue-600 dark:text-blue-400">{Math.round(isoScore)}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${isoScore}%` }}></div>
                         </div>
                     </div>
-                    <div className="text-center flex items-center justify-between sm:block">
-                        <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0 sm:mb-1">RGPD</div>
-                        <div className="text-lg sm:text-xl font-black text-foreground">{Math.round(rgpdScore)}%</div>
-                        <div className="hidden sm:block h-1.5 w-full bg-accent rounded-full mt-2 overflow-hidden">
+                    <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-3 border border-slate-100 dark:border-white/5 flex flex-col justify-between">
+                        <div className="flex justify-between items-start mb-2">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase">RGPD</span>
+                            <span className="text-xs font-black text-purple-600 dark:text-purple-400">{Math.round(rgpdScore)}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                             <div className="h-full bg-purple-500 rounded-full" style={{ width: `${rgpdScore}%` }}></div>
                         </div>
                     </div>
-                    <div className="text-center flex items-center justify-between sm:block">
-                        <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0 sm:mb-1">DORA</div>
-                        <div className="text-lg sm:text-xl font-black text-foreground">{Math.round(doraScore)}%</div>
-                        <div className="hidden sm:block h-1.5 w-full bg-accent rounded-full mt-2 overflow-hidden">
+                    <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-3 border border-slate-100 dark:border-white/5 flex flex-col justify-between">
+                        <div className="flex justify-between items-start mb-2">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase">DORA</span>
+                            <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">{Math.round(doraScore)}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                             <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${doraScore}%` }}></div>
                         </div>
                     </div>
                 </div>
 
-                {/* Alerts/Status */}
-                <div className="flex flex-col gap-3 min-w-[180px]">
-                    <div
-                        onClick={() => onFilterChange?.('Non commencé')}
-                        className="flex items-center justify-between p-2.5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-                    >
+                {/* Right: Quick Stats */}
+                <div className="flex xl:flex-col gap-3 min-w-[140px]">
+                    <div className="flex-1 flex items-center justify-between px-3 py-2 bg-red-50/50 dark:bg-red-900/10 rounded-lg border border-red-100/50 dark:border-red-900/20">
                         <div className="flex items-center gap-2">
-                            <ShieldAlert className="h-4 w-4 text-red-600 dark:text-red-400" />
-                            <span className="text-xs font-bold text-red-700 dark:text-red-300">Non-conformités</span>
+                            <ShieldAlert className="h-3.5 w-3.5 text-red-600/70" />
+                            <span className="text-xs font-bold text-red-700/70 dark:text-red-400/70">Alertes</span>
                         </div>
                         <span className="text-sm font-black text-red-700 dark:text-red-400">{alertsCount}</span>
                     </div>
-                    <div
-                        onClick={() => onFilterChange?.('Partiel')}
-                        className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
-                    >
+                    <div className="flex-1 flex items-center justify-between px-3 py-2 bg-amber-50/50 dark:bg-amber-900/10 rounded-lg border border-amber-100/50 dark:border-amber-900/20">
                         <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">En cours</span>
+                            <Clock className="h-3.5 w-3.5 text-amber-600/70" />
+                            <span className="text-xs font-bold text-amber-700/70 dark:text-amber-400/70">En cours</span>
                         </div>
                         <span className="text-sm font-black text-amber-700 dark:text-amber-400">{inProgressCount}</span>
                     </div>
