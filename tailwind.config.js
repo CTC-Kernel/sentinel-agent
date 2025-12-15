@@ -21,6 +21,8 @@ export default {
     extend: {
       fontFamily: {
         sans: [
+          'Outfit',
+          'Inter',
           '-apple-system',
           'BlinkMacSystemFont',
           '"SF Pro Text"',
