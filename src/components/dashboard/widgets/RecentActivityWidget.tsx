@@ -50,7 +50,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
             }
         >
             <div className="p-0 h-full overflow-y-auto custom-scrollbar">
-                <div className="border-l border-border space-y-8 py-8 ml-8 pr-8 relative">
+                <div className="border-l border-border space-y-8 py-8 ml-14 pr-8 relative">
                     {loading ? <Skeleton className="h-20 w-full" /> : displayActivity.length === 0 ? (
                         <div className="text-sm text-muted-foreground">{t('dashboard.nothingToReport')}</div>
                     ) : displayActivity.map((log, i) => (

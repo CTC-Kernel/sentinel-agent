@@ -337,7 +337,8 @@ export const Dashboard: React.FC = () => {
                     const statId = `${todayStr}_${user.organizationId}`;
                     await setDoc(doc(db, 'stats_history', statId), {
                         organizationId: user.organizationId, date: todayStr, risks: allRisks.length,
-                        compliance: complianceScore, incidents: activeIncidentsCount, timestamp: new Date().toISOString()
+                        compliance: complianceScore, incidents: activeIncidentsCount, timestamp: new Date().toISOString(),
+                        frameworks: Object.entries(radarData).reduce((acc, [subject, data]) => ({ ...acc, [subject]: data.A }), {})
                     });
                 } catch { /* Silent fail */ }
             };
