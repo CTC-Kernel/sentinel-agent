@@ -467,7 +467,7 @@ export const Dashboard: React.FC = () => {
         <motion.div
             variants={staggerContainerVariants}
             initial="initial"
-            animate="animate"
+            animate="visible"
             className="space-y-8 animate-fade-in pb-10 relative"
         >
             <SEO

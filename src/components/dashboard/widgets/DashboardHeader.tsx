@@ -110,10 +110,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
     return (
         <motion.div
-            variants={{
-                initial: { opacity: 0, y: -20 },
-                in: { opacity: 1, y: 0 }
-            }}
+            initial={{ opacity: 0, scale: 0.98, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             className="group relative rounded-[1.5rem] bg-card/60 backdrop-blur-xl border border-border shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md"
         >
             {/* Subtle Gradient Background */}

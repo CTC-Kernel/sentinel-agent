@@ -1138,7 +1138,7 @@ export const Audits: React.FC = () => {
         <motion.div
             variants={staggerContainerVariants}
             initial="initial"
-            animate="animate"
+            animate="visible"
             className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full min-w-0"
         >
             <Helmet>

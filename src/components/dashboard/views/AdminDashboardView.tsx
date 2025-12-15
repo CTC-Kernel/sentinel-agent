@@ -39,7 +39,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
         <motion.div
             variants={staggerContainerVariants}
             initial="initial"
-            animate="animate"
+            animate="visible"
             className="space-y-8"
         >
             <motion.div variants={slideUpVariants}>

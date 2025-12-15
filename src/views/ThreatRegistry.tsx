@@ -136,7 +136,7 @@ export const ThreatRegistry: React.FC = () => {
         <motion.div
             variants={staggerContainerVariants}
             initial="initial"
-            animate="animate"
+            animate="visible"
             className="space-y-8"
         >
             <Helmet>
