@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { integrationService, CyberNewsItem } from '../../services/integrationService';
 import { Shield, ExternalLink, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
@@ -8,13 +8,31 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { DashboardCard } from './DashboardCard';
 import { Skeleton } from '../ui/Skeleton';
 
+let lastFetchAt = 0;
+let lastFetchedNews: CyberNewsItem[] | null = null;
+
 export const CyberNewsWidget: React.FC = () => {
     const { t, language } = useStore();
     const [news, setNews] = useState<CyberNewsItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const fetchNews = async () => {
+    const isMountedRef = useRef(true);
+    const isFetchingRef = useRef(false);
+
+    const fetchNews = useCallback(async (force: boolean = false) => {
+        const now = Date.now();
+        const cacheTtlMs = 5 * 60 * 1000;
+
+        if (!force && lastFetchedNews && now - lastFetchAt < cacheTtlMs) {
+            setNews(lastFetchedNews);
+            setLoading(false);
+            return;
+        }
+
+        if (isFetchingRef.current) return;
+        isFetchingRef.current = true;
+
         setLoading(true);
         try {
             const [certItems, cnilItems] = await Promise.all([
@@ -26,16 +44,23 @@ export const CyberNewsWidget: React.FC = () => {
                 new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
             );
 
-            setNews(allNews);
+            lastFetchedNews = allNews;
+            lastFetchAt = now;
+            if (isMountedRef.current) setNews(allNews);
         } catch (error) {
             ErrorLogger.error(error, "CyberNewsWidget.fetchNews");
         } finally {
-            setLoading(false);
+            if (isMountedRef.current) setLoading(false);
+            isFetchingRef.current = false;
         }
-    };
+    }, []);
 
     useEffect(() => {
+        isMountedRef.current = true;
         fetchNews();
+        return () => {
+            isMountedRef.current = false;
+        };
     }, []);
 
     const formatDate = (dateStr: string) => {
@@ -60,7 +85,7 @@ export const CyberNewsWidget: React.FC = () => {
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
-                        fetchNews();
+                        fetchNews(true);
                     }}
                     className={`p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-indigo-500 ${loading ? 'animate-spin' : ''}`}
                     title={t('dashboard.refresh')}

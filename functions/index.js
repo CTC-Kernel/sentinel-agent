@@ -3080,7 +3080,7 @@ exports.fetchRssFeed = onCall(async (request) => {
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
 
-    const { url } = request.data;
+    const url = request?.data?.url;
     if (!url) {
         throw new HttpsError('invalid-argument', 'URL is required.');
     }
@@ -3144,13 +3144,17 @@ exports.fetchRssFeed = onCall(async (request) => {
         });
         clearTimeout(timeoutId);
         if (!response.ok) {
-            throw new Error(`Failed to fetch RSS feed: ${response.statusText}`);
+            throw new Error(`Failed to fetch RSS feed: ${response.status} ${response.statusText}`);
         }
         const text = await response.text();
         return { content: text };
     } catch (error) {
-        logger.error('Error fetching RSS feed:', error);
-        throw new HttpsError('internal', 'Failed to fetch RSS feed: ' + error.message);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error('Error fetching RSS feed:', { message, error });
+        throw new HttpsError('internal', 'Failed to fetch RSS feed: ' + message);
     }
 });
 
