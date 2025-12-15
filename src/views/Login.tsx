@@ -231,11 +231,18 @@ export const Login: React.FC = () => {
                 // Fallback to Redirect if blocked.
                 const provider = new GoogleAuthProvider();
                 try {
+                    console.log("Login: Attempting signInWithPopup...");
+                    console.log("Login: Auth Domain:", auth.app.options.authDomain);
+                    console.log("Login: Current Origin:", window.location.origin);
+
                     await signInWithPopup(auth, provider);
+
+                    console.log("Login: Popup Success!");
                     addToast("Connexion réussie", "success");
                     window.location.hash = '#/';
                 } catch (popupError: unknown) {
-                    console.error("Popup failed, trying redirect", popupError);
+                    console.error("Login: Popup failed, details:", popupError);
+                    console.log("Login: Falling back to redirect...");
                     // Fallback for environments where popups are blocked
                     await signInWithRedirect(auth, provider);
                 }
