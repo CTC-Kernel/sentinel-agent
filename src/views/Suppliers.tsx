@@ -14,6 +14,8 @@ import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { DataTable } from '../components/ui/DataTable';
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { ColumnDef } from '@tanstack/react-table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -611,7 +613,12 @@ export const Suppliers: React.FC = () => {
     ], [canEdit, initiateDelete]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full min-w-0">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="animate"
+            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full min-w-0"
+        >
             <Helmet>
                 <title>Gestion des Fournisseurs - Sentinel GRC</title>
                 <meta name="description" content="Gérez vos fournisseurs, évaluez leur conformité DORA et suivez les contrats." />
@@ -626,45 +633,50 @@ export const Suppliers: React.FC = () => {
                 closeOnConfirm={confirmData.closeOnConfirm}
             />
 
-            <PageHeader
-                title={suppliersTitle}
-                subtitle={suppliersSubtitle}
-                breadcrumbs={[
-                    { label: 'Fournisseurs' }
-                ]}
-                icon={<Handshake className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                actions={canEdit && (
-                    <>
-                        <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={isImporting}
-                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white disabled:opacity-50"
-                        >
-                            {isImporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />} Importer
-                        </button>
-                        <button
-                            onClick={() => openCreationDrawer()}
-                            className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                        >
-                            <Plus className="h-4 w-4 mr-2" /> Nouveau Fournisseur
-                        </button>
-                    </>
-                )}
-            />
+            <motion.div variants={slideUpVariants}>
+                <PageHeader
+                    title={suppliersTitle}
+                    subtitle={suppliersSubtitle}
+                    breadcrumbs={[
+                        { label: 'Fournisseurs' }
+                    ]}
+                    icon={<Handshake className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    actions={canEdit && (
+                        <>
+                            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isImporting}
+                                className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white disabled:opacity-50"
+                            >
+                                {isImporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />} Importer
+                            </button>
+                            <button
+                                onClick={() => openCreationDrawer()}
+                                className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                            >
+                                <Plus className="h-4 w-4 mr-2" /> Nouveau Fournisseur
+                            </button>
+                        </>
+                    )}
+                />
+            </motion.div>
 
             {/* Dashboard */}
-            <SupplierDashboard
-                suppliers={filteredSuppliers}
-                incidents={incidentsRaw}
-                onFilterChange={(filter) => {
-                    if (filter?.type === 'criticality') {
-                        // Implement filter logic if needed, currently just visual
-                    }
-                }}
-            />
+            {/* Dashboard */}
+            <motion.div variants={slideUpVariants}>
+                <SupplierDashboard
+                    suppliers={filteredSuppliers}
+                    incidents={incidentsRaw}
+                    onFilterChange={(filter) => {
+                        if (filter?.type === 'criticality') {
+                            // Implement filter logic if needed, currently just visual
+                        }
+                    }}
+                />
+            </motion.div>
 
-            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-wrap items-center gap-3 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5 min-w-0">
+            <motion.div variants={slideUpVariants} className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-wrap items-center gap-3 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5 min-w-0">
                 <Search className="h-5 w-5 text-slate-500" />
                 <input type="text" placeholder="Rechercher un fournisseur..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                     value={filter} onChange={e => setFilter(e.target.value)} />
@@ -701,10 +713,10 @@ export const Suppliers: React.FC = () => {
                     <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
                     <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
                 </div>
-            </div>
+            </motion.div>
 
             {viewMode === 'list' ? (
-                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                <motion.div variants={slideUpVariants} className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
                     <DataTable
                         columns={columns}
                         data={filteredSuppliers}
@@ -714,9 +726,9 @@ export const Suppliers: React.FC = () => {
                         searchable={false}
                         loading={loadingSuppliers}
                     />
-                </div>
+                </motion.div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {loadingSuppliers ? (
                         <div className="col-span-full"><CardSkeleton count={3} /></div>
                     ) : filteredSuppliers.length === 0 ? (
@@ -786,7 +798,7 @@ export const Suppliers: React.FC = () => {
                             )
                         })
                     )}
-                </div>
+                </motion.div>
             )}
 
             {/* Inspector Drawer */}
@@ -1087,6 +1099,6 @@ export const Suppliers: React.FC = () => {
                     />
                 </div>
             </Drawer>
-        </div>
+        </motion.div>
     );
 };

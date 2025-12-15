@@ -13,7 +13,8 @@ import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, Mess
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
-import { SlideUp } from '../components/ui/Animations';
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -653,7 +654,12 @@ export const Assets: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="animate"
+            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full"
+        >
             <Helmet>
                 <title>{selectedAsset ? `${selectedAsset.name} - Actifs` : 'Inventaire des Actifs - Sentinel GRC'}</title>
             </Helmet>
@@ -662,7 +668,7 @@ export const Assets: React.FC = () => {
 
 
 
-            <SlideUp>
+            <motion.div variants={slideUpVariants}>
                 <PageHeader
                     title={assetsTitle}
                     subtitle={assetsSubtitle}
@@ -688,12 +694,12 @@ export const Assets: React.FC = () => {
                         </>
                     )}
                 />
-            </SlideUp>
+            </motion.div>
 
             {/* KPIs */}
             {/* KPIs */}
             {/* Dashboard */}
-            <SlideUp>
+            <motion.div variants={slideUpVariants}>
                 <AssetDashboard
                     assets={filteredAssets}
                     onFilterChange={(filter) => {
@@ -704,18 +710,18 @@ export const Assets: React.FC = () => {
                         }
                     }}
                 />
-            </SlideUp>
+            </motion.div>
 
             {showAdvancedSearch && (
-                <SlideUp>
+                <motion.div variants={slideUpVariants}>
                     <AdvancedSearch
                         onSearch={(filters) => { setActiveFilters(filters); setShowAdvancedSearch(false); }}
                         onClose={() => setShowAdvancedSearch(false)}
                     />
-                </SlideUp>
+                </motion.div>
             )}
 
-            <SlideUp>
+            <motion.div variants={slideUpVariants}>
                 <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
                     <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
                         <Search className="h-5 w-5 text-slate-500" />
@@ -773,7 +779,7 @@ export const Assets: React.FC = () => {
                         </button>
                     </div>
                 </div>
-            </SlideUp>
+            </motion.div>
 
             {/* List / Grid */}
             {viewMode === 'list' ? (
@@ -1511,6 +1517,6 @@ export const Assets: React.FC = () => {
                     </>
                 )}
             </Drawer >
-        </div >
+        </motion.div>
     );
 };

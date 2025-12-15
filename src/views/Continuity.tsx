@@ -24,6 +24,8 @@ import { Comments } from '../components/ui/Comments';
 import { ErrorLogger } from '../services/errorLogger';
 import { AddToCalendar } from '../components/ui/AddToCalendar';
 import { ProcessFormModal } from '../components/continuity/ProcessFormModal';
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 
 
 export const Continuity: React.FC = () => {
@@ -345,7 +347,12 @@ export const Continuity: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 sm:pt-8">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="animate"
+            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 sm:pt-8"
+        >
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -403,7 +410,7 @@ export const Continuity: React.FC = () => {
             />
 
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8">
+            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8">
                 <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>
@@ -488,9 +495,9 @@ export const Continuity: React.FC = () => {
                         <span className="text-sm font-black text-red-700 dark:text-red-400">{failedDrills}</span>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
-            <div className="overflow-x-auto pb-2">
+            <motion.div variants={slideUpVariants} className="overflow-x-auto pb-2">
                 <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit border border-slate-200 dark:border-white/5 min-w-max">
                     <button onClick={() => setActiveTab('bia')} className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'bia' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'}`}>
                         Analyse d'Impact (BIA)
@@ -499,138 +506,143 @@ export const Continuity: React.FC = () => {
                         Exercices & Tests
                     </button>
                 </div>
-            </div>
+            </motion.div>
 
-            {activeTab === 'bia' && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {loading ? (
-                        <CardSkeleton count={6} />
-                    ) : processes.length === 0 ? (
-                        <div className="col-span-full">
-                            <EmptyState
-                                icon={HeartPulse}
-                                title="Aucun processus défini"
-                                description="Commencez par définir vos processus critiques pour l'analyse d'impact (BIA)."
-                                actionLabel="Nouveau Processus"
-                                onAction={() => {
-                                    setShowCreateModal(true);
-                                }}
-                            />
-                        </div>
-                    ) : (
-                        processes.map(proc => {
-                            const lastTest = proc.lastTestDate ? new Date(proc.lastTestDate) : null;
-                            const isOverdue = lastTest ? (new Date().getTime() - lastTest.getTime() > 31536000000) : true; // 1 year
 
-                            return (
-                                <div key={proc.id} onClick={() => openInspector(proc)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-white/50 dark:border-white/5">
-                                    <div className="flex justify-between items-start mb-5">
-                                        <div className="p-3 bg-rose-50 dark:bg-slate-800 rounded-2xl text-rose-600 shadow-inner">
-                                            <HeartPulse className="h-6 w-6" />
-                                        </div>
-                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getPriorityColor(proc.priority)}`}>
-                                            {proc.priority}
-                                        </span>
-                                    </div>
+            {
+                activeTab === 'bia' && (
+                    <motion.div variants={slideUpVariants} className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {loading ? (
+                            <CardSkeleton count={6} />
+                        ) : processes.length === 0 ? (
+                            <div className="col-span-full">
+                                <EmptyState
+                                    icon={HeartPulse}
+                                    title="Aucun processus défini"
+                                    description="Commencez par définir vos processus critiques pour l'analyse d'impact (BIA)."
+                                    actionLabel="Nouveau Processus"
+                                    onAction={() => {
+                                        setShowCreateModal(true);
+                                    }}
+                                />
+                            </div>
+                        ) : (
+                            processes.map(proc => {
+                                const lastTest = proc.lastTestDate ? new Date(proc.lastTestDate) : null;
+                                const isOverdue = lastTest ? (new Date().getTime() - lastTest.getTime() > 31536000000) : true; // 1 year
 
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{proc.name}</h3>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 flex-1 leading-relaxed">{proc.description}</p>
-
-                                    <div className="grid grid-cols-2 gap-4 mb-6">
-                                        <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-gray-100 dark:border-white/5 text-center">
-                                            <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1">RTO (Temps)</span>
-                                            <span className="text-3xl font-black text-slate-800 dark:text-white">{proc.rto}</span>
-                                        </div>
-                                        <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-gray-100 dark:border-white/5 text-center">
-                                            <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1">RPO (Données)</span>
-                                            <span className="text-3xl font-black text-slate-800 dark:text-white">{proc.rpo}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-white/10">
-                                        <div className="flex items-center justify-between text-xs">
-                                            <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><LayoutDashboard className="h-3 w-3 mr-1.5" /> Responsable</span>
-                                            <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[150px]">{proc.owner}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between text-xs">
-                                            <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><Server className="h-3 w-3 mr-1.5" /> Dépendances</span>
-                                            <span className="font-bold text-slate-700 dark:text-slate-200">{proc.supportingAssetIds?.length || 0} actifs</span>
-                                        </div>
-                                        <div className="flex items-center justify-between text-xs">
-                                            <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><ClipboardCheck className="h-3 w-3 mr-1.5" /> Dernier Test</span>
-                                            <span className={`font-bold px-2 py-0.5 rounded ${isOverdue ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                                                {proc.lastTestDate ? new Date(proc.lastTestDate).toLocaleDateString() : 'Jamais'}
+                                return (
+                                    <div key={proc.id} onClick={() => openInspector(proc)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-white/50 dark:border-white/5">
+                                        <div className="flex justify-between items-start mb-5">
+                                            <div className="p-3 bg-rose-50 dark:bg-slate-800 rounded-2xl text-rose-600 shadow-inner">
+                                                <HeartPulse className="h-6 w-6" />
+                                            </div>
+                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getPriorityColor(proc.priority)}`}>
+                                                {proc.priority}
                                             </span>
                                         </div>
-                                    </div>
-                                </div>
-                            )
-                        })
-                    )}
-                </div>
-            )}
 
-            {activeTab === 'drills' && (
-                loading ? (
-                    <TableSkeleton rows={5} columns={5} />
-                ) : drills.length === 0 ? (
-                    <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
-                        <EmptyState
-                            icon={Zap}
-                            title="Aucun exercice enregistré"
-                            description="Enregistrez vos exercices de crise (Tabletop, Simulation...) pour valider votre PCA."
-                            actionLabel="Nouvel Exercice"
-                            onAction={() => openDrillModal()}
-                        />
-                    </div>
-                ) : (
-                    <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-gray-100 dark:border-white/5 text-slate-500 font-bold uppercase text-[10px] tracking-widest backdrop-blur-sm">
-                                    <tr>
-                                        <th className="px-8 py-5">Date</th>
-                                        <th className="px-6 py-5">Processus testé</th>
-                                        <th className="px-6 py-5">Type d'exercice</th>
-                                        <th className="px-6 py-5">Résultat</th>
-                                        <th className="px-6 py-5">Notes / Preuves</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                    {drills.map(drill => {
-                                        const proc = processes.find(p => p.id === drill.processId);
-                                        return (
-                                            <tr key={drill.id} className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors group">
-                                                <td className="px-4 sm:px-8 py-5 text-slate-900 dark:text-white font-bold flex items-center">
-                                                    <div className="p-2 bg-white dark:bg-slate-800 rounded-xl mr-3 shadow-sm border border-gray-100 dark:border-white/5 group-hover:scale-110 transition-transform">
-                                                        <CalendarDays className="h-4 w-4 text-slate-600" />
-                                                    </div>
-                                                    {new Date(drill.date).toLocaleDateString()}
-                                                </td>
-                                                <td className="px-6 py-5 font-medium text-slate-600 dark:text-slate-300">
-                                                    {proc ? proc.name : 'Inconnu'}
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold border border-gray-200 dark:border-white/5 shadow-sm">
-                                                        {drill.type}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-5">
-                                                    <span className={`flex items-center w-fit px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm ${drill.result === 'Succès' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30' : drill.result === 'Échec' ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30' : 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/30'}`}>
-                                                        {drill.result === 'Succès' ? <ClipboardCheck className="h-3.5 w-3.5 mr-1.5" /> : <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />}
-                                                        {drill.result}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-5 text-slate-600 dark:text-slate-400 truncate max-w-xs font-medium">{drill.notes}</td>
-                                            </tr>
-                                        )
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{proc.name}</h3>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 flex-1 leading-relaxed">{proc.description}</p>
+
+                                        <div className="grid grid-cols-2 gap-4 mb-6">
+                                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-gray-100 dark:border-white/5 text-center">
+                                                <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1">RTO (Temps)</span>
+                                                <span className="text-3xl font-black text-slate-800 dark:text-white">{proc.rto}</span>
+                                            </div>
+                                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-gray-100 dark:border-white/5 text-center">
+                                                <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1">RPO (Données)</span>
+                                                <span className="text-3xl font-black text-slate-800 dark:text-white">{proc.rpo}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-white/10">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><LayoutDashboard className="h-3 w-3 mr-1.5" /> Responsable</span>
+                                                <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[150px]">{proc.owner}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><Server className="h-3 w-3 mr-1.5" /> Dépendances</span>
+                                                <span className="font-bold text-slate-700 dark:text-slate-200">{proc.supportingAssetIds?.length || 0} actifs</span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><ClipboardCheck className="h-3 w-3 mr-1.5" /> Dernier Test</span>
+                                                <span className={`font-bold px-2 py-0.5 rounded ${isOverdue ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                                                    {proc.lastTestDate ? new Date(proc.lastTestDate).toLocaleDateString() : 'Jamais'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })
+                        )}
+                    </motion.div>
                 )
-            )}
+            }
+
+            {
+                activeTab === 'drills' && (
+                    loading ? (
+                        <TableSkeleton rows={5} columns={5} />
+                    ) : drills.length === 0 ? (
+                        <motion.div variants={slideUpVariants} className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
+                            <EmptyState
+                                icon={Zap}
+                                title="Aucun exercice enregistré"
+                                description="Enregistrez vos exercices de crise (Tabletop, Simulation...) pour valider votre PCA."
+                                actionLabel="Nouvel Exercice"
+                                onAction={() => openDrillModal()}
+                            />
+                        </motion.div>
+                    ) : (
+                        <motion.div variants={slideUpVariants} className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-gray-100 dark:border-white/5 text-slate-500 font-bold uppercase text-[10px] tracking-widest backdrop-blur-sm">
+                                        <tr>
+                                            <th className="px-8 py-5">Date</th>
+                                            <th className="px-6 py-5">Processus testé</th>
+                                            <th className="px-6 py-5">Type d'exercice</th>
+                                            <th className="px-6 py-5">Résultat</th>
+                                            <th className="px-6 py-5">Notes / Preuves</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                        {drills.map(drill => {
+                                            const proc = processes.find(p => p.id === drill.processId);
+                                            return (
+                                                <tr key={drill.id} className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors group">
+                                                    <td className="px-4 sm:px-8 py-5 text-slate-900 dark:text-white font-bold flex items-center">
+                                                        <div className="p-2 bg-white dark:bg-slate-800 rounded-xl mr-3 shadow-sm border border-gray-100 dark:border-white/5 group-hover:scale-110 transition-transform">
+                                                            <CalendarDays className="h-4 w-4 text-slate-600" />
+                                                        </div>
+                                                        {new Date(drill.date).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="px-6 py-5 font-medium text-slate-600 dark:text-slate-300">
+                                                        {proc ? proc.name : 'Inconnu'}
+                                                    </td>
+                                                    <td className="px-6 py-5">
+                                                        <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold border border-gray-200 dark:border-white/5 shadow-sm">
+                                                            {drill.type}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-5">
+                                                        <span className={`flex items-center w-fit px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm ${drill.result === 'Succès' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30' : drill.result === 'Échec' ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30' : 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/30'}`}>
+                                                            {drill.result === 'Succès' ? <ClipboardCheck className="h-3.5 w-3.5 mr-1.5" /> : <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />}
+                                                            {drill.result}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-5 text-slate-600 dark:text-slate-400 truncate max-w-xs font-medium">{drill.notes}</td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </motion.div>
+                    )
+                )
+            }
 
             {/* Inspector Drawer */}
             {/* Inspector Drawer */}
@@ -706,7 +718,7 @@ export const Continuity: React.FC = () => {
                                         </div>
                                         <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Fournisseurs Critiques</h4>
-                                            {selectedProcess.supplierIds && selectedProcess.supplierIds.length > 0 ? (
+                                            {selectedProcess?.supplierIds && selectedProcess.supplierIds.length > 0 ? (
                                                 <div className="space-y-2">
                                                     {selectedProcess.supplierIds.map(sid => {
                                                         const s = suppliers.find(sup => sup.id === sid);
@@ -731,7 +743,7 @@ export const Continuity: React.FC = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        {selectedProcess.recoveryTasks && selectedProcess.recoveryTasks.length > 0 ? (
+                                        {selectedProcess?.recoveryTasks && selectedProcess.recoveryTasks.length > 0 ? (
                                             selectedProcess.recoveryTasks.sort((a, b) => a.order - b.order).map((task, index) => (
                                                 <div key={task.id} className="flex items-start gap-4 p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
                                                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-900/20 text-brand-600 flex items-center justify-center font-bold text-sm">
@@ -763,7 +775,7 @@ export const Continuity: React.FC = () => {
                                         <h3 className="text-sm font-bold text-slate-900 dark:text-white">Scénarios de Risque</h3>
                                     </div>
                                     <div className="space-y-3">
-                                        {selectedProcess.relatedRiskIds && selectedProcess.relatedRiskIds.length > 0 ? (
+                                        {selectedProcess?.relatedRiskIds && selectedProcess.relatedRiskIds.length > 0 ? (
                                             selectedProcess.relatedRiskIds.map(rid => {
                                                 const risk = risks.find(r => r.id === rid);
                                                 return risk ? (
@@ -933,6 +945,6 @@ export const Continuity: React.FC = () => {
                 isEditing={true}
                 title="Modifier le Processus"
             />
-        </div >
+        </motion.div >
     );
 };

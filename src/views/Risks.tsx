@@ -13,7 +13,9 @@ import { CustomSelect } from '../components/ui/CustomSelect';
 import { Badge } from '../components/ui/Badge';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { DataTable } from '../components/ui/DataTable';
-import { SlideUp } from '../components/ui/Animations';
+
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 
 import { RiskForm } from '../components/risks/RiskForm';
 import { RelationshipGraph } from '../components/RelationshipGraph';
@@ -914,7 +916,13 @@ export const Risks: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 w-full">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="in"
+            exit="out"
+            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 w-full"
+        >
             <SEO
                 title="Gestion des Risques - Sentinel GRC"
                 description="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005."
@@ -1004,7 +1012,7 @@ export const Risks: React.FC = () => {
 
             {/* Stats */}
             {/* Insight Card (Summary) */}
-            <SlideUp>
+            <motion.div variants={slideUpVariants}>
                 <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                     <div className="space-y-2">
                         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
@@ -1058,9 +1066,9 @@ export const Risks: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </SlideUp>
+            </motion.div>
 
-            <SlideUp>
+            <motion.div variants={slideUpVariants}>
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-4 glass-panel p-1.5 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 min-w-0 border border-slate-200 dark:border-white/5">
                         <Search className="h-5 w-5 text-slate-500" />
@@ -1117,12 +1125,12 @@ export const Risks: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </SlideUp>
+            </motion.div>
 
             {/* Filter Feedback */}
             {
                 matrixFilter && (
-                    <SlideUp>
+                    <motion.div variants={slideUpVariants}>
                         <div className="flex items-center justify-between bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 shadow-sm">
                             <div className="flex items-center gap-3">
                                 <Filter className="h-5 w-5 text-brand-600 dark:text-brand-400" />
@@ -1132,7 +1140,7 @@ export const Risks: React.FC = () => {
                             </div>
                             <button onClick={() => setMatrixFilter(null)} className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center bg-white dark:bg-black/20 px-3 py-1.5 rounded-lg shadow-sm transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"><RefreshCw className="h-3 w-3 mr-1.5" /> Réinitialiser</button>
                         </div>
-                    </SlideUp>
+                    </motion.div>
                 )
             }
 
@@ -2056,7 +2064,7 @@ export const Risks: React.FC = () => {
                     </div>
                 )}
             </Drawer>
-        </div>
+        </motion.div>
     );
 };
 

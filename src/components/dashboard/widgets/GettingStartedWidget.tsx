@@ -3,6 +3,10 @@ import { CheckCircle2, Circle, ArrowRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../../store';
 
+ let lastStatusFetchAt = 0;
+ let lastStatusOrgId: string | null = null;
+ let lastStatusValue: { hasTeam: boolean; hasAssets: boolean; hasRisks: boolean } | null = null;
+
 interface Step {
     id: string;
     label: string;
@@ -14,6 +18,8 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
     const navigate = useNavigate();
     const { user } = useStore();
 
+    const inFlightKeyRef = React.useRef(false);
+
     const [status, setStatus] = React.useState({
         hasTeam: false,
         hasAssets: false,
@@ -21,8 +27,29 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
     });
 
     React.useEffect(() => {
+        let isMounted = true;
+        let didCancel = false;
+
         const checkStatus = async () => {
             if (!user?.organizationId) return;
+
+            const blockedKey = `agg_blocked_${user.organizationId}`;
+            if (sessionStorage.getItem(blockedKey)) return;
+
+            const now = Date.now();
+            const cacheTtlMs = 60 * 1000;
+            if (
+                lastStatusValue &&
+                lastStatusOrgId === user.organizationId &&
+                now - lastStatusFetchAt < cacheTtlMs
+            ) {
+                setStatus(lastStatusValue);
+                return;
+            }
+
+            if (inFlightKeyRef.current) return;
+            inFlightKeyRef.current = true;
+
             try {
                 const db = await import('../../../firebase').then(m => m.db);
                 const { collection, query, where, getCountFromServer } = await import('firebase/firestore');
@@ -41,16 +68,34 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                     getCountFromServer(qRisks)
                 ]);
 
-                setStatus({
+                const next = {
                     hasTeam: usersSnap.data().count > 1,
                     hasAssets: assetsSnap.data().count > 0,
                     hasRisks: risksSnap.data().count > 0
-                });
+                };
+
+                lastStatusValue = next;
+                lastStatusOrgId = user.organizationId;
+                lastStatusFetchAt = now;
+
+                if (!didCancel && isMounted) setStatus(next);
             } catch (error) {
-                console.error("Failed to check getting started status", error);
+                const code = (error as { code?: string })?.code;
+                if (code === 'permission-denied') {
+                    sessionStorage.setItem(blockedKey, '1');
+                    return;
+                }
+            }
+            finally {
+                inFlightKeyRef.current = false;
             }
         };
         checkStatus();
+
+        return () => {
+            didCancel = true;
+            isMounted = false;
+        };
     }, [user?.organizationId]);
 
     const steps: Step[] = [

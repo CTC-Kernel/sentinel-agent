@@ -33,6 +33,8 @@ import { SecurityEvent } from '../services/integrationService';
 
 
 import { SEO } from '../components/SEO';
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 
 export const Incidents: React.FC = () => {
     const { user, addToast } = useStore();
@@ -333,7 +335,12 @@ export const Incidents: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="animate"
+            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full"
+        >
             <SEO
                 title="Gestion des Incidents"
                 description="Détection, analyse et réponse aux incidents de sécurité (SOC/CSIRT)."
@@ -341,32 +348,34 @@ export const Incidents: React.FC = () => {
             />
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} loading={confirmData.loading} closeOnConfirm={confirmData.closeOnConfirm} />
 
-            <PageHeader
-                title="Gestion des Incidents"
-                subtitle="Détection, analyse et réponse aux incidents de sécurité"
-                icon={<Siren className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                trustType="confidentiality"
-                actions={
-                    hasPermission(user, 'Incident', 'create') && (
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setImportModalOpen(true)}
-                                className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 px-4 py-2 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center shadow-sm"
-                            >
-                                <BrainCircuit className="h-4 w-4 mr-2" />
-                                Importer SIEM/EDR
-                            </button>
-                            <button
-                                onClick={() => setCreationMode(true)}
-                                className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
-                            >
-                                <Plus className="h-5 w-5 mr-2" />
-                                Déclarer un incident
-                            </button>
-                        </div>
-                    )
-                }
-            />
+            <motion.div variants={slideUpVariants}>
+                <PageHeader
+                    title="Gestion des Incidents"
+                    subtitle="Détection, analyse et réponse aux incidents de sécurité"
+                    icon={<Siren className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    trustType="confidentiality"
+                    actions={
+                        hasPermission(user, 'Incident', 'create') && (
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setImportModalOpen(true)}
+                                    className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 px-4 py-2 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center shadow-sm"
+                                >
+                                    <BrainCircuit className="h-4 w-4 mr-2" />
+                                    Importer SIEM/EDR
+                                </button>
+                                <button
+                                    onClick={() => setCreationMode(true)}
+                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
+                                >
+                                    <Plus className="h-5 w-5 mr-2" />
+                                    Déclarer un incident
+                                </button>
+                            </div>
+                        )
+                    }
+                />
+            </motion.div>
 
             <IncidentImportModal
                 isOpen={importModalOpen}
@@ -375,7 +384,7 @@ export const Incidents: React.FC = () => {
             />
 
             {/* Carte de synthèse Incidents */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div className="space-y-2">
                     <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
                         <span className="inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
@@ -421,16 +430,18 @@ export const Incidents: React.FC = () => {
                         <p className="text-[11px] text-orange-600/80 dark:text-orange-300 mt-1">du volume total d'incidents</p>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
-            <IncidentDashboard
-                incidents={incidents}
-                onCreate={() => setCreationMode(true)}
-                onSelect={(inc: Incident) => { setSelectedIncident(inc); setIsEditing(false); }}
-                loading={loading}
-                onDelete={initiateDelete}
-                onBulkDelete={handleBulkDelete}
-            />
+            <motion.div variants={slideUpVariants}>
+                <IncidentDashboard
+                    incidents={incidents}
+                    onCreate={() => setCreationMode(true)}
+                    onSelect={(inc: Incident) => { setSelectedIncident(inc); setIsEditing(false); }}
+                    loading={loading}
+                    onDelete={initiateDelete}
+                    onBulkDelete={handleBulkDelete}
+                />
+            </motion.div>
 
             {/* Inspector Drawer */}
             <Drawer
@@ -661,6 +672,6 @@ export const Incidents: React.FC = () => {
                     />
                 </div>
             </Drawer>
-        </div>
+        </motion.div >
     );
 };

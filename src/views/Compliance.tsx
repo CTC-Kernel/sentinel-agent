@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
 // import { Helmet } from 'react-helmet-async'; // Replaced by SEO component
-import { SlideUp } from '../components/ui/Animations'; // Added Layout Animations
 import { useNavigate, useLocation } from 'react-router-dom';
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, limit, addDoc } from 'firebase/firestore';
 import { RiskFormData, riskSchema } from '../schemas/riskSchema';
@@ -49,6 +48,8 @@ import { Globe } from '../components/ui/Icons';
 import { canEditResource, hasPermission } from '../utils/permissions';
 
 import { SEO } from '../components/SEO';
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 
 export const Compliance: React.FC = () => {
     const { user, addToast, organization, demoMode } = useStore();
@@ -903,7 +904,13 @@ export const Compliance: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="in"
+            exit="out"
+            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full"
+        >
             <SEO
                 title={selectedControl ? `${selectedControl.code} - Conformité` : 'Conformité & Standards'}
                 description="Suivez votre conformité aux normes ISO 27001, NIS 2, DORA et gérez vos audits."
@@ -912,7 +919,7 @@ export const Compliance: React.FC = () => {
             {/* Confirm Modal */}
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
 
-            <SlideUp>
+            <motion.div variants={slideUpVariants}>
                 <PageHeader
                     title={
                         currentFramework === 'ISO27001' ? "Déclaration d'Applicabilité" :
@@ -971,10 +978,10 @@ export const Compliance: React.FC = () => {
                         </div>
                     }
                 />
-            </SlideUp>
+            </motion.div>
 
             {viewMode === 'compliance' && (
-                <SlideUp delay={0.1}>
+                <motion.div variants={slideUpVariants}>
                     <div className="border-b border-slate-200 dark:border-white/10 -mt-2">
                         <ScrollableTabs
                             tabs={complianceFrameworks.map(f => ({ id: f.value, label: f.label }))}
@@ -982,19 +989,19 @@ export const Compliance: React.FC = () => {
                             onTabChange={(id) => setCurrentFramework(id as Framework)}
                         />
                     </div>
-                </SlideUp>
+                </motion.div>
             )}
 
             {
                 viewMode === 'compliance' && (
                     <>
                         {/* Dashboard Integration */}
-                        <SlideUp>
+                        <motion.div variants={slideUpVariants}>
                             <ComplianceDashboard controls={controls} onFilterChange={setStatusFilter} />
-                        </SlideUp>
+                        </motion.div>
 
                         {/* Filter Bar - Clean Style */}
-                        <SlideUp>
+                        <motion.div variants={slideUpVariants}>
                             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-col md:flex-row gap-4 shadow-sm">
                                 <div className="flex-1 relative group flex items-center">
                                     <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
@@ -1024,10 +1031,10 @@ export const Compliance: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
-                        </SlideUp>
+                        </motion.div>
 
                         {/* Accordion List - Clean Card Style */}
-                        <SlideUp>
+                        <motion.div variants={slideUpVariants}>
                             {loading ? (
                                 <div className="space-y-4">
                                     {[1, 2, 3, 4].map(i => (
@@ -1132,7 +1139,7 @@ export const Compliance: React.FC = () => {
                                     })()}
                                 </div>
                             )}
-                        </SlideUp>
+                        </motion.div>
 
                     </>
                 )
@@ -1745,7 +1752,6 @@ export const Compliance: React.FC = () => {
                 ))}
 
             </Drawer >
-        </div >
+        </motion.div>
     );
 };
-

@@ -29,6 +29,10 @@ import { OperationalDashboardView } from '../components/dashboard/views/Operatio
 interface HealthIssue { id: string; type: 'warning' | 'danger'; message: string; count: number; link: string; }
 interface ActionItem { id: string; type: 'audit' | 'document' | 'project' | 'policy' | 'incident' | 'risk'; title: string; date: string; status: string; link: string; }
 
+let lastCountsFetchAt = 0;
+let lastCountsOrgId: string | null = null;
+let lastCountsValue: { teamSize: number; activeIncidentsCount: number; openAuditsCount: number } | null = null;
+
 export const Dashboard: React.FC = () => {
     const [manualLoading, setManualLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -82,10 +86,35 @@ export const Dashboard: React.FC = () => {
             return;
         }
 
+        let didCancel = false;
+        const inFlightRef = { current: false };
+
         const fetchCounts = async () => {
             setManualLoading(true);
             try {
                 const orgId = user.organizationId!;
+
+                const blockedKey = `agg_blocked_${orgId}`;
+                if (sessionStorage.getItem(blockedKey)) {
+                    setError('permission-denied');
+                    return;
+                }
+
+                const now = Date.now();
+                const cacheTtlMs = 60 * 1000;
+                if (lastCountsValue && lastCountsOrgId === orgId && now - lastCountsFetchAt < cacheTtlMs) {
+                    if (!didCancel) {
+                        setTeamSize(lastCountsValue.teamSize);
+                        setActiveIncidentsCount(lastCountsValue.activeIncidentsCount);
+                        setOpenAuditsCount(lastCountsValue.openAuditsCount);
+                        setError(null);
+                    }
+                    return;
+                }
+
+                if (inFlightRef.current) return;
+                inFlightRef.current = true;
+
                 // Organization Name
                 try {
                     const orgSnap = await getDoc(doc(db, 'organizations', orgId));
@@ -104,18 +133,40 @@ export const Dashboard: React.FC = () => {
                     getCountFromServer(query(collection(db, 'audits'), where('organizationId', '==', orgId), where('status', 'in', ['Planifié', 'En cours'])))
                 ]);
 
-                setTeamSize(userCount.data().count);
-                setActiveIncidentsCount(incCount.data().count);
-                setOpenAuditsCount(auditCount.data().count);
-                setError(null);
+                const next = {
+                    teamSize: userCount.data().count,
+                    activeIncidentsCount: incCount.data().count,
+                    openAuditsCount: auditCount.data().count
+                };
+                lastCountsValue = next;
+                lastCountsOrgId = orgId;
+                lastCountsFetchAt = now;
+
+                if (!didCancel) {
+                    setTeamSize(next.teamSize);
+                    setActiveIncidentsCount(next.activeIncidentsCount);
+                    setOpenAuditsCount(next.openAuditsCount);
+                    setError(null);
+                }
             } catch (err) {
+                const code = (err as { code?: string })?.code;
+                if (code === 'permission-denied' && user?.organizationId) {
+                    sessionStorage.setItem(`agg_blocked_${user.organizationId}`, '1');
+                    setError('permission-denied');
+                    return;
+                }
+
                 ErrorLogger.handleErrorWithToast(err, 'Dashboard.fetchCounts', 'FETCH_FAILED');
-                if ((err as { code?: string })?.code === 'permission-denied') setError('permission-denied');
             } finally {
+                inFlightRef.current = false;
                 setManualLoading(false);
             }
         };
         fetchCounts();
+
+        return () => {
+            didCancel = true;
+        };
     }, [user?.organizationId, user?.organizationName, t]);
 
     // Derived Data

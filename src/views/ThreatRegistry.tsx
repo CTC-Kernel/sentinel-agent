@@ -12,7 +12,8 @@ import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
 import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
 import { logAction } from '../services/logger';
 import { sanitizeData } from '../utils/dataSanitizer';
-import { StaggerContainer, SlideUp } from '../components/ui/Animations';
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 
 export const ThreatRegistry: React.FC = () => {
     const { user, addToast } = useStore();
@@ -132,7 +133,12 @@ export const ThreatRegistry: React.FC = () => {
     );
 
     return (
-        <div className="animate-fade-in space-y-8">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="animate"
+            className="space-y-8"
+        >
             <Helmet>
                 <title>Bibliothèque de Menaces | Sentinel GRC</title>
             </Helmet>
@@ -193,55 +199,53 @@ export const ThreatRegistry: React.FC = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <StaggerContainer>
-                            {filteredThreats.map((threat) => (
-                                <SlideUp key={threat.id}>
-                                    <div
-                                        onClick={() => handleEdit(threat)}
-                                        className="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-slate-100 dark:border-white/5 hover:border-brand-500/30 transition-all group relative overflow-hidden cursor-pointer hover:shadow-lg"
-                                    >
-                                        <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); handleDelete(threat.id!); }}
-                                                className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
+                        {filteredThreats.map((threat) => (
+                            <motion.div variants={slideUpVariants} key={threat.id}>
+                                <div
+                                    onClick={() => handleEdit(threat)}
+                                    className="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-slate-100 dark:border-white/5 hover:border-brand-500/30 transition-all group relative overflow-hidden cursor-pointer hover:shadow-lg"
+                                >
+                                    <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleDelete(threat.id!); }}
+                                            className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className={`p-3 rounded-xl ${threat.source === 'Standard' ? 'bg-blue-50 text-blue-500 dark:bg-blue-500/10' : 'bg-purple-50 text-purple-500 dark:bg-purple-500/10'}`}>
+                                            <Shield className="h-6 w-6" />
                                         </div>
+                                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 border border-slate-200 dark:border-white/10 px-2 py-1 rounded-full">
+                                            {threat.framework}
+                                        </span>
+                                    </div>
 
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div className={`p-3 rounded-xl ${threat.source === 'Standard' ? 'bg-blue-50 text-blue-500 dark:bg-blue-500/10' : 'bg-purple-50 text-purple-500 dark:bg-purple-500/10'}`}>
-                                                <Shield className="h-6 w-6" />
-                                            </div>
-                                            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 border border-slate-200 dark:border-white/10 px-2 py-1 rounded-full">
-                                                {threat.framework}
-                                            </span>
+                                    <h3 className="font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{threat.name}</h3>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4 h-10">{threat.description}</p>
+
+                                    <div className="space-y-3">
+                                        <div className="flex items-center text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-black/20 p-2 rounded-lg">
+                                            <AlertTriangle className="h-3 w-3 mr-2 text-orange-500" />
+                                            <span className="truncate flex-1" title={threat.threat}>{threat.threat}</span>
                                         </div>
-
-                                        <h3 className="font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{threat.name}</h3>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4 h-10">{threat.description}</p>
-
-                                        <div className="space-y-3">
-                                            <div className="flex items-center text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-black/20 p-2 rounded-lg">
-                                                <AlertTriangle className="h-3 w-3 mr-2 text-orange-500" />
-                                                <span className="truncate flex-1" title={threat.threat}>{threat.threat}</span>
-                                            </div>
-                                            <div className="flex items-center text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-black/20 p-2 rounded-lg">
-                                                <BookOpen className="h-3 w-3 mr-2 text-indigo-500" />
-                                                <span className="truncate flex-1" title={threat.vulnerability}>{threat.vulnerability}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/5 flex justify-between items-center text-xs text-slate-500">
-                                            <span>{threat.field}</span>
-                                            <span className="flex items-center">
-                                                Score Ref: <span className="font-bold text-brand-500 ml-1">{threat.probability * threat.impact}</span>
-                                            </span>
+                                        <div className="flex items-center text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-black/20 p-2 rounded-lg">
+                                            <BookOpen className="h-3 w-3 mr-2 text-indigo-500" />
+                                            <span className="truncate flex-1" title={threat.vulnerability}>{threat.vulnerability}</span>
                                         </div>
                                     </div>
-                                </SlideUp>
-                            ))}
-                        </StaggerContainer>
+
+                                    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/5 flex justify-between items-center text-xs text-slate-500">
+                                        <span>{threat.field}</span>
+                                        <span className="flex items-center">
+                                            Score Ref: <span className="font-bold text-brand-500 ml-1">{threat.probability * threat.impact}</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
                 )}
             </div>
@@ -355,6 +359,6 @@ export const ThreatRegistry: React.FC = () => {
                     </div>
                 </form>
             </Modal>
-        </div>
+        </motion.div>
     );
 };

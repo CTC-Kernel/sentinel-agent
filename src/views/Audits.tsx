@@ -31,6 +31,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { DataTable } from '../components/ui/DataTable';
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { sendEmail } from '../services/emailService';
 import { getAuditReminderTemplate } from '../services/emailTemplates';
 import { PdfService } from '../services/PdfService';
@@ -835,80 +837,80 @@ export const Audits: React.FC = () => {
             const { PdfService } = await import('../services/PdfService');
 
             PdfService.generateExecutiveReport(
-            {
-                title: 'Plan d\'Audit',
-                subtitle: selectedAudit.name,
-                filename: `Plan_Audit_${selectedAudit.name.replace(/\s+/g, '_')}.pdf`,
-                organizationName: organization?.name || user?.email?.split('@')[1] || 'Sentinel GRC',
-                organizationLogo: organization?.logoUrl,
-                author: selectedAudit.auditor,
-                coverImage: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop' // Collaborative working image
-            },
-            (doc, startY) => {
-                let y = startY;
+                {
+                    title: 'Plan d\'Audit',
+                    subtitle: selectedAudit.name,
+                    filename: `Plan_Audit_${selectedAudit.name.replace(/\s+/g, '_')}.pdf`,
+                    organizationName: organization?.name || user?.email?.split('@')[1] || 'Sentinel GRC',
+                    organizationLogo: organization?.logoUrl,
+                    author: selectedAudit.auditor,
+                    coverImage: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop' // Collaborative working image
+                },
+                (doc, startY) => {
+                    let y = startY;
 
-                // 1. Objectifs & Périmètre
-                doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
-                doc.text("1. Objectifs et Périmètre", 14, y);
-                y += 8;
-
-                doc.setFontSize(10); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal');
-                doc.text(`Objectif Principal: Vérifier la conformité et l'efficacité des contrôles.`, 14, y);
-                y += 6;
-
-                if (selectedAudit.scope) {
-                    doc.setFont('helvetica', 'bold');
-                    doc.text("Périmètre:", 14, y);
-                    y += 5;
-                    doc.setFont('helvetica', 'normal');
-                    const splitScope = doc.splitTextToSize(selectedAudit.scope, 180);
-                    doc.text(splitScope, 14, y);
-                    y += (splitScope.length * 5) + 5;
-                } else {
-                    y += 5;
-                }
-
-                // 2. Référentiel (Contrôles)
-                if (selectedAudit.relatedControlIds && selectedAudit.relatedControlIds.length > 0) {
+                    // 1. Objectifs & Périmètre
                     doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
-                    doc.text("2. Référentiel et Critères d'Audit", 14, y);
+                    doc.text("1. Objectifs et Périmètre", 14, y);
                     y += 8;
 
-                    const relatedControls = controls.filter(c => selectedAudit.relatedControlIds?.includes(c.id));
-                    const controlsData = relatedControls.map(c => [c.code, c.name]);
+                    doc.setFontSize(10); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal');
+                    doc.text(`Objectif Principal: Vérifier la conformité et l'efficacité des contrôles.`, 14, y);
+                    y += 6;
+
+                    if (selectedAudit.scope) {
+                        doc.setFont('helvetica', 'bold');
+                        doc.text("Périmètre:", 14, y);
+                        y += 5;
+                        doc.setFont('helvetica', 'normal');
+                        const splitScope = doc.splitTextToSize(selectedAudit.scope, 180);
+                        doc.text(splitScope, 14, y);
+                        y += (splitScope.length * 5) + 5;
+                    } else {
+                        y += 5;
+                    }
+
+                    // 2. Référentiel (Contrôles)
+                    if (selectedAudit.relatedControlIds && selectedAudit.relatedControlIds.length > 0) {
+                        doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                        doc.text("2. Référentiel et Critères d'Audit", 14, y);
+                        y += 8;
+
+                        const relatedControls = controls.filter(c => selectedAudit.relatedControlIds?.includes(c.id));
+                        const controlsData = relatedControls.map(c => [c.code, c.name]);
+
+                        doc.autoTable({
+                            startY: y,
+                            head: [['Code', 'Contrôle']],
+                            body: controlsData,
+                            theme: 'grid',
+                            headStyles: { fillColor: [79, 70, 229] },
+                            styles: { fontSize: 9 },
+                            columnStyles: { 0: { cellWidth: 30, fontStyle: 'bold' } }
+                        });
+
+                        y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+                    }
+
+                    // 3. Logistique
+                    doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                    doc.text("3. Logistique", 14, y);
+                    y += 8;
+
+                    const logistics = [
+                        ['Date', selectedAudit.dateScheduled ? new Date(selectedAudit.dateScheduled).toLocaleDateString() : 'TBD'],
+                        ['Auditeur Principal', selectedAudit.auditor],
+                        ['Type d\'Audit', selectedAudit.type]
+                    ];
 
                     doc.autoTable({
                         startY: y,
-                        head: [['Code', 'Contrôle']],
-                        body: controlsData,
-                        theme: 'grid',
-                        headStyles: { fillColor: [79, 70, 229] },
-                        styles: { fontSize: 9 },
-                        columnStyles: { 0: { cellWidth: 30, fontStyle: 'bold' } }
+                        body: logistics,
+                        theme: 'plain',
+                        styles: { fontSize: 10, cellPadding: 2 },
+                        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
                     });
-
-                    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
                 }
-
-                // 3. Logistique
-                doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
-                doc.text("3. Logistique", 14, y);
-                y += 8;
-
-                const logistics = [
-                    ['Date', selectedAudit.dateScheduled ? new Date(selectedAudit.dateScheduled).toLocaleDateString() : 'TBD'],
-                    ['Auditeur Principal', selectedAudit.auditor],
-                    ['Type d\'Audit', selectedAudit.type]
-                ];
-
-                doc.autoTable({
-                    startY: y,
-                    body: logistics,
-                    theme: 'plain',
-                    styles: { fontSize: 10, cellPadding: 2 },
-                    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
-                });
-            }
             );
         })().catch((error) => {
             ErrorLogger.error(error, 'Audits.generateAuditPlan');
@@ -1133,7 +1135,12 @@ export const Audits: React.FC = () => {
     ], [canEdit, openEditDrawer, initiateDeleteAudit]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full min-w-0">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="animate"
+            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full min-w-0"
+        >
             <Helmet>
                 <title>Gestion des Audits - Sentinel GRC</title>
                 <meta name="description" content="Planifiez et réalisez vos audits internes et externes ISO 27001." />
@@ -1146,37 +1153,41 @@ export const Audits: React.FC = () => {
                 message={confirmData.message}
             />
 
-            <PageHeader
-                title={auditsTitle}
-                subtitle={auditsSubtitle}
-                breadcrumbs={[
-                    { label: 'Audits' }
-                ]}
-                icon={<ClipboardCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                actions={canEdit && (
-                    hasPermission(user, 'Audit', 'create') && (
-                        <button onClick={() => openCreationDrawer()} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
-                            <Plus className="w-5 h-5" />
-                            <span>Nouvel Audit</span>
-                        </button>
-                    )
-                )}
-            />
+            <motion.div variants={slideUpVariants}>
+                <PageHeader
+                    title={auditsTitle}
+                    subtitle={auditsSubtitle}
+                    breadcrumbs={[
+                        { label: 'Audits' }
+                    ]}
+                    icon={<ClipboardCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    actions={canEdit && (
+                        hasPermission(user, 'Audit', 'create') && (
+                            <button onClick={() => openCreationDrawer()} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
+                                <Plus className="w-5 h-5" />
+                                <span>Nouvel Audit</span>
+                            </button>
+                        )
+                    )}
+                />
+            </motion.div>
 
             {/* Dashboard */}
             {!selectedAudit && (
-                <AuditDashboard
-                    audits={filteredAudits}
-                    findings={allFindings}
-                    onFilterChange={(filter) => {
-                        if (filter) {
-                            // Implement filter logic if needed
-                        }
-                    }}
-                />
+                <motion.div variants={slideUpVariants}>
+                    <AuditDashboard
+                        audits={filteredAudits}
+                        findings={allFindings}
+                        onFilterChange={(filter) => {
+                            if (filter) {
+                                // Implement filter logic if needed
+                            }
+                        }}
+                    />
+                </motion.div>
             )}
 
-            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-wrap items-center gap-3 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all min-w-0">
+            <motion.div variants={slideUpVariants} className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-wrap items-center gap-3 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all min-w-0">
                 <Search className="h-5 w-5 text-slate-500" />
                 <input type="text" placeholder="Rechercher un audit..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
                     value={filter} onChange={e => setFilter(e.target.value)} />
@@ -1213,10 +1224,10 @@ export const Audits: React.FC = () => {
                     <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
                     <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
                 </div>
-            </div>
+            </motion.div>
 
             {viewMode === 'list' ? (
-                <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
                     <DataTable
                         columns={columns}
                         data={filteredAudits}
@@ -1226,9 +1237,9 @@ export const Audits: React.FC = () => {
                         searchable={false}
                         loading={loading}
                     />
-                </div>
+                </motion.div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {loading ? (
                         <div className="col-span-full"><CardSkeleton count={3} /></div>
                     ) : filteredAudits.length === 0 ? (
@@ -1280,7 +1291,7 @@ export const Audits: React.FC = () => {
                             </div>
                         ))
                     )}
-                </div>
+                </motion.div>
             )}
 
             {/* Findings Drawer */}
@@ -1733,6 +1744,6 @@ export const Audits: React.FC = () => {
                     isLoading={isSubmitting}
                 />
             </Drawer>
-        </div>
+        </motion.div>
     );
 };

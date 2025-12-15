@@ -22,6 +22,8 @@ import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { DataTable } from '../components/ui/DataTable';
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { ColumnDef } from '@tanstack/react-table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { generateICS, downloadICS } from '../utils/calendar';
@@ -824,7 +826,12 @@ export const Projects: React.FC = () => {
     ], [canEdit, openEditDrawer, initiateDelete]);
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative px-4 sm:px-6 lg:px-8 w-full">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="animate"
+            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full"
+        >
             <Helmet>
                 <title>Gestion de Projets - Sentinel GRC</title>
                 <meta name="description" content="Suivez vos projets de mise en conformité et d'amélioration continue." />
@@ -900,44 +907,46 @@ export const Projects: React.FC = () => {
                 message={confirmData.message}
             />
 
-            <PageHeader
-                title={projectsTitle}
-                subtitle={projectsSubtitle}
-                breadcrumbs={[
-                    { label: 'Projets' }
-                ]}
-                icon={<FolderKanban className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                actions={canEdit && (
-                    <>
-                        <button
-                            onClick={() => {
-                                const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-                                if (!limits.features.customTemplates) {
-                                    if (confirm("Cette fonctionnalité nécessite un plan Professional ou Enterprise. Voulez-vous mettre à niveau ?")) {
-                                        navigate('/pricing');
+            <motion.div variants={slideUpVariants}>
+                <PageHeader
+                    title={projectsTitle}
+                    subtitle={projectsSubtitle}
+                    breadcrumbs={[
+                        { label: 'Projets' }
+                    ]}
+                    icon={<FolderKanban className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    actions={canEdit && (
+                        <>
+                            <button
+                                onClick={() => {
+                                    const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+                                    if (!limits.features.customTemplates) {
+                                        if (confirm("Cette fonctionnalité nécessite un plan Professional ou Enterprise. Voulez-vous mettre à niveau ?")) {
+                                            navigate('/pricing');
+                                        }
+                                        return;
                                     }
-                                    return;
-                                }
-                                setShowTemplateModal(true);
-                            }}
-                            className="flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20"
-                        >
-                            <Zap className="h-4 w-4 mr-2" />
-                            Depuis Template
-                        </button>
-                        <button
-                            onClick={openCreationDrawer}
-                            className="flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Nouveau Projet
-                        </button>
-                    </>
-                )}
-            />
+                                    setShowTemplateModal(true);
+                                }}
+                                className="flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20"
+                            >
+                                <Zap className="h-4 w-4 mr-2" />
+                                Depuis Template
+                            </button>
+                            <button
+                                onClick={openCreationDrawer}
+                                className="flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20"
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Nouveau Projet
+                            </button>
+                        </>
+                    )}
+                />
+            </motion.div>
 
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group">
+            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group">
                 <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>
@@ -1021,9 +1030,9 @@ export const Projects: React.FC = () => {
                         </div>
                     )}
                 </div>
-            </div>
+            </motion.div>
 
-            <div className="flex items-center flex-wrap gap-3 bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm min-w-0">
+            <motion.div variants={slideUpVariants} className="flex items-center flex-wrap gap-3 bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm min-w-0">
                 <Search className="h-5 w-5 text-slate-500" />
                 <input
                     type="text"
@@ -1064,10 +1073,10 @@ export const Projects: React.FC = () => {
                     <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
                     <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
                 </div>
-            </div>
+            </motion.div>
 
             {viewMode === 'list' ? (
-                <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
                     <DataTable
                         columns={columns}
                         data={filteredProjects}
@@ -1077,9 +1086,9 @@ export const Projects: React.FC = () => {
                         searchable={false}
                         loading={loading}
                     />
-                </div>
+                </motion.div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {loading ? (
                         <div className="col-span-full"><CardSkeleton count={3} /></div>
                     ) : filteredProjects.length === 0 ? (
@@ -1142,7 +1151,7 @@ export const Projects: React.FC = () => {
                             </div>
                         ))
                     )}
-                </div>
+                </motion.div>
             )}
 
             {/* Inspector Drawer - Glassmorphism */}
@@ -1649,6 +1658,6 @@ export const Projects: React.FC = () => {
                 confirmText="Oui, mettre à jour"
                 cancelText="Non, ignorer"
             />
-        </div>
+        </motion.div>
     );
 };
