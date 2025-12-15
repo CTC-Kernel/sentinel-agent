@@ -194,7 +194,7 @@ export const Settings: React.FC = () => {
         }
         setUpdatingUserIds(prev => new Set(prev).add(targetUserId));
         try {
-            await updateDoc(doc(db, 'users', targetUserId), { role: newRole });
+            await updateDoc(doc(db, 'users', targetUserId), sanitizeData({ role: newRole }));
             setUsersList(prev => prev.map(u => u.uid === targetUserId ? { ...u, role: newRole } : u));
             addToast(t('settings.roleUpdated'), "success");
         } catch (e) {
@@ -230,7 +230,7 @@ export const Settings: React.FC = () => {
 
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
-            await updateDoc(doc(db, 'users', targetUserId), { organizationId: '', organizationName: '', role: '' });
+            await updateDoc(doc(db, 'users', targetUserId), sanitizeData({ organizationId: '', organizationName: '', role: '' }));
             setUsersList(prev => prev.filter(u => u.uid !== targetUserId));
             addToast(t('settings.userRemoved'), "success");
             setConfirmData(prev => ({ ...prev, isOpen: false }));
@@ -458,7 +458,7 @@ export const Settings: React.FC = () => {
 
                 const batch = writeBatch(db);
                 snap.docs.forEach(d => {
-                    batch.update(d.ref, { organizationName: data.orgName });
+                    batch.update(d.ref, sanitizeData({ organizationName: data.orgName }));
                 });
                 await batch.commit();
                 setUser({ ...user, organizationName: data.orgName });
@@ -742,13 +742,13 @@ export const Settings: React.FC = () => {
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             const userRef = doc(db, 'users', user.uid);
-            await updateDoc(userRef, {
+            await updateDoc(userRef, sanitizeData({
                 organizationId: '',
                 organizationName: '',
                 role: '',
                 department: '',
                 onboardingCompleted: false
-            });
+            }));
             // Local state update handled by onSnapshot in App.tsx, forcing redirect to Onboarding
             window.location.reload();
         } catch (e) {

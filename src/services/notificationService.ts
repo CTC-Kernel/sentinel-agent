@@ -14,6 +14,7 @@ import {
 } from './emailTemplates';
 import { ErrorLogger } from './errorLogger';
 import { buildAppUrl } from '../config/appConfig';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export interface Notification {
     id: string;
@@ -46,7 +47,7 @@ export class NotificationService {
             ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
             : undefined;
 
-        await addDoc(collection(db, 'notifications'), {
+        await addDoc(collection(db, 'notifications'), sanitizeData({
             organizationId: user.organizationId,
             userId: user.uid,
             type,
@@ -56,7 +57,7 @@ export class NotificationService {
             read: false,
             createdAt: new Date().toISOString(),
             expiresAt,
-        });
+        }));
     }
 
     /**
@@ -74,7 +75,7 @@ export class NotificationService {
         );
 
         const promises = usersSnap.docs.map((userDoc) =>
-            addDoc(collection(db, 'notifications'), {
+            addDoc(collection(db, 'notifications'), sanitizeData({
                 organizationId,
                 userId: userDoc.id,
                 type,
@@ -83,7 +84,7 @@ export class NotificationService {
                 link,
                 read: false,
                 createdAt: new Date().toISOString(),
-            })
+            }))
         );
 
         await Promise.all(promises);
@@ -192,7 +193,7 @@ export class NotificationService {
                     const alreadyNotified = existingNotifs.docs.some(d => d.data().message.includes(audit.name));
 
                     if (!alreadyNotified) {
-                        await addDoc(collection(db, 'notifications'), {
+                        await addDoc(collection(db, 'notifications'), sanitizeData({
                             organizationId,
                             userId: auditorId,
                             type: daysUntil <= 3 ? 'danger' : 'warning',
@@ -201,7 +202,7 @@ export class NotificationService {
                             link: '/audits',
                             read: false,
                             createdAt: new Date().toISOString(),
-                        });
+                        }));
 
                         // Send Email
                         const auditorData = auditorSnap.docs[0].data();
@@ -263,7 +264,7 @@ export class NotificationService {
                     const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(doc.title));
 
                     if (!alreadyNotified) {
-                        await addDoc(collection(db, 'notifications'), {
+                        await addDoc(collection(db, 'notifications'), sanitizeData({
                             organizationId,
                             userId: ownerId,
                             type: 'warning',
@@ -272,7 +273,7 @@ export class NotificationService {
                             link: '/documents',
                             read: false,
                             createdAt: new Date().toISOString(),
-                        });
+                        }));
 
                         // Send Email
                         const ownerData = ownerSnap.docs[0].data();
@@ -340,7 +341,7 @@ export class NotificationService {
                         const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(asset.name));
 
                         if (!alreadyNotified) {
-                            await addDoc(collection(db, 'notifications'), {
+                            await addDoc(collection(db, 'notifications'), sanitizeData({
                                 organizationId,
                                 userId: ownerId,
                                 type: daysUntil <= 7 ? 'warning' : 'info',
@@ -349,7 +350,7 @@ export class NotificationService {
                                 link: '/assets',
                                 read: false,
                                 createdAt: new Date().toISOString(),
-                            });
+                            }));
 
                             // Send Email
                             const ownerData = ownerSnap.docs[0].data();
@@ -412,7 +413,7 @@ export class NotificationService {
                 const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes('risque(s) critique(s)'));
 
                 if (!alreadyNotified) {
-                    await addDoc(collection(db, 'notifications'), {
+                    await addDoc(collection(db, 'notifications'), sanitizeData({
                         organizationId,
                         userId: adminDoc.id,
                         type: 'danger',
@@ -421,7 +422,7 @@ export class NotificationService {
                         link: '/risks',
                         read: false,
                         createdAt: new Date().toISOString(),
-                    });
+                    }));
 
                     // Send Email
                     const adminData = adminDoc.data();
@@ -620,7 +621,7 @@ export class NotificationService {
                         const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(supplier.name));
 
                         if (!alreadyNotified) {
-                            await addDoc(collection(db, 'notifications'), {
+                            await addDoc(collection(db, 'notifications'), sanitizeData({
                                 organizationId,
                                 userId: supplier.ownerId,
                                 type: 'warning',
@@ -629,7 +630,7 @@ export class NotificationService {
                                 link: '/suppliers',
                                 read: false,
                                 createdAt: new Date().toISOString(),
-                            });
+                            }));
 
                             // Send Email
                             try {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
+import { sanitizeData } from '../utils/dataSanitizer';
 import { doc, setDoc, collection, query, where, getDocs, addDoc, writeBatch, updateDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { auth, db, functions } from '../firebase';
@@ -71,11 +72,11 @@ export const Onboarding: React.FC = () => {
         if (!user?.organizationId || user.role !== 'admin') return;
         setLoading(true);
         try {
-            await updateDoc(doc(db, 'organizations', user.organizationId), {
+            await updateDoc(doc(db, 'organizations', user.organizationId), sanitizeData({
                 standards,
                 scope,
                 onboardingStep: 3
-            });
+            }));
             setStep(4);
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Onboarding.step3', 'UPDATE_FAILED');
@@ -103,7 +104,7 @@ export const Onboarding: React.FC = () => {
                 for (const email of invitedUsers) {
                     // Create invitation document instead of user document
                     const invitationRef = doc(collection(db, 'invitations'));
-                    batch.set(invitationRef, {
+                    batch.set(invitationRef, sanitizeData({
                         email,
                         organizationId: user.organizationId,
                         organizationName: user.organizationName || '',
@@ -111,7 +112,7 @@ export const Onboarding: React.FC = () => {
                         invitedBy: user.uid,
                         createdAt: new Date().toISOString(),
                         status: 'pending'
-                    });
+                    }));
 
                     // Trigger email via Cloud Function or API (using client-side service for now)
                     try {
@@ -171,7 +172,7 @@ export const Onboarding: React.FC = () => {
                 const batch = writeBatch(db);
                 initialAssets.forEach(asset => {
                     const ref = doc(collection(db, 'assets'));
-                    batch.set(ref, {
+                    batch.set(ref, sanitizeData({
                         name: asset.name,
                         type: asset.type,
                         organizationId: user.organizationId,
@@ -181,7 +182,7 @@ export const Onboarding: React.FC = () => {
                         integrity: 'Medium',
                         availability: 'Medium',
                         owner: user.displayName || 'Admin'
-                    });
+                    }));
                 });
                 await batch.commit();
                 addToast(`${initialAssets.length} actifs créés`, "success");
@@ -253,7 +254,7 @@ export const Onboarding: React.FC = () => {
         if (!user) return;
         setLoading(true);
         try {
-            await addDoc(collection(db, 'join_requests'), {
+            await addDoc(collection(db, 'join_requests'), sanitizeData({
                 userId: user.uid,
                 userEmail: user.email,
                 displayName: form.getValues('displayName') || user.displayName || user.email,
@@ -261,7 +262,7 @@ export const Onboarding: React.FC = () => {
                 organizationName: orgName,
                 status: 'pending',
                 createdAt: new Date().toISOString()
-            });
+            }));
             setJoinRequestSent(true);
             addToast("Demande envoyée avec succès", "success");
         } catch (error) {

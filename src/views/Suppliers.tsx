@@ -381,21 +381,21 @@ export const Suppliers: React.FC = () => {
         if (isExportingCSV) return;
         setIsExportingCSV(true);
         try {
-        const headers = ["Nom", "Catégorie", "Criticité", "Score Sécurité", "Contact", "Fin Contrat", "Statut"];
-        const rows = filteredSuppliers.map(s => [
-            s.name,
-            s.category,
-            s.criticality,
-            s.securityScore?.toString() || '0',
-            s.contactEmail,
-            s.contractEnd ? new Date(s.contractEnd).toLocaleDateString() : '',
-            s.status
-        ]);
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
-        link.download = `suppliers_export_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
+            const headers = ["Nom", "Catégorie", "Criticité", "Score Sécurité", "Contact", "Fin Contrat", "Statut"];
+            const rows = filteredSuppliers.map(s => [
+                s.name,
+                s.category,
+                s.criticality,
+                s.securityScore?.toString() || '0',
+                s.contactEmail,
+                s.contractEnd ? new Date(s.contractEnd).toLocaleDateString() : '',
+                s.status
+            ]);
+            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `suppliers_export_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
         } finally {
             setTimeout(() => setIsExportingCSV(false), 0);
         }
@@ -405,21 +405,21 @@ export const Suppliers: React.FC = () => {
         if (isExportingDORA) return;
         setIsExportingDORA(true);
         try {
-        const headers = ["Nom Fournisseur", "Type Service", "Prestataire TIC", "Fonction Critique", "Criticité DORA", "Localisation Données", "Date Contrat"];
-        const rows = filteredSuppliers.filter(s => s.isICTProvider).map(s => [
-            s.name,
-            s.serviceType || 'N/A',
-            s.isICTProvider ? 'OUI' : 'NON',
-            s.supportsCriticalFunction ? 'OUI' : 'NON',
-            s.doraCriticality || 'None',
-            'UE (Simulé)', // Placeholder as we don't have location field yet
-            s.contractEnd ? new Date(s.contractEnd).toLocaleDateString() : ''
-        ]);
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
-        link.download = `dora_register_of_information_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
+            const headers = ["Nom Fournisseur", "Type Service", "Prestataire TIC", "Fonction Critique", "Criticité DORA", "Localisation Données", "Date Contrat"];
+            const rows = filteredSuppliers.filter(s => s.isICTProvider).map(s => [
+                s.name,
+                s.serviceType || 'N/A',
+                s.isICTProvider ? 'OUI' : 'NON',
+                s.supportsCriticalFunction ? 'OUI' : 'NON',
+                s.doraCriticality || 'None',
+                'UE (Simulé)', // Placeholder as we don't have location field yet
+                s.contractEnd ? new Date(s.contractEnd).toLocaleDateString() : ''
+            ]);
+            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `dora_register_of_information_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
         } finally {
             setTimeout(() => setIsExportingDORA(false), 0);
         }
@@ -446,7 +446,7 @@ export const Suppliers: React.FC = () => {
                     const cols = line.split(',');
                     if (cols.length >= 3) {
                         const newRef = doc(collection(db, 'suppliers'));
-                        batch.set(newRef, {
+                        const newSupplierData: any = {
                             organizationId: user.organizationId,
                             name: cols[0]?.trim() || 'Inconnu',
                             category: (cols[1]?.trim() || 'Autre') as Supplier['category'],
@@ -465,7 +465,8 @@ export const Suppliers: React.FC = () => {
                             owner: user.displayName || 'Importé',
                             ownerId: user.uid,
                             createdAt: new Date().toISOString()
-                        });
+                        };
+                        batch.set(newRef, sanitizeData(newSupplierData));
                         count++;
                     }
                 });

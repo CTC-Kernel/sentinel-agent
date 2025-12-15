@@ -60,18 +60,14 @@ export const Login: React.FC = () => {
 
         (async () => {
             try {
-                console.log("Login: Checking for Redirect Result...");
                 const result = await getRedirectResult(auth);
-                console.log("Login: Redirect Result:", result ? "User found" : "No result");
                 if (!isMounted) return;
 
                 if (result?.user) {
-                    console.log("Login: Success via Redirect", result.user.uid);
                     addToast('Connexion réussie', 'success');
                     window.location.hash = '#/';
                 }
             } catch (error: unknown) {
-                console.error("Login: Redirect Error", error);
                 if (!isMounted) return;
                 ErrorLogger.error(error, 'Login.getRedirectResult');
                 setErrorMsg('Erreur Google Auth. Veuillez réessayer.');
@@ -231,17 +227,12 @@ export const Login: React.FC = () => {
                 // Fallback to Redirect if blocked.
                 const provider = new GoogleAuthProvider();
                 try {
-                    console.log("Login: Attempting signInWithPopup...");
-                    console.log("Login: Auth Domain:", auth.app.options.authDomain);
-
                     await signInWithPopup(auth, provider);
 
-                    console.log("Login: Popup Success!");
                     addToast("Connexion réussie", "success");
                     window.location.hash = '#/';
                 } catch (popupError: unknown) {
                     console.error("Login: Popup failed, details:", popupError);
-                    console.log("Login: Falling back to redirect...");
                     // Fallback for environments where popups are blocked
                     await signInWithRedirect(auth, provider);
                 }

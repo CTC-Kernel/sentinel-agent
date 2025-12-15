@@ -1,5 +1,6 @@
 import { auth, db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 // Base URL for the OVH-hosted Secure Backend
 const OVH_API_BASE_URL = import.meta.env.VITE_OVH_API_BASE_URL || '/api';
@@ -107,14 +108,14 @@ class HybridService {
                 return { success: false, error: 'Missing organizationId' };
             }
 
-            await setDoc(doc(db, 'secure_storage', `${dataType}_${docId}`), {
+            await setDoc(doc(db, 'secure_storage', `${dataType}_${docId}`), sanitizeData({
                 ...data,
                 organizationId, // Ensure organizationId is stored
                 dataType,
                 originalId: docId,
                 storedAt: new Date().toISOString(),
                 secured: true
-            });
+            }));
 
             return { success: true, data: { id: docId } };
         } catch (error) {

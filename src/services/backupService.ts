@@ -4,6 +4,7 @@ import { db, storage } from '../firebase';
 import { logAction } from './logger';
 import { ErrorLogger } from './errorLogger';
 import { UserProfile } from '../types';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export interface BackupConfig {
   includeDocuments: boolean;
@@ -169,7 +170,7 @@ export class BackupService {
             }
 
             // Ajouter au batch
-            batch.set(docRef, docData);
+            batch.set(docRef, sanitizeData(docData));
             batchCount++;
 
             // Exécuter le batch toutes les 500 opérations

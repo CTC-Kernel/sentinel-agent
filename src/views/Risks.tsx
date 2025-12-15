@@ -506,7 +506,7 @@ export const Risks: React.FC = () => {
         if (!selectedRisk || !canEdit || !user?.organizationId) return;
         try {
             const newRiskData = { ...selectedRisk, threat: `${selectedRisk.threat} (Copie)`, createdAt: new Date().toISOString() };
-            await addDoc(collection(db, 'risks'), { ...newRiskData, organizationId: user.organizationId });
+            await addDoc(collection(db, 'risks'), sanitizeData({ ...newRiskData, organizationId: user.organizationId }));
             await logAction(user, 'CREATE', 'Risk', `Duplication Risque: ${newRiskData.threat}`);
             addToast("Risque dupliqué", "success");
             refreshRisks();
@@ -647,10 +647,10 @@ export const Risks: React.FC = () => {
         if (isExportingCSV) return;
         setIsExportingCSV(true);
         try {
-        const headers = ["Menace", "Vulnérabilité", "Actif", "Score Brut", "Score Résiduel", "Stratégie", "Statut", "Propriétaire"];
-        const rows = filteredRisks.map(r => [r.threat, r.vulnerability, getAssetName(r.assetId), r.score.toString(), (r.residualScore || r.score).toString(), r.strategy, r.status, r.owner || '']);
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-        const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `risks.csv`; link.click();
+            const headers = ["Menace", "Vulnérabilité", "Actif", "Score Brut", "Score Résiduel", "Stratégie", "Statut", "Propriétaire"];
+            const rows = filteredRisks.map(r => [r.threat, r.vulnerability, getAssetName(r.assetId), r.score.toString(), (r.residualScore || r.score).toString(), r.strategy, r.status, r.owner || '']);
+            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
+            const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `risks.csv`; link.click();
         } finally {
             setTimeout(() => setIsExportingCSV(false), 0);
         }

@@ -486,7 +486,7 @@ export const Projects: React.FC = () => {
                 tasks: selectedProject.tasks.map(t => ({ ...t, status: 'A faire', id: Date.now() + Math.random().toString() })) // Reset tasks
             };
 
-            await addDoc(collection(db, 'projects'), newProjData);
+            await addDoc(collection(db, 'projects'), sanitizeData(newProjData));
             await logAction(user, 'CREATE', 'Project', `Duplication Projet: ${newProjData.name}`);
             addToast("Projet dupliqué", "success");
         } catch (e) {
@@ -581,62 +581,62 @@ export const Projects: React.FC = () => {
             const canWhiteLabel = limits.features.whiteLabelReports;
 
             PdfService.generateCustomReport(
-            {
-                title: 'Rapport de Projet',
-                subtitle: `Projet: ${selectedProject.name} | ${new Date().toLocaleDateString()}`,
-                filename: `Projet_${selectedProject.name}_Report.pdf`,
-                organizationName: canWhiteLabel ? organization?.name : undefined,
-                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
-            },
-            (doc, startY) => {
-                let y = startY;
+                {
+                    title: 'Rapport de Projet',
+                    subtitle: `Projet: ${selectedProject.name} | ${new Date().toLocaleDateString()}`,
+                    filename: `Projet_${selectedProject.name}_Report.pdf`,
+                    organizationName: canWhiteLabel ? organization?.name : undefined,
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
+                },
+                (doc, startY) => {
+                    let y = startY;
 
-                // Summary
-                doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
-                doc.text("Synthèse", 14, y);
-                y += 8;
+                    // Summary
+                    doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
+                    doc.text("Synthèse", 14, y);
+                    y += 8;
 
-                const summaryData = [
-                    ['Chef de Projet', selectedProject.manager],
-                    ['Statut', selectedProject.status],
-                    ['Avancement', `${selectedProject.progress}%`],
-                    ['Échéance', selectedProject.dueDate ? new Date(selectedProject.dueDate).toLocaleDateString() : '-'],
-                    ['Risques Liés', (selectedProject.relatedRiskIds?.length || 0).toString()]
-                ];
-                doc.autoTable({
-                    startY: y,
-                    body: summaryData,
-                    theme: 'plain',
-                    styles: { fontSize: 10, cellPadding: 2 },
-                    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
-                });
+                    const summaryData = [
+                        ['Chef de Projet', selectedProject.manager],
+                        ['Statut', selectedProject.status],
+                        ['Avancement', `${selectedProject.progress}%`],
+                        ['Échéance', selectedProject.dueDate ? new Date(selectedProject.dueDate).toLocaleDateString() : '-'],
+                        ['Risques Liés', (selectedProject.relatedRiskIds?.length || 0).toString()]
+                    ];
+                    doc.autoTable({
+                        startY: y,
+                        body: summaryData,
+                        theme: 'plain',
+                        styles: { fontSize: 10, cellPadding: 2 },
+                        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
+                    });
 
-                y = doc.lastAutoTable.finalY + 15;
+                    y = doc.lastAutoTable.finalY + 15;
 
-                // Description
-                doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
-                doc.text("Description", 14, y);
-                y += 6;
-                doc.setFontSize(10); doc.setTextColor(80); doc.setFont('helvetica', 'normal');
+                    // Description
+                    doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
+                    doc.text("Description", 14, y);
+                    y += 6;
+                    doc.setFontSize(10); doc.setTextColor(80); doc.setFont('helvetica', 'normal');
 
-                const splitDesc = doc.splitTextToSize(selectedProject.description, 180);
-                doc.text(splitDesc, 14, y);
-                y += (splitDesc.length * 5) + 15;
+                    const splitDesc = doc.splitTextToSize(selectedProject.description, 180);
+                    doc.text(splitDesc, 14, y);
+                    y += (splitDesc.length * 5) + 15;
 
-                // Tasks
-                doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
-                doc.text("État des Tâches", 14, y);
-                y += 8;
+                    // Tasks
+                    doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
+                    doc.text("État des Tâches", 14, y);
+                    y += 8;
 
-                const tasksData = selectedProject.tasks.map(t => [t.title, t.status]);
-                doc.autoTable({
-                    startY: y,
-                    head: [['Tâche', 'Statut']],
-                    body: tasksData,
-                    theme: 'striped',
-                    headStyles: { fillColor: [79, 70, 229] }
-                });
-            }
+                    const tasksData = selectedProject.tasks.map(t => [t.title, t.status]);
+                    doc.autoTable({
+                        startY: y,
+                        head: [['Tâche', 'Statut']],
+                        body: tasksData,
+                        theme: 'striped',
+                        headStyles: { fillColor: [79, 70, 229] }
+                    });
+                }
             );
         })().catch((error) => {
             ErrorLogger.error(error, 'Projects.generateReport');
@@ -675,19 +675,19 @@ export const Projects: React.FC = () => {
         if (isExportingCSV) return;
         setIsExportingCSV(true);
         try {
-        const headers = ["Projet", "Manager", "Statut", "Avancement", "Échéance"];
-        const rows = filteredProjects.map(p => [
-            p.name,
-            p.manager,
-            p.status,
-            `${p.progress}%`,
-            new Date(p.dueDate).toLocaleDateString()
-        ]);
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
-        link.download = `projects_export_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
+            const headers = ["Projet", "Manager", "Statut", "Avancement", "Échéance"];
+            const rows = filteredProjects.map(p => [
+                p.name,
+                p.manager,
+                p.status,
+                `${p.progress}%`,
+                new Date(p.dueDate).toLocaleDateString()
+            ]);
+            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `projects_export_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
         } finally {
             setTimeout(() => setIsExportingCSV(false), 0);
         }

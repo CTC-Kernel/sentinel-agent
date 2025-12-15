@@ -149,59 +149,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLoading(true);
 
             try {
-                // 1. Mettre à jour le dernier login (Non-blocking & Safe)
-                // Use updateDoc to avoid creating a partial document if it doesn't exist yet.
-                // We don't await this to prevent blocking the UI/Profile load.
-                const userRef = doc(db, 'users', u.uid);
-                updateDoc(userRef, {
-                    lastLogin: new Date().toISOString(),
-                    lastActive: serverTimestamp()
-                }).catch((e: unknown) => {
-                    // Ignore "not found" errors as the profile might not exist yet (will be created below)
-                    const err = e as { code?: string };
-                    if (err.code !== 'not-found') {
-                        ErrorLogger.warn("Failed to update lastLogin", 'AuthContext.handleUser', { metadata: { error: e } });
-                    }
-                });
+                // 1. Mettre à jour le dernier login (Throttled: Max 1x per hour per session)
+                const lastLoginKey = `last_login_update_${u.uid}`;
+                const lastUpdate = sessionStorage.getItem(lastLoginKey);
+                const now = Date.now();
+
+                if (!lastUpdate || now - parseInt(lastUpdate) > 3600000) {
+                    const userRef = doc(db, 'users', u.uid);
+                    updateDoc(userRef, {
+                        lastLogin: new Date().toISOString(),
+                        lastActive: serverTimestamp()
+                    }).then(() => {
+                        sessionStorage.setItem(lastLoginKey, now.toString());
+                    }).catch((e: unknown) => {
+                        // Ignore "not found" errors
+                        const err = e as { code?: string };
+                        if (err.code !== 'not-found') {
+                            ErrorLogger.warn("Failed to update lastLogin", 'AuthContext.handleUser', { metadata: { error: e } });
+                        }
+                    });
+                }
 
                 // 2. Écouter les changements du profil utilisateur en temps réel
+                const userRef = doc(db, 'users', u.uid);
                 unsubscribeProfile = onSnapshot(userRef, async (snapshot) => {
-                    clearTimeout(safetyTimeout); // Clear timeout on success
-                    setIsBlocked(false); // Reset blocked state on success
+                    clearTimeout(safetyTimeout);
+                    setIsBlocked(false);
                     setProfileError(null);
 
                     if (snapshot.exists()) {
                         const userData = snapshot.data() as UserProfile;
 
                         // SELF-HEALING: Vérifier la cohérence des données
-                        // 1. Si le rôle est manquant, on le force à 'user' par sécurité
                         if (!userData.role) {
-                            ErrorLogger.warn("User role missing in Firestore, defaulting to user for safety", 'AuthContext.handleUser');
                             userData.role = 'user';
-                            // Fix persistence immediately
-                            setDoc(userRef, { role: 'user' }, { merge: true }).catch(e => ErrorLogger.error(e, 'AuthContext.autoFixRole'));
+                            setDoc(userRef, { role: 'user' }, { merge: true }).catch(console.error);
                         }
-
-                        // 2. Si l'utilisateur a une organisation mais onboarding non validé -> Auto-fix
                         if (userData.organizationId && !userData.onboardingCompleted) {
-                            ErrorLogger.warn("User has organization but onboarding not marked complete. Auto-fixing.", 'AuthContext.handleUser');
                             userData.onboardingCompleted = true;
-                            // Corriger la source en arrière-plan
-                            setDoc(userRef, { onboardingCompleted: true }, { merge: true }).catch(e => ErrorLogger.error(e, 'AuthContext.autoFixOnboarding'));
-                        }
-
-                        if (!userData.organizationId && !userData.onboardingCompleted) {
-                            // Utilisateur sans orga = Nouveau ou Onboarding non fini
-                            ErrorLogger.info('User has no organizationId, ready for onboarding', 'AuthContext.handleUser');
+                            setDoc(userRef, { onboardingCompleted: true }, { merge: true }).catch(console.error);
                         }
 
                         setUser(userData);
 
-                        if (userData.theme) {
-                            setTheme(userData.theme);
-                        }
+                        if (userData.theme) setTheme(userData.theme);
+
                         if (userData.organizationId) {
-                            // Subscribe to Organization updates
                             if (unsubscribeOrg) unsubscribeOrg();
                             const orgRef = doc(db, 'organizations', userData.organizationId);
                             unsubscribeOrg = onSnapshot(orgRef, (orgSnap) => {
@@ -210,44 +203,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 } else {
                                     setOrganization(null);
                                 }
-                            }, (err) => {
-                                ErrorLogger.error(err, 'AuthContext.orgSnapshot');
                             });
                         } else {
                             setOrganization(null);
-                            if (unsubscribeOrg) {
-                                unsubscribeOrg();
-                                unsubscribeOrg = undefined;
-                            }
                         }
 
                         setLoading(false);
                     } else {
                         // PROFIL INEXISTANT -> CRÉATION AUTOMATIQUE
                         ErrorLogger.info('No user profile found, creating default profile', 'AuthContext.handleUser');
-
+                        const initialData: Partial<UserProfile> = {
+                            uid: u.uid,
+                            email: u.email || '',
+                            displayName: u.displayName || u.email?.split('@')[0] || 'Utilisateur',
+                            photoURL: u.photoURL,
+                            onboardingCompleted: false,
+                            createdAt: new Date().toISOString()
+                        };
                         try {
-                            // Basic initial data - SAFE to create
-                            const initialData: Partial<UserProfile> = {
-                                uid: u.uid,
-                                email: u.email || '',
-                                displayName: u.displayName || u.email?.split('@')[0] || 'Utilisateur',
-                                photoURL: u.photoURL,
-                                onboardingCompleted: false, // Will be updated by backend if invitation exists
-                                createdAt: new Date().toISOString()
-                            };
-
-                            // Create user document
-                            // This will trigger the backend 'setUserClaims' function which will:
-                            // 1. Check for invitations
-                            // 2. Assign organization/role if invitation exists
-                            // 3. Set custom claims
                             await setDoc(userRef, initialData, { merge: true });
-
-                            // Set temporary state to avoid UI flash while waiting for backend
                             setUser(initialData as UserProfile);
                             setLoading(false);
-
                         } catch (err) {
                             ErrorLogger.error(err, 'AuthContext.createUserProfile');
                             setError(err as Error);
@@ -256,30 +232,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     }
                 }, async (err) => {
                     ErrorLogger.error(err, 'AuthContext.onSnapshot');
-                    clearTimeout(safetyTimeout); // Clear timeout on error
+                    clearTimeout(safetyTimeout);
 
-                    // CRITICAL FIX: Do not use a permissive fallback for production.
-                    // If Firestore fails, we should not grant admin access.
-
-                    // Detect stale session (User deleted in Auth but token still cached)
+                    // HANDLE ERRORS IMMEDIATELY - DO NOT HANG
                     if (err.code === 'permission-denied') {
-                        // Check if this might be a content blocker issue (App Check failure)
-                        // If it happens immediately on load, it's likely App Check.
-                        // If it happens after a while, it might be a stale token.
-                        // For now, we'll flag it as potential blocker if we can't access the profile.
-                        ErrorLogger.warn('Permission denied for user profile. Checking for blockers...', 'AuthContext.onSnapshot');
+                        ErrorLogger.warn('Permission denied. Likely App Check or Rules.', 'AuthContext.onSnapshot');
                         setIsBlocked(true);
-                        setLoading(false);
                     } else if (err.code === 'unavailable' || err.code === 'failed-precondition') {
-                        // Offline or App Check failure - BUT don't block UI immediately, let Firestore retry
-                        ErrorLogger.warn('Firestore unavailable (transient).', 'AuthContext.onSnapshot');
-                        // setIsBlocked(true); // <--- DISABLE THIS. Long Polling causes transient errors.
-                        // Do NOT set loading(false) here. Let Firestore retry or safetyTimeout handle it.
-                        // setLoading(false);
+                        // Offline/Network issue
+                        ErrorLogger.warn('Firestore unavailable.', 'AuthContext.onSnapshot');
+                        setProfileError(new Error("Connexion Firestore impossible."));
                     } else {
                         setError(err as Error);
-                        setLoading(false);
                     }
+
+                    // ALWAYS STOP LOADING ON ERROR to allow UI to show error state
+                    setLoading(false);
                 });
 
             } catch (err) {

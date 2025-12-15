@@ -236,7 +236,7 @@ export const Compliance: React.FC = () => {
                 seedControls.forEach(c => {
                     if (!existingCodes.includes(c.code)) {
                         const docRef = doc(collection(db, 'controls'));
-                        batch.set(docRef, {
+                        batch.set(docRef, sanitizeData({
                             organizationId: user.organizationId,
                             code: c.code,
                             name: c.name,
@@ -245,7 +245,7 @@ export const Compliance: React.FC = () => {
                             status: 'Non commencé',
                             lastUpdated: new Date().toISOString(),
                             evidenceIds: []
-                        });
+                        }));
                         addedCount++;
                     }
                 });

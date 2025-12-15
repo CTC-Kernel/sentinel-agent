@@ -54,12 +54,12 @@ export const ThreatRegistry: React.FC = () => {
 
             RISK_TEMPLATES.forEach(template => {
                 const docRef = doc(collection(db, 'threat_library'));
-                batch.set(docRef, {
+                batch.set(docRef, sanitizeData({
                     ...template,
                     organizationId: user.organizationId,
                     source: 'Standard',
                     createdAt: new Date().toISOString()
-                });
+                }));
                 count++;
             });
 
