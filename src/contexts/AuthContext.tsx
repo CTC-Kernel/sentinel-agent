@@ -272,6 +272,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
 
         const unsubscribeAuth = onIdTokenChanged(auth, async (user) => {
+            // Prevent infinite loops: If the user ID hasn't changed, DO NOT re-run the whole profile logic.
+            // onSnapshot handles token refreshes internally.
+            // Only update the user object state to ensure claims are fresh in the UI.
+            const currentUid = unsubscribeProfileRef.current ? firebaseUser?.uid : undefined;
+            const newUid = user?.uid;
+
+            if (currentUid === newUid && newUid) {
+                // Token refreshed but same user identity.
+                setFirebaseUser(user);
+                return;
+            }
+
             await handleUser(user);
         });
 
