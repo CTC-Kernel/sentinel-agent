@@ -32,8 +32,8 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                 <nav className="sticky top-24 space-y-4">
 
                     {/* Mobile: Glass Sticky Nav */}
-                    <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 sticky top-[4.5rem] z-50 overflow-hidden pb-4 pt-2 custom-gradient-mask">
-                        <div className="glass-panel p-1.5 rounded-xl flex overflow-x-auto no-scrollbar gap-1 border border-white/20 dark:border-white/10 shadow-lg backdrop-blur-xl">
+                    <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 sticky top-[4.5rem] z-50 pb-4 pt-2">
+                        <div className="glass-panel p-1.5 rounded-xl flex overflow-x-auto no-scrollbar gap-1 border border-white/20 dark:border-white/10 shadow-lg backdrop-blur-xl snap-x">
                             {visibleTabs.map(tab => {
                                 const isActive = currentTab === tab.id;
                                 return (
@@ -41,7 +41,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         key={tab.id}
                                         onClick={() => onTabChange(tab.id)}
                                         className={cn(
-                                            "relative flex items-center whitespace-nowrap px-4 py-2 rounded-lg font-medium text-sm transition-all flex-shrink-0 select-none",
+                                            "relative flex items-center whitespace-nowrap px-4 py-2 rounded-lg font-medium text-sm transition-all flex-shrink-0 select-none snap-center",
                                             isActive ? "text-white" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                                         )}
                                     >

@@ -42,7 +42,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             {({ open }) => {
                 const displayValue = selectedOptions.length > 0
                     ? selectedOptions.map(o => o.label).join(', ')
-                    : ((!label || open) ? placeholder : '');
+                    : (open ? placeholder : (label ? '' : placeholder));
 
                 return (
                     <div className={`relative ${className} ${open ? 'z-[60]' : 'z-auto'}`}>

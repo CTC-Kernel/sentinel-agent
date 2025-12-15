@@ -82,7 +82,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                             placeholder-transparent rounded-2xl resize-none
                             ${Icon ? 'pl-2' : ''}
                         `}
-                        placeholder={label}
+                        placeholder=""
                     />
                 ) : (
                     <input
@@ -100,7 +100,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                             placeholder-transparent rounded-2xl
                             ${Icon ? 'pl-2' : ''}
                         `}
-                        placeholder={label}
+                        placeholder=""
                     />
                 )}
 
