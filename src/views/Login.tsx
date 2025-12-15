@@ -6,6 +6,7 @@ import { SparklesCore } from '../components/ui/aceternity/Sparkles';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    signInWithPopup,
     signInWithRedirect,
     signInWithCredential,
     getRedirectResult,
@@ -225,11 +226,19 @@ export const Login: React.FC = () => {
                     throw new Error("No ID Token from Google");
                 }
             } else {
-                // Web Google Sign In - Use Redirect to avoid COOP/Popup blocking issues
+                // Web Google Sign In
+                // Try Popup first (works best with COOP: unsafe-none)
+                // Fallback to Redirect if blocked.
                 const provider = new GoogleAuthProvider();
-                await signInWithRedirect(auth, provider);
-                // Note: The execution stops here as the page redirects.
-                // The result is handled by getRedirectResult in useEffect above.
+                try {
+                    await signInWithPopup(auth, provider);
+                    addToast("Connexion réussie", "success");
+                    window.location.hash = '#/';
+                } catch (popupError: unknown) {
+                    console.error("Popup failed, trying redirect", popupError);
+                    // Fallback for environments where popups are blocked
+                    await signInWithRedirect(auth, provider);
+                }
             }
         } catch (error: unknown) {
             ErrorLogger.error(error, 'Login.handleGoogleLogin');
