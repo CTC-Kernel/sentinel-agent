@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NotificationService } from '@/services/notificationService';
-import { collection, doc, getDocs, query, where, orderBy, limit, updateDoc, addDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, query, where, orderBy, limit, updateDoc, addDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { UserProfile } from '@/types';
 
@@ -15,7 +15,7 @@ vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
   doc: vi.fn(),
   getDocs: vi.fn(),
-  query: vi.fn(),
+  query: vi.fn(() => ({})),
   where: vi.fn(),
   orderBy: vi.fn(),
   limit: vi.fn(),
@@ -24,7 +24,8 @@ vi.mock('firebase/firestore', () => ({
   Timestamp: vi.fn(),
   initializeFirestore: vi.fn(),
   persistentLocalCache: vi.fn(),
-  persistentMultipleTabManager: vi.fn()
+  persistentMultipleTabManager: vi.fn(),
+  onSnapshot: vi.fn()
 }));
 
 describe('NotificationService', () => {
@@ -198,6 +199,38 @@ describe('NotificationService', () => {
         query(collection(db, 'users'), where('organizationId', '==', 'org-123'))
       );
       expect(mockAddDoc).toHaveBeenCalledTimes(2);
+    });
+  });
+  describe('subscribeToNotifications', () => {
+    it('should subscribe to real-time updates', () => {
+      const mockUnsubscribe = vi.fn();
+      const mockOnSnapshot = vi.fn((_query, next) => {
+        // Simulate a snapshot update
+        next({
+          docs: [
+            { id: 'n1', data: () => ({ title: 'Real-time Notif', read: false }) }
+          ]
+        });
+        return mockUnsubscribe;
+      });
+      vi.mocked(onSnapshot).mockImplementation(mockOnSnapshot as any);
+
+      const callback = vi.fn();
+      const unsubscribe = NotificationService.subscribeToNotifications('user-123', callback);
+
+      expect(onSnapshot).toHaveBeenCalledWith(
+        expect.anything(), // Query object is complex to match exactly here
+        expect.any(Function),
+        expect.any(Function)
+      );
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({ id: 'n1', title: 'Real-time Notif' })
+      ]);
+
+      // Verify unsubscribe returned
+      unsubscribe();
+      expect(mockUnsubscribe).toHaveBeenCalled();
     });
   });
 });
