@@ -447,7 +447,7 @@ export const Suppliers: React.FC = () => {
                     const cols = line.split(',');
                     if (cols.length >= 3) {
                         const newRef = doc(collection(db, 'suppliers'));
-                        const newSupplierData: any = {
+                        const newSupplierData: Partial<Supplier> = {
                             organizationId: user.organizationId,
                             name: cols[0]?.trim() || 'Inconnu',
                             category: (cols[1]?.trim() || 'Autre') as Supplier['category'],

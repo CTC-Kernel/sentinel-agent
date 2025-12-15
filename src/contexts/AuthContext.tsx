@@ -34,6 +34,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const [isBlocked, setIsBlocked] = useState(isAppCheckFailed);
 
+    const loadingRef = useRef(loading);
+    const firebaseUserUidRef = useRef<string | undefined>(firebaseUser?.uid);
+
+    useEffect(() => {
+        loadingRef.current = loading;
+    }, [loading]);
+
+    useEffect(() => {
+        firebaseUserUidRef.current = firebaseUser?.uid;
+    }, [firebaseUser?.uid]);
+
     // Fonction pour rafraîchir le token et les claims
     const refreshSession = useCallback(async () => {
         if (!auth.currentUser) return;
@@ -126,7 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         // Sécurité : Timeout pour éviter le chargement infini
         const safetyTimeout = setTimeout(() => {
-            if (loading) {
+            if (loadingRef.current) {
                 ErrorLogger.warn("Auth loading timeout - forcing stop", 'AuthContext.safetyTimeout');
                 setProfileError(new Error("Délai d'attente dépassé (Connexion lente)"));
                 setLoading(false);
@@ -290,7 +301,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Prevent infinite loops: If the user ID hasn't changed, DO NOT re-run the whole profile logic.
             // onSnapshot handles token refreshes internally.
             // Only update the user object state to ensure claims are fresh in the UI.
-            const currentUid = unsubscribeProfileRef.current ? firebaseUser?.uid : undefined;
+            const currentUid = unsubscribeProfileRef.current ? firebaseUserUidRef.current : undefined;
             const newUid = user?.uid;
 
             if (currentUid === newUid && newUid) {

@@ -46,7 +46,7 @@ export const useFirestoreCollection = <T = DocumentData>(
 
     const queryClient = useQueryClient();
     const constraintsKey = useMemo(() => JSON.stringify(constraints), [constraints]);
-    const constraintsByKey = useMemo(() => constraints, [constraintsKey]);
+    const constraintsByKey = useMemo(() => constraints, [constraints]);
     const { realtime, logError, enabled } = options;
     const isEnabled = enabled !== false;
     const shouldUseRealtime = realtime && !realtimeFailed;
@@ -107,7 +107,8 @@ export const useFirestoreCollection = <T = DocumentData>(
                 const errorObj = err instanceof Error ? err : new Error(String(err));
 
                 // Suppress 'permission-denied' errors if user is logged out (race condition on signout)
-                const isPermissionError = (errorObj as any).code === 'permission-denied' || errorObj.message.includes('permission-denied');
+                const code = (errorObj as { code?: string }).code;
+                const isPermissionError = code === 'permission-denied' || errorObj.message.includes('permission-denied');
 
                 if (isPermissionError && !auth.currentUser) {
                     // Gracefully handle logout race condition
@@ -266,7 +267,8 @@ export const useFirestoreDocument = <T extends { id: string }>(
                     const errorObj = err instanceof Error ? err : new Error(String(err));
 
                     // Suppress 'permission-denied' errors if user is logged out (race condition on signout)
-                    const isPermissionError = (errorObj as any).code === 'permission-denied' || errorObj.message.includes('permission-denied');
+                    const code = (errorObj as { code?: string }).code;
+                    const isPermissionError = code === 'permission-denied' || errorObj.message.includes('permission-denied');
 
                     if (isPermissionError && !auth.currentUser) {
                         setRealtimeLoading(false);
