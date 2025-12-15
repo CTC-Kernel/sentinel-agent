@@ -199,6 +199,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                         setUser(userData);
 
+                        if (userData.organizationId && auth.currentUser) {
+                            const key = `claims_refreshed_${auth.currentUser.uid}_${userData.organizationId}`;
+                            if (!sessionStorage.getItem(key)) {
+                                sessionStorage.setItem(key, '1');
+                                try {
+                                    const functions = getFunctions();
+                                    const refreshUserTokenFn = httpsCallable(functions, 'refreshUserToken');
+                                    await refreshUserTokenFn();
+                                    await auth.currentUser.getIdToken(true);
+                                } catch (e) {
+                                    ErrorLogger.warn('Failed to refresh user token via Cloud Function', 'AuthContext.onSnapshot.refreshUserToken', { metadata: { error: e } });
+                                }
+                            }
+                        }
+
                         if (userData.theme) setTheme(userData.theme);
 
                         if (userData.organizationId) {

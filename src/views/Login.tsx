@@ -6,7 +6,6 @@ import { SparklesCore } from '../components/ui/aceternity/Sparkles';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
-    signInWithPopup,
     signInWithRedirect,
     signInWithCredential,
     getRedirectResult,
@@ -223,19 +222,8 @@ export const Login: React.FC = () => {
                 }
             } else {
                 // Web Google Sign In
-                // Try Popup first (works best with COOP: unsafe-none)
-                // Fallback to Redirect if blocked.
                 const provider = new GoogleAuthProvider();
-                try {
-                    await signInWithPopup(auth, provider);
-
-                    addToast("Connexion réussie", "success");
-                    window.location.hash = '#/';
-                } catch (popupError: unknown) {
-                    console.error("Login: Popup failed, details:", popupError);
-                    // Fallback for environments where popups are blocked
-                    await signInWithRedirect(auth, provider);
-                }
+                await signInWithRedirect(auth, provider);
             }
         } catch (error: unknown) {
             ErrorLogger.error(error, 'Login.handleGoogleLogin');

@@ -61,7 +61,7 @@ export const CyberNewsWidget: React.FC = () => {
         return () => {
             isMountedRef.current = false;
         };
-    }, []);
+    }, [fetchNews]);
 
     const formatDate = (dateStr: string) => {
         try {

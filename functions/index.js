@@ -243,17 +243,17 @@ exports.onJoinRequestUpdated = onDocumentUpdated("join_requests/{requestId}", as
 // Imports moved to top
 
 // Set custom claims when user document is created/updated
-exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
-    const snap = event.data;
-    if (!snap) return;
+exports.setUserClaims = onDocumentWritten("users/{userId}", async (event) => {
+    const afterSnap = event.data?.after;
+    if (!afterSnap || !afterSnap.exists) return;
 
-    const userData = snap.data();
+    const userData = afterSnap.data();
     const userId = event.params.userId;
     const userEmail = userData.email;
 
     try {
         const db = admin.firestore();
-        const userRef = event.data.ref;
+        const userRef = afterSnap.ref;
         let updates = {};
         let organizationId = userData.organizationId;
         let role = userData.role || 'user';
@@ -315,7 +315,14 @@ exports.setUserClaims = onDocumentCreated("users/{userId}", async (event) => {
 
         // 3. Apply Firestore Updates if needed
         if (Object.keys(updates).length > 0) {
-            await userRef.update(updates);
+            const diff = {};
+            for (const [k, v] of Object.entries(updates)) {
+                const current = userData[k];
+                if (current !== v) diff[k] = v;
+            }
+            if (Object.keys(diff).length > 0) {
+                await userRef.update(diff);
+            }
         }
 
         // 4. Set Custom Claims
@@ -361,10 +368,19 @@ exports.refreshUserToken = onCall(async (request) => {
             return { success: false, message: 'User has no organization - onboarding required' };
         }
 
-        // Update custom claims
+        let role = userData.role || 'user';
+        const orgRef = admin.firestore().collection('organizations').doc(userData.organizationId);
+        const orgSnap = await orgRef.get();
+        if (orgSnap.exists && orgSnap.data()?.ownerId === uid) {
+            role = 'admin';
+            if (userData.role !== 'admin') {
+                await admin.firestore().collection('users').doc(uid).update({ role: 'admin' });
+            }
+        }
+
         await admin.auth().setCustomUserClaims(uid, {
             organizationId: userData.organizationId,
-            role: userData.role || 'user'
+            role
         });
 
         return { success: true, message: 'Token refreshed successfully' };
@@ -389,9 +405,18 @@ exports.healMe = onCall(async (request) => {
 
         // If already has org, just ensure claims
         if (userData.organizationId) {
+            let role = userData.role || 'user';
+            const orgRef = db.collection('organizations').doc(userData.organizationId);
+            const orgSnap = await orgRef.get();
+            if (orgSnap.exists && orgSnap.data()?.ownerId === uid) {
+                role = 'admin';
+                if (userData.role !== 'admin') {
+                    await userRef.update({ role: 'admin' });
+                }
+            }
             await admin.auth().setCustomUserClaims(uid, {
                 organizationId: userData.organizationId,
-                role: userData.role || 'user'
+                role
             });
             return { success: true, organizationId: userData.organizationId };
         }
@@ -403,15 +428,18 @@ exports.healMe = onCall(async (request) => {
             const org = orgsSnap.docs[0];
             const orgData = org.data();
 
+            const role = 'admin';
+
             await userRef.update({
                 organizationId: org.id,
                 organizationName: orgData.name,
-                onboardingCompleted: true
+                onboardingCompleted: true,
+                role
             });
 
             await admin.auth().setCustomUserClaims(uid, {
                 organizationId: org.id,
-                role: userData.role || 'user'
+                role
             });
 
             return { success: true, organizationId: org.id, restored: true };

@@ -46,6 +46,7 @@ export const useFirestoreCollection = <T = DocumentData>(
 
     const queryClient = useQueryClient();
     const constraintsKey = useMemo(() => JSON.stringify(constraints), [constraints]);
+    const constraintsByKey = useMemo(() => constraints, [constraintsKey]);
     const { realtime, logError, enabled } = options;
     const isEnabled = enabled !== false;
     const shouldUseRealtime = realtime && !realtimeFailed;
@@ -94,7 +95,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             setRealtimeLoading(false);
         }, 12000);
 
-        const q = query(collection(db, collectionName), ...constraints);
+        const q = query(collection(db, collectionName), ...constraintsByKey);
         const unsubscribe = onSnapshot(q,
             (snapshot) => {
                 const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
@@ -128,7 +129,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (timeoutId !== null) window.clearTimeout(timeoutId);
             unsubscribe();
         };
-    }, [collectionName, constraintsKey, shouldUseRealtime, isEnabled, logError]);
+    }, [collectionName, constraintsKey, constraintsByKey, shouldUseRealtime, isEnabled, logError]);
 
     const add = useCallback(async (newData: WithFieldValue<DocumentData>) => {
         try {
