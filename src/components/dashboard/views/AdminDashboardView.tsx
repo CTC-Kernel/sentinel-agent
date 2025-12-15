@@ -5,6 +5,7 @@ import { ComplianceEvolutionWidget } from '../widgets/ComplianceEvolutionWidget'
 import { HealthCheckWidget } from '../widgets/HealthCheckWidget';
 import { PriorityRisksWidget } from '../widgets/PriorityRisksWidget';
 import { RecentActivityWidget } from '../widgets/RecentActivityWidget';
+import { MaturityRadarWidget } from '../widgets/MaturityRadarWidget';
 import { CyberNewsWidget } from '../CyberNewsWidget';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../../ui/animationVariants';
@@ -15,6 +16,7 @@ type HistoryData = React.ComponentProps<typeof ComplianceEvolutionWidget>['histo
 type HealthIssueList = React.ComponentProps<typeof HealthCheckWidget>['healthIssues'];
 type RiskList = React.ComponentProps<typeof PriorityRisksWidget>['topRisks'];
 type ActivityList = React.ComponentProps<typeof RecentActivityWidget>['recentActivity'];
+type RadarData = React.ComponentProps<typeof MaturityRadarWidget>['radarData'];
 
 interface AdminDashboardViewProps {
     stats: Stats;
@@ -27,44 +29,66 @@ interface AdminDashboardViewProps {
     healthIssues: HealthIssueList;
     topRisks: RiskList;
     recentActivity: ActivityList;
+    radarData: RadarData;
 }
 
 export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
-    stats, loading, navigate, t, theme, myActionItems, historyData, healthIssues, topRisks, recentActivity
+    stats, loading, navigate, t, theme, myActionItems, historyData, healthIssues, topRisks, recentActivity, radarData
 }) => {
     return (
         <motion.div
             variants={staggerContainerVariants}
             initial="initial"
             animate="animate"
-            className="space-y-6"
+            className="space-y-8"
         >
             <motion.div variants={slideUpVariants}>
                 <StatsOverview stats={stats} loading={loading} navigate={navigate} t={t} />
             </motion.div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <motion.div variants={slideUpVariants} className="col-span-1">
-                    <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
-                </motion.div>
-                <motion.div variants={slideUpVariants} className="col-span-1 lg:col-span-2">
-                    <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
-                </motion.div>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <motion.div variants={slideUpVariants} className="col-span-1">
-                    <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
-                </motion.div>
-                <motion.div variants={slideUpVariants} className="col-span-1 lg:col-span-2">
-                    <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />
-                </motion.div>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <motion.div variants={slideUpVariants}>
-                    <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
-                </motion.div>
-                <motion.div variants={slideUpVariants}>
-                    <CyberNewsWidget />
-                </motion.div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Focus Column (2/3) */}
+                <div className="lg:col-span-2 space-y-8">
+                    <motion.div variants={slideUpVariants}>
+                        <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
+                    </motion.div>
+
+                    <motion.div variants={slideUpVariants}>
+                        <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
+                    </motion.div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <motion.div variants={slideUpVariants}>
+                            <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
+                        </motion.div>
+                        <motion.div variants={slideUpVariants}>
+                            <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />
+                        </motion.div>
+                    </div>
+                </div>
+
+                {/* Right Context Column (1/3) */}
+                <div className="space-y-8">
+                    <motion.div variants={slideUpVariants} className="bg-card/40 backdrop-blur-md border border-border/60 rounded-[2rem] p-6 shadow-sm">
+                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6 text-center">Niveau de Maturité</h3>
+                        <div className="min-h-[250px] flex items-center justify-center -ml-2">
+                            <MaturityRadarWidget
+                                radarData={radarData}
+                                t={t}
+                                theme={theme}
+                                navigate={navigate}
+                            />
+                        </div>
+                    </motion.div>
+
+                    <motion.div variants={slideUpVariants}>
+                        <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
+                    </motion.div>
+
+                    <motion.div variants={slideUpVariants}>
+                        <CyberNewsWidget />
+                    </motion.div>
+                </div>
             </div>
         </motion.div>
     );

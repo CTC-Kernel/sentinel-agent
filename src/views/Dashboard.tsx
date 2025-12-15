@@ -31,7 +31,7 @@ interface ActionItem { id: string; type: 'audit' | 'document' | 'project' | 'pol
 
 let lastCountsFetchAt = 0;
 let lastCountsOrgId: string | null = null;
-let lastCountsValue: { teamSize: number; activeIncidentsCount: number; openAuditsCount: number } | null = null;
+let lastCountsValue: { activeIncidentsCount: number; openAuditsCount: number } | null = null;
 
 export const Dashboard: React.FC = () => {
     const [manualLoading, setManualLoading] = useState(true);
@@ -40,7 +40,7 @@ export const Dashboard: React.FC = () => {
     const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
-    const [teamSize, setTeamSize] = useState<number | null>(null);
+
     const [activeIncidentsCount, setActiveIncidentsCount] = useState(0);
     const [openAuditsCount, setOpenAuditsCount] = useState(0);
     const [showGettingStarted, setShowGettingStarted] = useState(true);
@@ -104,7 +104,7 @@ export const Dashboard: React.FC = () => {
                 const cacheTtlMs = 60 * 1000;
                 if (lastCountsValue && lastCountsOrgId === orgId && now - lastCountsFetchAt < cacheTtlMs) {
                     if (!didCancel) {
-                        setTeamSize(lastCountsValue.teamSize);
+
                         setActiveIncidentsCount(lastCountsValue.activeIncidentsCount);
                         setOpenAuditsCount(lastCountsValue.openAuditsCount);
                         setError(null);
@@ -127,14 +127,13 @@ export const Dashboard: React.FC = () => {
                 } catch { if (user.organizationName) setOrganizationName(user.organizationName); }
 
                 // Counts
-                const [userCount, incCount, auditCount] = await Promise.all([
-                    getCountFromServer(query(collection(db, 'users'), where('organizationId', '==', orgId))),
+                const [incCount, auditCount] = await Promise.all([
+
                     getCountFromServer(query(collection(db, 'incidents'), where('organizationId', '==', orgId), where('status', '!=', 'Fermé'))),
                     getCountFromServer(query(collection(db, 'audits'), where('organizationId', '==', orgId), where('status', 'in', ['Planifié', 'En cours'])))
                 ]);
 
                 const next = {
-                    teamSize: userCount.data().count,
                     activeIncidentsCount: incCount.data().count,
                     openAuditsCount: auditCount.data().count
                 };
@@ -143,7 +142,7 @@ export const Dashboard: React.FC = () => {
                 lastCountsFetchAt = now;
 
                 if (!didCancel) {
-                    setTeamSize(next.teamSize);
+
                     setActiveIncidentsCount(next.activeIncidentsCount);
                     setOpenAuditsCount(next.openAuditsCount);
                     setError(null);
@@ -481,15 +480,10 @@ export const Dashboard: React.FC = () => {
                 user={user}
                 organizationName={organizationName}
                 scoreGrade={scoreGrade}
-                radarData={radarData}
-                teamSize={teamSize}
-                activeIncidentsCount={activeIncidentsCount}
-                openAuditsCount={openAuditsCount}
                 loading={loading}
                 isEmpty={isEmpty}
                 navigate={navigate}
                 t={t}
-                theme={theme}
                 insight={insight}
                 generateICal={generateICal}
                 generateExecutiveReport={generateExecutiveReport}
@@ -524,6 +518,7 @@ export const Dashboard: React.FC = () => {
                                 healthIssues={healthIssues}
                                 topRisks={topRisks}
                                 recentActivity={recentActivity}
+                                radarData={radarData}
                             />
                         );
                     }
