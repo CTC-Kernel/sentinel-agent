@@ -41,9 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loadingRef.current = loading;
     }, [loading]);
 
-    useEffect(() => {
-        firebaseUserUidRef.current = firebaseUser?.uid;
-    }, [firebaseUser?.uid]);
+
 
     // Fonction pour rafraîchir le token et les claims
     const refreshSession = useCallback(async () => {
@@ -298,11 +296,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
 
         const unsubscribeAuth = onIdTokenChanged(auth, async (user) => {
-            // Prevent infinite loops: If the user ID hasn't changed, DO NOT re-run the whole profile logic.
-            // onSnapshot handles token refreshes internally.
-            // Only update the user object state to ensure claims are fresh in the UI.
+            // Prevent infinite loops: We must update the ref SYNCHRONOUSLY here.
+            // Waiting for useEffect or state updates causes a race condition where
+            // rapid token refreshes trigger handleUser() multiple times.
             const currentUid = firebaseUserUidRef.current;
             const newUid = user?.uid;
+
+            // IMMEDIATE UPDATE
+            firebaseUserUidRef.current = newUid;
 
             if (currentUid === newUid && newUid) {
                 // Token refreshed but same user identity.
