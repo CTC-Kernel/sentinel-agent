@@ -14,20 +14,19 @@ export const Notifications: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const { user } = useStore();
 
-    const fetchNotifications = React.useCallback(async () => {
+    // Real-time subscription
+    useEffect(() => {
         if (!user?.uid) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLoading(true);
-        try {
-            const data = await NotificationService.getAll(user.uid, 100);
-            setNotifications(data);
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Notifications.fetchNotifications', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    }, [user?.uid]);
 
-    useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+        const unsubscribe = NotificationService.subscribeToNotifications(user.uid, (data) => {
+            setNotifications(data);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [user?.uid]);
 
     const markAsRead = async (id: string) => {
         try {

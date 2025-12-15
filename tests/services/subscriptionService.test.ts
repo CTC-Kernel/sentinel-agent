@@ -4,6 +4,8 @@ import { getDoc, DocumentSnapshot } from 'firebase/firestore';
 
 // Explicitly mock firestore in this test file to ensure we can control it
 vi.mock('firebase/firestore', () => ({
+    __esModule: true,
+    default: vi.fn(),
     doc: vi.fn(),
     getDoc: vi.fn(),
     getFunctions: vi.fn(),
@@ -11,7 +13,8 @@ vi.mock('firebase/firestore', () => ({
     initializeFirestore: vi.fn(() => ({})),
     persistentLocalCache: vi.fn(),
     persistentMultipleTabManager: vi.fn(),
-    getFirestore: vi.fn(), // If used elsewhere
+    getFirestore: vi.fn(),
+    memoryLocalCache: vi.fn(),
 }));
 
 // Mock getPlanLimits to avoid dependency on config file if possible, or let it run if it's pure JS

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
 import { SettingsLayout } from '../components/settings/SettingsLayout';
 import { ProfileSettings } from '../components/settings/ProfileSettings';
@@ -35,7 +36,17 @@ const Settings: React.FC = () => {
             />
 
             <SettingsLayout currentTab={activeTab} onTabChange={setActiveTab}>
-                {renderContent()}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        {renderContent()}
+                    </motion.div>
+                </AnimatePresence>
             </SettingsLayout>
         </div>
     );

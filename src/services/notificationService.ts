@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, getDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, getDoc, onSnapshot } from 'firebase/firestore';
 import { UserProfile, Audit, Document as GRCDocument, Asset, Risk, ProjectTask, Incident, Control, Supplier } from '../types';
 import { sendEmail } from './emailService';
 import {
@@ -146,6 +146,28 @@ export class NotificationService {
         );
 
         await Promise.all(promises);
+    }
+
+    /**
+     * Subscribe to notifications for a user (Real-time)
+     */
+    static subscribeToNotifications(userId: string, callback: (notifications: Notification[]) => void): () => void {
+        const q = query(
+            collection(db, 'notifications'),
+            where('userId', '==', userId),
+            orderBy('createdAt', 'desc'),
+            limit(100)
+        );
+
+        return onSnapshot(q, (snapshot) => {
+            const notifications = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data()
+            } as Notification));
+            callback(notifications);
+        }, (error) => {
+            ErrorLogger.error(error, 'NotificationService.subscribeToNotifications');
+        });
     }
 
     /**
